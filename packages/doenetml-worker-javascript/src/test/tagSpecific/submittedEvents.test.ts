@@ -319,6 +319,78 @@ describe("Submitted event attempt counts @group1", async () => {
         expect(stateVariables[innerIdx].stateValues.numAttemptsLeft).eq(2);
     });
 
+    it("section-wide check work sends no event once its attempts are used up", async () => {
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(`
+    <section name="sec" sectionWideCheckWork maxNumAttempts="1">
+        <answer name="ans"><mathInput name="mi" />x</answer>
+    </section>
+    `);
+        const secIdx = await resolvePathToNodeIdx("sec");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        await updateMathInputValue({ latex: "y", componentIdx: miIdx, core });
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        let events = await submittedEvents();
+        expect(events.map((e) => e.object.componentType)).eqls([
+            "section",
+            "answer",
+        ]);
+        expect(events.every((e) => e.result.numAttemptsLeft === 0)).eq(true);
+
+        // A changed response, so the answer is not skipped as just submitted.
+        await updateMathInputValue({ latex: "x", componentIdx: miIdx, core });
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        events = await submittedEvents();
+        expect(events.length).eq(2);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[secIdx].stateValues.numSubmissions).eq(1);
+    });
+
+    it("pretzel's own button sends no event once the enclosing section-wide check work is used up", async () => {
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(`
+    <section name="sec" sectionWideCheckWork maxNumAttempts="1">
+        <pretzel name="p">
+            <problem><statement><p>1+1</p></statement><answer>2</answer></problem>
+            <problem><statement><p>1+2</p></statement><answer>3</answer></problem>
+        </pretzel>
+    </section>
+    `);
+        const secIdx = await resolvePathToNodeIdx("sec");
+        const pIdx = await resolvePathToNodeIdx("p");
+
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        let events = await submittedEvents();
+        expect(events.map((e) => e.object.componentType)).eqls([
+            "section",
+            "pretzel",
+        ]);
+        expect(events.every((e) => e.result.numAttemptsLeft === 0)).eq(true);
+
+        await submitAnswer({ componentIdx: pIdx, core });
+
+        events = await submittedEvents();
+        expect(events.length).eq(2);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[pIdx].stateValues.numSubmissions).eq(1);
+    });
+
     it("event carries an ISO 8601 UTC timestamp and version 0.2.0", async () => {
         const { core, resolvePathToNodeIdx, submittedEvents } =
             await createCoreRecordingEvents(`
