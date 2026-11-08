@@ -65,6 +65,11 @@ type CreateTestCoreOptions = {
      * (`takeErrorsReportedAfterLoad`); `"warn"` is what production does.
      */
     errorsAfterLoad?: ErrorsAfterLoad;
+    /**
+     * Receives each recorded event's payload, as the host's `sendEvent`
+     * would. Ignored by the Rust-core stand-in.
+     */
+    sendEvent?: (payload: Record<string, any>) => void;
 };
 
 export async function createTestCore({
@@ -81,6 +86,7 @@ export async function createTestCore({
     externalDoenetMLs = {},
     initialState,
     errorsAfterLoad,
+    sendEvent,
 }: CreateTestCoreOptions): Promise<
     Awaited<ReturnType<typeof createTestCoreJavascript>>
 > {
@@ -115,6 +121,7 @@ export async function createTestCore({
         externalDoenetMLs,
         initialState,
         errorsAfterLoad,
+        sendEvent,
     });
 }
 
@@ -132,6 +139,7 @@ async function createTestCoreJavascript({
     externalDoenetMLs = {},
     initialState,
     errorsAfterLoad,
+    sendEvent = () => null,
 }: CreateTestCoreOptions) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
@@ -305,7 +313,7 @@ async function createTestCoreJavascript({
         () => null,
         () => null,
         () => null,
-        () => null,
+        sendEvent,
         requestSolutionView,
     );
 
