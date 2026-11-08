@@ -1,6 +1,6 @@
 import { splitListItems } from "@doenet/parser/list-separation";
 import InlineComponent from "./abstract/InlineComponent";
-import { listBracketsUnmatchedInfo } from "./commonsugar/lists";
+import { listBracketsUnmatchedDiagnostic } from "./commonsugar/lists";
 
 export default class TextListFromString extends InlineComponent {
     static componentType = "textListFromString";
@@ -48,10 +48,11 @@ export default class TextListFromString extends InlineComponent {
                 nComponents,
                 diagnostics: unmatchedBrackets
                     ? [
-                          listBracketsUnmatchedInfo(
+                          listBracketsUnmatchedDiagnostic(
                               isAttributeComponent
                                   ? parentComponentType
                                   : "textListFromString",
+                              true,
                           ),
                       ]
                     : [],

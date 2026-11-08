@@ -2,7 +2,7 @@ import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
 import {
     breakIntoBracketedListEntries,
-    listBracketsUnmatchedInfo,
+    listBracketsUnmatchedDiagnostic,
     returnGroupIntoListEntriesOfComponentType,
 } from "../commonsugar/lists";
 import { codedDiagnostic } from "../../utils/diagnostics";
@@ -566,10 +566,11 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                     success: false,
                     diagnostics: results.unmatchedBrackets
                         ? [
-                              listBracketsUnmatchedInfo(
+                              listBracketsUnmatchedDiagnostic(
                                   isAttributeComponent
                                       ? parentComponentType
                                       : "_componentListOfListsWithSelectableType",
+                                  componentAttributes.type?.value === "text",
                               ),
                           ]
                         : [],

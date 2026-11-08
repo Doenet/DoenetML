@@ -2,7 +2,7 @@ import BaseComponent from "./abstract/BaseComponent";
 import { returnBreakStringsSugarFunction } from "./commonsugar/breakstrings";
 import {
     breakIntoBracketedListEntries,
-    listBracketsUnmatchedInfo,
+    listBracketsUnmatchedDiagnostic,
 } from "./commonsugar/lists";
 
 export class Extremum extends BaseComponent {
@@ -342,10 +342,11 @@ export class Extrema extends BaseComponent {
                     success: false,
                     diagnostics: results.unmatchedBrackets
                         ? [
-                              listBracketsUnmatchedInfo(
+                              listBracketsUnmatchedDiagnostic(
                                   isAttributeComponent
                                       ? parentComponentType
                                       : extremaClass.componentType,
+                                  false,
                               ),
                           ]
                         : [],

@@ -17,6 +17,7 @@ A diagnostic caused by a value that can change is now an info rather than a warn
 - **The target of an `<updateValue>` or `<animateFromSequence>` that holds nothing now**, such as a composite with no replacements or a list with no entries, gives an info (`doenet-w0043`). A missing target is still a warning.
 - **A graph's `grid`, bounds, `width` or `aspectRatio` from a value** that is invalid gives an info (`doenet-w0062`–`w0064`, `w0118`, `w0119`, `w0174`). A `grid` from a reference was silent before.
 
+- **Brackets that don't balance in a list written as text** (`doenet-i0058`) are an info only in a list of texts, such as `<textList>a) apple, b) banana</textList>`, where they are valid text. In any other list, such as `<mathList>(1, 2</mathList>`, they are a warning.
 A copy of a component reports at the same level as its source.
 
 Closes #2422.

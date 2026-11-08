@@ -261,7 +261,7 @@ describe("Separating the entries of a list @group4", async () => {
         ).eqls([1, 2]);
     });
 
-    it("brackets that don't balance are ignored, with an info", async () => {
+    it("brackets that don't balance are ignored, with an info for texts and a warning otherwise", async () => {
         const { stateVariables, resolvePathToNodeIdx, core } = await textsOf(
             `
     <textList name="tl">a) apple, b) banana</textList>
@@ -280,27 +280,28 @@ describe("Separating the entries of a list @group4", async () => {
                 .numComponents,
         ).eq(2);
 
-        // An info, not a warning: the DoenetML is valid, and the list reads
-        // as written (DIAG-1).
+        // An info for the list of texts, where an unbalanced bracket is valid
+        // text and the list reads as written; a warning for the others,
+        // whose entries can't hold one (DIAG-1).
         const diagnostics = getDiagnosticsByType(core);
-        expect(
-            diagnostics.warnings.filter((w) => w.code === "doenet-i0058")
-                .length,
-        ).eq(0);
-        const warnings = diagnostics.infos.filter(
+        const infos = diagnostics.infos.filter(
+            (d) => d.code === "doenet-i0058",
+        );
+        expect(infos.length).eq(1);
+        expect(infos[0].message).contains("<textList>");
+        const warnings = diagnostics.warnings.filter(
             (w) => w.code === "doenet-i0058",
         );
         // each names the component whose text it is, not that component's
         // parent
-        expect(warnings.length).eq(6);
-        expect(warnings[0].message).contains("<textList>");
-        expect(warnings[1].message).contains("<mathList>");
-        expect(warnings[2].message).contains("<sum>");
-        expect(warnings[3].message).contains("<and>");
-        expect(warnings[4].message).contains("<bezierControls>");
+        expect(warnings.length).eq(5);
+        expect(warnings[0].message).contains("<mathList>");
+        expect(warnings[1].message).contains("<sum>");
+        expect(warnings[2].message).contains("<and>");
+        expect(warnings[3].message).contains("<bezierControls>");
         // a tuple list, whose own sugar needs balanced brackets, reads its
         // text with them ignored and explains it too
-        expect(warnings[5].message).contains("<tupleList>");
+        expect(warnings[4].message).contains("<tupleList>");
         expect(
             stateVariables[await resolvePathToNodeIdx("tpl")].stateValues
                 .numComponents,
@@ -310,8 +311,8 @@ describe("Separating the entries of a list @group4", async () => {
     it("brackets that don't balance are explained in lists whose result is invalid, and in token lists", async () => {
         // Each is split with its brackets ignored. A grid, the extrema of a
         // function and the lists of `excludeCombinations` are then not
-        // usable, which their own warning says; the info says why. A token
-        // list is usable, and only the info is given.
+        // usable, which their own warning says; the bracket warning says
+        // why. The variant names are texts, so theirs is an info.
         const { core } = await textsOf(
             `
     <variantControl numVariants="2" variantNames="(a b" />
@@ -325,17 +326,19 @@ describe("Separating the entries of a list @group4", async () => {
             [],
         );
         const diagnostics = getDiagnosticsByType(core);
-        const infos = diagnostics.infos.filter(
-            (d) => d.code === "doenet-i0058",
-        );
+        const names = (level: { code?: string; message: string }[]) =>
+            level
+                .filter((d) => d.code === "doenet-i0058")
+                .map((d) => d.message.match(/<(\w+)>/)?.[1])
+                .sort();
         // each names the component whose attribute it is
-        expect(infos.map((d) => d.message.match(/<(\w+)>/)?.[1]).sort()).eqls([
+        expect(names(diagnostics.infos)).eqls(["variantControl"]);
+        expect(names(diagnostics.warnings)).eqls([
             "function",
             "graph",
             "graph",
             "selectFromSequence",
             "selectPrimeNumbers",
-            "variantControl",
         ]);
         const warningCodes = diagnostics.warnings.map((d) => d.code);
         expect(warningCodes.filter((c) => c === "doenet-w0119").length).eq(2);

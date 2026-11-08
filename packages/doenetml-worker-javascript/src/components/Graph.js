@@ -1,5 +1,5 @@
 import { splitListItems } from "@doenet/parser/list-separation";
-import { listBracketsUnmatchedInfo } from "./commonsugar/lists";
+import { listBracketsUnmatchedDiagnostic } from "./commonsugar/lists";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
@@ -1927,7 +1927,9 @@ export default class Graph extends BlockComponent {
                 const { groups: groupedChildren, unmatchedBrackets } =
                     groupGridAttrChildren(attrChildren);
                 if (unmatchedBrackets) {
-                    bracketsInfo = [listBracketsUnmatchedInfo("graph")];
+                    bracketsInfo = [
+                        listBracketsUnmatchedDiagnostic("graph", false),
+                    ];
                 }
 
                 if (groupedChildren.length < 2) {

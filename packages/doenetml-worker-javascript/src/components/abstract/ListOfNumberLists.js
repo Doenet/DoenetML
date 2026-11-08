@@ -1,6 +1,6 @@
 import {
     breakIntoBracketedListEntries,
-    listBracketsUnmatchedInfo,
+    listBracketsUnmatchedDiagnostic,
 } from "../commonsugar/lists";
 import InlineComponent from "./InlineComponent";
 
@@ -35,10 +35,11 @@ export default class ListOfNumberLists extends InlineComponent {
                     success: false,
                     diagnostics: results.unmatchedBrackets
                         ? [
-                              listBracketsUnmatchedInfo(
+                              listBracketsUnmatchedDiagnostic(
                                   isAttributeComponent
                                       ? parentComponentType
                                       : "_listOfNumberLists",
+                                  false,
                               ),
                           ]
                         : [],

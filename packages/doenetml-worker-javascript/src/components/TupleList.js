@@ -1,7 +1,7 @@
 import MathList from "./MathList";
 import {
     breakIntoBracketedListEntries,
-    listBracketsUnmatchedInfo,
+    listBracketsUnmatchedDiagnostic,
 } from "./commonsugar/lists";
 
 export default class TupleList extends MathList {
@@ -36,10 +36,11 @@ export default class TupleList extends MathList {
                     success: false,
                     diagnostics: results.unmatchedBrackets
                         ? [
-                              listBracketsUnmatchedInfo(
+                              listBracketsUnmatchedDiagnostic(
                                   isAttributeComponent
                                       ? parentComponentType
                                       : "tupleList",
+                                  false,
                               ),
                           ]
                         : [],
