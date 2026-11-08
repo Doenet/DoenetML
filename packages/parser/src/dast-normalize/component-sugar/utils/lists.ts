@@ -121,7 +121,7 @@ export function listBracketsUnmatchedError(
     return codedDastError({
         code: "doenet-i0058",
         error_type: "info",
-        message: `The brackets in the list of \`<${node.name}>\` don't all match, so they are ignored: the commas or spaces inside them separate entries like any others. To keep one inside an entry, balance the brackets, or write the entries as children.`,
+        message: `The brackets in the list of \`<${node.name}>\` don't all match, so they are ignored: the commas or spaces inside them separate entries like any others. To keep one inside an entry, balance the brackets, or, in a list written between tags, write its entries as children.`,
         args: { componentType: node.name },
         position,
         source_doc: node.source_doc,

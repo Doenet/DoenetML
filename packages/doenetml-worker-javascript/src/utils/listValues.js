@@ -704,7 +704,8 @@ function inferTypeFromStrings(matchedChildren) {
 /**
  * Sugar shared by the components that read their children as a list of typed
  * values — `<sort>`, `<sortIndices>`, `<shuffle>` and the index-returning and
- * counting operators: bare strings are split on whitespace and wrapped in the
+ * counting operators: bare strings are split into entries by the rule for
+ * lists (commas if there is one, spaces otherwise) and wrapped in the
  * component type named by the `type` attribute.
  *
  * Unlike the math-only operators, these components accept text as readily as

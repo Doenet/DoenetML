@@ -740,8 +740,9 @@ const MATH_INPUT_FUNCTION_NAME_ATTRS: ReadonlySet<string> = new Set([
 
 /**
  * Read a `textList`-shaped attribute on a DAST element by splitting its
- * source text on whitespace, mirroring how the runtime parses these
- * attributes (`TextListFromString`). Returns an empty array if the
+ * source text by the rule for lists (`splitListText`: commas if it has one,
+ * spaces otherwise), mirroring how the runtime parses these attributes
+ * (`TextListFromString`). Returns an empty array if the
  * attribute is absent or its text content is blank.
  *
  * Duplicate entries are dropped (first occurrence wins). The shared

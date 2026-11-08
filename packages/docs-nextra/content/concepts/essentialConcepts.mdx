@@ -115,11 +115,12 @@ of them separate the entries by the same rule:
   commas in a row (`a,,b`) give an empty entry.
 * **Only the text you write decides.** A reference such as `$a` is part of
   the entry it is written in (`2$a + 1, 3`), and a comma in its value does not
-  make the list use commas.
+  make the list use commas. In `<sum>{:dn}` and the other math and boolean
+  operators, though, each reference is an entry of its own.
 
 Adding one comma changes how the rest of the list is read: `x y, z` is the
-two entries `xy` (the product) and `z`. Anything the rule can't express can
-be written as children, one per entry.
+two entries `xy` (the product) and `z`. In a list written between tags,
+anything the rule can't express can be written as children, one per entry.
 
 ```doenet-editor
 <p>Spaces: <mathList name="spaces">x y z</mathList></p>

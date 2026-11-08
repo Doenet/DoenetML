@@ -107,8 +107,8 @@ using the `<sort>{:dn}` component.
 ### Attribute Example: type
 
 
-Bare string children are read as what they look like: if every whitespace-separated piece
-names a number the list is numeric, and otherwise it is text. So `<sort>10 2 1</sort>{:dn}`
+Bare string children are read as what they look like: if every entry of the
+[list](../concepts/essentialConcepts#lists) names a number the list is numeric, and otherwise it is text. So `<sort>10 2 1</sort>{:dn}`
 sorts by value and `<sort>d a b</sort>{:dn}` sorts alphabetically with nothing declared
 either way, and most documents never need `type` at all. Write it for the cases where the
 look is misleading.

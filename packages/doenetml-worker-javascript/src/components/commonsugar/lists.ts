@@ -244,7 +244,7 @@ export function listSplittingFromAttribute(
  * coordinates.
  *
  * Fails, so the sugar does nothing, when the text is not such a list,
- * including when its brackets don't balance.
+ * including when its brackets don't balance (`unmatchedBrackets`).
  */
 export function breakIntoBracketedListEntries({
     componentList,
@@ -253,11 +253,11 @@ export function breakIntoBracketedListEntries({
     componentList: (string | SerializedComponent)[];
     removeBrackets?: boolean;
 }):
-    | { success: false }
+    | { success: false; unmatchedBrackets?: boolean }
     | { success: true; pieces: (string | SerializedComponent)[][] } {
     const { entries, unmatchedBrackets } = splitListItems(componentList);
     if (unmatchedBrackets) {
-        return { success: false };
+        return { success: false, unmatchedBrackets };
     }
 
     const pieces: (string | SerializedComponent)[][] = [];

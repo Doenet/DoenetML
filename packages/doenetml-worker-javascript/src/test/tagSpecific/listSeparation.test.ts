@@ -10,8 +10,8 @@ vi.mock("hyperformula");
  * The one rule for separating the entries of a list written as text
  * (Doenet/DoenetML#2492): commas if the text has a comma outside brackets,
  * spaces otherwise; balanced brackets keep their contents together, any
- * closer closing any opener; brackets that don't balance are ignored, with a
- * warning; every comma separates two entries.
+ * closer closing any opener; brackets that don't balance are ignored, with an
+ * info; every comma separates two entries.
  */
 describe("Separating the entries of a list @group4", async () => {
     async function textsOf(doenetML: string, names: string[]) {
@@ -268,6 +268,7 @@ describe("Separating the entries of a list @group4", async () => {
     <mathList name="ml">f(a, b</mathList>
     <p><sum>1 2)</sum> <and>true (false</and></p>
     <graph><curve through="(0,0) (1,1) (2,0)"><bezierControls>(1, 1) (2, 2</bezierControls></curve></graph>
+    <tupleList name="tpl">(1, 2) (3, 4</tupleList>
     `,
             [],
         );
@@ -291,12 +292,19 @@ describe("Separating the entries of a list @group4", async () => {
         );
         // each names the component whose text it is, not that component's
         // parent
-        expect(warnings.length).eq(5);
+        expect(warnings.length).eq(6);
         expect(warnings[0].message).contains("<textList>");
         expect(warnings[1].message).contains("<mathList>");
         expect(warnings[2].message).contains("<sum>");
         expect(warnings[3].message).contains("<and>");
         expect(warnings[4].message).contains("<bezierControls>");
+        // a tuple list, whose own sugar needs balanced brackets, reads its
+        // text with them ignored and explains it too
+        expect(warnings[5].message).contains("<tupleList>");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tpl")].stateValues
+                .numComponents,
+        ).eq(3);
     });
 
     it("brackets that don't balance in a select or a repeat are reported", async () => {

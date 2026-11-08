@@ -795,7 +795,7 @@ copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored
 # comma or space inside them separates entries like any other.
 # $componentType is an element name, part of the DoenetML language, so it
 # stays in English.
-list-brackets-unmatched = The brackets in the list of `<{ $componentType }>` don't all match, so they are ignored: the commas or spaces inside them separate entries like any others. To keep one inside an entry, balance the brackets, or write the entries as children.
+list-brackets-unmatched = The brackets in the list of `<{ $componentType }>` don't all match, so they are ignored: the commas or spaces inside them separate entries like any others. To keep one inside an entry, balance the brackets, or, in a list written between tags, write its entries as children.
 
 # An `extend` is the same component again: it shares its source's content and
 # state, so it can't change what the component makes or what its state can

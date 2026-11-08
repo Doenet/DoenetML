@@ -80,7 +80,8 @@ export type SchemaAttribute = {
     /**
      * `true` when the attribute is list-valued and its `values` constrain each
      * item of the list (not the whole value). Schema-violation checks split the
-     * authored value on whitespace and validate each token; the help panel
+     * authored value into its entries by the rule for lists and validate each
+     * token; the help panel
      * phrases the constraint per-item.
      */
     isList?: boolean;
