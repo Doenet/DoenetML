@@ -1142,7 +1142,7 @@ export default class Vector extends GraphicalComponent {
                 // whether the displacement, head and tail are written in the
                 // DoenetML, so dimensions that don't match are a warning, or
                 // come from values that can change, so they are an info
-                // (DIAG-2)
+                // (DIAG-2); a label is none of them
                 decidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: [
@@ -1154,7 +1154,7 @@ export default class Vector extends GraphicalComponent {
                         "head",
                         "tail",
                     ],
-                    children: true,
+                    children: { except: ["label"] },
                 },
             }),
             definition: function ({ dependencyValues }) {

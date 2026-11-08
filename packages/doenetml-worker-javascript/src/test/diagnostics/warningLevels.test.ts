@@ -104,6 +104,42 @@ describe("Warning levels by the source of the condition", () => {
         ]);
     });
 
+    it("a reference in a label or title doesn't make a check of what it names value-driven", async () => {
+        // Only the children a check reads carry its condition: the values of
+        // a chart, the formula of a function, the function of a field, the
+        // parts of a vector. A
+        // label or title beside them, holding a reference, leaves an
+        // authored problem a warning; and on a pie, it is the axis name, not
+        // the values, that decides w0153.
+        const { diagnostics } = await setup(`
+<text name="t">name</text>
+<chart type="bar"><title>$t</title>4 x</chart>
+<function name="f" numInputs="2" domain="(0,1)"><label>$t</label>x y</function>
+<graph><slopeField><label>$t</label><function>(x,y)</function></slopeField></graph>
+<number name="n">1</number>
+<chart type="pie" categories="A B"><shortDescription>s</shortDescription><yLabel>people</yLabel>1 $n</chart>
+<chart type="pie" categories="A B"><shortDescription>s</shortDescription><yLabel>$t</yLabel>1 1</chart>
+<graph><vector tail="(1,2)" displacement="(1,2,3)"><label>$t</label></vector></graph>
+$f.domain
+`);
+        expect(diagnostics("doenet-w0144")).eqls([
+            { type: "warning", line: 3 },
+        ]);
+        expect(diagnostics("doenet-w0038")).eqls([
+            { type: "warning", line: 4 },
+        ]);
+        expect(diagnostics("doenet-w0122")).eqls([
+            { type: "warning", line: 5 },
+        ]);
+        expect(diagnostics("doenet-w0153")).eqls([
+            { type: "warning", line: 7 },
+            { type: "info", line: 8 },
+        ]);
+        expect(diagnostics("doenet-w0008")).eqls([
+            { type: "warning", line: 9 },
+        ]);
+    });
+
     it("w0141: decreasing cut points of a binCounts", async () => {
         const { diagnostics, setMath } = await setup(`
 <binCounts bins="0 5 2">1</binCounts>

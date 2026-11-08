@@ -83,10 +83,24 @@ export function componentDecidedByDoenetML(
 }
 
 /**
+ * Which children of a component can carry a diagnostic's condition: none
+ * (`false`), all (`true`), only those of the types in `only`, or all but
+ * those of the types in `except`. A child that is neither, such as a
+ * reference (`$data`), counts under `except` and not under `only`.
+ *
+ * A child that only labels the component (`<label>`, `<title>`) carries
+ * nothing a check of its data or formula reads, so a reference in it
+ * (`<label>$name</label>`) does not make the check value-driven.
+ */
+export type ChildrenThatCarry =
+    boolean | { only: string[] } | { except: string[] };
+
+/**
  * Whether the attributes `attributeNames` of the live component `component`,
- * and, with `children`, its children, are decided by the DoenetML alone
- * ({@link attributeDecidedByDoenetML}, {@link componentDecidedByDoenetML}).
- * What the `decidedByDoenetML` dependency gives.
+ * and the children `children` selects ({@link ChildrenThatCarry}), are
+ * decided by the DoenetML alone ({@link attributeDecidedByDoenetML},
+ * {@link componentDecidedByDoenetML}). What the `decidedByDoenetML`
+ * dependency gives.
  */
 export function partsDecidedByDoenetML({
     component,
@@ -96,7 +110,7 @@ export function partsDecidedByDoenetML({
 }: {
     component: any;
     attributeNames?: string[];
-    children?: boolean;
+    children?: ChildrenThatCarry;
     componentInfoObjects: any;
 }): boolean {
     return (
@@ -106,11 +120,37 @@ export function partsDecidedByDoenetML({
                 componentInfoObjects,
             ),
         ) &&
-        (!children ||
-            (component.definingChildren ?? []).every((child: any) =>
+        (component.definingChildren ?? [])
+            .filter((child: any) =>
+                childCarries(child, children, componentInfoObjects),
+            )
+            .every((child: any) =>
                 componentDecidedByDoenetML(child, componentInfoObjects),
-            ))
+            )
     );
+}
+
+/** Whether `children` selects `child` ({@link ChildrenThatCarry}). */
+function childCarries(
+    child: any,
+    children: ChildrenThatCarry,
+    componentInfoObjects: any,
+): boolean {
+    if (typeof children === "boolean") {
+        return children;
+    }
+    const isOfAType = (types: string[]) =>
+        typeof child === "object" &&
+        child !== null &&
+        types.some((type) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: child.componentType,
+                baseComponentType: type,
+            }),
+        );
+    return "only" in children
+        ? isOfAType(children.only)
+        : !isOfAType(children.except);
 }
 
 /**

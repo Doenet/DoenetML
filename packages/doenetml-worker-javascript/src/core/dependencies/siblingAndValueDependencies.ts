@@ -7,7 +7,10 @@
  */
 
 import { Dependency } from "./Dependency";
-import { partsDecidedByDoenetML } from "../../utils/decidedByDoenetML";
+import {
+    partsDecidedByDoenetML,
+    type ChildrenThatCarry,
+} from "../../utils/decidedByDoenetML";
 
 export class CountAmongSiblingsDependency extends Dependency {
     static dependencyType = "countAmongSiblings";
@@ -380,8 +383,9 @@ export class ValueDependency extends Dependency {
 }
 
 /**
- * Whether the attributes `attributeNames` of the component, and with
- * `children: true` its children, are decided by the DoenetML alone, rather
+ * Whether the attributes `attributeNames` of the component, and the
+ * children `children` selects (`true` for all, `{ only: [types] }` or
+ * `{ except: [types] }`), are decided by the DoenetML alone, rather
  * than by values that can change (`partsDecidedByDoenetML`). A definition
  * whose diagnostic can come from either reads it to set the level (DIAG-2,
  * `levelFromSource`).
@@ -394,7 +398,7 @@ export class DecidedByDoenetMLDependency extends Dependency {
 
     setUpParameters() {
         this.attributeNames = this.definition.attributeNames ?? [];
-        this.children = Boolean(this.definition.children);
+        this.children = this.definition.children ?? false;
     }
 
     async getValue() {
@@ -431,7 +435,7 @@ function decidedFollowingShadows({
 }: {
     component: any;
     attributeNames: string[];
-    children: boolean;
+    children: ChildrenThatCarry;
     components: any[];
     componentInfoObjects: any;
 }): boolean {

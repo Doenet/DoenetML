@@ -170,10 +170,11 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                 },
                 // whether the function is written in the DoenetML, so one
                 // with the wrong number of outputs is a warning, or comes
-                // from values that can change, so it is an info (DIAG-2)
+                // from values that can change, so it is an info (DIAG-2);
+                // a label is not the function
                 functionDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
-                    children: true,
+                    children: { except: ["label"] },
                 },
             }),
             definition({ dependencyValues }) {

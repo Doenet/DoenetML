@@ -628,11 +628,12 @@ export default class Function extends InlineComponent {
                     // whether the domain and what decides the number of
                     // inputs are written in the DoenetML, so a domain that
                     // doesn't fit is a warning, or come from values that can
-                    // change, so it is an info (DIAG-2)
+                    // change, so it is an info (DIAG-2); a label decides
+                    // neither
                     domainDecidedByDoenetML: {
                         dependencyType: "decidedByDoenetML",
                         attributeNames: ["domain", "numInputs", "variables"],
-                        children: true,
+                        children: { except: ["label"] },
                     },
                 },
             }),
