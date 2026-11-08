@@ -1344,14 +1344,23 @@ describe("Graph tag tests @group2", async () => {
 
             const diagnostics = getDiagnosticsByType(core);
             expect(diagnostics.errors.length, `grid="${gridValue}"`).eq(0);
-            expect(diagnostics.warnings.length, `grid="${gridValue}"`).eq(1);
-            expect(diagnostics.warnings[0].code, `grid="${gridValue}"`).eq(
-                "doenet-w0119",
+            // Brackets that don't balance (`(1 2`) also give their own
+            // warning, `doenet-i0058`, which says why the value was read as
+            // it was.
+            const gridWarnings = diagnostics.warnings.filter(
+                (w) => w.code !== "doenet-i0058",
             );
             expect(
-                diagnostics.warnings[0].message,
+                diagnostics.warnings.length - gridWarnings.length,
                 `grid="${gridValue}"`,
-            ).contain(`cannot interpret grid="${gridValue}"`);
+            ).eq(gridValue === "(1 2" ? 1 : 0);
+            expect(gridWarnings.length, `grid="${gridValue}"`).eq(1);
+            expect(gridWarnings[0].code, `grid="${gridValue}"`).eq(
+                "doenet-w0119",
+            );
+            expect(gridWarnings[0].message, `grid="${gridValue}"`).contain(
+                `cannot interpret grid="${gridValue}"`,
+            );
         }
     });
 
