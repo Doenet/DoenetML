@@ -28,6 +28,10 @@ export default defineConfig({
                 index: "./src/index.ts",
                 "pretty-printer": "./src/pretty-printer/index.ts",
                 "index-v06": "./src/index-v06.ts",
+                // The rule for separating the entries of a list, on its own:
+                // the worker imports it, and the main entry would bring the
+                // whole parser and its entity map into the worker's bundle.
+                "list-separation": "./src/list-separation.ts",
             },
             formats: ["es"],
         },

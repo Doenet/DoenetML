@@ -1,4 +1,4 @@
-import { splitListItems } from "@doenet/parser";
+import { splitListItems } from "@doenet/parser/list-separation";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {

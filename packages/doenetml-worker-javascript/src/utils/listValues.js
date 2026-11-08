@@ -1,7 +1,7 @@
 import me from "math-expressions";
 import { textToAst } from "./math";
 import { codedDiagnostic } from "./diagnostics";
-import { splitListItems } from "@doenet/parser";
+import { splitListItems } from "@doenet/parser/list-separation";
 import { returnGroupIntoListEntriesOfComponentType } from "../components/commonsugar/lists";
 
 /**

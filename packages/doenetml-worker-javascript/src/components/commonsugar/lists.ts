@@ -2,7 +2,7 @@ import {
     splitListItems,
     splitListText,
     type ListSplitting,
-} from "@doenet/parser";
+} from "@doenet/parser/list-separation";
 import { ComponentInfoObjects } from "../../utils/componentInfoObjects";
 import { SerializedComponent } from "../../utils/dast/types";
 import { codedDiagnostic } from "../../utils/diagnostics";
