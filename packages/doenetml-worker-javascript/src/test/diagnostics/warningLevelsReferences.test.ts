@@ -376,7 +376,47 @@ describe("What a reader writes to can change", () => {
 <binCounts bins="0 $a 2">1</binCounts>`,
         ],
         [
-            "a number in a point in a group a reader drags in a graph",
+            "a number a cell that is not fixed, in a fixed spreadsheet, references",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<spreadsheet fixed><cell fixed="false">$a</cell></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a cell in a row that is not fixed, in a fixed spreadsheet, references",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<spreadsheet fixed><row fixed="false"><cell>$a</cell></row></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a cell that is not fixed references, in a spreadsheet in a fixed group",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<group fixed><spreadsheet><cell fixed="false">$a</cell></spreadsheet></group>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point a reader drags in a graph, whose fixLocation is a reference",
+            "doenet-w0141",
+            "info",
+            `<boolean name="b">false</boolean><number name="a">5</number>
+<graph><point fixLocation="$b">($a,1)</point></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a button's anchor references, in a graph, whose fixLocation is a reference",
+            "doenet-w0141",
+            "info",
+            `<boolean name="b">false</boolean><number name="a">5</number><number name="n">1</number>
+<graph><updateValue anchor="($a,1)" fixLocation="$b" target="$n" newValue="2"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point a reader drags in a graph",
             "doenet-w0141",
             "info",
             `<number name="a">5</number>

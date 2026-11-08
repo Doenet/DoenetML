@@ -27,9 +27,10 @@
  *
  * A write to a component reaches its descendants and, through them, what
  * they reference (an inverse definition), until a fixed component stops it:
- * neither a fixed component nor what it references is written to, and the
- * write reaches past it only a descendant that writes `fixed="false"`
- * (a `<cell fixed="false">` in a `<row fixed>`).
+ * neither a fixed component nor what is under it or what it references is
+ * written to. Only a spreadsheet writes past one, to a cell that writes
+ * `fixed="false"` in a fixed row or column (a `<cell fixed="false">` in a
+ * `<row fixed>`).
  * `fixLocation` stops only a write to a location (`isLocation`), as
  * `EssentialValueWriter` does, so it stops a write only at a component
  * that has one (a point, a line): a `<numberList fixLocation>` an input is
@@ -63,6 +64,14 @@ const ACTION_TYPES = new Set([
 const EDITED_TYPES = new Set(["spreadsheet"]);
 
 /**
+ * The components that only arrange what a reader edits in place: a
+ * spreadsheet writes to its cells itself, not through a `<row>`, `<column>`
+ * or `<cellBlock>`, so a fixed one doesn't stop a write to a cell in it that
+ * writes its own `fixed="false"`.
+ */
+const ARRANGING_TYPES = new Set(["row", "column", "cellBlock"]);
+
+/**
  * The inputs that write their value back to their value child, when they
  * have one (the inverse that sets `mathChild`, `textChild` or
  * `booleanChild`), and the type of that child. A `<choiceInput>` writes
@@ -81,7 +90,7 @@ const VALUE_CHILD_TYPE_OF_INPUT: Record<string, string> = {
  * its value type (`<math>`, `<text>`, `<boolean>`; `$a` written as a child
  * of a `<mathInput>` is wrapped in a `<math>`), or a composite that can
  * become one (`$b` in a `<booleanInput>`). A label or a description is
- * not one, nor is the input's own grid.
+ * not one, nor is the input's own grid (`_matrixInputGrid`, a composite).
  */
 function valueChildren(
     node: any,
@@ -92,6 +101,7 @@ function valueChildren(
         (child: any) =>
             typeof child === "object" &&
             child !== null &&
+            child.componentType !== "_matrixInputGrid" &&
             (child.componentType === valueType ||
                 (componentInfoObjects?.isCompositeComponent
                     ? componentInfoObjects.isCompositeComponent({
@@ -153,7 +163,10 @@ function referencesIn(value: any, found: number[] = []): number[] {
 
 /**
  * Whether the serialized attribute `attribute` is written as true: present
- * with no value (`fixed`), or `true`. One that holds a reference is not.
+ * with no value (`fixed`), or `true`. One that holds a reference is not,
+ * whether the reference is a child of its component (`fixed="$b"`, a
+ * `<boolean>` holding `$b`) or the component itself (`fixLocation="$b"`,
+ * a `_ref` extending `b`).
  */
 function writtenAsTrue(attribute: any): boolean {
     if (!attribute) {
@@ -166,7 +179,7 @@ function writtenAsTrue(attribute: any): boolean {
         return attribute.value === true;
     }
     const component = attribute.component;
-    if (!component) {
+    if (!component || component.extending) {
         return false;
     }
     if (component.state && "value" in component.state) {
@@ -376,10 +389,13 @@ export function buildReaderWritableIndex(
 
     // A write reaches a component's descendants, each visited on its own,
     // so that a fixed one stops it, and what each references itself (an
-    // inverse definition). Under a component it stops at (`stopped`), it
-    // reaches only a descendant that writes its own `fixed="false"` (a
-    // `<cell fixed="false">` in a `<row fixed>`, which the spreadsheet
-    // writes to itself), and what is under that one.
+    // inverse definition). A write to a fixed component stops there: it
+    // reaches nothing under it, as each write passes through it. Only a
+    // spreadsheet writes past a fixed component, to a cell in a fixed row,
+    // column or cell block (`ARRANGING_TYPES`), so under one of those
+    // (`stopped`) it reaches only a descendant that writes its own
+    // `fixed="false"` (a `<cell fixed="false">` in a `<row fixed>`), and
+    // what is under that one.
     const writable = new Set<number>();
     const reached = new Set<any>();
     const reachedStopped = new Set<any>();
@@ -413,6 +429,9 @@ export function buildReaderWritableIndex(
             for (const idx of ownReferencesIn(node)) {
                 queue.push({ item: idx, stopped: false });
             }
+        }
+        if (stopped && !ARRANGING_TYPES.has(node.componentType)) {
+            continue;
         }
         for (const under of componentsUnder(node)) {
             queue.push({ item: under, stopped });
