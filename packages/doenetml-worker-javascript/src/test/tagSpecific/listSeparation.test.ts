@@ -306,6 +306,35 @@ describe("Separating the entries of a list @group4", async () => {
         }
     });
 
+    it("text a composite child gives is split by the rule on its own", async () => {
+        // The list's own text is split as its sugar split it; text from a
+        // `<conditionalContent>` or `<repeat>` its sugar never saw.
+        const { texts } = await textsOf(
+            `
+    <p name="commasThenSpaces"><numberList>1, 2 <conditionalContent condition="true">3 4</conditionalContent></numberList></p>
+    <p name="spacesThenCommas"><mathList>1 2 <conditionalContent condition="true">x, y</conditionalContent></mathList></p>
+    <p name="repeat"><textList>a, b <repeat for="1" valueName="v">c d</repeat></textList></p>
+    `,
+            ["commasThenSpaces", "spacesThenCommas", "repeat"],
+        );
+        expect(texts.commasThenSpaces).eq("1, 2, 3, 4");
+        expect(texts.spacesThenCommas).eq("1, 2, x, y");
+        expect(texts.repeat).eq("a, b, c, d");
+    });
+
+    it("a character outside the basic plane doesn't stop text being one group in brackets", async () => {
+        const { stateVariables, resolvePathToNodeIdx } = await textsOf(
+            `
+    <intervalList name="il">(1, 2) [😀, 4]</intervalList>
+    `,
+            [],
+        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("il")].stateValues
+                .numComponents,
+        ).eq(2);
+    });
+
     it("removeStrings separates by spaces alone, since a comma is often one", async () => {
         const { stateVariables, resolvePathToNodeIdx } = await textsOf(
             `

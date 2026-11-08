@@ -310,7 +310,9 @@ function isOneBracketedGroup(piece: (string | SerializedComponent)[]) {
         if (typeof item !== "string") {
             continue;
         }
-        for (const [charInd, char] of [...item].entries()) {
+        // by UTF-16 index, as `item.length` counts
+        for (let charInd = 0; charInd < item.length; charInd++) {
+            const char = item[charInd];
             if ("([{".includes(char)) {
                 depth++;
             } else if (")]}".includes(char)) {

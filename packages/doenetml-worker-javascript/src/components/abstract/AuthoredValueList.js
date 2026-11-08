@@ -519,15 +519,28 @@ export default class AuthoredValueList extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "listSplitting",
                 },
+                copyListViaComposite: {
+                    dependencyType: "stateVariable",
+                    variableName: "copyListViaComposite",
+                },
+                extendListViaComposite: {
+                    dependencyType: "stateVariable",
+                    variableName: "extendListViaComposite",
+                },
             }),
             definition({ dependencyValues }) {
                 const textPieceValues = [];
-                for (const text of dependencyValues.stringChildren) {
+                const splittingOf = stringSplittings(
+                    dependencyValues,
+                    dependencyValues.stringChildren,
+                );
+                for (const [
+                    childInd,
+                    text,
+                ] of dependencyValues.stringChildren.entries()) {
                     for (const piece of listClass.splitTextIntoPieces(
                         text,
-                        listSplittingFromAttribute(
-                            dependencyValues.listSplitting,
-                        ),
+                        splittingOf(childInd),
                     ) ?? []) {
                         textPieceValues.push(
                             listClass.parseTextPiece(
@@ -560,11 +573,23 @@ export default class AuthoredValueList extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "listSplitting",
                 },
+                copyListViaComposite: {
+                    dependencyType: "stateVariable",
+                    variableName: "copyListViaComposite",
+                },
+                extendListViaComposite: {
+                    dependencyType: "stateVariable",
+                    variableName: "extendListViaComposite",
+                },
             }),
             definition({ dependencyValues }) {
                 const stringChildren = dependencyValues.stringChildren;
                 const ranges = stringChildren.compositeReplacementRange ?? [];
                 const textPieceWriteKeys = [];
+                const splittingOf = stringSplittings(
+                    dependencyValues,
+                    stringChildren,
+                );
                 let ownPieceInd = 0;
                 const numStringsOfComposite = {};
                 for (const [childInd, text] of stringChildren.entries()) {
@@ -578,9 +603,7 @@ export default class AuthoredValueList extends ValueListComponent {
                     const pieces =
                         listClass.splitTextIntoPieces(
                             text,
-                            listSplittingFromAttribute(
-                                dependencyValues.listSplitting,
-                            ),
+                            splittingOf(childInd),
                         ) ?? [];
                     for (const pieceInString of pieces.keys()) {
                         textPieceWriteKeys.push(
@@ -715,17 +738,30 @@ export default class AuthoredValueList extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "listSplitting",
                 },
+                copyListViaComposite: {
+                    dependencyType: "stateVariable",
+                    variableName: "copyListViaComposite",
+                },
+                extendListViaComposite: {
+                    dependencyType: "stateVariable",
+                    variableName: "extendListViaComposite",
+                },
             }),
             definition({ dependencyValues }) {
                 const sources = [];
-                for (const child of dependencyValues.children) {
+                const splittingOf = stringSplittings(
+                    dependencyValues,
+                    dependencyValues.children,
+                );
+                for (const [
+                    childInd,
+                    child,
+                ] of dependencyValues.children.entries()) {
                     if (typeof child === "string") {
                         sources.push(
                             ...(listClass.splitTextIntoPieces(
                                 child,
-                                listSplittingFromAttribute(
-                                    dependencyValues.listSplitting,
-                                ),
+                                splittingOf(childInd),
                             ) ?? []),
                         );
                     } else {
@@ -784,6 +820,14 @@ export default class AuthoredValueList extends ValueListComponent {
                         dependencyType: "stateVariable",
                         variableName: "listSplitting",
                     },
+                    copyListViaComposite: {
+                        dependencyType: "stateVariable",
+                        variableName: "copyListViaComposite",
+                    },
+                    extendListViaComposite: {
+                        dependencyType: "stateVariable",
+                        variableName: "extendListViaComposite",
+                    },
                     shadow: {
                         dependencyType: "stateVariable",
                         variableName: "listValuesShadow",
@@ -828,13 +872,18 @@ export default class AuthoredValueList extends ValueListComponent {
 
                 let pieceInd = 0;
                 let componentInd = 0;
-                for (const child of dependencyValues.children) {
+                const splittingOf = stringSplittings(
+                    dependencyValues,
+                    dependencyValues.children,
+                );
+                for (const [
+                    childInd,
+                    child,
+                ] of dependencyValues.children.entries()) {
                     if (typeof child === "string") {
                         const pieces = listClass.splitTextIntoPieces(
                             child,
-                            listSplittingFromAttribute(
-                                dependencyValues.listSplitting,
-                            ),
+                            splittingOf(childInd),
                         );
                         if (pieces === null) {
                             invalidText = true;
@@ -1913,6 +1962,37 @@ export function entrySourceValue({
             : restoredValue(value, entryKind(entryType));
     }
     return undefined;
+}
+
+/**
+ * How each string among `children`, a child dependency of a list, is split
+ * (`splitTextIntoPieces`), by its index: the list's own text as sugar split
+ * the written text it was kept from (`listSplitting`), and text that a
+ * composite among the children gives (`<repeat>`, `<conditionalContent>`)
+ * by the rule for lists on its own, as sugar never saw it. Text that the
+ * list's own `copy=` or `extend=` gives (`copyListViaComposite`,
+ * `extendListViaComposite`) is the referenced list's own text.
+ */
+function stringSplittings(dependencyValues, children) {
+    const splitting = listSplittingFromAttribute(
+        dependencyValues.listSplitting,
+    );
+    if (!splitting) {
+        return () => undefined;
+    }
+    const referenceComposites = [
+        dependencyValues.copyListViaComposite,
+        dependencyValues.extendListViaComposite,
+    ].filter((idx) => idx != null);
+    const ranges = (children.compositeReplacementRange ?? []).filter(
+        (range) => !referenceComposites.includes(range.compositeIdx),
+    );
+    return (childInd) =>
+        ranges.some(
+            (range) => range.firstInd <= childInd && range.lastInd >= childInd,
+        )
+            ? undefined
+            : splitting;
 }
 
 /**
