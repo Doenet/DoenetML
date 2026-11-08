@@ -22,10 +22,12 @@ function returnScoredContainerAncestorDependency(...variableNames) {
  * The flag means "no cap" when it is absent, `null` (what `Infinity` becomes
  * when flags travel as JSON, as they do into the iframe wrapper), `Infinity`,
  * or anything that is not a number or a numeric string. A numeric string is
- * accepted because the standalone build reads flags from `data-doenet-*`
- * attributes. A fractional cap is rounded down, and a negative one
- * (`-Infinity` included) counts as zero. An author's value that is not a
- * number sets no limit of its own, so a cap from the flag still applies.
+ * accepted in case a host passes one (the standalone build turns its
+ * `data-doenet-max-num-attempts` attribute into a number, but a `flags`
+ * object reaches the core as given). A fractional cap is rounded down, and a
+ * negative one (`-Infinity` included) counts as zero. An author's value that
+ * is not a number sets no limit of its own, so a cap from the flag still
+ * applies.
  *
  * @param {number} authorMaxNumAttempts - the author's `maxNumAttempts`
  * @param {unknown} flagMaxNumAttempts - the host's `maxNumAttempts` flag
@@ -922,8 +924,9 @@ export function returnStandardAnswerStateVariableDefinition() {
 
             // Inside a section-wide check work, the answer's own
             // `maxNumAttempts` (and so the host's flag of that name) is ignored:
-            // the enclosing container controls the number of attempts. Report that container's remaining attempts so
-            // the public `numAttemptsLeft` is accurate. This matches how a
+            // the enclosing container controls the number of attempts. Report
+            // that container's remaining attempts so the public
+            // `numAttemptsLeft` is accurate. This matches how a
             // `maxNumAttempts` on a nested `sectionWideCheckWork` container is
             // ignored.
             const numAttemptsLeft = insideSectionWideCheckWork

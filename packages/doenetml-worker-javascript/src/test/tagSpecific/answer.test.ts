@@ -4876,6 +4876,33 @@ Enter any letter:
             });
         }
 
+        it("a maxNumAttempts changed by an updateValue survives a reload", async () => {
+            // With no attribute, the changed limit is a stored value.
+            const doenetML = `
+    <answer name="ans">x</answer>
+    <updateValue name="uv" target="$ans.maxNumAttempts" newValue="1" />
+  `;
+            const first = await createTestCore({ doenetML });
+            await updateValue({
+                componentIdx: await first.resolvePathToNodeIdx("uv"),
+                core: first.core,
+            });
+            await first.core.saveImmediately();
+
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv =
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues;
+            expect(sv.maxNumAttempts).eq(1);
+            expect(sv.numAttemptsLeft).eq(1);
+        });
+
         it("the cap still holds after reloading saved state", async () => {
             const doenetML = `<answer name="answer1">x</answer>`;
             const first = await submitResponses({

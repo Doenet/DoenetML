@@ -443,6 +443,13 @@ describe("section-wide check work attribute tests @group2", async () => {
         // answer is capped by the flag on its own.
         expect(await numAttemptsLeft("plain")).eq(Infinity);
         expect(await numAttemptsLeft("c1")).eq(2);
+        // The flag is not an author's `maxNumAttempts`, so the warnings about
+        // an ignored `maxNumAttempts` stay silent.
+        expect(
+            getDiagnosticsByType(core).warnings.filter((w: any) =>
+                w.message.includes("maxNumAttempts"),
+            ).length,
+        ).eq(0);
 
         for (const latex of ["3", "4", "5"]) {
             await fillIn("a1", latex);
