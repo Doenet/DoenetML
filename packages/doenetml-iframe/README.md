@@ -561,9 +561,8 @@ content experienced, …). Fire-and-forget; no response is expected:
         object,          // JSON string: the component acted on
         result,          // JSON string: the outcome
         context,         // JSON string: additional context
-        timestamp,       // "YYYY-MM-DD HH:MM:SS", UTC, no zone
-        timestampIso,    // "YYYY-MM-DDTHH:MM:SS.sssZ", ISO 8601 UTC
-        version,         // "0.1.2"
+        timestamp,       // "YYYY-MM-DDTHH:MM:SS.sssZ", ISO 8601 UTC
+        version,         // "0.2.0"
     },
 }
 ```
@@ -586,8 +585,9 @@ and cap them without reading the document:
 A submission made after the attempts are used up is ignored and sends no
 event.
 
-Version history: `0.1.2` added `timestampIso` and the attempt counts above;
-`timestamp` is unchanged.
+Version history: `0.2.0` changed `timestamp` to ISO 8601 UTC (it was
+`"YYYY-MM-DD HH:MM:SS"`, UTC with no zone) and added the attempt counts
+above.
 
 ## Development
 

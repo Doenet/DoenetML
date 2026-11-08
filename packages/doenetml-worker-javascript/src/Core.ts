@@ -1241,7 +1241,6 @@ export default class Core {
             event.context = {};
         }
 
-        const now = new Date();
         const payload = {
             activityId: this.activityId,
             cid: this.cid,
@@ -1258,12 +1257,10 @@ export default class Core {
                 event.context,
                 serializedComponentsReplacer,
             ),
-            // `timestamp` is UTC to the second with no zone ("YYYY-MM-DD
-            // HH:MM:SS"), kept for existing hosts; `timestampIso` is the same
-            // instant as a full ISO 8601 UTC string, added in version 0.1.2.
-            timestamp: now.toISOString().slice(0, 19).replace("T", " "),
-            timestampIso: now.toISOString(),
-            version: "0.1.2",
+            // ISO 8601 UTC, such as "2026-11-07T22:21:06.123Z". Before
+            // version 0.2.0 it was "YYYY-MM-DD HH:MM:SS", UTC with no zone.
+            timestamp: new Date().toISOString(),
+            version: "0.2.0",
         };
 
         this.sendEvent(payload);

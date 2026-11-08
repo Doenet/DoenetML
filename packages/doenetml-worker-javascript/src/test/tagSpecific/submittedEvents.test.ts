@@ -319,7 +319,7 @@ describe("Submitted event attempt counts @group1", async () => {
         expect(stateVariables[innerIdx].stateValues.numAttemptsLeft).eq(2);
     });
 
-    it("event carries an ISO 8601 UTC timestamp and version 0.1.2", async () => {
+    it("event carries an ISO 8601 UTC timestamp and version 0.2.0", async () => {
         const { core, resolvePathToNodeIdx, submittedEvents } =
             await createCoreRecordingEvents(`
     <answer name="ans"><mathInput name="mi" />x</answer>
@@ -330,14 +330,11 @@ describe("Submitted event attempt counts @group1", async () => {
         });
 
         const [event] = await submittedEvents();
-        expect(event.version).eq("0.1.2");
-        expect(event.timestampIso).match(
+        expect(event.version).eq("0.2.0");
+        expect(event.timestamp).match(
             /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
         );
-        // The older field is unchanged: the same instant, to the second,
-        // with no zone.
-        expect(event.timestamp).eq(
-            event.timestampIso.slice(0, 19).replace("T", " "),
-        );
+        // A real instant, which a host can parse with `new Date`.
+        expect(new Date(event.timestamp).toISOString()).eq(event.timestamp);
     });
 });
