@@ -5789,16 +5789,30 @@ function retypeTextPieces({
     ) {
         return nComponents;
     }
-    // A piece of text was separated by white space from what is beside it
-    // (`groupIntoComponentTypeSeparatedBySpacesOutsideParens`), so it is
-    // given back with spaces around it, or it would join a reference next to
-    // it: `10 $x 3` would be read as the one text `10$x3`.
+    // Each child is one entry of the list the source's text was split into
+    // (`returnGroupIntoListEntriesOfComponentType`), so the pieces are given
+    // back separated by commas, which none of them holds outside brackets:
+    // the sugar splits them into the same entries whether the source was
+    // separated by commas (`b a, c` stays two) or by spaces, and a piece does
+    // not join a reference next to it (`10 $x 3` is not the one text
+    // `10$x3`).
     const children = [];
     for (const child of replacement.children) {
+        if (typeof child === "string" && child.trim() === "") {
+            continue;
+        }
         const item =
             typeof child?.doenetAttributes?.textPiece === "string"
-                ? ` ${child.doenetAttributes.textPiece} `
+                ? child.doenetAttributes.textPiece
                 : child;
+        if (children.length > 0) {
+            const last = children[children.length - 1];
+            if (typeof last === "string") {
+                children[children.length - 1] = `${last}, `;
+            } else {
+                children.push(", ");
+            }
+        }
         const last = children[children.length - 1];
         if (typeof item === "string" && typeof last === "string") {
             children[children.length - 1] = `${last}${item}`;

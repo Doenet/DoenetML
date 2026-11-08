@@ -184,6 +184,14 @@ export default class MathInput extends Input {
         };
         attributes.removeStrings = {
             createComponentOfType: "textList",
+            // Separated by spaces alone, with brackets not grouping: a comma
+            // or a bracket is often one of the strings to remove
+            // (`removeStrings=", $"`), so the rule for lists
+            // (Doenet/DoenetML#2492), under which a comma separates
+            // entries, does not apply.
+            attributesForCreatedComponent: {
+                _listSplitting: "space ignoreBrackets",
+            },
             createStateVariable: "removeStrings",
             defaultValue: null,
             description: "Substrings to strip from the input before parsing.",

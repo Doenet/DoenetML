@@ -518,7 +518,9 @@ export default class Chart extends BlockComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(
+                this.componentType,
+            ),
         );
 
         return sugarInstructions;

@@ -517,7 +517,9 @@ export class BinCounts extends CountingBaseListOperator {
         // three numbers. There is nothing for a `type` to choose here: a value
         // that is not a number falls in no bin, whatever it was read as.
         sugarInstructions.push(
-            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(
+                this.componentType,
+            ),
         );
 
         return sugarInstructions;

@@ -1,9 +1,13 @@
 import { DastElement } from "../../types";
-import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
+import {
+    groupTextAndReferencesIntoListEntries,
+    listBracketsUnmatchedError,
+} from "./utils/lists";
 
 /**
  * There is a special type of sugar for select where, instead of specifying `<option>`s,
- * you can use a space-delimited list.
+ * you can write the options as a list, separated by commas or spaces by the
+ * one rule for lists (`groupTextAndReferencesIntoListEntries`).
  *
  * For example `<select>a $b $$f(x) (c - $d) e$g</select>` becomes:
  * ```xml
@@ -16,8 +20,10 @@ import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
  * </select>
  * ```
  *
+ * Written `<select>x + 1, $b, (c - $d)</select>`, it has three options.
+ *
  * The rule is if the children of the select are all text or reference (macro or function) nodes,
- * then attempt to break the children into groups separated by parenthesis,
+ * then break the children into the entries of a list,
  * and then wrap each group in
  * - an option node and
  * - a node whose componentType is determined by the select's `type` tag, defaulting to `"math"`.
@@ -43,7 +49,7 @@ export function selectSugar(node: DastElement) {
         }
     }
 
-    const groupResult = groupTextAndReferencesBySpacesOutsideParens({
+    const groupResult = groupTextAndReferencesIntoListEntries({
         children: node.children,
         componentType: insertType,
     });
@@ -58,6 +64,8 @@ export function selectSugar(node: DastElement) {
                 source_doc: child.source_doc,
             }),
         );
-        node.children = newChildren;
+        node.children = groupResult.unmatchedBrackets
+            ? [listBracketsUnmatchedError(node), ...newChildren]
+            : newChildren;
     }
 }

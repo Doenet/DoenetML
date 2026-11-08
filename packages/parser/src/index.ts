@@ -5,6 +5,7 @@ export * from "./types";
 export * from "./types-util";
 export * from "./detect-version";
 export * from "./document-lang";
+export * from "./list-separation";
 export {
     visit,
     visitIncludingPathIndices,

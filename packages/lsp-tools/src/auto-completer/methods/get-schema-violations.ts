@@ -5,6 +5,7 @@ import {
     DastElement,
     DastNodes,
     DastRoot,
+    splitListText,
     toXml,
     visit,
 } from "@doenet/parser";
@@ -250,11 +251,14 @@ export async function getSchemaViolations(
                             : toXml(attr.children);
                     const valueRange = getAttributeValueRange(attr);
                     // List-valued attributes constrain each item, so split
-                    // the authored value on whitespace and flag any token
-                    // that isn't allowed. Scalar attributes validate the
-                    // whole value as before.
+                    // the authored value into its entries by the rule for
+                    // lists (`splitListText`: commas if it has one, spaces
+                    // otherwise) and flag any token that isn't allowed.
+                    // Scalar attributes validate the whole value as before.
                     const tokensToCheck = allowedValues.isList
-                        ? attrValue.split(/\s+/).filter((t) => t.length > 0)
+                        ? splitListText(attrValue).entries.filter(
+                              (t) => t.length > 0,
+                          )
                         : [attrValue];
                     const invalidTokens = tokensToCheck.filter(
                         (token) =>

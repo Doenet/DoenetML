@@ -22,6 +22,10 @@
             "import": "./dist/index-v06.js",
             "types": "./dist/index-v06.d.ts"
         },
+        "./list-separation": {
+            "import": "./dist/list-separation.js",
+            "types": "./dist/list-separation.d.ts"
+        },
         "./*": {
             "import": "./dist/*.js"
         }

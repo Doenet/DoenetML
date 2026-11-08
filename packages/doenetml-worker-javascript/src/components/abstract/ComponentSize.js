@@ -5,6 +5,7 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import { mathStateVariableFromNumberStateVariable } from "../../utils/math";
+import { returnGroupIntoListEntriesOfComponentType } from "../commonsugar/lists";
 
 const unitConversions = {
     "": 1,
@@ -533,75 +534,30 @@ export class ComponentSizeList extends BaseComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
+        // Break the children into the entries of a list by the one rule for
+        // lists (Doenet/DoenetML#2492), `30% 70%` or `30%, 70%`, and wrap
+        // each in a componentSize. A component written in the text is part
+        // of the size it is written in (`$w%`).
+        const groupIntoListEntries = returnGroupIntoListEntriesOfComponentType({
+            componentType: "componentSize",
+            forceComponentType: true,
+            includeNonMacros: true,
+        });
+
         let breakIntoComponentSizesByEmbeddedSpaces = function ({
             matchedChildren,
+            componentInfoObjects,
             nComponents,
             stateIdInfo,
+            parentComponentType,
         }) {
-            // break components into pieces by any spaces in a string
-            // and wrap pieces with componentSize
-
-            let newChildren = [];
-            let piece = [];
-
-            let createNewChildFromPiece = function () {
-                if (piece.length > 0) {
-                    newChildren.push({
-                        type: "serialized",
-                        componentType: "componentSize",
-                        componentIdx: nComponents++,
-                        stateId: stateIdInfo
-                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                            : undefined,
-                        children: piece,
-                        attributes: {},
-                        doenetAttributes: {},
-                        state: {},
-                    });
-                    piece = [];
-                }
-            };
-
-            for (let child of matchedChildren) {
-                if (typeof child === "string") {
-                    let strParts = child.split(/\s+/);
-
-                    if (strParts[0].length === 0) {
-                        // string begins with a space
-                        // so if piece contains anything, it is a new child
-
-                        createNewChildFromPiece();
-
-                        strParts = strParts.slice(1);
-                    }
-
-                    for (let [i, s] of strParts.entries()) {
-                        if (s.length > 0) {
-                            piece.push(s);
-                            if (i < strParts.length - 1) {
-                                // if not last part, it means there was a space
-                                // after this part
-                                createNewChildFromPiece();
-                            }
-                        } else {
-                            // if have empty string (could only occur at end)
-                            // then means ended with a space
-                            createNewChildFromPiece();
-                        }
-                    }
-                } else {
-                    // not a string, so add to piece
-                    piece.push(child);
-                }
-            }
-
-            createNewChildFromPiece();
-
-            return {
-                success: true,
-                newChildren,
+            return groupIntoListEntries({
+                matchedChildren,
+                componentInfoObjects,
                 nComponents,
-            };
+                stateIdInfo,
+                parentComponentType,
+            });
         };
 
         sugarInstructions.push({

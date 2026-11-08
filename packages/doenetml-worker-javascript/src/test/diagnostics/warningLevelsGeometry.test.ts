@@ -269,7 +269,7 @@ describe("Warning levels by the source of the condition: geometry and math", () 
             code: "doenet-w0048",
             doenetML: `
 <graph>
-  <angle through="(0,1) (0,0), (1,5)"/>
+  <angle through="((1,2),1) (0,0) (1,5)"/>
   <mathInput name="a"/>
   <angle through="($a,1) (0,0) (1,5)"/>
 </graph>

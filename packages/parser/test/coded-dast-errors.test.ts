@@ -177,6 +177,15 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expectRoundTrip(errors);
     });
 
+    it("list sugar whose brackets don't match", () => {
+        const errors = [
+            ...normalizedErrors(`<select>a) b, c</select>`),
+            ...normalizedErrors(`<repeat for="(1, 2">$v</repeat>`),
+        ];
+        expect(codedErrors(errors).length).toBe(2);
+        expectRoundTrip(errors);
+    });
+
     it("an answer whose name is not plain text", () => {
         // Driven through `answerSugar` rather than the whole normalization,
         // because the name-validation pass rejects `name="$x"` first and this

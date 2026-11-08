@@ -1,7 +1,8 @@
 import me from "math-expressions";
 import { textToAst } from "./math";
 import { codedDiagnostic } from "./diagnostics";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../components/commonsugar/lists";
+import { splitListItems } from "@doenet/parser/list-separation";
+import { returnGroupIntoListEntriesOfComponentType } from "../components/commonsugar/lists";
 
 /**
  * Shared machinery for components that treat their children as a list of
@@ -661,23 +662,37 @@ function tokenIsRealNumber(token) {
  * referencing a `<numberList>` get the same answer, and `1 10 x` reads as text
  * either way.
  *
- * Tokens are split on whitespace alone, while the wrapping below splits on
- * whitespace *outside parens*. They part company only where whitespace falls
- * inside parens, and then only in the safe direction: the piece holding the
- * unmatched `(` is not a number under any reading, so the list is called text
- * where the wrapping would have accepted a number. `<sort>(1+2) 4</sort>`
- * orders by value; `<sort>(1 + 2) 4</sort>` orders the same two pieces as
- * text. Inference never calls a list numeric that the wrapping would then fill
- * with something unreadable.
+ * The tokens are the entries the wrapping below makes, by the one rule for
+ * lists (`splitListItems`, Doenet/DoenetML#2492), so `<sort>(1 + 2) 4</sort>`
+ * and `<sort>1 + 2, 4</sort>` order by value. An entry that holds a
+ * reference (`$a + 1`) gives the pieces of its text between spaces instead,
+ * as every string did before; a reference alone gives none.
  *
  * Returns `null` when there is nothing to read — no bare strings at all — so
  * the caller can leave a list of references alone.
  */
 function inferTypeFromStrings(matchedChildren) {
-    const tokens = matchedChildren
-        .filter((child) => typeof child === "string")
-        .flatMap((child) => child.split(/\s+/))
-        .filter((token) => token !== "");
+    const { entries } = splitListItems(matchedChildren);
+    const tokens = [];
+    for (const parts of entries) {
+        const texts = parts
+            .filter((part) => part.start !== undefined)
+            .map((part) =>
+                matchedChildren[part.item].slice(part.start, part.end),
+            );
+        if (texts.length === parts.length) {
+            // An empty entry is no token, so it does not decide the type.
+            if (texts.length > 0) {
+                tokens.push(texts.join(""));
+            }
+        } else {
+            tokens.push(
+                ...texts
+                    .flatMap((text) => text.split(/\s+/))
+                    .filter((token) => token !== ""),
+            );
+        }
+    }
 
     if (tokens.length === 0) {
         return null;
@@ -689,7 +704,8 @@ function inferTypeFromStrings(matchedChildren) {
 /**
  * Sugar shared by the components that read their children as a list of typed
  * values — `<sort>`, `<sortIndices>`, `<shuffle>` and the index-returning and
- * counting operators: bare strings are split on whitespace and wrapped in the
+ * counting operators: bare strings are split into entries by the rule for
+ * lists (commas if there is one, spaces otherwise) and wrapped in the
  * component type named by the `type` attribute.
  *
  * Unlike the math-only operators, these components accept text as readily as
@@ -706,6 +722,7 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
         componentAttributes,
         componentInfoObjects,
         nComponents,
+        stateIdInfo,
     }) {
         const diagnostics = [];
         // only if all children are strings or macros
@@ -752,7 +769,8 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
             }
         }
 
-        // Break any string by white space and wrap the pieces with `type`.
+        // Break the children into entries by the rule for lists and wrap the
+        // pieces of text with `type`.
         //
         // Reference children are passed through untouched rather than wrapped.
         // Wrapping one collapses a referenced list into the single string it
@@ -761,16 +779,18 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
         // `<indexOf type="text" target="Bob">$names Z</indexOf>` could not find
         // Bob at all. `type` exists to say what bare strings should become; a
         // referenced component already carries a type of its own.
-        let groupIntoComponentTypesSeparatedBySpaces =
-            returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                componentType: type,
-                forceComponentType: false,
-            });
-        let result = groupIntoComponentTypesSeparatedBySpaces({
+        const groupIntoListEntries = returnGroupIntoListEntriesOfComponentType({
+            componentType: type,
+            forceComponentType: false,
+            componentNameForDiagnostics: componentName,
+        });
+        const result = groupIntoListEntries({
             matchedChildren,
             componentInfoObjects,
             nComponents,
+            stateIdInfo,
         });
+        diagnostics.push(...result.diagnostics);
 
         if (result.success) {
             // A component made from a piece of text alone records the text,

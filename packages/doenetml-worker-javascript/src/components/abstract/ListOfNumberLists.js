@@ -1,4 +1,7 @@
-import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
+import {
+    breakIntoBracketedListEntries,
+    listBracketsUnmatchedInfo,
+} from "../commonsugar/lists";
 import InlineComponent from "./InlineComponent";
 
 export default class ListOfNumberLists extends InlineComponent {
@@ -17,14 +20,29 @@ export default class ListOfNumberLists extends InlineComponent {
             matchedChildren,
             nComponents,
             stateIdInfo,
+            isAttributeComponent,
+            parentComponentType,
         }) {
-            let results = breakEmbeddedStringsIntoParensPieces({
+            let results = breakIntoBracketedListEntries({
                 componentList: matchedChildren,
-                removeParens: true,
+                removeBrackets: true,
             });
 
             if (results.success !== true) {
-                return { success: false };
+                // With its brackets ignored, the text is not a list of
+                // lists, which is reported as invalid; explain why.
+                return {
+                    success: false,
+                    diagnostics: results.unmatchedBrackets
+                        ? [
+                              listBracketsUnmatchedInfo(
+                                  isAttributeComponent
+                                      ? parentComponentType
+                                      : "_listOfNumberLists",
+                              ),
+                          ]
+                        : [],
+                };
             }
 
             return {

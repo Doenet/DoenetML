@@ -1,7 +1,10 @@
 import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
-import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../commonsugar/lists";
+import {
+    breakIntoBracketedListEntries,
+    listBracketsUnmatchedInfo,
+    returnGroupIntoListEntriesOfComponentType,
+} from "../commonsugar/lists";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { convertValueToType } from "../../utils/selectableType";
 
@@ -338,7 +341,10 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                 matchedChildren,
                 componentAttributes,
                 parentAttributes,
+                parentComponentType,
+                componentInfoObjects,
                 nComponents,
+                stateIdInfo,
             }) {
                 let diagnostics = [];
 
@@ -365,16 +371,19 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
 
                 let componentType = type === "letters" ? "text" : type;
 
-                let groupIntoComponentTypesSeparatedBySpaces =
-                    returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
+                const groupIntoListEntries =
+                    returnGroupIntoListEntriesOfComponentType({
                         componentType,
                     });
 
-                let result = groupIntoComponentTypesSeparatedBySpaces({
+                const result = groupIntoListEntries({
                     matchedChildren,
+                    componentInfoObjects,
                     nComponents,
+                    stateIdInfo,
+                    parentComponentType,
                 });
-                result.diagnostics = diagnostics;
+                result.diagnostics = [...diagnostics, ...result.diagnostics];
                 return result;
             },
         });
@@ -542,14 +551,29 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
             parentAttributes,
             nComponents,
             stateIdInfo,
+            isAttributeComponent,
+            parentComponentType,
         }) {
-            let results = breakEmbeddedStringsIntoParensPieces({
+            let results = breakIntoBracketedListEntries({
                 componentList: matchedChildren,
-                removeParens: true,
+                removeBrackets: true,
             });
 
             if (results.success !== true) {
-                return { success: false };
+                // With its brackets ignored, the text is not a list of
+                // lists, which is reported as invalid; explain why.
+                return {
+                    success: false,
+                    diagnostics: results.unmatchedBrackets
+                        ? [
+                              listBracketsUnmatchedInfo(
+                                  isAttributeComponent
+                                      ? parentComponentType
+                                      : "_componentListOfListsWithSelectableType",
+                              ),
+                          ]
+                        : [],
+                };
             }
 
             let diagnostics = [];

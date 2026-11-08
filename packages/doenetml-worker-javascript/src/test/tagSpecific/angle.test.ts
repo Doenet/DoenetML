@@ -1532,7 +1532,7 @@ describe("Angle tag tests @group4", async () => {
     it("handle angle with bad through point", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <angle name="bad" through="(0,1) (0,0), (1,5)" />
+  <angle name="bad" through="(0,1) (0,0) (,5)" />
 
   `,
         });
@@ -1555,7 +1555,7 @@ describe("Angle tag tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(21);
         expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(49);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(47);
     });
 
     it("avoidScientificNotation in angle latex", async () => {

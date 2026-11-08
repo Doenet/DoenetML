@@ -1,4 +1,5 @@
 import BaseComponent from "./BaseComponent";
+import { returnGroupIntoListEntriesOfComponentType } from "../commonsugar/lists";
 
 export default class LineListComponent extends BaseComponent {
     static componentType = "_lineListComponent";
@@ -11,43 +12,28 @@ export default class LineListComponent extends BaseComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
+        // Break the children into the entries of a list by the one rule for
+        // lists (Doenet/DoenetML#2492) and wrap each in a line, so an
+        // equation can hold spaces: `y = x + 1, y = 2x`.
+        const groupIntoListEntries = returnGroupIntoListEntriesOfComponentType({
+            componentType: "line",
+            componentsAreEntries: true,
+        });
+
         let breakStringsIntoLinesBySpaces = function ({
             matchedChildren,
+            componentInfoObjects,
             nComponents,
             stateIdInfo,
+            parentComponentType,
         }) {
-            // break any string by white space and wrap pieces with line
-
-            let newChildren = matchedChildren.reduce(function (a, c) {
-                if (typeof c === "string") {
-                    return [
-                        ...a,
-                        ...c
-                            .split(/\s+/)
-                            .filter((s) => s)
-                            .map((s) => ({
-                                type: "serialized",
-                                componentType: "line",
-                                componentIdx: nComponents++,
-                                stateId: stateIdInfo
-                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                    : undefined,
-                                children: [s],
-                                attributes: {},
-                                doenetAttributes: {},
-                                state: {},
-                            })),
-                    ];
-                } else {
-                    return [...a, c];
-                }
-            }, []);
-
-            return {
-                success: true,
-                newChildren: newChildren,
+            return groupIntoListEntries({
+                matchedChildren,
+                componentInfoObjects,
                 nComponents,
-            };
+                stateIdInfo,
+                parentComponentType,
+            });
         };
 
         sugarInstructions.push({
