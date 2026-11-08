@@ -27,6 +27,7 @@ import {
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
 
 /**
@@ -1914,7 +1915,7 @@ export default class Graph extends BlockComponent {
                         ? []
                         : [
                               codedDiagnostic({
-                                  type: authoredInFull ? "warning" : "info",
+                                  type: levelFromSource(authoredInFull),
                                   code: "doenet-w0119",
                                   args: { grid: attrValue },
                               }),

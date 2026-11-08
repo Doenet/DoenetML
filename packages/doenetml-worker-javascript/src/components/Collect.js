@@ -209,7 +209,7 @@ export default class Collect extends CompositeComponent {
                             includeNonStandard: false,
                         });
                     let diagnostic = codedDiagnostic({
-                        type: missingFromValues ? "info" : "warning",
+                        type: levelFromSource(!missingFromValues),
                         code: "doenet-w0072",
                     });
                     return {

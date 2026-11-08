@@ -665,9 +665,13 @@ const DIAGNOSTIC_CODE_USE_PATTERN = /code:\s*["'`](doenet-[a-z]\d+)["'`]/g;
  * lookahead rules out a *type declaration* rather than an object literal
  * (`type: "error";` in the `DiagnosticRecord` union), neither of which is a
  * message anyone has to translate.
+ *
+ * A severity chosen by where the condition comes from is written
+ * `type: levelFromSource(…)` (a warning or an info, DIAG-2, in the worker's
+ * `utils/decidedByDoenetML.ts`), and counts the same as a literal one.
  */
 const DIAGNOSTIC_CONSTRUCTION_PATTERN =
-    /(?<![\w$])type:\s*["'`](?:warning|error|info|accessibility)["'`](?!\s*;)/g;
+    /(?<![\w$])type:\s*(?:["'`](?:warning|error|info|accessibility)["'`](?!\s*;)|levelFromSource\()/g;
 
 /**
  * A construction whose message comes from the catalog.

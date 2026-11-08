@@ -1462,13 +1462,11 @@ export default class Line extends GraphicalComponent {
                     };
                 }
 
-                const level = levelFromSource(
-                    dependencyValues.pointsDecidedByDoenetML,
-                );
+                const levelDecided = dependencyValues.pointsDecidedByDoenetML;
 
                 if (numDimens < 2) {
                     let diagnostic = codedDiagnostic({
-                        type: level,
+                        type: levelFromSource(levelDecided),
                         code: "doenet-w0002",
                     });
                     return {
@@ -1497,7 +1495,7 @@ export default class Line extends GraphicalComponent {
                         point2y.variables().indexOf(varStrings[i]) !== -1
                     ) {
                         let diagnostic = codedDiagnostic({
-                            type: level,
+                            type: levelFromSource(levelDecided),
                             code: "doenet-w0003",
                             // A bare enumeration, not an "and" list: the
                             // message names which variables were seen, it

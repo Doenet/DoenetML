@@ -8,7 +8,8 @@ import me from "math-expressions";
 const { mod } = me.math;
 import { nanoid } from "nanoid";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { missingTargetLevel } from "./UpdateValue";
+import { levelFromSource } from "../utils/decidedByDoenetML";
+import { missingTargetDecided } from "./UpdateValue";
 
 export default class AnimateFromSequence extends BaseComponent {
     constructor(args) {
@@ -557,7 +558,7 @@ export default class AnimateFromSequence extends BaseComponent {
             definition({ dependencyValues }) {
                 let targets = null;
                 let diagnostics = [];
-                const targetLevel = missingTargetLevel({
+                const targetDecided = missingTargetDecided({
                     targetComponent: dependencyValues.targetComponent,
                     targetIdentities: dependencyValues.targetIdentities,
                 });
@@ -570,7 +571,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         if (target == null) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: targetLevel,
+                                    type: levelFromSource(targetDecided),
                                     code: "doenet-w0043",
                                     args: { source: "animateFromSequence" },
                                 }),

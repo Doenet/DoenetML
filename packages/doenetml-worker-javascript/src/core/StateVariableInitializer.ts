@@ -4,7 +4,10 @@ import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
 import { readHeldCopySnapshot } from "../utils/copySnapshot";
-import { componentDecidedByDoenetML } from "../utils/decidedByDoenetML";
+import {
+    componentDecidedByDoenetML,
+    levelFromSource,
+} from "../utils/decidedByDoenetML";
 import {
     applyPendingShadowModification,
     getClassStateVariableDefinitions,
@@ -2190,9 +2193,9 @@ async function reportIndexIntoScalarOf({
     // a scalar, and an info when it can change, as an input's or one made
     // from references (DIAG-2)
     const diagnostic = codedDiagnostic({
-        type: componentDecidedByDoenetML(component, core.componentInfoObjects)
-            ? "warning"
-            : "info",
+        type: levelFromSource(
+            componentDecidedByDoenetML(component, core.componentInfoObjects),
+        ),
         code: "doenet-w0100",
         args: { reference: reference.text },
         position: reference.position,

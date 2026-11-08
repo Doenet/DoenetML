@@ -643,9 +643,8 @@ export default class Function extends InlineComponent {
                     Object.fromEntries(
                         arrayKeys.map((arrayKey) => [arrayKey, diagnostics]),
                     );
-                const level = levelFromSource(
-                    globalDependencyValues.domainDecidedByDoenetML,
-                );
+                const levelDecided =
+                    globalDependencyValues.domainDecidedByDoenetML;
                 if (globalDependencyValues.domainAttr !== null) {
                     let numInputs = globalDependencyValues.numInputs;
                     // Function domains are stored as one interval per input
@@ -660,7 +659,7 @@ export default class Function extends InlineComponent {
                         );
                     if (specifiedDomain.length !== numInputs) {
                         let warning = codedDiagnostic({
-                            type: level,
+                            type: levelFromSource(levelDecided),
                             code: "doenet-w0038",
                             args: {
                                 intervals: specifiedDomain.length,
@@ -693,7 +692,7 @@ export default class Function extends InlineComponent {
                         )
                     ) {
                         let warning = codedDiagnostic({
-                            type: level,
+                            type: levelFromSource(levelDecided),
                             code: "doenet-w0039",
                             position:
                                 globalDependencyValues.domainAttr.position ||

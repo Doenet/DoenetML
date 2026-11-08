@@ -1187,17 +1187,11 @@ export default class Chart extends BlockComponent {
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                const typeLevel = levelFromSource(
-                    dependencyValues.typeDecidedByDoenetML,
-                );
-                const dataLevel = levelFromSource(
-                    dependencyValues.typeDecidedByDoenetML &&
-                        dependencyValues.dataDecidedByDoenetML,
-                );
-                const binsLevel = levelFromSource(
-                    dependencyValues.typeDecidedByDoenetML &&
-                        dependencyValues.binsDecidedByDoenetML,
-                );
+                const typeDecided = dependencyValues.typeDecidedByDoenetML;
+                const dataDecided =
+                    typeDecided && dependencyValues.dataDecidedByDoenetML;
+                const binsDecided =
+                    typeDecided && dependencyValues.binsDecidedByDoenetML;
                 // A type the attribute rejected arrives here as `null`,
                 // exactly as a missing one does, so both get the one message —
                 // which is why it says no chart was named rather than that the
@@ -1210,7 +1204,7 @@ export default class Chart extends BlockComponent {
                         setValue: { chartGeometry: null },
                         conditionDiagnostics: [
                             codedDiagnostic({
-                                type: typeLevel,
+                                type: levelFromSource(typeDecided),
                                 code: "doenet-w0146",
                             }),
                         ],
@@ -1239,7 +1233,7 @@ export default class Chart extends BlockComponent {
                             geometry.undrawnValues > 0
                                 ? [
                                       codedDiagnostic({
-                                          type: dataLevel,
+                                          type: levelFromSource(dataDecided),
                                           code: "doenet-w0144",
                                       }),
                                   ]
@@ -1264,7 +1258,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.undrawnValues > 0) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: dataLevel,
+                                type: levelFromSource(dataDecided),
                                 code: "doenet-w0149",
                             }),
                         );
@@ -1272,7 +1266,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.negativeValues > 0) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: dataLevel,
+                                type: levelFromSource(dataDecided),
                                 code: "doenet-w0150",
                             }),
                         );
@@ -1284,7 +1278,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.valuesInTotal > 0 && !(geometry.total > 0)) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: dataLevel,
+                                type: levelFromSource(dataDecided),
                                 code: "doenet-w0151",
                             }),
                         );
@@ -1292,7 +1286,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.undrawnSeries > 0) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: dataLevel,
+                                type: levelFromSource(dataDecided),
                                 code: "doenet-w0152",
                             }),
                         );
@@ -1322,7 +1316,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.undrawnValues > 0) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: dataLevel,
+                                type: levelFromSource(dataDecided),
                                 code: "doenet-w0154",
                             }),
                         );
@@ -1337,7 +1331,7 @@ export default class Chart extends BlockComponent {
                     ) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: typeLevel,
+                                type: levelFromSource(typeDecided),
                                 code: "doenet-w0155",
                             }),
                         );
@@ -1373,7 +1367,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.undrawnValues > 0) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: dataLevel,
+                                type: levelFromSource(dataDecided),
                                 code: "doenet-w0156",
                             }),
                         );
@@ -1381,7 +1375,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.undrawnSeries > 0) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: dataLevel,
+                                type: levelFromSource(dataDecided),
                                 code: "doenet-w0157",
                             }),
                         );
@@ -1389,7 +1383,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.binsProblem === "count") {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: binsLevel,
+                                type: levelFromSource(binsDecided),
                                 code: "doenet-w0158",
                                 args: {
                                     bins: String(
@@ -1404,7 +1398,7 @@ export default class Chart extends BlockComponent {
                     if (geometry.binsProblem === "cutPoints") {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: binsLevel,
+                                type: levelFromSource(binsDecided),
                                 code: "doenet-w0159",
                             }),
                         );
@@ -1432,7 +1426,7 @@ export default class Chart extends BlockComponent {
                     ) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: typeLevel,
+                                type: levelFromSource(typeDecided),
                                 code: "doenet-w0160",
                             }),
                         );
@@ -1444,7 +1438,7 @@ export default class Chart extends BlockComponent {
                     if (!usedDefault.barWidthAttr) {
                         conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: typeLevel,
+                                type: levelFromSource(typeDecided),
                                 code: "doenet-w0161",
                             }),
                         );
@@ -1481,7 +1475,7 @@ export default class Chart extends BlockComponent {
                         geometry.undrawnValues > 0
                             ? [
                                   codedDiagnostic({
-                                      type: dataLevel,
+                                      type: levelFromSource(dataDecided),
                                       code: "doenet-w0148",
                                   }),
                               ]

@@ -135,14 +135,18 @@ export function withLevelsFromSource<T extends { code?: string; type: string }>(
     diagnostics: T[],
     decidedByCode: Record<string, boolean | undefined>,
 ): T[] {
-    return diagnostics.map((diagnostic) =>
-        diagnostic.code !== undefined && diagnostic.code in decidedByCode
-            ? {
-                  ...diagnostic,
-                  type: levelFromSource(decidedByCode[diagnostic.code]),
-              }
-            : diagnostic,
-    );
+    // Each diagnostic is constructed where it is raised; this sets the
+    // level of one already made.
+    return diagnostics.map((diagnostic) => {
+        if (
+            diagnostic.code === undefined ||
+            !(diagnostic.code in decidedByCode)
+        ) {
+            return diagnostic;
+        }
+        const type = levelFromSource(decidedByCode[diagnostic.code]);
+        return { ...diagnostic, type };
+    });
 }
 
 /**

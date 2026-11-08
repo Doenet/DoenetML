@@ -44,9 +44,12 @@ export function samplingParametersDecidedDependencies() {
  */
 export function withSamplingLevels(diagnostics, type, dependencyValues) {
     const decided = dependencyValues[`${type}ParametersDecidedByDoenetML`];
+    // each diagnostic is constructed where it is raised; this sets the level
+    // of one already made
+    const level = levelFromSource(decided);
     return diagnostics.map((diagnostic) => ({
         ...diagnostic,
-        type: levelFromSource(decided),
+        ["type"]: level,
     }));
 }
 

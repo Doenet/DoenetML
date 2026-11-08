@@ -222,16 +222,14 @@ export default class SelectFromSequence extends Sequence {
             }),
             definition: function ({ dependencyValues }) {
                 const diagnostics = [];
-                const level = levelFromSource(
-                    dependencyValues.coprimeDecidedByDoenetML,
-                );
+                const levelDecided = dependencyValues.coprimeDecidedByDoenetML;
                 if (
                     dependencyValues.coprime &&
                     dependencyValues.type !== "number"
                 ) {
                     diagnostics.push(
                         codedDiagnostic({
-                            type: level,
+                            type: levelFromSource(levelDecided),
                             code: "doenet-w0051",
                         }),
                     );
@@ -263,7 +261,7 @@ export default class SelectFromSequence extends Sequence {
                         if (dependencyValues.coprime) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: level,
+                                    type: levelFromSource(levelDecided),
                                     code: "doenet-w0052",
                                 }),
                             );
