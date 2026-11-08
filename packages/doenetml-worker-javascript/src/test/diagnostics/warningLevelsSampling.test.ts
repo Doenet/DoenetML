@@ -294,4 +294,38 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
             { type: "warning", line: 2 },
         ]);
     });
+
+    it("w0064: a PreFigure graph with an aspect ratio that is not positive", async () => {
+        const { diagnostics, setMath } = await setup(`
+<graph renderer="prefigure" aspectRatio="-1"/>
+<mathInput name="a" prefill="-1"/>
+<graph renderer="prefigure" aspectRatio="$a"/>
+`);
+        expect(diagnostics("doenet-w0064")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("a", "2");
+        expect(diagnostics("doenet-w0064")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+    });
+
+    it("w0118: a PreFigure grid too fine for the axes", async () => {
+        const { diagnostics, setMath } = await setup(`
+<graph renderer="prefigure" grid="0.000001 1"/>
+<mathInput name="a" prefill="0.000001"/>
+<graph renderer="prefigure" grid="$a 1"/>
+`);
+        expect(diagnostics("doenet-w0118")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("a", "1");
+        expect(diagnostics("doenet-w0118")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+    });
 });

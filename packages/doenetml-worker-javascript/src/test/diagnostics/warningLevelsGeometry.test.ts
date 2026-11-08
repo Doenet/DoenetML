@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -39,7 +39,16 @@ async function setup(doenetML: string) {
         await core.returnAllStateVariables(false, true);
     }
 
-    return { core, diagnostics, setMath };
+    async function setText(name: string, text: string) {
+        await updateTextInputValue({
+            text,
+            componentIdx: await resolvePathToNodeIdx(name),
+            core,
+        });
+        await core.returnAllStateVariables(false, true);
+    }
+
+    return { core, diagnostics, setMath, setText };
 }
 
 /**
@@ -316,5 +325,114 @@ describe("Warning levels by the source of the condition: geometry and math", () 
             good: "a",
             bad: "2",
         });
+    });
+
+    it("w0002: a line through points of fewer than two dimensions", async () => {
+        await checkLiteralAndInput({
+            code: "doenet-w0002",
+            doenetML: `
+<graph>
+  <line through="x y"/>
+  <mathInput name="a"/>
+  <line through="$a $a"/>
+</graph>
+`,
+            name: "a",
+            good: "(3,4)",
+            bad: "",
+        });
+    });
+
+    it("w0045: an ODE variable that is the independent variable", async () => {
+        await checkLiteralAndInput({
+            code: "doenet-w0045",
+            doenetML: `
+<p>
+  <odeSystem variables="t"><rightHandSide>1</rightHandSide></odeSystem>
+  <mathInput name="a" prefill="t"/>
+  <odeSystem variables="$a"><rightHandSide>1</rightHandSide></odeSystem>
+</p>
+`,
+            name: "a",
+            good: "y",
+            bad: "t",
+        });
+    });
+
+    it("w0046: ODE variables that repeat", async () => {
+        await checkLiteralAndInput({
+            code: "doenet-w0046",
+            doenetML: `
+<p>
+  <odeSystem variables="x x"><rightHandSide>1</rightHandSide><rightHandSide>1</rightHandSide></odeSystem>
+  <mathInput name="a" prefill="x"/>
+  <odeSystem variables="x $a"><rightHandSide>1</rightHandSide><rightHandSide>1</rightHandSide></odeSystem>
+</p>
+`,
+            name: "a",
+            good: "y",
+            bad: "x",
+        });
+    });
+
+    it("w0122: a slope field of a function with two outputs", async () => {
+        await checkLiteralAndInput({
+            code: "doenet-w0122",
+            doenetML: `
+<text>fields</text>
+<graph><slopeField><function variables="x y">(y,-x)</function></slopeField></graph>
+<mathInput name="a" prefill="(y,-x)"/>
+<graph><slopeField><function variables="x y">$a</function></slopeField></graph>
+`,
+            name: "a",
+            good: "y-x",
+            bad: "(y,-x)",
+        });
+    });
+
+    it("w0058: an operand to extract with no operand number", async () => {
+        const { diagnostics, setText } = await setup(`
+<extractMath type="operand">x+y</extractMath>
+<textInput name="t" prefill="operand"/>
+<extractMath type="$t">x+y</extractMath>
+`);
+        expect(diagnostics("doenet-w0058")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setText("t", "numOperands");
+        expect(diagnostics("doenet-w0058")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+
+        await setText("t", "operand");
+        expect(diagnostics("doenet-w0058")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+    });
+
+    it("w0082: a function name a math input cannot use", async () => {
+        const { diagnostics, setText } = await setup(`
+<mathInput additionalFunctionNames="2x"/>
+<textInput name="t" prefill="2x"/>
+<mathInput additionalFunctionNames="$t"/>
+`);
+        expect(diagnostics("doenet-w0082")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setText("t", "erf");
+        expect(diagnostics("doenet-w0082")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+
+        await setText("t", "2x");
+        expect(diagnostics("doenet-w0082")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
     });
 });

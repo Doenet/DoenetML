@@ -121,6 +121,23 @@ describe("Warning levels by the source of the condition", () => {
         ]);
     });
 
+    it("w0142: a tally category named twice", async () => {
+        const { diagnostics, setMath } = await setup(`
+<p><tally categories="1 1">1 2</tally></p>
+<mathInput name="a" prefill="1"/>
+<p><tally categories="1 $a">1 2</tally></p>
+`);
+        expect(diagnostics("doenet-w0142")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("a", "2");
+        expect(diagnostics("doenet-w0142")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+    });
+
     it("w0164: values of a searchSorted out of order", async () => {
         const { diagnostics, setMath } = await setup(`
 <searchSorted target="2">3 1</searchSorted>

@@ -754,13 +754,14 @@ describe("List operator tag tests @group4", async () => {
 
         it("many targets on an unsorted list report once", async () => {
             // The list is one fact about the document however many targets ask
-            // about it, and the queue keeps every distinct message forever.
+            // about it, so it is reported once, not once per target.
             const { text, warnings, infos } = await resultsFor(`
     <numberList name="targets">1 2 3 4 5</numberList>
     <p name="p"><searchSorted target="$targets">10 30 20</searchSorted></p>
     `);
             expect(text).eq("0, 0, 0, 0, 0");
-            // values from a reference can change, so it is an info (DIAG-2)
+            // the target comes from a reference, a value that can change, so
+            // it is an info (DIAG-2)
             expect(warnings.filter(notSorted)).eqls([]);
             expect(infos.filter(notSorted).length).eq(1);
         });

@@ -12,7 +12,7 @@ export default class Variable extends MathComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         // we need to add validVariable as an additional state variable of value
-        // so that we get the warning any time the value is calculate
+        // so that we get the diagnostic any time the value is calculated
 
         renameStateVariable({
             stateVariableDefinitions,
