@@ -58,6 +58,13 @@ export class StatePersistence {
      * Set by `dispose()` once the core is done. From then on nothing here arms
      * a timer, so a terminated core leaves no handle behind that keeps it (and
      * a Node process) alive.
+     *
+     * Deliberately not cleared by `reset()`: a terminated core is never run
+     * again. `generateDast` (the only caller of `reset()`) is called once per
+     * `Core`, right after `PublicDoenetMLCore.createCoreGenerateDast`
+     * constructs it, which refuses a second call on the same worker;
+     * `PublicDoenetMLCore.terminate` drops the core, and a new document,
+     * variant or attempt gets a new `Core`.
      */
     disposed: boolean;
 
