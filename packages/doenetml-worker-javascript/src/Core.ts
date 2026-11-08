@@ -559,7 +559,10 @@ export default class Core {
         // content of a case not shown included, before it is dropped. It
         // marks the serialized components it finds, so a component made
         // from one later (an iteration of a repeat) is added as it is made.
-        this.readerWritable = buildReaderWritableIndex(serializedComponents[0]);
+        this.readerWritable = buildReaderWritableIndex(
+            serializedComponents[0],
+            this.componentInfoObjects,
+        );
 
         // The serialized document is consumed only by the clone above;
         // release it so the worker does not retain a full serialized copy

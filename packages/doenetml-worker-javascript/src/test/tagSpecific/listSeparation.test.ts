@@ -366,6 +366,27 @@ describe("Separating the entries of a list @group4", async () => {
         expect(infos.length).eq(2);
     });
 
+    it("brackets that don't balance in a select or a repeat of maths are a warning", async () => {
+        // The entries are maths (the default type), which can't hold an
+        // unbalanced bracket, so the author should change it (DIAG-1), as
+        // for a `<mathList>`; only a list of texts gives an info.
+        const { core } = await textsOf(
+            `
+    <select numToSelect="2">(a b</select>
+    <p name="r"><repeat for="(1, 2" valueName="v">[$v]</repeat></p>
+    `,
+            [],
+        );
+        const diagnostics = getDiagnosticsByType(core);
+        const names = (level: { code?: string; message: string }[]) =>
+            level
+                .filter((d) => d.code === "doenet-i0058")
+                .map((d) => d.message.match(/<(\w+)>/)?.[1])
+                .sort();
+        expect(names(diagnostics.infos)).eqls([]);
+        expect(names(diagnostics.warnings)).eqls(["repeat", "select"]);
+    });
+
     it("a copy of a list splits its text as the list does", async () => {
         // With a comma, `hello world` is one entry, which the list keeps as
         // text on its own beside the `<text>` child, so how it was split has

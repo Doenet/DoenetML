@@ -233,6 +233,54 @@ describe("What a reader writes to can change", () => {
             `<repeat for="1" valueName="u"><repeat for="1" valueName="v"><numberList name="e">0 5 2</numberList><binCounts bins="$e">1</binCounts></repeat></repeat>`,
         ],
         [
+            "a point with a fixed location, though an input is bound to it",
+            "doenet-w0144",
+            "warning",
+            `<point name="P" fixLocation>(x,2)</point>
+<mathInput bindValueTo="$P.x"/>
+<chart type="bar">4 $P.x</chart>`,
+        ],
+        [
+            "a point with a fixed location, though an updateValue targets it",
+            "doenet-w0144",
+            "warning",
+            `<point name="P" fixLocation>(x,2)</point>
+<updateValue target="$P" newValue="(y,3)" type="point"/>
+<chart type="bar">4 $P.x</chart>`,
+        ],
+        [
+            "a list with fixLocation an input is bound to (it has no location)",
+            "doenet-w0141",
+            "info",
+            `<numberList name="edges" fixLocation>0 5 2</numberList>
+<mathInput bindValueTo="$edges[3]"/>
+<binCounts bins="$edges">1</binCounts>`,
+        ],
+        [
+            "a math in a point with a fixed location, that an input is bound to",
+            "doenet-w0100",
+            "info",
+            `<point fixLocation>(<math name="m">5</math>, 1)</point>
+<mathInput bindValueTo="$m"/>
+<p>$m[2]</p>`,
+        ],
+        [
+            "a math with fixLocation in a point a reader drags in a graph",
+            "doenet-w0100",
+            "info",
+            `<math name="m" fixLocation>5</math>
+<graph><point>($m, 1)</point></graph>
+<p>$m[2]</p>`,
+        ],
+        [
+            "a math in a point in a graph with a fixed location",
+            "doenet-w0100",
+            "warning",
+            `<math name="m">5</math>
+<graph fixLocation><point>($m, 1)</point></graph>
+<p>$m[2]</p>`,
+        ],
+        [
             "a point that a fixed circle in a graph goes through",
             "doenet-w0027",
             "warning",

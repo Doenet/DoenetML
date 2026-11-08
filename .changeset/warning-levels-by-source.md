@@ -8,7 +8,7 @@
 
 A diagnostic caused by a value that can change is now an info rather than a warning, and it lasts only while the value causes it, so that a warning means the DoenetML should change and a document waiting for its reader to fill in an input gives infos, not warnings, for these checks. The same check is still a warning when what causes it is decided by the DoenetML: written as a literal, or a reference to something that can't change. No diagnostic codes change.
 
-A value can change when it comes from an input, an `<answer>`, a random choice, the case that is shown, or something the reader can write to: what an input's `bindValueTo` names, the `target` of an `<updateValue>`, `<animateFromSequence>` or `<callAction>`, and anything in a `<graph>` that isn't `fixed`, which the reader can drag, with what it references; and whether a hint, solution or section is open or a video is playing. This includes content that isn't shown yet and each iteration of a `<repeat>`. A reference to something that can't change, such as `bins="$edges"` of a `<numberList name="edges">0 5 2</numberList>`, gives a warning, as the literal would.
+A value can change when it comes from an input, an `<answer>`, a random choice, the case that is shown, or something the reader can write to: what an input's `bindValueTo` names, the `target` of an `<updateValue>`, `<animateFromSequence>` or `<callAction>`, and anything in a `<graph>` that isn't `fixed` or, for a point, line or other shape, given `fixLocation`, which the reader can drag, with what it references; and whether a hint, solution or section is open or a video is playing. This includes content that isn't shown yet and each iteration of a `<repeat>`. A reference to something that can't change, such as `bins="$edges"` of a `<numberList name="edges">0 5 2</numberList>`, gives a warning, as the literal would.
 
 - **An index from a value that names nothing:** `$l[$i]` or `$r[$i]` while `i` is blank or 0 gives an info when `i` can change, such as an input, which goes away once `i` names an entry. `$l[0]` is still a warning, and so is `$l[$i]` with `<number name="i">0</number>`.
 - **An index into a value that is a single expression:** `$m[2]` is an info when `m`'s value can change, such as one that comes from an input. It is a warning when the value can't change, as in `<math name="m">5</math>`.
@@ -21,7 +21,8 @@ A value can change when it comes from an input, an `<answer>`, a random choice, 
 
 - **A select that can't select because of a reference to something that can't change** is now an error when the document loads, as when the attribute is written as a literal: for example, `<selectFromSequence to="2" numToSelect="$n"/>` with `<number name="n">3</number>`. One that reaches an input or another random choice still leaves the selection missing with an info (`doenet-e0032`, `e0035`, `e0036`, `e0041`–`e0047`, `e0051`).
 
-- **Brackets that don't balance in a list written as text** (`doenet-i0058`) are an info only in a list of texts, such as `<textList>a) apple, b) banana</textList>`, where they are valid text. In any other list, such as `<mathList>(1, 2</mathList>`, they are a warning.
+- **Brackets that don't balance in a list written as text** (`doenet-i0058`) are an info only in a list of texts, such as `<textList>a) apple, b) banana</textList>`, where they are valid text. In any other list, such as `<mathList>(1, 2</mathList>`, or the options of a `<select>` or the `for` of a `<repeat>` of maths (their default type), they are a warning.
+
 A copy of a component reports at the same level as its source.
 
 Closes #2422.

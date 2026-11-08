@@ -20,6 +20,10 @@
  *
  * A write to a component reaches its descendants and, through them, what
  * they reference (an inverse definition), until a fixed component stops it.
+ * `fixLocation` stops only a write to a location (`isLocation`), as
+ * `EssentialValueWriter` does, so it stops a write only at a component
+ * that has one (a point, a line): a `<numberList fixLocation>` an input is
+ * bound to, or a `<math>` in a `<point fixLocation>`, is still written to.
  *
  * Whether a value can change (`canChange` in `decidedByDoenetML.ts`) reads
  * this for a component named by a reference; what is written in place is
@@ -134,11 +138,54 @@ function componentsUnder(node: any): any[] {
     return under;
 }
 
+/** For each component class, whether it has a location (see below). */
+const classHasLocation = new WeakMap<object, boolean>();
+
+/**
+ * The locations a component has only to be drawn in a graph (where a
+ * `<math>` or a list entry is placed), which a reader writing its value
+ * doesn't write to.
+ */
+const PLACEMENT_LOCATIONS = new Set(["anchor", "entryAnchor"]);
+
+/**
+ * Whether a component of type `componentType` has a value that is a
+ * location (a state variable with `isLocation`, other than where it is
+ * placed), which its `fixLocation` keeps from being written to: a point, a
+ * line, a list of points, not a `<math>` or a `<numberList>`. A type not
+ * known here counts as one that has.
+ */
+function hasLocation(componentType: string, componentInfoObjects: any) {
+    const componentClass =
+        componentInfoObjects?.allComponentClasses?.[componentType];
+    if (!componentClass) {
+        return true;
+    }
+    let found = classHasLocation.get(componentClass);
+    if (found === undefined) {
+        const definitions =
+            componentClass.returnNormalizedStateVariableDefinitions?.();
+        found = definitions
+            ? Object.entries(definitions).some(
+                  ([name, definition]: [string, any]) =>
+                      definition?.isLocation && !PLACEMENT_LOCATIONS.has(name),
+              )
+            : true;
+        classHasLocation.set(componentClass, found);
+    }
+    return found;
+}
+
 /**
  * The indices of the components of the serialized document `root` that a
- * reader can write to (see the top of this file).
+ * reader can write to (see the top of this file). `componentInfoObjects`
+ * tells which components have a location, which `fixLocation` stops a
+ * write to; without it, `fixLocation` stops a write to any component.
  */
-export function buildReaderWritableIndex(root: any): Set<number> {
+export function buildReaderWritableIndex(
+    root: any,
+    componentInfoObjects?: any,
+): Set<number> {
     const nodeByIdx = new Map<number, any>();
     const fixedIdx = new Set<number>();
     const seeds: number[] = [];
@@ -159,11 +206,17 @@ export function buildReaderWritableIndex(root: any): Set<number> {
                 ? writtenAsTrue(node.attributes.fixLocation)
                 : inherited.fixLocation,
         };
+        // a reader can't drag what is fixed or has a fixed location
         const isFixed = own.fixed || own.fixLocation;
         const isGraph = node.componentType === "graph";
         if (typeof node.componentIdx === "number" && node.componentIdx >= 0) {
             nodeByIdx.set(node.componentIdx, node);
-            if (isFixed) {
+            if (
+                own.fixed ||
+                (own.fixLocation &&
+                    (!componentInfoObjects ||
+                        hasLocation(node.componentType, componentInfoObjects)))
+            ) {
                 fixedIdx.add(node.componentIdx);
             }
         }
