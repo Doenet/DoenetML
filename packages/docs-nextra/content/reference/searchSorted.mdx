@@ -16,10 +16,10 @@ does it belong?", not "is it there?".
 The list has to be in ascending order, and `<searchSorted>{:dn}` checks that it is. Given
 values that are not in order it reports 0 instead of a position — the same "no position" it
 gives when `target` is missing — and says why, rather than returning a number that looks like
-a position but is not one. It is a warning when the values and `target` are written in the
-`<searchSorted>{:dn}` itself, and an info, which goes away once the values are in order, when
-either comes from a reference or an input, since those can change. Equal neighbors are in
-order; that run is what `side` is about.
+a position but is not one. It is a warning when the values and `target` are decided by the
+DoenetML, written as numbers or referencing numbers that are, and an info, which goes away once
+the values are in order, when either can change, as one that comes from an input does. Equal
+neighbors are in order; that run is what `side` is about.
 
 Write `allowUnsorted` on the operator and it reports where each target belongs among the values in
 ascending order, whatever order they are written in — so a list that is not sorted can be
@@ -67,7 +67,7 @@ past the last index.
 
 
 
-The first `<searchSorted>{:dn}` gets 0 and an info, as its values come from `$scores`: 87 comes before 75, so no single
+The first `<searchSorted>{:dn}` gets 0 and a warning: 87 comes before 75, so no single
 position describes where 80 belongs. Sorting the values first — with
 [`<sort>{:dn}`](sort) here, though a list that is already built in order, such as a
 [`<cumulativeSum>{:dn}`](cumulativeSum) of positive numbers, needs nothing — gives a

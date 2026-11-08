@@ -148,8 +148,9 @@ same way, as long as it has entries: `$t[1][2]` of
 first entry is a tuple is that tuple's second entry. An index past them, such
 as `$P[1][1]` of a point, whose coordinates have no entries, or `$A[1][2][3]`,
 references nothing with the same warning. When the value can change, as for
-`$m[2]` of a `<math>` whose value comes from an input, it is an info rather
-than a warning, since nothing in the DoenetML needs to change. It follows the
+`$m[2]` of a `<math>` whose value comes from an input, or that an input's
+`bindValueTo` names, it is an info rather than a warning, since nothing in the
+DoenetML needs to change. It follows the
 value: it is there while the value is a single expression and goes away once it
 is a tuple. A `copy`, such as `<math copy="$m[2]"/>{:dn}`, doesn't follow its
 source, so it keeps the info it was made with, as it keeps what it shows. An index past the last
@@ -284,8 +285,10 @@ a while, shown as `＿`, with an info, and none changes its type:
   iterations of `r` is missing, and is made from the iteration again, with the
   tag's own children, when the index names one. The bare reference `$r[$i]`
   shows `＿` too, and while `i` is below 1 it gives an info, as `$l[$i]` of a
-  list does, which goes away once `i` names an entry. A literal index below 1,
-  such as `$l[0]`, never names anything, and is a warning in either form.
+  list does, which goes away once `i` names an entry. That is when `i` can
+  change, as an input can. A literal index below 1, such as `$l[0]`, never
+  names anything, and is a warning in either form, as is an index from a
+  number written as one, such as `$l[$i]` with `<number name="i">0</number>{:dn}`.
 * **A composite that holds nothing.** `<math extend="$cc"/>{:dn}` of a
   `<conditionalContent>` with no `<else>` is missing while no case is true,
   and so is one whose chosen case holds nothing, or holds another
