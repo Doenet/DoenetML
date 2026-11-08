@@ -1473,6 +1473,11 @@ export default class Core {
         // A request still running past the wait can stop the document with
         // a circular dependency, which rejects the save's queued work
         await this.saveImmediately().catch(ignoreIfStopped);
+
+        // The core is done: clear the save debounce and the 60-second
+        // throttle the final save just armed, and arm no more, so no timer
+        // keeps this core in memory or a Node process from exiting.
+        this.statePersistence.dispose();
     }
 
     // → autoSubmitManager
