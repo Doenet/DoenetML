@@ -1082,8 +1082,9 @@ export function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
  * `usesAttempt` says whether this submission uses up one of the attempts that
  * `numAttemptsLeftBefore` counts. It is false when that count belongs to an
  * enclosing section-wide check work and this submission does not count against
- * it: an answer or pretzel submitted on its own inside one (its own button, or
- * auto-submit), or a container nested inside one. Then the count is unchanged.
+ * it: an answer or pretzel submitted on its own inside one (a pretzel's own
+ * button, auto-submit, or a direct action), or a container nested inside one.
+ * Then the count is unchanged.
  */
 export function attemptCountsForEvent({
     numSubmissions,

@@ -9,6 +9,10 @@ vi.mock("hyperformula");
 /**
  * Create a core that collects every recorded event, and return the
  * "submitted" ones with `result` and `object` parsed.
+ *
+ * Events are recorded through the core's process queue, after the action that
+ * requested them has resolved, so `submittedEvents` first waits for the queue
+ * to drain.
  */
 async function createCoreRecordingEvents(doenetML: string) {
     const events: Record<string, any>[] = [];
@@ -17,7 +21,8 @@ async function createCoreRecordingEvents(doenetML: string) {
         sendEvent: (payload) => events.push(payload),
     });
 
-    function submittedEvents() {
+    async function submittedEvents() {
+        await core.core!.processQueue.runExclusive(async () => {});
         return events
             .filter((e) => e.verb === "submitted")
             .map((e) => ({
@@ -44,7 +49,7 @@ describe("Submitted event attempt counts @group1", async () => {
         await updateMathInputValue({ latex: "x", componentIdx: miIdx, core });
         await submitAnswer({ componentIdx: ansIdx, core });
 
-        const events = submittedEvents();
+        const events = await submittedEvents();
         expect(events.length).eq(2);
 
         expect(events[0].result.creditAchieved).eq(0);
@@ -76,7 +81,7 @@ describe("Submitted event attempt counts @group1", async () => {
         await updateMathInputValue({ latex: "x", componentIdx: miIdx, core });
         await submitAnswer({ componentIdx: ansIdx, core });
 
-        const events = submittedEvents();
+        const events = await submittedEvents();
         expect(events.length).eq(1);
         expect(events[0].result.numSubmissions).eq(1);
         expect(events[0].result.maxNumAttempts).eq(1);
@@ -96,7 +101,7 @@ describe("Submitted event attempt counts @group1", async () => {
         await updateMathInputValue({ latex: "x", componentIdx: miIdx, core });
         await submitAnswer({ componentIdx: ansIdx, core });
 
-        const events = submittedEvents();
+        const events = await submittedEvents();
         expect(events.length).eq(2);
         for (const [i, event] of events.entries()) {
             expect(event.result.numSubmissions).eq(i + 1);
@@ -125,7 +130,7 @@ describe("Submitted event attempt counts @group1", async () => {
             args: {},
         });
 
-        const events = submittedEvents();
+        const events = await submittedEvents();
         const sectionEvent = events.find(
             (e) => e.object.componentType === "section",
         )!;
@@ -158,7 +163,7 @@ describe("Submitted event attempt counts @group1", async () => {
         // Attempts are used up, so this one is not recorded.
         await submitAnswer({ componentIdx: pIdx, core });
 
-        const events = submittedEvents();
+        const events = await submittedEvents();
         expect(events.map((e) => e.result.numSubmissions)).eqls([1, 2]);
         expect(events.map((e) => e.result.maxNumAttempts)).eqls([2, 2]);
         expect(events.map((e) => e.result.numAttemptsLeft)).eqls([1, 0]);
@@ -181,7 +186,7 @@ describe("Submitted event attempt counts @group1", async () => {
         await updateMathInputValue({ latex: "y", componentIdx: miIdx, core });
         await submitAnswer({ componentIdx: ansIdx, core });
 
-        let events = submittedEvents();
+        let events = await submittedEvents();
         expect(events.length).eq(1);
         expect(events[0].result.numSubmissions).eq(1);
         expect(events[0].result.numAttemptsLeft).eq(2);
@@ -196,7 +201,7 @@ describe("Submitted event attempt counts @group1", async () => {
             args: {},
         });
 
-        events = submittedEvents();
+        events = await submittedEvents();
         expect(
             events.map((e) => [
                 e.object.componentType,
@@ -228,7 +233,7 @@ describe("Submitted event attempt counts @group1", async () => {
 
         await submitAnswer({ componentIdx: pIdx, core });
 
-        const events = submittedEvents();
+        const events = await submittedEvents();
         expect(events.length).eq(1);
         expect(events[0].object.componentType).eq("pretzel");
         expect(events[0].result.numSubmissions).eq(1);
@@ -236,6 +241,46 @@ describe("Submitted event attempt counts @group1", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[secIdx].stateValues.numAttemptsLeft).eq(2);
         expect(stateVariables[pIdx].stateValues.numAttemptsLeft).eq(2);
+    });
+
+    it("section-wide check work uses one of its attempts for each answer and pretzel it submits", async () => {
+        // Each reports the section's attempts left, one fewer, and its own
+        // `maxNumAttempts`, which the section's limit overrides.
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(`
+    <section name="sec" sectionWideCheckWork maxNumAttempts="2">
+        <answer name="ans" maxNumAttempts="3"><mathInput name="mi" />x</answer>
+        <pretzel name="p">
+            <problem><statement><p>1+1</p></statement><answer>2</answer></problem>
+            <problem><statement><p>1+2</p></statement><answer>3</answer></problem>
+        </pretzel>
+    </section>
+    `);
+        const secIdx = await resolvePathToNodeIdx("sec");
+        const pIdx = await resolvePathToNodeIdx("p");
+
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        const events = await submittedEvents();
+        expect(
+            events.map((e) => [
+                e.object.componentType,
+                e.result.numSubmissions,
+                e.result.maxNumAttempts,
+                e.result.numAttemptsLeft,
+            ]),
+        ).eqls([
+            ["section", 1, 2, 1],
+            ["answer", 1, 3, 1],
+            ["pretzel", 1, null, 1],
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[secIdx].stateValues.numAttemptsLeft).eq(1);
+        expect(stateVariables[pIdx].stateValues.numAttemptsLeft).eq(1);
     });
 
     it("container nested in a section-wide check work does not use the outer section's attempts", async () => {
@@ -259,7 +304,7 @@ describe("Submitted event attempt counts @group1", async () => {
             args: {},
         });
 
-        const events = submittedEvents();
+        const events = await submittedEvents();
         expect(
             events.map((e) => [
                 e.object.componentType,
@@ -284,7 +329,7 @@ describe("Submitted event attempt counts @group1", async () => {
             core,
         });
 
-        const [event] = submittedEvents();
+        const [event] = await submittedEvents();
         expect(event.version).eq("0.1.2");
         expect(event.timestampIso).match(
             /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,

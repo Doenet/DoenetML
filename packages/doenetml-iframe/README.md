@@ -577,10 +577,11 @@ and cap them without reading the document:
   are unlimited.
 - `numAttemptsLeft`: attempts left after this submission, or `null` when
   unlimited. For an `<answer>` or `<pretzel>` inside a section-wide check
-  work, the section sets the limit: `numAttemptsLeft` is the section's, and
-  the component's own `maxNumAttempts` does not apply. Only the section's
-  check work uses one of those attempts; a submission of the component on its
-  own (its own button, or auto-submit) reports the section's count unchanged.
+  work, the section sets the limit: `numAttemptsLeft` is the section's, while
+  `maxNumAttempts` is still the component's own, which does not apply there.
+  Only the section's check work uses one of those attempts; a submission of
+  the component on its own (a pretzel's own button, or auto-submit) reports
+  the section's count unchanged.
 
 A submission made after the attempts are used up is ignored and sends no
 event.
