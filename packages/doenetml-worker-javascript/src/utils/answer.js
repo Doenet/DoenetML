@@ -83,6 +83,10 @@ export function authorMaxNumAttempts(dependencyValues, essentialValues) {
  * attribute's own state variable. It goes to the attribute component when
  * the author set the attribute (and from there to a referenced `<number>`),
  * otherwise to the stored value. The host's flag still caps the result.
+ *
+ * A stored value is rounded to an integer, as the `<integer>` attribute
+ * component rounds a value written to it, so the limit is a whole number
+ * either way.
  */
 export function invertMaxNumAttempts({
     desiredStateVariableValues,
@@ -106,10 +110,11 @@ export function invertMaxNumAttempts({
         instructions: [
             {
                 setEssentialValue: "maxNumAttempts",
-                value:
+                value: Math.round(
                     typeof desiredValue?.evaluate_to_constant === "function"
                         ? evaluateToNumber(desiredValue)
                         : Number(desiredValue),
+                ),
             },
         ],
     };

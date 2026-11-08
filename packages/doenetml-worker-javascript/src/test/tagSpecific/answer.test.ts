@@ -4855,6 +4855,48 @@ Enter any letter:
             expect(stateVariables[ansIdx].stateValues.numAttemptsLeft).eq(2);
         });
 
+        // A changed limit is a whole number, with or without the attribute:
+        // the attribute's `<integer>` rounds a write, and so does the stored
+        // value used without one.
+        for (const attr of ["", ` maxNumAttempts="5"`]) {
+            it(`an updateValue to a fraction rounds maxNumAttempts (attribute "${attr}")`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <answer name="ans"${attr}>x</answer>
+    <section name="sec" sectionWideCheckWork${attr}>
+        <answer>x</answer>
+    </section>
+    <updateValue name="uv1" target="$ans.maxNumAttempts" newValue="2.5" type="number" />
+    <updateValue name="uv2" target="$sec.maxNumAttempts" newValue="2.5" type="number" />
+    <p name="p">$ans.maxNumAttempts</p>
+  `,
+                });
+                await updateValue({
+                    componentIdx: await resolvePathToNodeIdx("uv1"),
+                    core,
+                });
+                await updateValue({
+                    componentIdx: await resolvePathToNodeIdx("uv2"),
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                for (const name of ["ans", "sec"]) {
+                    const sv =
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues;
+                    expect(sv.maxNumAttempts).eq(3);
+                    expect(sv.numAttemptsLeft).eq(3);
+                }
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .text,
+                ).eq("3");
+            });
+        }
+
         for (const flags of [{ maxNumAttempts: 2 }, {}]) {
             it(`$ans.maxNumAttempts reports the limit that applies (flags ${JSON.stringify(flags)})`, async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
