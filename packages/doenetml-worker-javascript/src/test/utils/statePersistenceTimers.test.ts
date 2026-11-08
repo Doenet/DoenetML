@@ -54,9 +54,8 @@ describe("state persistence leaves no timer behind @group4", () => {
     });
 
     it("terminate saves once and leaves neither the debounce nor the throttle armed", async () => {
-        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
-            { doenetML: DOC },
-        );
+        const { core, resolvePathToNodeIdx, scoreState, lastStateReport } =
+            await createTestCore({ doenetML: DOC });
         const persistence = (core as any).core.statePersistence;
         const ti = await resolvePathToNodeIdx("ti");
 
@@ -79,8 +78,12 @@ describe("state persistence leaves no timer behind @group4", () => {
 
         // And a save still in flight when the core went away reports without
         // arming a new throttle.
+        const reportBefore = lastStateReport.payload;
         persistence.changesToBeSaved = true;
         await persistence.saveChangesToDatabase();
+        expect(lastStateReport.payload, "the late save reported").not.toBe(
+            reportBefore,
+        );
         expect(persistence.saveStateToDBTimerId).toBeNull();
         persistence.scheduleSave(1000);
         expect(persistence.saveDocStateTimeoutID).toBeNull();
