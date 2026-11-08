@@ -20,6 +20,10 @@ The following examples illustrate use of the `<answer>{:dn}` tag attributes (Par
 The `maxNumAttempts` attribute may be used to limit the number of attempts 
 on a question-by-question basis.
 
+The site hosting an activity can also set a limit for every answer. An answer
+then allows the smaller of the two, so a stricter `maxNumAttempts` still holds,
+and `numAttemptsLeft` counts down from whichever limit applies.
+
 ---
 
 ### Example: allowedErrorInNumbers

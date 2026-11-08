@@ -1399,6 +1399,7 @@ export const EditorViewer = React.forwardRef<
                         allowSaveEvents: true,
                         messageParent: false,
                         readOnly: false,
+                        maxNumAttempts: null,
                     }}
                     activityId={activityId}
                     key={viewerResetNum}

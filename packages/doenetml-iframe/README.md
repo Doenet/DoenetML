@@ -303,6 +303,55 @@ Notes:
   viewers cheaper.
 - `mountPolicy` is read at mount; changing it afterwards is not supported.
 
+### Host integration
+
+A summary of what a host page can rely on; the subsections below give each
+message in full.
+
+**Commands in** (post on your own window; the wrapper forwards them into the
+iframe):
+
+- `SPLICE.getState.response`: the saved state the viewer asked for at boot.
+- `SPLICE.requestSolutionView.response`: allow or refuse a solution view.
+- `SPLICE.submitAllAnswers`: submit every answer; answered by
+  `SPLICE.submitAllAnswers.response`.
+- `SPLICE.flushState`: push out any state the save throttle is holding
+  back; answered by `SPLICE.flushState.response`.
+
+**Events out** (arrive on your window):
+
+- `SPLICE.reportScoreAndState`: score and serialized state, at most one
+  report per 60 seconds per viewer unless a flush or a page hide pushes one
+  out sooner.
+- `SPLICE.getState`: the request for saved state at boot (with
+  `flags.allowLoadState` and no `initialState`).
+- `SPLICE.requestSolutionView`: the permission request (with
+  `flags.solutionDisplayMode: "buttonRequirePermission"`).
+- `SPLICE.sendEvent`: the event stream (with `flags.allowSaveEvents`).
+
+`iframeReady`, `scrollTo` and `lti.frameResize` also cross the frame
+boundary, but the wrapper consumes them itself: `iframeReady` starts the
+connection to the viewer inside, `scrollTo` scrolls your window to an
+in-document link target (unless you pass `requestScrollTo`), and
+`lti.frameResize` sizes the iframe to its content. A host does not need to
+handle them.
+
+**Capping submissions (`flags.maxNumAttempts`).** A host can limit how many
+times each answer can be submitted without editing the document:
+
+```tsx
+<DoenetViewer doenetML={doenetML} flags={{ maxNumAttempts: 3 }} />
+```
+
+The cap combines with the author's own `maxNumAttempts`: an answer gets the
+smaller of the two, so an author's stricter limit still holds and a larger
+cap never raises it. Inside a container with `sectionWideCheckWork`, the cap
+applies to the container's check-work button, which is what submits its
+answers. `null`, the default, means no cap; `0` allows no submissions. The
+remaining count shows beside each check-work button, and saved state keeps
+the number already used, so a reload does not reset it. The flag is read
+when the document starts.
+
 ### Host message protocol (SPLICE)
 
 The viewer exchanges JSON messages with the host page via `postMessage`.

@@ -69,6 +69,13 @@ For example,
 </div>
 ```
 
+A numeric flag is written the same way. For example,
+`data-doenet-max-num-attempts="3"` sets the `maxNumAttempts` flag, which caps
+how many times each answer can be submitted. An answer gets the smaller of
+that cap and the author's own `maxNumAttempts`; inside a container with
+`sectionWideCheckWork`, the cap applies to the container's check-work
+button. Leaving the attribute out means no cap.
+
 ## MathJax
 
 The renderer uses MathJax to typeset math. It **coexists** with a MathJax that

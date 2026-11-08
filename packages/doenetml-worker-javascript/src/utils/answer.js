@@ -15,6 +15,44 @@ function returnScoredContainerAncestorDependency(...variableNames) {
 }
 
 /**
+ * The number of submissions allowed once the host's `maxNumAttempts` flag is
+ * taken into account: the smaller of the author's `maxNumAttempts` and the
+ * flag.
+ *
+ * The flag means "no cap" when it is absent, `null` (what `Infinity` becomes
+ * when flags travel as JSON, as they do into the iframe wrapper), `Infinity`,
+ * or anything that is not a number or a numeric string. A numeric string is
+ * accepted because the standalone build reads flags from `data-doenet-*`
+ * attributes. A fractional cap is rounded down, and a negative one counts as
+ * zero.
+ *
+ * @param {number} authorMaxNumAttempts - the author's `maxNumAttempts`
+ * @param {unknown} flagMaxNumAttempts - the host's `maxNumAttempts` flag
+ * @returns {number}
+ */
+export function effectiveMaxNumAttempts(
+    authorMaxNumAttempts,
+    flagMaxNumAttempts,
+) {
+    let cap = Infinity;
+    if (typeof flagMaxNumAttempts === "number") {
+        cap = flagMaxNumAttempts;
+    } else if (
+        typeof flagMaxNumAttempts === "string" &&
+        flagMaxNumAttempts.trim() !== ""
+    ) {
+        cap = Number(flagMaxNumAttempts);
+    }
+    if (Number.isNaN(cap)) {
+        cap = Infinity;
+    }
+    if (Number.isFinite(cap)) {
+        cap = Math.max(0, Math.floor(cap));
+    }
+    return Math.min(authorMaxNumAttempts, cap);
+}
+
+/**
  * Whether a math expression's tree carries nothing the reader typed.
  *
  * A whole expression that is the placeholder U+FF3F — what math-expressions
@@ -748,6 +786,13 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
+            // A cap on submissions the host sets for every answer, without
+            // editing the document; the author's `maxNumAttempts` still wins
+            // when it is smaller.
+            flagMaxNumAttempts: {
+                dependencyType: "flag",
+                flagName: "maxNumAttempts",
+            },
             ancestorSuppressingAnswerSubmitButtons:
                 returnScoredContainerAncestorDependency(
                     "suppressAnswerSubmitButtons",
@@ -778,8 +823,8 @@ export function returnStandardAnswerStateVariableDefinition() {
             }
 
             // Inside a section-wide check work, the answer's own
-            // `maxNumAttempts` is ignored: the enclosing container controls the
-            // number of attempts. Report that container's remaining attempts so
+            // `maxNumAttempts` (and the host's flag of that name) is ignored:
+            // the enclosing container controls the number of attempts. Report that container's remaining attempts so
             // the public `numAttemptsLeft` is accurate. This matches how a
             // `maxNumAttempts` on a nested `sectionWideCheckWork` container is
             // ignored.
@@ -788,8 +833,10 @@ export function returnStandardAnswerStateVariableDefinition() {
                       .stateValues.numAttemptsLeft
                 : Math.max(
                       0,
-                      dependencyValues.maxNumAttempts -
-                          dependencyValues.numSubmissions,
+                      effectiveMaxNumAttempts(
+                          dependencyValues.maxNumAttempts,
+                          dependencyValues.flagMaxNumAttempts,
+                      ) - dependencyValues.numSubmissions,
                   );
 
             return {

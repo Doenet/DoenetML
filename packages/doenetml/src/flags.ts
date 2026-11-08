@@ -12,6 +12,15 @@ export type DoenetMLFlags = {
     allowSaveEvents: boolean;
     messageParent: boolean;
     autoSubmit: boolean;
+    /**
+     * A cap the host sets on how many times each answer can be submitted,
+     * without editing the document. The author's `maxNumAttempts` still
+     * applies when it is smaller; inside a `sectionWideCheckWork` container
+     * the cap applies to that container's check-work button. `null` (the
+     * default) means no cap. `null` rather than `Infinity` because flags are
+     * sent to the iframe wrapper as JSON, which turns `Infinity` into `null`.
+     */
+    maxNumAttempts: number | null;
 };
 
 export const defaultFlags: DoenetMLFlags = {
@@ -27,4 +36,5 @@ export const defaultFlags: DoenetMLFlags = {
     allowSaveEvents: true,
     messageParent: false,
     autoSubmit: false,
+    maxNumAttempts: null,
 };

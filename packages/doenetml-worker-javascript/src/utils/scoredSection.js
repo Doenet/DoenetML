@@ -1,5 +1,8 @@
 import { codedDiagnostic } from "./diagnostics";
-import { returnSubmitLabelStateVariableDefinitions } from "./answer";
+import {
+    effectiveMaxNumAttempts,
+    returnSubmitLabelStateVariableDefinitions,
+} from "./answer";
 
 /**
  * Builds the `returnDependencies` of a state variable that aggregates one
@@ -552,6 +555,13 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
+            // The host's cap on submissions. It caps the section-wide
+            // check-work button, which stands in for the per-answer buttons it
+            // suppresses.
+            flagMaxNumAttempts: {
+                dependencyType: "flag",
+                flagName: "maxNumAttempts",
+            },
             sectionWideCheckWork: {
                 dependencyType: "stateVariable",
                 variableName: "sectionWideCheckWork",
@@ -609,10 +619,18 @@ export function returnScoredSectionStateVariableDefinition() {
                 // go negative, even if `maxNumAttempts` is lowered below the
                 // number of submissions already made (or a persisted
                 // `numSubmissions` exceeds it).
+                // The host's cap applies only where this container's own
+                // button replaces the answers' buttons, so a container without
+                // `sectionWideCheckWork` reports the same value as before.
+                const maxNumAttempts = dependencyValues.sectionWideCheckWork
+                    ? effectiveMaxNumAttempts(
+                          dependencyValues.maxNumAttempts,
+                          dependencyValues.flagMaxNumAttempts,
+                      )
+                    : dependencyValues.maxNumAttempts;
                 numAttemptsLeft = Math.max(
                     0,
-                    dependencyValues.maxNumAttempts -
-                        dependencyValues.numSubmissions,
+                    maxNumAttempts - dependencyValues.numSubmissions,
                 );
             }
 

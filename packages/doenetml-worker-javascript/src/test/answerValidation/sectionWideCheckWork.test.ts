@@ -343,6 +343,82 @@ describe("section-wide check work attribute tests @group2", async () => {
         ).eq(0);
     });
 
+    it("the host's maxNumAttempts flag caps the section-wide check work", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <document name="d">
+    <section name="sec" sectionWideCheckWork>
+      <answer name="a1">1</answer>
+      <answer name="a2">2</answer>
+    </section>
+    <section name="capped" sectionWideCheckWork maxNumAttempts="1">
+      <answer name="b1">1</answer>
+    </section>
+    <section name="plain">
+      <answer name="c1">1</answer>
+    </section>
+  </document>
+  `,
+            flags: { maxNumAttempts: 2 },
+        });
+
+        async function numAttemptsLeft(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .numAttemptsLeft;
+        }
+
+        async function fillIn(name: string, latex: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            await updateMathInputValue({
+                latex,
+                componentIdx:
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .inputChildren[0].componentIdx,
+                core,
+            });
+        }
+
+        expect(await numAttemptsLeft("sec")).eq(2);
+        expect(await numAttemptsLeft("a1")).eq(2);
+        // The author's smaller section-wide limit wins.
+        expect(await numAttemptsLeft("capped")).eq(1);
+        expect(await numAttemptsLeft("b1")).eq(1);
+        // A section without section-wide check work is unaffected, and its
+        // answer is capped by the flag on its own.
+        expect(await numAttemptsLeft("plain")).eq(Infinity);
+        expect(await numAttemptsLeft("c1")).eq(2);
+
+        for (const latex of ["3", "4", "5"]) {
+            await fillIn("a1", latex);
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("sec"),
+                actionName: "submitAllAnswers",
+                args: {},
+            });
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sec =
+            stateVariables[await resolvePathToNodeIdx("sec")].stateValues;
+        expect(sec.numSubmissions).eq(2);
+        expect(sec.numAttemptsLeft).eq(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a1")].stateValues
+                .disabled,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a2")].stateValues
+                .disabled,
+        ).eq(true);
+    });
+
     it("answer maxNumAttempts is ignored inside section-wide check work", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
