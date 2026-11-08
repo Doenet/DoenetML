@@ -563,6 +563,12 @@ is in a `<graph>{:dn}` and not `fixed` (or, for a point or other shape,
 `fixLocation`), which a reader can drag, and whether a
 hint, solution or section is open.
 
+When the problem is that something is missing from a `<conditionalContent>{:dn}`,
+a `<repeat>{:dn}` or a list (an `<updateValue>{:dn}` whose target holds nothing,
+a `<collect>{:dn}` whose `from` names what isn't there), what matters is whether
+what it holds can change. A case whose condition is `false` never holds
+anything, however its content is written to, so it gives a warning.
+
 ## Referencing repeated content
 
 A [`<repeat>`](../reference/repeat) (or

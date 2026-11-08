@@ -189,11 +189,12 @@ export default class Collect extends CompositeComponent {
                               dependencyType: "componentIdentity",
                               componentIdx: stateValues.partlyResolvedSourceIdx,
                           },
-                          // whether what `from` names, the composite
-                          // included, cannot change
-                          fromDecidedByDoenetML: {
-                              dependencyType: "decidedByDoenetML",
-                              attributeNames: ["from"],
+                          // whether the composite's choice of what it
+                          // makes, and an index in `from`, cannot change
+                          contentDecidedByDoenetML: {
+                              dependencyType: "contentDecidedByDoenetML",
+                              componentIdx: stateValues.partlyResolvedSourceIdx,
+                              pathOfAttribute: "from",
                           },
                       }
                     : {}),
@@ -205,9 +206,11 @@ export default class Collect extends CompositeComponent {
                     // a composite, missing now because what the composite
                     // makes depends on values that can change (`$cc.S` while
                     // the case holding `S` is not active, with a condition
-                    // from an input), is an info (DIAG-2). When nothing
-                    // `from` reaches can change (a case whose condition is
-                    // `false`), it is decided by the DoenetML, a warning.
+                    // from an input), is an info (DIAG-2). When what the
+                    // composite makes cannot change (a case whose condition
+                    // is `false`), it is decided by the DoenetML, a warning,
+                    // whatever the values in it, or a reader's writes to
+                    // them, do.
                     const partlyResolvedSource =
                         dependencyValues.partlyResolvedSource;
                     const missingFromValues =
@@ -216,7 +219,7 @@ export default class Collect extends CompositeComponent {
                             componentType: partlyResolvedSource.componentType,
                             includeNonStandard: false,
                         }) &&
-                        dependencyValues.fromDecidedByDoenetML === false;
+                        dependencyValues.contentDecidedByDoenetML === false;
                     let diagnostic = codedDiagnostic({
                         type: levelFromSource(!missingFromValues),
                         code: "doenet-w0072",

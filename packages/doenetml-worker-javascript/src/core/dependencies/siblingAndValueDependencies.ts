@@ -11,6 +11,8 @@ import { ChildDependency } from "./childDependencies";
 import {
     changeContext,
     partsDecidedByDoenetML,
+    pathHasIndexThatCanChange,
+    contentCanChange,
 } from "../../utils/decidedByDoenetML";
 
 export class CountAmongSiblingsDependency extends Dependency {
@@ -430,6 +432,49 @@ export class DecidedByDoenetMLDependency extends ChildDependency {
                       ctx: changeContext(this.dependencyHandler.core),
                   })
                 : true;
+        }
+        return { value: this.value, changes: {} };
+    }
+}
+
+/**
+ * Whether what the component `componentIdx` holds (its replacements, or a
+ * list's entries) and, with `pathOfAttribute`, the indices of the reference
+ * in that attribute of this component, are decided by the DoenetML alone
+ * (`contentCanChange`, `pathHasIndexThatCanChange`): the level of a
+ * diagnostic that something is missing from it, an action's target or a
+ * collect's source (DIAG-2, `levelFromSource`). The indices are read from
+ * the reference as written (`$ml.xs[$i]`), as a path once resolved holds
+ * only their values. Like `decidedByDoenetML`, it is decided once, the first
+ * time it is read; a component not made yet can change.
+ */
+export class ContentDecidedByDoenetMLDependency extends Dependency {
+    static dependencyType = "contentDecidedByDoenetML";
+
+    setUpParameters() {
+        this.heldByIdx = this.definition.componentIdx;
+        this.pathOfAttribute = this.definition.pathOfAttribute;
+    }
+
+    async getValue() {
+        if (this.value === undefined) {
+            const components = this.dependencyHandler._components;
+            const ctx = changeContext(this.dependencyHandler.core);
+            const component = components[this.heldByIdx];
+            const references = this.pathOfAttribute
+                ? (components[this.upstreamComponentIdx]?.attributes?.[
+                      this.pathOfAttribute
+                  ]?.references ?? [])
+                : [];
+            this.value =
+                Boolean(component) &&
+                !contentCanChange(component, ctx) &&
+                !references.some((reference: any) =>
+                    pathHasIndexThatCanChange(
+                        reference?.refResolution?.originalPath,
+                        ctx,
+                    ),
+                );
         }
         return { value: this.value, changes: {} };
     }

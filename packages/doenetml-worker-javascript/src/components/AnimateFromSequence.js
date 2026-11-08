@@ -427,6 +427,11 @@ export default class AnimateFromSequence extends BaseComponent {
                 let dependencies = {};
 
                 if (stateValues.targetComponent !== null) {
+                    // whether the target can come to give targets
+                    dependencies.targetsDecided = {
+                        dependencyType: "contentDecidedByDoenetML",
+                        componentIdx: stateValues.targetComponent.componentIdx,
+                    };
                     if (
                         componentInfoObjects.isCompositeComponent({
                             componentType:
@@ -465,11 +470,17 @@ export default class AnimateFromSequence extends BaseComponent {
                     // No target is what the DoenetML says, a warning. A
                     // target that is a composite with no replacements now,
                     // or a list with no entries now, has none from values
-                    // that can change, an info (DIAG-2).
+                    // when its replacements or entries can change (a case
+                    // whose condition comes from an input), an info, and
+                    // from the DoenetML when they cannot (`condition="false"`,
+                    // an empty `<mathList>` written as a literal), a warning
+                    // (DIAG-2).
                     diagnostics.push(
                         codedDiagnostic({
-                            type:
-                                targetIdentities === null ? "warning" : "info",
+                            type: levelFromSource(
+                                targetIdentities === null ||
+                                    dependencyValues.targetsDecided,
+                            ),
                             code: "doenet-w0043",
                             args: { source: "animateFromSequence" },
                         }),
@@ -490,6 +501,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 "targetIdentities",
                 "unresolvedPath",
                 "targetOriginalPath",
+                "targetComponent",
             ],
             returnDependencies: function ({ stateValues }) {
                 let dependencies = {
@@ -506,6 +518,16 @@ export default class AnimateFromSequence extends BaseComponent {
                         variableName: "targetComponent",
                     },
                 };
+
+                if (stateValues.targetComponent !== null) {
+                    // whether the targets, and what the path picks of
+                    // them, can change
+                    dependencies.targetsDecided = {
+                        dependencyType: "contentDecidedByDoenetML",
+                        componentIdx: stateValues.targetComponent.componentIdx,
+                        pathOfAttribute: "target",
+                    };
+                }
 
                 if (stateValues.targetIdentities !== null) {
                     for (let [
@@ -561,6 +583,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 const targetDecided = missingTargetDecided({
                     targetComponent: dependencyValues.targetComponent,
                     targetIdentities: dependencyValues.targetIdentities,
+                    targetsDecided: dependencyValues.targetsDecided,
                 });
 
                 if (dependencyValues.targetIdentities !== null) {

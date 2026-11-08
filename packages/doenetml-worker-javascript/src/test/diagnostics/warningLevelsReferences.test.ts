@@ -161,6 +161,22 @@ describe("What a reader writes to can change", () => {
 <binCounts bins="$edges">1</binCounts>`,
         ],
         [
+            "an index in what an input is bound to, which it only reads",
+            "doenet-w0141",
+            "warning",
+            `<number name="n">5</number><numberList name="l">1 2</numberList>
+<mathInput bindValueTo="$l[$n]"/>
+<binCounts bins="0 $n 2">1</binCounts>`,
+        ],
+        [
+            "an index in the target of an updateValue, which it only reads",
+            "doenet-w0141",
+            "warning",
+            `<number name="n">5</number><numberList name="l">1 2</numberList>
+<updateValue target="$l[$n]" newValue="1"/>
+<binCounts bins="0 $n 2">1</binCounts>`,
+        ],
+        [
             "bound by an input in a case not shown yet",
             "doenet-w0141",
             "info",

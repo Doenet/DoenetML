@@ -60,8 +60,23 @@ function isReference(value: any): boolean {
 }
 
 /**
+ * The keys of a serialized component, or part of one, that hold no
+ * reference written to: where it is in the source, and the path of a
+ * reference, whose index (`$l[$n]`) is only read to pick what the reference
+ * names.
+ */
+const KEYS_NOT_WRITTEN_THROUGH = new Set([
+    "position",
+    "childrenPosition",
+    "originalPath",
+    "unresolvedPath",
+]);
+
+/**
  * The component indices named by every reference anywhere in `value`, a
- * serialized component or part of one, appended to `found`.
+ * serialized component or part of one, appended to `found`. A reference
+ * held in another's index (`n` of `$l[$n]`) is not one: a write through
+ * `$l[$n]` reaches `l`, not `n`.
  */
 function referencesIn(value: any, found: number[] = []): number[] {
     if (Array.isArray(value)) {
@@ -73,7 +88,7 @@ function referencesIn(value: any, found: number[] = []): number[] {
             found.push(value.nodeIdx);
         }
         for (const [key, item] of Object.entries(value)) {
-            if (key === "position" || key === "childrenPosition") {
+            if (KEYS_NOT_WRITTEN_THROUGH.has(key)) {
                 continue;
             }
             referencesIn(item, found);

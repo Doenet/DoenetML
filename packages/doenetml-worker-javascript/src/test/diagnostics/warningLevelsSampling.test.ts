@@ -199,6 +199,29 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         ]);
     });
 
+    it("w0072: a case that can't become active, whatever is written to it", async () => {
+        // A reader can drag what is in a graph, and an updateValue writes
+        // to its target, but neither makes the case active.
+        const { diagnostics } = await setup(`
+<graph><conditionalContent name="cc">
+  <case condition="false"><point name="S">(1,2)</point></case>
+</conditionalContent></graph>
+<p><collect componentType="point" from="$cc.S"/></p>
+<conditionalContent name="cc2">
+  <case condition="false"><section name="S"><math>x</math></section></case>
+</conditionalContent>
+<updateValue target="$cc2" newValue="1"/>
+<p><collect componentType="math" from="$cc2.S"/></p>
+<select name="s"><option><math name="S">1</math></option><option><math>2</math></option></select>
+<p><collect componentType="math" from="$s.S"/></p>
+`);
+        expect(diagnostics("doenet-w0072")).eqls([
+            { type: "warning", line: 5 },
+            { type: "warning", line: 10 },
+            { type: "info", line: 12 },
+        ]);
+    });
+
     it("w0073: a component type to collect that is not one", async () => {
         const { diagnostics, setText } = await setup(`
 <p name="p"><math>x</math></p>
@@ -239,6 +262,46 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         await setBoolean("b", true);
         expect(diagnostics("doenet-w0043")).eqls([
             { type: "warning", line: 2 },
+        ]);
+    });
+
+    it("w0043: a target that holds nothing, and cannot come to, is a warning", async () => {
+        // An action's target is written to by the action, so whether it
+        // can change says nothing here: what can change is which
+        // replacements or entries it gives.
+        const { diagnostics, refresh } = await setup(`
+<conditionalContent name="cc">
+  <case condition="false"><math>1</math></case>
+</conditionalContent>
+<updateValue target="$cc" newValue="2"/>
+<animateFromSequence target="$cc" from="1" to="3"/>
+<mathList name="ml"/>
+<updateValue target="$ml" newValue="2"/>
+<repeatForSequence name="r" from="1" to="0" valueName="v"><math>$v</math></repeatForSequence>
+<updateValue target="$r" newValue="2"/>
+<mathInput name="mi"/>
+<repeatForSequence name="r2" from="1" to="$mi" valueName="v"><math>$v</math></repeatForSequence>
+<updateValue target="$r2" newValue="2"/>
+<mathList name="ml2">1 2</mathList>
+<updateValue target="$ml2.xs[5]" newValue="2"/>
+<number name="n">5</number>
+<updateValue target="$ml2.xs[$n]" newValue="2"/>
+<mathInput name="i" prefill="5"/>
+<updateValue target="$ml2.xs[$i]" newValue="2"/>
+<mathList name="ml3">$mi 2</mathList>
+<updateValue target="$ml3.xs[5]" newValue="2"/>
+`);
+        await refresh();
+        expect(diagnostics("doenet-w0043")).eqls([
+            { type: "warning", line: 5 },
+            { type: "warning", line: 6 },
+            { type: "warning", line: 8 },
+            { type: "warning", line: 10 },
+            { type: "info", line: 13 },
+            { type: "warning", line: 15 },
+            { type: "warning", line: 17 },
+            { type: "info", line: 19 },
+            { type: "info", line: 21 },
         ]);
     });
 

@@ -299,6 +299,49 @@ function replacementsCanChange(composite: any, ctx: ChangeContext): boolean {
 }
 
 /**
+ * Whether what the component `component` holds can change in number or in
+ * what it is: for a composite, its choice of replacements
+ * ({@link replacementsCanChange}), or that of a composite among them, in
+ * turn; for another component (a list, which holds its entries), whether it
+ * can change where it is written ({@link canChange}). It is the question for
+ * a condition that something is missing from it: an action's target with
+ * nothing in it, or a collect's source not in the composite `from` names.
+ *
+ * It isn't `canChange(component)`: what a reader writes to, an action's
+ * target among them (`readerWritable`), or a value that can change inside
+ * it, says nothing about whether a `<conditionalContent>` with
+ * `condition="false"` can come to hold something. It errs toward changing as
+ * `readerWritable` does: a reference a list holds names what is written to.
+ */
+export function contentCanChange(component: any, ctx: ChangeContext): boolean {
+    if (typeof component !== "object" || component === null) {
+        return true;
+    }
+    const live = liveComponent(component, ctx);
+    if (
+        !ctx.componentInfoObjects.isCompositeComponent({
+            componentType: live.componentType,
+            includeNonStandard: false,
+        })
+    ) {
+        return canChange(live, ctx);
+    }
+    return (
+        replacementsCanChange(live, ctx) ||
+        (live.replacements ?? []).some(
+            (replacement: any) =>
+                typeof replacement === "object" &&
+                replacement !== null &&
+                ctx.componentInfoObjects.isCompositeComponent({
+                    componentType: replacement.componentType,
+                    includeNonStandard: false,
+                }) &&
+                contentCanChange(replacement, ctx),
+        )
+    );
+}
+
+/**
  * Whether the reference `refResolution` can come to name another component:
  * an index of it can change, or what it names is made by a composite whose
  * replacements can change (a `<select>`'s option, a case's content). A
