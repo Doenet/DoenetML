@@ -108,19 +108,20 @@ export function groupTextAndReferencesIntoListEntries({
 }
 
 /**
- * The warning that the brackets of the list written in `node` (a
- * `<select>`, or the `for` of a `<repeat>`, at `position`) don't balance, so
- * were ignored: the parser's copy of `list-brackets-unmatched`, which the
- * worker reports for the lists it splits.
+ * The info that the brackets of the list written in `node` (a `<select>`,
+ * or the `for` of a `<repeat>`, at `position`) don't balance, so were
+ * ignored: the parser's copy of `list-brackets-unmatched`, which the worker
+ * reports for the lists it splits. An info, since the DoenetML is valid and
+ * often meant (`a) apple, b) banana`); it only explains how the list was read.
  */
 export function listBracketsUnmatchedError(
     node: DastElement,
     position = node.position,
 ): DastError {
     return codedDastError({
-        code: "doenet-w0188",
-        error_type: "warning",
-        message: `The brackets in the list of \`<${node.name}>\` don't match, so they are ignored: commas and spaces inside them separate entries. Balance the brackets, or write the entries as children.`,
+        code: "doenet-i0058",
+        error_type: "info",
+        message: `The brackets in the list of \`<${node.name}>\` don't all match, so they are ignored: the commas or spaces inside them separate entries like any others. To keep one inside an entry, balance the brackets, or write the entries as children.`,
         args: { componentType: node.name },
         position,
         source_doc: node.source_doc,

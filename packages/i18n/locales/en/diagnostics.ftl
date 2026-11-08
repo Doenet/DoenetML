@@ -787,13 +787,15 @@ extend-children-ignored = Children written inside a `<{ $componentType }>` with 
 # part of the DoenetML language, so they stay in English.
 copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` has no such attribute.
 
-# A list written as text (`<mathList>`, a list attribute, the text of a
-# `<sum>` or `<sort>`) whose brackets don't balance (#2492). Brackets keep what
-# is inside them in one entry only when they all balance, so here none of them
-# do: a comma or space inside them separates entries like any other.
+# An info, not a warning: a list written as text (`<mathList>`, a list
+# attribute, the text of a `<sum>` or `<sort>`) whose brackets don't balance
+# (#2492). That is valid DoenetML, often meant (`a) apple, b) banana`), so the
+# message only explains how the list was read. Brackets keep what is inside
+# them in one entry only when they all balance, so here none of them do: a
+# comma or space inside them separates entries like any other.
 # $componentType is an element name, part of the DoenetML language, so it
 # stays in English.
-list-brackets-unmatched = The brackets in the list of `<{ $componentType }>` don't match, so they are ignored: commas and spaces inside them separate entries. Balance the brackets, or write the entries as children.
+list-brackets-unmatched = The brackets in the list of `<{ $componentType }>` don't all match, so they are ignored: the commas or spaces inside them separate entries like any others. To keep one inside an entry, balance the brackets, or write the entries as children.
 
 # An `extend` is the same component again: it shares its source's content and
 # state, so it can't change what the component makes or what its state can

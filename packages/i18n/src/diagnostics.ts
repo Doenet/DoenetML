@@ -95,6 +95,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0055": "type-change-composite-holds-nothing",
     "doenet-i0056": "variant-select-options-not-written",
     "doenet-i0057": "select-from-sequence-coprime-draws-exhausted",
+    "doenet-i0058": "list-brackets-unmatched",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -281,7 +282,6 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0185": "copy-with-state-of-uri",
     "doenet-w0186": "copy-with-state-attribute-reaches-choice",
     "doenet-w0187": "copy-attribute-invalid-for-component",
-    "doenet-w0188": "list-brackets-unmatched",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

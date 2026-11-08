@@ -5583,15 +5583,13 @@ describe("Function tag tests @group4", async () => {
         expect(diagnosticsByType.errors.length).eq(0);
 
         // The domain written as `(` is a list whose brackets don't balance
-        // (Doenet/DoenetML#2492), which the list reports on its own.
-        const unmatched = diagnosticsByType.warnings.filter(
-            (warning) => warning.code === "doenet-w0188",
+        // (Doenet/DoenetML#2492), which the list explains with an info.
+        const unmatched = diagnosticsByType.infos.filter(
+            (info) => info.code === "doenet-i0058",
         );
         expect(unmatched.length).eq(1);
         expect(unmatched[0].position.start.line).eq(3);
-        const warnings = diagnosticsByType.warnings.filter(
-            (warning) => warning.code !== "doenet-w0188",
-        );
+        const warnings = diagnosticsByType.warnings;
         expect(warnings.length).eq(7);
 
         // The domain written as `(` is reported by the list it makes, as it

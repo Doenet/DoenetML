@@ -261,7 +261,7 @@ describe("Separating the entries of a list @group4", async () => {
         ).eqls([1, 2]);
     });
 
-    it("brackets that don't balance are ignored, with a warning", async () => {
+    it("brackets that don't balance are ignored, with an info", async () => {
         const { stateVariables, resolvePathToNodeIdx, core } = await textsOf(
             `
     <textList name="tl">a) apple, b) banana</textList>
@@ -279,8 +279,15 @@ describe("Separating the entries of a list @group4", async () => {
                 .numComponents,
         ).eq(2);
 
-        const warnings = getDiagnosticsByType(core).warnings.filter(
-            (w) => w.code === "doenet-w0188",
+        // An info, not a warning: the DoenetML is valid, and the list reads
+        // as written (DIAG-1).
+        const diagnostics = getDiagnosticsByType(core);
+        expect(
+            diagnostics.warnings.filter((w) => w.code === "doenet-i0058")
+                .length,
+        ).eq(0);
+        const warnings = diagnostics.infos.filter(
+            (w) => w.code === "doenet-i0058",
         );
         // each names the component whose text it is, not that component's
         // parent
@@ -307,10 +314,10 @@ describe("Separating the entries of a list @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("r")].stateValues.text,
         ).eq("[(1], [2]");
-        const warnings = getDiagnosticsByType(core).warnings.filter(
-            (w) => w.code === "doenet-w0188",
+        const infos = getDiagnosticsByType(core).infos.filter(
+            (w) => w.code === "doenet-i0058",
         );
-        expect(warnings.length).eq(2);
+        expect(infos.length).eq(2);
     });
 
     it("a copy of a list splits its text as the list does", async () => {

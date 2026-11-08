@@ -23,7 +23,7 @@ import { codedDiagnostic } from "../../utils/diagnostics";
  * an operand of an operator is (`<sum>$a$b 1, 2</sum>` has four).
  *
  * An empty entry (`a,,b`) is an empty component of `componentType`. Text
- * whose brackets don't balance is split with them ignored, and reported
+ * whose brackets don't balance is split with them ignored, and explained
  * (`list-brackets-unmatched`, naming `componentNameForDiagnostics` or the
  * parent).
  */
@@ -48,7 +48,7 @@ export function returnGroupIntoListEntriesOfComponentType({
      * list splits again the same way (`listSplitting` of the result).
      */
     keepTextGroup?: (text: string) => boolean;
-    /** The component type the unmatched-brackets warning names. */
+    /** The component type the unmatched-brackets info names. */
     componentNameForDiagnostics?: string;
     /**
      * The type to wrap an entry made only of text in, when not
@@ -169,9 +169,11 @@ export function returnGroupIntoListEntriesOfComponentType({
 
         const diagnostics = unmatchedBrackets
             ? [
+                  // an info: the DoenetML is valid, and often meant
+                  // (`a) apple, b) banana`), so it only explains the reading
                   codedDiagnostic({
-                      type: "warning",
-                      code: "doenet-w0188",
+                      type: "info",
+                      code: "doenet-i0058",
                       args: {
                           componentType:
                               componentNameForDiagnostics ??
