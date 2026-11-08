@@ -1,5 +1,6 @@
 import { codedDiagnostic } from "./diagnostics";
 import {
+    authorMaxNumAttempts,
     effectiveMaxNumAttempts,
     returnSubmitLabelStateVariableDefinitions,
 } from "./answer";
@@ -323,9 +324,8 @@ export function returnScoredSectionAttributes() {
         },
         maxNumAttempts: {
             createComponentOfType: "integer",
-            // The author's value; the public `maxNumAttempts` combines it with
-            // the host's flag of the same name.
-            createStateVariable: "authorMaxNumAttempts",
+            // No state variable of its own: the public `maxNumAttempts`
+            // combines this attribute with the host's flag of the same name.
             defaultValue: Infinity,
             groupName: "scoring",
             description:
@@ -548,9 +548,10 @@ export function returnScoredSectionStateVariableDefinition() {
             createComponentOfType: "integer",
         },
         returnDependencies: () => ({
-            authorMaxNumAttempts: {
-                dependencyType: "stateVariable",
-                variableName: "authorMaxNumAttempts",
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+                variableNames: ["value"],
             },
             // The host's cap on submissions. It caps the section-wide
             // check-work button, which stands in for the per-answer buttons it
@@ -568,12 +569,13 @@ export function returnScoredSectionStateVariableDefinition() {
             // The host's cap applies only where this container's own button
             // replaces the answers' buttons, so a container without
             // `sectionWideCheckWork` reports the author's value as before.
+            const authorValue = authorMaxNumAttempts(dependencyValues);
             const maxNumAttempts = dependencyValues.sectionWideCheckWork
                 ? effectiveMaxNumAttempts(
-                      dependencyValues.authorMaxNumAttempts,
+                      authorValue,
                       dependencyValues.flagMaxNumAttempts,
                   )
-                : dependencyValues.authorMaxNumAttempts;
+                : authorValue;
             return { setValue: { maxNumAttempts } };
         },
     };
@@ -595,12 +597,6 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
-            // Only to tell whether the author set the attribute, for the
-            // ignored-`maxNumAttempts` warning.
-            authorMaxNumAttempts: {
-                dependencyType: "stateVariable",
-                variableName: "authorMaxNumAttempts",
-            },
             sectionWideCheckWork: {
                 dependencyType: "stateVariable",
                 variableName: "sectionWideCheckWork",
@@ -617,14 +613,15 @@ export function returnScoredSectionStateVariableDefinition() {
                     "numAttemptsLeft",
                 ],
             },
-            // Used to target the ignored-`maxNumAttempts` warning at the
+            // Whether the author set `maxNumAttempts`, for the
+            // ignored-`maxNumAttempts` warning, which it targets at the
             // attribute itself rather than the whole container.
             maxNumAttemptsAttr: {
                 dependencyType: "attributeComponent",
                 attributeName: "maxNumAttempts",
             },
         }),
-        definition({ dependencyValues, usedDefault }) {
+        definition({ dependencyValues }) {
             let sendDiagnostics = [];
 
             let insideSectionWideCheckWork =
@@ -632,7 +629,7 @@ export function returnScoredSectionStateVariableDefinition() {
                     ?.stateValues.suppressAnswerSubmitButtons;
 
             if (
-                !usedDefault.authorMaxNumAttempts &&
+                dependencyValues.maxNumAttemptsAttr &&
                 dependencyValues.sectionWideCheckWork &&
                 insideSectionWideCheckWork
             ) {

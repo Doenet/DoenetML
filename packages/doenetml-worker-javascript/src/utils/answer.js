@@ -23,8 +23,9 @@ function returnScoredContainerAncestorDependency(...variableNames) {
  * when flags travel as JSON, as they do into the iframe wrapper), `Infinity`,
  * or anything that is not a number or a numeric string. A numeric string is
  * accepted because the standalone build reads flags from `data-doenet-*`
- * attributes. A fractional cap is rounded down, and a negative one counts as
- * zero.
+ * attributes. A fractional cap is rounded down, and a negative one
+ * (`-Infinity` included) counts as zero. An author's value that is not a
+ * number sets no limit of its own, so a cap from the flag still applies.
  *
  * @param {number} authorMaxNumAttempts - the author's `maxNumAttempts`
  * @param {unknown} flagMaxNumAttempts - the host's `maxNumAttempts` flag
@@ -46,10 +47,26 @@ export function effectiveMaxNumAttempts(
     if (Number.isNaN(cap)) {
         cap = Infinity;
     }
-    if (Number.isFinite(cap)) {
-        cap = Math.max(0, Math.floor(cap));
+    if (cap === Infinity) {
+        return authorMaxNumAttempts;
     }
-    return Math.min(authorMaxNumAttempts, cap);
+    cap = Math.max(0, Math.floor(cap));
+    // An author's value that is not a number (`maxNumAttempts="x"`) sets no
+    // limit, so the cap applies on its own.
+    return Number.isNaN(authorMaxNumAttempts)
+        ? cap
+        : Math.min(authorMaxNumAttempts, cap);
+}
+
+/**
+ * The author's `maxNumAttempts`, from the dependency `maxNumAttemptsAttr` on
+ * the attribute component (`Infinity` when the attribute is absent).
+ *
+ * @param {{ maxNumAttemptsAttr: { stateValues: { value: number } } | null }} dependencyValues
+ * @returns {number}
+ */
+export function authorMaxNumAttempts(dependencyValues) {
+    return dependencyValues.maxNumAttemptsAttr?.stateValues.value ?? Infinity;
 }
 
 /**
@@ -184,9 +201,8 @@ export function returnStandardAnswerAttributes() {
         },
         maxNumAttempts: {
             createComponentOfType: "integer",
-            // The author's value; the public `maxNumAttempts` combines it with
-            // the host's flag of the same name.
-            createStateVariable: "authorMaxNumAttempts",
+            // No state variable of its own: the public `maxNumAttempts`
+            // combines this attribute with the host's flag of the same name.
             defaultValue: Infinity,
             groupName: "answer-grading",
             description:
@@ -779,9 +795,10 @@ export function returnStandardAnswerStateVariableDefinition() {
             createComponentOfType: "integer",
         },
         returnDependencies: () => ({
-            authorMaxNumAttempts: {
-                dependencyType: "stateVariable",
-                variableName: "authorMaxNumAttempts",
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+                variableNames: ["value"],
             },
             // A cap on submissions the host sets for every answer, without
             // editing the document; the author's value still wins when it is
@@ -795,7 +812,7 @@ export function returnStandardAnswerStateVariableDefinition() {
             return {
                 setValue: {
                     maxNumAttempts: effectiveMaxNumAttempts(
-                        dependencyValues.authorMaxNumAttempts,
+                        authorMaxNumAttempts(dependencyValues),
                         dependencyValues.flagMaxNumAttempts,
                     ),
                 },
@@ -820,25 +837,20 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
-            // Only to tell whether the author set the attribute, for the
-            // ignored-`maxNumAttempts` warning.
-            authorMaxNumAttempts: {
-                dependencyType: "stateVariable",
-                variableName: "authorMaxNumAttempts",
-            },
             ancestorSuppressingAnswerSubmitButtons:
                 returnScoredContainerAncestorDependency(
                     "suppressAnswerSubmitButtons",
                     "numAttemptsLeft",
                 ),
-            // Used to target the ignored-`maxNumAttempts` warning at the
+            // Whether the author set `maxNumAttempts`, for the
+            // ignored-`maxNumAttempts` warning, which it targets at the
             // attribute itself rather than the whole `<answer>`.
             maxNumAttemptsAttr: {
                 dependencyType: "attributeComponent",
                 attributeName: "maxNumAttempts",
             },
         }),
-        definition({ dependencyValues, usedDefault }) {
+        definition({ dependencyValues }) {
             let sendDiagnostics = [];
 
             let insideSectionWideCheckWork =
@@ -846,7 +858,7 @@ export function returnStandardAnswerStateVariableDefinition() {
                     ?.stateValues.suppressAnswerSubmitButtons;
 
             if (
-                !usedDefault.authorMaxNumAttempts &&
+                dependencyValues.maxNumAttemptsAttr &&
                 insideSectionWideCheckWork
             ) {
                 sendDiagnostics.push(

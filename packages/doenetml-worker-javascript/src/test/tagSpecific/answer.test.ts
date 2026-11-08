@@ -4765,6 +4765,32 @@ Enter any letter:
             expect(result.disabled).eq(true);
         });
 
+        it("a flag of -Infinity allows no submissions", async () => {
+            const result = await submitResponses({
+                doenetML: `<answer name="answer1">x</answer>`,
+                flags: { maxNumAttempts: -Infinity },
+                responses: ["x"],
+            });
+            expect(result.maxNumAttempts).eq(0);
+            expect(result.numSubmissions).eq(0);
+            expect(result.disabled).eq(true);
+        });
+
+        it("caps an answer whose maxNumAttempts is not a number", async () => {
+            // `maxNumAttempts="x"` sets no limit of its own (the value is
+            // NaN), so the flag's cap applies.
+            const result = await submitResponses({
+                doenetML: `<answer name="answer1" maxNumAttempts="x">x</answer>`,
+                flags: { maxNumAttempts: 2 },
+                responses: ["a", "b", "c"],
+            });
+            expect(result.initialNumAttemptsLeft).eq(2);
+            expect(result.numSubmissions).eq(2);
+            expect(result.numAttemptsLeft).eq(0);
+            expect(result.disabled).eq(true);
+            expect(result.maxNumAttempts).eq(2);
+        });
+
         for (const flags of [{ maxNumAttempts: 2 }, {}]) {
             it(`$ans.maxNumAttempts reports the limit that applies (flags ${JSON.stringify(flags)})`, async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
