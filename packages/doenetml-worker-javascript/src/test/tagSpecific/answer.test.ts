@@ -4791,6 +4791,70 @@ Enter any letter:
             expect(result.maxNumAttempts).eq(2);
         });
 
+        // Before the flag, `maxNumAttempts` was the attribute's own state
+        // variable and could be changed by the document; it still can.
+        for (const { attr, flags, expected } of [
+            { attr: "", flags: {}, expected: 1 },
+            { attr: ` maxNumAttempts="$n"`, flags: {}, expected: 1 },
+            {
+                attr: ` maxNumAttempts="$n"`,
+                flags: { maxNumAttempts: 2 },
+                expected: 1,
+            },
+            { attr: "", flags: { maxNumAttempts: 2 }, expected: 1 },
+        ]) {
+            it(`an updateValue can change maxNumAttempts (attribute "${attr}", flags ${JSON.stringify(flags)})`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <number name="n">3</number>
+    <answer name="ans"${attr}>x</answer>
+    <updateValue name="uv" target="$ans.maxNumAttempts" newValue="1" />
+  `,
+                    flags,
+                });
+                const ansIdx = await resolvePathToNodeIdx("ans");
+                await updateValue({
+                    componentIdx: await resolvePathToNodeIdx("uv"),
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const sv = stateVariables[ansIdx].stateValues;
+                expect(sv.maxNumAttempts).eq(expected);
+                expect(sv.numAttemptsLeft).eq(expected);
+                if (attr) {
+                    // The change reaches the referenced number.
+                    expect(
+                        stateVariables[await resolvePathToNodeIdx("n")]
+                            .stateValues.value,
+                    ).eq(1);
+                }
+            });
+        }
+
+        it("an updateValue cannot raise maxNumAttempts above the flag", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <answer name="ans" maxNumAttempts="1">x</answer>
+    <updateValue name="uv" target="$ans.maxNumAttempts" newValue="5" />
+  `,
+                flags: { maxNumAttempts: 2 },
+            });
+            const ansIdx = await resolvePathToNodeIdx("ans");
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx("uv"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[ansIdx].stateValues.maxNumAttempts).eq(2);
+            expect(stateVariables[ansIdx].stateValues.numAttemptsLeft).eq(2);
+        });
+
         for (const flags of [{ maxNumAttempts: 2 }, {}]) {
             it(`$ans.maxNumAttempts reports the limit that applies (flags ${JSON.stringify(flags)})`, async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({

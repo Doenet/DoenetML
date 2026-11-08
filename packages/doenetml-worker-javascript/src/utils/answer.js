@@ -60,13 +60,57 @@ export function effectiveMaxNumAttempts(
 
 /**
  * The author's `maxNumAttempts`, from the dependency `maxNumAttemptsAttr` on
- * the attribute component (`Infinity` when the attribute is absent).
+ * the attribute component. Without the attribute it is the value a document
+ * stored by changing `maxNumAttempts` (for example with `<updateValue>`), or
+ * `Infinity`.
  *
  * @param {{ maxNumAttemptsAttr: { stateValues: { value: number } } | null }} dependencyValues
+ * @param {{ maxNumAttempts?: number }} essentialValues
  * @returns {number}
  */
-export function authorMaxNumAttempts(dependencyValues) {
-    return dependencyValues.maxNumAttemptsAttr?.stateValues.value ?? Infinity;
+export function authorMaxNumAttempts(dependencyValues, essentialValues) {
+    if (dependencyValues.maxNumAttemptsAttr) {
+        return dependencyValues.maxNumAttemptsAttr.stateValues.value;
+    }
+    return essentialValues.maxNumAttempts ?? Infinity;
+}
+
+/**
+ * The `inverseDefinition` of the public `maxNumAttempts`: a desired value
+ * changes the author's limit, as it did when `maxNumAttempts` was the
+ * attribute's own state variable. It goes to the attribute component when
+ * the author set the attribute (and from there to a referenced `<number>`),
+ * otherwise to the stored value. The host's flag still caps the result.
+ */
+export function invertMaxNumAttempts({
+    desiredStateVariableValues,
+    dependencyValues,
+}) {
+    const desiredValue = desiredStateVariableValues.maxNumAttempts;
+    if (dependencyValues.maxNumAttemptsAttr) {
+        return {
+            success: true,
+            instructions: [
+                {
+                    setDependency: "maxNumAttemptsAttr",
+                    desiredValue,
+                    variableIndex: 0,
+                },
+            ],
+        };
+    }
+    return {
+        success: true,
+        instructions: [
+            {
+                setEssentialValue: "maxNumAttempts",
+                value:
+                    typeof desiredValue?.evaluate_to_constant === "function"
+                        ? evaluateToNumber(desiredValue)
+                        : Number(desiredValue),
+            },
+        ],
+    };
 }
 
 /**
@@ -794,6 +838,11 @@ export function returnStandardAnswerStateVariableDefinition() {
         shadowingInstructions: {
             createComponentOfType: "integer",
         },
+        // Holds a limit set by changing `maxNumAttempts` when the author gave
+        // no attribute (see `invertMaxNumAttempts`).
+        hasEssential: true,
+        defaultValue: Infinity,
+        provideEssentialValuesInDefinition: true,
         returnDependencies: () => ({
             maxNumAttemptsAttr: {
                 dependencyType: "attributeComponent",
@@ -808,16 +857,17 @@ export function returnStandardAnswerStateVariableDefinition() {
                 flagName: "maxNumAttempts",
             },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues, essentialValues }) {
             return {
                 setValue: {
                     maxNumAttempts: effectiveMaxNumAttempts(
-                        authorMaxNumAttempts(dependencyValues),
+                        authorMaxNumAttempts(dependencyValues, essentialValues),
                         dependencyValues.flagMaxNumAttempts,
                     ),
                 },
             };
         },
+        inverseDefinition: invertMaxNumAttempts,
     };
 
     stateVariableDefinitions.numAttemptsLeft = {

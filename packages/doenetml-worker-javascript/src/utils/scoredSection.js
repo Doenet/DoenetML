@@ -2,6 +2,7 @@ import { codedDiagnostic } from "./diagnostics";
 import {
     authorMaxNumAttempts,
     effectiveMaxNumAttempts,
+    invertMaxNumAttempts,
     returnSubmitLabelStateVariableDefinitions,
 } from "./answer";
 
@@ -547,6 +548,11 @@ export function returnScoredSectionStateVariableDefinition() {
         shadowingInstructions: {
             createComponentOfType: "integer",
         },
+        // Holds a limit set by changing `maxNumAttempts` when the author gave
+        // no attribute (see `invertMaxNumAttempts`).
+        hasEssential: true,
+        defaultValue: Infinity,
+        provideEssentialValuesInDefinition: true,
         returnDependencies: () => ({
             maxNumAttemptsAttr: {
                 dependencyType: "attributeComponent",
@@ -565,11 +571,14 @@ export function returnScoredSectionStateVariableDefinition() {
                 variableName: "sectionWideCheckWork",
             },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues, essentialValues }) {
             // The host's cap applies only where this container's own button
             // replaces the answers' buttons, so a container without
             // `sectionWideCheckWork` reports the author's value as before.
-            const authorValue = authorMaxNumAttempts(dependencyValues);
+            const authorValue = authorMaxNumAttempts(
+                dependencyValues,
+                essentialValues,
+            );
             const maxNumAttempts = dependencyValues.sectionWideCheckWork
                 ? effectiveMaxNumAttempts(
                       authorValue,
@@ -578,6 +587,7 @@ export function returnScoredSectionStateVariableDefinition() {
                 : authorValue;
             return { setValue: { maxNumAttempts } };
         },
+        inverseDefinition: invertMaxNumAttempts,
     };
 
     stateVariableDefinitions.numAttemptsLeft = {

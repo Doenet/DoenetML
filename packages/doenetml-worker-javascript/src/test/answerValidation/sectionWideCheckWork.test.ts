@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
-import { submitAnswer, updateMathInputValue } from "../utils/actions";
+import {
+    submitAnswer,
+    updateMathInputValue,
+    updateValue,
+} from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
@@ -341,6 +345,38 @@ describe("section-wide check work attribute tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("sec")].stateValues
                 .numAttemptsLeft,
         ).eq(0);
+    });
+
+    it("an updateValue can change a container's maxNumAttempts", async () => {
+        // Before the host's flag, `maxNumAttempts` was the attribute's own
+        // state variable and could be changed by the document; it still can.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <section name="withAttr" sectionWideCheckWork maxNumAttempts="3">
+    <answer name="a1">1</answer>
+  </section>
+  <section name="noAttr" sectionWideCheckWork>
+    <answer name="b1">1</answer>
+  </section>
+  <updateValue name="uv1" target="$withAttr.maxNumAttempts" newValue="1" />
+  <updateValue name="uv2" target="$noAttr.maxNumAttempts" newValue="1" />
+  `,
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv1"),
+            core,
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv2"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["withAttr", "noAttr"]) {
+            const sv =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect(sv.maxNumAttempts).eq(1);
+            expect(sv.numAttemptsLeft).eq(1);
+        }
     });
 
     it("the host's maxNumAttempts flag caps the section-wide check work", async () => {
