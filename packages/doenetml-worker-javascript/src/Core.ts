@@ -556,8 +556,10 @@ export default class Core {
         let serializedComponents = [deepClone(this.serializedDocument)];
 
         // What a reader can write to, read from the whole document, the
-        // content of a case not shown included, before it is dropped
-        this.readerWritable = buildReaderWritableIndex(this.serializedDocument);
+        // content of a case not shown included, before it is dropped. It
+        // marks the serialized components it finds, so a component made
+        // from one later (an iteration of a repeat) is added as it is made.
+        this.readerWritable = buildReaderWritableIndex(serializedComponents[0]);
 
         // The serialized document is consumed only by the clone above;
         // release it so the worker does not retain a full serialized copy

@@ -66,10 +66,13 @@ const PASS_THROUGH_VARIANT_TYPES = new Set([
 /**
  * The actions through which a reader changes nothing a value is made of:
  * focusing, clicking, moving in a graph (which `readerWritable` covers),
- * opening or closing, and recording what the reader did.
+ * recording that the component was seen, and following a link. Opening or
+ * closing a hint, a solution or a section (its `open`), and playing, pausing
+ * or watching a video (its `state`, `secondsWatched`), change a value a
+ * reference can read, so they are not among them.
  */
 const ACTIONS_THAT_CHANGE_NO_VALUE =
-    /^(copyDoenetMLToClipboard|recordVisibilityChange|record\w+|\w+Clicked|\w+Focused|focusChanged|move\w*|switch\w*|finalize\w*|changeRadius|reflect\w*|submitAllAnswers|reveal\w+|close\w+|navigateToTarget|playVideo|pauseVideo|summary|docsSlug)$/;
+    /^(copyDoenetMLToClipboard|recordVisibilityChange|\w+Clicked|\w+Focused|focusChanged|move\w*|switch\w*|finalize\w*|changeRadius|reflect\w*|submitAllAnswers|navigateToTarget|summary|docsSlug)$/;
 
 /** Whether a reader can change the state of `component` by an action. */
 function hasReaderStateAction(component: any): boolean {
@@ -110,10 +113,12 @@ function liveComponent(component: any, ctx: ChangeContext): any {
  *   action, when it is reached by a reference (`viaReference`);
  * - it is an input, an answer or a slider;
  * - it makes a random choice;
- * - it is a reference whose source, or whose index, can change;
+ * - it is a reference whose source, or whose index, can change, or, for
+ *   a reference into what a composite makes (`$r[1].e`), whose
+ *   replacements can;
  * - it was made by a composite whose choice of replacements can change (a
  *   case's condition, a repeat's `for`);
- * - it is a copy of something that can change;
+ * - it is a copy of something that can change, or an adapter of one;
  * - one of its children (a label aside) or attributes can change.
  *
  * What is written in place (`viaReference` false) is what the author wrote,
@@ -179,6 +184,36 @@ function canChangeUncached(
         referenceCanChange(component.refResolution, ctx)
     ) {
         return true;
+    }
+    if (
+        component.refResolution?.unresolvedPath &&
+        component.isExpanded &&
+        Array.isArray(component.replacements) &&
+        component.replacements.some((replacement: any) =>
+            canChange(replacement, ctx, viaReference),
+        )
+    ) {
+        // a reference into what a composite makes (`$r[1].e`, an iteration
+        // of a repeat) names it once the composite has made it: its
+        // replacements, which copy what it names
+        return true;
+    }
+    if (
+        typeof component.adaptedFrom === "object" &&
+        component.adaptedFrom !== null &&
+        canChange(component.adaptedFrom, ctx, viaReference)
+    ) {
+        // an adapter (the `<math>` a parent matches in place of `$t` of a
+        // `<text>`) is what it adapts
+        return true;
+    }
+    const fixedReferent = component.doenetAttributes?.fixedReferent;
+    if (fixedReferent) {
+        // a value reference a copy made, which reads what the copy named
+        const referent = ctx.components[fixedReferent.componentIdx];
+        if (!referent || canChange(referent, ctx, true)) {
+            return true;
+        }
     }
     for (const refResolution of Object.values(component.extending ?? {})) {
         if (referenceCanChange(refResolution, ctx)) {
@@ -394,7 +429,7 @@ export function partsDecidedByDoenetML({
 }): boolean {
     return (
         !attributeNames.some((name) =>
-            attributeCanChange(component.attributes?.[name], ctx),
+            attributeOrSourceCanChange(component, name, ctx),
         ) &&
         !childGroups.some((group) =>
             (component.childMatchesByGroup?.[group] ?? []).some(
@@ -403,6 +438,35 @@ export function partsDecidedByDoenetML({
             ),
         )
     );
+}
+
+/**
+ * Whether the attribute `name` of the live component `component` can change
+ * ({@link attributeCanChange}). A copy (`$b`, or `<binCounts extend="$b"/>`)
+ * that doesn't write the attribute itself has none: it takes the value its
+ * source computes, so it is decided as its source's attribute is, the
+ * source's own source in turn.
+ */
+function attributeOrSourceCanChange(
+    component: any,
+    name: string,
+    ctx: ChangeContext,
+): boolean {
+    const seen = new Set<number>();
+    let current = component;
+    while (
+        current.attributes?.[name] === undefined &&
+        current.shadows &&
+        !seen.has(current.componentIdx)
+    ) {
+        seen.add(current.componentIdx);
+        const source = ctx.components[current.shadows.componentIdx];
+        if (!source) {
+            return true;
+        }
+        current = source;
+    }
+    return attributeCanChange(current.attributes?.[name], ctx);
 }
 
 /**

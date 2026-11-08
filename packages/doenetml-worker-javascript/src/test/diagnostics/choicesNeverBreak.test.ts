@@ -968,6 +968,23 @@ describe("A reference to what cannot change decides a selection @group4", async 
             expect(infos).toContain(code);
         });
 
+        it(`${tag} from a literal in an iteration of a repeat is an error`, async () => {
+            const { errors } = await load({
+                doenetML: `<repeat name="r" for="1" valueName="v"><number name="n">4</number></repeat>${select("$r[1].n")}`,
+                variable,
+            });
+            expect(errors).eqls([code]);
+        });
+
+        it(`${tag} from a literal an input in an iteration of a repeat is bound to is an info`, async () => {
+            const { errors, infos } = await load({
+                doenetML: `<repeat name="r" for="1" valueName="v"><number name="n">4</number><mathInput bindValueTo="$n"/></repeat>${select("$r[1].n")}`,
+                variable,
+            });
+            expect(errors).eqls([]);
+            expect(infos).toContain(code);
+        });
+
         it(`${tag} from another random choice is an info`, async () => {
             const { errors, infos } = await load({
                 doenetML: `<selectFromSequence name="n" from="4" to="5"/>${select("$n")}`,

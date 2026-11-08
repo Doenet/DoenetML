@@ -13,8 +13,10 @@
  * - the `target` of an `<updateValue>`, an `<animateFromSequence>` or a
  *   `<callAction>`;
  * - every component inside a `<graph>` that is not fixed (`fixed` or
- *   `fixLocation` written as true, on it or on an ancestor), which a reader
- *   can drag, and what it references, which the drag writes to through it.
+ *   `fixLocation` written as true on it, or on an ancestor when it doesn't
+ *   write its own: `fixed="false"` in a fixed graph is not fixed), which a
+ *   reader can drag, and what it references, which the drag writes to
+ *   through it.
  *
  * A write to a component reaches its descendants and, through them, what
  * they reference (an inverse definition), until a fixed component stops it.
@@ -23,6 +25,13 @@
  * this for a component named by a reference; what is written in place is
  * what the author wrote, even when a reader can drag it. A select's check
  * that its choices are feasible can read it too (D39, SEL-1).
+ *
+ * A component made after load from a serialized one keeps the index
+ * current (`noteReaderWritable`, as each component is made): the index marks
+ * each serialized component it finds (`readerWritable`), and a copy of one
+ * with new indices, such as an iteration of a repeat, keeps the mark. A
+ * component serialized from one the index holds (`originalIdx`), such as
+ * an unlinked copy, is added too.
  *
  * It errs toward writable: a `fixed` that comes from a value (`fixed="$b"`)
  * counts as not fixed, and everything in a graph counts as draggable, a
@@ -134,11 +143,23 @@ export function buildReaderWritableIndex(root: any): Set<number> {
     const fixedIdx = new Set<number>();
     const seeds: number[] = [];
 
-    function walk(node: any, inGraph: boolean, fixed: boolean) {
-        const isFixed =
-            fixed ||
-            writtenAsTrue(node.attributes?.fixed) ||
-            writtenAsTrue(node.attributes?.fixLocation);
+    // `fixed` and `fixLocation` are each inherited from where a component
+    // sits, unless it writes its own (`fixed="false"` in a fixed graph),
+    // as `contextAttribute.js` decides them
+    function walk(
+        node: any,
+        inGraph: boolean,
+        inherited: { fixed: boolean; fixLocation: boolean },
+    ) {
+        const own = {
+            fixed: node.attributes?.fixed
+                ? writtenAsTrue(node.attributes.fixed)
+                : inherited.fixed,
+            fixLocation: node.attributes?.fixLocation
+                ? writtenAsTrue(node.attributes.fixLocation)
+                : inherited.fixLocation,
+        };
+        const isFixed = own.fixed || own.fixLocation;
         const isGraph = node.componentType === "graph";
         if (typeof node.componentIdx === "number" && node.componentIdx >= 0) {
             nodeByIdx.set(node.componentIdx, node);
@@ -169,10 +190,10 @@ export function buildReaderWritableIndex(root: any): Set<number> {
             }
         }
         for (const under of componentsUnder(node)) {
-            walk(under, inGraph || isGraph, isFixed);
+            walk(under, inGraph || isGraph, own);
         }
     }
-    walk(root, false, false);
+    walk(root, false, { fixed: false, fixLocation: false });
 
     const writable = new Set<number>();
     const queue = [...seeds];
@@ -186,6 +207,8 @@ export function buildReaderWritableIndex(root: any): Set<number> {
         if (!node) {
             continue;
         }
+        // what is made from it later is written to as it is
+        node.readerWritable = true;
         // a write reaches its descendants, and what they reference
         referencesIn(node, queue);
         for (const under of componentsUnder(node)) {
@@ -195,4 +218,25 @@ export function buildReaderWritableIndex(root: any): Set<number> {
         }
     }
     return writable;
+}
+
+/**
+ * Add the component `componentIdx`, being made from `serializedComponent`,
+ * to `writable` (`Core.readerWritable`) when it is made from what a reader
+ * can write to: a serialized component {@link buildReaderWritableIndex}
+ * marked, or a copy of one with new indices (an iteration of a repeat), or
+ * one serialized from a component in `writable` (`originalIdx`).
+ */
+export function noteReaderWritable(
+    serializedComponent: any,
+    componentIdx: number,
+    writable: Set<number>,
+) {
+    if (
+        serializedComponent.readerWritable ||
+        (typeof serializedComponent.originalIdx === "number" &&
+            writable.has(serializedComponent.originalIdx))
+    ) {
+        writable.add(componentIdx);
+    }
 }

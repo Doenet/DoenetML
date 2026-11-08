@@ -194,6 +194,45 @@ describe("What a reader writes to can change", () => {
 <graph><circle through="$A (2,3) (4,1)"/></graph>`,
         ],
         [
+            "a math in a point that is not fixed, in a fixed graph",
+            "doenet-w0100",
+            "info",
+            `<math name="m">5</math>
+<graph fixed><point fixed="false">($m, 1)</point></graph>
+<p>$m[2]</p>`,
+        ],
+        [
+            "bound by an input in the same iteration of a repeat",
+            "doenet-w0141",
+            "info",
+            `<repeat for="1" valueName="v"><numberList name="e">0 5 2</numberList><mathInput bindValueTo="$e[3]"/><binCounts bins="$e">1</binCounts></repeat>`,
+        ],
+        [
+            "bound by an input in an iteration of a repeat, read from outside",
+            "doenet-w0141",
+            "info",
+            `<repeat name="r" for="1" valueName="v"><numberList name="e">0 5 2</numberList><mathInput bindValueTo="$e[3]"/></repeat>
+<binCounts bins="$r[1].e">1</binCounts>`,
+        ],
+        [
+            "bound by an input in an iteration of a repeat in a repeat",
+            "doenet-w0141",
+            "info",
+            `<repeat for="1" valueName="u"><repeat for="1" valueName="v"><numberList name="e">0 5 2</numberList><mathInput bindValueTo="$e[3]"/><binCounts bins="$e">1</binCounts></repeat></repeat>`,
+        ],
+        [
+            "dragged in a graph in an iteration of a repeat",
+            "doenet-w0100",
+            "info",
+            `<repeat for="1" valueName="v"><math name="m">5</math><graph><point>($m,1)</point></graph><p>$m[2]</p></repeat>`,
+        ],
+        [
+            "in an iteration of a repeat that nothing writes to",
+            "doenet-w0141",
+            "warning",
+            `<repeat for="1" valueName="u"><repeat for="1" valueName="v"><numberList name="e">0 5 2</numberList><binCounts bins="$e">1</binCounts></repeat></repeat>`,
+        ],
+        [
             "a point that a fixed circle in a graph goes through",
             "doenet-w0027",
             "warning",
@@ -219,6 +258,13 @@ describe("The active case, and a random choice, can change", () => {
             `<booleanInput name="b" prefill="true"/>
 <conditionalContent><case condition="$b"><numberList name="e">0 5 2</numberList></case></conditionalContent>
 <binCounts bins="$e">1</binCounts>`,
+        ],
+        [
+            "in a case whose condition is whether a hint is open",
+            "doenet-w0141",
+            "info",
+            `<hint name="h"><p>x</p></hint>
+<conditionalContent><case condition="$h.open"><p>open</p></case><else><numberList name="e">0 5 2</numberList><binCounts bins="$e">1</binCounts></else></conditionalContent>`,
         ],
         [
             "in a repeat over literals",
@@ -312,6 +358,20 @@ describe("The children a check reads (childGroups)", () => {
 <chart type="bar">4 $m</chart>`,
         ],
         [
+            "data from a text input, read through an adapter",
+            "doenet-w0144",
+            "info",
+            `<textInput name="t" prefill="a"/>
+<chart type="bar">4 $t</chart>`,
+        ],
+        [
+            "data from a text written as a literal, read through an adapter",
+            "doenet-w0144",
+            "warning",
+            `<text name="t">a</text>
+<chart type="bar">4 $t</chart>`,
+        ],
+        [
             "a title from a reference",
             "doenet-w0144",
             "warning",
@@ -342,4 +402,39 @@ describe("The children a check reads (childGroups)", () => {
 <chart type="bar"><series styleNumber="$n">4 x</series></chart>`,
         ],
     ]);
+});
+
+describe("A copy is decided as its source is", () => {
+    const cases: [string, string, string[], string][] = [
+        [
+            "a copy of a check whose attribute is from an input",
+            "doenet-w0141",
+            ["info", "info"],
+            `<mathInput name="n" prefill="-1"/><binCounts name="b" bins="0 $n 2">1</binCounts>$b`,
+        ],
+        [
+            "an extend of an extend of such a check",
+            "doenet-w0141",
+            ["info", "info", "info"],
+            `<mathInput name="n" prefill="-1"/><binCounts name="b" bins="0 $n 2">1</binCounts>
+<binCounts name="b2" extend="$b"/>$b2`,
+        ],
+        [
+            "a copy of a group, read through the copy's own reference",
+            "doenet-w0141",
+            ["info", "info"],
+            `<group name="g"><numberList name="e">0 5 2</numberList><mathInput bindValueTo="$e[3]"/><binCounts bins="$e">1</binCounts></group>$g`,
+        ],
+        [
+            "a copy of a check whose attribute is a literal",
+            "doenet-w0141",
+            ["warning", "warning"],
+            `<binCounts name="b" bins="0 -1 2">1</binCounts>$b`,
+        ],
+    ];
+    for (const [name, code, expected, doenetML] of cases) {
+        it(`${name}: ${expected.join(", ")}`, async () => {
+            expect(await levels(doenetML, code)).eqls(expected);
+        });
+    }
 });
