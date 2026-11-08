@@ -221,6 +221,29 @@ describe("Separating the entries of a list @group4", async () => {
         expect(texts.sorted).eq("2, 4, 10");
     });
 
+    it("a copy that gives a sort a type reads its text as the sort does", async () => {
+        // The copy reads the sort's text again with its own `type`, so its
+        // entries are the sort's: `b a` is one entry, with a comma.
+        const { texts } = await textsOf(
+            `
+    <number name="x">5</number>
+    <p name="p1"><sort name="s" type="text">b a, c</sort></p>
+    <p name="p2"><sort copy="$s" type="text" /></p>
+    <p name="p3"><sort name="m">3 + 1, 2, 10</sort></p>
+    <p name="p4"><sort copy="$m" type="text" /></p>
+    <p name="p5"><sort name="r">10 $x (1 + 2) 3</sort></p>
+    <p name="p6"><sort copy="$r" type="text" /></p>
+    `,
+            ["p1", "p2", "p3", "p4", "p5", "p6"],
+        );
+        expect(texts.p1).eq("b a, c");
+        expect(texts.p2).eq("b a, c");
+        expect(texts.p3).eq("2, 4, 10");
+        expect(texts.p4).eq("10, 2, 3 + 1");
+        expect(texts.p5).eq("3, 3, 5, 10");
+        expect(texts.p6).eq("(1 + 2), 10, 3, 5");
+    });
+
     it("sizes and grids take either separator", async () => {
         const { stateVariables, resolvePathToNodeIdx } = await textsOf(
             `
@@ -243,6 +266,8 @@ describe("Separating the entries of a list @group4", async () => {
             `
     <textList name="tl">a) apple, b) banana</textList>
     <mathList name="ml">f(a, b</mathList>
+    <p><sum>1 2)</sum> <and>true (false</and></p>
+    <graph><curve through="(0,0) (1,1) (2,0)"><bezierControls>(1, 1) (2, 2</bezierControls></curve></graph>
     `,
             [],
         );
@@ -257,9 +282,14 @@ describe("Separating the entries of a list @group4", async () => {
         const warnings = getDiagnosticsByType(core).warnings.filter(
             (w) => w.code === "doenet-w0188",
         );
-        expect(warnings.length).eq(2);
+        // each names the component whose text it is, not that component's
+        // parent
+        expect(warnings.length).eq(5);
         expect(warnings[0].message).contains("<textList>");
         expect(warnings[1].message).contains("<mathList>");
+        expect(warnings[2].message).contains("<sum>");
+        expect(warnings[3].message).contains("<and>");
+        expect(warnings[4].message).contains("<bezierControls>");
     });
 
     it("brackets that don't balance in a select or a repeat are reported", async () => {

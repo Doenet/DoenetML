@@ -65,7 +65,9 @@ export default class MathBaseListOperator extends ValueListComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(
+                this.componentType,
+            ),
         );
 
         return sugarInstructions;

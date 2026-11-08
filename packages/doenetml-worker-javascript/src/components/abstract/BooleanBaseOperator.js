@@ -20,6 +20,7 @@ export default class BooleanOperator extends BooleanComponent {
         const groupIntoListEntries = returnGroupIntoListEntriesOfComponentType({
             componentType: "boolean",
             componentsAreEntries: true,
+            componentNameForDiagnostics: this.componentType,
         });
 
         let breakStringsIntoBooleansBySpaces = function ({

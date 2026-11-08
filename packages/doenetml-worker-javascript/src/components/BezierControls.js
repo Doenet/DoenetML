@@ -46,6 +46,7 @@ export default class BezierControls extends InlineComponent {
 
         const groupIntoVectors = returnGroupIntoListEntriesOfComponentType({
             componentType: "vector",
+            componentNameForDiagnostics: this.componentType,
         });
 
         let createControlVectorsList = function ({

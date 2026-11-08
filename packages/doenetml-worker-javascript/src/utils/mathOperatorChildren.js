@@ -22,11 +22,17 @@ import { returnGroupIntoListEntriesOfComponentType } from "../components/commons
  * a `<math>` otherwise, so that `<sum>1 2 x</sum>` and `<sum>1, 2, x + 1</sum>`
  * have three children rather than one string. A reference is an operand of
  * its own, wherever it is written (`<sum>$a$b</sum>` adds two).
+ *
+ * `componentName` is the component whose children these are, which a
+ * warning about its text names (`<sum>`).
  */
-export function returnBreakStringsIntoMathsBySpacesSugarInstruction() {
+export function returnBreakStringsIntoMathsBySpacesSugarInstruction(
+    componentName,
+) {
     const groupIntoListEntries = returnGroupIntoListEntriesOfComponentType({
         componentType: "math",
         componentsAreEntries: true,
+        componentNameForDiagnostics: componentName,
         // An empty entry (`1,,2`) is a blank math, not the `0` that
         // `Number("")` is.
         componentTypeOfText: (text) =>

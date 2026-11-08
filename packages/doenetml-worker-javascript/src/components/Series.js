@@ -115,7 +115,9 @@ export default class Series extends BaseComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(
+                this.componentType,
+            ),
         );
 
         return sugarInstructions;
