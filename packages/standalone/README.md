@@ -470,11 +470,30 @@ content experienced, …). Fire-and-forget; no response is expected:
         object,          // JSON string: the component acted on
         result,          // JSON string: the outcome
         context,         // JSON string: additional context
-        timestamp,       // "YYYY-MM-DD HH:MM:SS"
-        version,
+        timestamp,       // "YYYY-MM-DD HH:MM:SS", UTC, no zone
+        timestampIso,    // "YYYY-MM-DDTHH:MM:SS.sssZ", ISO 8601 UTC
+        version,         // "0.1.2"
     },
 }
 ```
+
+For a `"submitted"` event from an `<answer>`, a `<pretzel>`, or a
+section-wide check work, `result` also counts attempts, so a host can count
+and cap them without reading the document:
+
+- `numSubmissions`: submissions so far, including this one.
+- `maxNumAttempts`: the author's `maxNumAttempts`, or `null` when attempts
+  are unlimited.
+- `numAttemptsLeft`: attempts left after this submission, or `null` when
+  unlimited. For an `<answer>` inside a section-wide check work, the section
+  sets the limit: `numAttemptsLeft` is the section's, and the answer's own
+  `maxNumAttempts` does not apply.
+
+A submission made after the attempts are used up is ignored and sends no
+event.
+
+Version history: `0.1.2` added `timestampIso` and the attempt counts above;
+`timestamp` is unchanged.
 
 ### Frame resizing (`lti.frameResize`)
 

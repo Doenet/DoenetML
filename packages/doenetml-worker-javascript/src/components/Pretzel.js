@@ -1,4 +1,5 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
+import { attemptCountsForEvent } from "../utils/answer";
 
 /**
  * Parse a text response as a finite integer.
@@ -718,11 +719,12 @@ export default class Pretzel extends BlockScoredComponent {
             value: await this.stateValues.creditAchievedDependencies,
         });
 
+        const numSubmissions = (await this.stateValues.numSubmissions) + 1;
         instructions.push({
             updateType: "updateValue",
             componentIdx: this.componentIdx,
             stateVariable: "numSubmissions",
-            value: (await this.stateValues.numSubmissions) + 1,
+            value: numSubmissions,
         });
 
         if (creditAchieved < 1) {
@@ -774,6 +776,11 @@ export default class Pretzel extends BlockScoredComponent {
                     responseText,
                     componentTypes: Array(currentResponses.length).fill("text"),
                     creditAchieved,
+                    ...attemptCountsForEvent({
+                        numSubmissions,
+                        maxNumAttempts: await this.stateValues.maxNumAttempts,
+                        numAttemptsLeftBefore: numAttemptsLeft,
+                    }),
                 },
             },
         });

@@ -6,6 +6,7 @@ import {
     returnSimplifyExpandOnCompareWarning,
     returnStandardAnswerAttributes,
     returnStandardAnswerStateVariableDefinition,
+    attemptCountsForEvent,
 } from "../utils/answer";
 import {
     returnLabelAttributes,
@@ -2801,11 +2802,12 @@ export default class Answer extends InlineComponent {
             value: await this.stateValues.creditAchievedDependencies,
         });
 
+        const numSubmissions = (await this.stateValues.numSubmissions) + 1;
         instructions.push({
             updateType: "updateValue",
             componentIdx: this.componentIdx,
             stateVariable: "numSubmissions",
-            value: (await this.stateValues.numSubmissions) + 1,
+            value: numSubmissions,
         });
 
         if (unadjustedCreditAchieved < 1) {
@@ -2898,6 +2900,11 @@ export default class Answer extends InlineComponent {
                         this.state.currentResponses.shadowingInstructions
                             .createComponentOfType,
                     creditAchieved,
+                    ...attemptCountsForEvent({
+                        numSubmissions,
+                        maxNumAttempts: await this.stateValues.maxNumAttempts,
+                        numAttemptsLeftBefore: numAttemptsLeft,
+                    }),
                 },
             },
         });

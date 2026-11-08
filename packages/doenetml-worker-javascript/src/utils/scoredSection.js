@@ -1,5 +1,8 @@
 import { codedDiagnostic } from "./diagnostics";
-import { returnSubmitLabelStateVariableDefinitions } from "./answer";
+import {
+    attemptCountsForEvent,
+    returnSubmitLabelStateVariableDefinitions,
+} from "./answer";
 
 /**
  * Builds the `returnDependencies` of a state variable that aggregates one
@@ -994,6 +997,12 @@ export async function submitAllAnswers({
         },
         result: {
             creditAchieved: await component.stateValues.creditAchievedIfSubmit,
+            ...attemptCountsForEvent({
+                numSubmissions:
+                    (await component.stateValues.numSubmissions) + 1,
+                maxNumAttempts: await component.stateValues.maxNumAttempts,
+                numAttemptsLeftBefore: numAttemptsLeft,
+            }),
         },
     });
 
