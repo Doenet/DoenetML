@@ -933,25 +933,9 @@ function arrayDefinition(this: any, args: any) {
 
             result = arrayStateVarObj.arrayDefinitionByKey(args);
 
-            // What each array key recalculated gives on a condition now
-            // (`setDefinitionConditionDiagnostics`): those it returned, and
-            // none for a key it returned none for, which withdraws them. A
-            // key not recalculated keeps what it gave.
-            if (
-                result.conditionDiagnosticsByKey ||
-                arrayStateVarObj.reportsConditionDiagnosticsByKey
-            ) {
-                arrayStateVarObj.reportsConditionDiagnosticsByKey = true;
-                const byKey: Record<string, any[]> = {};
-                for (const arrayKey of arrayKeysToRecalculate) {
-                    byKey[arrayKey] =
-                        result.conditionDiagnosticsByKey?.[arrayKey] ?? [];
-                }
-                result.conditionDiagnosticsByKey = byKey;
-            }
-
             // in case definition returns additional array entries,
             // mark all array keys received as fresh as well
+            const keysMadeFresh = new Set<string>(arrayKeysToRecalculate);
             const markReturnedKeysFresh = (valuesByKey: any) => {
                 for (let arrayKey in valuesByKey) {
                     markArrayKeyFresh(
@@ -959,6 +943,7 @@ function arrayDefinition(this: any, args: any) {
                         arrayKey,
                         args.arraySize,
                     );
+                    keysMadeFresh.add(arrayKey);
                 }
             };
             if (result.setValue && result.setValue[arrayVarName]) {
@@ -971,6 +956,54 @@ function arrayDefinition(this: any, args: any) {
                 markReturnedKeysFresh(
                     result.useEssentialOrDefaultValue[arrayVarName],
                 );
+            }
+
+            // What each array key made fresh gives on a condition now
+            // (`setDefinitionConditionDiagnostics`): those it returned, and
+            // none for a key it returned none for, which withdraws them. A
+            // key not made fresh keeps what it gave. Every key made fresh,
+            // not only those asked for: a key returned beyond them is not
+            // recalculated again, so what it gave would otherwise stay.
+            if (
+                result.conditionDiagnosticsByKey ||
+                arrayStateVarObj.keysGivingConditionDiagnostics
+            ) {
+                const byKey: Record<string, any[]> = {};
+                for (const arrayKey of keysMadeFresh) {
+                    byKey[arrayKey] =
+                        result.conditionDiagnosticsByKey?.[arrayKey] ?? [];
+                }
+                result.conditionDiagnosticsByKey = byKey;
+            }
+        }
+
+        // A key no longer in the array, as when its size went down, is not
+        // recalculated again, so what it gave is withdrawn here.
+        const keysGiving: Set<string> | undefined =
+            arrayStateVarObj.keysGivingConditionDiagnostics;
+        if (keysGiving?.size) {
+            const keysNow = new Set(
+                arrayStateVarObj.getAllArrayKeys(args.arraySize),
+            );
+            for (const arrayKey of keysGiving) {
+                if (!keysNow.has(arrayKey)) {
+                    result.conditionDiagnosticsByKey ??= {};
+                    result.conditionDiagnosticsByKey[arrayKey] = [];
+                }
+            }
+        }
+        if (result.conditionDiagnosticsByKey) {
+            arrayStateVarObj.keysGivingConditionDiagnostics ??= new Set();
+            for (const arrayKey in result.conditionDiagnosticsByKey) {
+                if (result.conditionDiagnosticsByKey[arrayKey].length > 0) {
+                    arrayStateVarObj.keysGivingConditionDiagnostics.add(
+                        arrayKey,
+                    );
+                } else {
+                    arrayStateVarObj.keysGivingConditionDiagnostics.delete(
+                        arrayKey,
+                    );
+                }
             }
         }
 

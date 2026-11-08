@@ -109,6 +109,26 @@ describe("Warning levels by the source of the condition: geometry and math", () 
         });
     });
 
+    it("w0004 goes away when another array entry recalculates the array", async () => {
+        // While the equation is not linear, only `$l.point1` is read, so the
+        // info is given by `point1`'s keys. Once it is linear, only
+        // `$l.point2` is, whose definition makes every key fresh: the info
+        // `point1` gave must go, though `point1` is not recalculated.
+        const { diagnostics, setMath } = await setup(`
+<mathInput name="a" prefill="x"/>
+<line name="l" equation="y=$a x"/>
+<conditionalContent><case condition="$a=x"><p>$l.point1</p></case></conditionalContent>
+<p>$l.point2</p>
+`);
+        expect(diagnostics("doenet-w0004")).eqls([{ type: "info", line: 3 }]);
+
+        await setMath("a", "2");
+        expect(diagnostics("doenet-w0004")).eqls([]);
+
+        await setMath("a", "x");
+        expect(diagnostics("doenet-w0004")).eqls([{ type: "info", line: 3 }]);
+    });
+
     it("w0006: a ray whose dimensions don't match", async () => {
         await checkLiteralAndInput({
             code: "doenet-w0006",
@@ -171,6 +191,36 @@ describe("Warning levels by the source of the condition: geometry and math", () 
             good: "6",
             bad: "",
         });
+    });
+
+    it("w0038: a function domain with too few intervals, going away when the number of inputs goes down", async () => {
+        // Reported under each key of `domain`; once the number of inputs is
+        // 1, key 1 is no longer in the array, so it is not recalculated,
+        // and what it gave must go anyway.
+        const { diagnostics: inOrder, setMath } = await setup(`
+<function numInputs="2" domain="(0,1)">x+y</function>
+<mathInput name="n" prefill="2"/>
+<function name="f" numInputs="$n" domain="(0,1)">x+y</function>
+<p>$f.domain</p>
+`);
+        // by line: the info is reported before the warning
+        const diagnostics = (code: string) =>
+            inOrder(code).sort((a: any, b: any) => a.line - b.line);
+        expect(diagnostics("doenet-w0038")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("n", "1");
+        expect(diagnostics("doenet-w0038")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+
+        await setMath("n", "2");
+        expect(diagnostics("doenet-w0038")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
     });
 
     it("w0040: a function through a point that is not numerical", async () => {

@@ -879,11 +879,6 @@ export class StateVariableEvaluator {
     }
 
     /**
-     * Build definition/inverse-definition args for a state variable.
-     * When consumeChanges is false, dependency change flags are observed but preserved
-     * for a later consuming read.
-     */
-    /**
      * Report the diagnostics a definition gives on a condition of values that
      * can change (`result.conditionDiagnostics`): those it gives now, replacing
      * what it gave the last time it ran, so they go away when the definition
@@ -894,7 +889,9 @@ export class StateVariableEvaluator {
      * Keyed by the definition, through the first of the state variables it
      * defines, so it is the same whichever of them asked for it. An array's
      * definition gives them by array key (`conditionDiagnosticsByKey`), as
-     * it recalculates only some keys.
+     * it recalculates only some keys, and is keyed through the array, not
+     * the array entry that asked for it (`point1` of `points`), so a key is
+     * the same condition whichever entry recalculates it.
      */
     setDefinitionConditionDiagnostics({
         component,
@@ -905,7 +902,11 @@ export class StateVariableEvaluator {
         stateVariables: string[];
         result: any;
     }) {
-        const condition = `stateVariable:${[...stateVariables].sort()[0]}`;
+        const definedBy = stateVariables.map(
+            (varName) =>
+                component.state[varName]?.arrayStateVariable ?? varName,
+        );
+        const condition = `stateVariable:${definedBy.sort()[0]}`;
         if (result.conditionDiagnosticsByKey) {
             // an array's definition, which recalculates some of its keys
             // (`arrayDefinitionByKey`): each key's diagnostics are replaced
@@ -973,6 +974,11 @@ export class StateVariableEvaluator {
         );
     }
 
+    /**
+     * Build definition/inverse-definition args for a state variable.
+     * When consumeChanges is false, dependency change flags are observed but preserved
+     * for a later consuming read.
+     */
     async getStateVariableDefinitionArguments({
         component,
         stateVariable,
