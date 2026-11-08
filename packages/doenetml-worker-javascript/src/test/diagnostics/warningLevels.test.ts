@@ -184,4 +184,37 @@ describe("Warning levels by the source of the condition", () => {
             { type: "warning", line: 3 },
         ]);
     });
+
+    it("w0100 at info level explains a tag's i0054, as the warning does", async () => {
+        // The tag reports what the bare reference reports (D37): the info
+        // that says why, not also that its index names nothing now.
+        const { diagnostics, setMath } = await setup(`
+<math name="m">5</math>
+<p><math extend="$m[2]"/></p>
+<mathInput name="a" prefill="5"/>
+<math name="m2">$a</math>
+<p><math extend="$m2[2]"/></p>
+<p><math extend="$a[2]"/></p>
+`);
+        expect(diagnostics("doenet-w0100")).eqls([
+            { type: "warning", line: 3 },
+            { type: "info", line: 6 },
+            { type: "info", line: 7 },
+        ]);
+        expect(diagnostics("doenet-i0054")).eqls([]);
+
+        await setMath("a", "(1,2)");
+        expect(diagnostics("doenet-w0100")).eqls([
+            { type: "warning", line: 3 },
+        ]);
+        expect(diagnostics("doenet-i0054")).eqls([]);
+
+        await setMath("a", "7");
+        expect(diagnostics("doenet-w0100")).eqls([
+            { type: "warning", line: 3 },
+            { type: "info", line: 6 },
+            { type: "info", line: 7 },
+        ]);
+        expect(diagnostics("doenet-i0054")).eqls([]);
+    });
 });
