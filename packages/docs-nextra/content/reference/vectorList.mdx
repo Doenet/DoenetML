@@ -19,8 +19,9 @@ graph, such a vector keeps its label, and is fixed, undraggable (as a
 whole, by its head or by its tail) or has `fixLocation` when that vector
 does. It is also fixed in a fixed graph.
 
-When creating a `<vectorList>{:dn}`, separate items by **spaces**, not commas.
-The component will default to displaying the list with commas. (The commas
+When creating a `<vectorList>{:dn}`, separate items by **commas** or by
+**spaces**, as for any [list](../concepts/essentialConcepts#lists): `(1, 2) (3, 4)` and `(1, 2), (3, 4)` are the
+same list. The component will default to displaying the list with commas. (The commas
 inside each vector's `(x, y)` component tuple are part of the vector itself,
 not separators between vectors.)
 
@@ -42,7 +43,7 @@ not separators between vectors.)
 
 
 
-Each vector is written as `(x, y)`. Spaces between the parenthesized tuples
+Each vector is written as `(x, y)`. Spaces, or commas, between the parenthesized tuples
 separate the vectors; the comma between `x` and `y` is part of a single
 vector. Individual vectors are addressable with array notation.
 

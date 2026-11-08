@@ -10,10 +10,13 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 The `<textList>{:dn}` is a [Text](../concepts/essentialConcepts#component-types)
 component that stores a list of texts, each like a [`<text>{:dn}`](text.mdx).
 
-When creating a `<textList>{:dn}`, separate items by **spaces**, not commas.
-The component will default to displaying the list with commas. (A comma inside a
-`<textList>{:dn}` is treated as part of the text itself, just as it would be inside
-a `<text>{:dn}`.)
+When creating a `<textList>{:dn}`, separate items by **commas** or by
+**spaces**, as for any [list](../concepts/essentialConcepts#lists): if the text has a comma outside brackets,
+commas separate the entries, and otherwise spaces do. So
+`<textList>hello world, goodbye</textList>{:dn}` is the two texts
+`hello world` and `goodbye`. An entry that needs a comma, or a space in a
+list separated by spaces, is written as a `<text>{:dn}` child.
+The component will default to displaying the list with commas.
 
 <AttrPropDisplay name='textList'/>
 
@@ -32,7 +35,7 @@ a `<text>{:dn}`.)
 
 
 
-In the sample code above, the individual texts are listed directly between the opening and closing `<textList>{:dn}` tags, with spaces (not commas) to separate list items.
+In the sample code above, the individual texts are listed directly between the opening and closing `<textList>{:dn}` tags, with spaces to separate list items. Commas would separate them too.
 
 
 

@@ -251,7 +251,9 @@ export default class SummaryStatistics extends BlockComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(
+                this.componentType,
+            ),
         );
 
         return sugarInstructions;

@@ -91,6 +91,44 @@ When you need to access the value of the named component or one of its stored pr
 ```
 
 
+<a id="lists"></a>
+## Writing a list
+
+Many components take a list written as text: a list like
+`<mathList>{:dn}` or `<numberList>{:dn}`, the options of a `<select>{:dn}`,
+the values a `<repeat>{:dn}` repeats `for`, the numbers a `<sum>{:dn}` or
+`<sort>{:dn}` works on, and attributes such as `vertices` or `variables`. All
+of them separate the entries by the same rule:
+
+* **Commas if there is one, spaces otherwise.** If the text has a comma
+  outside brackets, the entries are separated by commas, and the spaces around
+  each entry are ignored. Otherwise they are separated by spaces.
+  `x + 1, y` is the two entries `x + 1` and `y`, while `x y z` is three.
+* **Brackets keep their contents together.** No comma or space inside
+  parentheses, square brackets or braces separates entries, so `f(x, y) z` and
+  `(1, 2), (3, 4)` are two entries each. Any closing bracket closes any opening
+  one, so the half-open interval `(1, 2]` is one entry. If the brackets don't
+  balance, they are ignored for the whole list, and Doenet explains this with
+  an info.
+  Angle brackets `<` `>` and bars `|` are not brackets.
+* **Every comma separates two entries.** A trailing comma (`a, b,`) or two
+  commas in a row (`a,,b`) give an empty entry.
+* **Only the text you write decides.** A reference such as `$a` is part of
+  the entry it is written in (`2$a + 1, 3`), and a comma in its value does not
+  make the list use commas. In `<sum>{:dn}` and the other math and boolean
+  operators, though, each reference is an entry of its own.
+
+Adding one comma changes how the rest of the list is read: `x y, z` is the
+two entries `xy` (the product) and `z`. In a list written between tags,
+anything the rule can't express can be written as children, one per entry.
+
+```doenet-editor
+<p>Spaces: <mathList name="spaces">x y z</mathList></p>
+<p>Commas: <mathList name="commas">x + 1, y, f(x, y)</mathList></p>
+<p>Intervals: <intervalList>(1, 2], [3, 4)</intervalList></p>
+<p>The second entry with commas is $commas[2].</p>
+```
+
 <a id="sizes"></a>
 ## Sizes: `width` and `height`
 

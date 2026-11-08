@@ -1,8 +1,9 @@
 import BaseComponent from "./abstract/BaseComponent";
+import { returnBreakStringsSugarFunction } from "./commonsugar/breakstrings";
 import {
-    returnBreakStringsSugarFunction,
-    breakEmbeddedStringsIntoParensPieces,
-} from "./commonsugar/breakstrings";
+    breakIntoBracketedListEntries,
+    listBracketsUnmatchedInfo,
+} from "./commonsugar/lists";
 
 export class Extremum extends BaseComponent {
     static componentType = "extremum";
@@ -327,13 +328,28 @@ export class Extrema extends BaseComponent {
             matchedChildren,
             nComponents,
             stateIdInfo,
+            isAttributeComponent,
+            parentComponentType,
         }) {
-            let results = breakEmbeddedStringsIntoParensPieces({
+            let results = breakIntoBracketedListEntries({
                 componentList: matchedChildren,
             });
 
             if (results.success !== true) {
-                return { success: false };
+                // With its brackets ignored, the text is not a list of
+                // extrema, which is reported as invalid; explain why.
+                return {
+                    success: false,
+                    diagnostics: results.unmatchedBrackets
+                        ? [
+                              listBracketsUnmatchedInfo(
+                                  isAttributeComponent
+                                      ? parentComponentType
+                                      : extremaClass.componentType,
+                              ),
+                          ]
+                        : [],
+                };
             }
 
             return {

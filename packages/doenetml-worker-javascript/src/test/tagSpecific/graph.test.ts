@@ -1310,15 +1310,16 @@ describe("Graph tag tests @group2", async () => {
     });
 
     it("an unusable grid value warns instead of crashing", async () => {
-        // `grid` takes two positive numbers separated by a space. Everything
-        // here is a way of getting that wrong, including values whose pieces
-        // `me.fromText` cannot parse at all: `grid="(1, 2)"` splits on its
-        // space into `(1,` and `2)`, which used to throw out of the state
-        // variable and take down the whole document.
+        // `grid` takes two positive numbers, separated as any list is
+        // (Doenet/DoenetML#2492). Everything here is a way of getting that
+        // wrong, including values whose pieces `me.fromText` cannot parse at
+        // all (`(1`), which used to throw out of the state variable and take
+        // down the whole document, and an empty entry (`1,,2`).
         const unusableValues = [
             "(1, 2)",
             "(1,2) (3,4)",
-            "1, 2",
+            "(1 2",
+            "1,,2",
             "0 1",
             "1 -2",
             "foo bar",
@@ -1367,6 +1368,8 @@ describe("Graph tag tests @group2", async () => {
             ["1 pi/2", [1, Math.PI / 2]],
             ["  2   3  ", [2, 3]],
             ["2/3 3/4", [2 / 3, 3 / 4]],
+            ["1, 2", [1, 2]],
+            ["pi / 2, 1", [Math.PI / 2, 1]],
         ];
 
         for (const [gridValue, expectedGrid] of usableValues) {

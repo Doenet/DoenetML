@@ -1,5 +1,8 @@
 import MathList from "./MathList";
-import { breakEmbeddedStringsIntoParensPieces } from "./commonsugar/breakstrings";
+import {
+    breakIntoBracketedListEntries,
+    listBracketsUnmatchedInfo,
+} from "./commonsugar/lists";
 
 export default class TupleList extends MathList {
     static componentType = "tupleList";
@@ -18,13 +21,29 @@ export default class TupleList extends MathList {
             matchedChildren,
             nComponents,
             stateIdInfo,
+            isAttributeComponent,
+            parentComponentType,
         }) {
-            let results = breakEmbeddedStringsIntoParensPieces({
+            let results = breakIntoBracketedListEntries({
                 componentList: matchedChildren,
             });
 
             if (results.success !== true) {
-                return { success: false };
+                // The list reads its text itself, by the rule for lists, so
+                // brackets that don't balance are ignored there: explain it,
+                // as the sugar of the other lists does.
+                return {
+                    success: false,
+                    diagnostics: results.unmatchedBrackets
+                        ? [
+                              listBracketsUnmatchedInfo(
+                                  isAttributeComponent
+                                      ? parentComponentType
+                                      : "tupleList",
+                              ),
+                          ]
+                        : [],
+                };
             }
 
             return {

@@ -1,5 +1,8 @@
 import { DastElement, DastElementContent } from "../../types";
-import { groupTextAndReferencesBySpacesOutsideParens } from "./utils/lists";
+import {
+    groupTextAndReferencesIntoListEntries,
+    listBracketsUnmatchedError,
+} from "./utils/lists";
 import { isWrittenWithExtend } from "./utils/extend";
 
 /**
@@ -86,16 +89,6 @@ export function repeatSugar(node: DastElement) {
         }
     }
 
-    if (setupChildren.length > 0) {
-        node.children.push({
-            type: "element",
-            name: "_repeatSetup",
-            children: setupChildren,
-            attributes: {},
-            source_doc: node.source_doc,
-        });
-    }
-
     if (node.name === "repeat") {
         let type = "math";
         if (node.attributes.type) {
@@ -110,7 +103,7 @@ export function repeatSugar(node: DastElement) {
 
         if (node.attributes.for) {
             const attrChildren = node.attributes.for.children;
-            const groupResult = groupTextAndReferencesBySpacesOutsideParens({
+            const groupResult = groupTextAndReferencesIntoListEntries({
                 children: attrChildren,
                 componentType: type,
                 wrapSingleNonTextNodes: false,
@@ -118,7 +111,26 @@ export function repeatSugar(node: DastElement) {
 
             if (groupResult.success) {
                 node.attributes.for.children = groupResult.newChildren;
+                if (groupResult.unmatchedBrackets) {
+                    // reported from the setup, which is not repeated
+                    setupChildren.push(
+                        listBracketsUnmatchedError(
+                            node,
+                            node.attributes.for.position,
+                        ),
+                    );
+                }
             }
         }
+    }
+
+    if (setupChildren.length > 0) {
+        node.children.push({
+            type: "element",
+            name: "_repeatSetup",
+            children: setupChildren,
+            attributes: {},
+            source_doc: node.source_doc,
+        });
     }
 }

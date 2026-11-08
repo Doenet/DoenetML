@@ -1,4 +1,4 @@
-import type { DastElement } from "@doenet/parser";
+import { splitListText, type DastElement } from "@doenet/parser";
 // Its own subpath rather than the root export, which would drag
 // math-expressions and the AST and URL helpers onto the boot path of a worker
 // the editor waits on. `test/no-root-utils-import.test.ts` explains it in full
@@ -740,8 +740,9 @@ const MATH_INPUT_FUNCTION_NAME_ATTRS: ReadonlySet<string> = new Set([
 
 /**
  * Read a `textList`-shaped attribute on a DAST element by splitting its
- * source text on whitespace, mirroring how the runtime parses these
- * attributes (`TextListFromString`). Returns an empty array if the
+ * source text by the rule for lists (`splitListText`: commas if it has one,
+ * spaces otherwise), mirroring how the runtime parses these attributes
+ * (`TextListFromString`). Returns an empty array if the
  * attribute is absent or its text content is blank.
  *
  * Duplicate entries are dropped (first occurrence wins). The shared
@@ -760,7 +761,7 @@ function readTextListAttribute(
     if (value === undefined) return [];
     const seen = new Set<string>();
     const out: string[] = [];
-    for (const entry of value.split(/\s+/)) {
+    for (const entry of splitListText(value).entries) {
         if (entry.length === 0 || seen.has(entry)) continue;
         seen.add(entry);
         out.push(entry);

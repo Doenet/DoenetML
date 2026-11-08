@@ -1,4 +1,5 @@
 import BooleanComponent from "../Boolean";
+import { returnGroupIntoListEntriesOfComponentType } from "../commonsugar/lists";
 
 export default class BooleanOperator extends BooleanComponent {
     static componentType = "_booleanOperator";
@@ -12,43 +13,30 @@ export default class BooleanOperator extends BooleanComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
+        // Break the children into the entries of a list by the one rule for
+        // lists (Doenet/DoenetML#2492) and wrap each in a boolean:
+        // `<and>true false</and>`, or `<and>x > 1, y < 2</and>`. A reference
+        // is an operand of its own, wherever it is written.
+        const groupIntoListEntries = returnGroupIntoListEntriesOfComponentType({
+            componentType: "boolean",
+            componentsAreEntries: true,
+            componentNameForDiagnostics: this.componentType,
+        });
+
         let breakStringsIntoBooleansBySpaces = function ({
             matchedChildren,
+            componentInfoObjects,
             nComponents,
             stateIdInfo,
+            parentComponentType,
         }) {
-            // break any string by white space and wrap pieces with boolean
-
-            let newChildren = matchedChildren.reduce(function (a, c) {
-                if (typeof c === "string") {
-                    return [
-                        ...a,
-                        ...c
-                            .split(/\s+/)
-                            .filter((s) => s)
-                            .map((s) => ({
-                                type: "serialized",
-                                componentType: "boolean",
-                                componentIdx: nComponents++,
-                                stateId: stateIdInfo
-                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                    : undefined,
-                                attributes: {},
-                                doenetAttributes: {},
-                                state: {},
-                                children: [s],
-                            })),
-                    ];
-                } else {
-                    return [...a, c];
-                }
-            }, []);
-
-            return {
-                success: true,
-                newChildren: newChildren,
+            return groupIntoListEntries({
+                matchedChildren,
+                componentInfoObjects,
                 nComponents,
-            };
+                stateIdInfo,
+                parentComponentType,
+            });
         };
 
         sugarInstructions.push({

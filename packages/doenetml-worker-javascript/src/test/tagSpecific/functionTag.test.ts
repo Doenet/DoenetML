@@ -5581,65 +5581,74 @@ describe("Function tag tests @group4", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(7);
+
+        // The domain written as `(` is a list whose brackets don't balance
+        // (Doenet/DoenetML#2492), which the list explains with an info.
+        const unmatched = diagnosticsByType.infos.filter(
+            (info) => info.code === "doenet-i0058",
+        );
+        expect(unmatched.length).eq(1);
+        expect(unmatched[0].position.start.line).eq(3);
+        const warnings = diagnosticsByType.warnings;
+        expect(warnings.length).eq(7);
 
         // The domain written as `(` is reported by the list it makes, as it
         // reads it, before the function finds it has no interval.
-        expect(diagnosticsByType.warnings[0].message).contain(
+        expect(warnings[0].message).contain(
             `Invalid format for attribute domain of \`<function>\``,
         );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(35);
+        expect(warnings[0].position.start.line).eq(3);
+        expect(warnings[0].position.start.column).eq(25);
+        expect(warnings[0].position.end.line).eq(3);
+        expect(warnings[0].position.end.column).eq(35);
 
-        expect(diagnosticsByType.warnings[1].message).contain(
+        expect(warnings[1].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(3);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(35);
+        expect(warnings[1].position.start.line).eq(3);
+        expect(warnings[1].position.start.column).eq(25);
+        expect(warnings[1].position.end.line).eq(3);
+        expect(warnings[1].position.end.column).eq(35);
 
-        expect(diagnosticsByType.warnings[2].message).contain(
+        expect(warnings[2].message).contain(
             `Invalid format for domain for function`,
         );
-        expect(diagnosticsByType.warnings[2].position.start.line).eq(4);
-        expect(diagnosticsByType.warnings[2].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[2].position.end.line).eq(4);
-        expect(diagnosticsByType.warnings[2].position.end.column).eq(41);
+        expect(warnings[2].position.start.line).eq(4);
+        expect(warnings[2].position.start.column).eq(25);
+        expect(warnings[2].position.end.line).eq(4);
+        expect(warnings[2].position.end.column).eq(41);
 
-        expect(diagnosticsByType.warnings[3].message).contain(
+        expect(warnings[3].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
-        expect(diagnosticsByType.warnings[3].position.start.line).eq(5);
-        expect(diagnosticsByType.warnings[3].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[3].position.end.line).eq(5);
-        expect(diagnosticsByType.warnings[3].position.end.column).eq(34);
+        expect(warnings[3].position.start.line).eq(5);
+        expect(warnings[3].position.start.column).eq(25);
+        expect(warnings[3].position.end.line).eq(5);
+        expect(warnings[3].position.end.column).eq(34);
 
-        expect(diagnosticsByType.warnings[4].message).contain(
+        expect(warnings[4].message).contain(
             `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
         );
-        expect(diagnosticsByType.warnings[4].position.start.line).eq(14);
-        expect(diagnosticsByType.warnings[4].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[4].position.end.line).eq(14);
-        expect(diagnosticsByType.warnings[4].position.end.column).eq(53);
+        expect(warnings[4].position.start.line).eq(14);
+        expect(warnings[4].position.start.column).eq(39);
+        expect(warnings[4].position.end.line).eq(14);
+        expect(warnings[4].position.end.column).eq(53);
 
-        expect(diagnosticsByType.warnings[5].message).contain(
+        expect(warnings[5].message).contain(
             `Invalid format for domain for function`,
         );
-        expect(diagnosticsByType.warnings[5].position.start.line).eq(16);
-        expect(diagnosticsByType.warnings[5].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[5].position.end.line).eq(16);
-        expect(diagnosticsByType.warnings[5].position.end.column).eq(61);
+        expect(warnings[5].position.start.line).eq(16);
+        expect(warnings[5].position.start.column).eq(39);
+        expect(warnings[5].position.end.line).eq(16);
+        expect(warnings[5].position.end.column).eq(61);
 
-        expect(diagnosticsByType.warnings[6].message).contain(
+        expect(warnings[6].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
         );
-        expect(diagnosticsByType.warnings[6].position.start.line).eq(17);
-        expect(diagnosticsByType.warnings[6].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[6].position.end.line).eq(17);
-        expect(diagnosticsByType.warnings[6].position.end.column).eq(48);
+        expect(warnings[6].position.start.line).eq(17);
+        expect(warnings[6].position.start.column).eq(39);
+        expect(warnings[6].position.end.line).eq(17);
+        expect(warnings[6].position.end.column).eq(48);
     });
 
     it("copy function and overwrite numInputs", async () => {

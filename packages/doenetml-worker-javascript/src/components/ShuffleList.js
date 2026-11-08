@@ -3,6 +3,7 @@ import {
     reorderedValueListClass,
 } from "./abstract/ReorderedValueList";
 import Shuffle from "./Shuffle";
+import { listSplittingFromAttribute } from "./commonsugar/lists";
 
 /**
  * The list form of `<shuffle>` (`reorderedValueListClass`): the values of
@@ -98,9 +99,14 @@ function shuffleListClass(Base) {
         }) {
             let numPieces = 0;
             const components = [];
+            const splitting = listSplittingFromAttribute(
+                serializedComponent.attributes?._listSplitting?.primitive
+                    ?.value,
+            );
             for (const child of serializedComponent.children) {
                 if (typeof child === "string") {
-                    numPieces += this.splitTextIntoPieces(child)?.length ?? 0;
+                    numPieces +=
+                        this.splitTextIntoPieces(child, splitting)?.length ?? 0;
                 } else {
                     components.push(child);
                 }

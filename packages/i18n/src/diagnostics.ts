@@ -95,6 +95,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0055": "type-change-composite-holds-nothing",
     "doenet-i0056": "variant-select-options-not-written",
     "doenet-i0057": "select-from-sequence-coprime-draws-exhausted",
+    "doenet-i0058": "list-brackets-unmatched",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
