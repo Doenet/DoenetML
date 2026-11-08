@@ -1815,17 +1815,16 @@ export default class Graph extends BlockComponent {
                             dependencyType: "stateVariable",
                             variableName: "gridAttrCompChildren",
                         },
-                        // Every child of the attribute, used only to tell a
-                        // value the author spelled out from one that came from
-                        // elsewhere. It has to be every child rather than
-                        // `gridAttrCompChildren`, because a child a text
-                        // attribute cannot accept at all — `grid="$aPoint"` —
-                        // is missing from `gridAttrCompChildren` and from the
-                        // attribute's value alike. Judged on what survives, the
-                        // value would look authored, and the warning below
-                        // would quote the empty remnant the dropped child left
-                        // behind, on top of the "invalid format" warning that
-                        // child already raised.
+                        // Every child of the attribute, used only to tell
+                        // whether a child was dropped. It has to be every
+                        // child rather than `gridAttrCompChildren`, because a
+                        // child a text attribute cannot accept at all —
+                        // `grid="$aPoint"` — is missing from
+                        // `gridAttrCompChildren` and from the attribute's
+                        // value alike, and the diagnostic below would quote
+                        // the empty remnant the dropped child left behind, on
+                        // top of the "invalid format" warning that child
+                        // already raised.
                         allGridAttrChildren: {
                             dependencyType: "child",
                             parentIdx: stateValues.gridAttrCompName,
@@ -1835,6 +1834,12 @@ export default class Graph extends BlockComponent {
                             dependencyType: "attributeComponent",
                             attributeName: "grid",
                             variableNames: ["value"],
+                        },
+                        // whether the grid is decided by the DoenetML: written
+                        // as a literal, or a reference to what cannot change
+                        gridDecidedByDoenetML: {
+                            dependencyType: "decidedByDoenetML",
+                            attributeNames: ["grid"],
                         },
                     };
 
@@ -1865,17 +1870,12 @@ export default class Graph extends BlockComponent {
                 const attrChildren = dependencyValues.gridAttrCompChildren;
                 const attrValue = dependencyValues.gridAttr.stateValues.value;
 
-                // Only a value the author spelled out is a mistake to warn
-                // about. Once the attribute contains a reference, an unusable
-                // value is not reliably a mistake: it is usually a `<mathInput>`
-                // the reader has not filled in yet, or one they have filled in
-                // badly, which is not the author's to fix. So it is an info,
-                // there while the value is unusable and gone when it is not
-                // (DIAG-2, B33).
-                const authoredInFull =
-                    dependencyValues.allGridAttrChildren.every(
-                        (child) => typeof child === "string",
-                    );
+                // A value decided by the DoenetML is a mistake to warn
+                // about. One that can change, such as a `<mathInput>` the
+                // reader has not filled in yet or has filled in badly, is not
+                // the author's to fix. So it is an info, there while the
+                // value is unusable and gone when it is not (DIAG-2, B33).
+                const gridDecided = dependencyValues.gridDecidedByDoenetML;
 
                 // A child the attribute could not hold (`grid="$aPoint"`) is
                 // dropped from its value, and its format is reported already
@@ -1889,10 +1889,10 @@ export default class Graph extends BlockComponent {
                 );
 
                 // Brackets that don't balance are ignored in splitting the
-                // value, which the info explains whether or not the grid
-                // is then usable. Only written text has brackets, so they
-                // are the author's even beside a reference.
-                let bracketsInfo = [];
+                // value, which `doenet-i0058` explains whether or not the
+                // grid is then usable. Only written text has brackets, so
+                // they are the author's even beside a reference.
+                let bracketsDiagnostics = [];
 
                 const noGrid = () => ({
                     setValue: { grid: "none" },
@@ -1901,13 +1901,13 @@ export default class Graph extends BlockComponent {
                         ? []
                         : [
                               codedDiagnostic({
-                                  type: levelFromSource(authoredInFull),
+                                  type: levelFromSource(gridDecided),
                                   code: "doenet-w0119",
                                   args: { grid: attrValue },
                               }),
                           ],
                     // brackets the author wrote, decided by the DoenetML
-                    sendDiagnostics: bracketsInfo,
+                    sendDiagnostics: bracketsDiagnostics,
                 });
 
                 let grid = attrValue.toLowerCase().trim();
@@ -1927,7 +1927,7 @@ export default class Graph extends BlockComponent {
                 const { groups: groupedChildren, unmatchedBrackets } =
                     groupGridAttrChildren(attrChildren);
                 if (unmatchedBrackets) {
-                    bracketsInfo = [
+                    bracketsDiagnostics = [
                         listBracketsUnmatchedDiagnostic("graph", false),
                     ];
                 }
@@ -1957,7 +1957,7 @@ export default class Graph extends BlockComponent {
                     setValue: { grid },
                     setCreateComponentOfType: { grid: "numberList" },
                     conditionDiagnostics: [],
-                    sendDiagnostics: bracketsInfo,
+                    sendDiagnostics: bracketsDiagnostics,
                 };
             },
         };

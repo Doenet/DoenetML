@@ -543,6 +543,26 @@ Written as a tag, such as `<number extend="$total"/>{:dn}`, the same reference
 gives the same warning, and the tag is missing: it shows `＿`, whatever the tag
 adds.
 
+## Warnings and infos from values
+
+Some problems DoenetML reports come from a value: `bins` of a
+[`<binCounts>{:dn}`](../reference/binCounts) that aren't in increasing order, a
+`<circle>{:dn}` through a point whose coordinates aren't numbers, an index that
+names nothing. Such a problem is a **warning** when the DoenetML decides it: the
+value is written in the document, or comes from a reference to something that
+can't change, so `bins="$edges"` of `<numberList name="edges">0 5 2</numberList>{:dn}`
+gives the same warning as `bins="0 5 2"`. It is an **info** when the value can
+change as the document is used, and the info lasts only while the value causes
+it.
+
+A value can change when it comes from an input, an `<answer>{:dn}`, a random
+choice, which case of a `<conditionalContent>{:dn}` is shown when its condition
+can change, or something a reader can change: what an input's `bindValueTo` names, the `target` of an
+`<updateValue>{:dn}`, `<animateFromSequence>{:dn}` or `<callAction>{:dn}`, what
+is in a `<graph>{:dn}` and not `fixed` (or, for a point or other shape,
+`fixLocation`), which a reader can drag, and whether a
+hint, solution or section is open.
+
 ## Referencing repeated content
 
 A [`<repeat>`](../reference/repeat) (or

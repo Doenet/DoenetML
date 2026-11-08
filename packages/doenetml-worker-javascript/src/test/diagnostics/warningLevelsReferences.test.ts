@@ -109,6 +109,20 @@ describe("A reference to a component, by whether it can change", () => {
             `<spreadsheet name="s"><cell>0</cell><cell>5</cell><cell>2</cell></spreadsheet>
 <binCounts bins="$s.cellA1 $s.cellB1 $s.cellC1">1</binCounts>`,
         ],
+        [
+            "a graph's grid through a reference to a literal",
+            "doenet-w0119",
+            "warning",
+            // `fixed`, since a reference in a graph that isn't fixed is
+            // what a drag can write to
+            `<number name="g">-2</number><graph fixed grid="1 $g"/>`,
+        ],
+        [
+            "a graph's grid from an input",
+            "doenet-w0119",
+            "info",
+            `<mathInput name="g" prefill="-2"/><graph fixed grid="1 $g"/>`,
+        ],
     ]);
 });
 
@@ -164,6 +178,14 @@ describe("What a reader writes to can change", () => {
 <chart type="bar">4 $P.x</chart>`,
         ],
         [
+            "the target of an animateFromSequence",
+            "doenet-w0100",
+            "info",
+            `<math name="m">5</math>
+<animateFromSequence target="$m" from="1" to="3"/>
+<p>$m[2]</p>`,
+        ],
+        [
             "a point a reader drags in a graph",
             "doenet-w0144",
             "info",
@@ -192,6 +214,13 @@ describe("What a reader writes to can change", () => {
             "info",
             `<point name="A">(x,1)</point>
 <graph><circle through="$A (2,3) (4,1)"/></graph>`,
+        ],
+        [
+            "a math in a point in a fixed graph",
+            "doenet-w0100",
+            "warning",
+            `<math name="m">5</math><p>$m[2]</p>
+<graph fixed><point>($m, 1)</point></graph>`,
         ],
         [
             "a math in a point that is not fixed, in a fixed graph",

@@ -177,17 +177,25 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
   <case condition="$b"><section name="S"><math>x</math></section></case>
 </conditionalContent>
 <p><collect componentType="math" from="$cc.S"/></p>
+<conditionalContent name="cc2">
+  <case condition="false"><section name="S"><math>x</math></section></case>
+</conditionalContent>
+<p><collect componentType="math" from="$cc2.S"/></p>
 `);
+        // a case whose condition is written as `false` can't become
+        // active, so its source is missing by the DoenetML: a warning
         expect(diagnostics("doenet-w0072")).eqls([
             { type: "warning", line: 2 },
             { type: "warning", line: 3 },
             { type: "info", line: 8 },
+            { type: "warning", line: 12 },
         ]);
 
         await setBoolean("b", true);
         expect(diagnostics("doenet-w0072")).eqls([
             { type: "warning", line: 2 },
             { type: "warning", line: 3 },
+            { type: "warning", line: 12 },
         ]);
     });
 

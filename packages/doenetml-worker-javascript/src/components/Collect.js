@@ -189,6 +189,12 @@ export default class Collect extends CompositeComponent {
                               dependencyType: "componentIdentity",
                               componentIdx: stateValues.partlyResolvedSourceIdx,
                           },
+                          // whether what `from` names, the composite
+                          // included, cannot change
+                          fromDecidedByDoenetML: {
+                              dependencyType: "decidedByDoenetML",
+                              attributeNames: ["from"],
+                          },
                       }
                     : {}),
             }),
@@ -198,8 +204,10 @@ export default class Collect extends CompositeComponent {
                     // DoenetML says, a warning. A source `from` names inside
                     // a composite, missing now because what the composite
                     // makes depends on values that can change (`$cc.S` while
-                    // the case holding `S` is not active), is an info
-                    // (DIAG-2).
+                    // the case holding `S` is not active, with a condition
+                    // from an input), is an info (DIAG-2). When nothing
+                    // `from` reaches can change (a case whose condition is
+                    // `false`), it is decided by the DoenetML, a warning.
                     const partlyResolvedSource =
                         dependencyValues.partlyResolvedSource;
                     const missingFromValues =
@@ -207,7 +215,8 @@ export default class Collect extends CompositeComponent {
                         componentInfoObjects.isCompositeComponent({
                             componentType: partlyResolvedSource.componentType,
                             includeNonStandard: false,
-                        });
+                        }) &&
+                        dependencyValues.fromDecidedByDoenetML === false;
                     let diagnostic = codedDiagnostic({
                         type: levelFromSource(!missingFromValues),
                         code: "doenet-w0072",

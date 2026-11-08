@@ -11,7 +11,8 @@ vi.mock("hyperformula");
  * (Doenet/DoenetML#2492): commas if the text has a comma outside brackets,
  * spaces otherwise; balanced brackets keep their contents together, any
  * closer closing any opener; brackets that don't balance are ignored, with an
- * info; every comma separates two entries.
+ * info for a list of texts and a warning for any other list; every comma
+ * separates two entries.
  */
 describe("Separating the entries of a list @group4", async () => {
     async function textsOf(doenetML: string, names: string[]) {
