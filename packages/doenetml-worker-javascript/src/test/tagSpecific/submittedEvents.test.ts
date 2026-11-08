@@ -14,10 +14,14 @@ vi.mock("hyperformula");
  * requested them has resolved, so `submittedEvents` first waits for the queue
  * to drain.
  */
-async function createCoreRecordingEvents(doenetML: string) {
+async function createCoreRecordingEvents(
+    doenetML: string,
+    flags: Record<string, unknown> = {},
+) {
     const events: Record<string, any>[] = [];
     const { core, resolvePathToNodeIdx } = await createTestCore({
         doenetML,
+        flags,
         sendEvent: (payload) => events.push(payload),
     });
 
@@ -389,6 +393,102 @@ describe("Submitted event attempt counts @group1", async () => {
         expect(events.length).eq(2);
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[pIdx].stateValues.numSubmissions).eq(1);
+    });
+
+    it("an answer's event reports the limit the host's maxNumAttempts flag sets", async () => {
+        // The author allows 5; the host's flag caps it at 2.
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(
+                `
+    <answer name="ans" maxNumAttempts="5"><mathInput name="mi" />x</answer>
+    `,
+                { maxNumAttempts: 2 },
+            );
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        await updateMathInputValue({ latex: "y", componentIdx: miIdx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+        await updateMathInputValue({ latex: "x", componentIdx: miIdx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+        await updateMathInputValue({ latex: "z", componentIdx: miIdx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        const events = await submittedEvents();
+        expect(
+            events.map((e) => [
+                e.result.numSubmissions,
+                e.result.maxNumAttempts,
+                e.result.numAttemptsLeft,
+            ]),
+        ).eqls([
+            [1, 2, 1],
+            [2, 2, 0],
+        ]);
+    });
+
+    it("a section-wide check work's event reports the limit the host's maxNumAttempts flag sets", async () => {
+        // The flag caps the section's button; a section without
+        // `sectionWideCheckWork` reports its own value, which the flag does
+        // not change.
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(
+                `
+    <section name="sec" sectionWideCheckWork maxNumAttempts="5">
+        <answer name="ans"><mathInput name="mi" />x</answer>
+    </section>
+    <section name="plain" maxNumAttempts="5">
+        <answer name="ans2"><mathInput name="mi2" />x</answer>
+    </section>
+    `,
+                { maxNumAttempts: 2 },
+            );
+        const secIdx = await resolvePathToNodeIdx("sec");
+        const plainIdx = await resolvePathToNodeIdx("plain");
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await core.requestAction({
+            componentIdx: plainIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        const events = await submittedEvents();
+        const counts = (idx: number) => {
+            const e = events.find((e) => e.object.componentIdx === idx)!;
+            return [
+                e.result.numSubmissions,
+                e.result.maxNumAttempts,
+                e.result.numAttemptsLeft,
+            ];
+        };
+        expect(counts(secIdx)).eqls([1, 2, 1]);
+        expect(counts(plainIdx)).eqls([1, 5, 4]);
+
+        // The answer inside the section-wide check work reports the section's
+        // attempts left, and its own `maxNumAttempts`: with no attribute, the
+        // flag's cap, which the section's limit overrides.
+        const answerEvent = events.find(
+            (e) =>
+                e.object.componentType === "answer" &&
+                e.object.rootName === "ans",
+        )!;
+        expect(answerEvent.result.maxNumAttempts).eq(2);
+        expect(answerEvent.result.numAttemptsLeft).eq(1);
     });
 
     it("event carries an ISO 8601 UTC timestamp and version 0.2.0", async () => {

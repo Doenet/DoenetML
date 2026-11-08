@@ -488,8 +488,10 @@ section-wide check work, `result` also counts attempts, so a host can count
 and cap them without reading the document:
 
 - `numSubmissions`: submissions so far, including this one.
-- `maxNumAttempts`: the author's `maxNumAttempts`, or `null` when attempts
-  are unlimited.
+- `maxNumAttempts`: the component's `maxNumAttempts`, or `null` when
+  attempts are unlimited. That is the author's limit, lowered by the
+  `maxNumAttempts` flag where the flag applies (see
+  `data-doenet-max-num-attempts` above).
 - `numAttemptsLeft`: attempts left after this submission, or `null` when
   unlimited.
 

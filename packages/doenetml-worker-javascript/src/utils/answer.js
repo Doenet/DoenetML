@@ -1218,7 +1218,9 @@ export function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
  * can count and cap attempts without reading the document.
  *
  * - `numSubmissions`: the submissions so far, including this one.
- * - `maxNumAttempts`: the author's `maxNumAttempts`, or `null` if unlimited.
+ * - `maxNumAttempts`: the component's `maxNumAttempts` state variable, or
+ *   `null` if unlimited: the author's limit, lowered by the host's
+ *   `maxNumAttempts` flag where the flag applies.
  * - `numAttemptsLeft`: the attempts left after this submission, or `null` if
  *   unlimited. Computed from `numAttemptsLeftBefore`, the component's
  *   `numAttemptsLeft` read before the submission, so for an answer inside a
