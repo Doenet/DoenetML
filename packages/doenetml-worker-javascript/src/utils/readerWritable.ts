@@ -16,7 +16,10 @@
  *   `fixLocation` written as true on it, or on an ancestor when it doesn't
  *   write its own: `fixed="false"` in a fixed graph is not fixed), which a
  *   reader can drag, and what it references, which the drag writes to
- *   through it.
+ *   through it;
+ * - a `<spreadsheet>` that is not fixed, whose cells a reader edits: an
+ *   edit to a cell holding a reference (`<cell>$a</cell>`) writes to what
+ *   it references.
  *
  * A write to a component reaches its descendants and, through them, what
  * they reference (an inverse definition), until a fixed component stops it.
@@ -48,6 +51,9 @@ const ACTION_TYPES = new Set([
     "animateFromSequence",
     "callAction",
 ]);
+
+/** The components a reader edits in place, writing to what they hold. */
+const EDITED_TYPES = new Set(["spreadsheet"]);
 
 /** Whether `value` is a reference: a serialized `refResolution`. */
 function isReference(value: any): boolean {
@@ -240,6 +246,13 @@ export function buildReaderWritableIndex(
         }
         if (ACTION_TYPES.has(node.componentType) && node.attributes?.target) {
             referencesIn(node.attributes.target, seeds);
+        }
+        if (
+            EDITED_TYPES.has(node.componentType) &&
+            typeof node.componentIdx === "number"
+        ) {
+            // a fixed one is stopped as the write spreads
+            seeds.push(node.componentIdx);
         }
         if (inGraph && !isFixed) {
             // dragged, and so is what it references itself (an extend);

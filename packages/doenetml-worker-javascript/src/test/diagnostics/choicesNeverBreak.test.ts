@@ -985,6 +985,15 @@ describe("A reference to what cannot change decides a selection @group4", async 
             expect(infos).toContain(code);
         });
 
+        it(`${tag} from a literal a spreadsheet's cell references is an info`, async () => {
+            const { errors, infos } = await load({
+                doenetML: `<number name="n">4</number><spreadsheet><cell>$n</cell></spreadsheet>${select("$n")}`,
+                variable,
+            });
+            expect(errors).eqls([]);
+            expect(infos).toContain(code);
+        });
+
         it(`${tag} from another random choice is an info`, async () => {
             const { errors, infos } = await load({
                 doenetML: `<selectFromSequence name="n" from="4" to="5"/>${select("$n")}`,

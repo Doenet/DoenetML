@@ -13,8 +13,9 @@ vi.mock("hyperformula");
  * it an info.
  *
  * A reader writes to what an input's `bindValueTo` names, to the target of
- * an `<updateValue>` or `<callAction>`, and to what is in a graph and not
- * fixed, as they drag it, including content not shown yet.
+ * an `<updateValue>` or `<callAction>`, to what is in a graph and not
+ * fixed, as they drag it, and to what a spreadsheet's cell references, as
+ * they edit it, including content not shown yet.
  */
 
 /** The levels of the diagnostics with `code` once `doenetML` loads. */
@@ -331,6 +332,22 @@ describe("What a reader writes to can change", () => {
             "warning",
             `<point name="A">(x,1)</point>
 <graph><circle fixed through="$A (2,3) (4,1)"/></graph>`,
+        ],
+        [
+            "a number a spreadsheet's cell references (an edit to the cell writes to it)",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<spreadsheet><cell>$a</cell></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a fixed spreadsheet's cell references",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<spreadsheet fixed><cell>$a</cell></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
         ],
     ]);
 });
