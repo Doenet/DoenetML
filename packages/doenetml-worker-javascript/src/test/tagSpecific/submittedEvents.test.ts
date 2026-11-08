@@ -164,6 +164,116 @@ describe("Submitted event attempt counts @group1", async () => {
         expect(events.map((e) => e.result.numAttemptsLeft)).eqls([1, 0]);
     });
 
+    it("answer submitted on its own inside a section-wide check work leaves the section's attempts unchanged", async () => {
+        // An answer submitted by itself (as auto-submit does) does not count
+        // against the section, so the event reports the section's count as
+        // it stands. A later section-wide submission does use an attempt.
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(`
+    <section name="sec" sectionWideCheckWork maxNumAttempts="2">
+        <answer name="ans"><mathInput name="mi" />x</answer>
+    </section>
+    `);
+        const secIdx = await resolvePathToNodeIdx("sec");
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        await updateMathInputValue({ latex: "y", componentIdx: miIdx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        let events = submittedEvents();
+        expect(events.length).eq(1);
+        expect(events[0].result.numSubmissions).eq(1);
+        expect(events[0].result.numAttemptsLeft).eq(2);
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[secIdx].stateValues.numAttemptsLeft).eq(2);
+        expect(stateVariables[ansIdx].stateValues.numAttemptsLeft).eq(2);
+
+        await updateMathInputValue({ latex: "x", componentIdx: miIdx, core });
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        events = submittedEvents();
+        expect(
+            events.map((e) => [
+                e.object.componentType,
+                e.result.numSubmissions,
+                e.result.numAttemptsLeft,
+            ]),
+        ).eqls([
+            ["answer", 1, 2],
+            ["section", 1, 1],
+            ["answer", 2, 1],
+        ]);
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[secIdx].stateValues.numAttemptsLeft).eq(1);
+        expect(stateVariables[ansIdx].stateValues.numAttemptsLeft).eq(1);
+    });
+
+    it("pretzel submitted with its own button inside a section-wide check work leaves the section's attempts unchanged", async () => {
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(`
+    <section name="sec" sectionWideCheckWork maxNumAttempts="2">
+        <pretzel name="p">
+            <problem><statement><p>1+1</p></statement><answer>2</answer></problem>
+            <problem><statement><p>1+2</p></statement><answer>3</answer></problem>
+        </pretzel>
+    </section>
+    `);
+        const secIdx = await resolvePathToNodeIdx("sec");
+        const pIdx = await resolvePathToNodeIdx("p");
+
+        await submitAnswer({ componentIdx: pIdx, core });
+
+        const events = submittedEvents();
+        expect(events.length).eq(1);
+        expect(events[0].object.componentType).eq("pretzel");
+        expect(events[0].result.numSubmissions).eq(1);
+        expect(events[0].result.numAttemptsLeft).eq(2);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[secIdx].stateValues.numAttemptsLeft).eq(2);
+        expect(stateVariables[pIdx].stateValues.numAttemptsLeft).eq(2);
+    });
+
+    it("container nested in a section-wide check work does not use the outer section's attempts", async () => {
+        // The inner section's own check-work button is not shown, but an
+        // author's `<callAction>` can still submit it. That does not count
+        // against the outer section, whose count both report.
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(`
+    <section name="outer" sectionWideCheckWork maxNumAttempts="2">
+        <section name="inner" sectionWideCheckWork>
+            <answer name="ans"><mathInput name="mi" />x</answer>
+        </section>
+    </section>
+    `);
+        const outerIdx = await resolvePathToNodeIdx("outer");
+        const innerIdx = await resolvePathToNodeIdx("inner");
+
+        await core.requestAction({
+            componentIdx: innerIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        const events = submittedEvents();
+        expect(
+            events.map((e) => [
+                e.object.componentType,
+                e.result.numAttemptsLeft,
+            ]),
+        ).eqls([
+            ["section", 2],
+            ["answer", 2],
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[outerIdx].stateValues.numAttemptsLeft).eq(2);
+        expect(stateVariables[innerIdx].stateValues.numAttemptsLeft).eq(2);
+    });
+
     it("event carries an ISO 8601 UTC timestamp and version 0.1.2", async () => {
         const { core, resolvePathToNodeIdx, submittedEvents } =
             await createCoreRecordingEvents(`

@@ -989,6 +989,16 @@ export async function submitAllAnswers({
         return;
     }
 
+    // A container with its own section-wide check-work button counts this
+    // submission against its attempts, which are the attempts its answers
+    // report. A container nested inside a section-wide check work reports the
+    // enclosing container's attempts, which this submission does not use.
+    const createSubmitAllButton =
+        await component.stateValues.createSubmitAllButton;
+    const insideSectionWideCheckWork =
+        !createSubmitAllButton &&
+        (await component.stateValues.suppressAnswerSubmitButtons);
+
     component.coreFunctions.requestRecordEvent({
         verb: "submitted",
         object: {
@@ -1002,6 +1012,7 @@ export async function submitAllAnswers({
                     (await component.stateValues.numSubmissions) + 1,
                 maxNumAttempts: await component.stateValues.maxNumAttempts,
                 numAttemptsLeftBefore: numAttemptsLeft,
+                usesAttempt: !insideSectionWideCheckWork,
             }),
         },
     });
@@ -1027,6 +1038,7 @@ export async function submitAllAnswers({
                 // the rendered answer validation state and attempts message
                 // update together.
                 skipRendererUpdate: true,
+                usesContainerAttempt: createSubmitAllButton,
             },
         });
     }

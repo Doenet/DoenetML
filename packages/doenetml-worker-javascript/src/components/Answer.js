@@ -2709,6 +2709,9 @@ export default class Answer extends InlineComponent {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        // Set by `submitAllAnswers` when the container submitting this answer
+        // counts the submission against the section-wide attempts.
+        usesContainerAttempt = false,
     }) {
         const numAttemptsLeft = await this.stateValues.numAttemptsLeft;
         if (numAttemptsLeft < 1) {
@@ -2904,6 +2907,13 @@ export default class Answer extends InlineComponent {
                         numSubmissions,
                         maxNumAttempts: await this.stateValues.maxNumAttempts,
                         numAttemptsLeftBefore: numAttemptsLeft,
+                        // Inside a section-wide check work, `numAttemptsLeft`
+                        // is the container's, used up only when the container
+                        // submits this answer.
+                        usesAttempt:
+                            !(await this.stateValues
+                                .delegateCheckWorkToAncestor) ||
+                            usesContainerAttempt,
                     }),
                 },
             },

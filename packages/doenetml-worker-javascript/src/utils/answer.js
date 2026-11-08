@@ -1078,13 +1078,20 @@ export function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
  *   `numAttemptsLeft` read before the submission, so for an answer inside a
  *   section-wide check work it is the container's count, as the answer's own
  *   `numAttemptsLeft` is.
+ *
+ * `usesAttempt` says whether this submission uses up one of the attempts that
+ * `numAttemptsLeftBefore` counts. It is false when that count belongs to an
+ * enclosing section-wide check work and this submission does not count against
+ * it: an answer or pretzel submitted on its own inside one (its own button, or
+ * auto-submit), or a container nested inside one. Then the count is unchanged.
  */
 export function attemptCountsForEvent({
     numSubmissions,
     maxNumAttempts,
     numAttemptsLeftBefore,
+    usesAttempt = true,
 }) {
-    const numAttemptsLeft = numAttemptsLeftBefore - 1;
+    const numAttemptsLeft = numAttemptsLeftBefore - (usesAttempt ? 1 : 0);
     return {
         numSubmissions,
         maxNumAttempts: Number.isFinite(maxNumAttempts) ? maxNumAttempts : null,
