@@ -140,6 +140,35 @@ $f.domain
         ]);
     });
 
+    it("a child is what it stands for: a reference to a label is a label, and a label inside a value decides none of it", async () => {
+        // `$lbl` and a `<group>` holding a label are labels, and leave an
+        // authored problem a warning; `$yl` is the axis name a pie reads, so
+        // it makes w0153 an info (a reference counts as value-driven); and a
+        // series' own label is not one of its values.
+        const { diagnostics } = await setup(`
+<text name="t">name</text>
+<title name="tt">T</title>
+<label name="lbl">L</label>
+<chart type="bar">$tt 4 x</chart>
+<graph><vector tail="(1,2)" displacement="(1,2,3)">$lbl</vector></graph>
+<graph><slopeField><group><label>$t</label></group><function>(x,y)</function></slopeField></graph>
+<chart type="bar" categories="A B"><yLabel name="yl">people</yLabel>1 1</chart>
+<chart type="pie" categories="A B"><shortDescription>s</shortDescription>$yl 1 1</chart>
+<chart type="bar"><series><label>$t</label>4 x</series></chart>
+`);
+        expect(diagnostics("doenet-w0144")).eqls([
+            { type: "warning", line: 5 },
+            { type: "warning", line: 10 },
+        ]);
+        expect(diagnostics("doenet-w0008")).eqls([
+            { type: "warning", line: 6 },
+        ]);
+        expect(diagnostics("doenet-w0122")).eqls([
+            { type: "warning", line: 7 },
+        ]);
+        expect(diagnostics("doenet-w0153")).eqls([{ type: "info", line: 9 }]);
+    });
+
     it("w0141: decreasing cut points of a binCounts", async () => {
         const { diagnostics, setMath } = await setup(`
 <binCounts bins="0 5 2">1</binCounts>

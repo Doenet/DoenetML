@@ -46,7 +46,9 @@ export function attributeDecidedByDoenetML(
  * Whether the live component `component`, an attribute component or a
  * child, holds only what is written: no reference (a `_ref` read for its
  * value, or a composite, such as a `_copy`), no extend, no input, and the
- * same of its children and attributes.
+ * same of its children and attributes. A label child (`<series><label>$name
+ * </label>…</series>`) is left out: it names the component and decides
+ * none of its value.
  */
 export function componentDecidedByDoenetML(
     component: any,
@@ -73,9 +75,15 @@ export function componentDecidedByDoenetML(
         return false;
     }
     return (
-        (component.definingChildren ?? []).every((child: any) =>
-            componentDecidedByDoenetML(child, componentInfoObjects),
-        ) &&
+        (component.definingChildren ?? [])
+            // a label names the component, and decides none of its value
+            .filter(
+                (child: any) =>
+                    !standsOnlyFor(child, ["label"], componentInfoObjects),
+            )
+            .every((child: any) =>
+                componentDecidedByDoenetML(child, componentInfoObjects),
+            ) &&
         Object.values(component.attributes ?? {}).every((attribute) =>
             attributeDecidedByDoenetML(attribute, componentInfoObjects),
         )
@@ -85,12 +93,16 @@ export function componentDecidedByDoenetML(
 /**
  * Which children of a component can carry a diagnostic's condition: none
  * (`false`), all (`true`), only those of the types in `only`, or all but
- * those of the types in `except`. A child that is neither, such as a
- * reference (`$data`), counts under `except` and not under `only`.
+ * those of the types in `except`. A composite child, such as a reference,
+ * is of the types of what it stands for, its replacements: `$lbl` of a
+ * `<label>` is a label, and `$data` of numbers is not. One whose
+ * replacements are not all of the types in `except` counts under `except`,
+ * and one with any of a type in `only` counts under `only`.
  *
  * A child that only labels the component (`<label>`, `<title>`) carries
  * nothing a check of its data or formula reads, so a reference in it
- * (`<label>$name</label>`) does not make the check value-driven.
+ * (`<label>$name</label>`), or one that is it (`$lbl`), does not make the
+ * check value-driven.
  */
 export type ChildrenThatCarry =
     boolean | { only: string[] } | { except: string[] };
@@ -139,18 +151,62 @@ function childCarries(
     if (typeof children === "boolean") {
         return children;
     }
-    const isOfAType = (types: string[]) =>
-        typeof child === "object" &&
-        child !== null &&
-        types.some((type) =>
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: child.componentType,
-                baseComponentType: type,
-            }),
+    if ("only" in children) {
+        return typesStoodFor(child).some((componentType) =>
+            isOfAType(componentType, children.only, componentInfoObjects),
         );
-    return "only" in children
-        ? isOfAType(children.only)
-        : !isOfAType(children.except);
+    }
+    return !standsOnlyFor(child, children.except, componentInfoObjects);
+}
+
+/**
+ * Whether `child` stands only for components of the types `types`: it is of
+ * one, or it is a composite (`$lbl`) whose replacements all are.
+ */
+function standsOnlyFor(
+    child: any,
+    types: string[],
+    componentInfoObjects: any,
+): boolean {
+    const stoodFor = typesStoodFor(child);
+    return (
+        stoodFor.length > 0 &&
+        stoodFor.every((componentType) =>
+            isOfAType(componentType, types, componentInfoObjects),
+        )
+    );
+}
+
+/**
+ * The component types `child` stands for: its own, or, for a composite
+ * that has been expanded, those of its replacements, in turn. A string
+ * stands for none.
+ */
+function typesStoodFor(child: any): string[] {
+    if (typeof child !== "object" || child === null) {
+        return [];
+    }
+    if (!child.isExpanded || !Array.isArray(child.replacements)) {
+        return [child.componentType];
+    }
+    const shown = child.replacements.slice(
+        0,
+        child.replacements.length - (child.replacementsToWithhold ?? 0),
+    );
+    return shown.flatMap(typesStoodFor);
+}
+
+function isOfAType(
+    componentType: string,
+    types: string[],
+    componentInfoObjects: any,
+): boolean {
+    return types.some((type) =>
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType: type,
+        }),
+    );
 }
 
 /**
