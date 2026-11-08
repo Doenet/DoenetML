@@ -387,6 +387,19 @@ describe("section-wide check work attribute tests @group2", async () => {
 
         expect(await numAttemptsLeft("sec")).eq(2);
         expect(await numAttemptsLeft("a1")).eq(2);
+        // The public limit reports the cap; without section-wide check work
+        // it is the author's (here the default).
+        const svs = await core.returnAllStateVariables(false, true);
+        expect(
+            svs[await resolvePathToNodeIdx("sec")].stateValues.maxNumAttempts,
+        ).eq(2);
+        expect(
+            svs[await resolvePathToNodeIdx("capped")].stateValues
+                .maxNumAttempts,
+        ).eq(1);
+        expect(
+            svs[await resolvePathToNodeIdx("plain")].stateValues.maxNumAttempts,
+        ).eq(Infinity);
         // The author's smaller section-wide limit wins.
         expect(await numAttemptsLeft("capped")).eq(1);
         expect(await numAttemptsLeft("b1")).eq(1);

@@ -323,9 +323,10 @@ export function returnScoredSectionAttributes() {
         },
         maxNumAttempts: {
             createComponentOfType: "integer",
-            createStateVariable: "maxNumAttempts",
+            // The author's value; the public `maxNumAttempts` combines it with
+            // the host's flag of the same name.
+            createStateVariable: "authorMaxNumAttempts",
             defaultValue: Infinity,
-            public: true,
             groupName: "scoring",
             description:
                 "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
@@ -538,6 +539,45 @@ export function returnScoredSectionStateVariableDefinition() {
         }),
     };
 
+    stateVariableDefinitions.maxNumAttempts = {
+        description:
+            "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled.",
+        public: true,
+        groupName: "scoring",
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        returnDependencies: () => ({
+            authorMaxNumAttempts: {
+                dependencyType: "stateVariable",
+                variableName: "authorMaxNumAttempts",
+            },
+            // The host's cap on submissions. It caps the section-wide
+            // check-work button, which stands in for the per-answer buttons it
+            // suppresses.
+            flagMaxNumAttempts: {
+                dependencyType: "flag",
+                flagName: "maxNumAttempts",
+            },
+            sectionWideCheckWork: {
+                dependencyType: "stateVariable",
+                variableName: "sectionWideCheckWork",
+            },
+        }),
+        definition({ dependencyValues }) {
+            // The host's cap applies only where this container's own button
+            // replaces the answers' buttons, so a container without
+            // `sectionWideCheckWork` reports the author's value as before.
+            const maxNumAttempts = dependencyValues.sectionWideCheckWork
+                ? effectiveMaxNumAttempts(
+                      dependencyValues.authorMaxNumAttempts,
+                      dependencyValues.flagMaxNumAttempts,
+                  )
+                : dependencyValues.authorMaxNumAttempts;
+            return { setValue: { maxNumAttempts } };
+        },
+    };
+
     stateVariableDefinitions.numAttemptsLeft = {
         description:
             "Remaining number of section-wide submissions before the maximum is reached.",
@@ -555,12 +595,11 @@ export function returnScoredSectionStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
-            // The host's cap on submissions. It caps the section-wide
-            // check-work button, which stands in for the per-answer buttons it
-            // suppresses.
-            flagMaxNumAttempts: {
-                dependencyType: "flag",
-                flagName: "maxNumAttempts",
+            // Only to tell whether the author set the attribute, for the
+            // ignored-`maxNumAttempts` warning.
+            authorMaxNumAttempts: {
+                dependencyType: "stateVariable",
+                variableName: "authorMaxNumAttempts",
             },
             sectionWideCheckWork: {
                 dependencyType: "stateVariable",
@@ -593,7 +632,7 @@ export function returnScoredSectionStateVariableDefinition() {
                     ?.stateValues.suppressAnswerSubmitButtons;
 
             if (
-                !usedDefault.maxNumAttempts &&
+                !usedDefault.authorMaxNumAttempts &&
                 dependencyValues.sectionWideCheckWork &&
                 insideSectionWideCheckWork
             ) {
@@ -619,18 +658,10 @@ export function returnScoredSectionStateVariableDefinition() {
                 // go negative, even if `maxNumAttempts` is lowered below the
                 // number of submissions already made (or a persisted
                 // `numSubmissions` exceeds it).
-                // The host's cap applies only where this container's own
-                // button replaces the answers' buttons, so a container without
-                // `sectionWideCheckWork` reports the same value as before.
-                const maxNumAttempts = dependencyValues.sectionWideCheckWork
-                    ? effectiveMaxNumAttempts(
-                          dependencyValues.maxNumAttempts,
-                          dependencyValues.flagMaxNumAttempts,
-                      )
-                    : dependencyValues.maxNumAttempts;
                 numAttemptsLeft = Math.max(
                     0,
-                    maxNumAttempts - dependencyValues.numSubmissions,
+                    dependencyValues.maxNumAttempts -
+                        dependencyValues.numSubmissions,
                 );
             }
 

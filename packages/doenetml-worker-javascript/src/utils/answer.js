@@ -184,9 +184,10 @@ export function returnStandardAnswerAttributes() {
         },
         maxNumAttempts: {
             createComponentOfType: "integer",
-            createStateVariable: "maxNumAttempts",
+            // The author's value; the public `maxNumAttempts` combines it with
+            // the host's flag of the same name.
+            createStateVariable: "authorMaxNumAttempts",
             defaultValue: Infinity,
-            public: true,
             groupName: "answer-grading",
             description:
                 "Maximum number of times the response can be submitted.",
@@ -769,6 +770,39 @@ export function returnStandardAnswerStateVariableDefinition() {
         }),
     };
 
+    stateVariableDefinitions.maxNumAttempts = {
+        description:
+            "Maximum number of times the response can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets.",
+        public: true,
+        groupName: "answer-grading",
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        returnDependencies: () => ({
+            authorMaxNumAttempts: {
+                dependencyType: "stateVariable",
+                variableName: "authorMaxNumAttempts",
+            },
+            // A cap on submissions the host sets for every answer, without
+            // editing the document; the author's value still wins when it is
+            // smaller.
+            flagMaxNumAttempts: {
+                dependencyType: "flag",
+                flagName: "maxNumAttempts",
+            },
+        }),
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    maxNumAttempts: effectiveMaxNumAttempts(
+                        dependencyValues.authorMaxNumAttempts,
+                        dependencyValues.flagMaxNumAttempts,
+                    ),
+                },
+            };
+        },
+    };
+
     stateVariableDefinitions.numAttemptsLeft = {
         description:
             "Remaining number of submission attempts before the maximum is reached.",
@@ -786,12 +820,11 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "maxNumAttempts",
             },
-            // A cap on submissions the host sets for every answer, without
-            // editing the document; the author's `maxNumAttempts` still wins
-            // when it is smaller.
-            flagMaxNumAttempts: {
-                dependencyType: "flag",
-                flagName: "maxNumAttempts",
+            // Only to tell whether the author set the attribute, for the
+            // ignored-`maxNumAttempts` warning.
+            authorMaxNumAttempts: {
+                dependencyType: "stateVariable",
+                variableName: "authorMaxNumAttempts",
             },
             ancestorSuppressingAnswerSubmitButtons:
                 returnScoredContainerAncestorDependency(
@@ -812,7 +845,10 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyValues.ancestorSuppressingAnswerSubmitButtons
                     ?.stateValues.suppressAnswerSubmitButtons;
 
-            if (!usedDefault.maxNumAttempts && insideSectionWideCheckWork) {
+            if (
+                !usedDefault.authorMaxNumAttempts &&
+                insideSectionWideCheckWork
+            ) {
                 sendDiagnostics.push(
                     codedDiagnostic({
                         type: "warning",
@@ -823,7 +859,7 @@ export function returnStandardAnswerStateVariableDefinition() {
             }
 
             // Inside a section-wide check work, the answer's own
-            // `maxNumAttempts` (and the host's flag of that name) is ignored:
+            // `maxNumAttempts` (and so the host's flag of that name) is ignored:
             // the enclosing container controls the number of attempts. Report that container's remaining attempts so
             // the public `numAttemptsLeft` is accurate. This matches how a
             // `maxNumAttempts` on a nested `sectionWideCheckWork` container is
@@ -833,10 +869,8 @@ export function returnStandardAnswerStateVariableDefinition() {
                       .stateValues.numAttemptsLeft
                 : Math.max(
                       0,
-                      effectiveMaxNumAttempts(
-                          dependencyValues.maxNumAttempts,
-                          dependencyValues.flagMaxNumAttempts,
-                      ) - dependencyValues.numSubmissions,
+                      dependencyValues.maxNumAttempts -
+                          dependencyValues.numSubmissions,
                   );
 
             return {

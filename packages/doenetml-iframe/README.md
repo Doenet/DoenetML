@@ -349,8 +349,12 @@ cap never raises it. Inside a container with `sectionWideCheckWork`, the cap
 applies to the container's check-work button, which is what submits its
 answers. `null`, the default, means no cap; `0` allows no submissions. The
 remaining count shows beside each check-work button, and saved state keeps
-the number already used, so a reload does not reset it. The flag is read
-when the document starts.
+the number already used, so a reload does not reset it. `$answer.maxNumAttempts` (and a section-wide container's) reports the limit
+that applies, so text such as "You have $ans.maxNumAttempts attempts" matches
+the count beside the button. The flag is read when the document's core
+starts: changing it on a mounted viewer takes effect only at the next core
+start (a change of `doenetML`, `docId`, `attemptNumber` or the other props
+that re-initialize the document, or a remount).
 
 ### Host message protocol (SPLICE)
 

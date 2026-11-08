@@ -4695,8 +4695,8 @@ Enter any letter:
             expect(result.numAttemptsLeft).eq(0);
             expect(result.disabled).eq(true);
             expect(result.inputDisabled).eq(true);
-            // The author's value is reported unchanged.
-            expect(result.maxNumAttempts).eq(Infinity);
+            // The public limit reports the cap.
+            expect(result.maxNumAttempts).eq(2);
         });
 
         it("the author's smaller maxNumAttempts wins over the flag", async () => {
@@ -4764,6 +4764,27 @@ Enter any letter:
             expect(result.numSubmissions).eq(0);
             expect(result.disabled).eq(true);
         });
+
+        for (const flags of [{ maxNumAttempts: 2 }, {}]) {
+            it(`$ans.maxNumAttempts reports the limit that applies (flags ${JSON.stringify(flags)})`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <answer name="ans" maxNumAttempts="3">x</answer>
+    <p name="p">You have $ans.maxNumAttempts attempts; $ans.numAttemptsLeft left.</p>
+  `,
+                    flags,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const expected = "maxNumAttempts" in flags ? 2 : 3;
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .text,
+                ).eq(`You have ${expected} attempts; ${expected} left.`);
+            });
+        }
 
         it("the cap still holds after reloading saved state", async () => {
             const doenetML = `<answer name="answer1">x</answer>`;
