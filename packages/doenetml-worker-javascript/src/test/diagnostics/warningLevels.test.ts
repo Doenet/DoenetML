@@ -142,9 +142,10 @@ $f.domain
 
     it("a child is what it stands for: a reference to a label is a label, and a label inside a value decides none of it", async () => {
         // `$lbl` and a `<group>` holding a label are labels, and leave an
-        // authored problem a warning; `$yl` is the axis name a pie reads, so
-        // it makes w0153 an info (a reference counts as value-driven); and a
-        // series' own label is not one of its values.
+        // authored problem a warning; `$yl` is the axis name a pie reads,
+        // and its source can't change, so w0153 is a warning, and an info
+        // when it holds an input; and a series' own label is not one of its
+        // values.
         const { diagnostics } = await setup(`
 <text name="t">name</text>
 <title name="tt">T</title>
@@ -155,6 +156,9 @@ $f.domain
 <chart type="bar" categories="A B"><yLabel name="yl">people</yLabel>1 1</chart>
 <chart type="pie" categories="A B"><shortDescription>s</shortDescription>$yl 1 1</chart>
 <chart type="bar"><series><label>$t</label>4 x</series></chart>
+<textInput name="ti" prefill="people"/>
+<chart type="bar" categories="A B"><yLabel name="yl2">$ti</yLabel>1 1</chart>
+<chart type="pie" categories="A B">$yl2 1 1</chart>
 `);
         expect(diagnostics("doenet-w0144")).eqls([
             { type: "warning", line: 5 },
@@ -166,7 +170,10 @@ $f.domain
         expect(diagnostics("doenet-w0122")).eqls([
             { type: "warning", line: 7 },
         ]);
-        expect(diagnostics("doenet-w0153")).eqls([{ type: "info", line: 9 }]);
+        expect(diagnostics("doenet-w0153")).eqls([
+            { type: "warning", line: 9 },
+            { type: "info", line: 13 },
+        ]);
     });
 
     it("w0141: decreasing cut points of a binCounts", async () => {

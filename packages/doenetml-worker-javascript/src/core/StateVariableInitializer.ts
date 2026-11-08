@@ -5,7 +5,8 @@ import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
 import { readHeldCopySnapshot } from "../utils/copySnapshot";
 import {
-    componentDecidedByDoenetML,
+    canChange,
+    changeContext,
     levelFromSource,
 } from "../utils/decidedByDoenetML";
 import {
@@ -2222,13 +2223,12 @@ async function reportIndexIntoScalarOf({
     reference: { text: string; position?: Position; sourceDoc?: number };
     watch?: { owner: number; isCurrent: () => boolean };
 }) {
-    // A warning when the value is written in the DoenetML, so it is always
-    // a scalar, and an info when it can change, as an input's or one made
-    // from references (DIAG-2)
+    // A warning when the value cannot change, so it is always a scalar, and
+    // an info when it can, as an input's or one made from a reference to
+    // something that can change (DIAG-2). It is reached by the reference,
+    // so a reader's write to it counts.
     const diagnostic = codedDiagnostic({
-        type: levelFromSource(
-            componentDecidedByDoenetML(component, core.componentInfoObjects),
-        ),
+        type: levelFromSource(!canChange(component, changeContext(core), true)),
         code: "doenet-w0100",
         args: { reference: reference.text },
         position: reference.position,
@@ -2388,8 +2388,8 @@ export async function arrayEntryNamesFromPropIndex({
         /** The reference as written, `$` and all: `$p.styleDescription[1]`. */
         text: string;
         /**
-         * Whether an index of the reference comes from a value that can
-         * change (`$l[$i]`, `pathHasIndexFromValue`), so an index that names
+         * Whether an index of the reference can change (`$l[$i]` with `i`
+         * an input, `pathHasIndexThatCanChange`), so an index that names
          * nothing is an info, not a warning (DIAG-2).
          */
         indexFromValue?: boolean;

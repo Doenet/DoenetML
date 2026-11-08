@@ -105,7 +105,7 @@ export default class CountingBaseListOperator extends ValueListComponent {
                 // (DIAG-2)
                 valuesDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
-                    children: true,
+                    childGroups: ["anything"],
                 },
                 binsDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",

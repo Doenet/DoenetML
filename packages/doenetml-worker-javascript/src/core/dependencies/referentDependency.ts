@@ -7,7 +7,10 @@
 import { Dependency } from "./Dependency";
 import { arrayEntryNamesFromPropIndex } from "../StateVariableInitializer";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
-import { pathHasIndexFromValue } from "../../utils/decidedByDoenetML";
+import {
+    changeContext,
+    pathHasIndexThatCanChange,
+} from "../../utils/decidedByDoenetML";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
     describeReferentVariable,
@@ -200,8 +203,9 @@ export class ReferentDependency extends Dependency {
                 reference: referenceText
                     ? {
                           text: `$${referenceText}`,
-                          indexFromValue: pathHasIndexFromValue(
+                          indexFromValue: pathHasIndexThatCanChange(
                               referringComponent?.refResolution?.originalPath,
+                              changeContext(core),
                           ),
                           position: referringComponent?.position,
                           sourceDoc: referringComponent?.sourceDoc,

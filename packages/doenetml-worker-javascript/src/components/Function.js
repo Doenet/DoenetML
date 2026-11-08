@@ -633,7 +633,7 @@ export default class Function extends InlineComponent {
                     domainDecidedByDoenetML: {
                         dependencyType: "decidedByDoenetML",
                         attributeNames: ["domain", "numInputs", "variables"],
-                        children: { except: ["label"] },
+                        childGroups: ["maths", "functions"],
                     },
                 },
             }),

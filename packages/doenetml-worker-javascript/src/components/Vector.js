@@ -1154,7 +1154,7 @@ export default class Vector extends GraphicalComponent {
                         "head",
                         "tail",
                     ],
-                    children: { except: ["label"] },
+                    childGroups: ["pointsAndVectors"],
                 },
             }),
             definition: function ({ dependencyValues }) {

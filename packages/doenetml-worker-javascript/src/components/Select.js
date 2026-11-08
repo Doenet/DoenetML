@@ -14,10 +14,11 @@ import {
 import { createNewComponentIndices } from "../utils/componentIndices";
 import {
     NO_SELECT_ERROR,
-    choicesDecidedByDoenetML,
+    choicesWrittenWithoutReference,
     isCopiedOption,
     isInfoSelectFailure,
     returnChoicesDecidedByDoenetMLDefinition,
+    returnOptionsDecidedByDoenetMLDefinition,
     selectError,
     selectFailureType,
     selectionResult,
@@ -101,11 +102,12 @@ export default class Select extends CompositeComponent {
         // The children as written, in which an `<option copy>` is still a
         // `_copy` holding the reference it was written with
         const serializedOptions = args.serializedComponent?.children ?? [];
-        // Whether a failure to select is an error or a missing selection with
-        // an info (`selectFailureType`): decided from what the author wrote,
-        // once, so it is the same in every variant.
-        this.doenetAttributes.choicesDecidedByDoenetML =
-            choicesDecidedByDoenetML({
+        // Whether what it chooses from is written without a reference, so a
+        // fresh load reproduces its selection (with the weights, below).
+        // Whether a failure to select is an error is the state variable
+        // `choicesDecidedByDoenetML`.
+        this.doenetAttributes.choicesWrittenWithoutReference =
+            choicesWrittenWithoutReference({
                 component: this,
                 attributeNames: ["numToSelect", "withReplacement"],
                 serializedOptions,
@@ -116,7 +118,7 @@ export default class Select extends CompositeComponent {
         // an option copied by an index from another random choice can
         // differ between variants
         this.doenetAttributes.optionsDecidedByDoenetML =
-            choicesDecidedByDoenetML({
+            choicesWrittenWithoutReference({
                 component: this,
                 attributeNames: [],
                 serializedOptions,
@@ -125,7 +127,7 @@ export default class Select extends CompositeComponent {
         // Whether a fresh load reproduces the selection, its options'
         // weights included (`definitionEssentialValuesReproducible`)
         this.doenetAttributes.selectionReproducible = selectionReproducible(
-            this.doenetAttributes.choicesDecidedByDoenetML,
+            this.doenetAttributes.choicesWrittenWithoutReference,
             serializedOptions,
         );
     }
@@ -422,11 +424,12 @@ export default class Select extends CompositeComponent {
         };
 
         stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition();
+            returnChoicesDecidedByDoenetMLDefinition({
+                attributeNames: ["numToSelect", "withReplacement"],
+                withOptions: true,
+            });
         stateVariableDefinitions.optionsDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition(
-                "optionsDecidedByDoenetML",
-            );
+            returnOptionsDecidedByDoenetMLDefinition();
 
         stateVariableDefinitions.selectedIndices = {
             immutable: true,

@@ -46,18 +46,6 @@ const DEFAULT_ASPECT_RATIO = 1.5;
 const DEFAULT_BAR_WIDTH = 0.8;
 
 /**
- * The children of a chart that are not its data: a value that can change in
- * one of them (`<title>$name</title>`) does not make a check of the data
- * value-driven (DIAG-2).
- */
-const CHART_CHILDREN_THAT_ARE_NOT_DATA = [
-    "title",
-    "shortDescription",
-    "xLabel",
-    "yLabel",
-];
-
-/**
  * The types this component knows how to draw, each with a branch in
  * `chartGeometry`.
  *
@@ -1191,13 +1179,11 @@ export default class Chart extends BlockComponent {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: ["type"],
                 },
-                // the values are the children that are not a title, a
-                // description or an axis name
+                // the values are the series, number and math children, not
+                // a title, a description or an axis name
                 dataDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
-                    children: {
-                        except: CHART_CHILDREN_THAT_ARE_NOT_DATA,
-                    },
+                    childGroups: ["series", "numbers", "maths"],
                 },
                 binsDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
@@ -1792,7 +1778,7 @@ export default class Chart extends BlockComponent {
                 labelsDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: ["type"],
-                    children: { only: ["xLabel", "yLabel"] },
+                    childGroups: ["xLabels", "yLabels"],
                 },
                 width: {
                     dependencyType: "stateVariable",

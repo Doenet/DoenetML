@@ -212,7 +212,7 @@ export default class SolveEquations extends InlineComponent {
                 equationDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: ["variables"],
-                    children: true,
+                    childGroups: ["maths", "strings"],
                 },
             }),
             definition({ dependencyValues }) {

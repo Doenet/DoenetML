@@ -399,7 +399,7 @@ describe("FunctionIterates tag tests @group2", async () => {
         await test_2d_linear(core, resolvePathToNodeIdx);
     });
 
-    it("info for scalar function of two variables from a reference", async () => {
+    it("warning for scalar function of two variables", async () => {
         let { core } = await createTestCore({
             doenetML: `
   <m>f(x, y) =</m> <function name="f" variables="x y">x+y</function>
@@ -412,19 +412,16 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         let diagnosticsByType = getDiagnosticsByType(core);
 
-        // The function comes from a reference, a value that can change, so
-        // the mismatch is an info (DIAG-2).
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(0);
-        expect(diagnosticsByType.infos.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(diagnosticsByType.infos[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has 2 inputs and 1 output",
         );
-        expect(diagnosticsByType.infos[0].position.start.line).eq(4);
-        expect(diagnosticsByType.infos[0].position.start.column).eq(21);
-        expect(diagnosticsByType.infos[0].position.end.line).eq(4);
-        expect(diagnosticsByType.infos[0].position.end.column).eq(34);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(21);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(34);
     });
 
     it("change dimensions", async () => {

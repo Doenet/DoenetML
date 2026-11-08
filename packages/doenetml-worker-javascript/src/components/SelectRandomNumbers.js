@@ -5,7 +5,7 @@ import {
 } from "../utils/randomNumbers";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 import {
-    choicesDecidedByDoenetML,
+    choicesWrittenWithoutReference,
     keptSelection,
     NUM_TO_SELECT_VARIABLE,
     withNumToSelect,
@@ -32,8 +32,8 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         // Whether the DoenetML alone decides what it draws: then a fresh
         // load under the same variant draws the same values
         // (`definitionEssentialValuesReproducible`)
-        this.doenetAttributes.choicesDecidedByDoenetML =
-            choicesDecidedByDoenetML({
+        this.doenetAttributes.choicesWrittenWithoutReference =
+            choicesWrittenWithoutReference({
                 component: this,
                 attributeNames: Object.keys(this.attributes ?? {}).filter(
                     (name) => !name.startsWith("_"),
@@ -51,7 +51,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
      * made with, never choosing again.
      */
     get definitionEssentialValuesReproducible() {
-        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
+        return this.doenetAttributes.choicesWrittenWithoutReference !== false;
     }
 
     static componentType = "selectRandomNumbers";

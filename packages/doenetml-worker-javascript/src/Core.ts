@@ -51,6 +51,7 @@ import { UpdateExecutor } from "./core/UpdateExecutor";
 import { VisibilityTracker } from "./core/VisibilityTracker";
 import * as nameResolver from "./StateVariableNameResolver";
 import { numberAnswers } from "./utils/answer";
+import { buildReaderWritableIndex } from "./utils/readerWritable";
 
 /** A coded diagnostic `ChildMatcher` recorded for `Core` to raise later. */
 type UnmatchedChildren = { code: DiagnosticCode; args: DiagnosticArgs };
@@ -153,6 +154,12 @@ export default class Core {
     doenetML: string;
     allDoenetMLs: string[];
     serializedDocument: any;
+    /**
+     * The components a reader can write to, found from the serialized
+     * document at load (`buildReaderWritableIndex`): the pass that marks
+     * what a reader can change.
+     */
+    readerWritable: Set<ComponentIdx> = new Set();
     nComponentsInit: number;
     cid: string | null;
     flags: Record<string, any>;
@@ -547,6 +554,10 @@ export default class Core {
         this.doenetMLNewlines = findAllNewlines(this.allDoenetMLs[0]);
 
         let serializedComponents = [deepClone(this.serializedDocument)];
+
+        // What a reader can write to, read from the whole document, the
+        // content of a case not shown included, before it is dropped
+        this.readerWritable = buildReaderWritableIndex(this.serializedDocument);
 
         // The serialized document is consumed only by the clone above;
         // release it so the worker does not retain a full serialized copy

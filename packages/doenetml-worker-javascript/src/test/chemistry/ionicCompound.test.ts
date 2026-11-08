@@ -131,8 +131,7 @@ describe("Ionic Compounds tests @group3", async () => {
         const diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(1);
-        expect(diagnosticsByType.infos.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(2);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             `Have not implemented ionic compound for anything other than two ions`,
@@ -143,15 +142,13 @@ describe("Ionic Compounds tests @group3", async () => {
         expect(diagnosticsByType.warnings[0].position.end.line).eq(4);
         expect(diagnosticsByType.warnings[0].position.end.column).eq(42);
 
-        // The ions' charges come from references, values that can change,
-        // so charges that make no compound are an info (DIAG-2).
-        expect(diagnosticsByType.infos[0].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `Ionic compound implemented only for one cation and one anion`,
         );
-        expect(diagnosticsByType.infos[0].type).eq("info");
-        expect(diagnosticsByType.infos[0].position.start.line).eq(5);
-        expect(diagnosticsByType.infos[0].position.start.column).eq(3);
-        expect(diagnosticsByType.infos[0].position.end.line).eq(5);
-        expect(diagnosticsByType.infos[0].position.end.column).eq(40);
+        expect(diagnosticsByType.warnings[1].type).eq("warning");
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(3);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(40);
     });
 });

@@ -46,13 +46,19 @@ function inParagraph(body: string) {
 }
 
 describe("An index that names nothing @group4", async () => {
-    it("shows a blank, and an index below 1 gets one coded warning, or info for an index from a value, quoting the whole reference", async () => {
-        const cases: { body: string; reference: string }[] = [
+    it("shows a blank, and an index below 1 gets one coded warning, or info for an index that can change, quoting the whole reference", async () => {
+        const cases: {
+            body: string;
+            reference: string;
+            canChange?: boolean;
+        }[] = [
             { body: `[$l[0]]`, reference: "$l[0]" },
             { body: `[$l[-1]]`, reference: "$l[-1]" },
             { body: `[$l[0].x]`, reference: "$l[0].x" },
             // The parentheses are not part of the reference.
             { body: `[$(l[0])]`, reference: "$l[0]" },
+            // an index from a component that cannot change is decided by
+            // the DoenetML, as a literal index is
             {
                 body: `<number name="i">0</number>[$l[$i]]`,
                 reference: "$l[$i]",
@@ -61,10 +67,25 @@ describe("An index that names nothing @group4", async () => {
                 body: `<number name="i">-1</number>[$l[$i]]`,
                 reference: "$l[$i]",
             },
+            {
+                body: `<mathInput name="i" prefill="0"/>[$l[$i]]`,
+                reference: "$l[$i]",
+                canChange: true,
+            },
+            {
+                body: `<mathInput name="i" prefill="-1"/>[$l[$i]]`,
+                reference: "$l[$i]",
+                canChange: true,
+            },
             { body: `[$P.xs[0]]`, reference: "$P.xs[0]" },
             {
                 body: `<number name="i">0</number>[$P.xs[$i]]`,
                 reference: "$P.xs[$i]",
+            },
+            {
+                body: `<mathInput name="i" prefill="0"/>[$P.xs[$i]]`,
+                reference: "$P.xs[$i]",
+                canChange: true,
             },
             { body: `[$n.value[0]]`, reference: "$n.value[0]" },
             {
@@ -73,13 +94,13 @@ describe("An index that names nothing @group4", async () => {
             },
         ];
 
-        for (const { body, reference } of cases) {
+        for (const { body, reference, canChange = false } of cases) {
             const { text, warnings, errors, infos } = await shownAndReported(
                 inParagraph(body),
             );
-            // An index from a reference (`$l[$i]`) is a value that can
-            // change, so it is an info rather than a warning (DIAG-2)
-            const indexFromValue = reference.includes("[$");
+            // An index from an input (`$l[$i]`) can change, so it is an
+            // info rather than a warning (DIAG-2)
+            const indexFromValue = canChange;
             const reported = indexFromValue ? infos : warnings;
             expect(text, body).eq("[＿]");
             expect(errors, body).eqls([]);

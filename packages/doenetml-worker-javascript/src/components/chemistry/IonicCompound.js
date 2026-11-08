@@ -78,7 +78,7 @@ export default class IonicCompound extends InlineComponent {
                 // values that can change, so they are an info (DIAG-2)
                 ionsDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
-                    children: true,
+                    childGroups: ["ions"],
                 },
             }),
             definition({ dependencyValues }) {

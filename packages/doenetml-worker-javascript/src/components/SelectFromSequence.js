@@ -23,7 +23,7 @@ import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     NO_SELECT_ERROR,
-    choicesDecidedByDoenetML,
+    choicesWrittenWithoutReference,
     returnChoicesDecidedByDoenetMLDefinition,
     returnSelectErrorReportDefinition,
     selectError,
@@ -39,8 +39,9 @@ const { gcd } = me.math;
 
 /**
  * The attributes that decide what a `<selectFromSequence>` can select. When
- * each is written without a reference, a failure to select is an error;
- * otherwise it is a missing selection with an info (`selectFailureType`).
+ * none of them can change, a failure to select is an error; otherwise it is
+ * a missing selection with an info (`selectFailureType`,
+ * `choicesDecidedByDoenetML`).
  */
 const ATTRIBUTES_DECIDING_CHOICES = [
     "from",
@@ -57,8 +58,9 @@ const ATTRIBUTES_DECIDING_CHOICES = [
 export default class SelectFromSequence extends Sequence {
     constructor(args) {
         super(args);
-        this.doenetAttributes.choicesDecidedByDoenetML =
-            choicesDecidedByDoenetML({
+        // so a fresh load reproduces its selection
+        this.doenetAttributes.choicesWrittenWithoutReference =
+            choicesWrittenWithoutReference({
                 component: this,
                 attributeNames: ATTRIBUTES_DECIDING_CHOICES,
                 componentInfoObjects: args.componentInfoObjects,
@@ -74,7 +76,7 @@ export default class SelectFromSequence extends Sequence {
      * made with, never choosing again.
      */
     get definitionEssentialValuesReproducible() {
-        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
+        return this.doenetAttributes.choicesWrittenWithoutReference !== false;
     }
 
     static componentType = "selectFromSequence";
@@ -294,7 +296,9 @@ export default class SelectFromSequence extends Sequence {
         };
 
         stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition();
+            returnChoicesDecidedByDoenetMLDefinition({
+                attributeNames: ATTRIBUTES_DECIDING_CHOICES,
+            });
 
         stateVariableDefinitions.selectedValues = {
             immutable: true,

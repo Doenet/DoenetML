@@ -50,7 +50,7 @@ export default class VariableNameList extends MathList {
                 let globalDependencies = {
                     variablesDecidedByDoenetML: {
                         dependencyType: "decidedByDoenetML",
-                        children: true,
+                        childGroups: ["maths", "strings"],
                     },
                 };
                 return { dependenciesByKey, globalDependencies };

@@ -844,20 +844,15 @@ describe("An index into an entry of a list @group4", async () => {
                 reference,
                 lists,
             );
-            // `ml` holds a reference (`$M.value`), so its value can change,
-            // and an index into it that names nothing is an info (DIAG-2)
-            const fromValue = reference.startsWith("$ml");
-            const reported = fromValue ? infos : warnings;
+            // `ml` holds a reference (`$M.value`) to a matrix written as
+            // literals, which can't change, so it is a warning too (DIAG-2)
             expect(text, reference).eq("[＿]");
+            expect([...errors, ...infos], reference).eqls([]);
             expect(
-                [...errors, ...(fromValue ? warnings : infos)],
-                reference,
-            ).eqls([]);
-            expect(
-                reported.map((w) => w.code),
+                warnings.map((w) => w.code),
                 reference,
             ).eqls([code]);
-            expect(reported[0].args, reference).eqls({ reference });
+            expect(warnings[0].args, reference).eqls({ reference });
         }
     });
 });

@@ -181,7 +181,7 @@ export default class ListIndexBaseListOperator extends ValueListComponent {
                 valuesDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: ["target"],
-                    children: true,
+                    childGroups: ["anything"],
                 },
                 // Declared only by a subclass that offers an `allowUnsorted`
                 // attribute, since the rest have no such state variable.

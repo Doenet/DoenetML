@@ -7,9 +7,10 @@
  */
 
 import { Dependency } from "./Dependency";
+import { ChildDependency } from "./childDependencies";
 import {
+    changeContext,
     partsDecidedByDoenetML,
-    type ChildrenThatCarry,
 } from "../../utils/decidedByDoenetML";
 
 export class CountAmongSiblingsDependency extends Dependency {
@@ -383,22 +384,38 @@ export class ValueDependency extends Dependency {
 }
 
 /**
- * Whether the attributes `attributeNames` of the component, and the
- * children `children` selects (`true` for all, `{ only: [types] }` or
- * `{ except: [types] }`), are decided by the DoenetML alone, rather
- * than by values that can change (`partsDecidedByDoenetML`). A definition
- * whose diagnostic can come from either reads it to set the level (DIAG-2,
- * `levelFromSource`).
+ * Whether the attributes `attributeNames` of the component, and its
+ * children in the child groups `childGroups` (named as in the component's
+ * `returnChildGroups`), are decided by the DoenetML alone, rather than by
+ * values that can change (`partsDecidedByDoenetML`, `canChange`). A
+ * definition whose diagnostic can come from either reads it to set the
+ * level (DIAG-2, `levelFromSource`).
  *
  * It depends on what the author wrote, not on any value, so it is decided
- * once, the first time it is read.
+ * once, the first time it is read. With `childGroups`, it is a child
+ * dependency on those groups, so it is read only once the children are
+ * matched to them; it gives a boolean, not the children.
  */
-export class DecidedByDoenetMLDependency extends Dependency {
+export class DecidedByDoenetMLDependency extends ChildDependency {
     static dependencyType = "decidedByDoenetML";
 
     setUpParameters() {
         this.attributeNames = this.definition.attributeNames ?? [];
-        this.children = this.definition.children ?? false;
+        this.decidingChildGroups = this.definition.childGroups ?? [];
+        this.parentIdx = this.upstreamComponentIdx;
+        this.childGroups = this.decidingChildGroups;
+        this.originalDownstreamVariableNames = [];
+    }
+
+    async determineDownstreamComponents() {
+        if (this.decidingChildGroups.length === 0) {
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+        return super.determineDownstreamComponents();
     }
 
     async getValue() {
@@ -406,70 +423,16 @@ export class DecidedByDoenetMLDependency extends Dependency {
             const component =
                 this.dependencyHandler._components[this.upstreamComponentIdx];
             this.value = component
-                ? decidedFollowingShadows({
+                ? partsDecidedByDoenetML({
                       component,
                       attributeNames: this.attributeNames,
-                      children: this.children,
-                      components: this.dependencyHandler._components,
-                      componentInfoObjects:
-                          this.dependencyHandler.componentInfoObjects,
+                      childGroups: this.decidingChildGroups,
+                      ctx: changeContext(this.dependencyHandler.core),
                   })
                 : true;
         }
         return { value: this.value, changes: {} };
     }
-}
-
-/**
- * {@link partsDecidedByDoenetML} of `component`, where a copy (a component
- * that shadows another) is decided as its source is: what it copies is
- * decided where it was written. An attribute the copy writes itself, as
- * `<vector extend="$v" displacement="(1,2,3)"/>`, is decided on the copy.
- */
-function decidedFollowingShadows({
-    component,
-    attributeNames,
-    children,
-    components,
-    componentInfoObjects,
-}: {
-    component: any;
-    attributeNames: string[];
-    children: ChildrenThatCarry;
-    components: any[];
-    componentInfoObjects: any;
-}): boolean {
-    const source = component.shadows
-        ? components[component.shadows.componentIdx]
-        : undefined;
-    if (!source) {
-        return partsDecidedByDoenetML({
-            component,
-            attributeNames,
-            children,
-            componentInfoObjects,
-        });
-    }
-    const ownAttributes = attributeNames.filter((name) => {
-        const attribute = component.attributes?.[name];
-        return attribute && !attribute.component?.shadows;
-    });
-    return (
-        partsDecidedByDoenetML({
-            component,
-            attributeNames: ownAttributes,
-            componentInfoObjects,
-        }) &&
-        decidedFollowingShadows({
-            component: source,
-            attributeNames: attributeNames.filter(
-                (name) => !ownAttributes.includes(name),
-            ),
-            children,
-            components,
-            componentInfoObjects,
-        })
-    );
 }
 
 export class FlagDependency extends ValueDependency {

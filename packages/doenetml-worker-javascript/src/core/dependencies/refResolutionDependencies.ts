@@ -6,7 +6,10 @@
 
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
-import { pathHasIndexFromValue } from "../../utils/decidedByDoenetML";
+import {
+    changeContext,
+    pathHasIndexThatCanChange,
+} from "../../utils/decidedByDoenetML";
 import {
     doenetMLArgumentsForReference,
     doenetMLDollarsForReference,
@@ -384,13 +387,14 @@ export class RefResolutionDependency extends Dependency {
     }
 
     /**
-     * Whether an index of the reference on `composite`, as written, comes
-     * from a value that can change (`$r[$k]`), so an index that names
-     * nothing is an info rather than a warning (DIAG-2).
+     * Whether an index of the reference on `composite`, as written, can
+     * change (`$r[$k]` with `k` an input), so an index that names nothing
+     * is an info rather than a warning (DIAG-2).
      */
     indexFromValue(composite: any): boolean {
-        return pathHasIndexFromValue(
+        return pathHasIndexThatCanChange(
             this.refResolutionOf(composite)?.originalPath,
+            changeContext(this.dependencyHandler.core),
         );
     }
 

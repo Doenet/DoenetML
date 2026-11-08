@@ -67,7 +67,7 @@ export default class EigenDecomposition extends BaseComponent {
                 // values that can change, so it is an info (DIAG-2)
                 matrixDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
-                    children: true,
+                    childGroups: ["maths"],
                 },
             }),
             definition({ dependencyValues }) {

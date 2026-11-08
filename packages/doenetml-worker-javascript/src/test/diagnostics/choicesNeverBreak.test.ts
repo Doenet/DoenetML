@@ -269,7 +269,7 @@ describe("A selection that a value decides can't be made @group4", async () => {
     }
 
     it("a <select> whose numToSelect a value decides is missing, a blank", async () => {
-        const doenetML = `<number name="n">4</number><p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p>`;
+        const doenetML = `<mathInput name="n" prefill="4"/><p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p>`;
         const { errors, infos, texts } = await load({
             doenetML,
             variable: "selectedIndices",
@@ -281,7 +281,7 @@ describe("A selection that a value decides can't be made @group4", async () => {
     });
 
     it("a reference to a <select> that a value leaves missing is a blank too, and the info is reported once", async () => {
-        const doenetML = `<number name="n">4</number><p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p><p name="q">C $s D</p>`;
+        const doenetML = `<mathInput name="n" prefill="4"/><p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p><p name="q">C $s D</p>`;
         const { errors, infos, texts } = await load({
             doenetML,
             variable: "selectedIndices",
@@ -294,7 +294,7 @@ describe("A selection that a value decides can't be made @group4", async () => {
     });
 
     it("a <select> that a value leaves missing stays a blank through a reload of its state", async () => {
-        const doenetML = `<mathInput name="mi"/><number name="n">4</number><p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p>`;
+        const doenetML = `<mathInput name="mi"/><mathInput name="n" prefill="4"/><p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p>`;
         const first = await load({
             doenetML,
             variable: "selectedIndices",
@@ -359,22 +359,22 @@ describe("A selection that a value decides can't be made @group4", async () => {
         {
             code: "doenet-e0041",
             written: `<selectFromSequence name="s" from="0" to="5" numToSelect="2" coprime/>`,
-            fromValue: `<number name="a">0</number><selectFromSequence name="s" from="$a" to="5" numToSelect="2" coprime/>`,
+            fromValue: `<mathInput name="a" prefill="0"/><selectFromSequence name="s" from="$a" to="5" numToSelect="2" coprime/>`,
         },
         {
             code: "doenet-e0043",
             written: `<selectFromSequence name="s" from="2" to="2" numToSelect="2" withReplacement coprime/>`,
-            fromValue: `<number name="a">2</number><selectFromSequence name="s" from="2" to="$a" numToSelect="2" withReplacement coprime/>`,
+            fromValue: `<mathInput name="a" prefill="2"/><selectFromSequence name="s" from="2" to="$a" numToSelect="2" withReplacement coprime/>`,
         },
         {
             code: "doenet-e0044",
             written: `<selectFromSequence name="s" to="3" numToSelect="2" excludeCombinations="(1 2) (2 1) (1 3) (3 1) (2 3)"/>`,
-            fromValue: `<number name="a">3</number><selectFromSequence name="s" to="$a" numToSelect="2" excludeCombinations="(1 2) (2 1) (1 3) (3 1) (2 3)"/>`,
+            fromValue: `<mathInput name="a" prefill="3"/><selectFromSequence name="s" to="$a" numToSelect="2" excludeCombinations="(1 2) (2 1) (1 3) (3 1) (2 3)"/>`,
         },
         {
             code: "doenet-e0045",
             written: `<selectFromSequence name="s" from="2" to="4" exclude="3" numToSelect="2" coprime/>`,
-            fromValue: `<number name="a">3</number><selectFromSequence name="s" from="2" to="4" exclude="$a" numToSelect="2" coprime/>`,
+            fromValue: `<mathInput name="a" prefill="3"/><selectFromSequence name="s" from="2" to="4" exclude="$a" numToSelect="2" coprime/>`,
         },
     ];
 
@@ -422,28 +422,28 @@ describe("A selection that couldn't be made, given back @group4", async () => {
     }[] = [
         {
             tag: "<selectFromSequence>, coprime from a value",
-            doenetML: `<boolean name="b">true</boolean><selectFromSequence name="s" from="2" to="4" step="2" numToSelect="2" coprime="$b"/>`,
+            doenetML: `<booleanInput name="b" prefill="true"/><selectFromSequence name="s" from="2" to="4" step="2" numToSelect="2" coprime="$b"/>`,
             variable: "selectedValues",
             code: "doenet-e0042",
             type: "infos",
         },
         {
             tag: "<selectFromSequence>, exclude from a value",
-            doenetML: `<number name="a">3</number><selectFromSequence name="s" to="4" exclude="$a 4" numToSelect="3"/>`,
+            doenetML: `<mathInput name="a" prefill="3"/><selectFromSequence name="s" to="4" exclude="$a 4" numToSelect="3"/>`,
             variable: "selectedValues",
             code: "doenet-e0046",
             type: "infos",
         },
         {
             tag: "<selectPrimeNumbers>, combinations excluded from a range from a value",
-            doenetML: `<number name="a">5</number><selectPrimeNumbers name="s" to="$a" numToSelect="2" excludeCombinations="(2 3) (3 2) (2 5) (5 2) (3 5)"/>`,
+            doenetML: `<mathInput name="a" prefill="5"/><selectPrimeNumbers name="s" to="$a" numToSelect="2" excludeCombinations="(2 3) (3 2) (2 5) (5 2) (3 5)"/>`,
             variable: "selectedValues",
             code: "doenet-e0051",
             type: "infos",
         },
         {
             tag: "<select>, numToSelect from a value",
-            doenetML: `<number name="n">3</number><select name="s" numToSelect="$n">a b</select>`,
+            doenetML: `<mathInput name="n" prefill="3"/><select name="s" numToSelect="$n">a b</select>`,
             variable: "selectedIndices",
             code: "doenet-e0035",
             type: "infos",
@@ -457,7 +457,7 @@ describe("A selection that couldn't be made, given back @group4", async () => {
         },
         {
             tag: "<selectFromSequence>, coprime with every value sharing a factor, from a value",
-            doenetML: `<number name="a">3</number><selectFromSequence name="s" from="2" to="6" exclude="$a 5" numToSelect="2" coprime/>`,
+            doenetML: `<mathInput name="a" prefill="3"/><selectFromSequence name="s" from="2" to="6" exclude="$a 5" numToSelect="2" coprime/>`,
             variable: "selectedValues",
             code: "doenet-e0045",
             type: "infos",
@@ -740,44 +740,44 @@ describe("Requested choices come before a fresh selection @group4", async () => 
     }[] = [
         {
             tag: "<select>, a count now 0",
-            before: `<number name="n">2</number><select name="s" numToSelect="$n">a b c</select>`,
-            after: `<number name="n">0</number><select name="s" numToSelect="$n">a b c</select>`,
+            before: `<mathInput name="n" prefill="2"/><select name="s" numToSelect="$n">a b c</select>`,
+            after: `<mathInput name="n" prefill="0"/><select name="s" numToSelect="$n">a b c</select>`,
             variable: "selectedIndices",
         },
         {
             tag: "<select>, nothing selected, a count now 1",
-            before: `<number name="n">0</number><select name="s" numToSelect="$n">a b c</select>`,
-            after: `<number name="n">1</number><select name="s" numToSelect="$n">a b c</select>`,
+            before: `<mathInput name="n" prefill="0"/><select name="s" numToSelect="$n">a b c</select>`,
+            after: `<mathInput name="n" prefill="1"/><select name="s" numToSelect="$n">a b c</select>`,
             variable: "selectedIndices",
         },
         {
             tag: "<selectFromSequence>, a count a value makes too many",
-            before: `<number name="n">2</number><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
-            after: `<number name="n">4</number><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
+            before: `<mathInput name="n" prefill="2"/><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
+            after: `<mathInput name="n" prefill="4"/><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
             variable: "selectedValues",
         },
         {
             tag: "<selectFromSequence>, nothing selected, a count now 1",
-            before: `<number name="n">0</number><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
-            after: `<number name="n">1</number><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
+            before: `<mathInput name="n" prefill="0"/><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
+            after: `<mathInput name="n" prefill="1"/><selectFromSequence name="s" to="3" numToSelect="$n"/>`,
             variable: "selectedValues",
         },
         {
             tag: "<selectPrimeNumbers>, a count a value makes too many",
-            before: `<number name="n">2</number><selectPrimeNumbers name="s" to="5" numToSelect="$n"/>`,
-            after: `<number name="n">4</number><selectPrimeNumbers name="s" to="5" numToSelect="$n"/>`,
+            before: `<mathInput name="n" prefill="2"/><selectPrimeNumbers name="s" to="5" numToSelect="$n"/>`,
+            after: `<mathInput name="n" prefill="4"/><selectPrimeNumbers name="s" to="5" numToSelect="$n"/>`,
             variable: "selectedValues",
         },
         {
             tag: "<selectRandomNumbers>, a count now 0",
-            before: `<number name="n">2</number><selectRandomNumbers name="s" numToSelect="$n"/>`,
-            after: `<number name="n">0</number><selectRandomNumbers name="s" numToSelect="$n"/>`,
+            before: `<mathInput name="n" prefill="2"/><selectRandomNumbers name="s" numToSelect="$n"/>`,
+            after: `<mathInput name="n" prefill="0"/><selectRandomNumbers name="s" numToSelect="$n"/>`,
             variable: "selectedValues",
         },
         {
             tag: "<selectRandomNumbers>, nothing selected, a count now 1",
-            before: `<number name="n">0</number><selectRandomNumbers name="s" numToSelect="$n"/>`,
-            after: `<number name="n">1</number><selectRandomNumbers name="s" numToSelect="$n"/>`,
+            before: `<mathInput name="n" prefill="0"/><selectRandomNumbers name="s" numToSelect="$n"/>`,
+            after: `<mathInput name="n" prefill="1"/><selectRandomNumbers name="s" numToSelect="$n"/>`,
             variable: "selectedValues",
         },
     ];
@@ -890,4 +890,91 @@ describe("Requested choices come before a fresh selection @group4", async () => 
         expect(errors).eqls([]);
         expect(selected).eqls([2]);
     });
+});
+
+/**
+ * A reference decides a selection as what it names does (D39 SEL-1, D38,
+ * DIAG-7): a reference to a component that cannot change, such as a
+ * `<number>` written as a literal, is decided by the DoenetML, so a
+ * selection it makes impossible is an error when the document loads, in
+ * every variant. One to an input, or to another random choice, can change,
+ * so the select is missing, with an info.
+ */
+describe("A reference to what cannot change decides a selection @group4", async () => {
+    const cases: {
+        tag: string;
+        select: (n: string) => string;
+        variable: "selectedIndices" | "selectedValues";
+        code: string;
+    }[] = [
+        {
+            tag: "<select> numToSelect",
+            select: (n) => `<select name="s" numToSelect="${n}">u v w</select>`,
+            variable: "selectedIndices",
+            code: "doenet-e0035",
+        },
+        {
+            tag: "<selectFromSequence> numToSelect",
+            select: (n) =>
+                `<selectFromSequence name="s" to="2" numToSelect="${n}"/>`,
+            variable: "selectedValues",
+            code: "doenet-e0036",
+        },
+        {
+            tag: "<selectPrimeNumbers> to",
+            select: (n) =>
+                `<selectPrimeNumbers name="s" to="${n}" numToSelect="5"/>`,
+            variable: "selectedValues",
+            code: "doenet-e0047",
+        },
+    ];
+
+    for (const { tag, select, variable, code } of cases) {
+        it(`${tag} from a reference to a literal is an error at load, in every variant`, async () => {
+            for (const requestedVariantIndex of [1, 2, 3]) {
+                const { errors, infos } = await load({
+                    doenetML: `<number name="n">4</number>${select("$n")}`,
+                    requestedVariantIndex,
+                    variable,
+                });
+                expect(errors).eqls([code]);
+                expect(infos).not.toContain(code);
+            }
+        });
+
+        it(`${tag} through a chain of references to literals is an error`, async () => {
+            const { errors } = await load({
+                doenetML: `<number name="m">4</number><number name="n">$m</number>${select("$n")}`,
+                variable,
+            });
+            expect(errors).eqls([code]);
+        });
+
+        it(`${tag} from an input is an info`, async () => {
+            const { errors, infos } = await load({
+                doenetML: `<mathInput name="n" prefill="4"/>${select("$n")}`,
+                variable,
+            });
+            expect(errors).eqls([]);
+            expect(infos).toContain(code);
+        });
+
+        it(`${tag} from a literal an input is bound to is an info`, async () => {
+            const { errors, infos } = await load({
+                doenetML: `<number name="n">4</number><mathInput bindValueTo="$n"/>${select("$n")}`,
+                variable,
+            });
+            expect(errors).eqls([]);
+            expect(infos).toContain(code);
+        });
+
+        it(`${tag} from another random choice is an info`, async () => {
+            const { errors, infos } = await load({
+                doenetML: `<selectFromSequence name="n" from="4" to="5"/>${select("$n")}`,
+                variable,
+            });
+            expect(errors).eqls([]);
+            expect(infos).toContain(code);
+        });
+    }
 });

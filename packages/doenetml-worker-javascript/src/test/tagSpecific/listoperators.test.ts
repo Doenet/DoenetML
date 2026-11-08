@@ -719,14 +719,14 @@ describe("List operator tag tests @group4", async () => {
         });
 
         it("text out of alphabetical order is unsorted", async () => {
-            const { text, warnings, infos } = await resultsFor(`
+            const { text, warnings } = await resultsFor(`
     <textList name="tl">apple pear fig</textList>
     <p name="p"><searchSorted type="text" target="cherry">$tl</searchSorted></p>
     `);
             expect(text).eq("0");
-            // values from a reference can change, so it is an info (DIAG-2)
-            expect(warnings.filter(notSorted)).eqls([]);
-            expect(infos.filter(notSorted).length).eq(1);
+            // values from a reference to a list written as literals can't
+            // change, so it is a warning (DIAG-2)
+            expect(warnings.filter(notSorted).length).eq(1);
         });
 
         it("sortedness is judged by the comparison the search will use", async () => {
@@ -755,15 +755,14 @@ describe("List operator tag tests @group4", async () => {
         it("many targets on an unsorted list report once", async () => {
             // The list is one fact about the document however many targets ask
             // about it, so it is reported once, not once per target.
-            const { text, warnings, infos } = await resultsFor(`
+            const { text, warnings } = await resultsFor(`
     <numberList name="targets">1 2 3 4 5</numberList>
     <p name="p"><searchSorted target="$targets">10 30 20</searchSorted></p>
     `);
             expect(text).eq("0, 0, 0, 0, 0");
-            // the target comes from a reference, a value that can change, so
-            // it is an info (DIAG-2)
-            expect(warnings.filter(notSorted)).eqls([]);
-            expect(infos.filter(notSorted).length).eq(1);
+            // the target comes from a reference to literals, which can't
+            // change, so it is a warning (DIAG-2)
+            expect(warnings.filter(notSorted).length).eq(1);
         });
 
         it("a value that is not a number neither confirms nor refutes sortedness", async () => {
@@ -784,14 +783,14 @@ describe("List operator tag tests @group4", async () => {
             // between them. Comparing only neighbors would find no inversion
             // — every comparison involving `x` is `NaN`, and `NaN > 0` is
             // false — and answer 2, a position in no arrangement of this list.
-            const { text, warnings, infos } = await resultsFor(`
+            const { text, warnings } = await resultsFor(`
     <numberList name="nl">9 x 1</numberList>
     <p name="p"><searchSorted target="4">$nl</searchSorted></p>
     `);
             expect(text).eq("0");
-            // values from a reference can change, so it is an info (DIAG-2)
-            expect(warnings.filter(notSorted)).eqls([]);
-            expect(infos.filter(notSorted).length).eq(1);
+            // values from a reference to a list written as literals can't
+            // change, so it is a warning (DIAG-2)
+            expect(warnings.filter(notSorted).length).eq(1);
         });
 
         it("a math that is not a real number takes no part in the ordering either", async () => {
@@ -800,14 +799,14 @@ describe("List operator tag tests @group4", async () => {
             // not a number, so it compares with nothing, exactly as a number
             // that does not parse does. The 9 and the 1 on either side of it
             // are still compared with each other.
-            const { text, warnings, infos } = await resultsFor(`
+            const { text, warnings } = await resultsFor(`
     <mathList name="ml">9 i 1</mathList>
     <p name="p"><searchSorted target="4">$ml</searchSorted></p>
     `);
             expect(text).eq("0");
-            // values from a reference can change, so it is an info (DIAG-2)
-            expect(warnings.filter(notSorted)).eqls([]);
-            expect(infos.filter(notSorted).length).eq(1);
+            // values from a reference to a list written as literals can't
+            // change, so it is a warning (DIAG-2)
+            expect(warnings.filter(notSorted).length).eq(1);
 
             // And in order it is passed over rather than reported, as `x` is.
             const inOrder = await resultsFor(`
@@ -865,10 +864,11 @@ describe("List operator tag tests @group4", async () => {
                 text: "3",
             });
 
-            // The first one reports, as an info since its values come from
-            // a reference (DIAG-2); the second must not add one of its own.
-            const reported = getDiagnosticsByType(core).infos.map(
-                (i) => i.message,
+            // The page says the first one warns, as its values come from a
+            // list written as literals (DIAG-2); the second must not add a
+            // second warning of its own.
+            const reported = getDiagnosticsByType(core).warnings.map(
+                (w) => w.message,
             );
             expect(reported.filter(notSorted).length).eq(1);
         });

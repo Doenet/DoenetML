@@ -638,7 +638,7 @@ export default class ODESystem extends InlineComponent {
                 rhssDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: ["variables"],
-                    children: true,
+                    childGroups: ["rightHandSides"],
                 },
             }),
             definition({ dependencyValues }) {

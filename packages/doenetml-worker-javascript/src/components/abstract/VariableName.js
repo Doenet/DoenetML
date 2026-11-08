@@ -42,7 +42,7 @@ export default class Variable extends MathComponent {
                 // that can change, so it is an info (DIAG-2)
                 valueDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
-                    children: true,
+                    childGroups: ["maths", "strings"],
                 },
             }),
             definition({ dependencyValues }) {

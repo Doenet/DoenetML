@@ -937,29 +937,27 @@ describe("Counting operator tag tests @group4", async () => {
             ).eq(true);
         });
 
-        it("fewer than two cut points is reported", async () => {
-            const { warnings, infos } = await messagesFor(`
+        it("fewer than two cut points is a warning", async () => {
+            const { warnings } = await messagesFor(`
     <numberList name="n">1 2 3</numberList>
     <numberList name="edges">5</numberList>
     <p><binCounts bins="$edges">$n</binCounts></p>
     `);
 
-            // from a reference, a value that can change: an info (DIAG-2)
             expect(
-                infos.some((m) => m.includes("needs at least 2 cut points")),
+                warnings.some((m) => m.includes("needs at least 2 cut points")),
             ).eq(true);
         });
 
-        it("non-numeric values are reported", async () => {
-            const { warnings, infos } = await messagesFor(`
+        it("non-numeric values are a warning", async () => {
+            const { warnings } = await messagesFor(`
     <textList name="w">apple fig</textList>
     <numberList name="edges">0 1 2</numberList>
     <p><binCounts bins="$edges">$w</binCounts></p>
     `);
 
-            // from a reference, a value that can change: an info (DIAG-2)
             expect(
-                infos.some((m) =>
+                warnings.some((m) =>
                     m.includes("can only count numeric values into bins"),
                 ),
             ).eq(true);

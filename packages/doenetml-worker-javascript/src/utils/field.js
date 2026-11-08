@@ -174,7 +174,7 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                 // a label is not the function
                 functionDecidedByDoenetML: {
                     dependencyType: "decidedByDoenetML",
-                    children: { except: ["label"] },
+                    childGroups: ["functions"],
                 },
             }),
             definition({ dependencyValues }) {
