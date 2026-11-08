@@ -1257,8 +1257,10 @@ export default class Core {
                 event.context,
                 serializedComponentsReplacer,
             ),
-            timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
-            version: "0.1.1",
+            // ISO 8601 UTC, such as "2026-11-07T22:21:06.123Z". Before
+            // version 0.2.0 it was "YYYY-MM-DD HH:MM:SS", UTC with no zone.
+            timestamp: new Date().toISOString(),
+            version: "0.2.0",
         };
 
         this.sendEvent(payload);

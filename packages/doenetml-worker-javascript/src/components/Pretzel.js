@@ -1,4 +1,5 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
+import { attemptCountsForEvent } from "../utils/answer";
 
 /**
  * Parse a text response as a finite integer.
@@ -628,6 +629,32 @@ export default class Pretzel extends BlockScoredComponent {
             },
         };
 
+        // Whether an enclosing section-wide check work supplies this pretzel's
+        // `numAttemptsLeft`, by the same test the standard `numAttemptsLeft`
+        // uses. Read only by `submitAnswer`, for the event's attempt count.
+        stateVariableDefinitions.insideSectionWideCheckWork = {
+            returnDependencies: () => ({
+                ancestorSuppressingAnswerSubmitButtons: {
+                    dependencyType: "ancestor",
+                    variableNames: [
+                        "suppressAnswerSubmitButtons",
+                        "numAttemptsLeft",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        insideSectionWideCheckWork: Boolean(
+                            dependencyValues
+                                .ancestorSuppressingAnswerSubmitButtons
+                                ?.stateValues.suppressAnswerSubmitButtons,
+                        ),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.showCheckWork = {
             forRenderer: true,
             returnDependencies: () => ({
@@ -663,6 +690,9 @@ export default class Pretzel extends BlockScoredComponent {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        // Set by `submitAllAnswers` when the container submitting this pretzel
+        // counts the submission against the section-wide attempts.
+        usesContainerAttempt = false,
     }) {
         const numAttemptsLeft = await this.stateValues.numAttemptsLeft;
         if (numAttemptsLeft < 1) {
@@ -718,11 +748,12 @@ export default class Pretzel extends BlockScoredComponent {
             value: await this.stateValues.creditAchievedDependencies,
         });
 
+        const numSubmissions = (await this.stateValues.numSubmissions) + 1;
         instructions.push({
             updateType: "updateValue",
             componentIdx: this.componentIdx,
             stateVariable: "numSubmissions",
-            value: (await this.stateValues.numSubmissions) + 1,
+            value: numSubmissions,
         });
 
         if (creditAchieved < 1) {
@@ -774,6 +805,18 @@ export default class Pretzel extends BlockScoredComponent {
                     responseText,
                     componentTypes: Array(currentResponses.length).fill("text"),
                     creditAchieved,
+                    ...attemptCountsForEvent({
+                        numSubmissions,
+                        maxNumAttempts: await this.stateValues.maxNumAttempts,
+                        numAttemptsLeftBefore: numAttemptsLeft,
+                        // Inside a section-wide check work, `numAttemptsLeft`
+                        // is the container's, used up only when the container
+                        // submits this pretzel.
+                        usesAttempt:
+                            !(await this.stateValues
+                                .insideSectionWideCheckWork) ||
+                            usesContainerAttempt,
+                    }),
                 },
             },
         });

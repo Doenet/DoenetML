@@ -1066,3 +1066,38 @@ export function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
 
     return { count };
 }
+
+/**
+ * The attempt counts reported in the result of a "submitted" event, so a host
+ * can count and cap attempts without reading the document.
+ *
+ * - `numSubmissions`: the submissions so far, including this one.
+ * - `maxNumAttempts`: the author's `maxNumAttempts`, or `null` if unlimited.
+ * - `numAttemptsLeft`: the attempts left after this submission, or `null` if
+ *   unlimited. Computed from `numAttemptsLeftBefore`, the component's
+ *   `numAttemptsLeft` read before the submission, so for an answer inside a
+ *   section-wide check work it is the container's count, as the answer's own
+ *   `numAttemptsLeft` is.
+ *
+ * `usesAttempt` says whether this submission uses up one of the attempts that
+ * `numAttemptsLeftBefore` counts. It is false when that count belongs to an
+ * enclosing section-wide check work and this submission does not count against
+ * it: an answer or pretzel submitted on its own inside one (a pretzel's own
+ * button, auto-submit, or a direct action), or a container nested inside one.
+ * Then the count is unchanged.
+ */
+export function attemptCountsForEvent({
+    numSubmissions,
+    maxNumAttempts,
+    numAttemptsLeftBefore,
+    usesAttempt = true,
+}) {
+    const numAttemptsLeft = numAttemptsLeftBefore - (usesAttempt ? 1 : 0);
+    return {
+        numSubmissions,
+        maxNumAttempts: Number.isFinite(maxNumAttempts) ? maxNumAttempts : null,
+        numAttemptsLeft: Number.isFinite(numAttemptsLeft)
+            ? numAttemptsLeft
+            : null,
+    };
+}
