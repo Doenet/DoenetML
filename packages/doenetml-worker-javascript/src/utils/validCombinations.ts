@@ -7,9 +7,10 @@
  * draws again when the one it drew isn't valid. That is fast when most
  * combinations are valid, but it can run out of draws, so when it does the
  * select draws exactly instead: it counts the valid combinations and takes
- * one of them, uniformly ({@link drawValidCombination}). A draw that the
- * rejected draws stop short of is still uniform among the valid
- * combinations, as each of the two ways of drawing is.
+ * one of them, uniformly ({@link drawValidCombination}, or, for `coprime`,
+ * {@link coprimeCombinations}, which counts them without going through
+ * them). A draw that the rejected draws stop short of is still uniform
+ * among the valid combinations, as each of the two ways of drawing is.
  *
  * Whether any valid combination exists is decided before any draw
  * ({@link someValidCombination}), from the values alone, so that a select

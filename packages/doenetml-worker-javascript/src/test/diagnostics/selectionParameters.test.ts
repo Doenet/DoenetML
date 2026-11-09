@@ -113,6 +113,17 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `numToSelect="$k"`,
         },
         {
+            tag: "<selectFromSequence to> from a number an action writes to",
+            doenetML: `<number name="k">3</number>
+<updateValue target="$k" newValue="$k+1"/>
+<p name="p">A <selectFromSequence name="s" to="$k"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$k",
+            changeableType: "number",
+            written: `to="$k"`,
+        },
+        {
             tag: "<samplePrimeNumbers numSamples> from an answer",
             doenetML: `<answer name="ans"><mathInput/><award>1</award></answer>
 <p name="p">A <samplePrimeNumbers name="s" numSamples="$ans.creditAchieved"/> B</p>`,
@@ -121,6 +132,16 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             reference: "$ans.creditAchieved",
             changeableType: "answer",
             written: `numSamples="$ans.creditAchieved"`,
+        },
+        {
+            tag: "<sampleMultivariateRandomNumber numDraws> from an input",
+            doenetML: `<mathInput name="n" prefill="4"/>
+<p name="p">A <sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="$n"/> B</p>`,
+            attribute: "numDraws",
+            componentType: "sampleMultivariateRandomNumber",
+            reference: "$n",
+            changeableType: "mathInput",
+            written: `numDraws="$n"`,
         },
         {
             tag: "an <option>'s selectWeight, an error of the <select>",
@@ -204,6 +225,9 @@ describe("A choice's parameter a reader can change is an error at load @group4",
         expect(errors.map((e) => e.code)).eqls(["doenet-e0070"]);
         const p = stateVariables[await resolvePathToNodeIdx("p")];
         expect(p.stateValues.text).not.toMatch(/[uvw]/);
+        // the reference shows the error's blank, not a selection
+        const q = stateVariables[await resolvePathToNodeIdx("q")];
+        expect(q.stateValues.text).eq("＿");
     });
 
     it("a choice that extends or copies a choice in error is the same error, reported once", async () => {
@@ -218,6 +242,15 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             // none of them chooses anything
             expect(p).not.toMatch(/\d/);
         }
+    });
+
+    it("an extend already in error is that error, not this one", async () => {
+        // extending a choice and changing what it chooses from is an extend
+        // error (`extendErrorsAtLoad`), reported alone
+        const { errors } = await load(`<mathInput name="n" prefill="1"/>
+<selectFromSequence name="a" to="5"/>
+<p name="p"><selectFromSequence name="b" extend="$a" to="$n"/></p>`);
+        expect(errors.map((e) => e.code)).eqls(["doenet-e0056"]);
     });
 
     it("a choice in a case that isn't shown is reported at load", async () => {
@@ -272,6 +305,11 @@ describe("What a choice's parameter may read @group4", () => {
 <selectFromSequence name="s" to="10" numToSelect="$a" exclude="$a"/>`,
         },
         {
+            tag: "another random choice, in a sampler of several numbers",
+            doenetML: `<selectFromSequence name="a" from="3" to="5"/>
+<sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="$a"/>`,
+        },
+        {
             tag: "a <number> written as a literal",
             doenetML: `<number name="m">3</number>
 <select name="s" numToSelect="$m">u v w</select>`,
@@ -324,6 +362,17 @@ describe("What a choice's parameter may read @group4", () => {
             doenetML: `<number name="a">3</number>
 <graph><point fixed>($a, 2)</point></graph>
 <selectFromSequence name="s" to="$a"/>`,
+        },
+        {
+            tag: "whether a number is hidden, from an input",
+            doenetML: `<booleanInput name="b"/>
+<number name="m" hide="$b">3</number>
+<selectFromSequence name="s" to="$m"/>`,
+        },
+        {
+            tag: "an option's selectForVariants, which drops a reference",
+            doenetML: `<textInput name="t" prefill="a"/>
+<select name="s"><option selectForVariants="$t">u</option><option>w</option></select>`,
         },
         {
             tag: "a label from an input, on a number",

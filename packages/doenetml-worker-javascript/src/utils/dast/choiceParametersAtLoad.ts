@@ -7,10 +7,11 @@
  *
  * A choice is a `<select>`, `<selectFromSequence>`, `<selectPrimeNumbers>`,
  * `<selectRandomNumbers>` or a sampler; its parameters are the attributes
- * {@link CHOICE_PARAMETERS} lists, and an `<option>`'s `selectWeight` and
- * `selectForVariants` for the `<select>` holding it. (The content of an option, and the items a
- * `<shuffle>` or `<choiceInput>` orders, are what is chosen among, not how,
- * and are not read here.)
+ * {@link CHOICE_PARAMETERS} lists, and an `<option>`'s `selectWeight` for
+ * the `<select>` holding it. (An option's `selectForVariants` takes no
+ * reference: one written there is dropped with a warning. The content of an
+ * option, and the items a `<shuffle>` or `<choiceInput>` orders, are what is
+ * chosen among, not how, and are not read here.)
  *
  * A parameter may read:
  * - literals, and content that can't change;
@@ -122,8 +123,12 @@ export const CHOICE_PARAMETERS: Record<string, string[]> = {
     // `<pretzel>`'s order, take no reference: they are written as literals.
 };
 
-/** The parameters an `<option>` gives the `<select>` holding it. */
-const OPTION_PARAMETERS = ["selectWeight", "selectForVariants"];
+/**
+ * The parameters an `<option>` gives the `<select>` holding it. Not
+ * `selectForVariants`, a list of strings that drops a reference written in
+ * it (`doenet-w0106`), so no reference there can reach the choice.
+ */
+const OPTION_PARAMETERS = ["selectWeight"];
 
 /**
  * The attributes of a component a parameter reaches that only display or
@@ -218,7 +223,9 @@ export function checkChoiceParametersAtLoad({
     index(document, undefined);
 
     // Only when a choice has a parameter that holds a component or a
-    // reference is what a reader can change worth finding.
+    // reference is what a reader can change worth finding. A literal
+    // (`from="1"`) is a component here too, so that is whenever a choice
+    // has a parameter written.
     const parametersToCheck: {
         choice: any;
         attributeName: string;
@@ -236,7 +243,8 @@ export function checkChoiceParametersAtLoad({
         if (
             !choice ||
             // an extend marked with its error (`extendErrorsAtLoad.ts`), such
-            // as `<select extend="$x" numToSelect="$n"/>`, is that error,
+            // as `<select extend="$a" numToSelect="$n"/>` of a `<select>`
+            // `a`, is that error,
             // with nothing about its attributes' values
             (choice.doenetAttributes?.extendErrorsAtLoad ?? []).length > 0
         ) {
