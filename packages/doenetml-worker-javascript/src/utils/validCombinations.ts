@@ -162,21 +162,40 @@ export function coprimeCombinations({
     withReplacement: boolean;
 }) {
     const numValues = values.length;
+    // When the values are not much larger than how many there are, as in a
+    // sequence, the values `d` divides are counted by stepping through the
+    // multiples of `d`, `maxValue / d` of them, when that is fewer than the
+    // values: the first draw asks this of every divisor of every value, so
+    // going through every value each time would cost about the number of
+    // values squared (seconds for 100 000 values, minutes for a million).
+    const maxValue = values.reduce((a, b) => Math.max(a, b), 0);
+    const isValue =
+        maxValue <= 16 * numValues + 1024 ? new Uint8Array(maxValue + 1) : null;
+    if (isValue) {
+        for (const value of values) {
+            isValue[value] = 1;
+        }
+    }
     const countDivisibleBy = new Map<number, number>();
     function numDivisibleBy(d: number) {
         let count = countDivisibleBy.get(d);
         if (count === undefined) {
             count = 0;
-            for (const value of values) {
-                if (value % d === 0) {
-                    count++;
+            if (isValue && maxValue / d < numValues) {
+                for (let multiple = d; multiple <= maxValue; multiple += d) {
+                    count += isValue[multiple];
+                }
+            } else {
+                for (const value of values) {
+                    if (value % d === 0) {
+                        count++;
+                    }
                 }
             }
             countDivisibleBy.set(d, count);
         }
         return count;
     }
-    const mobiusOf = new Map<number, number>();
     /**
      * The divisors `d` of `n` with `μ(d)` not 0 (those with no square
      * factor), each with `μ(d)`.
@@ -200,9 +219,6 @@ export function coprimeCombinations({
             divisors = divisors.concat(
                 divisors.map(([d, mu]) => [d * p, -mu] as [number, number]),
             );
-        }
-        for (const [d, mu] of divisors) {
-            mobiusOf.set(d, mu);
         }
         return divisors;
     }
@@ -266,7 +282,8 @@ export function coprimeCombinations({
         },
         /**
          * A coprime combination drawn uniformly, its indices and values, or
-         * `null` when there is none. One number from `rng` for each value.
+         * `null` when there is none. At least one number from `rng` for each
+         * value ({@link randomBelow}).
          */
         draw(rng: () => number) {
             const indices: number[] = [];
@@ -304,11 +321,27 @@ export function coprimeCombinations({
 }
 
 /**
- * A whole number from 0 to `bound - 1`, from one number from `rng`, exact
- * to the 53 bits a number from `rng` has.
+ * A whole number from 0 to `bound - 1`, each with the same chance, from the
+ * numbers `rng` gives. A number from `rng` (`seedrandom.alea`) has 32 bits,
+ * so a `bound` above 2^32 takes more than one, and a draw that falls in the
+ * part of the range left over when it is split into `bound` equal parts is
+ * drawn again. Larger numbers from `rng` give larger results, the first
+ * number the most.
  */
-function randomBelow(bound: bigint, rng: () => number): bigint {
-    const scaled = BigInt(Math.floor(rng() * 2 ** 53));
-    const result = (scaled * bound) >> 53n;
-    return result < bound ? result : bound - 1n;
+export function randomBelow(bound: bigint, rng: () => number): bigint {
+    let words = 1n;
+    while (1n << (32n * words) < bound) {
+        words++;
+    }
+    const range = 1n << (32n * words);
+    const partSize = range / bound;
+    for (;;) {
+        let drawn = 0n;
+        for (let word = 0n; word < words; word++) {
+            drawn = (drawn << 32n) | BigInt(Math.floor(rng() * 2 ** 32));
+        }
+        if (drawn < partSize * bound) {
+            return drawn / partSize;
+        }
+    }
 }

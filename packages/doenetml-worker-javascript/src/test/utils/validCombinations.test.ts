@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
     coprimeCombinations,
     drawValidCombination,
+    randomBelow,
     someValidCombination,
 } from "../../utils/validCombinations";
+import seedrandom from "seedrandom";
 
 /** A generator of the numbers in `draws`, in turn. */
 function rngOf(draws: number[]) {
@@ -214,5 +216,44 @@ describe("Valid combinations, found exactly (SEL-4) @group4", () => {
         expect(Date.now() - start).lt(5000);
         expect(result!.values).toContain(1);
         expect(new Set(result!.values).size).eq(3);
+    });
+
+    it("draws quickly from a great many values, all but one even", () => {
+        // 1 and the even numbers to 400 000, three at a time
+        const values = [1, ...[...Array(200_000).keys()].map((i) => 2 * i + 2)];
+        const start = Date.now();
+        const result = coprimeCombinations({
+            values,
+            numToSelect: 3,
+            withReplacement: false,
+        }).draw(seedrandom.alea("1"));
+        expect(Date.now() - start).lt(5000);
+        expect(result!.values).toContain(1);
+    });
+
+    it("draws below a bound larger than one number from the generator holds", () => {
+        // a number from the variant's generator has 32 bits, so a bound of
+        // 2^40 needs more than one of them to reach every result
+        const rng = seedrandom.alea("1");
+        const bound = 2n ** 40n;
+        let reachesLowBits = false;
+        for (let i = 0; i < 20; i++) {
+            const result = randomBelow(bound, rng);
+            expect(result >= 0n && result < bound).eq(true);
+            if (result % 256n !== 0n) {
+                reachesLowBits = true;
+            }
+        }
+        expect(reachesLowBits).eq(true);
+    });
+
+    it("draws again rather than favour the results below the left-over part", () => {
+        // 2^32 is not a multiple of 3, so the top of the range is left over:
+        // a number there is drawn again
+        const partSize = Math.floor(2 ** 32 / 3);
+        const leftOver = (3 * partSize) / 2 ** 32;
+        expect(randomBelow(3n, rngOf([leftOver, 0]))).eq(0n);
+        expect(randomBelow(3n, rngOf([0.999]))).eq(2n);
+        expect(randomBelow(3n, rngOf([0.001]))).eq(0n);
     });
 });
