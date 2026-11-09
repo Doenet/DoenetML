@@ -206,6 +206,20 @@ describe("A choice's parameter a reader can change is an error at load @group4",
         expect(p.stateValues.text).not.toMatch(/[uvw]/);
     });
 
+    it("a choice that extends or copies a choice in error is the same error, reported once", async () => {
+        for (const tag of [
+            "selectFromSequence",
+            "selectPrimeNumbers",
+            "sampleRandomNumbers",
+        ]) {
+            const { errors, p } = await load(`<mathInput name="n" prefill="20"/>
+<p name="p">A <${tag} name="a" to="$n"/> <${tag} name="b" extend="$a"/> <${tag} name="c" copy="$b"/> B</p>`);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0070"]);
+            // none of them chooses anything
+            expect(p).not.toMatch(/\d/);
+        }
+    });
+
     it("a choice in a case that isn't shown is reported at load", async () => {
         const { errors } = await load(`<mathInput name="n" prefill="2"/>
 <booleanInput name="show"/>
@@ -277,6 +291,12 @@ describe("What a choice's parameter may read @group4", () => {
             tag: "a repeat's valueName, with the count from an input",
             doenetML: `<mathInput name="n" prefill="3"/>
 <repeatForSequence from="2" to="$n" valueName="v"><selectFromSequence to="$v"/></repeatForSequence>`,
+        },
+        {
+            tag: "a repeat's valueName, with whether the repeat is hidden from an input",
+            doenetML: `<booleanInput name="b"/>
+<repeat for="2 3" valueName="v" hide="$b"><selectFromSequence to="$v"/></repeat>
+<repeatForSequence from="2" to="3" valueName="w" hide="$b"><selectFromSequence to="$w"/></repeatForSequence>`,
         },
         {
             tag: "a repeat's valueName, of a literal list",

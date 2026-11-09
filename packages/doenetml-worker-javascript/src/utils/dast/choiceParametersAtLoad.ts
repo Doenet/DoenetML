@@ -40,7 +40,8 @@
  *
  * A choice in error becomes an `_error` in place of the choice, reported at
  * the parameter (DIAG-4), so it chooses nothing, and the error is the same
- * one, kept once, when the `_error` is made.
+ * one, kept once, when the `_error` is made. A choice that extends or copies
+ * it takes its parameters from it, and becomes the same `_error`.
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
@@ -349,13 +350,16 @@ export function checkChoiceParametersAtLoad({
             if (iteration.kind === "index") {
                 return null;
             }
-            // a repeat's `valueName`: what the repeat iterates over
+            // a repeat's `valueName`: what the repeat iterates over, not
+            // whether it is shown (`hide`)
             for (const [name, attribute] of Object.entries(
                 iteration.repeat.attributes ?? {},
             )) {
                 if (
-                    iteration.repeat.componentType !== "repeat" &&
-                    COUNT_ONLY_ATTRIBUTES.has(name)
+                    name.startsWith("_") ||
+                    ATTRIBUTES_NOT_READ.has(name.toLowerCase()) ||
+                    (iteration.repeat.componentType !== "repeat" &&
+                        COUNT_ONLY_ATTRIBUTES.has(name))
                 ) {
                     continue;
                 }
@@ -521,6 +525,35 @@ export function checkChoiceParametersAtLoad({
         });
         errorByChoice.set(choice, diagnostic);
         diagnostics.push(diagnostic);
+    }
+
+    // A choice that extends or copies a choice in error
+    // (`<selectFromSequence extend="$s"/>`) takes its parameters from it, so
+    // it is the same error, reported once: it becomes an `_error` too, as
+    // there would be nothing left for it to take them from.
+    let added = errorByChoice.size > 0;
+    while (added) {
+        added = false;
+        for (const node of nodes) {
+            if (
+                errorByChoice.has(node) ||
+                !CHOICE_PARAMETERS[typeMadeBy(node)]
+            ) {
+                continue;
+            }
+            for (const ref of Object.values(node.extending ?? {}) as any[]) {
+                const extended =
+                    typeof ref?.nodeIdx === "number"
+                        ? nodeByIdx.get(ref.nodeIdx)
+                        : undefined;
+                const diagnostic = extended && errorByChoice.get(extended);
+                if (diagnostic) {
+                    errorByChoice.set(node, diagnostic);
+                    added = true;
+                    break;
+                }
+            }
+        }
     }
 
     // Each choice in error becomes an `_error`, reported at its parameter.
