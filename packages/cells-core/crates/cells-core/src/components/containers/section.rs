@@ -21,6 +21,7 @@ component! {
         "example",
     ],
     flags: [container],
+    scored: Aggregates(weight, aggregateScores),
     props {
         // `creditAchieved`, `percentCreditAchieved` and `number` are
         // aggregates over the tree; the flags are literals the builder

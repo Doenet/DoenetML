@@ -296,6 +296,8 @@ pub(super) const fn definition(
         response: None,
         text: None,
         encloses: None,
+        needs: None,
+        scored: None,
         constrain_target: None,
         params: &[],
     }
@@ -360,6 +362,17 @@ impl ComponentDef {
     /// are ([`super::Encloses`]).
     pub(super) const fn encloses(mut self, encloses: super::Encloses) -> Self {
         self.encloses = Some(encloses);
+        self
+    }
+    /// What an author must give an element of the type for accessibility
+    /// ([`super::Needs`]).
+    pub(super) const fn needs(mut self, needs: super::Needs) -> Self {
+        self.needs = Some(needs);
+        self
+    }
+    /// What the type is to scoring ([`super::Scored`]).
+    pub(super) const fn scored(mut self, scored: super::Scored) -> Self {
+        self.scored = Some(scored);
         self
     }
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
@@ -575,7 +588,10 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// says how a component shows in text ([`super::TextKind`]).
 /// `encloses: Graph(xmin, xmax, ymin, ymax)` or `encloses:
 /// Sticky(threshold, relative)` says what it changes about where its
-/// descendants are ([`super::Encloses`]). A prop
+/// descendants are ([`super::Encloses`]). `needs: Label` says what the
+/// accessibility lint asks an author for ([`super::Needs`]). `scored:
+/// Skip`, `scored: Item(credit, weight)` or `scored: Aggregates(weight,
+/// flag)` says what the type is to scoring ([`super::Scored`]). A prop
 /// option `expr_of: expr` or `expr_when: submitted` says the prop stands
 /// for an expression ([`super::ExprOf`]).
 ///
@@ -643,6 +659,8 @@ macro_rules! component {
         $(reads_as: $ras:ident,)?
         $(roles: [$($role:ident),* $(,)?],)?
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
+        $(needs: $needs:ident,)?
+        $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
@@ -658,6 +676,8 @@ macro_rules! component {
                 $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.roles(&[$($crate::components::Role::$role),*]))?
                 $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
+                $(.needs($crate::components::Needs::$needs))?
+                $(.scored($crate::components::define::component!(@scored $sckind $(($($scprop),+))?)))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
@@ -681,6 +701,8 @@ macro_rules! component {
         $(response: $rkind:ident ($rprop:ident),)?
         $(text: $tkind:ident ($($tprop:ident),+ $(,)?),)?
         $(encloses: $ekind:ident ($($eprop:ident),+ $(,)?),)?
+        $(needs: $needs:ident,)?
+        $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -726,6 +748,8 @@ macro_rules! component {
                     $($crate::components::define::at(PROPS, stringify!($tprop))),+
                 )))?
                 $(.encloses($crate::components::define::component!(@encloses $ekind($($eprop),+))))?
+                $(.needs($crate::components::Needs::$needs))?
+                $(.scored($crate::components::define::component!(@scored $sckind $(($($scprop),+))?)))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
@@ -842,6 +866,22 @@ macro_rules! component {
                 ),
             );
         )+)*)?
+    };
+    // What a type is to scoring, each prop it names a position in `PROPS`.
+    (@scored Skip) => {
+        $crate::components::Scored::Skip
+    };
+    (@scored Item($credit:ident, $weight:ident)) => {
+        $crate::components::Scored::Item {
+            credit: $crate::components::define::at(PROPS, stringify!($credit)),
+            weight: $crate::components::define::at(PROPS, stringify!($weight)),
+        }
+    };
+    (@scored Aggregates($weight:ident, $when:ident)) => {
+        $crate::components::Scored::Aggregates {
+            weight: $crate::components::define::at(PROPS, stringify!($weight)),
+            when: $crate::components::define::at(PROPS, stringify!($when)),
+        }
     };
     // What a type encloses, each prop it names a position in `PROPS`.
     (@encloses Graph($xmin:ident, $xmax:ident, $ymin:ident, $ymax:ident)) => {

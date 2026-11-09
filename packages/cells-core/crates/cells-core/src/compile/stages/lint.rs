@@ -1,13 +1,13 @@
 //! Lint: the diagnostics that are facts about the DAST alone, found by
 //! one walk over its elements before anything is compiled. Today the
-//! accessibility rules: a `<graph>` needs a `<shortDescription>` child or
-//! `decorative`; an input needs one, or a `<label>` child, a `label`
-//! attribute or `labelIsName`. Lint reads attributes with
+//! accessibility rules, by what each type needs ([`Needs`]): a `<graph>`
+//! needs a `<shortDescription>` child or `decorative`; an input needs one,
+//! or a `<label>` child, a `label` attribute or `labelIsName`. Lint reads attributes with
 //! [`Dast::attr_peek`], which records no read.
 
 use std::collections::BTreeMap;
 
-use crate::components::ComponentType;
+use crate::components::{ComponentType, Needs};
 use crate::dast::{Dast, NodeId, NodeKind};
 use crate::diagnostics::Diagnostic;
 
@@ -27,17 +27,12 @@ fn accessibility(d: &Dast, el: NodeId, component_type: ComponentType) -> Option<
             .any(|&n| d.kind(n) == NodeKind::Element && d.str(n) == tag)
     };
     let described = has_child("shortDescription");
-    let (code, message) = match component_type {
-        ComponentType::Graph if !described && d.attr_peek(el, "decorative").is_none() => (
+    let (code, message) = match component_type.def().needs {
+        Some(Needs::Description) if !described && d.attr_peek(el, "decorative").is_none() => (
             "doenet-a0001",
-            "For accessibility, `<graph>` must either have a short description or be specified as decorative.",
+            "For accessibility, `<{tag}>` must either have a short description or be specified as decorative.",
         ),
-        ComponentType::MathInput
-        | ComponentType::NumberInput
-        | ComponentType::TextInput
-        | ComponentType::BooleanInput
-        | ComponentType::ChoiceInput
-        | ComponentType::Slider
+        Some(Needs::Label)
             if !described
                 && !has_child("label")
                 && d.attr_peek(el, "label").is_none()

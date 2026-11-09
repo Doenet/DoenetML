@@ -15,6 +15,7 @@ component! {
     reads_as: Text,
     response: Text(value),
     text: Text(value),
+    needs: Label,
     default_prop: value,
     props {
         value: children { attribute: prefill, bind: bindValueTo, text, interactive, rendered },

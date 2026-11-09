@@ -10,6 +10,7 @@ component! {
     /// most any award gives. `numSubmissions` counts submits.
     tags: ["answer"],
     flags: [copyable, symbolic],
+    scored: Item(credit, weight),
     default_prop: credit,
     props {
         response: attr(NO_VALUE) { ref_prop: expr, read_by_action, expr_when: submitted },

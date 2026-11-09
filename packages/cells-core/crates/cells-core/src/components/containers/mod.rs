@@ -38,6 +38,7 @@ pub mod graph {
         tags: ["graph"],
         flags: [container],
         encloses: Graph(xmin, xmax, ymin, ymax),
+        needs: Description,
         props {
             // Pan and zoom request all four.
             xmin: attr(-10.0) { interactive, rendered },
@@ -118,6 +119,7 @@ pub(crate) mod setup {
         tags: ["setup"],
         flags: [container],
         renders: Never,
+        scored: Skip,
         planner: Props,
     }
 }

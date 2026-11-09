@@ -29,12 +29,7 @@ use super::*;
 /// `MAX_VEC_IN` inputs.
 use crate::limits::SCORE_CHUNK as CHUNK;
 
-use crate::components::AggOp;
-use crate::components::prop::{answer, document, section};
-use section::{AGGREGATE, CREDIT, NUMBER, PERCENT_CREDIT, WEIGHT};
-
-// The document's credit props sit where a section's do.
-const _: () = assert!(document::CREDIT == CREDIT && document::PERCENT_CREDIT == PERCENT_CREDIT);
+use crate::components::{AggOp, Collection, Scored};
 
 /// Expand, aggregates: a collect's gathered children and count, credit and
 /// section numbers, materialized from the tree the build stamped.
@@ -47,7 +42,9 @@ impl<'c> Builder<'c> {
         let root = self.root;
         self.set_credit(root);
         for c in CompIdx::below(self.components.len()) {
-            if self.components.component_type[c.index()] == ComponentType::Section {
+            if let Some(Scored::Aggregates { .. }) =
+                self.components.component_type[c.index()].scored()
+            {
                 if self.aggregates(c) {
                     self.set_credit(c);
                 } else {
@@ -59,9 +56,23 @@ impl<'c> Builder<'c> {
         self.number_sections(root, None, &mut counter);
     }
 
+    /// The slots of `c`'s credit and its percentage: the props its type
+    /// declares as those aggregates over its scored items.
+    fn credit_slots(&self, c: CompIdx) -> (SlotId, SlotId) {
+        let ty = self.components.component_type[c.index()];
+        let at = |op| {
+            ty.aggregate_prop(op, Collection::ScoredItems)
+                .expect("credit aggregated over scored items")
+        };
+        (
+            self.slot(c, at(AggOp::Credit)),
+            self.slot(c, at(AggOp::PercentCredit)),
+        )
+    }
+
     /// `creditAchieved` of the document or an aggregating section.
     fn set_credit(&mut self, c: CompIdx) {
-        let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
+        let (s, p) = self.credit_slots(c);
         let mut items = Vec::new();
         self.scored_items(c, None, &mut items);
         match self.mean_credit(c, items) {
@@ -84,13 +95,20 @@ impl<'c> Builder<'c> {
 
     /// Set a credit that cannot change, and its percentage, as constants.
     fn set_constant_credit(&mut self, c: CompIdx, credit: f64) {
-        let (s, p) = (self.slot(c, CREDIT), self.slot(c, PERCENT_CREDIT));
+        let (s, p) = self.credit_slots(c);
         self.fill_aggregate(s, AggOp::Credit, BuiltSource::Const(credit));
         self.fill_aggregate(p, AggOp::PercentCredit, BuiltSource::Const(100.0 * credit));
     }
 
+    /// Whether `section` aggregates the credit of what it holds: its flag
+    /// ([`Scored::Aggregates`]) is a constant, not zero.
     fn aggregates(&self, section: CompIdx) -> bool {
-        matches!(self.sources[self.slot(section, AGGREGATE).index()], BuiltSource::Const(v) if v != 0.0)
+        let Some(Scored::Aggregates { when, .. }) =
+            self.components.component_type[section.index()].scored()
+        else {
+            return false;
+        };
+        matches!(self.sources[self.slot(section, when).index()], BuiltSource::Const(v) if v != 0.0)
     }
 
     fn component_children(&self, c: CompIdx) -> Vec<CompIdx> {
@@ -154,17 +172,17 @@ impl<'c> Builder<'c> {
     fn scored_items(&mut self, c: CompIdx, gate: Option<SlotId>, out: &mut Vec<(SlotId, SlotId)>) {
         for k in self.component_children(c) {
             let scope = self.components.scope[k.index()];
-            let (weight, credit) = match self.components.component_type[k.index()] {
-                ComponentType::Setup => continue,
-                ComponentType::Answer => {
+            let (weight, credit) = match self.components.component_type[k.index()].scored() {
+                Some(Scored::Skip) => continue,
+                Some(Scored::Item { credit, weight }) => {
                     // A blank response checks as NaN; it is no credit.
-                    let checked = self.slot(k, answer::CREDIT);
+                    let checked = self.slot(k, credit);
                     let zero = self.const_slot(0.0);
                     let credit = self.op_slot(OpSpec::NanTo, &[checked, zero], scope);
-                    (self.slot(k, answer::WEIGHT), credit)
+                    (self.slot(k, weight), credit)
                 }
-                ComponentType::Section if self.aggregates(k) => {
-                    (self.slot(k, WEIGHT), self.slot(k, CREDIT))
+                Some(Scored::Aggregates { weight, .. }) if self.aggregates(k) => {
+                    (self.slot(k, weight), self.credit_slots(k).0)
                 }
                 _ => {
                     let g = self.gate_through(gate, k);
@@ -215,8 +233,12 @@ impl<'c> Builder<'c> {
                     self.number_through_repeat(k, gate, counter)
                 }
                 Some(StructureKind::Transparent { .. }) => self.number_sections(k, gate, counter),
-                None if ty == ComponentType::Section => {
-                    let s = self.slot(k, NUMBER);
+                None if ty
+                    .aggregate_prop(AggOp::Count, Collection::SectionsThrough)
+                    .is_some() =>
+                {
+                    let number = ty.aggregate_prop(AggOp::Count, Collection::SectionsThrough);
+                    let s = self.slot(k, number.expect("a numbered section"));
                     let number = match counter.before {
                         None => self.counted(s, counter.known + 1.0),
                         Some(b) => {

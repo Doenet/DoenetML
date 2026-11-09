@@ -16,7 +16,7 @@
 //! (ADR 0028), listed as such.
 
 use super::*;
-use crate::components::prop::{answer, section};
+use crate::components::{AggOp, Collection, Scored};
 use crate::limits::SCORE_CHUNK as CHUNK;
 
 /// Sections counted so far among one component's flattened children: a
@@ -49,7 +49,7 @@ impl<'c> Stamp<'c> {
         for i in 0..self.instances.len() {
             let (t, e) = self.instances[i];
             let c = Comp::Elem(t, e);
-            if self.component_type(c) == ComponentType::Section {
+            if let Some(Scored::Aggregates { .. }) = self.component_type(c).scored() {
                 if self.aggregates_scores(c) {
                     self.credit(c);
                 } else {
@@ -64,9 +64,26 @@ impl<'c> Stamp<'c> {
     /// constant, not zero. A copy's is an alias, so it does not.
     fn aggregates_scores(&self, c: Comp) -> bool {
         let Comp::Elem(t, e) = c else { return false };
+        let Some(Scored::Aggregates { when, .. }) = self.component_type(c).scored() else {
+            return false;
+        };
         matches!(
-            self.c.plans.templates[t.index()].plan(e).props.get(section::AGGREGATE),
+            self.c.plans.templates[t.index()].plan(e).props.get(when),
             Some(Source::Leaf(Leaf::Const(v))) if *v != 0.0
+        )
+    }
+
+    /// The nodes of `c`'s credit and its percentage: the props its type
+    /// declares as those aggregates over its scored items.
+    fn credit_slots(&self, c: Comp) -> (GraphNode, GraphNode) {
+        let ty = self.component_type(c);
+        let at = |op| {
+            ty.aggregate_prop(op, Collection::ScoredItems)
+                .expect("credit aggregated over scored items")
+        };
+        (
+            self.slot(c, at(AggOp::Credit)),
+            self.slot(c, at(AggOp::PercentCredit)),
         )
     }
 
@@ -75,10 +92,7 @@ impl<'c> Stamp<'c> {
     /// 100; with nothing to score, full credit. With a scored item in a
     /// repeat below `c`, both are counted values.
     fn credit(&mut self, c: Comp) {
-        let (s, p) = (
-            self.slot(c, section::CREDIT),
-            self.slot(c, section::PERCENT_CREDIT),
-        );
+        let (s, p) = self.credit_slots(c);
         let mut items = Vec::new();
         self.scored_items(c, None, &mut items);
         let at = self.repeats_around(self.template_of(c));
@@ -104,10 +118,7 @@ impl<'c> Stamp<'c> {
 
     /// A credit that cannot change, and its percentage, as constants.
     fn constant_credit(&mut self, c: Comp, credit: f64) {
-        let (s, p) = (
-            self.slot(c, section::CREDIT),
-            self.slot(c, section::PERCENT_CREDIT),
-        );
+        let (s, p) = self.credit_slots(c);
         self.set(s, Def::Const(Some(credit)));
         self.set(p, Def::Const(Some(100.0 * credit)));
     }
@@ -169,17 +180,17 @@ impl<'c> Stamp<'c> {
     ) {
         for k in self.children(c) {
             let t = self.template_of(k);
-            let (weight, credit) = match self.component_type(k) {
-                ComponentType::Setup => continue,
-                ComponentType::Answer => {
+            let (weight, credit) = match self.component_type(k).scored() {
+                Some(Scored::Skip) => continue,
+                Some(Scored::Item { credit, weight }) => {
                     // A blank response checks as NaN; it is no credit.
-                    let checked = self.slot(k, answer::CREDIT);
+                    let checked = self.slot(k, credit);
                     let zero = self.constant(0.0);
                     let credit = self.op(t, OpSpec::NanTo, vec![checked, zero]);
-                    (self.slot(k, answer::WEIGHT), credit)
+                    (self.slot(k, weight), credit)
                 }
-                ComponentType::Section if self.aggregates_scores(k) => {
-                    (self.slot(k, section::WEIGHT), self.slot(k, section::CREDIT))
+                Some(Scored::Aggregates { weight, .. }) if self.aggregates_scores(k) => {
+                    (self.slot(k, weight), self.credit_slots(k).0)
                 }
                 _ => {
                     let g = self.gate_through(gate, k);
@@ -236,8 +247,12 @@ impl<'c> Stamp<'c> {
                     }
                     self.numbers(k, gate, counter)
                 }
-                None if ty == ComponentType::Section => {
-                    let s = self.slot(k, section::NUMBER);
+                None if ty
+                    .aggregate_prop(AggOp::Count, Collection::SectionsThrough)
+                    .is_some() =>
+                {
+                    let number = ty.aggregate_prop(AggOp::Count, Collection::SectionsThrough);
+                    let s = self.slot(k, number.expect("a numbered section"));
                     if counter.follows {
                         self.g.counted.push(s);
                     } else if counter.varies {

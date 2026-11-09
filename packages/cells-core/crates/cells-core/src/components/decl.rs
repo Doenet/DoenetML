@@ -58,6 +58,13 @@ pub struct ComponentDef {
     /// What a component of the type changes about where its descendants
     /// are: inside a graph, or in a sticky group.
     pub encloses: Option<Encloses>,
+    /// What an author must give an element of the type for accessibility,
+    /// which the lint asks for.
+    pub needs: Option<Needs>,
+    /// What the type is to scoring: skipped, a scored item, or an
+    /// aggregate of the items inside it. `None` for a container scoring
+    /// looks through.
+    pub scored: Option<Scored>,
     /// How a point is constrained to a component of the type: a type without
     /// one is no constraint target.
     pub constrain_target: Option<ConstrainTarget>,
@@ -340,6 +347,44 @@ pub enum Encloses {
         threshold: usize,
         /// 1 when `threshold` is measured in the graph's scales.
         relative: usize,
+    },
+}
+
+/// What an author must give an element for accessibility, which the lint
+/// asks for (ADR 0038).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Needs {
+    /// A `<shortDescription>` child, or `decorative` (a graph's).
+    Description,
+    /// A `<shortDescription>` child, a `<label>` child, a `label`
+    /// attribute or `labelIsName` (an input's).
+    Label,
+}
+
+/// What a type is to scoring (ADR 0038): the credit walks read this, not
+/// the type. An aggregate's own credit, percentage and number are the props
+/// it declares as aggregates ([`ComponentType::aggregate_prop`]). Each
+/// holds positions in the type's table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Scored {
+    /// Never looked into for scored items (`<setup>`).
+    Skip,
+    /// A scored item (an answer): its `credit`, no credit while NaN,
+    /// weighted by `weight`.
+    Item {
+        /// The item's credit.
+        credit: usize,
+        /// The item's weight.
+        weight: usize,
+    },
+    /// Holds the credit of the scored items inside it (a section): a scored
+    /// item itself, its credit weighted by `weight`, when the literal flag
+    /// `when` is nonzero, and else looked through with a credit of 0.
+    Aggregates {
+        /// Its weight as an item.
+        weight: usize,
+        /// The literal flag that says it aggregates.
+        when: usize,
     },
 }
 

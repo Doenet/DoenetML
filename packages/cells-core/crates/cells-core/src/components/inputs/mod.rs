@@ -22,6 +22,7 @@ pub(crate) mod number_input {
         flags: [copyable],
         reads_as: Number,
         text: Number(value),
+        needs: Label,
         default_prop: value,
         props {
             value: attr(NO_VALUE) { interactive, rendered },
@@ -41,6 +42,7 @@ pub mod boolean_input {
         flags: [copyable],
         reads_as: Boolean,
         response: Boolean(value),
+        needs: Label,
         default_prop: value,
         props {
             value: attr(0.0) { bind: bindValueTo, interactive, rendered },
@@ -91,6 +93,7 @@ pub(crate) mod slider {
         flags: [copyable],
         reads_as: Number,
         text: Number(value),
+        needs: Label,
         default_prop: value,
         props {
             from: attr(0.0) { rendered },

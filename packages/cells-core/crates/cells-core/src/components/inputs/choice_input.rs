@@ -15,6 +15,7 @@ component! {
     tags: ["choiceInput"],
     flags: [copyable],
     response: Index(selectedIndex),
+    needs: Label,
     default_prop: selectedIndex,
     props {
         preliminaryIndex: attr(0.0) { attribute: selectedIndex },

@@ -17,6 +17,7 @@ component! {
     roles: [ImplicitInput],
     response: Math(expr),
     text: Math(expr, value),
+    needs: Label,
     default_prop: value,
     props {
         // A mathInput's value is bound by a child reference or `bindValueTo`,

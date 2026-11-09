@@ -669,6 +669,20 @@ impl ComponentType {
         matches!(self.encloses(), Some(Encloses::Sticky { .. }))
     }
 
+    /// What the type is to scoring, if anything ([`Scored`]).
+    pub fn scored(self) -> Option<Scored> {
+        self.def().scored
+    }
+
+    /// The position of the prop the type declares as `op` over `over`
+    /// ([`PropFrom::Aggregate`]): a section's credit is its `Credit` over
+    /// its `ScoredItems`, its number its `Count` over `SectionsThrough`.
+    pub fn aggregate_prop(self, op: AggOp, over: Collection) -> Option<usize> {
+        self.prop_defs()
+            .iter()
+            .position(|d| d.from == PropFrom::Aggregate(Aggregate { op, over }))
+    }
+
     /// The 0/1 prop a gate holds its children by ([`StructureKind::Gate`]).
     pub fn gate_prop(self) -> Option<usize> {
         match self.structure_kind() {
@@ -885,10 +899,9 @@ mod tests {
     /// Each line is a match the core makes on a type, which its definition
     /// should say instead.
     const NAMING_TYPES: &[(&str, usize)] = &[
-        ("build/expand/aggregate.rs", 15),
+        ("build/expand/aggregate.rs", 1),
         ("build/expand/choice.rs", 2),
         ("build/expand/mod.rs", 10),
-        ("compile/graph/aggregate.rs", 14),
         ("compile/graph/eval.rs", 4),
         ("compile/graph/expand.rs", 7),
         ("compile/graph/mod.rs", 5),
@@ -898,7 +911,6 @@ mod tests {
         ("compile/read/answer.rs", 3),
         ("compile/read/maths.rs", 1),
         ("compile/read/refs.rs", 1),
-        ("compile/stages/lint.rs", 7),
         ("compile/stages/outline/answer.rs", 2),
         ("compile/stages/outline/choice.rs", 1),
         ("compile/stages/outline/copies.rs", 2),
