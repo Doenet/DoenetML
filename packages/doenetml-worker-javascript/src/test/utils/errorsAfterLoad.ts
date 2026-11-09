@@ -37,8 +37,21 @@ export function takeErrorsReportedAfterLoad(
  * cores. An error is decided at load, from the DoenetML alone (DIAG-7, D38),
  * so one reported after it is a bug: in production it is a warning, and its
  * component is missing.
+ *
+ * Each core's pending state saves are cancelled first. A test never
+ * terminates its cores, and an unterminated core arms a 60-second throttle
+ * timer on its first save (`StatePersistence.saveChangesToDatabase`) whose
+ * callback holds the whole core. Forgetting the core here is then not enough:
+ * every core outlived its test by a minute, and a file that loads a document
+ * once per variant, as `selectsamplerandomnumbers.test.ts` does (about 1,300
+ * cores in a minute), held most of them at once and ran a Vitest worker out
+ * of memory (#2490). `dispose` is what `Core.terminate` calls once its final
+ * save is made; the test is over, so no save is left to make.
  */
 export function checkNoErrorsAfterLoad() {
+    for (const core of coresOfThisTest) {
+        core.core?.statePersistence.dispose();
+    }
     const errors = takeErrorsReportedAfterLoad();
     coresOfThisTest.length = 0;
     if (errors.length > 0) {

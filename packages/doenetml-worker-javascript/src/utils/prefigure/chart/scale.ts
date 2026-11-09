@@ -109,7 +109,16 @@ export function niceTickStep(
     }
 
     const rough = span / intervals;
-    const magnitude = 10 ** Math.floor(Math.log10(rough));
+    // The power of ten is read off the decimal exponent and parsed, not
+    // computed. `10 ** -5` is not exactly `1e-5` on every engine — Node 22
+    // answers `9.999999999999999e-6`, Node 24 answers `1e-5` — and a rough step
+    // of `0.00005` then normalizes to `5.000000000000001` on one and `5` on the
+    // other, which lands on a different rung of the ladder below. Parsing
+    // `1e-5` gives the nearest double on every engine. `Math.log10` has the
+    // same problem at exact powers, so the exponent comes from the decimal
+    // representation as well.
+    const exponent = Number(rough.toExponential().split("e")[1]);
+    const magnitude = Number(`1e${exponent}`);
     // A subnormal span underflows the power of ten to 0, which would make the
     // step 0 and every tick `NaN`. There is no representable round step below
     // the smallest positive double, so use the value itself.
