@@ -121,8 +121,10 @@ export function niceTickStep(
     const magnitude = Number(`1e${exponent}`);
     // A subnormal span underflows the power of ten to 0, which would make the
     // step 0 and every tick `NaN`. There is no representable round step below
-    // the smallest positive double, so use the value itself.
-    if (!(magnitude > 0)) {
+    // the smallest positive double, so use the value itself. The rough step
+    // can underflow to 0 as well (`Number.MIN_VALUE / 5`), and `0` writes as
+    // `0e+0`, which would read as a power of ten of 1.
+    if (!(rough > 0 && magnitude > 0)) {
         return Math.max(minStep, rough) || Number.MIN_VALUE;
     }
     const normalized = rough / magnitude;

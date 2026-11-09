@@ -26,8 +26,13 @@ describe("chart scale @group4", () => {
 
     it("keeps a usable step for a subnormal span", () => {
         // Below the smallest power of ten a double holds, there is no round
-        // step, and the step is the rough one rather than 0.
-        const step = niceTickStep(Number.MIN_VALUE, 0);
-        expect(step).toBeGreaterThan(0);
+        // step, and the step is the rough one rather than 0. For the smallest
+        // spans the rough step itself underflows to 0, whose exponential
+        // form `0e+0` must not be read as a power of ten of 1: the step is
+        // then the smallest double, not a step of 1 that flattens the axis.
+        for (const span of [Number.MIN_VALUE, 2 * Number.MIN_VALUE]) {
+            expect(niceTickStep(span, 0), `span ${span}`).eq(Number.MIN_VALUE);
+        }
+        expect(niceTickStep(5 * Number.MIN_VALUE, 0)).eq(Number.MIN_VALUE);
     });
 });
