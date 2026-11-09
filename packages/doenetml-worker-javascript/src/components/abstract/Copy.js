@@ -7992,8 +7992,9 @@ async function typeChangeStatus({
 
     if (sourceClass?.listEntryComponentType !== undefined) {
         // A list stands for its entries, as a composite for its content.
-        // How many a list the author writes (`<mathList>`) holds is fixed
-        // by what they wrote; any other list's was decided when the
+        // How many a list the author writes (`<mathList>`) holds is decided
+        // by what they wrote, or by a value (`entryCountByValue`, below);
+        // any other list's was decided when the
         // document loaded (`typeChangeAtLoad`), and only the value of its
         // one entry is checked here.
         if (replacementIsOfType(sourceType, writtenType)) {
