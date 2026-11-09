@@ -33,7 +33,11 @@
  * cell block or group of the spreadsheet is written to.
  * An unlinked copy (`<point copy="$Q"/>`) is its source's DoenetML pasted
  * where it sits, so a write to it reaches its source's descendants, fixed
- * as they are written there and as the copy is, not as its source is.
+ * as they are written there and as the copy is, not as its source is, and
+ * not its source. A copy of a property or an entry (`copy="$Q.x"`) pastes
+ * nothing. A reference to what a copy or an extend makes (`$D` of `<math
+ * name="D" copy="$m"/>`) names the index it is made with, which stands
+ * for the `_copy` here.
  * `fixLocation` stops only a write to a location (`isLocation`), as
  * `EssentialValueWriter` does, so it stops a write only at a component
  * that has one (a point, a line): a `<numberList fixLocation>` an input is
@@ -173,7 +177,10 @@ function writtenAsTrue(attribute: any): boolean {
     if (attribute.type === "literal") {
         return attribute.value === true;
     }
-    const component = attribute.component;
+    // on a `_copy` (`<point copy="$Q" fixed/>`), what is written is kept
+    // unresolved for the component it makes
+    const component =
+        attribute.type === "unresolved" ? attribute : attribute.component;
     if (!component || component.extending) {
         return false;
     }
@@ -203,6 +210,8 @@ function ownReferencesIn(node: any, found: number[] = []): number[] {
             // a record of the variant components under it, copies of its
             // descendants, which are visited on their own
             key === "variants" ||
+            // an unlinked copy doesn't write to its source
+            (key === "extending" && isUnlinkedCopy(node)) ||
             KEYS_NOT_WRITTEN_THROUGH.has(key)
         ) {
             continue;
@@ -333,8 +342,73 @@ export function buildReaderWritableIndex(
             own.fixed ||
             (own.fixLocation &&
                 (!componentInfoObjects ||
-                    hasLocation(node.componentType, componentInfoObjects)))
+                    hasLocation(typeMadeBy(node), componentInfoObjects)))
         );
+    }
+
+    /** What the unlinked copy `node` copies whole, if it is one. */
+    function sourceOf(node: any) {
+        const sourceIdx = isUnlinkedCopy(node)
+            ? sourceIdxOfCopy(node)
+            : undefined;
+        return sourceIdx === undefined ? undefined : nodeByIdx.get(sourceIdx);
+    }
+
+    /**
+     * What the unlinked copy `node` pastes, where it `inherited` `fixed`
+     * and `fixLocation`: its source, and the source of that when it is an
+     * unlinked copy too (`sources`, in turn), and the `fixed` and
+     * `fixLocation` of what it makes (`context`): its own attribute, else
+     * the one written on the first source in turn that writes one, else
+     * the inherited one. Undefined if `node` pastes nothing.
+     */
+    function pastedBy(
+        node: any,
+        inherited: { fixed: boolean; fixLocation: boolean },
+    ) {
+        const sources: any[] = [];
+        for (
+            let source = sourceOf(node);
+            source && source !== node && !sources.includes(source);
+            source = sourceOf(source)
+        ) {
+            sources.push(source);
+        }
+        if (sources.length === 0) {
+            return undefined;
+        }
+        let context = inherited;
+        for (const source of [...sources].reverse()) {
+            context = ownContext(source, context);
+        }
+        context = ownContext(node, context);
+        return {
+            sources,
+            context,
+            stops: stopsWrite(sources[sources.length - 1], context),
+        };
+    }
+
+    /**
+     * Queue what a write to an unlinked copy reaches (`pastedBy`): the own
+     * references and descendants of each source it pastes, as pasted where
+     * the copy sits, fixed as `context` says. No source is written to.
+     */
+    function paste({
+        sources,
+        context,
+    }: {
+        sources: any[];
+        context: { fixed: boolean; fixLocation: boolean };
+    }) {
+        for (const source of sources) {
+            for (const idx of ownReferencesIn(source)) {
+                queue.push({ item: idx, stopped: false });
+            }
+            for (const under of componentsUnder(source)) {
+                queue.push({ item: under, stopped: false, pasted: context });
+            }
+        }
     }
 
     // `fixed` and `fixLocation` are each inherited from where a component
@@ -352,6 +426,12 @@ export function buildReaderWritableIndex(
         const isGraph = node.componentType === "graph";
         if (typeof node.componentIdx === "number" && node.componentIdx >= 0) {
             nodeByIdx.set(node.componentIdx, node);
+        }
+        // a reference to what `copy`, `extend` (`<point extend="$Q"
+        // name="E"/>`) makes names the index it is made with
+        const createdIdx = createdIdxOf(node);
+        if (createdIdx !== undefined) {
+            nodeByIdx.set(createdIdx, node);
         }
         if (stopsWrite(node, own)) {
             fixedNodes.add(node);
@@ -389,7 +469,9 @@ export function buildReaderWritableIndex(
             if (typeof node.componentIdx === "number") {
                 seeds.push(node.componentIdx);
             }
-            referencesIn(node.extending, seeds);
+            if (!isUnlinkedCopy(node)) {
+                referencesIn(node.extending, seeds);
+            }
             for (const attribute of Object.values(
                 node.attributes ?? {},
             ) as any[]) {
@@ -459,10 +541,18 @@ export function buildReaderWritableIndex(
             for (const under of componentsUnder(node)) {
                 queue.push({ item: under, stopped: false, pasted: own });
             }
+            // an unlinked copy in what is pasted is pasted there too
+            const pastedHere = pastedBy(node, pasted);
+            if (pastedHere && !pastedHere.stops) {
+                paste(pastedHere);
+            }
             continue;
         }
+        const pastedHere = isUnlinkedCopy(node)
+            ? pastedBy(node, inheritedByCopy.get(node)!)
+            : undefined;
         const stopped =
-            fixedNodes.has(node) ||
+            (pastedHere ? pastedHere.stops : fixedNodes.has(node)) ||
             (stoppedAbove && !unfixedOwnNodes.has(node));
         if (reached.has(node) || (stopped && reachedStopped.has(node))) {
             continue;
@@ -475,42 +565,17 @@ export function buildReaderWritableIndex(
             ) {
                 writable.add(node.componentIdx);
             }
+            const createdIdx = createdIdxOf(node);
+            if (createdIdx !== undefined) {
+                writable.add(createdIdx);
+            }
             // what is made from it later is written to as it is
             node.readerWritable = true;
             for (const idx of ownReferencesIn(node)) {
                 queue.push({ item: idx, stopped: false });
             }
-            const source = isUnlinkedCopy(node)
-                ? nodeByIdx.get(sourceIdxOfCopy(node))
-                : undefined;
-            if (source) {
-                // the copy takes the attribute written on its source as its
-                // own, unless it writes one itself
-                const inherited = inheritedByCopy.get(node)!;
-                const ofCopy = {
-                    fixed: node.attributes?.fixed
-                        ? writtenAsTrue(node.attributes.fixed)
-                        : source.attributes?.fixed
-                          ? writtenAsTrue(source.attributes.fixed)
-                          : inherited.fixed,
-                    fixLocation: node.attributes?.fixLocation
-                        ? writtenAsTrue(node.attributes.fixLocation)
-                        : source.attributes?.fixLocation
-                          ? writtenAsTrue(source.attributes.fixLocation)
-                          : inherited.fixLocation,
-                };
-                if (!stopsWrite(source, ofCopy)) {
-                    for (const idx of ownReferencesIn(source)) {
-                        queue.push({ item: idx, stopped: false });
-                    }
-                    for (const under of componentsUnder(source)) {
-                        queue.push({
-                            item: under,
-                            stopped: false,
-                            pasted: ofCopy,
-                        });
-                    }
-                }
+            if (pastedHere) {
+                paste(pastedHere);
             }
         }
         if (stopped && !passedBySpreadsheet.has(node)) {
@@ -549,10 +614,31 @@ function isUnlinkedCopy(node: any): boolean {
     );
 }
 
-/** The index of the component the unlinked copy `node` copies. */
-function sourceIdxOfCopy(node: any): number {
+/**
+ * The index of the component the unlinked copy `node` copies whole, or
+ * undefined when it copies a property of it (`copy="$Q.x"`), a value with
+ * nothing of its source's DoenetML in it.
+ */
+function sourceIdxOfCopy(node: any): number | undefined {
     const reference = Object.values(node.extending ?? {})[0] as any;
-    return reference?.nodeIdx;
+    return reference?.unresolvedPath == null ? reference?.nodeIdx : undefined;
+}
+
+/**
+ * The index of the component a `_copy` (a reference, `copy` or `extend`)
+ * is made with, which a reference to it by name (`$E`) names, if it has one.
+ */
+function createdIdxOf(node: any): number | undefined {
+    const value = node.attributes?._createComponentIdx?.primitive?.value;
+    return typeof value === "number" ? value : undefined;
+}
+
+/** The type of the component `node` makes: what a `_copy` creates. */
+function typeMadeBy(node: any): string {
+    return (
+        node.attributes?._createComponentOfType?.primitive?.value ??
+        node.componentType
+    );
 }
 
 /**

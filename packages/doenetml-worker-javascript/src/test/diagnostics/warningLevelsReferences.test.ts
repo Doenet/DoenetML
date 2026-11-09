@@ -491,6 +491,93 @@ describe("What a reader writes to can change", () => {
 <binCounts bins="0 $a 2">1</binCounts>`,
         ],
         [
+            "a number a math references, an unlinked copy of which an input is bound to",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<math name="m">$a+1</math><math name="D" copy="$m"/>
+<mathInput bindValueTo="$D"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a math references, a copy of a copy of which an input is bound to",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<math name="m" fixed>$a+1</math><math name="E" copy="$m"/><math name="D" copy="$E" fixed="false"/>
+<mathInput bindValueTo="$D"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a math references, an extend of which an action targets",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<math name="m">$a+1</math><math name="E" extend="$m"/>
+<updateValue target="$E" newValue="7"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a point references, a fixed copy of which an input is bound to",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<point name="Q">($a,1)</point><point name="D" copy="$Q" fixed/>
+<mathInput bindValueTo="$D.x"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a point references, a copy of a property of which an input is bound to",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<point name="Q">($a,1)</point><math name="D" copy="$Q.x"/>
+<mathInput bindValueTo="$D"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point, a fixed copy of which is in a graph",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<point name="Q">($a,1)</point><graph><point copy="$Q" fixed/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point, an extend of which with fixLocation is in a graph",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<point name="Q">($a,1)</point><graph><point extend="$Q" fixLocation/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "the point an unlinked copy of a point in a fixed graph makes, dragged in a graph",
+            "doenet-w0141",
+            "info",
+            `<graph fixed><point name="Q">(5,1)</point></graph>
+<graph><point name="D" copy="$Q"/></graph>
+<binCounts bins="0 $D.x 2">1</binCounts>`,
+        ],
+        [
+            "a point an unlinked copy of which is dragged in a graph",
+            "doenet-w0141",
+            "warning",
+            `<point name="Q">(5,1)</point>
+<graph><point copy="$Q"/></graph>
+<binCounts bins="0 $Q.x 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in a fixed graph, copied in a group an unlinked copy of which is dragged",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<graph fixed><point name="Q">($a,1)</point></graph>
+<group name="g" hide><point copy="$Q"/></group>
+<graph><group copy="$g"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
             "a number in a point a reader drags in a graph",
             "doenet-w0141",
             "info",
