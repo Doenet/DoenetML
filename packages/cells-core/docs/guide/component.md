@@ -270,8 +270,8 @@ and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
 
 The baseline: 5 items for every type, 3 more with a planner, 20
 declarations by what the type is, and 14 beyond a typical component that
-sit in the same block, which an author reads past to find the 28 that
-concern them.
+sit in the same block, which an author reads past. ADR 0039 (proposed)
+shrinks the last to 5.
 
 ## Add an operator
 

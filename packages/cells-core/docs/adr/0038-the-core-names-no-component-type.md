@@ -1,7 +1,9 @@
 # The core names no component type, and components are a crate of their own
 
-Status: proposed 2026-11-09. Steps 1 to 7 of the Migration are done;
-step 9 has an open question (see step 7). Builds on
+Status: proposed 2026-11-09. Steps 1 to 7 of the Migration are done.
+ADR 0039 (proposed) defers steps 8 and 9 and answers step 7's open
+question: the machinery stays in the engine and reaches the types it makes
+through contracts (`docs/machinery-context.md`). Builds on
 ADR 0016 (components are defined without knowing the core), whose
 converse this is; on ADR 0034 (a planner is a function of its record),
 which made `compile::api` the one door a planner goes through; and on
