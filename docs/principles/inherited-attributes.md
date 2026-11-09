@@ -196,7 +196,7 @@ Evidence:
 Three problems in this area are listed in D7:
 - A linked reference with its own `fixed="false"` *reports* false but cannot be dragged.
 - A write to a reference's `fixed` is forwarded to the source. A reader control on a copy can
-  therefore unfix a point inside `<graph fixed>` (#2197, still reproduces).
+  therefore unfix a point inside `<graph fixed>` (#2197; **[probe]** at `894d3ea` the symptom is gone: the write is refused outright. What it should do is #2235).
 - `<math extend="$m" fixed="false"/>` of a fixed `m` lets a bound input **change `m`**. This
   was **[probe]**d twice, and is a bug. For points and inputs the same write is refused.
 
