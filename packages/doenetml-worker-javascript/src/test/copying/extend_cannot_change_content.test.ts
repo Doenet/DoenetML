@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { takeErrorsReportedAfterLoad } from "../utils/errorsAfterLoad";
 import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -460,7 +459,8 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
         });
         await check("a1, a2");
 
-        // `$r[$n]` is reported for each index it has been expanded with
+        // Decided when the document loaded, from what is written (DIAG-7),
+        // so `$r[$n]` is reported once, as written, whatever index it has
         expect(
             getDiagnosticsByType(core).errors.map((error) => [
                 error.code,
@@ -469,18 +469,8 @@ ${SOURCES.select.doenetML.replace('name="x"', 'name="s"')}
         ).eqls([
             ["doenet-e0056", "$x"],
             ["doenet-e0057", "$x"],
-            ["doenet-e0056", "$r[2]"],
-            ["doenet-e0056", "$r[1]"],
+            ["doenet-e0056", "$r[$n]"],
         ]);
-        // A known violation of DIAG-7: the error for `$r[1]` appears only
-        // after `n` changes, which the end-of-load assertion reports. It is
-        // to be decided at load, from what is written (#2463).
-        expect(
-            takeErrorsReportedAfterLoad().map((error) => [
-                error.code,
-                error.args?.source,
-            ]),
-        ).eqls([["doenet-e0056", "$r[1]"]]);
     });
 
     it("an attribute given by a reference on an extend is reported once, with nothing about its value", async () => {

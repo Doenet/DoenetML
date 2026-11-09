@@ -495,6 +495,12 @@ export default class Select extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "choicesDecidedByDoenetML",
                 },
+                // The error its literals decide, found when the document
+                // loaded (`choiceErrorsAtLoad.ts`), if any
+                choiceErrorAtLoad: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "choiceErrorAtLoad",
+                },
                 variantRng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -536,6 +542,19 @@ export default class Select extends CompositeComponent {
 
         /** The selection a select makes itself, given no choices. */
         function selectFreshIndices(dependencyValues) {
+            // What its literals decide was decided when the document loaded,
+            // and reported then, wherever the select is (DIAG-7): it is
+            // taken from the mark, so it is the same error, kept once, and
+            // the select selects nothing.
+            const atLoad = dependencyValues.choiceErrorAtLoad;
+            if (atLoad) {
+                const error = selectError({
+                    code: atLoad.code,
+                    args: { ...atLoad.args },
+                });
+                return selectionResult(error, { selectedIndices: [] });
+            }
+
             if (dependencyValues.errorMessageVariants) {
                 const error = {
                     errorMessage: dependencyValues.errorMessageVariants,

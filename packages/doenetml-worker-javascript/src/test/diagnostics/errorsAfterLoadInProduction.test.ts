@@ -9,9 +9,11 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-// The extend below would change what it extends (`doenet-e0056`), and is
-// made only after an interaction, so it reports its error then: an error
-// after load, which DIAG-7 forbids, standing in here for any such bug.
+// The tag below is made from a list of maths, each of which may be a list
+// of several entries, so whether the list holds one is not decided at load
+// (`doenet-e0064`, `listEntryCountAtLoad.ts`). It is made only after an
+// interaction, so it reports its error then: an error after load, which
+// DIAG-7 forbids, standing in here for any such bug.
 /**
  * In production (`errorsAfterLoad: "warn"`), an error reported after load is
  * a warning, and the component in error is missing (`＿`) rather than an
@@ -23,8 +25,8 @@ describe("An error after load in production @group4", () => {
     async function setup(errorsAfterLoad: ErrorsAfterLoad) {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             errorsAfterLoad,
-            doenetML: `<booleanInput name="b"/><sequence name="s" from="1" to="3"/>
-<p name="p"><conditionalContent><case condition="$b"><sequence extend="$s" to="5"/></case></conditionalContent></p>`,
+            doenetML: `<booleanInput name="b"/><mathList name="ml"><math>1</math><math>2</math></mathList>
+<p name="p"><conditionalContent><case condition="$b"><math extend="$ml"/></case></conditionalContent></p>`,
         });
         const bIdx = await resolvePathToNodeIdx("b");
         async function show(boolean: boolean) {
@@ -59,7 +61,7 @@ describe("An error after load in production @group4", () => {
         expect(await shown()).eqls({ types: ["_missing"], text: "＿" });
         const d = getDiagnosticsByType(core);
         expect(d.errors).eqls([]);
-        expect(d.warnings.map((w) => w.code)).eqls(["doenet-e0056"]);
+        expect(d.warnings.map((w) => w.code)).eqls(["doenet-e0064"]);
 
         // made again, it is still missing, with the one warning
         await show(false);
@@ -67,7 +69,7 @@ describe("An error after load in production @group4", () => {
         expect(await shown()).eqls({ types: ["_missing"], text: "＿" });
         expect(getDiagnosticsByType(core).errors).eqls([]);
         expect(getDiagnosticsByType(core).warnings.map((w) => w.code)).eqls([
-            "doenet-e0056",
+            "doenet-e0064",
         ]);
         expect(takeErrorsReportedAfterLoad()).eqls([]);
     });
@@ -77,10 +79,10 @@ describe("An error after load in production @group4", () => {
         await show(true);
         expect((await shown()).types).eqls(["_error"]);
         expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
-            "doenet-e0056",
+            "doenet-e0064",
         ]);
         expect(takeErrorsReportedAfterLoad().map((e) => e.code)).eqls([
-            "doenet-e0056",
+            "doenet-e0064",
         ]);
     });
 });

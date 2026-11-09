@@ -45,6 +45,8 @@ import {
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { breakReferenceCycles } from "./referenceCycles";
+import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
+import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -744,6 +746,28 @@ export async function normalizedDastToSerializedComponents(
         componentInfoObjects,
         nComponents,
     }).nComponents;
+
+    // The errors of an extend that would change what it extends are decided
+    // by what is written, so they are marked on it and reported now,
+    // wherever the extend is (D32, DIAG-7). After the list forms, so that
+    // the tag extended is the one the extend's replacement has, and after
+    // the type check, whose error the extend shows first.
+    diagnostics.push(
+        ...checkExtendErrorsAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
+
+    // A select that its literals keep from selecting is an error in every
+    // variant, marked on it and reported now, wherever the select is
+    // (DIAG-7).
+    diagnostics.push(
+        ...checkChoiceErrorsAtLoad({
+            serializedComponents: sugarResult.components,
+        }),
+    );
 
     // After sugar, so that each reference is judged by the parent it will
     // have: the `$n` of `<number>$n+1</number>` sits in the `<math>` sugar
