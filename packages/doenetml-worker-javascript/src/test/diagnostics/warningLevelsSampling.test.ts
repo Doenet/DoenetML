@@ -66,13 +66,22 @@ async function setup(doenetML: string) {
 
 describe("Warning levels by the source of the condition: sampling, collect, targets, graphs", () => {
     it("w0126: a gaussian with a negative standard deviation", async () => {
-        // A parameter from another random choice is decided by a value; one
-        // from an input would be an error (D39, SEL-1).
-        const { diagnostics } = await setup(`
+        const { diagnostics, setMath } = await setup(`
 <sampleRandomNumbers type="gaussian" standardDeviation="-1"/>
-<selectFromSequence name="sd" from="-1" to="-1"/>
+<mathInput name="sd" prefill="-1"/>
 <sampleRandomNumbers type="gaussian" standardDeviation="$sd"/>
 `);
+        expect(diagnostics("doenet-w0126")).eqls([
+            { type: "warning", line: 2 },
+            { type: "info", line: 4 },
+        ]);
+
+        await setMath("sd", "2");
+        expect(diagnostics("doenet-w0126")).eqls([
+            { type: "warning", line: 2 },
+        ]);
+
+        await setMath("sd", "-3");
         expect(diagnostics("doenet-w0126")).eqls([
             { type: "warning", line: 2 },
             { type: "info", line: 4 },
@@ -80,23 +89,28 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
     });
 
     it("w0131: a poisson with a negative mean", async () => {
-        const { diagnostics } = await setup(`
+        const { diagnostics, setMath } = await setup(`
 <sampleRandomNumbers type="poisson" mean="-2"/>
-<selectFromSequence name="m" from="-2" to="-2"/>
+<mathInput name="m" prefill="-2"/>
 <sampleRandomNumbers type="poisson" mean="$m"/>
 `);
         expect(diagnostics("doenet-w0131")).eqls([
             { type: "warning", line: 2 },
             { type: "info", line: 4 },
         ]);
+
+        await setMath("m", "3");
+        expect(diagnostics("doenet-w0131")).eqls([
+            { type: "warning", line: 2 },
+        ]);
     });
 
-    it("w0129: a binomial with a probability above 1, by type from another random choice", async () => {
-        const { diagnostics } = await setup(`
+    it("w0129: a binomial with a probability above 1, by type from an input", async () => {
+        const { diagnostics, setMath, setText } = await setup(`
 <sampleRandomNumbers type="binomial" numTrials="3" probability="2"/>
-<selectFromSequence name="p" from="2" to="2"/>
+<mathInput name="p" prefill="2"/>
 <sampleRandomNumbers type="binomial" numTrials="3" probability="$p"/>
-<select name="t"><option><text>binomial</text></option></select>
+<textInput name="t" prefill="binomial"/>
 <sampleRandomNumbers type="$t" numTrials="3" probability="2"/>
 `);
         expect(diagnostics("doenet-w0129")).eqls([
@@ -104,22 +118,34 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
             { type: "info", line: 4 },
             { type: "info", line: 6 },
         ]);
+
+        await setMath("p", "0.5");
+        await setText("t", "uniform");
+        expect(diagnostics("doenet-w0129")).eqls([
+            { type: "warning", line: 2 },
+        ]);
     });
 
     it("w0135: a multivariate hypergeometric drawing more than there are", async () => {
-        const { diagnostics } = await setup(`
+        const { diagnostics, setMath } = await setup(`
 <sampleMultivariateRandomNumber type="hypergeometric" numInCategories="2 3" numDraws="9"/>
-<selectFromSequence name="n" from="9" to="9"/>
+<mathInput name="n" prefill="9"/>
 <sampleMultivariateRandomNumber type="hypergeometric" numInCategories="2 3" numDraws="$n"/>
 `);
         expect(diagnostics("doenet-w0135")).eqls([
             { type: "warning", line: 2 },
             { type: "info", line: 4 },
         ]);
+
+        await setMath("n", "4");
+        expect(diagnostics("doenet-w0135")).eqls([
+            { type: "warning", line: 2 },
+        ]);
     });
 
     it("w0126: a selectRandomNumbers from another random choice is an info", async () => {
-        // Its selection is made once, so the info stays with it.
+        // Its selection is made once, so the info stays with it. (One from
+        // an input would be an error, D39, SEL-1.)
         const { diagnostics } = await setup(`
 <selectRandomNumbers type="gaussian" standardDeviation="-1"/>
 <selectFromSequence name="sd" from="-1" to="-1"/>

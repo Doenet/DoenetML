@@ -1709,15 +1709,15 @@ copy-with-state-adds-options =
        *[other] Adding a `<{ $childType }>` to a `copyWithState` of a `<{ $componentType }>` would change what it chooses, which a `copyWithState` keeps. Use `copy` to make a new `<{ $componentType }>` that chooses again.
     }
 
-# A random choice (a `<select>`, a `<selectFromSequence>`, a sampler, ...)
-# whose parameter $attribute
-# reads $reference, a reference as the author wrote it (`$n`, `$P.x`), which
-# reaches a `<{ $changeableType }>` a reader can change: an input, an answer, a
-# slider, or something a reader drags or writes to (a `<number>` a dragged
-# point reads). $componentType is the choice's own tag. A choice's parameters
-# must come from the DoenetML, so the choice is an error in every variant (D39,
+# A random selection (a `<select>`, a `<selectFromSequence>`, ...) whose
+# parameter $attribute reads $reference, a reference as the author wrote it
+# (`$n`, `$P.x`), which reaches a `<{ $changeableType }>` a reader can change:
+# an input, an answer, a slider, a sampler (which can be resampled), or
+# something a reader drags or writes to (a `<number>` a dragged point reads).
+# $componentType is the selection's own tag. A selection's parameters must
+# come from the DoenetML, so the selection is an error in every variant (D39,
 # SEL-1). The tags, attribute names and `indexName` stay in English.
-choice-parameter-reader-changeable = `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, which reaches a `<{ $changeableType }>` that a reader can change. What a random choice chooses from must come from what the author wrote: literals, other random choices, content that can't change, and a repeat's `indexName`.
+choice-parameter-reader-changeable = `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, which reaches a `<{ $changeableType }>` that a reader can change. What a random selection chooses from must come from what the author wrote: literals, other random selections (not samplers), content that can't change, and a repeat's `indexName`.
 
 # A document loaded from a URI, $uri, has no reader state, so a
 # `copyWithState` of it has nothing to carry and is made as a `copy`.

@@ -5,8 +5,8 @@
  * every variant, even where the effect could be worked out
  * (`from="$n"` with `n` from an input).
  *
- * A choice is a `<select>`, `<selectFromSequence>`, `<selectPrimeNumbers>`,
- * `<selectRandomNumbers>` or a sampler; its parameters are the attributes
+ * A choice is a `<select>`, `<selectFromSequence>`, `<selectPrimeNumbers>`
+ * or `<selectRandomNumbers>`; its parameters are the attributes
  * {@link CHOICE_PARAMETERS} lists, and an `<option>`'s `selectWeight` for
  * the `<select>` holding it. (An option's `selectForVariants` takes no
  * reference: one written there is dropped with a warning. The content of an
@@ -15,7 +15,10 @@
  *
  * A parameter may read:
  * - literals, and content that can't change;
- * - another random choice, which is checked as a choice itself;
+ * - another random choice, which is checked as a choice itself. A sampler
+ *   is not one: it draws again when its parameters change or when it is
+ *   resampled, so a choice that reads one is an error, whatever the
+ *   sampler reads;
  * - a repeat's `indexName`, always (SEL-2: a reader may decide how many
  *   iterations there are, but not what iteration *k* is);
  * - a repeat's `valueName`, when what the repeat iterates over may be read:
@@ -55,8 +58,8 @@ import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
 
-/** The parameters of a sampler of random numbers. */
-const SAMPLE_RANDOM_NUMBERS_PARAMETERS = [
+/** The parameters of a `<selectRandomNumbers>`'s distribution. */
+const RANDOM_NUMBERS_PARAMETERS = [
     "numSamples",
     "type",
     "mean",
@@ -108,21 +111,11 @@ export const CHOICE_PARAMETERS: Record<string, string[]> = {
         "withReplacement",
         "excludeCombinations",
     ],
-    selectRandomNumbers: [...SAMPLE_RANDOM_NUMBERS_PARAMETERS, "numToSelect"],
-    sampleRandomNumbers: SAMPLE_RANDOM_NUMBERS_PARAMETERS,
-    samplePrimeNumbers: [
-        "numSamples",
-        "from",
-        "to",
-        "exclude",
-        "variantDeterminesSeed",
-    ],
-    sampleMultivariateRandomNumber: [
-        "type",
-        "numInCategories",
-        "numDraws",
-        "variantDeterminesSeed",
-    ],
+    selectRandomNumbers: [...RANDOM_NUMBERS_PARAMETERS, "numToSelect"],
+    // A sampler (`<sampleRandomNumbers>`, `<samplePrimeNumbers>`,
+    // `<sampleMultivariateRandomNumber>`) is not a choice here: it may read
+    // what a reader changes, and draws again when its parameters change, or
+    // when it is resampled.
     // A `<choiceInput>`'s `shuffleOrder`, and a `<shuffle>`'s and a
     // `<pretzel>`'s order, take no reference: they are written as literals.
 };
@@ -177,6 +170,17 @@ const PASS_THROUGH_VARIANT_TYPES = new Set([
     "case",
     "repeat",
     "repeatForSequence",
+]);
+
+/**
+ * The samplers, which draw again when their parameters change, which may be
+ * what a reader changes, or when they are resampled. A choice may not read
+ * one at all: what a sampler holds is never decided by the DoenetML.
+ */
+const SAMPLER_TYPES = new Set([
+    "sampleRandomNumbers",
+    "samplePrimeNumbers",
+    "sampleMultivariateRandomNumber",
 ]);
 
 /**
@@ -303,6 +307,7 @@ export function checkChoiceParametersAtLoad({
         return (
             Boolean(componentClass?.createsVariants) &&
             !PASS_THROUGH_VARIANT_TYPES.has(type) &&
+            !SAMPLER_TYPES.has(type) &&
             !isA(type, "_sectioningComponent")
         );
     }
@@ -362,7 +367,11 @@ export function checkChoiceParametersAtLoad({
         ) {
             return { reference: undefined, changeable: node };
         }
-        if (isA(type, "_input") || READER_ENTERED_TYPES.has(type)) {
+        if (
+            isA(type, "_input") ||
+            READER_ENTERED_TYPES.has(type) ||
+            SAMPLER_TYPES.has(type)
+        ) {
             return { reference: undefined, changeable: node };
         }
         if (isChoice(type)) {

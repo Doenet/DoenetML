@@ -91,12 +91,12 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `to="$sl"`,
         },
         {
-            tag: "<sampleRandomNumbers mean> from a number a dragged point writes to",
+            tag: "<selectRandomNumbers mean> from a number a dragged point writes to",
             doenetML: `<number name="a">3</number>
 <graph><point>($a, 2)</point></graph>
-<p name="p">A <sampleRandomNumbers name="s" type="gaussian" mean="$a"/> B</p>`,
+<p name="p">A <selectRandomNumbers name="s" type="gaussian" mean="$a"/> B</p>`,
             attribute: "mean",
-            componentType: "sampleRandomNumbers",
+            componentType: "selectRandomNumbers",
             reference: "$a",
             changeableType: "number",
             written: `mean="$a"`,
@@ -155,24 +155,35 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `to="$k"`,
         },
         {
-            tag: "<samplePrimeNumbers numSamples> from an answer",
+            tag: "<selectPrimeNumbers numToSelect> from an answer",
             doenetML: `<answer name="ans"><mathInput/><award>1</award></answer>
-<p name="p">A <samplePrimeNumbers name="s" numSamples="$ans.creditAchieved"/> B</p>`,
-            attribute: "numSamples",
-            componentType: "samplePrimeNumbers",
+<p name="p">A <selectPrimeNumbers name="s" numToSelect="$ans.creditAchieved"/> B</p>`,
+            attribute: "numToSelect",
+            componentType: "selectPrimeNumbers",
             reference: "$ans.creditAchieved",
             changeableType: "answer",
-            written: `numSamples="$ans.creditAchieved"`,
+            written: `numToSelect="$ans.creditAchieved"`,
         },
         {
-            tag: "<sampleMultivariateRandomNumber numDraws> from an input",
-            doenetML: `<mathInput name="n" prefill="4"/>
-<p name="p">A <sampleMultivariateRandomNumber name="s" type="hypergeometric" numInCategories="5 3 2" numDraws="$n"/> B</p>`,
-            attribute: "numDraws",
-            componentType: "sampleMultivariateRandomNumber",
-            reference: "$n",
-            changeableType: "mathInput",
-            written: `numDraws="$n"`,
+            tag: "a select reading a sampler, whose parameters are literals",
+            doenetML: `<sampleRandomNumbers name="r" from="1" to="10" numSamples="1"/>
+<p name="p">A <selectFromSequence name="s" to="$r"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$r",
+            changeableType: "sampleRandomNumbers",
+            written: `to="$r"`,
+        },
+        {
+            tag: "a select reading a <number> made from a sampler",
+            doenetML: `<samplePrimeNumbers name="r" to="20"/>
+<number name="m">$r + 1</number>
+<p name="p">A <select name="s" numToSelect="$m">a b c d e f g h i j k l m n o p q r s t u v w x y z</select> B</p>`,
+            attribute: "numToSelect",
+            componentType: "select",
+            reference: "$m",
+            changeableType: "samplePrimeNumbers",
+            written: `numToSelect="$m"`,
         },
         {
             tag: "an <option>'s selectWeight, an error of the <select>",
@@ -245,7 +256,7 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             `<mathInput name="n" prefill="2"/><select numToSelect="$n">u v w</select>`,
         );
         expect(errors[0].message).eq(
-            "`numToSelect` of `<select>` reads `$n`, which reaches a `<mathInput>` that a reader can change. What a random choice chooses from must come from what the author wrote: literals, other random choices, content that can't change, and a repeat's `indexName`.",
+            "`numToSelect` of `<select>` reads `$n`, which reaches a `<mathInput>` that a reader can change. What a random selection chooses from must come from what the author wrote: literals, other random selections (not samplers), content that can't change, and a repeat's `indexName`.",
         );
     });
 
@@ -265,7 +276,7 @@ describe("A choice's parameter a reader can change is an error at load @group4",
         for (const tag of [
             "selectFromSequence",
             "selectPrimeNumbers",
-            "sampleRandomNumbers",
+            "selectRandomNumbers",
         ]) {
             const { errors, p } = await load(`<mathInput name="n" prefill="20"/>
 <p name="p">A <${tag} name="a" to="$n"/> <${tag} name="b" extend="$a"/> <${tag} name="c" copy="$b"/> B</p>`);
@@ -334,6 +345,14 @@ describe("What a choice's parameter may read @group4", () => {
             tag: "another random choice",
             doenetML: `<selectFromSequence name="a" from="3" to="5"/>
 <selectFromSequence name="s" to="10" numToSelect="$a" exclude="$a"/>`,
+        },
+        {
+            tag: "an input, in a sampler, which draws again when it changes",
+            doenetML: `<mathInput name="n" prefill="4"/>
+<mathInput name="m" prefill="2"/>
+<sampleRandomNumbers name="s" numSamples="$n" mean="$m" type="gaussian"/>
+<samplePrimeNumbers numSamples="$n" to="$n + 10"/>
+<sampleMultivariateRandomNumber type="hypergeometric" numInCategories="5 3 2" numDraws="$n"/>`,
         },
         {
             tag: "another random choice, in a sampler of several numbers",
