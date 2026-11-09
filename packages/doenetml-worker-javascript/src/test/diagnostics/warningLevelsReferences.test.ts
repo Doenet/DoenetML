@@ -614,6 +614,71 @@ describe("What a reader writes to can change", () => {
 <binCounts bins="0 $a 2">1</binCounts>`,
         ],
         [
+            "a number in a point in an iteration of a repeat, an unlinked copy of which is dragged",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<repeat name="r" for="1" valueName="v"><point name="P">($a,1)</point></repeat>
+<graph><point name="C" copy="$r[1].P"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in an iteration of a repeat, an unlinked copy of the iteration of which is dragged",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<repeat name="r" for="1" valueName="v"><point name="P">($a,1)</point></repeat>
+<graph><group name="C" copy="$r[1]"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in an option of a select, an unlinked copy of which is dragged",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<select name="s"><option><point name="P">($a,1)</point></option></select>
+<graph><point name="C" copy="$s.P"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a math in an iteration of a repeat references, an unlinked copy of which an input is bound to",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<repeat name="r" for="1" valueName="v"><math name="m">$a+1</math></repeat>
+<math name="D" copy="$r[1].m"/>
+<mathInput bindValueTo="$D"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in an iteration of a repeat, a fixed unlinked copy of which is in a graph",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<repeat name="r" for="1" valueName="v"><point name="P">($a,1)</point></repeat>
+<graph><point name="C" copy="$r[1].P" fixed/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in an iteration of a repeat, a copy of a property of which an input is bound to",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<repeat name="r" for="1" valueName="v"><point name="P">($a,1)</point></repeat>
+<math name="D" copy="$r[1].P.x"/>
+<mathInput bindValueTo="$D"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a list of points, a copy of an entry of which is dragged",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<pointList name="pl">($a,1)</pointList>
+<graph><point copy="$pl[1]"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
             "a number in a point a reader drags in a graph",
             "doenet-w0141",
             "info",

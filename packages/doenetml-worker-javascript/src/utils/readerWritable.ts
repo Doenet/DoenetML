@@ -36,8 +36,11 @@
  * as they are written there and as the copy is, not as its source is, and
  * not its source. A source that is a copy or an extend is pasted as what it
  * copies or extends (a copy of `<point name="E" extend="$Q"/>` pastes `Q`'s
- * DoenetML). A copy of a property or an entry (`copy="$Q.x"`) pastes
- * nothing. A reference to what a copy or an extend makes (`$D` of `<math
+ * DoenetML). A copy of what a composite makes pastes the component the
+ * path names in the composite's DoenetML (`copy="$r[1].P"` pastes `P` from
+ * the repeat's template, which each iteration copies). A copy of a
+ * property or an entry (`copy="$Q.x"`, `copy="$pl[1]"`) pastes nothing.
+ * A reference to what a copy or an extend makes (`$D` of `<math
  * name="D" copy="$m"/>`) names the index it is made with, which stands
  * for the `_copy` here.
  * `fixLocation` stops only a write to a location (`isLocation`), as
@@ -355,13 +358,78 @@ export function buildReaderWritableIndex(
     }
 
     /**
+     * Whether the serialized component `node` makes a composite (a
+     * `<repeat>`, a `<select>`, a `<group>`), whose replacements a
+     * reference's path can go into.
+     */
+    function makesComposite(node: any): boolean {
+        return Boolean(
+            componentInfoObjects?.isCompositeComponent?.({
+                componentType: typeMadeBy(node),
+                includeNonStandard: true,
+            }),
+        );
+    }
+
+    /**
+     * Whether `name` names a property (a public state variable, or an
+     * alias of one) of the component `node` makes.
+     */
+    function isPropertyOf(node: any, name: string): boolean {
+        const info =
+            componentInfoObjects?.publicStateVariableInfo?.[typeMadeBy(node)];
+        if (!info) {
+            return false;
+        }
+        const lower = name.toLowerCase();
+        return [
+            ...Object.keys(info.stateVariableDescriptions ?? {}),
+            ...Object.keys(info.aliases ?? {}),
+        ].some((property) => property.toLowerCase() === lower);
+    }
+
+    /**
      * What the copy or extend `node` copies whole, if it copies a
-     * component (not a property or an entry of one).
+     * component, not a property or an entry of one (`$Q.x`, `$pl[1]`).
+     * A path into what a composite makes names a component of its
+     * DoenetML: `$r[1].P` names `P` in the repeat's template, which each
+     * iteration copies, `$s.P` `P` in an option, and `$r[1]` the repeat,
+     * whose template an iteration is. Where the path's name, not a
+     * property of the composite, isn't found once under it (made later,
+     * or in more than one place), the composite stands for it, erring
+     * toward writable.
      */
     function sourceOf(node: any) {
-        const sourceIdx =
-            node.componentType === "_copy" ? sourceIdxOfCopy(node) : undefined;
-        return sourceIdx === undefined ? undefined : nodeByIdx.get(sourceIdx);
+        if (node.componentType !== "_copy") {
+            return undefined;
+        }
+        const reference = Object.values(node.extending ?? {})[0] as any;
+        if (typeof reference?.nodeIdx !== "number") {
+            return undefined;
+        }
+        let source = nodeByIdx.get(reference.nodeIdx);
+        for (const part of reference.unresolvedPath ?? []) {
+            if (!source) {
+                return undefined;
+            }
+            if (part.name) {
+                const named = namedUnder(source, part.name);
+                if (named.length !== 1) {
+                    // a property (`$Q.x`, `$s.numToSelect`), or a
+                    // component not found once under a composite
+                    return makesComposite(source) &&
+                        !isPropertyOf(source, part.name)
+                        ? source
+                        : undefined;
+                }
+                source = named[0];
+            }
+            if (part.index?.length > 0 && !makesComposite(source)) {
+                // an entry of a list or of a value
+                return undefined;
+            }
+        }
+        return source;
     }
 
     /**
@@ -635,13 +703,19 @@ function isUnlinkedCopy(node: any): boolean {
 }
 
 /**
- * The index of the component the unlinked copy `node` copies whole, or
- * undefined when it copies a property of it (`copy="$Q.x"`), a value with
- * nothing of its source's DoenetML in it.
+ * The serialized components under `node` (not `node` itself) named `name`.
  */
-function sourceIdxOfCopy(node: any): number | undefined {
-    const reference = Object.values(node.extending ?? {})[0] as any;
-    return reference?.unresolvedPath == null ? reference?.nodeIdx : undefined;
+function namedUnder(node: any, name: string): any[] {
+    const found: any[] = [];
+    const toVisit = componentsUnder(node);
+    while (toVisit.length > 0) {
+        const under = toVisit.pop();
+        if (under.attributes?.name?.primitive?.value === name) {
+            found.push(under);
+        }
+        toVisit.push(...componentsUnder(under));
+    }
+    return found;
 }
 
 /**
