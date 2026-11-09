@@ -211,14 +211,19 @@ covers a tag's type errors there (`fixedTypeError` and `reportTypeChangesAtLoad`
 
 **Known violations** (#2463). Each is now a warning with `＿` in production, and a test that
 reaches it takes its error explicitly:
-- **still decided only when content is made later (#2493):** an extend that would change what it
-  extends (`e0056`–`e0061`), a `<select>` whose literals can't select (`e0035`), a scalar tag of
-  a written list (`e0064`), and `<module extend="$q"/>` of a non-module (`e0065`). #2491 first
-  moved these to load; each of five reviews found an input where load and run time disagreed,
-  so they were split out. #2493 records what was learned: decide at load only what is exactly a
-  literal, mark the decision on the component, and compare against `main`;
-- `e0064` of an authored list whose count changes (`<mathList maxNumber="$n">` as a scalar tag):
-  it depends on a value, so it should be a missing tag with an info (#2493);
+- **fixed by #2507** (closing #2493): an extend that would change what it extends
+  (`e0056`–`e0061`), a `<select>` whose literals can't select (`e0035`), a scalar tag of a
+  written list (`e0064`, counting entries by VAL-12), and `<module extend="$q"/>` of a non-module
+  (`e0065`) are decided at load wherever their content is. Each decision reads only exact
+  literals and is marked on the component (`extendErrorsAtLoad`, `choiceErrorAtLoad`,
+  `typeChangeAtLoad`); run time reports the mark, so load and run time give the same error, kept
+  once. Load marks only errors, so a miss falls back to run time. A scalar tag of a list whose
+  `maxNumber` is a value is missing with an info, never an error;
+- **left to run time** by #2507, so they can still error after load in content made later:
+  `numToSelect` written as an expression, `withReplacement=""`, a list made from another list,
+  `<math>` entries and entries holding an error, `mergeMathLists`, `maxNumber` written as an
+  expression, a composite or index source that isn't one written tag, and `<module extend="$t"/>`
+  where `t` is a name inside a case or holds an error;
 - the choice errors of `<selectFromSequence>`, `<selectPrimeNumbers>` and the samplers, for SEL
   (D39);
 - a sequence extend through an index or a property throws, or gives a spurious `e0005` (#2501);
