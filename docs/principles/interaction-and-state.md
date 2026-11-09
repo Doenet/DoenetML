@@ -183,9 +183,13 @@ ADR 0017 proposes carrying state across edits that are safe for every student (D
 
 ### SAVE-4: hidden or withheld content keeps the reader's work (Tier 1 since #2318)
 This covers a repeat that shrinks and grows, a case switched away and back, and a group with
-`rendered="false"`. It is in tension with the wording in #2149, "content that a
-conditionalContent does not select should behave as though deleted". One statement should be
-retired; the one the code now follows is this rule (D18).
+`rendered="false"`.
+
+**From outside, withheld content acts as missing (decided, D40; #2152).** A value reference to
+it is missing (`＿`, VAL-5); an action that targets it does nothing, with an info; reading it
+does not make it evaluate. It keeps its state, and comes back with it. This reconciles #2149's
+"behaves as though deleted" with this rule (D18). **Known violation:** today actions, property
+reads and triggers from outside reach withheld content (#2152).
 
 ### SAVE-5: a component's index is allocation order, and is not guaranteed to stay the same (not a guarantee)
 A component's index, and the DOM id `_id_<index>` the viewer builds from it, follow the order in
