@@ -541,15 +541,27 @@ describe("Select tag tests @group2", async () => {
         ).eq(num2);
     });
 
-    it("select doesn't change dynamically", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
+    it("a numToSelect from an input is an error at load", async () => {
+        // What a selection chooses from can't come from an input (D39, SEL-1)
+        const { core } = await createTestCore({
             doenetML: `
     <mathInput prefill="5" name="numToSelect"/>
+    <select name="sample1" numToSelect="$numToSelect">a b c</select>
+    `,
+        });
+        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
+            "doenet-e0070",
+        ]);
+    });
+
+    it("selected options follow their copy sources", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
     <mathInput prefill="a" name="x"/>
     <mathInput prefill="b" name="y"/>
     <mathInput prefill="c" name="z"/>
     <p>
-    <select name="sample1" withReplacement numToSelect="$numToSelect">
+    <select name="sample1" withReplacement numToSelect="5">
         <option>$x</option>
         <option>$y</option>
         <option>$z</option>
@@ -576,29 +588,6 @@ describe("Select tag tests @group2", async () => {
         for (let val of sampleMaths) {
             expect(["a", "b", "c"].includes(val)).eq(true);
         }
-
-        // Nothing changes when change number to select
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: await resolvePathToNodeIdx("numToSelect"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        sampleReplacements =
-            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
-
-        expect(
-            sampleReplacements.map(
-                (x) =>
-                    stateVariables[
-                        stateVariables[
-                            stateVariables[x.componentIdx].replacements![0]
-                                .componentIdx
-                        ].replacements![0].componentIdx
-                    ].stateValues.value.tree,
-            ),
-        ).eqls(sampleMaths);
 
         // Values change to reflect copy sources
 

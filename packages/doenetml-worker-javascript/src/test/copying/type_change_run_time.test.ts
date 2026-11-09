@@ -585,7 +585,7 @@ describe("A reference written as a tag of a composite is decided when the docume
     it("a list tag takes any number of components, including none, all of one type", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
-<mathInput name="n" prefill="2"/>
+<selectFromSequence name="n" from="2" to="2"/>
 <conditionalContent name="cc"><case condition="$b"><math>x</math></case></conditionalContent>
 <repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat>
 <group name="g" hide><math>a</math><math>b</math></group>

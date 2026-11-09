@@ -2691,15 +2691,15 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
-            it("is missing when its entry is withheld", async () => {
-                // When `numSamples` drops, `<sampleRandomNumbers>` withholds
-                // the samples it no longer has rather than removing them, so
-                // `$s[2]` still finds one. It is missing all the same, as the
-                // copy made nothing for a withheld entry.
+            it("is missing when the list no longer has its entry", async () => {
+                // When `length` drops below 2, `$s[2]` names an entry the
+                // list no longer has, and is missing; it comes back when the
+                // length does. (This used a sampler's `numSamples`, which
+                // can't come from an input now, D39.)
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <mathInput name="n">3</mathInput>
-    <sampleRandomNumbers name="s" numSamples="$n" type="discreteUniform" from="5" to="5" />
+    <sequence name="s" length="$n" from="5" step="0" />
     <boolean name="eq">$s[2] = $s[3]</boolean>
     <boolean name="ne">$s[2] != $s[3]</boolean>
     <sum name="sum">$s[2] 5</sum>

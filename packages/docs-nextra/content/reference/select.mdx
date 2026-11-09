@@ -273,6 +273,13 @@ Different page variants (which can be accessed from the left-side menu) will hav
 
 The `numToSelect` attribute sets how many values are chosen from the options. The default value is `1`. When more than one is selected, the individual selections are accessed by index (for example, `$s[1]`). Without `withReplacement`, each option can be chosen at most once.
 
+`numToSelect`, like every attribute that decides what a random choice chooses
+from, may reference another random choice, such as `numToSelect="$n"` with
+`<selectFromSequence name="n" from="2" to="4"/>{:dn}`, or content that can't
+change, but not an input or anything else a reader can change. What a choice
+chooses from comes from what the author wrote, so such a reference is an error
+when the document loads, in every variant.
+
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 

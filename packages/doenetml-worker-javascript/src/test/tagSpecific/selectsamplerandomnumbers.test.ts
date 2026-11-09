@@ -1808,90 +1808,47 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(getDiagnosticsByType(mixture.core).errors.length).eq(0);
     });
 
-    it("a selected normal mixture freezes the parameters its values came from", async () => {
-        // As for the log-normal: the selection is drawn once, so a parameter that
-        // kept following a reference would describe a distribution other than the
-        // numbers on the page.
-        //
-        // Each of the three lists is checked, because a list freezes for a reason a
-        // scalar parameter does not need: the list an attribute hands over belongs
-        // to the `<numberList>` it created, which rewrites it in place rather than
-        // replacing it, so a definition that passed it straight through left this
-        // property tracking the reference however immutable it was declared.
-        const doenetML = `
-    <mathInput name="ni" prefill="10" />
+    it("a distribution's parameter from an input is an error at load", async () => {
+        // A selected distribution used to freeze the parameters its values
+        // came from, and a sampled one to follow them, when an input changed
+        // them. Neither can happen now: what a choice draws from can't come
+        // from an input (D39, SEL-1), so each of these is an error at load,
+        // and the choice draws nothing.
+        for (const doenetML of [
+            `<mathInput name="ni" prefill="10" />
     <selectRandomNumbers name="s" type="normalMixture" numToSelect="4"
-        means="0 $ni" standardDeviations="0 $ni" weights="1 $ni" />
-    `;
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 10]);
-        expect(
-            stateVariables[componentIdx].stateValues.standardDeviations,
-        ).eqls([0, 10]);
-        expect(stateVariables[componentIdx].stateValues.variances).eqls([
-            0, 100,
-        ]);
-        expect(stateVariables[componentIdx].stateValues.weights).eqls([1, 10]);
-
-        const selected = await current_values(core, resolvePathToNodeIdx, "s");
-
-        await updateMathInputValue({
-            latex: "100",
-            componentIdx: await resolvePathToNodeIdx("ni"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 10]);
-        expect(
-            stateVariables[componentIdx].stateValues.standardDeviations,
-        ).eqls([0, 10]);
-        expect(stateVariables[componentIdx].stateValues.variances).eqls([
-            0, 100,
-        ]);
-        expect(stateVariables[componentIdx].stateValues.weights).eqls([1, 10]);
-        expect(await current_values(core, resolvePathToNodeIdx, "s")).eqls(
-            selected,
-        );
-    });
-
-    it("a sampled normal mixture's parameters follow a reference", async () => {
-        // `<sampleRandomNumbers>` freezes nothing, so the same document reports the
-        // new distribution --- which is the difference between the two components.
-        const doenetML = `
-    <mathInput name="ni" prefill="10" />
-    <sampleRandomNumbers name="s" type="normalMixture" numSamples="4" means="0 $ni" standardDeviations="0" />
-    `;
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-        expect(stateVariables[componentIdx].stateValues.mean).eq(5);
-
-        await updateMathInputValue({
-            latex: "100",
-            componentIdx: await resolvePathToNodeIdx("ni"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 100]);
-        expect(stateVariables[componentIdx].stateValues.mean).eq(50);
-        expect(stateVariables[componentIdx].stateValues.variance).eq(2500);
-
-        for (const value of await current_values(
-            core,
-            resolvePathToNodeIdx,
-            "s",
-        )) {
-            expect([0, 100].includes(value), `sample ${value}`).eq(true);
+        means="0 $ni" standardDeviations="0 $ni" weights="1 $ni" />`,
+            `<mathInput name="ni" prefill="10" />
+    <sampleRandomNumbers name="s" type="normalMixture" numSamples="4" means="0 $ni" standardDeviations="0" />`,
+            `<mathInput name="m" prefill="10" />
+    <selectRandomNumbers name="s" type="gaussian" mean="$m" numToSelect="4" />`,
+            `<mathInput name="m" prefill="10" />
+    <selectRandomNumbers name="s" type="poisson" mean="$m" numToSelect="4" />`,
+            `<mathInput name="sd" prefill="2" />
+    <selectRandomNumbers name="s" type="gaussian" standardDeviation="$sd" numToSelect="4" />`,
+            `<mathInput name="e" prefill="3" />
+    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="6" />`,
+            `<mathInput name="e" prefill="3" />
+    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="3 $e" numToSelect="6" />`,
+            `<mathInput name="e" prefill="3" />
+    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="0" />`,
+            `<mathInput name="e" prefill="3" />
+    <sampleRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numSamples="6" />`,
+            `<mathInput name="m" prefill="1" />
+    <mathInput name="sd" prefill="0.5" />
+    <selectRandomNumbers name="s" type="logNormal" logMean="$m" logStandardDeviation="$sd" numToSelect="4" />`,
+            `<mathInput name="m" prefill="1" />
+    <sampleRandomNumbers name="s" type="logNormal" logMean="$m" numSamples="4" />`,
+            `<mathInput name="n" prefill="10" />
+    <selectRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numToSelect="4" />`,
+            `<mathInput name="n" prefill="10" />
+    <sampleRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numSamples="4" />`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => e.code),
+                doenetML,
+            ).eqls(["doenet-e0070"]);
         }
     });
 
@@ -1944,325 +1901,6 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         )) {
             expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
-    });
-
-    it("a selection freezes its moments even when nothing has read them yet", async () => {
-        // `selectedValues` is resolved eagerly, to expand the composite, but the
-        // reported moments are lazy. If a referenced parameter changes before
-        // anything reads them, a moment first evaluated afterwards would freeze the
-        // new parameter while the selected numbers came from the old one. Note the
-        // update happens before any `returnAllStateVariables`, which would otherwise
-        // resolve and freeze everything first and hide the problem.
-        for (const [type, expectedMean] of [
-            ["gaussian", 10],
-            ["poisson", 10],
-        ] as [string, number][]) {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <mathInput name="m" prefill="10" />
-    <selectRandomNumbers name="s" type="${type}" mean="$m" numToSelect="4" />
-    `,
-            });
-
-            await updateMathInputValue({
-                latex: "40",
-                componentIdx: await resolvePathToNodeIdx("m"),
-                core,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx("s");
-            expect(stateVariables[componentIdx].stateValues.mean, type).closeTo(
-                expectedMean,
-                1e-10,
-            );
-        }
-
-        // the same for the spread, which is a separate frozen input
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="sd" prefill="2" />
-    <selectRandomNumbers name="s" type="gaussian" standardDeviation="$sd" numToSelect="4" />
-    `,
-        });
-
-        await updateMathInputValue({
-            latex: "5",
-            componentIdx: await resolvePathToNodeIdx("sd"),
-            core,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-        expect(
-            stateVariables[componentIdx].stateValues.standardDeviation,
-        ).closeTo(2, 1e-10);
-        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-            4,
-            1e-10,
-        );
-
-        // and the same for `exclude`, which narrows the set the moments are taken
-        // over rather than naming one of their terms. It was the one parameter not
-        // frozen here, so the moments described the new exclusion set while the
-        // numbers on the page came from the old one: a 5 was selected that the
-        // reported distribution excludes, beside a 3 it includes that was excluded
-        // when the selection was made.
-        {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <mathInput name="e" prefill="3" />
-    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="6" />
-    `,
-            });
-
-            await updateMathInputValue({
-                latex: "5",
-                componentIdx: await resolvePathToNodeIdx("e"),
-                core,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx("s");
-
-            // the moments of {1, 2, 4, 5}, which is what excluding 3 leaves
-            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
-                3,
-                1e-10,
-            );
-            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-                2.5,
-                1e-10,
-            );
-
-            for (const value of await current_values(
-                core,
-                resolvePathToNodeIdx,
-                "s",
-            )) {
-                expect([1, 2, 4, 5].includes(value), `sample ${value}`).eq(
-                    true,
-                );
-            }
-        }
-
-        // A change that alters how *many* values survive is the sharper case: the
-        // count the moments divide by is frozen, so an exclusion set that moved on
-        // without it gave a mean belonging to no set of values at all --- 1.75 here,
-        // being (1 + 2 + 4) / 4, where the two candidate sets have means 3 and 7/3.
-        {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <mathInput name="e" prefill="3" />
-    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="3 $e" numToSelect="6" />
-    `,
-            });
-
-            await updateMathInputValue({
-                latex: "5",
-                componentIdx: await resolvePathToNodeIdx("e"),
-                core,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx("s");
-
-            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
-                3,
-                1e-10,
-            );
-            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-                2.5,
-                1e-10,
-            );
-        }
-
-        // Selecting nothing is the degenerate case: `selectedValues` returns an
-        // empty list without drawing, so its own definition body never looks at
-        // `exclude`. The exclusion set is pinned all the same, and by either of two
-        // routes on its own. Core fetches every dependency a definition declares
-        // before running it, whether or not the body goes on to read it, and
-        // `selectedValues` declares `exclude`; separately, `selectedValues` depends
-        // on the range, and the definition of `from`/`to`/`numDiscreteValues` reads
-        // `exclude` to count how many values survive, which it does whether or not
-        // anything is drawn. Disabling either route alone leaves this case frozen
-        // exactly as it is; disabling both is what unfreezes it.
-        {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <mathInput name="e" prefill="3" />
-    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="0" />
-    `,
-            });
-
-            await updateMathInputValue({
-                latex: "5",
-                componentIdx: await resolvePathToNodeIdx("e"),
-                core,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx("s");
-
-            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
-                3,
-                1e-10,
-            );
-            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-                2.5,
-                1e-10,
-            );
-        }
-    });
-
-    it("a sampled distribution's exclusions still follow a reference", async () => {
-        // The control for the freezing above: `<sampleRandomNumbers>` freezes
-        // nothing, so its moments and its values both move to the new exclusion set.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="e" prefill="3" />
-    <sampleRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numSamples="6" />
-    `,
-        });
-
-        await updateMathInputValue({
-            latex: "5",
-            componentIdx: await resolvePathToNodeIdx("e"),
-            core,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-
-        // the moments of {1, 2, 3, 4}, which is what excluding 5 leaves
-        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
-            2.5,
-            1e-10,
-        );
-        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-            1.25,
-            1e-10,
-        );
-
-        for (const value of await current_values(
-            core,
-            resolvePathToNodeIdx,
-            "s",
-        )) {
-            expect([1, 2, 3, 4].includes(value), `sample ${value}`).eq(true);
-        }
-    });
-
-    it("a selected log-normal freezes the parameters its values came from", async () => {
-        // The log-normal's parameters reach `selectedValues` directly rather than
-        // through the reported moments, so they are frozen on their own account.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="m" prefill="1" />
-    <mathInput name="sd" prefill="0.5" />
-    <selectRandomNumbers name="s" type="logNormal" logMean="$m" logStandardDeviation="$sd" numToSelect="4" />
-    `,
-        });
-        const componentIdx = await resolvePathToNodeIdx("s");
-
-        await updateMathInputValue({
-            latex: "4",
-            componentIdx: await resolvePathToNodeIdx("m"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: await resolvePathToNodeIdx("sd"),
-            core,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const stateValues = stateVariables[componentIdx].stateValues;
-        expect(stateValues.logMean).eq(1);
-        expect(stateValues.logStandardDeviation).closeTo(0.5, 1e-10);
-        expect(stateValues.logVariance).closeTo(0.25, 1e-10);
-        expect(stateValues.mean).closeTo(Math.exp(1.125), 1e-10);
-        expect(stateValues.variance).closeTo(
-            Math.expm1(0.25) * Math.exp(2.25),
-            1e-10,
-        );
-
-        // and a `<sampleRandomNumbers>` in the same shape does follow the reference
-        const sampled = await createTestCore({
-            doenetML: `
-    <mathInput name="m" prefill="1" />
-    <sampleRandomNumbers name="s" type="logNormal" logMean="$m" numSamples="4" />
-    `,
-        });
-        await updateMathInputValue({
-            latex: "4",
-            componentIdx: await sampled.resolvePathToNodeIdx("m"),
-            core: sampled.core,
-        });
-        const sampledStateValues = (
-            await sampled.core.returnAllStateVariables(false, true)
-        )[await sampled.resolvePathToNodeIdx("s")].stateValues;
-        expect(sampledStateValues.logMean).eq(4);
-        expect(sampledStateValues.mean).closeTo(Math.exp(4.5), 1e-10);
-    });
-
-    it("a selected distribution's parameters are frozen with its selection", async () => {
-        // `<selectRandomNumbers>` freezes its moments, so a parameter that kept
-        // tracking a reference would describe a distribution other than the numbers
-        // on the page.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="n" prefill="10" />
-    <selectRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numToSelect="4" />
-    `,
-        });
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-        expect(stateVariables[componentIdx].stateValues.numTrials).eq(10);
-        expect(stateVariables[componentIdx].stateValues.mean).closeTo(5, 1e-10);
-
-        await updateMathInputValue({
-            latex: "40",
-            componentIdx: await resolvePathToNodeIdx("n"),
-            core,
-        });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[componentIdx].stateValues.numTrials).eq(10);
-        expect(stateVariables[componentIdx].stateValues.mean).closeTo(5, 1e-10);
-    });
-
-    it("a sampled distribution's parameters still follow a reference", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="n" prefill="10" />
-    <sampleRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numSamples="4" />
-    `,
-        });
-        const componentIdx = await resolvePathToNodeIdx("s");
-
-        await updateMathInputValue({
-            latex: "40",
-            componentIdx: await resolvePathToNodeIdx("n"),
-            core,
-        });
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[componentIdx].stateValues.numTrials).eq(40);
-        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
-            20,
-            1e-10,
-        );
     });
 
     it("selectRandomNumbers forwards its diagnostics too", async () => {
@@ -3327,8 +2965,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ).eq(roundedResults2.join(""));
     });
 
-    it("select doesn't change dynamically", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
+    it("numToSelect and the range from an input are an error at load", async () => {
+        // What a selection or a sample chooses from can't come from an input
+        // (D39, SEL-1): an error at load in every variant, and the choice
+        // chooses nothing.
+        const { core } = await createTestCore({
             doenetML: `
     <mathInput prefill="20" name="numToSelect"/>
     <mathInput prefill="10" name="maxNum"/>
@@ -3343,79 +2984,15 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     </p>
     `,
         });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        let sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-        expect(sample1replacements.length).eq(20);
-        expect(sample2replacements.length).eq(10);
-        let sample1numbers = sample1replacements.map(
-            (x) => x.stateValues.value,
-        );
-        let sample2numbers = sample2replacements.map(
-            (x) => x.stateValues.value,
-        );
-
-        for (let num of sample1numbers) {
-            expect(num).gte(0);
-            expect(num).lt(10);
-        }
-        for (let num of sample2numbers) {
-            expect([0, 1, 2, 3, 4].includes(num)).eq(true);
-        }
-
-        // Nothing changes when change mathInputs
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: await resolvePathToNodeIdx("numToSelect"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: await resolvePathToNodeIdx("maxNum"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "16",
-            componentIdx: await resolvePathToNodeIdx("numToSelect2"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "18",
-            componentIdx: await resolvePathToNodeIdx("maxNum2"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-
-        expect(sample1replacements.map((x) => x.stateValues.value)).eqls(
-            sample1numbers,
-        );
-        expect(sample2replacements.map((x) => x.stateValues.value)).eqls(
-            sample2numbers,
-        );
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => e.code)).eqls(Array(2).fill("doenet-e0070"));
     });
 
-    it("sampled number does change dynamically", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
+    it("a sampler's parameters from an input are an error at load", async () => {
+        // What a selection or a sample chooses from can't come from an input
+        // (D39, SEL-1): an error at load in every variant, and the choice
+        // chooses nothing.
+        const { core } = await createTestCore({
             doenetML: `
     <mathInput prefill="50" name="numSamples"/>
     <mathInput prefill="10" name="maxNum"/>
@@ -3430,133 +3007,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     </p>
     `,
         });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        let sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-        expect(sample1replacements.length).eq(50);
-        expect(sample2replacements.length).eq(180);
-        let sample1numbers = sample1replacements.map(
-            (x) => x.stateValues.value,
-        );
-        let sample2numbers = sample2replacements.map(
-            (x) => x.stateValues.value,
-        );
-
-        for (let num of sample1numbers) {
-            expect(num).gte(0);
-            expect(num).lt(10);
-        }
-
-        expect(mean(sample1numbers)).closeTo(5, 2);
-        expect(variance(sample1numbers, "uncorrected")).closeTo(
-            10 ** 2 / 12,
-            4,
-        );
-
-        expect(mean(sample2numbers)).closeTo(0, 1.5);
-        expect(variance(sample2numbers, "uncorrected")).closeTo(16, 8);
-
-        // Get new samples when change number of samples
-        await updateMathInputValue({
-            latex: "70",
-            componentIdx: await resolvePathToNodeIdx("numSamples"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "160",
-            componentIdx: await resolvePathToNodeIdx("numSamples2"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1numbersb = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        ).map((x) => x.stateValues.value);
-        let sample2numbersb = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        ).map((x) => x.stateValues.value);
-        expect(sample1numbersb.length).eq(70);
-        expect(sample2numbersb.length).eq(160);
-
-        for (let num of sample1numbersb) {
-            expect(num).gte(0);
-            expect(num).lt(10);
-        }
-
-        expect(mean(sample1numbersb)).closeTo(5, 2);
-        expect(variance(sample1numbersb, "uncorrected")).closeTo(
-            10 ** 2 / 12,
-            4,
-        );
-
-        expect(mean(sample2numbersb)).closeTo(0, 1.5);
-        expect(variance(sample2numbersb, "uncorrected")).closeTo(16, 8);
-
-        for (let ind = 0; ind < 10; ind++) {
-            expect(sample1numbersb[ind]).not.eq(sample1numbers[ind]);
-        }
-        for (let ind = 0; ind < 10; ind++) {
-            expect(sample2numbersb[ind]).not.eq(sample2numbers[ind]);
-        }
-
-        // Get new samples when sample parameters
-        await updateMathInputValue({
-            latex: "4",
-            componentIdx: await resolvePathToNodeIdx("maxNum"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "18",
-            componentIdx: await resolvePathToNodeIdx("standardDeviation"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1numbersc = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        ).map((x) => x.stateValues.value);
-        let sample2numbersc = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        ).map((x) => x.stateValues.value);
-        expect(sample1numbersc.length).eq(70);
-        expect(sample2numbersc.length).eq(160);
-
-        for (let num of sample1numbersc) {
-            expect(num).gte(0);
-            expect(num).lt(4);
-        }
-        expect(mean(sample1numbersc)).closeTo(2, 1);
-        expect(variance(sample1numbersc, "uncorrected")).closeTo(
-            4 ** 2 / 12,
-            1,
-        );
-
-        expect(mean(sample2numbersc)).closeTo(0, 6);
-        expect(variance(sample2numbersc, "uncorrected")).closeTo(18 ** 2, 150);
-
-        for (let ind = 0; ind < 10; ind++) {
-            expect(sample1numbersc[ind]).not.eq(sample1numbersb[ind]);
-        }
-        for (let ind = 0; ind < 10; ind++) {
-            expect(sample2numbersc[ind]).not.eq(sample2numbersb[ind]);
-        }
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => e.code)).eqls(Array(2).fill("doenet-e0070"));
     });
 
     async function test_no_resample(
@@ -4208,15 +3660,37 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     });
 
     it("copying parameters", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <p>Number of samples <mathInput name="numSamples" prefill="10" /></p>
-    <p>Specified type of random number <textInput name="type" /></p>
-    <p>Specified mean <mathInput name="specifiedMean" prefill="0" /></p>
-    <p>Specified variance <mathInput name="specifiedVariance" prefill="1" /></p>
-    <p>Specified from <mathInput name="specifiedFrom" prefill="0" /></p>
-    <p>Specified to <mathInput name="specifiedTo" prefill="1" /></p>
-    <p>Specified step <mathInput name="specifiedStep" prefill="1" /></p>
+        // The parameters are copied from components that can't change, as a
+        // sampler's parameters must be (SEL-1), so each set of them is a
+        // document of its own.
+        let core: PublicDoenetMLCore;
+        let resolvePathToNodeIdx: ResolvePathToNodeIdx;
+        async function loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
+        }: {
+            numSamples: number;
+            specifiedType: string;
+            specifiedMean: number;
+            specifiedVariance: number;
+            specifiedFrom: number;
+            specifiedTo: number;
+            specifiedStep: number;
+        }) {
+            ({ core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p>Number of samples <number name="numSamples">${numSamples}</number></p>
+    <p>Specified type of random number <text name="type">${specifiedType}</text></p>
+    <p>Specified mean <number name="specifiedMean">${specifiedMean}</number></p>
+    <p>Specified variance <number name="specifiedVariance">${specifiedVariance}</number></p>
+    <p>Specified from <number name="specifiedFrom">${specifiedFrom}</number></p>
+    <p>Specified to <number name="specifiedTo">${specifiedTo}</number></p>
+    <p>Specified step <number name="specifiedStep">${specifiedStep}</number></p>
     <p>Actual type: <text extend="$samples.type" name="actualType" /></p>
     <p>Actual from: <number extend="$samples.from" name="actualFrom" /></p>
     <p>Actual to: <number extend="$samples.to" name="actualTo" /></p>
@@ -4238,7 +3712,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     <p extend="$p3" name="p5" />
     <p extend="$p4" name="p6" />
     `,
-        });
+            }));
+            return await core.returnAllStateVariables(false, true);
+        }
 
         let checkSamples = async function ({
             numSamples,
@@ -4263,7 +3739,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
             expect(
                 stateVariables[await resolvePathToNodeIdx("numSamples")]
-                    .stateValues.value.tree,
+                    .stateValues.value,
             ).eq(numSamples);
             expect(
                 stateVariables[await resolvePathToNodeIdx("type")].stateValues
@@ -4271,23 +3747,23 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             ).eq(specifiedType);
             expect(
                 stateVariables[await resolvePathToNodeIdx("specifiedMean")]
-                    .stateValues.value.tree,
+                    .stateValues.value,
             ).eq(specifiedMean);
             expect(
                 stateVariables[await resolvePathToNodeIdx("specifiedVariance")]
-                    .stateValues.value.tree,
+                    .stateValues.value,
             ).eq(specifiedVariance);
             expect(
                 stateVariables[await resolvePathToNodeIdx("specifiedFrom")]
-                    .stateValues.value.tree,
+                    .stateValues.value,
             ).eq(specifiedFrom);
             expect(
                 stateVariables[await resolvePathToNodeIdx("specifiedTo")]
-                    .stateValues.value.tree,
+                    .stateValues.value,
             ).eq(specifiedTo);
             expect(
                 stateVariables[await resolvePathToNodeIdx("specifiedStep")]
-                    .stateValues.value.tree,
+                    .stateValues.value,
             ).eq(specifiedStep);
 
             let type = specifiedType.toLowerCase();
@@ -4403,7 +3879,15 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         let specifiedStep = 1;
 
         // initial values
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        let stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
+        });
 
         await checkSamples({
             numSamples,
@@ -4422,13 +3906,16 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         // Increase number of samples
         numSamples = 50;
-        await updateMathInputValue({
-            latex: numSamples.toString(),
-            componentIdx: await resolvePathToNodeIdx("numSamples"),
-            core,
-        });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
+        });
 
         await checkSamples({
             numSamples,
@@ -4450,17 +3937,20 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         specifiedFrom = -3;
         specifiedTo = 0;
         await updateMathInputValue({
-            latex: specifiedFrom.toString(),
-            componentIdx: await resolvePathToNodeIdx("specifiedFrom"),
-            core,
-        });
-        await updateMathInputValue({
             latex: specifiedTo.toString(),
             componentIdx: await resolvePathToNodeIdx("specifiedTo"),
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
+        });
 
         await checkSamples({
             numSamples,
@@ -4481,13 +3971,15 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         // change type to discrete uniform
         specifiedType = "discreteUniform";
 
-        await updateTextInputValue({
-            text: specifiedType,
-            componentIdx: await resolvePathToNodeIdx("type"),
-            core,
+        stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
         });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
 
         await checkSamples({
             numSamples,
@@ -4511,22 +4003,20 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         specifiedStep = -4;
 
         await updateMathInputValue({
-            latex: specifiedFrom.toString(),
-            componentIdx: await resolvePathToNodeIdx("specifiedFrom"),
-            core,
-        });
-        await updateMathInputValue({
             latex: specifiedTo.toString(),
             componentIdx: await resolvePathToNodeIdx("specifiedTo"),
             core,
         });
-        await updateMathInputValue({
-            latex: specifiedStep.toString(),
-            componentIdx: await resolvePathToNodeIdx("specifiedStep"),
-            core,
-        });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
+        });
 
         await checkSamples({
             numSamples,
@@ -4547,13 +4037,15 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         // change type to gaussian
         specifiedType = "gaussian";
 
-        await updateTextInputValue({
-            text: specifiedType,
-            componentIdx: await resolvePathToNodeIdx("type"),
-            core,
+        stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
         });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
 
         await checkSamples({
             numSamples,
@@ -4576,17 +4068,20 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         specifiedVariance = 3;
 
         await updateMathInputValue({
-            latex: specifiedMean.toString(),
-            componentIdx: await resolvePathToNodeIdx("specifiedMean"),
-            core,
-        });
-        await updateMathInputValue({
             latex: specifiedVariance.toString(),
             componentIdx: await resolvePathToNodeIdx("specifiedVariance"),
             core,
         });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
+        });
 
         await checkSamples({
             numSamples,
@@ -4606,13 +4101,16 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         // Increase number of samples
         numSamples = 200;
-        await updateMathInputValue({
-            latex: numSamples.toString(),
-            componentIdx: await resolvePathToNodeIdx("numSamples"),
-            core,
-        });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
+        });
 
         await checkSamples({
             numSamples,
@@ -4632,13 +4130,16 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         // Decrease number of samples
         numSamples = 20;
-        await updateMathInputValue({
-            latex: numSamples.toString(),
-            componentIdx: await resolvePathToNodeIdx("numSamples"),
-            core,
-        });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await loadWith({
+            numSamples,
+            specifiedType,
+            specifiedMean,
+            specifiedVariance,
+            specifiedFrom,
+            specifiedTo,
+            specifiedStep,
+        });
 
         await checkSamples({
             numSamples,

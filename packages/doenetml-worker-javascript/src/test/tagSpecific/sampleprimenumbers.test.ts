@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import { callAction, updateMathInputValue } from "../utils/actions";
 import {
     childrenAsPresented,
@@ -216,8 +217,10 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
         });
     });
 
-    it("sampled numbers do change dynamically", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
+    it("a sampler's parameters from an input are an error at load", async () => {
+        // What a sample is drawn from can't come from an input (D39, SEL-1):
+        // an error at load in every variant, and the sampler draws nothing.
+        const { core } = await createTestCore({
             doenetML: `
     <mathInput prefill="50" name="numSamples"/>
     <mathInput prefill="10" name="maxNum"/>
@@ -233,119 +236,10 @@ describe("SamplePrimeNumbers tag tests @group4", async () => {
     </p>
     `,
         });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        let sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-        expect(sample1replacements.length).eq(50);
-        expect(sample2replacements.length).eq(180);
-        let sample1numbers = sample1replacements.map(
-            (x) => x.stateValues.value,
-        );
-        let sample2numbers = sample2replacements.map(
-            (x) => x.stateValues.value,
-        );
-
-        for (let num of sample1numbers) {
-            expect([2, 3, 5, 7].includes(num)).eq(true);
-        }
-        for (let num of sample2numbers) {
-            expect([2, 3, 5, 11, 13, 17, 23, 31, 41, 43].includes(num)).eq(
-                true,
-            );
-        }
-
-        // Get new samples when change number of samples
-        await updateMathInputValue({
-            latex: "70",
-            componentIdx: await resolvePathToNodeIdx("numSamples"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "160",
-            componentIdx: await resolvePathToNodeIdx("numSamples2"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1numbersb = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        ).map((x) => x.stateValues.value);
-        let sample2numbersb = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        ).map((x) => x.stateValues.value);
-        expect(sample1numbersb.length).eq(70);
-        expect(sample2numbersb.length).eq(160);
-
-        for (let num of sample1numbersb) {
-            expect([2, 3, 5, 7].includes(num)).eq(true);
-        }
-
-        for (let num of sample2numbersb) {
-            expect([2, 3, 5, 11, 13, 17, 23, 31, 41, 43].includes(num)).eq(
-                true,
-            );
-        }
-
-        expect(sample1numbersb.slice(0, 10)).not.eqls(
-            sample1numbers.slice(0, 10),
-        );
-        expect(sample2numbersb.slice(0, 10)).not.eqls(
-            sample2numbers.slice(0, 10),
-        );
-
-        // Get new samples when change parameters
-        await updateMathInputValue({
-            latex: "20",
-            componentIdx: await resolvePathToNodeIdx("maxNum"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "7, 19, 29, 37, 47, 2, 11, 23, 31, 41",
-            componentIdx: await resolvePathToNodeIdx("exclude"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1numbersc = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        ).map((x) => x.stateValues.value);
-        let sample2numbersc = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        ).map((x) => x.stateValues.value);
-        expect(sample1numbersc.length).eq(70);
-        expect(sample2numbersc.length).eq(160);
-
-        for (let num of sample1numbersc) {
-            expect([2, 3, 5, 7, 11, 13, 17, 19].includes(num)).eq(true);
-        }
-
-        for (let num of sample2numbersc) {
-            expect([3, 5, 13, 17, 43].includes(num)).eq(true);
-        }
-
-        expect(sample1numbersc.slice(0, 10)).not.eqls(
-            sample1numbersb.slice(0, 10),
-        );
-        expect(sample2numbersc.slice(0, 10)).not.eqls(
-            sample2numbersb.slice(0, 10),
-        );
+        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
+            "doenet-e0070",
+            "doenet-e0070",
+        ]);
     });
 
     it("sampled numbers don't resample in dynamic repeat", async () => {

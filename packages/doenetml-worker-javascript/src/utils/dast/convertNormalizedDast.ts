@@ -47,6 +47,7 @@ import { convertExpressionAttributes } from "./expressionAttributes";
 import { breakReferenceCycles } from "./referenceCycles";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
+import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -799,6 +800,19 @@ export async function normalizedDastToSerializedComponents(
         numResolverNodes: normalized_root.nodes.length,
         componentInfoObjects,
     });
+
+    // A random choice whose parameter reaches what a reader can change is an
+    // error in every variant (D39, SEL-1), reported now, wherever the choice
+    // is, and made an `_error` in place of the choice. On the final tree, as
+    // the pass that finds what a reader can change reads it in `Core`, and
+    // before the variants are counted, so that the choice is not one.
+    diagnostics.push(
+        ...checkChoiceParametersAtLoad({
+            document,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
 
     // Last, so that the walk sees the final tree -- after references became
     // copies, after attributes became components, and after sugar added
