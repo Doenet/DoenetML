@@ -123,6 +123,16 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `to="$ce"`,
         },
         {
+            tag: "<selectFromSequence to> from an orbital diagram input's rows, which a reader adds",
+            doenetML: `<orbitalDiagramInput name="o"/>
+<p name="p">A <selectFromSequence name="s" to="$o.numRows"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$o.numRows",
+            changeableType: "orbitalDiagramInput",
+            written: `to="$o.numRows"`,
+        },
+        {
             tag: "<selectFromSequence to> from a graph's axis, which a reader pans",
             doenetML: `<graph name="g"/>
 <p name="p">A <selectFromSequence name="s" to="$g.xMax"/> B</p>`,

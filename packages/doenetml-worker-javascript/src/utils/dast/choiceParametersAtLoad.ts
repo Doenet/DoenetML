@@ -24,10 +24,11 @@
  *   `<repeatForSequence>`.
  *
  * "A reader can change" is DIAG-2's definition: an input (a `<codeEditor>`
- * too), an answer, a slider, or what a reader writes to
- * (`buildReaderWritableIndex`: what an input's `bindValueTo` names, what a
- * reader drags, an action's target), and anything that reads one of these
- * through a reference, a child or an attribute. DIAG-2's state a reader sets
+ * and an `<orbitalDiagramInput>` too), an answer, a slider, or what a
+ * reader writes to (`buildReaderWritableIndex`: what an input's
+ * `bindValueTo` names, what a reader drags, an action's target), and
+ * anything that reads one of these through a reference, a child or an
+ * attribute. DIAG-2's state a reader sets
  * by an action (a hint, a solution or a section opened, a video played) is
  * not checked: a reference to such a component may read what no action
  * changes (`$sec.sectionNumber`), and the pass doesn't tell properties apart.
@@ -180,9 +181,15 @@ const PASS_THROUGH_VARIANT_TYPES = new Set([
 
 /**
  * What a reader enters a value in, besides an `_input`: an `<answer>`, a
- * `<slider>`, and a `<codeEditor>`, which isn't an `_input`.
+ * `<slider>`, and a `<codeEditor>` and an `<orbitalDiagramInput>`, which
+ * aren't `_input`s.
  */
-const READER_ENTERED_TYPES = new Set(["answer", "slider", "codeEditor"]);
+const READER_ENTERED_TYPES = new Set([
+    "answer",
+    "slider",
+    "codeEditor",
+    "orbitalDiagramInput",
+]);
 
 /** The attributes of a repeat that decide only how many iterations it has. */
 const COUNT_ONLY_ATTRIBUTES = new Set(["to", "length"]);
