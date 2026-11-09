@@ -792,7 +792,7 @@ mod tests {
     /// Each line is a match the core makes on a type, which its definition
     /// should say instead.
     const NAMING_TYPES: &[(&str, usize)] = &[
-        ("build/expand/aggregate.rs", 19),
+        ("build/expand/aggregate.rs", 25),
         ("build/expand/choice.rs", 5),
         ("build/expand/math.rs", 8),
         ("build/expand/mod.rs", 15),
@@ -837,26 +837,55 @@ mod tests {
 
     /// The lines of `text` that name a [`ComponentType`] variant
     /// (`ComponentType::Graph`) or read a prop's position (`case::ACTIVE`,
-    /// `prop::case::ACTIVE`), where `modules` are `prop`'s modules.
+    /// `prop::case::ACTIVE`, or `ACTIVE` after `use case::{ACTIVE}`),
+    /// where `modules` are `prop`'s modules.
     fn naming_type_lines<'t>(text: &'t str, modules: &[String]) -> Vec<(usize, &'t str)> {
         let variants: Vec<String> = ComponentType::ALL
             .iter()
             .map(|ty| format!("{ty:?}"))
             .collect();
         let ident = |c: char| c.is_ascii_alphanumeric() || c == '_';
-        let names_one = |line: &str| {
-            line.match_indices("::").any(|(at, _)| {
+        let constant = |name: &str| {
+            name.starts_with(|c: char| c.is_ascii_uppercase())
+                && name
+                    .chars()
+                    .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_')
+        };
+        // Each `path::rest` on the line: the identifier before the `::`,
+        // what precedes it, and what follows it.
+        let paths = |line: &'t str| {
+            line.match_indices("::").map(move |(at, _)| {
                 let before = &line[..at];
                 let start = before.rfind(|c| !ident(c)).map_or(0, |i| i + 1);
-                let (path, after) = (&before[start..], &line[at + 2..]);
+                (&before[..start], &before[start..], &line[at + 2..])
+            })
+        };
+        // `prop`'s module `path`, as `prop::case` or `case` alone; not the
+        // `document` of `crate::document`.
+        let is_module = |prefix: &str, path: &str| {
+            modules.iter().any(|m| m == path)
+                && (prefix.ends_with("prop::") || !prefix.ends_with("::"))
+        };
+        // The constants imported by name, `use section::{CREDIT, NUMBER};`.
+        let imported: Vec<&str> = text
+            .split(';')
+            .filter(|u| u.trim_start().starts_with("use "))
+            .flat_map(|u| {
+                paths(u)
+                    .filter(|(prefix, path, _)| is_module(prefix, path))
+                    .collect::<Vec<_>>()
+            })
+            .flat_map(|(_, _, rest)| rest.split(|c| !ident(c)))
+            .filter(|name| constant(name))
+            .collect();
+        let names_one = |line: &'t str| {
+            paths(line).any(|(prefix, path, after)| {
                 let name = &after[..after.find(|c| !ident(c)).unwrap_or(after.len())];
                 (path == "ComponentType" && variants.iter().any(|v| v == name))
-                    || (modules.iter().any(|m| m == path)
-                        && name.starts_with(|c: char| c.is_ascii_uppercase())
-                        && name
-                            .chars()
-                            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_'))
-            })
+                    || (is_module(prefix, path) && constant(name))
+            }) || line
+                .split(|c| !ident(c))
+                .any(|word| imported.contains(&word))
         };
         text.lines()
             .enumerate()

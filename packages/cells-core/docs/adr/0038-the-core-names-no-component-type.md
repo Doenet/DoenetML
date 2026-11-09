@@ -250,7 +250,7 @@ step 1 lower than before.
    how many lines name a `ComponentType` variant or read a
    `components::prop` constant, and fails if any count rises.
    Done: `NAMING_TYPES` and `the_core_names_types_ever_less` in
-   `components/mod.rs`, at 291 lines in 41 files. A count that falls
+   `components/mod.rs`, at 297 lines in 41 files. A count that falls
    fails too, until the list is lowered, so it only shrinks.
 2. **Roles.** The types the compile synthesizes are found by role:
    outline's root and refused elements, an iteration's index, value and
