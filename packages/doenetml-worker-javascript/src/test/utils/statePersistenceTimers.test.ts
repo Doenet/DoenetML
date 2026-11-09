@@ -92,7 +92,7 @@ describe("state persistence leaves no timer behind @group4", () => {
     });
 
     it("the test harness disposes the cores a test made when the test ends", async () => {
-        // Tests do not terminate their cores. The `afterEach` of
+        // Tests do not, as a rule, terminate their cores. The `afterEach` of
         // `setupErrorsAfterLoad.ts` calls `checkNoErrorsAfterLoad`, which
         // must clear the throttle that the load's save armed; otherwise each
         // core outlives its test by a minute, which ran
