@@ -169,10 +169,11 @@ export function returnGroupIntoListEntriesOfComponentType({
 
         const diagnostics = unmatchedBrackets
             ? [
-                  listBracketsUnmatchedInfo(
+                  listBracketsUnmatchedDiagnostic(
                       componentNameForDiagnostics ??
                           parentComponentType ??
                           componentType,
+                      componentType === "text",
                   ),
               ]
             : [];
@@ -190,16 +191,30 @@ export function returnGroupIntoListEntriesOfComponentType({
 }
 
 /**
- * The info that explains that the brackets of a list written as text don't
- * balance, so they were ignored in splitting it (`list-brackets-unmatched`).
- * An info, not a warning: the DoenetML is valid, and often meant
- * (`a) apple, b) banana`), so it only explains the reading.
- * `componentType` is the component the author wrote: the list, or the
- * owner of the attribute the list is the value of.
+ * The diagnostic that explains that the brackets of a list written as text
+ * don't balance, so they were ignored in splitting it
+ * (`list-brackets-unmatched`). `componentType` is the component the author
+ * wrote: the list, or the owner of the attribute the list is the value of.
+ *
+ * Its level follows DIAG-1. For a list of texts (`entriesAreText`), an
+ * unbalanced bracket is valid text, and often meant (`a) apple, b) banana`),
+ * so it is an info that only explains the reading. For any other list, an
+ * entry with an unbalanced bracket is not a valid value, so it is a warning:
+ * the author should change it.
  */
-export function listBracketsUnmatchedInfo(componentType: string) {
+export function listBracketsUnmatchedDiagnostic(
+    componentType: string,
+    entriesAreText: boolean,
+) {
+    if (entriesAreText) {
+        return codedDiagnostic({
+            type: "info",
+            code: "doenet-i0058",
+            args: { componentType },
+        });
+    }
     return codedDiagnostic({
-        type: "info",
+        type: "warning",
         code: "doenet-i0058",
         args: { componentType },
     });

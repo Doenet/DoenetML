@@ -35,6 +35,10 @@ import {
     superSubscriptsToUnicode,
 } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    levelFromSource,
+    withLevelsFromSource,
+} from "../utils/decidedByDoenetML";
 
 /**
  * The attributes that change what a function computes. A copy that sets any of
@@ -621,9 +625,27 @@ export default class Function extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "numInputs",
                     },
+                    // whether the domain and what decides the number of
+                    // inputs are written in the DoenetML, so a domain that
+                    // doesn't fit is a warning, or come from values that can
+                    // change, so it is an info (DIAG-2); a label decides
+                    // neither
+                    domainDecidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: ["domain", "numInputs", "variables"],
+                        childGroups: ["maths", "functions"],
+                    },
                 },
             }),
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                // what is reported while the domain doesn't fit, under each
+                // key recalculated, as all are set
+                const byKey = (diagnostics) =>
+                    Object.fromEntries(
+                        arrayKeys.map((arrayKey) => [arrayKey, diagnostics]),
+                    );
+                const levelDecided =
+                    globalDependencyValues.domainDecidedByDoenetML;
                 if (globalDependencyValues.domainAttr !== null) {
                     let numInputs = globalDependencyValues.numInputs;
                     // Function domains are stored as one interval per input
@@ -638,7 +660,7 @@ export default class Function extends InlineComponent {
                         );
                     if (specifiedDomain.length !== numInputs) {
                         let warning = codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(levelDecided),
                             code: "doenet-w0038",
                             args: {
                                 intervals: specifiedDomain.length,
@@ -656,7 +678,7 @@ export default class Function extends InlineComponent {
                         let domain = Array(numInputs).fill(infDomain);
                         return {
                             setValue: { domain },
-                            sendDiagnostics: [warning],
+                            conditionDiagnosticsByKey: byKey([warning]),
                         };
                     }
 
@@ -671,7 +693,7 @@ export default class Function extends InlineComponent {
                         )
                     ) {
                         let warning = codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(levelDecided),
                             code: "doenet-w0039",
                             position:
                                 globalDependencyValues.domainAttr.position ||
@@ -685,7 +707,7 @@ export default class Function extends InlineComponent {
                         let domain = Array(numInputs).fill(infDomain);
                         return {
                             setValue: { domain },
-                            sendDiagnostics: [warning],
+                            conditionDiagnosticsByKey: byKey([warning]),
                         };
                     }
 
@@ -1517,9 +1539,47 @@ export default class Function extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "prescribedExtrema",
                 },
+                // whether the points are written in the DoenetML, so a point
+                // that is not numerical, or two at the same x, is a warning,
+                // or come from values that can change, so it is an info
+                // (DIAG-2)
+                pointsDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: [
+                        "through",
+                        "throughSlopes",
+                        "minima",
+                        "maxima",
+                        "extrema",
+                    ],
+                },
             }),
-            definition: ({ dependencyValues }) =>
-                calculateInterpolationPoints({ dependencyValues, numerics }),
+            definition({ dependencyValues }) {
+                const { setValue, diagnostics } = calculateInterpolationPoints({
+                    dependencyValues,
+                    numerics,
+                });
+                // a point missing both coordinates is as written (w0041);
+                // the others are reported while their condition holds (B33)
+                const conditionCodes = ["doenet-w0040", "doenet-w0042"];
+                return {
+                    setValue,
+                    sendDiagnostics: diagnostics.filter(
+                        (d) => !conditionCodes.includes(d.code),
+                    ),
+                    conditionDiagnostics: withLevelsFromSource(
+                        diagnostics.filter((d) =>
+                            conditionCodes.includes(d.code),
+                        ),
+                        {
+                            "doenet-w0040":
+                                dependencyValues.pointsDecidedByDoenetML,
+                            "doenet-w0042":
+                                dependencyValues.pointsDecidedByDoenetML,
+                        },
+                    ),
+                };
+            },
         };
 
         stateVariableDefinitions.xs = {
@@ -5036,7 +5096,7 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
             );
             return {
                 setValue: { interpolationPoints: null },
-                sendDiagnostics: diagnostics,
+                diagnostics,
             };
         }
         xPrev = p.x;
@@ -5332,7 +5392,7 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
         }
     }
 
-    return { setValue: { interpolationPoints }, sendDiagnostics: diagnostics };
+    return { setValue: { interpolationPoints }, diagnostics };
 
     function monotonicSlope({ point, prevPoint, nextPoint }) {
         // monotonic cubic interpolation formula from

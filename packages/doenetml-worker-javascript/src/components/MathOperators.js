@@ -3,6 +3,7 @@ import MathBaseOperator from "./abstract/MathBaseOperator";
 import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import { isNumericConstant } from "../utils/math";
 import {
     absInverse,
@@ -1297,19 +1298,28 @@ export class ExtractMath extends MathBaseOperatorOneInput {
                     dependencyType: "stateVariable",
                     variableName: "argumentNumber",
                 },
+                // whether the type and operand number are written in the
+                // DoenetML, so a missing operand number is a warning, or come
+                // from values that can change, so it is an info (DIAG-2)
+                operandDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["type", "operandNumber"],
+                },
             }),
             definition({ dependencyValues }) {
                 if (dependencyValues.type === "operand") {
                     if (dependencyValues.operandNumber === null) {
                         let warning = codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(
+                                dependencyValues.operandDecidedByDoenetML,
+                            ),
                             code: "doenet-w0058",
                         });
                         return {
                             setValue: {
                                 mathOperator: () => me.fromAst("\uff3f"),
                             },
-                            sendDiagnostics: [warning],
+                            conditionDiagnostics: [warning],
                         };
                     }
                     return {

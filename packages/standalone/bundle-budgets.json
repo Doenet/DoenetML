@@ -38,8 +38,8 @@
             "note": "The single-file variant for Blob/srcdoc hosts: every chunk inlined, math core included. Doubles as the total-weight ceiling for the code-split build."
         },
         "dist/doenetml-worker/index.js": {
-            "maxBytes": 8040000,
-            "observedBytes": 7441005,
+            "maxBytes": 8650000,
+            "observedBytes": 8041513,
             "note": "Carries one inlined math core. The Rust *document* core is not inlined here: it is served as the sibling lib_doenetml_worker_bg.wasm, which the worker fetches at run time."
         }
     }

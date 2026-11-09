@@ -1,5 +1,6 @@
 import ValueListComponent from "./ValueListComponent";
 import { returnListValueStateVariableDefinitions } from "../../utils/listValues";
+import { withLevelsFromSource } from "../../utils/decidedByDoenetML";
 
 /**
  * Base class for the operators that answer *how many*: `<tally>` and
@@ -99,6 +100,23 @@ export default class CountingBaseListOperator extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "countValues",
                 },
+                // Whether what each diagnostic can come from is written in
+                // the DoenetML, which makes it a warning rather than an info
+                // (DIAG-2)
+                valuesDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    childGroups: ["anything"],
+                },
+                binsDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["bins"],
+                },
+                // a category written twice is written twice however the
+                // values it counts arrive
+                categoriesDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["categories", "type"],
+                },
             }),
             definition({ dependencyValues }) {
                 const { counts, labels, diagnostics } =
@@ -112,7 +130,21 @@ export default class CountingBaseListOperator extends ValueListComponent {
                         countingResults: counts,
                         countLabels: labels ?? null,
                     },
-                    sendDiagnostics: diagnostics ?? [],
+                    // what the counts give now, gone when they no longer
+                    // give it (B33)
+                    conditionDiagnostics: withLevelsFromSource(
+                        diagnostics ?? [],
+                        {
+                            "doenet-w0139":
+                                dependencyValues.binsDecidedByDoenetML,
+                            "doenet-w0141":
+                                dependencyValues.binsDecidedByDoenetML,
+                            "doenet-w0140":
+                                dependencyValues.valuesDecidedByDoenetML,
+                            "doenet-w0142":
+                                dependencyValues.categoriesDecidedByDoenetML,
+                        },
+                    ),
                 };
             },
         };

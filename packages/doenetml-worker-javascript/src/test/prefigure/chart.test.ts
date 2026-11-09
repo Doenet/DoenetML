@@ -110,8 +110,13 @@ describe("chart prefigure tests @group4", async () => {
 
                 expect(chart.type).eq(null);
                 expect(chart.prefigureXML).eq(null);
+                // An info for a type from a reference, which is a value
+                // that can change (DIAG-2)
+                const { warnings, infos } = getDiagnosticsByType(core);
                 expect(
-                    getDiagnosticsByType(core).warnings.map((w) => w.code),
+                    (written === `type=""` ? warnings : infos).map(
+                        (d) => d.code,
+                    ),
                 ).toContain("doenet-w0146");
             }
         });

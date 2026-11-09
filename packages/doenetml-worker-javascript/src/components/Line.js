@@ -19,6 +19,7 @@ import {
     roundForDisplay,
 } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 
 export default class Line extends GraphicalComponent {
     constructor(args) {
@@ -762,6 +763,14 @@ export default class Line extends GraphicalComponent {
                             dependencyType: "stateVariable",
                             variableName: "lastPointsFromInverting",
                         },
+                        // whether the equation is written in the DoenetML,
+                        // so one that is not linear is a warning, or comes
+                        // from values that can change, so it is an info
+                        // (DIAG-2)
+                        equationDecidedByDoenetML: {
+                            dependencyType: "decidedByDoenetML",
+                            attributeNames: ["equation", "variables"],
+                        },
                     };
                     return { globalDependencies };
                 }
@@ -791,9 +800,16 @@ export default class Line extends GraphicalComponent {
                                     me.fromAst("\uff3f");
                             }
                         }
+                        // reported while the equation is not linear, under
+                        // each key recalculated, as all are set
+                        const conditionDiagnosticsByKey = {};
+                        for (const arrayKey of arrayKeys) {
+                            conditionDiagnosticsByKey[arrayKey] =
+                                result.diagnostics ?? [];
+                        }
                         return {
                             setValue: { points },
-                            sendDiagnostics: result.sendDiagnostics,
+                            conditionDiagnosticsByKey,
                         };
                     } else {
                         return { setValue: { points: result.points } };
@@ -1358,6 +1374,19 @@ export default class Line extends GraphicalComponent {
                     },
                 };
                 if (stateValues.equationIdentity === null) {
+                    // whether the points are written in the DoenetML, so a
+                    // line they don't determine is a warning, or come from
+                    // values that can change, so it is an info (DIAG-2)
+                    dependencies.pointsDecidedByDoenetML = {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: [
+                            "through",
+                            "slope",
+                            "parallelTo",
+                            "perpendicularTo",
+                            "variables",
+                        ],
+                    };
                     dependencies.points = {
                         dependencyType: "stateVariable",
                         variableName: "points",
@@ -1433,9 +1462,11 @@ export default class Line extends GraphicalComponent {
                     };
                 }
 
+                const levelDecided = dependencyValues.pointsDecidedByDoenetML;
+
                 if (numDimens < 2) {
-                    let warning = codedDiagnostic({
-                        type: "warning",
+                    let diagnostic = codedDiagnostic({
+                        type: levelFromSource(levelDecided),
                         code: "doenet-w0002",
                     });
                     return {
@@ -1445,7 +1476,7 @@ export default class Line extends GraphicalComponent {
                             coeffvar1: blankMath,
                             coeffvar2: blankMath,
                         },
-                        sendDiagnostics: [warning],
+                        conditionDiagnostics: [diagnostic],
                     };
                 }
 
@@ -1463,8 +1494,8 @@ export default class Line extends GraphicalComponent {
                         point2x.variables().indexOf(varStrings[i]) !== -1 ||
                         point2y.variables().indexOf(varStrings[i]) !== -1
                     ) {
-                        let warning = codedDiagnostic({
-                            type: "warning",
+                        let diagnostic = codedDiagnostic({
+                            type: levelFromSource(levelDecided),
                             code: "doenet-w0003",
                             // A bare enumeration, not an "and" list: the
                             // message names which variables were seen, it
@@ -1483,7 +1514,7 @@ export default class Line extends GraphicalComponent {
                                 coeffvar1: blankMath,
                                 coeffvar2: blankMath,
                             },
-                            sendDiagnostics: [warning],
+                            conditionDiagnostics: [diagnostic],
                         };
                     }
                 }
@@ -2314,9 +2345,13 @@ export default class Line extends GraphicalComponent {
  * thing, so they share one constructor and cannot drift in what they
  * interpolate.
  */
-function invalidEquationFormatDiagnostic(var1String, var2String) {
+function invalidEquationFormatDiagnostic(
+    var1String,
+    var2String,
+    type = "warning",
+) {
     return codedDiagnostic({
-        type: "warning",
+        type,
         code: "doenet-w0004",
         args: { variable1: var1String, variable2: var2String },
     });
@@ -2500,6 +2535,7 @@ function calculatePointsFromCoeffs({
     coeffvar2,
     variables,
     lastPointsFromInverting,
+    equationDecidedByDoenetML,
 }) {
     let var1 = variables[0];
     let var2 = variables[1];
@@ -2517,8 +2553,12 @@ function calculatePointsFromCoeffs({
     ) {
         return {
             success: false,
-            sendDiagnostics: [
-                invalidEquationFormatDiagnostic(var1String, var2String),
+            diagnostics: [
+                invalidEquationFormatDiagnostic(
+                    var1String,
+                    var2String,
+                    levelFromSource(equationDecidedByDoenetML),
+                ),
             ],
         };
     }
@@ -2526,8 +2566,12 @@ function calculatePointsFromCoeffs({
     if (coeffvar1.equals(zero) && coeffvar2.equals(zero)) {
         return {
             success: false,
-            sendDiagnostics: [
-                invalidEquationFormatDiagnostic(var1String, var2String),
+            diagnostics: [
+                invalidEquationFormatDiagnostic(
+                    var1String,
+                    var2String,
+                    levelFromSource(equationDecidedByDoenetML),
+                ),
             ],
         };
     }

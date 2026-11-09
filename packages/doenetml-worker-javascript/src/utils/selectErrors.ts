@@ -83,9 +83,9 @@ export function selectError({
 
 /**
  * The level of a select's failure to select (D38, DIAG-7): an error when
- * what decides it is written in the DoenetML, so it is the same in every
- * variant and the author must change it; otherwise an info, since a value or
- * another random choice decides it (`<selectFromSequence to="$a"
+ * what decides it is decided by the DoenetML (it cannot change), so it is
+ * the same in every variant and the author must change it; otherwise an
+ * info, since a value or another random choice decides it (`<selectFromSequence to="$a"
  * numToSelect="3"/>` with a random `a`), and the select is missing while it
  * lasts (DIAG-2).
  *
@@ -106,70 +106,6 @@ export function isInfoSelectFailure(errorDiagnostic: unknown): boolean {
         typeof errorDiagnostic === "object" &&
         errorDiagnostic !== null &&
         (errorDiagnostic as { type?: unknown }).type === "info"
-    );
-}
-
-/**
- * Whether the attribute `attribute` of a component is decided by the
- * DoenetML alone: not written (its default), a literal, a primitive, or an
- * attribute component that holds no reference. A reference anywhere in it
- * (`to="$a"`, `numToSelect="$n+1"`) makes it a value that can change.
- */
-function attributeDecidedByDoenetML(
-    attribute: any,
-    componentInfoObjects: any,
-): boolean {
-    if (!attribute) {
-        return true;
-    }
-    if (attribute.type === "literal" || attribute.type === "primitive") {
-        return true;
-    }
-    if (attribute.type === "expression") {
-        return (attribute.slots ?? []).length === 0;
-    }
-    if (attribute.component) {
-        return componentDecidedByDoenetML(
-            attribute.component,
-            componentInfoObjects,
-        );
-    }
-    // a reference to a variable of another component
-    return false;
-}
-
-/**
- * Whether the live component `component`, an attribute component or a
- * child, holds only what is written: no reference (a `_ref` read for its
- * value, or a composite, such as a `_copy`), no extend, and the same of its
- * children and attributes.
- */
-function componentDecidedByDoenetML(
-    component: any,
-    componentInfoObjects: any,
-): boolean {
-    if (typeof component !== "object" || component === null) {
-        return true;
-    }
-    if (
-        component.shadows ||
-        component.extending ||
-        // a reference read for its value (`valueReferences.ts`)
-        component.componentType === "_ref" ||
-        componentInfoObjects.isCompositeComponent({
-            componentType: component.componentType,
-            includeNonStandard: true,
-        })
-    ) {
-        return false;
-    }
-    return (
-        (component.definingChildren ?? []).every((child: any) =>
-            componentDecidedByDoenetML(child, componentInfoObjects),
-        ) &&
-        Object.values(component.attributes ?? {}).every((attribute) =>
-            attributeDecidedByDoenetML(attribute, componentInfoObjects),
-        )
     );
 }
 
@@ -232,8 +168,8 @@ function serializedHasNoReference(component: any): boolean {
 /**
  * Whether a fresh load reproduces what a `<select>` chooses, so a save can
  * leave its selection out (`definitionEssentialValuesReproducible`): its
- * choices are decided by the DoenetML (`choicesDecidedByDoenetML`), and so
- * are its options' weights. An option copied from elsewhere may carry a
+ * choices are written without a reference (`choicesWrittenWithoutReference`),
+ * and so are its options' weights. An option copied from elsewhere may carry a
  * weight from a value, which can't be seen here, so a select with one is
  * saved.
  */
@@ -265,14 +201,79 @@ export function isCopiedOption(child: any): boolean {
 }
 
 /**
- * Whether what a select chooses from, and how many, is decided by the
- * DoenetML alone (D38, DIAG-7): each of the attributes `attributeNames` of
- * the select `component` is {@link attributeDecidedByDoenetML}, and, when
- * `serializedOptions` is given, each of those children is
- * {@link optionWrittenInDoenetML}. Computed when the select is made, from
- * what the author wrote, so it is the same in every variant.
+ * Whether the live attribute `attribute` is written without a reference:
+ * not written, a literal, a primitive, or an attribute component that holds
+ * no reference, composite or input, nor do its children and attributes.
  */
-export function choicesDecidedByDoenetML({
+function attributeWrittenWithoutReference(
+    attribute: any,
+    componentInfoObjects: any,
+): boolean {
+    if (!attribute) {
+        return true;
+    }
+    if (attribute.type === "literal" || attribute.type === "primitive") {
+        return true;
+    }
+    if (attribute.type === "expression") {
+        return (attribute.slots ?? []).length === 0;
+    }
+    if (attribute.component) {
+        return componentWrittenWithoutReference(
+            attribute.component,
+            componentInfoObjects,
+        );
+    }
+    return false;
+}
+
+function componentWrittenWithoutReference(
+    component: any,
+    componentInfoObjects: any,
+): boolean {
+    if (typeof component !== "object" || component === null) {
+        return true;
+    }
+    if (
+        component.shadows ||
+        component.extending ||
+        component.componentType === "_ref" ||
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: component.componentType,
+            baseComponentType: "_input",
+        }) ||
+        componentInfoObjects.isCompositeComponent({
+            componentType: component.componentType,
+            includeNonStandard: true,
+        })
+    ) {
+        return false;
+    }
+    return (
+        (component.definingChildren ?? []).every((child: any) =>
+            componentWrittenWithoutReference(child, componentInfoObjects),
+        ) &&
+        Object.values(component.attributes ?? {}).every((attribute) =>
+            attributeWrittenWithoutReference(attribute, componentInfoObjects),
+        )
+    );
+}
+
+/**
+ * Whether what a select chooses from, and how many, is written in the
+ * DoenetML without a reference: each of the attributes `attributeNames` of
+ * the select `component`, and, when `serializedOptions` is given, each of
+ * those children is {@link optionWrittenInDoenetML}. Computed when the
+ * select is made, from what the author wrote. Then a fresh load reproduces
+ * the selection (`definitionEssentialValuesReproducible`).
+ *
+ * Whether a failure to select is an error asks a wider question, whether
+ * any of it can change ({@link returnChoicesDecidedByDoenetMLDefinition}):
+ * a reference to a component that cannot change decides it too. This one
+ * stays narrow, so a select whose choices come through a reference keeps
+ * its selection in a save, as before.
+ */
+export function choicesWrittenWithoutReference({
     component,
     attributeNames,
     serializedOptions,
@@ -283,35 +284,87 @@ export function choicesDecidedByDoenetML({
     serializedOptions?: any[];
     componentInfoObjects: any;
 }): boolean {
-    const attributesDecided = attributeNames.every((name) =>
-        attributeDecidedByDoenetML(
+    const attributesWritten = attributeNames.every((name) =>
+        attributeWrittenWithoutReference(
             component.attributes?.[name],
             componentInfoObjects,
         ),
     );
-    if (!attributesDecided || serializedOptions === undefined) {
-        return attributesDecided;
+    if (!attributesWritten || serializedOptions === undefined) {
+        return attributesWritten;
     }
     return serializedOptions.every(optionWrittenInDoenetML);
 }
 
 /**
- * The state variable `choicesDecidedByDoenetML` of a select (or the one
- * named `variableName`, kept the same way, such as a `<select>`'s
- * `optionsDecidedByDoenetML`), read by the
+ * The state variable `choicesDecidedByDoenetML` of a select, read by the
  * definition that selects to set the level of a failure
- * ({@link selectFailureType}). The select's constructor computes it from
- * what the author wrote ({@link choicesDecidedByDoenetML}) and keeps it in
- * `doenetAttributes`.
+ * ({@link selectFailureType}): whether what it chooses from, and how many,
+ * is decided by the DoenetML alone (D38, DIAG-7). It is when none of the
+ * attributes `attributeNames` can change (a `decidedByDoenetML`
+ * dependency, `canChange`): one written as a literal, or as a reference to
+ * a component that cannot change (`numToSelect="$n"` of a `<number>`
+ * written as `5`). One that reaches an input, a random choice or something
+ * a reader can write to can change. With `withOptions`, its options must
+ * also be written in it (`optionsDecidedByDoenetML`, kept by the
+ * constructor in `doenetAttributes`).
+ *
+ * It depends on what the author wrote, not on the variant, so it is the
+ * same in every variant, and it is decided when the select first selects,
+ * as the document loads, so an error is reported at load.
  */
-export function returnChoicesDecidedByDoenetMLDefinition(
-    variableName = "choicesDecidedByDoenetML",
-) {
+export function returnChoicesDecidedByDoenetMLDefinition({
+    attributeNames,
+    withOptions = false,
+}: {
+    attributeNames: string[];
+    withOptions?: boolean;
+}) {
+    return {
+        returnDependencies: () => ({
+            attributesDecided: {
+                dependencyType: "decidedByDoenetML",
+                attributeNames,
+            },
+            ...(withOptions
+                ? {
+                      optionsDecided: {
+                          dependencyType: "doenetAttribute",
+                          attributeName: "optionsDecidedByDoenetML",
+                      },
+                  }
+                : {}),
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: {
+                attributesDecided: boolean;
+                optionsDecided?: boolean;
+            };
+        }) {
+            return {
+                setValue: {
+                    choicesDecidedByDoenetML:
+                        dependencyValues.attributesDecided &&
+                        dependencyValues.optionsDecided !== false,
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The state variable `optionsDecidedByDoenetML` of a `<select>`: whether
+ * its options are all written in it (`optionWrittenInDoenetML`), kept by
+ * its constructor in `doenetAttributes`.
+ */
+export function returnOptionsDecidedByDoenetMLDefinition() {
     return {
         returnDependencies: () => ({
             decided: {
                 dependencyType: "doenetAttribute",
-                attributeName: variableName,
+                attributeName: "optionsDecidedByDoenetML",
             },
         }),
         definition({
@@ -321,7 +374,8 @@ export function returnChoicesDecidedByDoenetMLDefinition(
         }) {
             return {
                 setValue: {
-                    [variableName]: dependencyValues.decided !== false,
+                    optionsDecidedByDoenetML:
+                        dependencyValues.decided !== false,
                 },
             };
         },

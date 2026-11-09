@@ -13,6 +13,10 @@ import {
 } from "../../utils/numberDisplay";
 import { returnNVariables, roundForDisplay } from "../../utils/math";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import {
+    levelFromSource,
+    withLevelsFromSource,
+} from "../../utils/decidedByDoenetML";
 
 export default class ODESystem extends InlineComponent {
     static componentType = "odeSystem";
@@ -208,11 +212,19 @@ export default class ODESystem extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "independentVariable",
                     },
+                    // whether the variables are written in the DoenetML, so
+                    // one that is the independent variable is a warning, or
+                    // come from values that can change, so it is an info
+                    // (DIAG-2)
+                    variablesDecidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: ["variables", "independentVariable"],
+                    },
                 };
 
                 return { globalDependencies };
             },
-            arrayDefinitionByKey({ globalDependencyValues }) {
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
                 let diagnostics = [];
 
                 let variablesSpecified = [];
@@ -236,7 +248,9 @@ export default class ODESystem extends InlineComponent {
                 ) {
                     diagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(
+                                globalDependencyValues.variablesDecidedByDoenetML,
+                            ),
                             code: "doenet-w0045",
                             position:
                                 globalDependencyValues.variables?.position ||
@@ -251,9 +265,13 @@ export default class ODESystem extends InlineComponent {
                     );
                 }
 
+                // reported while a variable is the independent variable,
+                // under each key recalculated, as all are set
                 return {
                     setValue: { variables, validVariables },
-                    sendDiagnostics: diagnostics,
+                    conditionDiagnosticsByKey: Object.fromEntries(
+                        arrayKeys.map((arrayKey) => [arrayKey, diagnostics]),
+                    ),
                 };
             },
         };
@@ -609,6 +627,19 @@ export default class ODESystem extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: `rhss`,
                 },
+                // whether the variables and the right-hand sides are written
+                // in the DoenetML, so ones that give no function are a
+                // warning, or come from values that can change, so they are
+                // an info (DIAG-2)
+                variablesDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["variables", "independentVariable"],
+                },
+                rhssDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["variables"],
+                    childGroups: ["rightHandSides"],
+                },
             }),
             definition({ dependencyValues }) {
                 // console.log(dependencyValues);
@@ -665,7 +696,16 @@ export default class ODESystem extends InlineComponent {
                             numericalRHSf: () => NaN,
                             numericalRHSfDefinitions: Array(n).fill({}),
                         },
-                        sendDiagnostics: diagnostics,
+                        // reported while the system gives no function (B33)
+                        conditionDiagnostics: withLevelsFromSource(
+                            diagnostics,
+                            {
+                                "doenet-w0046":
+                                    dependencyValues.variablesDecidedByDoenetML,
+                                "doenet-w0047":
+                                    dependencyValues.rhssDecidedByDoenetML,
+                            },
+                        ),
                     };
                 }
 

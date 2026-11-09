@@ -16,6 +16,36 @@ import {
 import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
+
+/**
+ * Whether a target of an action (`<updateValue>`, `<animateFromSequence>`)
+ * that is gone (`doenet-w0043`) is decided by the DoenetML, so the
+ * diagnostic is a warning (`levelFromSource`, DIAG-2). It is not when the
+ * targets are the replacements of a composite, which are what has the
+ * property, or not, as their values change, so the diagnostic is an info.
+ * Otherwise (the target itself, or the entries of a list), it is decided
+ * when the target cannot change where it is written and an index in the
+ * path cannot change (`targetsDecided`, a `contentDecidedByDoenetML`
+ * dependency): `$ml.xs[5]` of a `<mathList>` written as literals is a
+ * warning.
+ *
+ * A target without the property to change (`doenet-w0044`) stays a warning
+ * even when the targets are the replacements of a `<conditionalContent>` or
+ * `<select>`: those replace themselves with a `<group>` whatever the active
+ * case or choice, so what the target is, and whether it has the property, is
+ * decided by the DoenetML.
+ */
+export function missingTargetDecided({
+    targetComponent,
+    targetIdentities,
+    targetsDecided,
+}) {
+    const fromReplacements = (targetIdentities ?? []).some(
+        (target) => target.componentIdx !== targetComponent?.componentIdx,
+    );
+    return !fromReplacements && targetsDecided !== false;
+}
 
 export default class UpdateValue extends InlineComponent {
     constructor(args) {
@@ -252,6 +282,11 @@ export default class UpdateValue extends InlineComponent {
                 let dependencies = {};
 
                 if (stateValues.targetComponent !== null) {
+                    // whether the target can come to give targets
+                    dependencies.targetsDecided = {
+                        dependencyType: "contentDecidedByDoenetML",
+                        componentIdx: stateValues.targetComponent.componentIdx,
+                    };
                     const targetClass =
                         componentInfoObjects.allComponentClasses[
                             stateValues.targetComponent.componentType
@@ -321,9 +356,20 @@ export default class UpdateValue extends InlineComponent {
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
+                    // No target is what the DoenetML says, a warning. A
+                    // target that is a composite with no replacements now,
+                    // or a list with no entries now, has none from values
+                    // when its replacements or entries can change (a case
+                    // whose condition comes from an input), an info, and
+                    // from the DoenetML when they cannot (`condition="false"`,
+                    // an empty `<mathList>` written as a literal), a warning
+                    // (DIAG-2).
                     diagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(
+                                targetIdentities === null ||
+                                    dependencyValues.targetsDecided,
+                            ),
                             code: "doenet-w0043",
                             args: { source: "updateValue" },
                         }),
@@ -332,7 +378,9 @@ export default class UpdateValue extends InlineComponent {
 
                 return {
                     setValue: { targetIdentities },
-                    sendDiagnostics: diagnostics,
+                    // what the target gives now, gone when it no longer
+                    // gives it (B33)
+                    conditionDiagnostics: diagnostics,
                 };
             },
         };
@@ -342,6 +390,7 @@ export default class UpdateValue extends InlineComponent {
                 "targetIdentities",
                 "unresolvedPath",
                 "targetOriginalPath",
+                "targetComponent",
             ],
             returnDependencies: function ({ stateValues }) {
                 let dependencies = {
@@ -353,7 +402,21 @@ export default class UpdateValue extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "unresolvedPath",
                     },
+                    targetComponent: {
+                        dependencyType: "stateVariable",
+                        variableName: "targetComponent",
+                    },
                 };
+
+                if (stateValues.targetComponent !== null) {
+                    // whether the targets, and what the path picks of
+                    // them, can change
+                    dependencies.targetsDecided = {
+                        dependencyType: "contentDecidedByDoenetML",
+                        componentIdx: stateValues.targetComponent.componentIdx,
+                        pathOfAttribute: "target",
+                    };
+                }
 
                 if (stateValues.targetIdentities !== null) {
                     for (let [
@@ -437,6 +500,11 @@ export default class UpdateValue extends InlineComponent {
             definition({ dependencyValues }) {
                 let targets = null;
                 let diagnostics = [];
+                const targetDecided = missingTargetDecided({
+                    targetComponent: dependencyValues.targetComponent,
+                    targetIdentities: dependencyValues.targetIdentities,
+                    targetsDecided: dependencyValues.targetsDecided,
+                });
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -446,7 +514,7 @@ export default class UpdateValue extends InlineComponent {
                         if (target == null) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: "warning",
+                                    type: levelFromSource(targetDecided),
                                     code: "doenet-w0043",
                                     args: { source: "updateValue" },
                                 }),
@@ -495,7 +563,12 @@ export default class UpdateValue extends InlineComponent {
                     }
                 }
 
-                return { setValue: { targets }, sendDiagnostics: diagnostics };
+                return {
+                    setValue: { targets },
+                    // what the targets give now, gone when they no longer
+                    // give it (B33)
+                    conditionDiagnostics: diagnostics,
+                };
             },
         };
 

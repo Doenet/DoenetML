@@ -65,7 +65,10 @@ export function selectSugar(node: DastElement) {
             }),
         );
         node.children = groupResult.unmatchedBrackets
-            ? [listBracketsUnmatchedError(node), ...newChildren]
+            ? [
+                  listBracketsUnmatchedError(node, insertType === "text"),
+                  ...newChildren,
+              ]
             : newChildren;
     }
 }

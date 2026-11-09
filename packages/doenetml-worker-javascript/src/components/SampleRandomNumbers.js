@@ -6,6 +6,8 @@ import {
     validHypergeometricParameters,
     validPoissonMean,
     normalMixtureMoments,
+    samplingParametersDecidedDependencies,
+    withSamplingLevels,
 } from "../utils/randomNumbers";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import ValueListComponent from "./abstract/ValueListComponent";
@@ -1474,6 +1476,10 @@ export default class SampleRandomNumbers extends ValueListComponent {
                         dependencyType: "stateVariable",
                         variableName: "poissonMean",
                     },
+                    // whether each distribution's parameters are written in the
+                    // DoenetML, which makes a diagnostic about them a warning
+                    // rather than an info (DIAG-2)
+                    ...samplingParametersDecidedDependencies(),
                 };
                 if (stateValues.variantDeterminesSeed) {
                     dependencies.rng = {
@@ -1522,7 +1528,11 @@ export default class SampleRandomNumbers extends ValueListComponent {
 
                     return {
                         useEssentialOrDefaultValue: { sampledValues: true },
-                        sendDiagnostics: diagnostics,
+                        conditionDiagnostics: withSamplingLevels(
+                            diagnostics,
+                            dependencyValues.type,
+                            dependencyValues,
+                        ),
                     };
                 }
 
@@ -1532,7 +1542,13 @@ export default class SampleRandomNumbers extends ValueListComponent {
                 return {
                     setEssentialValue: { sampledValues },
                     setValue: { sampledValues },
-                    sendDiagnostics: diagnostics,
+                    // what these parameters give now, gone when they no longer
+                    // give it (B33)
+                    conditionDiagnostics: withSamplingLevels(
+                        diagnostics,
+                        dependencyValues.type,
+                        dependencyValues,
+                    ),
                 };
             },
             inverseDefinition({ desiredStateVariableValues }) {

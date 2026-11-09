@@ -1,5 +1,5 @@
 import { splitListItems } from "@doenet/parser/list-separation";
-import { listBracketsUnmatchedInfo } from "./commonsugar/lists";
+import { listBracketsUnmatchedDiagnostic } from "./commonsugar/lists";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
@@ -29,6 +29,7 @@ import {
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import { returnShortDescriptionStateVariableDefinition } from "../utils/shortDescription";
 
 /**
@@ -1814,17 +1815,16 @@ export default class Graph extends BlockComponent {
                             dependencyType: "stateVariable",
                             variableName: "gridAttrCompChildren",
                         },
-                        // Every child of the attribute, used only to tell a
-                        // value the author spelled out from one that came from
-                        // elsewhere. It has to be every child rather than
-                        // `gridAttrCompChildren`, because a child a text
-                        // attribute cannot accept at all — `grid="$aPoint"` —
-                        // is missing from `gridAttrCompChildren` and from the
-                        // attribute's value alike. Judged on what survives, the
-                        // value would look authored, and the warning below
-                        // would quote the empty remnant the dropped child left
-                        // behind, on top of the "invalid format" warning that
-                        // child already raised.
+                        // Every child of the attribute, used only to tell
+                        // whether a child was dropped. It has to be every
+                        // child rather than `gridAttrCompChildren`, because a
+                        // child a text attribute cannot accept at all —
+                        // `grid="$aPoint"` — is missing from
+                        // `gridAttrCompChildren` and from the attribute's
+                        // value alike, and the diagnostic below would quote
+                        // the empty remnant the dropped child left behind, on
+                        // top of the "invalid format" warning that child
+                        // already raised.
                         allGridAttrChildren: {
                             dependencyType: "child",
                             parentIdx: stateValues.gridAttrCompName,
@@ -1834,6 +1834,12 @@ export default class Graph extends BlockComponent {
                             dependencyType: "attributeComponent",
                             attributeName: "grid",
                             variableNames: ["value"],
+                        },
+                        // whether the grid is decided by the DoenetML: written
+                        // as a literal, or a reference to what cannot change
+                        gridDecidedByDoenetML: {
+                            dependencyType: "decidedByDoenetML",
+                            attributeNames: ["grid"],
                         },
                     };
 
@@ -1864,40 +1870,44 @@ export default class Graph extends BlockComponent {
                 const attrChildren = dependencyValues.gridAttrCompChildren;
                 const attrValue = dependencyValues.gridAttr.stateValues.value;
 
-                // Only a value the author spelled out can be reported as
-                // invalid. Once the attribute contains a reference, an unusable
-                // value is not reliably a mistake: it is usually a `<mathInput>`
-                // the reader has not filled in yet — warning about that would
-                // fire on every load — or one they have filled in badly, which
-                // is not the author's to fix. The cost is that a reference to a
-                // value the author got wrong, as in `grid="1 $negativeNumber"`,
-                // goes unreported.
-                const authoredInFull =
-                    dependencyValues.allGridAttrChildren.every(
-                        (child) => typeof child === "string",
-                    );
+                // A value decided by the DoenetML is a mistake to warn
+                // about. One that can change, such as a `<mathInput>` the
+                // reader has not filled in yet or has filled in badly, is not
+                // the author's to fix. So it is an info, there while the
+                // value is unusable and gone when it is not (DIAG-2, B33).
+                const gridDecided = dependencyValues.gridDecidedByDoenetML;
+
+                // A child the attribute could not hold (`grid="$aPoint"`) is
+                // dropped from its value, and its format is reported already
+                // (`doenet-w0106`), so the remnant is not quoted back too.
+                const droppedAChild = dependencyValues.allGridAttrChildren.some(
+                    (child) =>
+                        typeof child !== "string" &&
+                        !attrChildren.some(
+                            (kept) => kept?.componentIdx === child.componentIdx,
+                        ),
+                );
 
                 // Brackets that don't balance are ignored in splitting the
-                // value, which the info explains whether or not the grid
-                // is then usable. Only written text has brackets, so they
-                // are the author's even beside a reference.
-                let bracketsInfo = [];
+                // value, which `doenet-i0058` explains whether or not the
+                // grid is then usable. Only written text has brackets, so
+                // they are the author's even beside a reference.
+                let bracketsDiagnostics = [];
 
                 const noGrid = () => ({
                     setValue: { grid: "none" },
                     setCreateComponentOfType: { grid: "text" },
-                    sendDiagnostics: [
-                        ...(authoredInFull
-                            ? [
-                                  codedDiagnostic({
-                                      type: "warning",
-                                      code: "doenet-w0119",
-                                      args: { grid: attrValue },
-                                  }),
-                              ]
-                            : []),
-                        ...bracketsInfo,
-                    ],
+                    conditionDiagnostics: droppedAChild
+                        ? []
+                        : [
+                              codedDiagnostic({
+                                  type: levelFromSource(gridDecided),
+                                  code: "doenet-w0119",
+                                  args: { grid: attrValue },
+                              }),
+                          ],
+                    // brackets the author wrote, decided by the DoenetML
+                    sendDiagnostics: bracketsDiagnostics,
                 });
 
                 let grid = attrValue.toLowerCase().trim();
@@ -1910,13 +1920,16 @@ export default class Graph extends BlockComponent {
                     return {
                         setValue: { grid },
                         setCreateComponentOfType: { grid: "text" },
+                        conditionDiagnostics: [],
                     };
                 }
 
                 const { groups: groupedChildren, unmatchedBrackets } =
                     groupGridAttrChildren(attrChildren);
                 if (unmatchedBrackets) {
-                    bracketsInfo = [listBracketsUnmatchedInfo("graph")];
+                    bracketsDiagnostics = [
+                        listBracketsUnmatchedDiagnostic("graph", false),
+                    ];
                 }
 
                 if (groupedChildren.length < 2) {
@@ -1943,7 +1956,8 @@ export default class Graph extends BlockComponent {
                 return {
                     setValue: { grid },
                     setCreateComponentOfType: { grid: "numberList" },
-                    sendDiagnostics: bracketsInfo,
+                    conditionDiagnostics: [],
+                    sendDiagnostics: bracketsDiagnostics,
                 };
             },
         };

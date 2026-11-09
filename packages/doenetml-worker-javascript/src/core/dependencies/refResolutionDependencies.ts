@@ -7,6 +7,10 @@
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
+    changeContext,
+    pathHasIndexThatCanChange,
+} from "../../utils/decidedByDoenetML";
+import {
     doenetMLArgumentsForReference,
     doenetMLDollarsForReference,
     doenetMLReferenceAsWritten,
@@ -383,6 +387,58 @@ export class RefResolutionDependency extends Dependency {
     }
 
     /**
+     * Whether an index of the reference on `composite`, as written, can
+     * change (`$r[$k]` with `k` an input), so an index that names nothing
+     * is an info rather than a warning (DIAG-2).
+     */
+    indexFromValue(composite: any): boolean {
+        return pathHasIndexThatCanChange(
+            this.refResolutionOf(composite)?.originalPath,
+            changeContext(this.dependencyHandler.core),
+        );
+    }
+
+    /**
+     * The condition of `composite` that the index of its reference names
+     * nothing now, one per slot.
+     */
+    indexNamesNothingCondition(): string {
+        return `refIndexNamesNothing:${this.slot ? `${this.slot.attributeName}[${this.slot.index}]` : ""}`;
+    }
+
+    /**
+     * Report that `reference`, whose index comes from a value, names nothing
+     * now (`doenet-w0104` at info level), as a condition of `composite`
+     * that lasts while it does: the reference is resolved again when the
+     * index changes, which withdraws it ({@link withdrawIndexNamesNothing})
+     * or reports it again (B33, DIAG-2).
+     */
+    reportIndexNamesNothing(composite: any, reference: string) {
+        this.dependencyHandler.core.diagnosticsManager.setConditionDiagnostics(
+            composite.componentIdx,
+            this.indexNamesNothingCondition(),
+            [
+                codedDiagnostic({
+                    type: "info",
+                    code: "doenet-w0104",
+                    args: { reference },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            ],
+        );
+    }
+
+    /** Withdraw what {@link reportIndexNamesNothing} reported. */
+    withdrawIndexNamesNothing(composite: any) {
+        this.dependencyHandler.core.diagnosticsManager.setConditionDiagnostics(
+            composite.componentIdx,
+            this.indexNamesNothingCondition(),
+            [],
+        );
+    }
+
+    /**
      * Wait for the `_copy` children that fill the list at `listIdx`
      * (`listCopiesOf`) to expand, and update when they change. Returns
      * `false` if one has not expanded yet (a blocker was added).
@@ -554,6 +610,9 @@ export class RefResolutionDependency extends Dependency {
 
         this.originalPath = resolveComponentResult.path;
 
+        // Decided again below, with the index as it is now
+        this.withdrawIndexNamesNothing(composite);
+
         const refComponent = this.dependencyHandler._components[nodeIdx];
 
         if (!refComponent) {
@@ -683,7 +742,18 @@ export class RefResolutionDependency extends Dependency {
             // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
             // Rather than duplicating code to make the messages,
             // we could make sure that `ref_resolve` formats the messages in this case, too.
-            if (!reportedByCopy) {
+            if (
+                !reportedByCopy &&
+                firstResolutionError === "NoReferent" &&
+                this.indexFromValue(composite)
+            ) {
+                // `$r[$k]` while `k` is blank or 0: an info while the index
+                // names nothing (DIAG-2)
+                this.reportIndexNamesNothing(
+                    composite,
+                    getReferenceAsWritten(),
+                );
+            } else if (!reportedByCopy) {
                 this.dependencyHandler.core.addDiagnostic(
                     codedDiagnostic({
                         type: "warning",
@@ -874,6 +944,10 @@ export class RefResolutionDependency extends Dependency {
                         sourceDoc: composite.sourceDoc,
                     }),
                 );
+            } else if (!referenced && this.indexFromValue(composite)) {
+                // past the end of what a composite made, by an index from a
+                // value: an info while it lasts (DIAG-2)
+                this.reportIndexNamesNothing(composite, reference);
             } else if (!referenced) {
                 this.dependencyHandler.core.addDiagnostic(
                     codedDiagnostic({

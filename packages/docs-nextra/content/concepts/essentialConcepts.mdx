@@ -109,7 +109,8 @@ of them separate the entries by the same rule:
   `(1, 2), (3, 4)` are two entries each. Any closing bracket closes any opening
   one, so the half-open interval `(1, 2]` is one entry. If the brackets don't
   balance, they are ignored for the whole list, and Doenet explains this with
-  an info.
+  a warning, or, in a list of texts, where such a bracket is valid text, an
+  info.
   Angle brackets `<` `>` and bars `|` are not brackets.
 * **Every comma separates two entries.** A trailing comma (`a, b,`) or two
   commas in a row (`a,,b`) give an empty entry.

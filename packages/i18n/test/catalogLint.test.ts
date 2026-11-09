@@ -362,6 +362,19 @@ describe("countDiagnosticConstructions", () => {
         expect(remainingLiteralDiagnostics({ ...counts, codes: [] })).toBe(0);
     });
 
+    it("counts a coded call whose level is chosen by `levelFromSource`, so it nets out", () => {
+        // A warning or an info by where the condition comes from (DIAG-2).
+        const counts = countDiagnosticConstructions(
+            `codedDiagnostic({ type: levelFromSource(decided), code: "doenet-w0001" });`,
+        );
+        expect(counts).toEqual({
+            constructionCount: 1,
+            codedConstructionCount: 1,
+            forwardedCount: 0,
+        });
+        expect(remainingLiteralDiagnostics({ ...counts, codes: [] })).toBe(0);
+    });
+
     it("counts a literal construction with nothing to cancel it", () => {
         const counts = countDiagnosticConstructions(
             `diagnostics.push({ type: "warning", message: "no" });`,

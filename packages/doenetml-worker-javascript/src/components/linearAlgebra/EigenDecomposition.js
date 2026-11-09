@@ -6,6 +6,7 @@ import {
 import BaseComponent from "../abstract/BaseComponent";
 import me from "math-expressions";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { levelFromSource } from "../../utils/decidedByDoenetML";
 const { eigs, square, abs, divide } = me.math;
 
 export default class EigenDecomposition extends BaseComponent {
@@ -60,6 +61,13 @@ export default class EigenDecomposition extends BaseComponent {
                     dependencyType: "child",
                     childGroups: ["maths"],
                     variableNames: ["value"],
+                },
+                // whether the matrix is written in the DoenetML, so one whose
+                // eigenvalues can't be found is a warning, or comes from
+                // values that can change, so it is an info (DIAG-2)
+                matrixDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    childGroups: ["maths"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -138,12 +146,14 @@ export default class EigenDecomposition extends BaseComponent {
                         e,
                     );
                     let warning = codedDiagnostic({
-                        type: "warning",
+                        type: levelFromSource(
+                            dependencyValues.matrixDecidedByDoenetML,
+                        ),
                         code: "doenet-w0059",
                     });
                     return {
                         setValue: { decomposition: null, numEigenvectors: 0 },
-                        sendDiagnostics: [warning],
+                        conditionDiagnostics: [warning],
                     };
                 }
 

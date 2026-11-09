@@ -1,4 +1,57 @@
 import { codedDiagnostic } from "./diagnostics";
+import { levelFromSource } from "./decidedByDoenetML";
+
+/**
+ * The attributes that set the parameters of each distribution whose
+ * parameters can be unusable (or slow to sample), and so what the
+ * diagnostics about them come from. `type` picks the distribution, so it is
+ * among them for every one.
+ */
+const PARAMETER_ATTRIBUTES_BY_TYPE = {
+    gaussian: ["mean", "standardDeviation", "variance"],
+    lognormal: ["logMean", "logStandardDeviation", "logVariance"],
+    normalmixture: ["means", "standardDeviations", "variances", "weights"],
+    hypergeometric: ["numTotal", "numSuccesses", "numDraws"],
+    binomial: ["numTrials", "probability"],
+    poisson: ["mean"],
+};
+
+/**
+ * One `decidedByDoenetML` dependency for each distribution of
+ * `<sampleRandomNumbers>` (and `<selectRandomNumbers>`): whether its
+ * parameters, and the `type` that chose it, are written in the DoenetML
+ * rather than coming from values that can change (DIAG-2).
+ */
+export function samplingParametersDecidedDependencies() {
+    return Object.fromEntries(
+        Object.entries(PARAMETER_ATTRIBUTES_BY_TYPE).map(
+            ([type, attributeNames]) => [
+                `${type}ParametersDecidedByDoenetML`,
+                {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["type", ...attributeNames],
+                },
+            ],
+        ),
+    );
+}
+
+/**
+ * `diagnostics` that sampling from the distribution `type` gave, each a
+ * warning when the parameters that caused it are written in the DoenetML and
+ * an info when they come from values that can change (DIAG-2), as the
+ * dependencies of {@link samplingParametersDecidedDependencies} say.
+ */
+export function withSamplingLevels(diagnostics, type, dependencyValues) {
+    const decided = dependencyValues[`${type}ParametersDecidedByDoenetML`];
+    // each diagnostic is constructed where it is raised; this sets the level
+    // of one already made
+    const level = levelFromSource(decided);
+    return diagnostics.map((diagnostic) => ({
+        ...diagnostic,
+        ["type"]: level,
+    }));
+}
 
 // The samplers below are exact, but each takes time linear in its parameters and runs
 // synchronously on the worker thread. A warning cannot call back a loop that is already

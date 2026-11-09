@@ -24,6 +24,7 @@ import {
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     listEntrySourceDependencies,
     listEntrySourceValue,
@@ -1138,6 +1139,23 @@ export default class Vector extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "numDimTail",
                 },
+                // whether the displacement, head and tail are written in the
+                // DoenetML, so dimensions that don't match are a warning, or
+                // come from values that can change, so they are an info
+                // (DIAG-2); a label is none of them
+                decidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: [
+                        "displacement",
+                        "xs",
+                        "x",
+                        "y",
+                        "z",
+                        "head",
+                        "tail",
+                    ],
+                    childGroups: ["pointsAndVectors"],
+                },
             }),
             definition: function ({ dependencyValues }) {
                 // console.log(`numDimensions definition`)
@@ -1152,12 +1170,14 @@ export default class Vector extends GraphicalComponent {
                             dependencyValues.numDimTail
                         ) {
                             let warning = codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    dependencyValues.decidedByDoenetML,
+                                ),
                                 code: "doenet-w0008",
                             });
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendDiagnostics: [warning],
+                                conditionDiagnostics: [warning],
                             };
                         }
                     } else if (dependencyValues.basedOnHead) {
@@ -1166,12 +1186,14 @@ export default class Vector extends GraphicalComponent {
                             dependencyValues.numDimHead
                         ) {
                             let warning = codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    dependencyValues.decidedByDoenetML,
+                                ),
                                 code: "doenet-w0008",
                             });
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendDiagnostics: [warning],
+                                conditionDiagnostics: [warning],
                             };
                         }
                     }
@@ -1183,12 +1205,14 @@ export default class Vector extends GraphicalComponent {
                             dependencyValues.numDimHead
                         ) {
                             let warning = codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    dependencyValues.decidedByDoenetML,
+                                ),
                                 code: "doenet-w0008",
                             });
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendDiagnostics: [warning],
+                                conditionDiagnostics: [warning],
                             };
                         }
                     }

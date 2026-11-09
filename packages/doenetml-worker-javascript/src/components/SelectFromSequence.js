@@ -20,9 +20,10 @@ import {
 } from "../utils/excludeCombinations";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     NO_SELECT_ERROR,
-    choicesDecidedByDoenetML,
+    choicesWrittenWithoutReference,
     returnChoicesDecidedByDoenetMLDefinition,
     returnSelectErrorReportDefinition,
     selectError,
@@ -38,8 +39,9 @@ const { gcd } = me.math;
 
 /**
  * The attributes that decide what a `<selectFromSequence>` can select. When
- * each is written without a reference, a failure to select is an error;
- * otherwise it is a missing selection with an info (`selectFailureType`).
+ * none of them can change, a failure to select is an error; otherwise it is
+ * a missing selection with an info (`selectFailureType`,
+ * `choicesDecidedByDoenetML`).
  */
 const ATTRIBUTES_DECIDING_CHOICES = [
     "from",
@@ -56,8 +58,9 @@ const ATTRIBUTES_DECIDING_CHOICES = [
 export default class SelectFromSequence extends Sequence {
     constructor(args) {
         super(args);
-        this.doenetAttributes.choicesDecidedByDoenetML =
-            choicesDecidedByDoenetML({
+        // so a fresh load reproduces its selection
+        this.doenetAttributes.choicesWrittenWithoutReference =
+            choicesWrittenWithoutReference({
                 component: this,
                 attributeNames: ATTRIBUTES_DECIDING_CHOICES,
                 componentInfoObjects: args.componentInfoObjects,
@@ -73,7 +76,7 @@ export default class SelectFromSequence extends Sequence {
      * made with, never choosing again.
      */
     get definitionEssentialValuesReproducible() {
-        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
+        return this.doenetAttributes.choicesWrittenWithoutReference !== false;
     }
 
     static componentType = "selectFromSequence";
@@ -210,16 +213,25 @@ export default class SelectFromSequence extends Sequence {
                     dependencyType: "stateVariable",
                     variableName: "coprime",
                 },
+                // whether `coprime` and the `type` it is ignored for are
+                // written in the DoenetML: a warning then, and an info when
+                // they come from values that can change (DIAG-2). Whether
+                // `excludeCombinations` is given is always written.
+                coprimeDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["coprime", "type"],
+                },
             }),
             definition: function ({ dependencyValues }) {
                 const diagnostics = [];
+                const levelDecided = dependencyValues.coprimeDecidedByDoenetML;
                 if (
                     dependencyValues.coprime &&
                     dependencyValues.type !== "number"
                 ) {
                     diagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(levelDecided),
                             code: "doenet-w0051",
                         }),
                     );
@@ -251,7 +263,7 @@ export default class SelectFromSequence extends Sequence {
                         if (dependencyValues.coprime) {
                             diagnostics.push(
                                 codedDiagnostic({
-                                    type: "warning",
+                                    type: levelFromSource(levelDecided),
                                     code: "doenet-w0052",
                                 }),
                             );
@@ -284,7 +296,9 @@ export default class SelectFromSequence extends Sequence {
         };
 
         stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition();
+            returnChoicesDecidedByDoenetMLDefinition({
+                attributeNames: ATTRIBUTES_DECIDING_CHOICES,
+            });
 
         stateVariableDefinitions.selectedValues = {
             immutable: true,

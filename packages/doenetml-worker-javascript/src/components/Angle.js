@@ -14,6 +14,7 @@ import {
 } from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
@@ -335,6 +336,13 @@ export default class Angle extends GraphicalComponent {
                         attributeName: "through",
                         variableNames: ["points"],
                     },
+                    // whether the points are written in the DoenetML, so one
+                    // that is not a point is a warning, or come from values
+                    // that can change, so it is an info (DIAG-2)
+                    throughDecidedByDoenetML: {
+                        dependencyType: "decidedByDoenetML",
+                        attributeNames: ["through"],
+                    },
                     radiansAttr: {
                         dependencyType: "attributeComponent",
                         attributeName: "radians",
@@ -369,7 +377,14 @@ export default class Angle extends GraphicalComponent {
 
                 return { globalDependencies };
             },
-            arrayDefinitionByKey({ globalDependencyValues }) {
+            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                // what is reported while a point is not one, under each key
+                // recalculated, as all are set
+                const byKey = (diagnostics) =>
+                    Object.fromEntries(
+                        arrayKeys.map((arrayKey) => [arrayKey, diagnostics]),
+                    );
+
                 if (globalDependencyValues.lineChildren) {
                     if (globalDependencyValues.lineChildren.length > 2) {
                         let warning = codedDiagnostic({
@@ -587,7 +602,9 @@ export default class Angle extends GraphicalComponent {
                 if (foundBadThroughPoint) {
                     diagnostics.push(
                         codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(
+                                globalDependencyValues.throughDecidedByDoenetML,
+                            ),
                             code: "doenet-w0048",
                             position:
                                 globalDependencyValues.throughAttr.position ||
@@ -616,7 +633,7 @@ export default class Angle extends GraphicalComponent {
                             points["2,1"] = me.fromAst("\uff3f");
                             return {
                                 setValue: { points },
-                                sendDiagnostics: diagnostics,
+                                conditionDiagnosticsByKey: byKey(diagnostics),
                             };
                         }
                     } else if (globalDependencyValues.degreesAttr) {
@@ -629,7 +646,7 @@ export default class Angle extends GraphicalComponent {
                             points["2,1"] = me.fromAst("\uff3f");
                             return {
                                 setValue: { points },
-                                sendDiagnostics: diagnostics,
+                                conditionDiagnosticsByKey: byKey(diagnostics),
                             };
                         }
                     } else if (globalDependencyValues.radiansShadow) {
@@ -640,7 +657,7 @@ export default class Angle extends GraphicalComponent {
                             points["2,1"] = me.fromAst("\uff3f");
                             return {
                                 setValue: { points },
-                                sendDiagnostics: diagnostics,
+                                conditionDiagnosticsByKey: byKey(diagnostics),
                             };
                         }
                     } else {
@@ -667,7 +684,7 @@ export default class Angle extends GraphicalComponent {
 
                 return {
                     setValue: { points },
-                    sendDiagnostics: diagnostics,
+                    conditionDiagnosticsByKey: byKey(diagnostics),
                 };
             },
         };

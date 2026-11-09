@@ -307,8 +307,8 @@ export class Tally extends CountingBaseListOperator {
  * so every value that has a category at all is counted and nothing can be
  * missed. With declared categories a value matching none of them is not
  * counted, which is reported — but only as info, since a list fed by an input
- * legitimately holds non-categories while a student is still typing, and the
- * diagnostics queue is append-only.
+ * legitimately holds non-categories while a student is still typing. It is
+ * reported while it holds and goes away once it ends (B33).
  *
  * `declaredType` is the type the declared categories were read as, and is
  * `null` exactly when `declaredCategories` is.
@@ -385,11 +385,11 @@ function tallyValues({ values, numeric, declaredCategories, declaredType }) {
         );
     }
 
-    // A warning rather than info: unlike a stray *value*, a repeated category
-    // is a property of what the author wrote, so it stays true of a settled
-    // document. Inferred categories are distinct by construction, so only
-    // declared ones can repeat. The message carries no count, so the
-    // append-only diagnostics queue holds at most one of it.
+    // A warning when the categories are written in the DoenetML: unlike a
+    // stray *value*, a repeated category is a property of what the author
+    // wrote. An info when they come from a value that can change (DIAG-2,
+    // set by `countingResults`). Inferred categories are distinct by
+    // construction, so only declared ones can repeat.
     if (
         declaredCategories !== null &&
         hasRepeatedCategory(comparableCategories, numeric)

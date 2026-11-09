@@ -7,6 +7,7 @@
  */
 
 import { codedDiagnostic } from "./diagnostics";
+import { levelFromSource } from "./decidedByDoenetML";
 
 /**
  * The default `markLength` of a `<slopeField>`, in pixels. The PreFigure
@@ -167,6 +168,14 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                     childGroups: ["functions"],
                     variableNames: ["numOutputs", "fDefinitions"],
                 },
+                // whether the function is written in the DoenetML, so one
+                // with the wrong number of outputs is a warning, or comes
+                // from values that can change, so it is an info (DIAG-2);
+                // a label is not the function
+                functionDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    childGroups: ["functions"],
+                },
             }),
             definition({ dependencyValues }) {
                 // A second <function> child is not a second field; the first
@@ -178,7 +187,7 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                     functionChild === null ||
                     functionChild.stateValues.numOutputs !== numOutputs
                 ) {
-                    const sendDiagnostics = [];
+                    const conditionDiagnostics = [];
 
                     // A field with no function at all is visibly unfinished —
                     // it is what the editor's completions leave behind, and a
@@ -188,9 +197,11 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                     // that one is worth saying out loud.
                     if (functionChild !== null) {
                         const found = functionChild.stateValues.numOutputs;
-                        sendDiagnostics.push(
+                        conditionDiagnostics.push(
                             codedDiagnostic({
-                                type: "warning",
+                                type: levelFromSource(
+                                    dependencyValues.functionDecidedByDoenetML,
+                                ),
                                 code: "doenet-w0122",
                                 args: {
                                     component: componentType,
@@ -219,7 +230,9 @@ export function returnFieldFunctionStateVariableDefinitions({ numOutputs }) {
                                 () => ({}),
                             ),
                         },
-                        sendDiagnostics,
+                        // reported while the function has the wrong number
+                        // of outputs (B33)
+                        conditionDiagnostics,
                     };
                 }
 

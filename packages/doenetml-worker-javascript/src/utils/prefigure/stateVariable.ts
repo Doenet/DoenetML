@@ -2,6 +2,7 @@ import { createPrefigureXML } from "./graph";
 import { sortDescendantsByOrder } from "./common";
 import type { Descendant, GraphDependencyValues } from "./types";
 import { codedDiagnostic } from "../diagnostics";
+import { withLevelsFromSource } from "../decidedByDoenetML";
 import {
     GRAPH_TEXT_COMMON_VARIABLES,
     GRAPH_TEXT_CONTENT_VARIABLES,
@@ -775,6 +776,7 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                     dependencyType: "descendant",
                     componentTypes: ["_base"],
                 },
+                ...graphAttributesDecidedDependencies(),
             };
         },
         definition({
@@ -801,12 +803,15 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                 }
                 return {
                     setValue: { prefigureXML: null },
-                    sendDiagnostics: diagnostics,
+                    conditionDiagnostics: diagnostics,
                 };
             }
 
             if (dependencyValues.haveGraphParent) {
-                return { setValue: { prefigureXML: null } };
+                return {
+                    setValue: { prefigureXML: null },
+                    conditionDiagnostics: [],
+                };
             }
 
             const descendants = [
@@ -870,11 +875,48 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                 );
             }
 
+            const decided = (name: string) =>
+                dependencyValues[name] as boolean | undefined;
+
             return {
                 setValue: { prefigureXML: xml },
-                sendDiagnostics: diagnostics,
+                // what the graph gives now, gone when it no longer gives it
+                // (B33), each about the graph's own attributes a warning when
+                // they are written in the DoenetML and an info when they come
+                // from values that can change (DIAG-2)
+                conditionDiagnostics: withLevelsFromSource(diagnostics, {
+                    "doenet-w0062": decided("boundsDecidedByDoenetML"),
+                    "doenet-w0063": decided("widthDecidedByDoenetML"),
+                    "doenet-w0064": decided("aspectRatioDecidedByDoenetML"),
+                    "doenet-w0118": decided("gridDecidedByDoenetML"),
+                    "doenet-w0174": decided("axisScalesDecidedByDoenetML"),
+                }),
             };
         },
+    };
+}
+
+/**
+ * Whether the graph's attributes that the diagnostics about its bounds,
+ * size, grid and axis scales come from are written in the DoenetML
+ * (`decidedByDoenetML`), for the level of each (DIAG-2).
+ */
+function graphAttributesDecidedDependencies() {
+    const bounds = ["xMin", "xMax", "yMin", "yMax", "identicalAxisScales"];
+    const width = ["width", "size"];
+    const aspectRatio = ["aspectRatio", ...bounds, ...width];
+    const decided = (attributeNames: string[]) => ({
+        dependencyType: "decidedByDoenetML",
+        attributeNames,
+    });
+    return {
+        boundsDecidedByDoenetML: decided(bounds),
+        widthDecidedByDoenetML: decided(width),
+        aspectRatioDecidedByDoenetML: decided(aspectRatio),
+        gridDecidedByDoenetML: decided([...bounds, "grid"]),
+        // the scales a field's arrows are normalized with: the bounds over
+        // the width and height
+        axisScalesDecidedByDoenetML: decided(aspectRatio),
     };
 }
 

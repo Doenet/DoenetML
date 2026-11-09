@@ -516,6 +516,7 @@ describe("List operator tag tests @group4", async () => {
                 text: stateVariables[await resolvePathToNodeIdx(name)]
                     .stateValues.text,
                 warnings: d.warnings.map((w) => w.message),
+                infos: d.infos.map((i) => i.message),
             };
         }
 
@@ -723,6 +724,8 @@ describe("List operator tag tests @group4", async () => {
     <p name="p"><searchSorted type="text" target="cherry">$tl</searchSorted></p>
     `);
             expect(text).eq("0");
+            // values from a reference to a list written as literals can't
+            // change, so it is a warning (DIAG-2)
             expect(warnings.filter(notSorted).length).eq(1);
         });
 
@@ -751,12 +754,14 @@ describe("List operator tag tests @group4", async () => {
 
         it("many targets on an unsorted list report once", async () => {
             // The list is one fact about the document however many targets ask
-            // about it, and the queue keeps every distinct message forever.
+            // about it, so it is reported once, not once per target.
             const { text, warnings } = await resultsFor(`
     <numberList name="targets">1 2 3 4 5</numberList>
     <p name="p"><searchSorted target="$targets">10 30 20</searchSorted></p>
     `);
             expect(text).eq("0, 0, 0, 0, 0");
+            // the target comes from a reference to literals, which can't
+            // change, so it is a warning (DIAG-2)
             expect(warnings.filter(notSorted).length).eq(1);
         });
 
@@ -783,6 +788,8 @@ describe("List operator tag tests @group4", async () => {
     <p name="p"><searchSorted target="4">$nl</searchSorted></p>
     `);
             expect(text).eq("0");
+            // values from a reference to a list written as literals can't
+            // change, so it is a warning (DIAG-2)
             expect(warnings.filter(notSorted).length).eq(1);
         });
 
@@ -797,6 +804,8 @@ describe("List operator tag tests @group4", async () => {
     <p name="p"><searchSorted target="4">$ml</searchSorted></p>
     `);
             expect(text).eq("0");
+            // values from a reference to a list written as literals can't
+            // change, so it is a warning (DIAG-2)
             expect(warnings.filter(notSorted).length).eq(1);
 
             // And in order it is passed over rather than reported, as `x` is.
@@ -855,12 +864,13 @@ describe("List operator tag tests @group4", async () => {
                 text: "3",
             });
 
-            // The page says the first one warns; the second must not add a
+            // The page says the first one warns, as its values come from a
+            // list written as literals (DIAG-2); the second must not add a
             // second warning of its own.
-            const warnings = getDiagnosticsByType(core).warnings.map(
+            const reported = getDiagnosticsByType(core).warnings.map(
                 (w) => w.message,
             );
-            expect(warnings.filter(notSorted).length).eq(1);
+            expect(reported.filter(notSorted).length).eq(1);
         });
 
         it("indexOf is unaffected by an unsorted list", async () => {
@@ -873,11 +883,10 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted)).eqls([]);
         });
 
-        it("a list that goes out of order and back reports once and answers again", async () => {
-            // The queue is append-only, so a list that is unsorted only in
-            // passing keeps the message; what must not happen is a second
-            // entry for the second time it happens, and the operator must
-            // answer again once the order is restored.
+        it("a list that goes out of order reports an info while it is, and answers again", async () => {
+            // A list unsorted only in passing, from an input, gives an info
+            // while it is (DIAG-2), one however often it happens, gone once
+            // the order is restored, and the operator answers again.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="mi" prefill="5" />
@@ -893,6 +902,14 @@ describe("List operator tag tests @group4", async () => {
                 text: "2",
             });
 
+            function unsortedReports() {
+                const { warnings, infos } = getDiagnosticsByType(core);
+                expect(warnings.map((w) => w.message).filter(notSorted)).eqls(
+                    [],
+                );
+                return infos.map((i) => i.message).filter(notSorted).length;
+            }
+
             for (const latex of ["0", "5", "0", "5"]) {
                 await updateMathInputValue({
                     latex,
@@ -900,6 +917,7 @@ describe("List operator tag tests @group4", async () => {
                     core,
                 });
                 await core.returnAllStateVariables(false, true);
+                expect(unsortedReports()).eq(latex === "0" ? 1 : 0);
             }
 
             await expectText({
@@ -909,10 +927,7 @@ describe("List operator tag tests @group4", async () => {
                 text: "2",
             });
 
-            const warnings = getDiagnosticsByType(core).warnings.map(
-                (w) => w.message,
-            );
-            expect(warnings.filter(notSorted).length).eq(1);
+            expect(unsortedReports()).eq(0);
         });
     });
 

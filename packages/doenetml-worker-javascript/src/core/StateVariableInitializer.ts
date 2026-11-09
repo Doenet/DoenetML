@@ -5,6 +5,11 @@ import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
 import { readHeldCopySnapshot } from "../utils/copySnapshot";
 import {
+    canChange,
+    changeContext,
+    levelFromSource,
+} from "../utils/decidedByDoenetML";
+import {
     applyPendingShadowModification,
     getClassStateVariableDefinitions,
 } from "./StateVariableDefinitionFactory";
@@ -931,6 +936,7 @@ function arrayDefinition(this: any, args: any) {
 
             // in case definition returns additional array entries,
             // mark all array keys received as fresh as well
+            const keysMadeFresh = new Set<string>(arrayKeysToRecalculate);
             const markReturnedKeysFresh = (valuesByKey: any) => {
                 for (let arrayKey in valuesByKey) {
                     markArrayKeyFresh(
@@ -938,6 +944,7 @@ function arrayDefinition(this: any, args: any) {
                         arrayKey,
                         args.arraySize,
                     );
+                    keysMadeFresh.add(arrayKey);
                 }
             };
             if (result.setValue && result.setValue[arrayVarName]) {
@@ -950,6 +957,54 @@ function arrayDefinition(this: any, args: any) {
                 markReturnedKeysFresh(
                     result.useEssentialOrDefaultValue[arrayVarName],
                 );
+            }
+
+            // What each array key made fresh gives on a condition now
+            // (`setDefinitionConditionDiagnostics`): those it returned, and
+            // none for a key it returned none for, which withdraws them. A
+            // key not made fresh keeps what it gave. Every key made fresh,
+            // not only those asked for: a key returned beyond them is not
+            // recalculated again, so what it gave would otherwise stay.
+            if (
+                result.conditionDiagnosticsByKey ||
+                arrayStateVarObj.keysGivingConditionDiagnostics
+            ) {
+                const byKey: Record<string, any[]> = {};
+                for (const arrayKey of keysMadeFresh) {
+                    byKey[arrayKey] =
+                        result.conditionDiagnosticsByKey?.[arrayKey] ?? [];
+                }
+                result.conditionDiagnosticsByKey = byKey;
+            }
+        }
+
+        // A key no longer in the array, as when its size went down, is not
+        // recalculated again, so what it gave is withdrawn here.
+        const keysGiving: Set<string> | undefined =
+            arrayStateVarObj.keysGivingConditionDiagnostics;
+        if (keysGiving?.size) {
+            const keysNow = new Set(
+                arrayStateVarObj.getAllArrayKeys(args.arraySize),
+            );
+            for (const arrayKey of keysGiving) {
+                if (!keysNow.has(arrayKey)) {
+                    result.conditionDiagnosticsByKey ??= {};
+                    result.conditionDiagnosticsByKey[arrayKey] = [];
+                }
+            }
+        }
+        if (result.conditionDiagnosticsByKey) {
+            arrayStateVarObj.keysGivingConditionDiagnostics ??= new Set();
+            for (const arrayKey in result.conditionDiagnosticsByKey) {
+                if (result.conditionDiagnosticsByKey[arrayKey].length > 0) {
+                    arrayStateVarObj.keysGivingConditionDiagnostics.add(
+                        arrayKey,
+                    );
+                } else {
+                    arrayStateVarObj.keysGivingConditionDiagnostics.delete(
+                        arrayKey,
+                    );
+                }
             }
         }
 
@@ -2168,8 +2223,12 @@ async function reportIndexIntoScalarOf({
     reference: { text: string; position?: Position; sourceDoc?: number };
     watch?: { owner: number; isCurrent: () => boolean };
 }) {
+    // A warning when the value cannot change, so it is always a scalar, and
+    // an info when it can, as an input's or one made from a reference to
+    // something that can change (DIAG-2). It is reached by the reference,
+    // so a reader's write to it counts.
     const diagnostic = codedDiagnostic({
-        type: "warning",
+        type: levelFromSource(!canChange(component, changeContext(core), true)),
         code: "doenet-w0100",
         args: { reference: reference.text },
         position: reference.position,
@@ -2328,6 +2387,12 @@ export async function arrayEntryNamesFromPropIndex({
     reference?: {
         /** The reference as written, `$` and all: `$p.styleDescription[1]`. */
         text: string;
+        /**
+         * Whether an index of the reference can change (`$l[$i]` with `i`
+         * an input, `pathHasIndexThatCanChange`), so an index that names
+         * nothing is an info, not a warning (DIAG-2).
+         */
+        indexFromValue?: boolean;
         position?: Position;
         sourceDoc?: number;
     };
@@ -2505,7 +2570,28 @@ export async function arrayEntryNamesFromPropIndex({
     }
 
     // Once, however many of the variables the index was applied to.
-    if (reportBelowOne && reference) {
+    if (reference?.indexFromValue && watch) {
+        // An index from a value that can change (`$l[$i]` with `i` = 0)
+        // names nothing only while the value is below 1: an info, reported
+        // while it lasts, as a condition of the component the reference
+        // belongs to, which is decided again when the index changes
+        // (DIAG-2, B33). `$l[0]` is a warning, below.
+        core.diagnosticsManager.setConditionDiagnostics(
+            watch.owner,
+            `indexBelowOne:${reference.text}`,
+            reportBelowOne
+                ? [
+                      codedDiagnostic({
+                          type: "info",
+                          code: "doenet-w0104",
+                          args: { reference: reference.text },
+                          position: reference.position,
+                          sourceDoc: reference.sourceDoc,
+                      }),
+                  ]
+                : [],
+        );
+    } else if (reportBelowOne && reference) {
         core.addDiagnostic(
             codedDiagnostic({
                 type: "warning",

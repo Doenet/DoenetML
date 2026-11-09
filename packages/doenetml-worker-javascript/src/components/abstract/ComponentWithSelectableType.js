@@ -2,7 +2,7 @@ import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
 import {
     breakIntoBracketedListEntries,
-    listBracketsUnmatchedInfo,
+    listBracketsUnmatchedDiagnostic,
     returnGroupIntoListEntriesOfComponentType,
 } from "../commonsugar/lists";
 import { codedDiagnostic } from "../../utils/diagnostics";
@@ -222,10 +222,14 @@ export class ComponentWithSelectableType extends BaseComponent {
                 ) {
                     diagnostics.push(
                         codedDiagnostic({
-                            // Info here, a warning at the other three call
-                            // sites. The code names the situation, not the
-                            // severity, so they share it.
-                            type: "info",
+                            // A warning, as at the other three call sites:
+                            // the type is a primitive, written in the
+                            // DoenetML, here or on the parent (DIAG-2). The
+                            // sugar above reports the same type first; this
+                            // catches a parent whose own `type` is not one,
+                            // which every current parent's `validValues`
+                            // rules out.
+                            type: "warning",
                             code: "doenet-w0016",
                             args: { type },
                         }),
@@ -562,10 +566,11 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                     success: false,
                     diagnostics: results.unmatchedBrackets
                         ? [
-                              listBracketsUnmatchedInfo(
+                              listBracketsUnmatchedDiagnostic(
                                   isAttributeComponent
                                       ? parentComponentType
                                       : "_componentListOfListsWithSelectableType",
+                                  componentAttributes.type?.value === "text",
                               ),
                           ]
                         : [],

@@ -147,11 +147,13 @@ same way, as long as it has entries: `$t[1][2]` of
 `<math name="t">((1,2),(3,4))</math>` is `2`, and `$l[1][2]` of a list whose
 first entry is a tuple is that tuple's second entry. An index past them, such
 as `$P[1][1]` of a point, whose coordinates have no entries, or `$A[1][2][3]`,
-references nothing with the same warning. The warning follows the value: for `$m[2]` of a
-`<math>` whose value comes from an input, it is there while the value is a
-single expression and goes away once it is a tuple. A `copy`, such as
-`<math copy="$m[2]"/>{:dn}`, doesn't follow its source, so it keeps the warning
-it was made with, as it keeps what it shows. An index past the last
+references nothing with the same warning. When the value can change, as for
+`$m[2]` of a `<math>` whose value comes from an input, or that an input's
+`bindValueTo` names, it is an info rather than a warning, since nothing in the
+DoenetML needs to change. It follows the
+value: it is there while the value is a single expression and goes away once it
+is a tuple. A `copy`, such as `<math copy="$m[2]"/>{:dn}`, doesn't follow its
+source, so it keeps the info it was made with, as it keeps what it shows. An index past the last
 entry also references nothing, without a warning, since the number of entries
 can change.
 
@@ -282,8 +284,11 @@ a while, shown as `＿`, with an info, and none changes its type:
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
   iterations of `r` is missing, and is made from the iteration again, with the
   tag's own children, when the index names one. The bare reference `$r[$i]`
-  shows `＿` too, without the info. A literal index below 1, such as `$l[0]`,
-  never names anything, and is a warning in either form.
+  shows `＿` too, and while `i` is below 1 it gives an info, as `$l[$i]` of a
+  list does, which goes away once `i` names an entry. That is when `i` can
+  change, as an input can. A literal index below 1, such as `$l[0]`, never
+  names anything, and is a warning in either form, as is an index from a
+  number written as one, such as `$l[$i]` with `<number name="i">0</number>{:dn}`.
 * **A composite that holds nothing.** `<math extend="$cc"/>{:dn}` of a
   `<conditionalContent>` with no `<else>` is missing while no case is true,
   and so is one whose chosen case holds nothing, or holds another
@@ -537,6 +542,37 @@ point in two dimensions, shows `＿` with no warning.
 Written as a tag, such as `<number extend="$total"/>{:dn}`, the same reference
 gives the same warning, and the tag is missing: it shows `＿`, whatever the tag
 adds.
+
+## Warnings and infos from values
+
+Some problems DoenetML reports come from a value: `bins` of a
+[`<binCounts>{:dn}`](../reference/binCounts) that aren't in increasing order, a
+`<circle>{:dn}` through a point whose coordinates aren't numbers, an index that
+names nothing. Such a problem is a **warning** when the DoenetML decides it: the
+value is written in the document, or comes from a reference to something that
+can't change, so `bins="$edges"` of `<numberList name="edges">0 5 2</numberList>{:dn}`
+gives the same warning as `bins="0 5 2"`. It is an **info** when the value can
+change as the document is used, and the info lasts only while the value causes
+it.
+
+A value can change when it comes from an input, an `<answer>{:dn}`, a random
+choice, which case of a `<conditionalContent>{:dn}` is shown when its condition
+can change, or something a reader can change: what an input's `bindValueTo`
+names or its child references (`<mathInput>$a</mathInput>{:dn}` writes the
+reader's input to `a`), unless the input is `fixed`, the `target` of an
+`<updateValue>{:dn}`, `<animateFromSequence>{:dn}` or `<callAction>{:dn}`, what
+is in a `<graph>{:dn}` and not `fixed` (or, for a point or other shape,
+`fixLocation`), which a reader can drag, what a cell of a
+`<spreadsheet>{:dn}` references, unless the cell (or its row, column or
+spreadsheet) is `fixed`, which a reader's edit writes to, and whether a hint,
+solution or section is open. What is inside a `fixed` component isn't written
+to through it.
+
+When the problem is that something is missing from a `<conditionalContent>{:dn}`,
+a `<repeat>{:dn}` or a list (an `<updateValue>{:dn}` whose target holds nothing,
+a `<collect>{:dn}` whose `from` names what isn't there), what matters is whether
+what it holds can change. A case whose condition is `false` never holds
+anything, however its content is written to, so it gives a warning.
 
 ## Referencing repeated content
 

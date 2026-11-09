@@ -274,9 +274,10 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
 <math name="m">$mi</math>
 <p name="p">[$m[2]]</p>
 `);
+        // an info, as `m`'s value comes from an input (DIAG-2)
         const warning = {
             code: "doenet-w0100",
-            type: "warning",
+            type: "info",
             line: 4,
             message: "Cannot reference index `$m[2]`",
         };

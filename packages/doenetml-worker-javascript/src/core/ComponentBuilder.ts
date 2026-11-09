@@ -23,6 +23,7 @@ import { diagnosticCodeFrom } from "../utils/diagnostics";
 import { gatherVariantComponents } from "../utils/variants";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 import { extractCreateComponentIdxMapping } from "../utils/componentIndices";
+import { noteReaderWritable } from "../utils/readerWritable";
 
 // Most components keep no children serialized (only classes with a static
 // `keepChildrenSerialized` do), so they all share one frozen empty array
@@ -418,6 +419,12 @@ export async function createIsolatedComponents({
             console.log(serializedComponent);
             throw Error("Found a serialized component without a componentIdx");
         }
+
+        noteReaderWritable(
+            serializedComponent,
+            componentIdx,
+            core.readerWritable,
+        );
 
         const createResult = await createChildrenThenComponent({
             core,

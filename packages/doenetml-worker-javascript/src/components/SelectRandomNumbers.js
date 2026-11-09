@@ -1,7 +1,11 @@
-import { sampleFromRandomNumbers } from "../utils/randomNumbers";
+import {
+    sampleFromRandomNumbers,
+    samplingParametersDecidedDependencies,
+    withSamplingLevels,
+} from "../utils/randomNumbers";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 import {
-    choicesDecidedByDoenetML,
+    choicesWrittenWithoutReference,
     keptSelection,
     NUM_TO_SELECT_VARIABLE,
     withNumToSelect,
@@ -28,8 +32,8 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         // Whether the DoenetML alone decides what it draws: then a fresh
         // load under the same variant draws the same values
         // (`definitionEssentialValuesReproducible`)
-        this.doenetAttributes.choicesDecidedByDoenetML =
-            choicesDecidedByDoenetML({
+        this.doenetAttributes.choicesWrittenWithoutReference =
+            choicesWrittenWithoutReference({
                 component: this,
                 attributeNames: Object.keys(this.attributes ?? {}).filter(
                     (name) => !name.startsWith("_"),
@@ -47,7 +51,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
      * made with, never choosing again.
      */
     get definitionEssentialValuesReproducible() {
-        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
+        return this.doenetAttributes.choicesWrittenWithoutReference !== false;
     }
 
     static componentType = "selectRandomNumbers";
@@ -255,6 +259,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     dependencyType: "stateVariable",
                     variableName: "variants",
                 },
+                // whether each distribution's parameters are written in the
+                // DoenetML, which makes a diagnostic about them a warning
+                // rather than an info (DIAG-2)
+                ...samplingParametersDecidedDependencies(),
                 rng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -309,7 +317,11 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                         },
                         desiredValues.length,
                     ),
-                    sendDiagnostics: diagnostics,
+                    sendDiagnostics: withSamplingLevels(
+                        diagnostics,
+                        dependencyValues.type,
+                        dependencyValues,
+                    ),
                 };
             }
 
@@ -326,7 +338,12 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             return {
                 setEssentialValue: { selectedValues },
                 setValue: { selectedValues },
-                sendDiagnostics: diagnostics,
+                // the selection is made once (`immutable`), so these stay
+                sendDiagnostics: withSamplingLevels(
+                    diagnostics,
+                    dependencyValues.type,
+                    dependencyValues,
+                ),
             };
         }
 

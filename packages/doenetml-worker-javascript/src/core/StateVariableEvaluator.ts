@@ -791,6 +791,20 @@ export class StateVariableEvaluator {
             }
         }
 
+        if (
+            result.conditionDiagnostics ||
+            result.conditionDiagnosticsByKey ||
+            this.core.diagnosticsManager._conditionDiagnostics.has(
+                component.componentIdx,
+            )
+        ) {
+            this.setDefinitionConditionDiagnostics({
+                component,
+                stateVariables: allStateVariablesAffected,
+                result,
+            });
+        }
+
         for (const [varName, received] of receivedValue) {
             if (!(
                 received ||
@@ -862,6 +876,102 @@ export class StateVariableEvaluator {
         }
 
         return await stateVarObj.value;
+    }
+
+    /**
+     * Report the diagnostics a definition gives on a condition of values that
+     * can change (`result.conditionDiagnostics`): those it gives now, replacing
+     * what it gave the last time it ran, so they go away when the definition
+     * runs again and gives none (B33, DIAG-2). Unlike `sendDiagnostics`, which
+     * stay once added. A definition that returns nothing, as when nothing it
+     * depends on changed (`noChanges`), leaves them as they are.
+     *
+     * Keyed by the definition, through the first of the state variables it
+     * defines, so it is the same whichever of them asked for it. An array's
+     * definition gives them by array key (`conditionDiagnosticsByKey`), as
+     * it recalculates only some keys, and is keyed through the array, not
+     * the array entry that asked for it (`point1` of `points`), so a key is
+     * the same condition whichever entry recalculates it.
+     */
+    setDefinitionConditionDiagnostics({
+        component,
+        stateVariables,
+        result,
+    }: {
+        component: ComponentInstance;
+        stateVariables: string[];
+        result: any;
+    }) {
+        const definedBy = stateVariables.map(
+            (varName) =>
+                component.state[varName]?.arrayStateVariable ?? varName,
+        );
+        const condition = `stateVariable:${definedBy.sort()[0]}`;
+        if (result.conditionDiagnosticsByKey) {
+            // an array's definition, which recalculates some of its keys
+            // (`arrayDefinitionByKey`): each key's diagnostics are replaced
+            // only when the key is recalculated
+            for (const arrayKey in result.conditionDiagnosticsByKey) {
+                this.setConditionDiagnosticsOf({
+                    component,
+                    condition: `${condition}[${arrayKey}]`,
+                    diagnostics: result.conditionDiagnosticsByKey[arrayKey],
+                });
+            }
+            return;
+        }
+        if (
+            (result.noChanges && !result.conditionDiagnostics) ||
+            stateVariables.some(
+                (varName) =>
+                    component.state[varName]?.isArray ||
+                    component.state[varName]?.isArrayEntry,
+            )
+        ) {
+            // nothing was decided again, or only some keys of an array were
+            return;
+        }
+        this.setConditionDiagnosticsOf({
+            component,
+            condition,
+            diagnostics: result.conditionDiagnostics ?? [],
+        });
+    }
+
+    /**
+     * Report `diagnostics` as what `condition` of `component` gives now,
+     * located at the component unless they say where.
+     */
+    setConditionDiagnosticsOf({
+        component,
+        condition,
+        diagnostics,
+    }: {
+        component: ComponentInstance;
+        condition: string;
+        diagnostics: any[];
+    }) {
+        if (
+            diagnostics.length === 0 &&
+            !this.core.diagnosticsManager._conditionDiagnostics
+                .get(component.componentIdx)
+                ?.has(condition)
+        ) {
+            return;
+        }
+        const { position, sourceDoc } =
+            diagnostics.length > 0
+                ? this.core.getSourceLocationForComponent(component)
+                : { position: undefined, sourceDoc: undefined };
+        this.core.diagnosticsManager.setConditionDiagnostics(
+            component.componentIdx,
+            condition,
+            diagnostics.map((diagnostic) => ({
+                position,
+                sourceDoc,
+                ...diagnostic,
+            })),
+        );
     }
 
     /**

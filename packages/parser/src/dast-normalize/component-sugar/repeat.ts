@@ -116,6 +116,7 @@ export function repeatSugar(node: DastElement) {
                     setupChildren.push(
                         listBracketsUnmatchedError(
                             node,
+                            type === "text",
                             node.attributes.for.position,
                         ),
                     );

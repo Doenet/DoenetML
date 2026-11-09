@@ -15,7 +15,7 @@ import { sampleFromNumberList } from "../utils/randomNumbers";
 import ValueListComponent from "./abstract/ValueListComponent";
 import {
     NO_SELECT_ERROR,
-    choicesDecidedByDoenetML,
+    choicesWrittenWithoutReference,
     returnChoicesDecidedByDoenetMLDefinition,
     returnSelectErrorReportDefinition,
     selectError,
@@ -28,6 +28,20 @@ import {
 } from "../utils/selectErrors";
 
 /**
+ * The attributes that decide what a `<selectPrimeNumbers>` can select:
+ * whether a failure to select is an error or a missing selection with an
+ * info (`selectFailureType`, `choicesDecidedByDoenetML`).
+ */
+const ATTRIBUTES_DECIDING_CHOICES = [
+    "from",
+    "to",
+    "exclude",
+    "numToSelect",
+    "withReplacement",
+    "excludeCombinations",
+];
+
+/**
  * Selects prime numbers once, from the variant's generator. It is a list
  * component (`ValueListComponent`): it holds the selection in one array,
  * `selectedValues`, and a parent sees one `<integer>` per value.
@@ -35,19 +49,12 @@ import {
 export default class SelectPrimeNumbers extends ValueListComponent {
     constructor(args) {
         super(args);
-        // Whether a failure to select is an error or a missing selection
-        // with an info (`selectFailureType`)
-        this.doenetAttributes.choicesDecidedByDoenetML =
-            choicesDecidedByDoenetML({
+        // Whether what it chooses from is written without a reference, so
+        // a fresh load reproduces its selection
+        this.doenetAttributes.choicesWrittenWithoutReference =
+            choicesWrittenWithoutReference({
                 component: this,
-                attributeNames: [
-                    "from",
-                    "to",
-                    "exclude",
-                    "numToSelect",
-                    "withReplacement",
-                    "excludeCombinations",
-                ],
+                attributeNames: ATTRIBUTES_DECIDING_CHOICES,
                 componentInfoObjects: args.componentInfoObjects,
             });
     }
@@ -61,7 +68,7 @@ export default class SelectPrimeNumbers extends ValueListComponent {
      * made with, never choosing again.
      */
     get definitionEssentialValuesReproducible() {
-        return this.doenetAttributes.choicesDecidedByDoenetML !== false;
+        return this.doenetAttributes.choicesWrittenWithoutReference !== false;
     }
 
     static componentType = "selectPrimeNumbers";
@@ -278,7 +285,9 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         };
 
         stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition();
+            returnChoicesDecidedByDoenetMLDefinition({
+                attributeNames: ATTRIBUTES_DECIDING_CHOICES,
+            });
 
         stateVariableDefinitions.selectedValues = {
             immutable: true,

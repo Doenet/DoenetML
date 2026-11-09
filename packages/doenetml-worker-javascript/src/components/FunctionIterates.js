@@ -7,6 +7,7 @@ import {
     returnNumberDisplayStateVariableDefinitions,
 } from "../utils/numberDisplay";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 import { evaluateToNumber, isNumericConstant } from "../utils/math";
 
 export default class FunctionIterates extends InlineComponent {
@@ -79,6 +80,13 @@ export default class FunctionIterates extends InlineComponent {
                     attributeName: "function",
                     variableNames: ["numInputs", "numOutputs"],
                 },
+                // whether the function is written in the DoenetML, so one
+                // whose inputs and outputs don't match is a warning, or comes
+                // from values that can change, so it is an info (DIAG-2)
+                functionDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["function"],
+                },
             }),
             definition({ dependencyValues }) {
                 if (!dependencyValues.functionAttr) {
@@ -92,7 +100,9 @@ export default class FunctionIterates extends InlineComponent {
                     let numOutputs =
                         dependencyValues.functionAttr.stateValues.numOutputs;
                     let warning = codedDiagnostic({
-                        type: "warning",
+                        type: levelFromSource(
+                            dependencyValues.functionDecidedByDoenetML,
+                        ),
                         code: "doenet-w0056",
                         args: { inputs: numInputs, outputs: numOutputs },
                         position:
@@ -100,7 +110,7 @@ export default class FunctionIterates extends InlineComponent {
                     });
                     return {
                         setValue: { numDimensions: 0 },
-                        sendDiagnostics: [warning],
+                        conditionDiagnostics: [warning],
                     };
                 } else {
                     return {

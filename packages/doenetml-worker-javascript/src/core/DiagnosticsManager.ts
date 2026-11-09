@@ -524,7 +524,8 @@ export class DiagnosticsManager {
  * a tag names nothing now (`doenet-i0054`) where a warning or error at the
  * reference already says why: a property the referent does not have
  * (`$n.nonexistent[1]`), an index into a value that is a scalar
- * (`doenet-w0100`), or a literal index below 1. The tag then reports what
+ * (`doenet-w0100`, an info too when the value can change), or an index
+ * below 1 ({@link EXPLAINS_AT_ANY_LEVEL}). The tag then reports what
  * the bare reference reports (D37). The info spans the whole tag, children
  * and all, so only a diagnostic at the whole tag (as `doenet-w0100` is) or in
  * the value of its `extend` or `copy` attribute (`referenceSpan`) explains
@@ -540,7 +541,10 @@ function withoutExplainedIndexInfos(
         return diagnostics;
     }
     const explaining = diagnostics.filter(
-        (d) => d.type === "warning" || d.type === "error",
+        (d) =>
+            d.type === "warning" ||
+            d.type === "error" ||
+            (d.code !== undefined && EXPLAINS_AT_ANY_LEVEL.has(d.code)),
     );
     return diagnostics.filter((info) => {
         if (info.code !== "doenet-i0054") {
@@ -571,6 +575,17 @@ function withoutExplainedIndexInfos(
         });
     });
 }
+
+/**
+ * The codes that say why an index names nothing whatever their level: an
+ * info when the value they are about can change (DIAG-2), as `doenet-w0100`
+ * for an index into a math from an input, which explains the tag's
+ * `doenet-i0054` as its warning does.
+ */
+const EXPLAINS_AT_ANY_LEVEL: ReadonlySet<string> = new Set([
+    "doenet-w0100",
+    "doenet-w0104",
+]);
 
 /**
  * The offsets of the value of the `extend` or `copy` attribute, inside its

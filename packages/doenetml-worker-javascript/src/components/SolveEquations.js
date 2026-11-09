@@ -3,6 +3,7 @@ import me from "math-expressions";
 import { normalizeMathExpression } from "@doenet/utils";
 import { returnNVariables, toNumberOrNaN } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 // import nerdamer from 'nerdamer'
 // import 'nerdamer/Algebra.js'
 // import 'nerdamer/Calculus.js'
@@ -204,6 +205,15 @@ export default class SolveEquations extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "numDiscretizationPoints",
                 },
+                // whether the equation and its variables are written in the
+                // DoenetML, so an equation that gives no function is a
+                // warning, or come from values that can change, so it is an
+                // info (DIAG-2)
+                equationDecidedByDoenetML: {
+                    dependencyType: "decidedByDoenetML",
+                    attributeNames: ["variables"],
+                    childGroups: ["maths", "strings"],
+                },
             }),
             definition({ dependencyValues }) {
                 if (dependencyValues.mathChild.length === 0) {
@@ -297,7 +307,9 @@ export default class SolveEquations extends InlineComponent {
                 } catch (e) {
                     let diagnostics = [
                         codedDiagnostic({
-                            type: "warning",
+                            type: levelFromSource(
+                                dependencyValues.equationDecidedByDoenetML,
+                            ),
                             code: "doenet-w0057",
                             args: { equation: expression.toString() },
                         }),
@@ -305,7 +317,7 @@ export default class SolveEquations extends InlineComponent {
 
                     return {
                         setValue: { allSolutions: [] },
-                        sendDiagnostics: diagnostics,
+                        conditionDiagnostics: diagnostics,
                     };
                 }
 
