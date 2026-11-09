@@ -367,7 +367,8 @@ grid, variant names) is split the same way:
   `z`;
 - **brackets** `( [ {` and `) ] }` keep their contents together, any closer closing any opener:
   `(1, 2], [3, 4)` is two intervals. If they don't balance, they are ignored for the whole list,
-  with info **`doenet-i0058`**, an info because such text is valid and often meant
+  with **`doenet-i0058`**: a warning, since #2495, except in a list of texts (`type="text"`, a
+  `<textList>`), where it is an info because such text is valid and often meant
   (`a) apple, b) banana`; DIAG-1, DIAG-2);
 - **empty entries:** with commas, every comma separates two entries, so `a,,b` has a blank (`＿`)
   in the middle. Spaces never make one;
