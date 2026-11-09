@@ -101,6 +101,12 @@ are all `Section`). Not to be confused with a *value type* (number, math,
 text), which is the kind of value a cell or prop holds.
 _Avoid_: kind (the current core and DoenetML's docs say component type)
 
+**Role** — A part the core needs some component type to play: the root, a
+refused element's box, an iteration's index, value and item, a list's point,
+a case, an answer's response and its implicit input (`Role`, ADR 0038). The
+type's definition claims it (`roles: [Root]`), exactly one type per role, and
+the core names the role, never the type.
+
 **Reference** — A `$name` or `$name.prop` in the document. A component-level
 reference (`$p1`) produces a copy sharing every cell with the referent,
 except to an input, which it *reads as* a value of the input's declared

@@ -1,6 +1,6 @@
 # The core names no component type, and components are a crate of their own
 
-Status: proposed 2026-11-09. Step 1 of the Migration is done. Builds on
+Status: proposed 2026-11-09. Steps 1 and 2 of the Migration are done. Builds on
 ADR 0016 (components are defined without knowing the core), whose
 converse this is; on ADR 0034 (a planner is a function of its record),
 which made `compile::api` the one door a planner goes through; and on
@@ -102,7 +102,7 @@ named in Context; the exact names are settled in each migration step.
 
 | What the core asks | Today | In the definition |
 |---|---|---|
-| Which type the compile makes for a thing it synthesizes: the root, a refused element, an iteration's index, value and item, a list's point, a case, an answer's response and its implicit input | `ComponentType::Document`, `::Error`, `::Number`, `::SequenceValue`, `::Tuple`, `::Point`, `::Case`, `::Response`, `::MathInput` in outline, expand, graph and `plan/answer.rs` | A **role** the definition claims (`role: Root`). Each role is claimed by exactly one type, checked when the vocabulary is made. |
+| Which type the compile makes for a thing it synthesizes: the root, a refused element, an iteration's index, value and item, a list's point, a case, an answer's response and its implicit input | `ComponentType::Document`, `::Error`, `::Number`, `::SequenceValue`, `::Tuple`, `::Point`, `::Case`, `::Response`, `::MathInput` in outline, expand, graph and `plan/answer.rs` | A **role** the definition claims (`roles: [Root]`). Each role is claimed by exactly one type, checked when the vocabulary is made. |
 | Whether a container is looked through, gates its children, or opens a scope per iteration | Matches on `Group`, `Collect`, `Select`, `ConditionalContent`, `Case`, `RepeatFor*`, `FunctionIterates` in `table.rs` (`sticky_members`), both `aggregate.rs` files, `signature.rs` and `count_prop` | A **structure kind**: `Transparent`, `Gate { active }`, `Repeat { count }`. The props it names replace `prop::case::ACTIVE` and `count_prop`'s three-type match. |
 | Whether a component changes where its descendants are | `ty == Graph`, `ty == StickyGroup` (twice), and the graph's bounds in `signature.rs` (`domain`) | `encloses: Graph \| Sticky`, and `bounds: [xmin, xmax, ymin, ymax]` on the type that encloses a graph. |
 | Which prop stands for an expression | Three copies of `math_target` | A prop's `expr_of`: the port that holds the expression when it is math (`submitted`, `expr`). |
@@ -256,6 +256,15 @@ step 1 lower than before.
    outline's root and refused elements, an iteration's index, value and
    item, a list's points, cases, an answer's response and implicit
    input. `boxes.rs`' and `fix.rs`' test assertions name roles too.
+   Done, with two departures. A definition writes `roles: [Root]`, a
+   list, so a type may play more than one part. `Role::ty` reads a table
+   built and checked when the crate compiles (`ROLE_TYPES`), which step 8
+   moves into the vocabulary. The count fell from 297 to 248. Left for
+   later steps: the stand-ins a reference to a prop's value is placed as
+   (a `<number>` or a `<text>`, in both `expand.rs` files), which are not
+   a role this table names; `<case>` as a gate (step 3); and the answer's
+   input lists (step 4). `fix.rs` names its types by tag, as its
+   documents do.
 3. **Structure kinds.** `Transparent`, `Gate` and `Repeat`, read by
    `sticky_members`, `push_text`'s hiding, both `aggregate.rs` files,
    the signature's seeds and `count_prop`. The two `aggregate.rs` walks

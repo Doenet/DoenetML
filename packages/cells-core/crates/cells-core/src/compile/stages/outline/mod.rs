@@ -97,8 +97,7 @@ impl<'a> Outlining<'a> {
             None => {
                 // Synthesize a root when the DAST was not normalized; it is
                 // planned with every element (`plan_synthetic`).
-                let e =
-                    self.add_synthetic(TemplateId::new(0), ComponentType::Document, StrId::NONE);
+                let e = self.add_synthetic(TemplateId::new(0), Role::Root.ty(), StrId::NONE);
                 self.work.to_plan.push((TemplateId::new(0), e));
                 let kids = self.add_children(
                     TemplateId::new(0),
@@ -242,7 +241,7 @@ impl<'a> Outlining<'a> {
         // A name a sibling holds fails to register, but the element is
         // pushed all the same.
         let e = ElemId::from_index(self.outlined(t).elems.len());
-        let _ = self.push_elem(t, node, ComponentType::Error, name, name_scope);
+        let _ = self.push_elem(t, node, Role::Refused.ty(), name, name_scope);
         self.drop_unregistered_name(t, e);
         self.boxes
             .make_box(&self.settled.templates, &mut self.tables, t, e, false);
@@ -335,7 +334,7 @@ impl<'a> Outlining<'a> {
                 // One hidden tuple per iteration, planned with the element
                 // (`plan_function_iterates`); it is element 0 of the body.
                 let sub = self.push_template(Some((t, e)));
-                let it = self.add_synthetic(sub, ComponentType::Tuple, StrId::NONE);
+                let it = self.add_synthetic(sub, Role::Item.ty(), StrId::NONE);
                 self.outlined_mut(sub).children = vec![Child::Elem(it)];
                 self.outlined_mut(t).elems[e.index()].body = Body::Repeat { template: sub };
             }
@@ -346,15 +345,15 @@ impl<'a> Outlining<'a> {
                 // them (`plan_iteration_names`). A `<repeat>`'s item is a
                 // tuple, element 0 of the body (`plan_repeat_for`).
                 let value_type = if component_type == ComponentType::RepeatFor {
-                    ComponentType::Tuple
+                    Role::Item.ty()
                 } else {
-                    ComponentType::SequenceValue
+                    Role::SequenceValue.ty()
                 };
                 if let Some(vn) = self.rd().attr_name_str(el, "valueName") {
                     self.add_synthetic(sub, value_type, vn);
                 }
                 if let Some(iname) = self.rd().attr_name_str(el, "indexName") {
-                    self.add_synthetic(sub, ComponentType::Number, iname);
+                    self.add_synthetic(sub, Role::Index.ty(), iname);
                 }
                 let kids = self.add_children(sub, None, ROOT_SCOPE, d.children(el));
                 self.outlined_mut(sub).children = kids;

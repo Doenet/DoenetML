@@ -100,7 +100,7 @@ impl Elem {
     pub(crate) fn as_box(&self) -> Elem {
         Elem {
             node: self.node,
-            component_type: ComponentType::Error,
+            component_type: Role::Refused.ty(),
             name: self.name,
             name_scope: self.name_scope,
             children: Vec::new(),

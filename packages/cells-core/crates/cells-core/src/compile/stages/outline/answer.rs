@@ -97,7 +97,7 @@ impl Outlining<'_> {
     /// Add a `response` child to answer `e`.
     fn add_response(&mut self, t: TemplateId, e: ElemId) -> ElemId {
         let r = self
-            .push_elem(t, NodeId::NONE, ComponentType::Response, StrId::NONE, e)
+            .push_elem(t, NodeId::NONE, Role::Response.ty(), StrId::NONE, e)
             .expect("unnamed");
         self.outlined_mut(t).elems[e.index()]
             .children
@@ -109,7 +109,7 @@ impl Outlining<'_> {
     /// input: an unbound input, first among the answer's children.
     fn add_implicit_input(&mut self, t: TemplateId, e: ElemId) {
         let mi = self
-            .push_elem(t, NodeId::NONE, ComponentType::MathInput, StrId::NONE, e)
+            .push_elem(t, NodeId::NONE, Role::ImplicitInput.ty(), StrId::NONE, e)
             .expect("unnamed");
         self.outlined_mut(t).elems[e.index()]
             .children

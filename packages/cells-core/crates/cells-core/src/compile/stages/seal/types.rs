@@ -492,8 +492,8 @@ impl<'s, 'a> Types<'s, 'a> {
             Walk::Points => {
                 // A synthesized point: numbers, as many as the prop has.
                 let n = match plan.prop {
-                    Some(rp) => rp.sel_on(ComponentType::Point),
-                    None => ComponentType::Point.default_sel(),
+                    Some(rp) => rp.sel_on(Role::ListPoint.ty()),
+                    None => Role::ListPoint.ty().default_sel(),
                 }
                 .map_or(0, |sel| sel_len(sel, Some(0)).unwrap_or(0));
                 cells.types = vec![PortType::Num; n];
@@ -612,7 +612,7 @@ impl<'s, 'a> Types<'s, 'a> {
                         .into_iter()
                         .filter(|&(ct, ce)| {
                             let tpl = self.seal.view(ct);
-                            !tpl.is_box(ce) && tpl.row(ce).component_type != ComponentType::Error
+                            !tpl.is_box(ce) && !tpl.row(ce).component_type.plays(Role::Refused)
                         })
                         .collect();
                     if cands.is_empty() {

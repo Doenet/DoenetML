@@ -39,7 +39,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 
 use crate::components::{
-    ChildrenKind, Collection, ComponentType, Machinery, PropAt, PropFrom, PropSel, prop,
+    ChildrenKind, Collection, ComponentType, Machinery, PropAt, PropFrom, PropSel, Role, prop,
 };
 use crate::dast::{AttrId, Dast, NodeId, NodeKind, StrId};
 use crate::diagnostics::Diagnostic;

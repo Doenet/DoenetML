@@ -925,9 +925,9 @@ impl<'c> Builder<'c> {
                 match tpl.tables.ref_child_plans[id.index()] {
                     RefChildPlan::Ref(plan) => {
                         // Type is unknown until the reference resolves;
-                        // Document stands in.
+                        // the root stands in.
                         let idx = self.new_component(
-                            ComponentType::Document,
+                            Role::Root.ty(),
                             StrId::NONE,
                             parent,
                             NodeId::NONE,
@@ -942,7 +942,7 @@ impl<'c> Builder<'c> {
                     // reached, since a box has no children.
                     RefChildPlan::Boxed | RefChildPlan::Unplanned => {
                         ChildEntry::comp(self.new_component(
-                            ComponentType::Error,
+                            Role::Refused.ty(),
                             StrId::NONE,
                             parent,
                             rc.node,
@@ -1223,9 +1223,9 @@ impl<'c> Builder<'c> {
             (Some(from), _) => {
                 let items = self.resolve_items(from, inst.scope)?;
                 for [x, y] in items {
-                    let n = ComponentType::Point.prop_defs().len();
+                    let n = Role::ListPoint.ty().prop_defs().len();
                     let pt = self.new_component(
-                        ComponentType::Point,
+                        Role::ListPoint.ty(),
                         StrId::NONE,
                         comp,
                         NodeId::NONE,
@@ -1265,7 +1265,7 @@ impl<'c> Builder<'c> {
                     .collect();
                 for orig in originals {
                     let copy = self.new_component(
-                        ComponentType::Document,
+                        Role::Root.ty(),
                         StrId::NONE,
                         comp,
                         NodeId::NONE,

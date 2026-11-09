@@ -22,6 +22,7 @@ pub mod number {
         /// `<number>`.
         tags: ["number"],
         flags: [copyable],
+        roles: [Index],
         default_prop: value,
         props {
             value: children { rendered },
@@ -65,6 +66,7 @@ pub mod response {
         tags: ["response"],
         flags: [internal, owned],
         renders: Never,
+        roles: [Response],
         default_prop: value,
         props {
             response: by_planner { read_by_action },
@@ -122,6 +124,7 @@ pub mod tuple {
         /// is `x2`.
         tags: ["tuple"],
         flags: [copyable, internal, owned],
+        roles: [Item],
         default_prop: coords,
         props {
             n: by_planner { rendered },

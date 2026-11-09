@@ -38,7 +38,7 @@ use crate::compile::Failure;
 use crate::compile::ir::expr::{Arena, Expr, ExprId, Func};
 use crate::compile::ir::*;
 use crate::compile::keys::pick_position;
-use crate::components::{ComponentType, prop};
+use crate::components::{ComponentType, Role, prop};
 use crate::dast::{NodeId, StrId, StringTable};
 
 use crate::document::{ChildEntry, ComponentTable, Document, NONE};

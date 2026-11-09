@@ -13,6 +13,7 @@ component! {
     /// `<point>`. `coords` combines `x` and `y`.
     tags: ["point"],
     flags: [copyable, located],
+    roles: [ListPoint],
     default_prop: coords,
     props {
         x: by_planner { interactive, rendered },

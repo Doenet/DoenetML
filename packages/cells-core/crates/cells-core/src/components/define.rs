@@ -264,6 +264,7 @@ pub(super) const fn definition(
         children: super::ChildrenDecl::RENDERED,
         machinery: None,
         owner: None,
+        roles: &[],
         constrain_target: None,
         params: &[],
     }
@@ -301,6 +302,11 @@ impl ComponentDef {
     }
     pub(super) const fn constrain_target(mut self, target: super::ConstrainTarget) -> Self {
         self.constrain_target = Some(target);
+        self
+    }
+    /// The roles the type plays for the core ([`super::Role`]).
+    pub(super) const fn roles(mut self, roles: &'static [super::Role]) -> Self {
+        self.roles = roles;
         self
     }
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
@@ -502,6 +508,10 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// `T` holding its value, not a copy (`$mi` of a `<mathInput>` is a
 /// `<math>`); its props alias the referent's of the same name.
 ///
+/// `roles: [Root]` says the core makes a component of this type when it
+/// needs one in that role ([`super::Role`]), so the core names the role,
+/// not the type.
+///
 /// `Props<T>` has one field per prop of the table, in table order: a
 /// planner fills `Props<Wire>` as a struct literal, so a prop left
 /// unplanned does not compile; `Props::PORTS` holds every prop's port, by
@@ -564,6 +574,7 @@ macro_rules! component {
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
         $(reads_as: $ras:ident,)?
+        $(roles: [$($role:ident),* $(,)?],)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
@@ -577,6 +588,7 @@ macro_rules! component {
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
                 $(.reads_as($crate::components::ComponentType::$ras))?
+                $(.roles(&[$($crate::components::Role::$role),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
@@ -595,6 +607,7 @@ macro_rules! component {
         $(flags: [$($flag:ident),* $(,)?],)?
         $(renders: $renders:ident,)?
         $(reads_as: $ras:ident,)?
+        $(roles: [$($role:ident),* $(,)?],)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -631,6 +644,7 @@ macro_rules! component {
                 $($(.$flag())*)?
                 $(.renders($crate::components::Renders::$renders))?
                 $(.reads_as($crate::components::ComponentType::$ras))?
+                $(.roles(&[$($crate::components::Role::$role),*]))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {

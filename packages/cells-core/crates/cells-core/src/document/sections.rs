@@ -42,7 +42,7 @@ impl Document {
         )];
         for child in self.children(answer) {
             if let Child::Component(r) = child
-                && self.component_type(r) == ComponentType::Response
+                && self.component_type(r).plays(Role::Response)
             {
                 let c = self.comp_cells(r);
                 let pair = (c[prop::response::RESPONSE], c[prop::response::SUBMITTED]);

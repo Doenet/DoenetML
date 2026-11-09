@@ -110,8 +110,7 @@ impl<'c> Builder<'c> {
                 match next {
                     Resolved::Comp(c)
                         if c == CompIdx::NONE
-                            || self.components.component_type[c.index()]
-                                == ComponentType::Error =>
+                            || self.components.component_type[c.index()].plays(Role::Refused) =>
                     {
                         Resolved::Missing
                     }

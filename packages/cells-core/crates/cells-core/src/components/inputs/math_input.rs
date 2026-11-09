@@ -14,6 +14,7 @@ component! {
     tags: ["mathInput"],
     flags: [copyable],
     reads_as: Math,
+    roles: [ImplicitInput],
     default_prop: value,
     props {
         // A mathInput's value is bound by a child reference or `bindValueTo`,

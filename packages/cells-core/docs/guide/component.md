@@ -131,6 +131,14 @@ methods. Rules for planners:
   `<math>` aliasing the input's props for `$mi`, and `<math
   extend="$mi"/>` or `<mathInput extend="$n"/>` is the extend of the
   referent's default prop ([`ComponentType::extends_as`](crate::components::ComponentType::extends_as)).
+- A type the core makes or recognizes without a tag says which part it
+  plays (`roles: [Root]` on `<document>`, `roles: [ImplicitInput]` on
+  `<mathInput>`, ADR 0038): the root, a refused element's box, an
+  iteration's index, value and item, a list's point, a case, an answer's
+  response and implicit input. The core names the
+  [`Role`](crate::components::Role) (`Role::Root.ty()`,
+  `ty.plays(Role::Refused)`), never the type, and each role is claimed by
+  exactly one type, checked when the crate compiles.
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The

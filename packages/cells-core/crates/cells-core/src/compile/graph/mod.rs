@@ -905,9 +905,9 @@ impl<'c> Stamp<'c> {
             let tpl = &self.c.plans.templates[t.index()];
             let has_index = tpl.ref_children[id.index()].has_index;
             let (component_type, placed) = match tpl.tables.ref_child_plans[id.index()] {
-                // Of no type until it resolves; a document stands in.
-                RefChildPlan::Ref(_) => (ComponentType::Document, false),
-                RefChildPlan::Boxed | RefChildPlan::Unplanned => (ComponentType::Error, true),
+                // Of no type until it resolves; the root stands in.
+                RefChildPlan::Ref(_) => (Role::Root.ty(), false),
+                RefChildPlan::Boxed | RefChildPlan::Unplanned => (Role::Refused.ty(), true),
             };
             let m = self.make(component_type, t, 0, MadeKind::Alias);
             self.ref_children.insert((t, *id), m);
@@ -927,8 +927,8 @@ impl<'c> Stamp<'c> {
         let mut cases = Vec::new();
         for b in branches {
             if reactive {
-                let n = ComponentType::Case.prop_defs().len();
-                let case = self.make(ComponentType::Case, t, n, MadeKind::Case);
+                let n = Role::Case.ty().prop_defs().len();
+                let case = self.make(Role::Case.ty(), t, n, MadeKind::Case);
                 // `active`: whether the choice is this case's position.
                 let active = self.slot(Comp::Made(case), prop::case::ACTIVE);
                 let choice = self.g.port(t, e, prop::conditional_content::CHOICE);

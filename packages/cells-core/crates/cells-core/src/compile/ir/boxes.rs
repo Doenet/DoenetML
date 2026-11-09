@@ -287,12 +287,12 @@ mod tests {
         let (_, a) = find(&compiled, "a");
         let tpl = &compiled.plans.templates[t.index()];
         assert!(tpl.view().is_box(g) && !tpl.is_dead(g));
-        assert_eq!(tpl.elems[g.index()].component_type, ComponentType::Graph);
+        assert_eq!(tpl.elems[g.index()].component_type.tag(), "graph");
         assert_eq!(tpl.elems[g.index()].children.len(), 1);
-        assert_eq!(tpl.row(g).component_type, ComponentType::Error);
+        assert!(tpl.row(g).component_type.plays(Role::Refused));
         assert!(tpl.row(g).children.is_empty());
         assert!(tpl.is_dead(a));
-        assert_eq!(tpl.elems[a.index()].component_type, ComponentType::Point);
+        assert_eq!(tpl.elems[a.index()].component_type.tag(), "point");
     }
 
     /// A `$ref` child that cannot be planned is boxed in planning's table
@@ -307,7 +307,7 @@ mod tests {
         assert!(
             tpl.elems
                 .iter()
-                .all(|e| e.component_type != ComponentType::Error)
+                .all(|e| !e.component_type.plays(Role::Refused))
         );
         let [Child::Macro(id)] = tpl.elems[p.index()].children[..] else {
             panic!("one $ref child");

@@ -233,7 +233,7 @@ mod tests {
             // On a type it does not hold, an inherited attribute is
             // accepted, for what is inside; an own-only one is refused.
             // (`fixed` holds every type.)
-            for other in [ComponentType::TestValue, ComponentType::Point] {
+            for other in ["testValue", "point"].map(|tag| ComponentType::from_tag(tag).unwrap()) {
                 if (row.holds)(other) {
                     continue;
                 }

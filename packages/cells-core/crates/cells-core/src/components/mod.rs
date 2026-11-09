@@ -168,7 +168,51 @@ component_types! {
     }
 }
 
+/// The type that plays each role, by `Role` discriminant: found, and
+/// checked to be exactly one, when the crate compiles.
+const ROLE_TYPES: [ComponentType; Role::ALL.len()] = {
+    let mut found: [Option<ComponentType>; Role::ALL.len()] = [None; Role::ALL.len()];
+    let mut i = 0;
+    while i < COMPONENT_DEFS.len() {
+        let roles = COMPONENT_DEFS[i].roles;
+        let mut j = 0;
+        while j < roles.len() {
+            let r = roles[j] as usize;
+            assert!(found[r].is_none(), "a role is claimed by two types");
+            found[r] = Some(ComponentType::ALL[i]);
+            j += 1;
+        }
+        i += 1;
+    }
+    let mut out = [ComponentType::ALL[0]; Role::ALL.len()];
+    let mut r = 0;
+    while r < Role::ALL.len() {
+        assert!(
+            Role::ALL[r] as usize == r,
+            "Role::ALL is in declaration order"
+        );
+        out[r] = match found[r] {
+            Some(ty) => ty,
+            None => panic!("a role no type claims"),
+        };
+        r += 1;
+    }
+    out
+};
+
+impl Role {
+    /// The type that plays the role.
+    pub const fn ty(self) -> ComponentType {
+        ROLE_TYPES[self as usize]
+    }
+}
+
 impl ComponentType {
+    /// Whether the type plays `role`.
+    pub fn plays(self, role: Role) -> bool {
+        role.ty() == self
+    }
+
     /// The type's row in `COMPONENT_DEFS`.
     pub fn def(self) -> &'static ComponentDef {
         &COMPONENT_DEFS[self as usize]
@@ -792,44 +836,41 @@ mod tests {
     /// Each line is a match the core makes on a type, which its definition
     /// should say instead.
     const NAMING_TYPES: &[(&str, usize)] = &[
-        ("build/expand/aggregate.rs", 25),
-        ("build/expand/choice.rs", 5),
+        ("build/expand/aggregate.rs", 24),
+        ("build/expand/choice.rs", 3),
         ("build/expand/math.rs", 8),
-        ("build/expand/mod.rs", 15),
-        ("build/expand/resolve.rs", 1),
+        ("build/expand/mod.rs", 10),
         ("build/live.rs", 1),
         ("compile/graph/aggregate.rs", 23),
         ("compile/graph/define.rs", 1),
         ("compile/graph/eval.rs", 4),
-        ("compile/graph/expand.rs", 9),
-        ("compile/graph/mod.rs", 20),
+        ("compile/graph/expand.rs", 7),
+        ("compile/graph/mod.rs", 16),
         ("compile/graph/signature.rs", 15),
-        ("compile/graph/walk.rs", 2),
-        ("compile/ir/boxes.rs", 4),
+        ("compile/graph/walk.rs", 1),
         ("compile/ir/record.rs", 1),
-        ("compile/ir/template.rs", 1),
         ("compile/read/answer.rs", 4),
         ("compile/read/maths.rs", 1),
-        ("compile/read/refs.rs", 6),
+        ("compile/read/refs.rs", 1),
         ("compile/stages/lint.rs", 7),
-        ("compile/stages/outline/answer.rs", 8),
+        ("compile/stages/outline/answer.rs", 6),
         ("compile/stages/outline/choice.rs", 1),
         ("compile/stages/outline/copies.rs", 2),
-        ("compile/stages/outline/mod.rs", 20),
-        ("compile/stages/plan/answer.rs", 18),
+        ("compile/stages/outline/mod.rs", 14),
+        ("compile/stages/plan/answer.rs", 17),
         ("compile/stages/plan/choice.rs", 2),
         ("compile/stages/plan/copies.rs", 10),
         ("compile/stages/plan/ctx.rs", 1),
-        ("compile/stages/plan/fix.rs", 2),
-        ("compile/stages/plan/iterates.rs", 11),
+        ("compile/stages/plan/fix.rs", 1),
+        ("compile/stages/plan/iterates.rs", 3),
         ("compile/stages/plan/mod.rs", 2),
         ("compile/stages/seal/keys.rs", 2),
-        ("compile/stages/seal/types.rs", 9),
+        ("compile/stages/seal/types.rs", 6),
         ("compile/stages/share.rs", 1),
         ("document/mod.rs", 2),
-        ("document/paths.rs", 4),
+        ("document/paths.rs", 3),
         ("document/request.rs", 3),
-        ("document/sections.rs", 15),
+        ("document/sections.rs", 14),
         ("document/sticky.rs", 8),
         ("document/table.rs", 20),
         ("testing/mod.rs", 3),

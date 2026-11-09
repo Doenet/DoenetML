@@ -469,7 +469,7 @@ impl<'a> Planning<'a> {
             .into_iter()
             .find(|&k| {
                 let el = &self.rd.outlined(t).elems[k.index()];
-                el.node == NodeId::NONE && el.component_type == ComponentType::MathInput
+                el.node == NodeId::NONE && el.component_type.plays(Role::ImplicitInput)
             })
             .ok_or_else(|| Error::Internal("an implicit input outlining did not make".into()))?;
         self.tables[t.index()].plans[mi.index()].props = math_input::Props {

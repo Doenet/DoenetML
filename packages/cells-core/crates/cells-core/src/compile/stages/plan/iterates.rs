@@ -6,14 +6,15 @@ use crate::compile::*;
 use crate::components::MAX_TUPLE;
 use crate::components::prop::function_iterates;
 
-/// The name of a tuple's prop at position `i`, from its table.
-fn tuple_prop(i: usize) -> &'static str {
-    ComponentType::Tuple.prop_defs()[i].name
+/// The name of an iteration's item's prop at position `i`, from its
+/// table.
+fn item_prop(i: usize) -> &'static str {
+    Role::Item.ty().prop_defs()[i].name
 }
 
-/// Tuple prop `i` as a reference names it.
-fn tuple_ref_prop(i: usize) -> RefProp {
-    RefProp::of(ComponentType::Tuple, PropSel::At(PropAt::Position(i)))
+/// Item prop `i` as a reference names it.
+fn item_ref_prop(i: usize) -> RefProp {
+    RefProp::of(Role::Item.ty(), PropSel::At(PropAt::Position(i)))
 }
 
 /// Planning, `<functionIterates>` and `<repeat for>` over its iterates. Reads
@@ -83,7 +84,7 @@ impl<'a> Planning<'a> {
                         }),
                         Step::Elem(ElemId::new(0)),
                     ],
-                    prop: Some(tuple_ref_prop(crate::components::prop::tuple::X1 + j)),
+                    prop: Some(item_ref_prop(crate::components::prop::tuple::X1 + j)),
                     display: RefDisplay::Spelled(format!("(previous iterate).{}", vars[j]).into()),
                     node: NodeId::NONE,
                 };
@@ -206,29 +207,30 @@ impl<'a> Planning<'a> {
             if el.node != NodeId::NONE {
                 continue;
             }
-            let props = match el.component_type {
-                ComponentType::SequenceValue => {
-                    let from = self.own_prop_plan(t, e, "from");
-                    let step = self.own_prop_plan(t, e, "step");
-                    use prop::sequence_value as sv;
-                    let ports = sv::Props::PORTS;
-                    let table = |port| Wire::from_table(ComponentType::SequenceValue, port);
-                    let mut wiring = ElemWiring::of(ComponentType::SequenceValue);
-                    wiring.set_public(sv::Props {
-                        from: Source::reference(from).into(),
-                        step: Source::reference(step).into(),
-                        k: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)).into(),
-                        km1: table(ports.km1),
-                        scaled: table(ports.scaled),
-                        value: table(ports.value),
-                    });
-                    wiring.finish().0
-                }
-                ComponentType::Number => prop::number::Props {
+            let ty = el.component_type;
+            let props = if ty.plays(Role::SequenceValue) {
+                let from = self.own_prop_plan(t, e, "from");
+                let step = self.own_prop_plan(t, e, "step");
+                use prop::sequence_value as sv;
+                let ports = sv::Props::PORTS;
+                let table = |port| Wire::from_table(ty, port);
+                let mut wiring = ElemWiring::of(ty);
+                wiring.set_public(sv::Props {
+                    from: Source::reference(from).into(),
+                    step: Source::reference(step).into(),
+                    k: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)).into(),
+                    km1: table(ports.km1),
+                    scaled: table(ports.scaled),
+                    value: table(ports.value),
+                });
+                wiring.finish().0
+            } else if ty.plays(Role::Index) {
+                prop::number::Props {
                     value: Source::Leaf(Leaf::Scope(ScopeConst::IterIndex)),
                 }
-                .into_vec(),
-                _ => continue,
+                .into_vec()
+            } else {
+                continue;
             };
             self.tables[sub.index()].plans[i].props = props;
         }
@@ -276,23 +278,25 @@ impl<'a> Planning<'a> {
             count: Source::reference(fp),
         }
         .into_vec();
-        let has_item =
-            self.rd.outlined(sub).elems.first().is_some_and(|x| {
-                x.node == NodeId::NONE && x.component_type == ComponentType::Tuple
-            });
+        let has_item = self
+            .rd
+            .outlined(sub)
+            .elems
+            .first()
+            .is_some_and(|x| x.node == NodeId::NONE && x.component_type.plays(Role::Item));
         if has_item {
             let mut steps = base.steps.clone();
             steps.push(Step::Iter(IndexPlan {
                 terms: vec![IndexTerm::Iter(0), IndexTerm::Const(offset)],
             }));
             steps.push(Step::Elem(ElemId::new(0)));
-            let props = (0..ComponentType::Tuple.prop_defs().len())
+            let props = (0..Role::Item.ty().prop_defs().len())
                 .map(|i| {
-                    let prop = tuple_prop(i);
+                    let prop = item_prop(i);
                     let plan = RefPlan {
                         hops: base.hops + 1,
                         steps: steps.clone(),
-                        prop: Some(tuple_ref_prop(i)),
+                        prop: Some(item_ref_prop(i)),
                         display: RefDisplay::Spelled(
                             format!("({}[i]).{prop}", display_of(self.rd.dast, &base)).into(),
                         ),

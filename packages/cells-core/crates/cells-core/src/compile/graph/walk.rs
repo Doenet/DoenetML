@@ -117,7 +117,7 @@ impl<'c> Stamp<'c> {
                 };
                 let tpl = &self.c.plans.templates[in_template.index()];
                 // A box, and what is under one, read as undefined.
-                if tpl.is_dead(*e) || tpl.row(*e).component_type == ComponentType::Error {
+                if tpl.is_dead(*e) || tpl.row(*e).component_type.plays(Role::Refused) {
                     At::Missing
                 } else {
                     At::Comp(Comp::Elem(in_template, *e))

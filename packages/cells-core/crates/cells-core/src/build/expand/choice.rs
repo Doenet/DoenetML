@@ -47,15 +47,9 @@ impl<'c> Builder<'c> {
             let choice = self.slot(comp, crate::components::prop::conditional_content::CHOICE);
             for k in 1..=def.branches.len() {
                 let s = self.scope_for(scope, node, k as u32);
-                let n = ComponentType::Case.prop_defs().len();
-                let case = self.new_component(
-                    ComponentType::Case,
-                    StrId::NONE,
-                    comp,
-                    NodeId::NONE,
-                    scope,
-                    n,
-                );
+                let n = Role::Case.ty().prop_defs().len();
+                let case =
+                    self.new_component(Role::Case.ty(), StrId::NONE, comp, NodeId::NONE, scope, n);
                 let pos = self.const_slot(k as f64);
                 let active_slot = self.slot(case, crate::components::prop::case::ACTIVE);
                 self.sources[active_slot.index()] = self.op_source(OpSpec::Eq, &[choice, pos]);

@@ -42,6 +42,10 @@ pub struct ComponentDef {
     pub machinery: Option<Machinery>,
     /// What owns an `owned` type, for the refusal of a free one.
     pub owner: Option<ComponentType>,
+    /// The roles the type plays for the core: what it makes when it needs a
+    /// root, a refused element's box, an iteration's index, ... Each role is
+    /// claimed by exactly one type.
+    pub roles: &'static [Role],
     /// How a point is constrained to a component of the type: a type without
     /// one is no constraint target.
     pub constrain_target: Option<ConstrainTarget>,
@@ -186,6 +190,50 @@ pub enum Machinery {
     /// Copies of the components under what an attribute names, of the type
     /// outlining recorded (`<collect from>`, `<polyline vertices>`).
     Collect,
+}
+
+/// A component the core makes without a tag in the source, or recognizes
+/// in a part it played: which type plays it is the definition's to say
+/// (`roles: [Root]`), so the core names the role and not the type (ADR
+/// 0038). Each role is claimed by exactly one type, checked when the
+/// types are listed; [`Role::ty`] finds it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Role {
+    /// The document's root, synthesized when the source has none; it also
+    /// stands in for a `$ref` child until the reference resolves.
+    Root,
+    /// What a refused element is in the document: its box.
+    Refused,
+    /// A repeat's `indexName`: the iteration's 1-based position.
+    Index,
+    /// A `<repeatForSequence>`'s `valueName`: the sequence's value.
+    SequenceValue,
+    /// A `<repeat>`'s `valueName`, and a function iteration's hidden
+    /// item: a tuple.
+    Item,
+    /// A point of a list given by an attribute (`<pointList from>`).
+    ListPoint,
+    /// One built branch of a reactive choice.
+    Case,
+    /// An answer's record of one input's submitted value.
+    Response,
+    /// The input an answer makes when it names none.
+    ImplicitInput,
+}
+
+impl Role {
+    /// Every role, in declaration order.
+    pub const ALL: &[Role] = &[
+        Role::Root,
+        Role::Refused,
+        Role::Index,
+        Role::SequenceValue,
+        Role::Item,
+        Role::ListPoint,
+        Role::Case,
+        Role::Response,
+        Role::ImplicitInput,
+    ];
 }
 
 /// A group of element children of given types (`constraints:

@@ -167,7 +167,7 @@ impl Built {
                 return false;
             }
             if self.components.dast_node[x.index()] == NodeId::NONE
-                && self.component_type(x) != ComponentType::Document
+                && !self.component_type(x).plays(Role::Root)
             {
                 return true;
             }

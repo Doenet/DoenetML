@@ -15,6 +15,7 @@ pub mod document {
         /// The root. `creditAchieved` and `percentCreditAchieved` are
         /// aggregates over the scored items.
         tags: ["document"],
+        roles: [Root],
         props {
             creditAchieved: aggregate(Credit, ScoredItems) { score },
             percentCreditAchieved: aggregate(PercentCredit, ScoredItems),
@@ -89,6 +90,7 @@ pub(crate) mod error {
         /// the build, never by a tag.
         tags: ["_error"],
         flags: [internal, owned],
+        roles: [Refused],
     }
 }
 

@@ -59,6 +59,7 @@ pub mod sequence_value {
         /// iteration's 1-based position, a scope constant.
         tags: ["sequenceValue"],
         flags: [copyable, internal],
+        roles: [SequenceValue],
         default_prop: value,
         props {
             from: attr(1.0),
@@ -89,6 +90,7 @@ pub mod case {
         /// the children of an active case only.
         tags: ["case"],
         flags: [owned],
+        roles: [Case],
         props {
             active: by_planner { rendered },
         }

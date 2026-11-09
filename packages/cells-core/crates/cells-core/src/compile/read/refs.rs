@@ -39,7 +39,8 @@ impl<'a> Reader<'a> {
         name: &'static str,
     ) -> Result<Option<RefProp>> {
         match self.ref_target_type(ar, t, p)? {
-            None | Some(ComponentType::Error) => Ok(None),
+            None => Ok(None),
+            Some(ty) if ty.plays(Role::Refused) => Ok(None),
             Some(ty) => RefProp::named(ty, name)
                 .map(Some)
                 .ok_or_else(|| Error::UnknownProp {
@@ -159,7 +160,7 @@ impl<'a> Reader<'a> {
                     };
                     ty = Some(component_type);
                 }
-                Step::Item(Collection::ListPoints, _) => ty = Some(ComponentType::Point),
+                Step::Item(Collection::ListPoints, _) => ty = Some(Role::ListPoint.ty()),
                 Step::Item(Collection::Picks, _) => {
                     let Some(c) = cur else {
                         return Ok((None, last));
@@ -318,7 +319,9 @@ impl<'a> Reader<'a> {
             // (ADR 0031), and the build reads what is under a box as
             // undefined.
             if let At::Elem(e) = at
-                && self.outlined(cur_t).elems[e.index()].component_type == ComponentType::Error
+                && self.outlined(cur_t).elems[e.index()]
+                    .component_type
+                    .plays(Role::Refused)
             {
                 break;
             }
@@ -669,12 +672,12 @@ impl<'a> Reader<'a> {
                             .ok_or_else(|| Error::UnknownName(d.strings.get(path[0]).into()))?;
                         let tt = self.template_up(t, hops);
                         // An iteration index name (`indexName`): the hidden
-                        // `<number>` outlining makes for it, the only one
-                        // it makes. Read from outlining's row, so a
-                        // reference planned before the repeat (a
+                        // index outlining makes for it, the only component
+                        // of that role it makes. Read from outlining's
+                        // row, so a reference planned before the repeat (a
                         // `<math>`'s, when parsing) finds it too.
                         let el = &self.outlined(tt).elems[e.index()];
-                        let is_index = el.component_type == ComponentType::Number
+                        let is_index = el.component_type.plays(Role::Index)
                             && el.node == NodeId::NONE
                             && !el.cloned;
                         if is_index {
@@ -819,8 +822,8 @@ impl<'a> Reader<'a> {
         p: RefId,
     ) -> Result<Option<ComponentType>> {
         let (ty, last) = self.ref_target(ar, t, p)?;
-        let boxed =
-            ty == Some(ComponentType::Error) || last.is_some_and(|(lt, le)| boxes.is_box(lt, le));
+        let boxed = ty.is_some_and(|ty| ty.plays(Role::Refused))
+            || last.is_some_and(|(lt, le)| boxes.is_box(lt, le));
         if boxed {
             return Err(Error::BoxedReferent(ar.ref_display(self.dast, p)));
         }

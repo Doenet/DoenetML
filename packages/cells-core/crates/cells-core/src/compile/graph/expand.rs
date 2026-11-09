@@ -286,8 +286,8 @@ impl<'c> Stamp<'c> {
             (Some(from), _) => {
                 let (items, label) = self.resolve_items(from, t);
                 for [x, y] in items {
-                    let n = ComponentType::Point.prop_defs().len();
-                    let pt = self.make(ComponentType::Point, t, n, MadeKind::Alias);
+                    let n = Role::ListPoint.ty().prop_defs().len();
+                    let pt = self.make(Role::ListPoint.ty(), t, n, MadeKind::Alias);
                     for (pi, coord) in [(prop::point::X, x), (prop::point::Y, y)] {
                         let s = self.slot(Comp::Made(pt), pi);
                         let coord = self.or_missing(coord);

@@ -282,9 +282,10 @@ impl<'c> Builder<'c> {
         }
         let mut copies = Vec::with_capacity(found.len());
         for &c in &found {
-            // Created without a type so `copy_into` allocates the slots once.
+            // Created without a type, the root standing in, so `copy_into`
+            // allocates the slots once.
             let copy = self.new_component(
-                ComponentType::Document,
+                Role::Root.ty(),
                 StrId::NONE,
                 comp,
                 NodeId::NONE,
