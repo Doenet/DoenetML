@@ -117,6 +117,16 @@ export const LegacyKeyboardTrayContext = React.createContext<
 >({ current: { announced: false, release: null } });
 
 /**
+ * Whether this viewer has a Doenet virtual keyboard to type math with, either
+ * its own or one provided by the page embedding it.
+ *
+ * A math input on a touch device keeps the device's own on-screen keyboard
+ * down so that it does not compete with the Doenet keyboard. Without a Doenet
+ * keyboard, doing so would leave the reader with no keyboard at all.
+ */
+export const VirtualKeyboardAvailableContext = React.createContext(false);
+
+/**
  * this is a hack for react-mathqill
  * error: global is not defined
  */
@@ -859,12 +869,14 @@ function WrapWithKeyboard({
     ) : null;
 
     return (
-        <FocusedMathInputContext.Provider value={focusedMathInput}>
-            <LegacyKeyboardTrayContext.Provider value={legacyKeyboardTray}>
-                {children}
-                <div className="before-keyboard" />
-                {keyboard}
-            </LegacyKeyboardTrayContext.Provider>
-        </FocusedMathInputContext.Provider>
+        <VirtualKeyboardAvailableContext.Provider value={addVirtualKeyboard}>
+            <FocusedMathInputContext.Provider value={focusedMathInput}>
+                <LegacyKeyboardTrayContext.Provider value={legacyKeyboardTray}>
+                    {children}
+                    <div className="before-keyboard" />
+                    {keyboard}
+                </LegacyKeyboardTrayContext.Provider>
+            </FocusedMathInputContext.Provider>
+        </VirtualKeyboardAvailableContext.Provider>
     );
 }
