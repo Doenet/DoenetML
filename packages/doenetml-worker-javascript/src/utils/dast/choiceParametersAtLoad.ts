@@ -23,11 +23,14 @@
  *   attribute but `to` and `length`, which decide only how many) of a
  *   `<repeatForSequence>`.
  *
- * "A reader can change" is DIAG-2's definition: an input, an answer, a
- * slider, or what a reader writes to (`buildReaderWritableIndex`: what an
- * input's `bindValueTo` names, what a reader drags, an action's target),
- * and anything that reads one of these through a reference, a child or an
- * attribute.
+ * "A reader can change" is DIAG-2's definition: an input (a `<codeEditor>`
+ * too), an answer, a slider, or what a reader writes to
+ * (`buildReaderWritableIndex`: what an input's `bindValueTo` names, what a
+ * reader drags, an action's target), and anything that reads one of these
+ * through a reference, a child or an attribute. DIAG-2's state a reader sets
+ * by an action (a hint, a solution or a section opened, a video played) is
+ * not checked: a reference to such a component may read what no action
+ * changes (`$sec.sectionNumber`), and the pass doesn't tell properties apart.
  *
  * It errs toward allowing, since a false error is worse here than a missed
  * one: a component's label and the attributes that only display or style it
@@ -174,6 +177,12 @@ const PASS_THROUGH_VARIANT_TYPES = new Set([
     "repeat",
     "repeatForSequence",
 ]);
+
+/**
+ * What a reader enters a value in, besides an `_input`: an `<answer>`, a
+ * `<slider>`, and a `<codeEditor>`, which isn't an `_input`.
+ */
+const READER_ENTERED_TYPES = new Set(["answer", "slider", "codeEditor"]);
 
 /** The attributes of a repeat that decide only how many iterations it has. */
 const COUNT_ONLY_ATTRIBUTES = new Set(["to", "length"]);
@@ -346,7 +355,7 @@ export function checkChoiceParametersAtLoad({
         ) {
             return { reference: undefined, changeable: node };
         }
-        if (isA(type, "_input") || type === "answer" || type === "slider") {
+        if (isA(type, "_input") || READER_ENTERED_TYPES.has(type)) {
             return { reference: undefined, changeable: node };
         }
         if (isChoice(type)) {
@@ -495,6 +504,21 @@ export function checkChoiceParametersAtLoad({
             : { kind: "value", repeat };
     }
 
+    /**
+     * The type of `node`, or of the nearest component holding it that an
+     * author writes, for one an author never writes (the
+     * `_dynamicChildren` of a `<graph>`).
+     */
+    function authoredTypeOf(node: any): string {
+        let type = typeMadeBy(node);
+        let holder = parentOf.get(node);
+        while (type.startsWith("_") && holder) {
+            type = typeMadeBy(holder);
+            holder = parentOf.get(holder);
+        }
+        return type;
+    }
+
     const diagnostics: ReturnType<typeof codedDiagnostic>[] = [];
     const errorByChoice = new Map<any, ReturnType<typeof codedDiagnostic>>();
     for (const { choice, attributeName, attribute } of parametersToCheck) {
@@ -526,7 +550,7 @@ export function checkChoiceParametersAtLoad({
                     found.reference?.originalPath,
                     sources,
                 ),
-                changeableType: typeMadeBy(found.changeable),
+                changeableType: authoredTypeOf(found.changeable),
             },
             position,
             sourceDoc,

@@ -113,6 +113,27 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `numToSelect="$k"`,
         },
         {
+            tag: "<selectFromSequence to> from a code editor",
+            doenetML: `<codeEditor name="ce" prefill="3"/>
+<p name="p">A <selectFromSequence name="s" to="$ce"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$ce",
+            changeableType: "codeEditor",
+            written: `to="$ce"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a graph's axis, which a reader pans",
+            doenetML: `<graph name="g"/>
+<p name="p">A <selectFromSequence name="s" to="$g.xMax"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$g.xMax",
+            // named as the author wrote it
+            changeableType: "graph",
+            written: `to="$g.xMax"`,
+        },
+        {
             tag: "<selectFromSequence to> from a number an action writes to",
             doenetML: `<number name="k">3</number>
 <updateValue target="$k" newValue="$k+1"/>
