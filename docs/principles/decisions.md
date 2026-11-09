@@ -2211,7 +2211,7 @@ Most of the plumbing exists for value references, and can be made general:
 ## D38. Errors are decided at load, the same for every variant (decided, Tier 1)
 
 **Decided.** DIAG-7 states it. The implementation is #2463: the end-of-load assertion is done by
-#2491; moving the remaining errors to load is #2493, and cycles #2473.
+#2491, moving the remaining errors to load by #2507 (closing #2493); cycles are #2473.
 
 **Today** nothing stops an error from appearing while a reader works, or from appearing in some
 variants only. Errors are drawn in the document, so a reader sees them. **[examples]**
