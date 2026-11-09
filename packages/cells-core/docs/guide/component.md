@@ -50,9 +50,10 @@ pub mod clamped {
 Then register it with one line in the `component_types!` list in
 [`components`](crate::components) (`components/mod.rs`): `Clamped => values::clamped::DEFINITION,`. Nothing else
 is needed; a request on `clamped` inverts through the operators' own
-inverses. If other code reads a prop by position, name it in the module
-(`pub const VALUE: usize = Props::AT.value;`) and re-export the module from
-`components/prop.rs`.
+inverses. The core reads no prop by position (`the_core_names_no_type`):
+what it needs of a type is one of the declarations below. A position
+another component reads (`pub const VALUE: usize = Props::AT.value;`) is
+named in the module, and the module re-exported from `components/prop.rs`.
 
 **A type whose wiring depends on which attributes the author gave** names a
 planner of its own as the block's last section:
@@ -222,6 +223,55 @@ true`), a score a grader reads `score`, and a prop an action reads
 `renders: InGraph` or `renders: Never`. These are the document's outputs
 (ADR 0019), and the viewer's test fails on a renderer's read of any
 other cell.
+
+### Checklist for a typical component
+
+What an author writes for a new value, input, shape or container, as the
+code stands (2026-11-09, ADR 0038 step 7). Its length is the measure of the
+interface's size: an item a typical author meets that serves one type is a
+candidate for a hook, or for removal.
+
+**Every type**
+
+1. A `component!` block in a family file: `tags`, `props` (each prop's
+   source: `attr`, `children`, `computed`, `by_planner`, `aggregate`), and
+   `planner: Props` or `Plan(plan)`.
+2. One line in `component_types!` (`components/mod.rs`).
+3. Prop flags for its renderer: `interactive`, `rendered`, and, where it
+   applies, `written_by_action`, `read_by_action`, `score`.
+4. A renderer in `packages/cells-viewer/src/renderers/`.
+5. A spec beside it (`<file>.spec.rs`, included by `#[path]`), or the type
+   in `WITHOUT_SPEC`.
+
+**With a planner** (`Plan(plan)`)
+
+6. `attributes { .. }`, each with its kind, read from the record.
+7. `children:` when it reads its children.
+8. Its wiring through [`PlanCtx`](crate::compile::api::PlanCtx) and
+   `Props::PORTS`, and `ctx.warn` for what it cannot honor.
+
+**By what the type is**
+
+| A type that | Declares |
+|---|---|
+| copies with `$name`, or reads as its value | `flags: [copyable]`, `default_prop`, `reads_as` |
+| holds a value | `text:`, `extend_value: Scalar(value)`, `expr_of` on a prop standing for an expression |
+| is an input | `needs: Label`, `response:` when an answer may read it |
+| is a shape | `renders: InGraph`, `flags: [located]`, `list { .. }` or `combined_props`, `sticky:`, `constrain_target` |
+| is a container | `flags: [container]`, `structure:` when looked through, `scored: Skip` when scores skip it, `encloses: Graph(..)` for a graph's like |
+| takes attributes a renderer reads | `presentation { .. }` |
+| accepts the current core's spellings | `alternate_names { .. }` |
+
+**Beyond a typical component** (one type's behavior, or the machinery's):
+`roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
+`rewrite`, `settle`, `submit`, `triggered`, `numbered`, `scored: Item(..)`
+and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
+`encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.
+
+The baseline: 5 items for every type, 3 more with a planner, 20
+declarations by what the type is, and 14 beyond a typical component that
+sit in the same block, which an author reads past to find the 28 that
+concern them.
 
 ## Add an operator
 
