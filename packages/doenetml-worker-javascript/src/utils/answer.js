@@ -15,6 +15,112 @@ function returnScoredContainerAncestorDependency(...variableNames) {
 }
 
 /**
+ * The number of submissions allowed once the host's `maxNumAttempts` flag is
+ * taken into account: the smaller of the author's `maxNumAttempts` and the
+ * flag.
+ *
+ * The flag means "no cap" when it is absent, `null` (what `Infinity` becomes
+ * when flags travel as JSON, as they do into the iframe wrapper), `Infinity`,
+ * or anything that is not a number or a numeric string. A numeric string is
+ * accepted in case a host passes one (the standalone build turns its
+ * `data-doenet-max-num-attempts` attribute into a number, but a `flags`
+ * object reaches the core as given). A fractional cap is rounded down, and a
+ * negative one (`-Infinity` included) counts as zero. An author's value that
+ * is not a number sets no limit of its own, so a cap from the flag still
+ * applies.
+ *
+ * @param {number} authorMaxNumAttempts - the author's `maxNumAttempts`
+ * @param {unknown} flagMaxNumAttempts - the host's `maxNumAttempts` flag
+ * @returns {number}
+ */
+export function effectiveMaxNumAttempts(
+    authorMaxNumAttempts,
+    flagMaxNumAttempts,
+) {
+    let cap = Infinity;
+    if (typeof flagMaxNumAttempts === "number") {
+        cap = flagMaxNumAttempts;
+    } else if (
+        typeof flagMaxNumAttempts === "string" &&
+        flagMaxNumAttempts.trim() !== ""
+    ) {
+        cap = Number(flagMaxNumAttempts);
+    }
+    if (Number.isNaN(cap)) {
+        cap = Infinity;
+    }
+    if (cap === Infinity) {
+        return authorMaxNumAttempts;
+    }
+    cap = Math.max(0, Math.floor(cap));
+    // An author's value that is not a number (`maxNumAttempts="x"`) sets no
+    // limit, so the cap applies on its own.
+    return Number.isNaN(authorMaxNumAttempts)
+        ? cap
+        : Math.min(authorMaxNumAttempts, cap);
+}
+
+/**
+ * The author's `maxNumAttempts`, from the dependency `maxNumAttemptsAttr` on
+ * the attribute component. Without the attribute it is the value a document
+ * stored by changing `maxNumAttempts` (for example with `<updateValue>`), or
+ * `Infinity`.
+ *
+ * @param {{ maxNumAttemptsAttr: { stateValues: { value: number } } | null }} dependencyValues
+ * @param {{ maxNumAttempts?: number }} essentialValues
+ * @returns {number}
+ */
+export function authorMaxNumAttempts(dependencyValues, essentialValues) {
+    if (dependencyValues.maxNumAttemptsAttr) {
+        return dependencyValues.maxNumAttemptsAttr.stateValues.value;
+    }
+    return essentialValues.maxNumAttempts ?? Infinity;
+}
+
+/**
+ * The `inverseDefinition` of the public `maxNumAttempts`: a desired value
+ * changes the author's limit, as it did when `maxNumAttempts` was the
+ * attribute's own state variable. It goes to the attribute component when
+ * the author set the attribute (and from there to a referenced `<number>`),
+ * otherwise to the stored value. The host's flag still caps the result.
+ *
+ * A stored value is rounded to an integer, as the `<integer>` attribute
+ * component rounds a value written to it, so the limit is a whole number
+ * either way.
+ */
+export function invertMaxNumAttempts({
+    desiredStateVariableValues,
+    dependencyValues,
+}) {
+    const desiredValue = desiredStateVariableValues.maxNumAttempts;
+    if (dependencyValues.maxNumAttemptsAttr) {
+        return {
+            success: true,
+            instructions: [
+                {
+                    setDependency: "maxNumAttemptsAttr",
+                    desiredValue,
+                    variableIndex: 0,
+                },
+            ],
+        };
+    }
+    return {
+        success: true,
+        instructions: [
+            {
+                setEssentialValue: "maxNumAttempts",
+                value: Math.round(
+                    typeof desiredValue?.evaluate_to_constant === "function"
+                        ? evaluateToNumber(desiredValue)
+                        : Number(desiredValue),
+                ),
+            },
+        ],
+    };
+}
+
+/**
  * Whether a math expression's tree carries nothing the reader typed.
  *
  * A whole expression that is the placeholder U+FF3F — what math-expressions
@@ -146,9 +252,9 @@ export function returnStandardAnswerAttributes() {
         },
         maxNumAttempts: {
             createComponentOfType: "integer",
-            createStateVariable: "maxNumAttempts",
+            // No state variable of its own: the public `maxNumAttempts`
+            // combines this attribute with the host's flag of the same name.
             defaultValue: Infinity,
-            public: true,
             groupName: "answer-grading",
             description:
                 "Maximum number of times the response can be submitted.",
@@ -731,6 +837,46 @@ export function returnStandardAnswerStateVariableDefinition() {
         }),
     };
 
+    stateVariableDefinitions.maxNumAttempts = {
+        description:
+            "Maximum number of times the response can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets.",
+        public: true,
+        groupName: "answer-grading",
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        // Holds a limit set by changing `maxNumAttempts` when the author gave
+        // no attribute (see `invertMaxNumAttempts`).
+        hasEssential: true,
+        defaultValue: Infinity,
+        provideEssentialValuesInDefinition: true,
+        returnDependencies: () => ({
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+                variableNames: ["value"],
+            },
+            // A cap on submissions the host sets for every answer, without
+            // editing the document; the author's value still wins when it is
+            // smaller.
+            flagMaxNumAttempts: {
+                dependencyType: "flag",
+                flagName: "maxNumAttempts",
+            },
+        }),
+        definition({ dependencyValues, essentialValues }) {
+            return {
+                setValue: {
+                    maxNumAttempts: effectiveMaxNumAttempts(
+                        authorMaxNumAttempts(dependencyValues, essentialValues),
+                        dependencyValues.flagMaxNumAttempts,
+                    ),
+                },
+            };
+        },
+        inverseDefinition: invertMaxNumAttempts,
+    };
+
     stateVariableDefinitions.numAttemptsLeft = {
         description:
             "Remaining number of submission attempts before the maximum is reached.",
@@ -753,21 +899,25 @@ export function returnStandardAnswerStateVariableDefinition() {
                     "suppressAnswerSubmitButtons",
                     "numAttemptsLeft",
                 ),
-            // Used to target the ignored-`maxNumAttempts` warning at the
+            // Whether the author set `maxNumAttempts`, for the
+            // ignored-`maxNumAttempts` warning, which it targets at the
             // attribute itself rather than the whole `<answer>`.
             maxNumAttemptsAttr: {
                 dependencyType: "attributeComponent",
                 attributeName: "maxNumAttempts",
             },
         }),
-        definition({ dependencyValues, usedDefault }) {
+        definition({ dependencyValues }) {
             let sendDiagnostics = [];
 
             let insideSectionWideCheckWork =
                 dependencyValues.ancestorSuppressingAnswerSubmitButtons
                     ?.stateValues.suppressAnswerSubmitButtons;
 
-            if (!usedDefault.maxNumAttempts && insideSectionWideCheckWork) {
+            if (
+                dependencyValues.maxNumAttemptsAttr &&
+                insideSectionWideCheckWork
+            ) {
                 sendDiagnostics.push(
                     codedDiagnostic({
                         type: "warning",
@@ -778,9 +928,10 @@ export function returnStandardAnswerStateVariableDefinition() {
             }
 
             // Inside a section-wide check work, the answer's own
-            // `maxNumAttempts` is ignored: the enclosing container controls the
-            // number of attempts. Report that container's remaining attempts so
-            // the public `numAttemptsLeft` is accurate. This matches how a
+            // `maxNumAttempts` (and so the host's flag of that name) is ignored:
+            // the enclosing container controls the number of attempts. Report
+            // that container's remaining attempts so the public
+            // `numAttemptsLeft` is accurate. This matches how a
             // `maxNumAttempts` on a nested `sectionWideCheckWork` container is
             // ignored.
             const numAttemptsLeft = insideSectionWideCheckWork
@@ -1072,7 +1223,9 @@ export function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
  * can count and cap attempts without reading the document.
  *
  * - `numSubmissions`: the submissions so far, including this one.
- * - `maxNumAttempts`: the author's `maxNumAttempts`, or `null` if unlimited.
+ * - `maxNumAttempts`: the component's `maxNumAttempts` state variable, or
+ *   `null` if unlimited: the author's limit, lowered by the host's
+ *   `maxNumAttempts` flag where the flag applies.
  * - `numAttemptsLeft`: the attempts left after this submission, or `null` if
  *   unlimited. Computed from `numAttemptsLeftBefore`, the component's
  *   `numAttemptsLeft` read before the submission, so for an answer inside a

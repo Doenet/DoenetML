@@ -69,6 +69,13 @@ For example,
 </div>
 ```
 
+A numeric flag is written the same way. For example,
+`data-doenet-max-num-attempts="3"` sets the `maxNumAttempts` flag, which caps
+how many times each answer can be submitted. An answer gets the smaller of
+that cap and the author's own `maxNumAttempts`; inside a container with
+`sectionWideCheckWork`, the cap applies to the container's check-work
+button. Leaving the attribute out means no cap.
+
 ## MathJax
 
 The renderer uses MathJax to typeset math. It **coexists** with a MathJax that
@@ -481,8 +488,10 @@ section-wide check work, `result` also counts attempts, so a host can count
 and cap them without reading the document:
 
 - `numSubmissions`: submissions so far, including this one.
-- `maxNumAttempts`: the author's `maxNumAttempts`, or `null` when attempts
-  are unlimited.
+- `maxNumAttempts`: the component's `maxNumAttempts`, or `null` when
+  attempts are unlimited. That is the author's limit, lowered by the
+  `maxNumAttempts` flag where the flag applies (see
+  `data-doenet-max-num-attempts` above).
 - `numAttemptsLeft`: attempts left after this submission, or `null` when
   unlimited.
 

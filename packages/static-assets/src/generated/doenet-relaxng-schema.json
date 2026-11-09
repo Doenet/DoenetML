@@ -4162,13 +4162,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -4222,6 +4215,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -5177,13 +5176,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -5237,6 +5229,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -6192,13 +6190,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -6252,6 +6243,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -7201,13 +7198,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -7261,6 +7251,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -60362,13 +60358,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -60478,6 +60467,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -61594,13 +61589,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -61710,6 +61698,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -62826,13 +62820,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -62942,6 +62929,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -64058,13 +64051,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -64174,6 +64160,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -65297,13 +65289,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -65413,6 +65398,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -66529,13 +66520,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -66645,6 +66629,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -67768,13 +67758,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -67884,6 +67867,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -69007,13 +68996,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -69123,6 +69105,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -70246,13 +70234,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -70362,6 +70343,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -71485,13 +71472,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -71601,6 +71581,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -72717,13 +72703,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -72833,6 +72812,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -73949,13 +73934,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -74065,6 +74043,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -75181,13 +75165,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -75297,6 +75274,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -76413,13 +76396,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -76529,6 +76505,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -77645,13 +77627,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -77761,6 +77736,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -78877,13 +78858,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -78993,6 +78967,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -80115,13 +80095,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -80224,6 +80197,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -81346,13 +81325,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -81462,6 +81434,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -82584,13 +82562,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -82700,6 +82671,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -82989,13 +82966,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -83049,6 +83019,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -83310,13 +83286,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -83370,6 +83339,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -84325,13 +84300,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -84385,6 +84353,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -93719,13 +93693,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -93779,6 +93746,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -94734,13 +94707,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -94794,6 +94760,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -101291,13 +101263,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -101351,6 +101316,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -103183,13 +103154,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "displayDigitsForCreditAchieved",
                     "type": "integer",
                     "isArray": false,
@@ -103243,6 +103207,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of times the section-wide check-work button has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -120623,13 +120593,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the response can be submitted.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "disableAfterCorrect",
                     "type": "boolean",
                     "isArray": false,
@@ -120910,6 +120873,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Total number of times a response has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the response can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets."
                 },
                 {
                     "name": "numAttemptsLeft",
@@ -178464,13 +178433,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the response can be submitted.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "disableAfterCorrect",
                     "type": "boolean",
                     "isArray": false,
@@ -178576,6 +178538,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Total number of times a response has been submitted."
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the response can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets."
                 },
                 {
                     "name": "numAttemptsLeft",

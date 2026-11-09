@@ -278,6 +278,16 @@ export function renderDoenetViewerToContainer(
         ...flags
     } = attrs;
 
+    // `data-doenet-max-num-attempts="3"` arrives as the string "3"; the flag
+    // is a number (an unparseable value means no cap, as an absent one does).
+    if (typeof flags.maxNumAttempts === "string") {
+        const cap = Number(flags.maxNumAttempts);
+        flags.maxNumAttempts =
+            flags.maxNumAttempts.trim() === "" || Number.isNaN(cap)
+                ? null
+                : cap;
+    }
+
     let resizeWatcher = viewerResizeWatchersByContainer.get(container);
     if (!resizeWatcher) {
         resizeWatcher = new ResizeWatcher();
