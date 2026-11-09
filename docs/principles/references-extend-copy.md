@@ -729,7 +729,7 @@ Code: `extendChangesContentErrors` and `attributesAnExtendApplies` in
 `W/components/abstract/Copy.js`. The parser's `conditionalContent` and `repeat` sugar skips an
 element written with `extend`, which fixed B12.
 
-Known bugs, open: #2217, #2218, #2211, and the copy halves of #2215 and #2216 (D4, B5). #2219
+Known bugs, open: #2217, #2211 (with children, and `indexName`), and the copy half of #2216 (D4, B5). **[probe]** at `894d3ea`, #2218 and the copy half of #2215 look fixed. #2219
 (`styleNumber` on an extend of `<intersection>`) was fixed by #2426.
 
 ### REF-8: an extend's descendants are reached through the extend's own name, and an unnamed reference creates no names (Tier 1)
