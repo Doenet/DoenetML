@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+    coprimeCombinations,
     drawValidCombination,
     someValidCombination,
 } from "../../utils/validCombinations";
@@ -114,5 +115,104 @@ describe("Valid combinations, found exactly (SEL-4) @group4", () => {
         })!;
         expect(drawn.values).eqls([4, 9]);
         expect(drawn.indices).eqls([1, 3]);
+    });
+
+    it("counts coprime combinations, and draws each with the same chance", () => {
+        // 2 to 10 and 15, three at a time, with and without replacement:
+        // every valid combination is drawn by some part of [0, 1), and
+        // nothing else is
+        const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 15];
+        const gcdAll = (v: number[]) => v.reduce((a, b) => gcd(a, b), 0);
+        for (const withReplacement of [false, true]) {
+            const valid = new Set<string>();
+            for (const a of values) {
+                for (const b of values) {
+                    for (const c of values) {
+                        if (
+                            (withReplacement ||
+                                (a !== b && b !== c && a !== c)) &&
+                            gcdAll([a, b, c]) === 1
+                        ) {
+                            valid.add(JSON.stringify([a, b, c]));
+                        }
+                    }
+                }
+            }
+            const combinations = coprimeCombinations({
+                values,
+                numToSelect: 3,
+                withReplacement,
+            });
+            expect(combinations.exists()).eq(true);
+            // draws spread evenly over [0, 1) reach every combination
+            const drawn = new Map<string, number>();
+            const n = valid.size * 40;
+            for (let i = 0; i < n; i++) {
+                // three numbers for each draw: one stratified, two fixed,
+                // so that each first value is reached in proportion
+                const result = combinations.draw(
+                    rngOf([
+                        (i + 0.5) / n,
+                        (((i * 7919) % n) + 0.5) / n,
+                        (((i * 104729) % n) + 0.5) / n,
+                    ]),
+                )!;
+                const key = JSON.stringify(result.values);
+                expect(valid.has(key), key).eq(true);
+                expect(result.indices.map((index) => values[index])).eqls(
+                    result.values,
+                );
+                drawn.set(key, (drawn.get(key) ?? 0) + 1);
+            }
+            expect(drawn.size).eq(valid.size);
+        }
+    });
+
+    it("draws each coprime combination with the chance its count gives", () => {
+        // the first value's chance is in proportion to the coprime
+        // combinations it begins
+        const values = [1, 2, 4, 6];
+        const combinations = coprimeCombinations({
+            values,
+            numToSelect: 2,
+            withReplacement: false,
+        });
+        // coprime ordered pairs: (1, x) and (x, 1) for x in 2, 4, 6: 6 in all,
+        // 3 of them begin with 1
+        let beginsWith1 = 0;
+        const n = 600;
+        for (let i = 0; i < n; i++) {
+            const r = (i + 0.5) / n;
+            const result = combinations.draw(rngOf([r, 0.5]))!;
+            if (result.values[0] === 1) {
+                beginsWith1++;
+            }
+        }
+        expect(beginsWith1).eq(n / 2);
+    });
+
+    it("finds none when the values have no coprime combination", () => {
+        const combinations = coprimeCombinations({
+            values: [6, 10, 15],
+            numToSelect: 2,
+            withReplacement: false,
+        });
+        expect(combinations.exists()).eq(false);
+        expect(combinations.draw(Math.random)).eq(null);
+    });
+
+    it("draws quickly when coprime combinations are rare among very many", () => {
+        // 1 and the even numbers to 2000, three at a time: about 10^9
+        // combinations, of which only those holding 1 are coprime
+        const values = [1, ...[...Array(1000).keys()].map((i) => 2 * i + 2)];
+        const start = Date.now();
+        const result = coprimeCombinations({
+            values,
+            numToSelect: 3,
+            withReplacement: false,
+        }).draw(rngOf([0.3, 0.6, 0.9]));
+        expect(Date.now() - start).lt(5000);
+        expect(result!.values).toContain(1);
+        expect(new Set(result!.values).size).eq(3);
     });
 });

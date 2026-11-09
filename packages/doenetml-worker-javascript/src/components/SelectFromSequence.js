@@ -36,6 +36,7 @@ import {
     selectionWithRequested,
 } from "../utils/selectErrors";
 import {
+    coprimeCombinations,
     drawValidCombination,
     someValidCombination,
 } from "../utils/validCombinations";
@@ -1356,13 +1357,30 @@ function makeFreshSelection(dependencyValues) {
         if (!foundValidCombination) {
             // The draws found none, so valid combinations are rare: draw
             // among them exactly, so the select never fails by chance
-            // (SEL-4). One exists, as found above.
-            const drawn = drawValidCombination({
-                ...space,
-                rng: dependencyValues.variantRng,
-            });
-            selectedValues = drawn.values;
-            selectedIndices = drawn.indices.map((index) => index + 1);
+            // (SEL-4). One exists, as found above. Coprime combinations are
+            // counted rather than gone through, as there can be far too many
+            // combinations to go through (1 and the even numbers to 2000,
+            // three at a time); `coprime` is never set with excluded
+            // combinations.
+            if (coprime) {
+                const possible = returnSequenceValues(dependencyValues, true);
+                const drawn = coprimeCombinations({
+                    values: possible.map((x) => x.value),
+                    numToSelect: dependencyValues.numToSelect,
+                    withReplacement: dependencyValues.withReplacement,
+                }).draw(dependencyValues.variantRng);
+                selectedValues = drawn.values;
+                selectedIndices = drawn.indices.map(
+                    (index) => possible[index].originalIndex + 1,
+                );
+            } else {
+                const drawn = drawValidCombination({
+                    ...space,
+                    rng: dependencyValues.variantRng,
+                });
+                selectedValues = drawn.values;
+                selectedIndices = drawn.indices.map((index) => index + 1);
+            }
         }
     }
 

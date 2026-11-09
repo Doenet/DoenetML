@@ -585,6 +585,23 @@ describe("Errors the DoenetML decides, beside ones a value decides @group4", asy
         expect(pairs.size).gt(1);
     });
 
+    it("coprime values rare among very many combinations are found quickly", async () => {
+        // 1 and the even numbers to 2000, three at a time: about 10^9
+        // combinations, of which only those holding 1 are coprime. Going
+        // through them all would not finish; they are counted instead.
+        const doenetML = `<sequence name="odds" from="3" to="1999" step="2" hide/>
+<selectFromSequence name="s" from="1" to="2000" exclude="$odds" numToSelect="3" coprime/>`;
+        for (const requestedVariantIndex of [1, 2, 3, 4]) {
+            const { errors, selected } = await load({
+                doenetML,
+                requestedVariantIndex,
+            });
+            expect(errors).eqls([]);
+            expect(selected).toHaveLength(3);
+            expect(selected).toContain(1);
+        }
+    });
+
     it("values with no common factor, but no coprime pair, are an error in every variant", async () => {
         // 6, 10 and 15 have no common factor, but each two of them have one
         const doenetML = `<selectFromSequence name="s" numToSelect="2" from="6" to="15" exclude="7 8 9 11 12 13 14" coprime/>`;
