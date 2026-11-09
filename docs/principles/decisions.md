@@ -2398,7 +2398,7 @@ variant misses a blank another variant shows.
 
 ## D40. Decisions from the review of open issues (November 2026)
 
-A review of the open issues (after #2466's plan) found fifteen waiting on a decision. Seven are
+A review of the open issues (after #2466's plan; the next plan is #2509) found fifteen waiting on a decision. Seven are
 decided here; the rest are listed as still open.
 
 **Decided:**
