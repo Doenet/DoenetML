@@ -59,14 +59,10 @@ impl Document {
     /// the inputs its awards reference. A response that reads no input
     /// (a blank `response=`) is left out.
     pub fn answer_inputs(&self, answer: CompIdx) -> Vec<CompIdx> {
-        let reads = |c: CompIdx, cell: CellIdx| match self.component_type(c) {
-            ComponentType::MathInput => self.comp_cells(c)[prop::math_input::EXPR] == cell,
-            ComponentType::BooleanInput => self.comp_cells(c)[prop::boolean_input::VALUE] == cell,
-            ComponentType::TextInput => self.comp_cells(c)[prop::text_input::VALUE] == cell,
-            ComponentType::ChoiceInput => {
-                self.comp_cells(c)[prop::choice_input::SELECTED_INDEX] == cell
-            }
-            _ => false,
+        let reads = |c: CompIdx, cell: CellIdx| {
+            self.component_type(c)
+                .response()
+                .is_some_and(|r| self.comp_cells(c)[r.prop()] == cell)
         };
         self.answer_responses(answer)
             .into_iter()

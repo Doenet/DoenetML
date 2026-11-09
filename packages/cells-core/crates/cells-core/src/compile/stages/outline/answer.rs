@@ -38,10 +38,8 @@ impl Outlining<'_> {
         let mut awards = Vec::new();
         for k in self.rd().elem_children(t, e) {
             match self.outlined(t).elems[k.index()].component_type {
-                ComponentType::ChoiceInput => return Ok(()),
-                ComponentType::MathInput
-                | ComponentType::BooleanInput
-                | ComponentType::TextInput => inputs.push(k),
+                ty if matches!(ty.response(), Some(ResponseKind::Index(_))) => return Ok(()),
+                ty if ty.response().is_some() => inputs.push(k),
                 ComponentType::Award => awards.push(k),
                 _ => return Ok(()),
             }

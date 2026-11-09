@@ -12,10 +12,10 @@ component! {
     flags: [copyable, symbolic],
     default_prop: credit,
     props {
-        response: attr(NO_VALUE) { ref_prop: expr, read_by_action },
-        correct: children,
+        response: attr(NO_VALUE) { ref_prop: expr, read_by_action, expr_when: submitted },
+        correct: children { expr_when: submitted },
         // A submit writes these (`Document::submit`).
-        submitted: attr(NO_VALUE) { written_by_action },
+        submitted: attr(NO_VALUE) { written_by_action, expr_when: submitted },
         credit: by_planner { rendered, score },
         weight: attr(1.0),
         numSubmissions: attr(0.0) { written_by_action, rendered },

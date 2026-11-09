@@ -136,8 +136,8 @@ impl Reader<'_> {
         let (cur_t, x) = self.static_target(ar, t, p)?;
         let input_type = self.outlined(cur_t).elems[x.index()].component_type;
         matches!(
-            input_type,
-            ComponentType::MathInput | ComponentType::BooleanInput
+            input_type.response(),
+            Some(ResponseKind::Math(_) | ResponseKind::Boolean(_))
         )
         .then_some(((r.hops, x), input_type))
     }

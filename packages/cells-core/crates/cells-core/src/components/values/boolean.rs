@@ -15,6 +15,7 @@ component! {
     /// `expandOnCompare` are read at plan time.
     tags: ["boolean"],
     flags: [copyable],
+    text: Boolean(value),
     default_prop: value,
     props {
         value: children { rendered },

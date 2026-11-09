@@ -13,6 +13,8 @@ component! {
     tags: ["textInput"],
     flags: [copyable],
     reads_as: Text,
+    response: Text(value),
+    text: Text(value),
     default_prop: value,
     props {
         value: children { attribute: prefill, bind: bindValueTo, text, interactive, rendered },

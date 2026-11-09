@@ -49,6 +49,12 @@ pub struct ComponentDef {
     /// How the type is structure rather than content: looked through, a
     /// gate, or a repeat. `None` for a type whose children are its own.
     pub structure_kind: Option<StructureKind>,
+    /// What an answer's response reads of an input of this type, and what
+    /// kind of value it is; `Some` marks the type as an answer's input.
+    pub response: Option<ResponseKind>,
+    /// How a component of the type shows in text; `None` for its
+    /// children's text.
+    pub text: Option<TextKind>,
     /// How a point is constrained to a component of the type: a type without
     /// one is no constraint target.
     pub constrain_target: Option<ConstrainTarget>,
@@ -269,6 +275,48 @@ pub enum StructureKind {
         /// The structural prop holding how many iterations it has.
         count: usize,
     },
+}
+
+/// What an answer's response reads of an input, by the kind of value it
+/// is (ADR 0038): the answer code tells its inputs apart by this, not by
+/// their types. Each holds the position of the prop the response reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ResponseKind {
+    /// An expression (a `<mathInput>`'s `expr`), compared as math; an
+    /// answer with no input makes such an input.
+    Math(usize),
+    /// A boolean (a `<booleanInput>`'s `value`).
+    Boolean(usize),
+    /// A string (a `<textInput>`'s `value`), read by a text answer only.
+    Text(usize),
+    /// The index of a choice (a `<choiceInput>`'s `selectedIndex`), whose
+    /// credit the choice earns.
+    Index(usize),
+}
+
+impl ResponseKind {
+    /// The position of the prop the response reads.
+    pub const fn prop(self) -> usize {
+        match self {
+            Self::Math(pi) | Self::Boolean(pi) | Self::Text(pi) | Self::Index(pi) => pi,
+        }
+    }
+}
+
+/// How a component shows in text, as the current core's `text` state
+/// variable reads it ([`crate::Document::rendered_text`]). Each holds the
+/// positions of the props it reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TextKind {
+    /// A number, formatted.
+    Number(usize),
+    /// A string id's text.
+    Text(usize),
+    /// `true` when the value is 1, else `false`.
+    Boolean(usize),
+    /// The expression's text (`expr`, the first), or the number (`value`)
+    /// when there is no expression.
+    Math(usize, usize),
 }
 
 /// A group of element children of given types (`constraints:
@@ -594,6 +642,22 @@ pub struct PropDef {
     /// For a span over 1, the prop whose nonzero value says the run is
     /// there (a function's `curve`); when it is 0, the prop is one cell.
     pub span_when: Option<u8>,
+    /// Whether the prop stands for an expression, read in math as the
+    /// expression rather than its value: where the expression is, and the
+    /// prop whose port says, by being math, that there is one.
+    pub expr: Option<ExprOf>,
+}
+
+/// Where the expression a prop stands for is ([`PropDef::expr`]): a
+/// `<math>`'s `value` stands for its `expr`, a response's `value` for its
+/// `submitted`, and an answer's `correct` for itself, each when the prop
+/// at `when` is math. Positions in the type's table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ExprOf {
+    /// The prop holding the expression.
+    pub at: u8,
+    /// The prop whose port is math when there is an expression.
+    pub when: u8,
 }
 
 impl PropDef {

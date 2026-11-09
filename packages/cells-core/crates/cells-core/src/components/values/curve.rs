@@ -18,7 +18,7 @@ component! {
     renders: InGraph,
     default_prop: expr,
     props {
-        expr: children,
+        expr: children { expr_of: expr },
         xmin: by_planner { rendered },
         xmax: by_planner { rendered },
         // 1 when the function has a curve, 0 when it has none (it takes

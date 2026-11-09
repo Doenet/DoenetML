@@ -23,6 +23,7 @@ pub mod number {
         tags: ["number"],
         flags: [copyable],
         roles: [Index],
+        text: Number(value),
         default_prop: value,
         props {
             value: children { rendered },
@@ -71,8 +72,8 @@ pub mod response {
         props {
             response: by_planner { read_by_action },
             // A submit writes it (`Document::submit`).
-            submitted: by_planner { written_by_action },
-            value: by_planner,
+            submitted: by_planner { written_by_action, expr_of: submitted },
+            value: by_planner { expr_of: submitted },
         }
         owner: Answer,
     }

@@ -1506,31 +1506,14 @@ impl<'c> Stamp<'c> {
 
     /// When node `n` is a prop that stands for an expression (a symbolic
     /// math's `expr` or `value`, a function, a math answer's props), the
-    /// node of that expression.
+    /// node of that expression: where its type says ([`ExprOf`](crate::components::ExprOf)), when
+    /// the port it names is math.
     fn math_target(&self, n: GraphNode) -> Option<GraphNode> {
         let (c, pi) = self.comp_of(n)?;
-        let component_type = self.component_type(c);
-        let name = component_type.prop_defs().get(pi)?.name;
-        match (component_type, name) {
-            (ComponentType::Answer, "response" | "correct" | "submitted") => {
-                let submitted = self.slot(c, prop::answer::SUBMITTED);
-                (self.value_type(submitted) == PortType::Math).then_some(n)
-            }
-            (ComponentType::Response, "submitted" | "value") => {
-                let submitted = self.slot(c, prop::response::SUBMITTED);
-                (self.value_type(submitted) == PortType::Math).then_some(submitted)
-            }
-            (
-                ComponentType::Math
-                | ComponentType::MathInput
-                | ComponentType::Function
-                | ComponentType::Derivative,
-                "expr" | "value",
-            ) => self
-                .is_symbolic(c)
-                .then(|| self.slot(c, component_type.prop_index("expr").unwrap())),
-            _ => None,
-        }
+        let crate::components::ExprOf { at, when } = self.component_type(c).expr_of(pi)?;
+        let when = usize::from(when);
+        (when < self.n_public(c) && self.value_type(self.slot(c, when)) == PortType::Math)
+            .then(|| self.slot(c, usize::from(at)))
     }
 
     /// The slots of prop `sel` of component `c`, None for one that is

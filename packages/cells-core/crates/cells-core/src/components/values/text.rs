@@ -10,6 +10,7 @@ component! {
     /// string id of its text. A text value never reaches a numeric one.
     tags: ["text"],
     flags: [copyable],
+    text: Text(value),
     default_prop: value,
     props {
         value: children { text, rendered },

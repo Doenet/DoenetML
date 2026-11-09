@@ -114,6 +114,16 @@ a *gate* (its children there while its `active` is 1: a case), or a *repeat*
 (one scope per iteration, `count` of them). The walks that look through
 containers read it instead of naming types.
 
+**Expression prop** — A prop that stands for an expression when it holds
+math: read inside math text as the expression, not its value (ADR 0038). Its
+declaration says where the expression is and which prop says there is one
+(`expr_of: expr` on a `<math>`'s `value`, `expr_when: submitted` on an
+answer's `correct`).
+
+**Response kind** — What an answer's response reads of an input, by the kind
+of value it is: math, boolean, text or a choice's index (`ResponseKind`, ADR
+0038). Declaring one makes a type an answer's input.
+
 **Reference** — A `$name` or `$name.prop` in the document. A component-level
 reference (`$p1`) produces a copy sharing every cell with the referent,
 except to an input, which it *reads as* a value of the input's declared

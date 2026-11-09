@@ -1,6 +1,6 @@
 # The core names no component type, and components are a crate of their own
 
-Status: proposed 2026-11-09. Steps 1 to 3 of the Migration are done. Builds on
+Status: proposed 2026-11-09. Steps 1 to 4 of the Migration are done. Builds on
 ADR 0016 (components are defined without knowing the core), whose
 converse this is; on ADR 0034 (a planner is a function of its record),
 which made `compile::api` the one door a planner goes through; and on
@@ -107,7 +107,7 @@ named in Context; the exact names are settled in each migration step.
 | Whether a component changes where its descendants are | `ty == Graph`, `ty == StickyGroup` (twice), and the graph's bounds in `signature.rs` (`domain`) | `encloses: Graph \| Sticky`, and `bounds: [xmin, xmax, ymin, ymax]` on the type that encloses a graph. |
 | Which prop stands for an expression | Three copies of `math_target` | A prop's `expr_of`: the port that holds the expression when it is math (`submitted`, `expr`). |
 | Which prop of an input an answer's response reads | `plan/answer.rs`, `outline/answer.rs`, `read/answer.rs`, `sections.rs` (`answer_inputs`) | `response: "expr"` on each input type, which also marks the type as an answer's input. |
-| A component's text | `push_text` in `table.rs` | `text: Value \| Text \| Boolean \| Math \| Children`, and a `hide` the structure kind already names. |
+| A component's text | `push_text` in `table.rs` | `text: Number(value) \| Text(value) \| Boolean(value) \| Math(expr, value)`, none for the children's text, and a `hide` the structure kind already names. |
 | Accessibility lint | `lint.rs` (`accessibility`) | `needs: Description \| Label`. |
 | What `extend="$x.prop"` makes of the value | `plan_extend_prop` in `plan/copies.rs` | `extend_value: Scalar \| Point \| Math \| Expr \| List`, beside the existing `reads_as`. |
 | What a reference to the type settles while outlining | `settle_outline`, which calls three component modules by path | `settle: Collects(Point) \| CollectsByAttr("componentType") \| By(fn)`, the function written beside the type. |
@@ -284,6 +284,22 @@ step 1 lower than before.
 4. **Prop declarations.** `expr_of` replaces the three copies of
    `math_target`. `response` replaces the input lists in the answer
    code and `answer_inputs`. `text` replaces `push_text`'s arms.
+   Done, with three departures. An expression is declared on the prop
+   as two options, since an answer's props stand for themselves when
+   what it submits is math, while a response's `value` stands for its
+   `submitted`: `expr_of: p` (the expression is `p`, when `p` is math)
+   and `expr_when: p` (the prop itself, when `p` is math), resolved to
+   `ExprOf { at, when }`. `response` is a `ResponseKind`, `Math(expr)`,
+   `Boolean(value)`, `Text(value)` or `Index(selectedIndex)`, because
+   the answer code tells its inputs apart by the kind of value as much
+   as by the prop (a choice input's index takes its own path, a text
+   input belongs to a text answer, an award's `when` reads math and
+   boolean inputs). `text` is a `TextKind` holding the props it reads:
+   `Number(value)`, `Text(value)`, `Boolean(value)`, `Math(expr,
+   value)`. Left for step 7: the answer machinery's own wiring of a
+   math input's `expr` port, and `<award>`, `<when>` and `<choice>`
+   inside an answer. The count fell from 208 to 160, and the golden
+   diff is identical.
 5. **Context.** `encloses` and `bounds`, read by `placement`, the
    graph's own walk and `domain`.
 6. **The rest of the table.** `needs` for lint, `extend_value`,

@@ -15,6 +15,8 @@ component! {
     flags: [copyable],
     reads_as: Math,
     roles: [ImplicitInput],
+    response: Math(expr),
+    text: Math(expr, value),
     default_prop: value,
     props {
         // A mathInput's value is bound by a child reference or `bindValueTo`,
@@ -22,8 +24,10 @@ component! {
         // from what `value` turned out to be.
         // Typing requests `expr`, or `value` when the input is bound to a
         // number.
-        value: children { attribute: prefill, bind: bindValueTo, interactive, rendered },
-        expr: by_planner { interactive, rendered },
+        value: children {
+            attribute: prefill, bind: bindValueTo, interactive, rendered, expr_of: expr
+        },
+        expr: by_planner { interactive, rendered, expr_of: expr },
     }
     attributes {
         prefill: Content,

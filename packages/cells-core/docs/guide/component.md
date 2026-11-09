@@ -147,6 +147,16 @@ methods. Rules for planners:
   numbers, a sticky group's members, a component's text and the input
   signature look through it by its kind, so a new container that behaves
   like one of these declares it and is looked through everywhere.
+- What the core reads of a type's values it reads from declarations too
+  (ADR 0038). A prop that stands for an expression says so
+  (`expr_of: expr` on a `<math>`'s `value`, `expr_when: submitted` on an
+  answer's `correct`, [`ExprOf`](crate::components::ExprOf)), and math
+  text reading it binds the expression. An input says what an answer's
+  response reads of it (`response: Math(expr)`,
+  [`ResponseKind`](crate::components::ResponseKind)), which also makes it
+  an answer's input. A value says how it shows in text (`text:
+  Number(value)`, [`TextKind`](crate::components::TextKind)); a type
+  with none shows its children's text.
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The

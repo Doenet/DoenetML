@@ -339,25 +339,8 @@ impl<'s, 'a> Types<'s, 'a> {
         }
         cells.at.iter().any(|&(ct, ce, pi)| {
             let ty = self.row(ct, ce).component_type;
-            let Some(def) = ty.prop_defs().get(pi) else {
-                return false;
-            };
-            let mut port_named = |name: &str| ty.prop_index(name).map(|i| self.port(ct, ce, i));
-            let mut is_math = |name: &str| port_named(name) == Some(PortType::Math);
-            match (ty, def.name) {
-                (ComponentType::Answer, "response" | "correct" | "submitted") => {
-                    is_math("submitted")
-                }
-                (ComponentType::Response, "submitted" | "value") => is_math("submitted"),
-                (
-                    ComponentType::Math
-                    | ComponentType::MathInput
-                    | ComponentType::Function
-                    | ComponentType::Derivative,
-                    "expr" | "value",
-                ) => is_math("expr"),
-                _ => false,
-            }
+            ty.expr_of(pi)
+                .is_some_and(|e| self.port(ct, ce, usize::from(e.when)) == PortType::Math)
         })
     }
 

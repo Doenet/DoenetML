@@ -14,6 +14,7 @@ component! {
     /// (`shuffleOrder` is not modelled); `selectMultiple` is refused.
     tags: ["choiceInput"],
     flags: [copyable],
+    response: Index(selectedIndex),
     default_prop: selectedIndex,
     props {
         preliminaryIndex: attr(0.0) { attribute: selectedIndex },

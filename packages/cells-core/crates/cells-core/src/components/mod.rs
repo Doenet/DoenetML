@@ -631,6 +631,24 @@ impl ComponentType {
         }
     }
 
+    /// Where the expression prop `pi` stands for is, if it stands for one
+    /// ([`PropDef::expr`]).
+    pub fn expr_of(self, pi: usize) -> Option<ExprOf> {
+        self.prop_defs().get(pi)?.expr
+    }
+
+    /// What an answer's response reads of an input of the type; None for a
+    /// type that is no answer's input.
+    pub fn response(self) -> Option<ResponseKind> {
+        self.def().response
+    }
+
+    /// How a component of the type shows in text; None for its children's
+    /// text.
+    pub fn text_kind(self) -> Option<TextKind> {
+        self.def().text
+    }
+
     /// The 0/1 prop a gate holds its children by ([`StructureKind::Gate`]).
     pub fn gate_prop(self) -> Option<usize> {
         match self.structure_kind() {
@@ -849,26 +867,25 @@ mod tests {
     const NAMING_TYPES: &[(&str, usize)] = &[
         ("build/expand/aggregate.rs", 15),
         ("build/expand/choice.rs", 2),
-        ("build/expand/math.rs", 8),
         ("build/expand/mod.rs", 10),
         ("build/live.rs", 1),
         ("compile/graph/aggregate.rs", 14),
         ("compile/graph/define.rs", 1),
         ("compile/graph/eval.rs", 4),
         ("compile/graph/expand.rs", 7),
-        ("compile/graph/mod.rs", 15),
+        ("compile/graph/mod.rs", 7),
         ("compile/graph/signature.rs", 8),
         ("compile/graph/walk.rs", 1),
         ("compile/ir/record.rs", 1),
-        ("compile/read/answer.rs", 4),
+        ("compile/read/answer.rs", 3),
         ("compile/read/maths.rs", 1),
         ("compile/read/refs.rs", 1),
         ("compile/stages/lint.rs", 7),
-        ("compile/stages/outline/answer.rs", 6),
+        ("compile/stages/outline/answer.rs", 2),
         ("compile/stages/outline/choice.rs", 1),
         ("compile/stages/outline/copies.rs", 2),
         ("compile/stages/outline/mod.rs", 14),
-        ("compile/stages/plan/answer.rs", 17),
+        ("compile/stages/plan/answer.rs", 8),
         ("compile/stages/plan/choice.rs", 2),
         ("compile/stages/plan/copies.rs", 10),
         ("compile/stages/plan/ctx.rs", 1),
@@ -876,14 +893,13 @@ mod tests {
         ("compile/stages/plan/iterates.rs", 3),
         ("compile/stages/plan/mod.rs", 2),
         ("compile/stages/seal/keys.rs", 2),
-        ("compile/stages/seal/types.rs", 6),
         ("compile/stages/share.rs", 1),
         ("document/mod.rs", 2),
         ("document/paths.rs", 1),
         ("document/request.rs", 3),
-        ("document/sections.rs", 14),
+        ("document/sections.rs", 9),
         ("document/sticky.rs", 8),
-        ("document/table.rs", 9),
+        ("document/table.rs", 2),
         ("testing/mod.rs", 3),
     ];
 

@@ -18,6 +18,9 @@ pub(super) struct Prop {
     /// For a run of cells (`sampled`), the prop that says whether it is
     /// there, by name.
     sampled_when: Option<&'static str>,
+    /// The expression it stands for, by name: where it is (None: the prop
+    /// itself) and the prop that says there is one.
+    expr: Option<(Option<&'static str>, &'static str)>,
 }
 
 /// A computed prop's input as a table writes it: a prop by name, or a
@@ -55,6 +58,7 @@ const BLANK: PropDef = PropDef {
     read_by_action: false,
     span: 1,
     span_when: None,
+    expr: None,
 };
 
 const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> Prop {
@@ -66,6 +70,7 @@ const fn prop_from(name: &'static str, default: f64, source: DeclaredSource) -> 
         },
         source,
         sampled_when: None,
+        expr: None,
     }
 }
 
@@ -176,6 +181,18 @@ impl Prop {
         self.def.read_by_action = true;
         self
     }
+    /// Stands for the expression in prop `at` when `at` is math: a
+    /// `<math>`'s `value` for its `expr` ([`super::ExprOf`]).
+    pub(super) const fn expr_of(mut self, at: &'static str) -> Self {
+        self.expr = Some((Some(at), at));
+        self
+    }
+    /// Is itself an expression when prop `when` is math: an answer's
+    /// `correct` when what it submits is math ([`super::ExprOf`]).
+    pub(super) const fn expr_when(mut self, when: &'static str) -> Self {
+        self.expr = Some((None, when));
+        self
+    }
     /// The first of `SAMPLES` consecutive cells (a curve's samples) when
     /// the prop `when` is nonzero; one cell when it is 0.
     pub(super) const fn sampled(mut self, when: &'static str) -> Self {
@@ -228,6 +245,16 @@ pub(super) const fn props<const N: usize>(table: [Prop; N]) -> [PropDef; N] {
         if let Some(when) = table[i].sampled_when {
             out[i].span_when = Some(at(&out, when) as u8);
         }
+        if let Some((holder, when)) = table[i].expr {
+            let holder = match holder {
+                Some(name) => at(&out, name),
+                None => i,
+            };
+            out[i].expr = Some(super::ExprOf {
+                at: holder as u8,
+                when: at(&out, when) as u8,
+            });
+        }
         i += 1;
     }
     out
@@ -266,6 +293,8 @@ pub(super) const fn definition(
         owner: None,
         roles: &[],
         structure_kind: None,
+        response: None,
+        text: None,
         constrain_target: None,
         params: &[],
     }
@@ -313,6 +342,17 @@ impl ComponentDef {
     /// How the type is structure rather than content ([`super::StructureKind`]).
     pub(super) const fn structure_kind(mut self, kind: super::StructureKind) -> Self {
         self.structure_kind = Some(kind);
+        self
+    }
+    /// What an answer's response reads of an input of the type
+    /// ([`super::ResponseKind`]).
+    pub(super) const fn response(mut self, response: super::ResponseKind) -> Self {
+        self.response = Some(response);
+        self
+    }
+    /// How a component of the type shows in text ([`super::TextKind`]).
+    pub(super) const fn text(mut self, text: super::TextKind) -> Self {
+        self.text = Some(text);
         self
     }
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
@@ -523,6 +563,12 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// choice: p }`), `Gate { active: p }` or `Repeat { count: p }`, each `p`
 /// a prop of the table.
 ///
+/// `response: Math(expr)` makes the type an answer's input whose response
+/// reads that prop ([`super::ResponseKind`]), and `text: Number(value)`
+/// says how a component shows in text ([`super::TextKind`]). A prop
+/// option `expr_of: expr` or `expr_when: submitted` says the prop stands
+/// for an expression ([`super::ExprOf`]).
+///
 /// `Props<T>` has one field per prop of the table, in table order: a
 /// planner fills `Props<Wire>` as a struct literal, so a prop left
 /// unplanned does not compile; `Props::PORTS` holds every prop's port, by
@@ -622,6 +668,8 @@ macro_rules! component {
         $(reads_as: $ras:ident,)?
         $(roles: [$($role:ident),* $(,)?],)?
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
+        $(response: $rkind:ident ($rprop:ident),)?
+        $(text: $tkind:ident ($($tprop:ident),+ $(,)?),)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -660,6 +708,12 @@ macro_rules! component {
                 $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.roles(&[$($crate::components::Role::$role),*]))?
                 $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
+                $(.response($crate::components::ResponseKind::$rkind(
+                    $crate::components::define::at(PROPS, stringify!($rprop)),
+                )))?
+                $(.text($crate::components::TextKind::$tkind(
+                    $($crate::components::define::at(PROPS, stringify!($tprop))),+
+                )))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {

@@ -150,39 +150,22 @@ impl<'c> Builder<'c> {
 
     /// When `slot` is a prop that stands for an expression (a symbolic
     /// math's `expr` or `value`, a function, a math answer's props), the
-    /// slot of that expression.
+    /// slot of that expression: where its type says ([`ExprOf`](crate::components::ExprOf)), when the
+    /// slot it names holds math. An answer's response is one only when
+    /// what it submits is (not for a choice or a text answer); a response's
+    /// `submitted` unless its input is a boolean input (`add_response`).
     fn math_target(&mut self, slot: SlotId) -> Option<SlotId> {
         let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
             return None;
         }
-        let component_type = self.components.component_type[comp.index()];
         let pi = slot.index() - self.slot_base[comp.index()].index();
-        let name = component_type.prop_defs().get(pi)?.name;
-        match (component_type, name) {
-            // An answer's response and correct value are expressions when
-            // what it submits is one: not for a choice or a text answer.
-            (ComponentType::Answer, "response" | "correct" | "submitted") => {
-                let submitted = self.slot(comp, prop::answer::SUBMITTED);
-                (self.value_type(submitted) == ValueType::Math).then_some(slot)
-            }
-            // A submitted response is a math cell unless its input is a
-            // boolean input (`add_response`).
-            (ComponentType::Response, "submitted" | "value") => {
-                let submitted = self.slot(comp, prop::response::SUBMITTED);
-                (self.value_type(submitted) == ValueType::Math).then_some(submitted)
-            }
-            (
-                ComponentType::Math
-                | ComponentType::MathInput
-                | ComponentType::Function
-                | ComponentType::Derivative,
-                "expr" | "value",
-            ) => self
-                .is_symbolic(comp)
-                .then(|| self.slot(comp, component_type.prop_index("expr").unwrap())),
-            _ => None,
-        }
+        let crate::components::ExprOf { at, when } =
+            self.components.component_type[comp.index()].expr_of(pi)?;
+        let when = usize::from(when);
+        (when < self.slots().n_public(comp)
+            && self.value_type(self.slot(comp, when)) == ValueType::Math)
+            .then(|| self.slot(comp, usize::from(at)))
     }
 
     /// What the cell of `slot` will hold: its template port's type, read

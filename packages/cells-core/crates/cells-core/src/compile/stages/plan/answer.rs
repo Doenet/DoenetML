@@ -47,10 +47,7 @@ impl<'a> Planning<'a> {
                 continue;
             }
             match self.rd.outlined(t).elems[k.index()].component_type {
-                ComponentType::MathInput
-                | ComponentType::BooleanInput
-                | ComponentType::TextInput
-                | ComponentType::ChoiceInput => inputs.push(k),
+                ty if ty.response().is_some() => inputs.push(k),
                 ComponentType::Award => awards.push(k),
                 other => {
                     return Err(Error::Unsupported(format!(
@@ -63,7 +60,12 @@ impl<'a> Planning<'a> {
         let text_nodes = self.rd.content_nodes(el);
         // A choice input: the submitted index earns its choice's credit.
         if let [ci] = inputs.as_slice()
-            && self.rd.outlined(t).elems[ci.index()].component_type == ComponentType::ChoiceInput
+            && matches!(
+                self.rd.outlined(t).elems[ci.index()]
+                    .component_type
+                    .response(),
+                Some(ResponseKind::Index(_))
+            )
         {
             if !text_nodes.is_empty() || !awards.is_empty() {
                 return Err(Error::Unsupported(
@@ -76,7 +78,12 @@ impl<'a> Planning<'a> {
             return self.plan_text_answer(t, e, el, &inputs, &awards);
         }
         if inputs.iter().any(|&k| {
-            self.rd.outlined(t).elems[k.index()].component_type == ComponentType::TextInput
+            matches!(
+                self.rd.outlined(t).elems[k.index()]
+                    .component_type
+                    .response(),
+                Some(ResponseKind::Text(_))
+            )
         }) {
             return Err(Error::Unsupported(
                 "a <textInput> in an <answer> that is not type=\"text\"".into(),
@@ -117,8 +124,12 @@ impl<'a> Planning<'a> {
                 ));
             }
             (true, None, [mi]) => {
-                if self.rd.outlined(t).elems[mi.index()].component_type != ComponentType::MathInput
-                {
+                if !matches!(
+                    self.rd.outlined(t).elems[mi.index()]
+                        .component_type
+                        .response(),
+                    Some(ResponseKind::Math(_))
+                ) {
                     return Err(Error::Unsupported(
                         "an <answer> comparing a <booleanInput>: <answer type=\"boolean\">".into(),
                     ));
@@ -266,8 +277,12 @@ impl<'a> Planning<'a> {
     ) -> Result<()> {
         let d = self.rd.dast;
         let ti = match inputs {
-            [ti] if self.rd.outlined(t).elems[ti.index()].component_type
-                == ComponentType::TextInput =>
+            [ti] if matches!(
+                self.rd.outlined(t).elems[ti.index()]
+                    .component_type
+                    .response(),
+                Some(ResponseKind::Text(_))
+            ) =>
             {
                 *ti
             }
@@ -439,10 +454,12 @@ impl<'a> Planning<'a> {
     /// a boolean input's value), the submitted copy, and the copy's value.
     fn plan_response(&mut self, t: TemplateId, r: ElemId, p: RefId, input_type: ComponentType) {
         let mut live = self.ar.refs[p.index()].clone();
-        let math = input_type == ComponentType::MathInput;
-        let name = if math { "expr" } else { "value" };
-        live.prop = RefProp::named(input_type, name);
-        debug_assert!(live.prop.is_some(), "an input has its value prop");
+        let response = input_type.response().expect("an answer's input");
+        let math = matches!(response, ResponseKind::Math(_));
+        live.prop = Some(RefProp::of(
+            input_type,
+            PropSel::At(PropAt::Position(response.prop())),
+        ));
         let live = Source::reference(self.ar.push_ref(live));
         let submitted_port = response::Props::PORTS.submitted;
         let (submitted, value) = if math {

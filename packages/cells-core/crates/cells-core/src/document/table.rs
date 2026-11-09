@@ -293,38 +293,32 @@ impl Document {
     }
 
     fn push_text(&self, c: CompIdx, out: &mut String) {
-        let value = |prop: &str| {
-            self.prop_cells(c, prop)
-                .map(|cells| self.cells[cells[0].index()])
-        };
-        match self.component_type(c) {
-            ComponentType::Text => {
-                out.push_str(&self.text_value(self.comp_cells(c)[prop::text::VALUE]))
+        let cells = self.comp_cells(c);
+        let value = |pi: usize| cells.get(pi).map(|cell| self.cells[cell.index()]);
+        let ty = self.component_type(c);
+        match ty.text_kind() {
+            Some(TextKind::Text(pi)) => out.push_str(&self.text_value(cells[pi])),
+            Some(TextKind::Number(pi)) => {
+                out.push_str(&format_number(value(pi).unwrap_or(f64::NAN)))
             }
-            ComponentType::TextInput => {
-                out.push_str(&self.text_value(self.comp_cells(c)[prop::text_input::VALUE]))
-            }
-            ComponentType::Number | ComponentType::NumberInput | ComponentType::Slider => {
-                out.push_str(&format_number(value("value").unwrap_or(f64::NAN)))
-            }
-            ComponentType::Boolean => out.push_str(if value("value") == Some(1.0) {
+            Some(TextKind::Boolean(pi)) => out.push_str(if value(pi) == Some(1.0) {
                 "true"
             } else {
                 "false"
             }),
-            ComponentType::Math | ComponentType::MathInput => {
-                let expr = self.prop_cells(c, "expr").map(|cells| cells[0]);
-                match expr {
-                    Some(e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
-                    _ => out.push_str(&format_number(value("value").unwrap_or(f64::NAN))),
-                }
-            }
-            ty if ty
+            Some(TextKind::Math(expr, pi)) => match cells.get(expr) {
+                Some(&e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
+                _ => out.push_str(&format_number(value(pi).unwrap_or(f64::NAN))),
+            },
+            None if ty
                 .gate_prop()
-                .is_some_and(|active| self.cells[self.comp_cells(c)[active].index()] != 1.0) => {}
-            ty if matches!(ty.structure_kind(), Some(StructureKind::Transparent { .. }))
-                && value("hide").is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
-            _ => {
+                .is_some_and(|active| value(active) != Some(1.0)) => {}
+            None if matches!(ty.structure_kind(), Some(StructureKind::Transparent { .. }))
+                && ty
+                    .prop_index("hide")
+                    .and_then(value)
+                    .is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
+            None => {
                 for ch in self.children(c) {
                     match ch {
                         Child::Text(t) => out.push_str(t),

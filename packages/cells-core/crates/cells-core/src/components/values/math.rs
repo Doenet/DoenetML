@@ -14,11 +14,12 @@ component! {
     /// says so), and `value` evaluates it (NaN with free symbols).
     tags: ["math"],
     flags: [copyable],
+    text: Math(expr, value),
     default_prop: value,
     props {
         // Both of a math's props are set by the builder from its children.
-        expr: children { rendered },
-        value: children { rendered },
+        expr: children { rendered, expr_of: expr },
+        value: children { rendered, expr_of: expr },
     }
     attributes {
         expand: On,
