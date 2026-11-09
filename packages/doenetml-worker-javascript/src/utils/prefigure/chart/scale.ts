@@ -114,9 +114,9 @@ export function niceTickStep(
     // answers `9.999999999999999e-6`, Node 24 answers `1e-5` — and a rough step
     // of `0.00005` then normalizes to `5.000000000000001` on one and `5` on the
     // other, which lands on a different rung of the ladder below. Parsing
-    // `1e-5` gives the nearest double on every engine. `Math.log10` has the
-    // same problem at exact powers, so the exponent comes from the decimal
-    // representation as well.
+    // `1e-5` gives the nearest double on every engine. `Math.log10` is left
+    // to the engine to approximate too, so the exponent comes from the
+    // decimal representation as well.
     const exponent = Number(rough.toExponential().split("e")[1]);
     const magnitude = Number(`1e${exponent}`);
     // A subnormal span underflows the power of ten to 0, which would make the

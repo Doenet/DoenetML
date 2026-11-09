@@ -487,7 +487,7 @@ export async function createChildrenThenComponent({
     if (core._components[componentIdx] !== undefined) {
         // Name the two components rather than logging them: a component
         // prints its class, ancestors, shared parameters and random number
-        // generators, which once made two passing tests write about 180,000
+        // generators, which once made two passing tests write about 195,000
         // lines into a CI log (#2475).
         const existing = core._components[componentIdx];
         throw Error(

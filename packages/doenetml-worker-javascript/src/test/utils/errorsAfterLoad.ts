@@ -38,8 +38,8 @@ export function takeErrorsReportedAfterLoad(
  * so one reported after it is a bug: in production it is a warning, and its
  * component is missing.
  *
- * Each core's pending state saves are cancelled first. A test never
- * terminates its cores, and an unterminated core arms a 60-second throttle
+ * Each core's pending state saves are cancelled first. Tests do not, as a
+ * rule, terminate their cores, and an unterminated core arms a 60-second throttle
  * timer on its first save (`StatePersistence.saveChangesToDatabase`) whose
  * callback holds the whole core. Forgetting the core here is then not enough:
  * every core outlived its test by a minute, and a file that loads a document

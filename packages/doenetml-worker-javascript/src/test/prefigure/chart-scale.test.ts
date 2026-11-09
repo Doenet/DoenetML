@@ -7,7 +7,8 @@ describe("chart scale @group4", () => {
         // Node 22, `10 ** -5` is `9.999999999999999e-6`, so a power of ten
         // computed rather than parsed normalized `0.00005` to just above 5 and
         // climbed a rung, to `0.0001` (#2490). Spans either side of 1 are
-        // checked too, since the exponent is read differently there.
+        // checked too, since the exponent's sign differs there (`5e-1`,
+        // `5e+1`).
         const cases: [number, number][] = [
             [0.00025, 0.00005],
             [0.0002, 0.00005],
