@@ -727,6 +727,22 @@ impl ComponentType {
         }
     }
 
+    /// The prop whose value picks what a choice of the type holds
+    /// ([`StructureKind::Transparent`]'s `choice`): a conditional
+    /// content's, which makes it a reactive choice.
+    pub fn choice_prop(self) -> Option<usize> {
+        match self.structure_kind() {
+            Some(StructureKind::Transparent { choice }) => choice,
+            _ => None,
+        }
+    }
+
+    /// Whether the type is a choice made at load (a `<select>`): the
+    /// `Choice` machinery plans it, and no prop picks what it holds.
+    pub fn chooses_at_load(self) -> bool {
+        self.def().machinery == Some(Machinery::Choice) && self.choice_prop().is_none()
+    }
+
     /// Whether an element of the type holds the points of the list it
     /// extends, made when built ([`ExtendValue::List`]): a `<pointList>`.
     pub fn holds_list_points(self) -> bool {
@@ -958,30 +974,6 @@ mod tests {
         );
     }
 
-    /// Files outside `components/` that name a type or read a prop's
-    /// position, with how many lines do (ADR 0038): the list only shrinks.
-    /// Each line is a match the core makes on a type, which its definition
-    /// should say instead.
-    const NAMING_TYPES: &[(&str, usize)] = &[
-        ("build/expand/aggregate.rs", 1),
-        ("build/expand/choice.rs", 2),
-        ("compile/graph/eval.rs", 4),
-        ("compile/graph/expand.rs", 1),
-        ("compile/graph/mod.rs", 2),
-        ("compile/graph/signature.rs", 3),
-        ("compile/graph/walk.rs", 1),
-        ("compile/read/answer.rs", 3),
-        ("compile/stages/outline/answer.rs", 2),
-        ("compile/stages/outline/choice.rs", 1),
-        ("compile/stages/outline/mod.rs", 7),
-        ("compile/stages/plan/answer.rs", 8),
-        ("compile/stages/plan/choice.rs", 2),
-        ("compile/stages/plan/iterates.rs", 3),
-        ("compile/stages/plan/mod.rs", 1),
-        ("document/paths.rs", 1),
-        ("document/sections.rs", 4),
-    ];
-
     /// The lines of `text` that name a [`ComponentType`] variant
     /// (`ComponentType::Graph`) or read a prop's position (`case::ACTIVE`,
     /// `prop::case::ACTIVE`, or `ACTIVE` after `use case::{ACTIVE}`),
@@ -1042,11 +1034,10 @@ mod tests {
     }
 
     /// No file outside `components/` names a type or reads a prop's
-    /// position more often than `NAMING_TYPES` lists, and none less: a
-    /// file that names fewer lowers its count, or leaves the list at zero.
-    /// Once the list is empty, no file names any (ADR 0038, step 1).
+    /// position (ADR 0038): what the core needs of a type it reads from the
+    /// type's definition, a role, a declaration or a machinery.
     #[test]
-    fn the_core_names_types_ever_less() {
+    fn the_core_names_no_type() {
         let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
         let components = src.join("components");
         // `prop`'s modules: the names in its `pub use super::...::{..}`.
@@ -1071,49 +1062,21 @@ mod tests {
         sources(&src, &mut files);
         files.retain(|p| !p.starts_with(&components));
         files.sort();
-        let mut found = Vec::new();
-        let mut rose = Vec::new();
-        for p in &files {
-            let text = std::fs::read_to_string(p).unwrap();
-            let lines = naming_type_lines(&text, &modules);
-            let file = p
-                .strip_prefix(&src)
-                .unwrap()
-                .display()
-                .to_string()
-                .replace('\\', "/");
-            let listed = NAMING_TYPES
-                .iter()
-                .find(|(f, _)| *f == file)
-                .map_or(0, |&(_, n)| n);
-            if lines.len() > listed {
-                rose.extend(
-                    lines
-                        .iter()
-                        .map(|(i, l)| format!("{file}:{i}: {}", l.trim())),
-                );
-            }
-            if !lines.is_empty() {
-                found.push((file, lines.len()));
-            }
-        }
-        let listed: Vec<(String, usize)> = NAMING_TYPES
+        let found: Vec<String> = files
             .iter()
-            .map(|&(f, n)| (f.to_string(), n))
+            .flat_map(|p| {
+                let text = std::fs::read_to_string(p).unwrap();
+                let file = p.strip_prefix(&src).unwrap().display().to_string();
+                naming_type_lines(&text, &modules)
+                    .into_iter()
+                    .map(|(i, l)| format!("{file}:{i}: {}", l.trim()))
+                    .collect::<Vec<_>>()
+            })
             .collect();
         assert!(
-            rose.is_empty(),
-            "the core names a type more often than NAMING_TYPES lists; say it in the type's \
-             definition instead (ADR 0038):\n{}",
-            rose.join("\n")
-        );
-        let table: String = found
-            .iter()
-            .map(|(f, n)| format!("        (\"{f}\", {n}),\n"))
-            .collect();
-        assert_eq!(
-            found, listed,
-            "the core names types less often than NAMING_TYPES lists; lower it to:\n{table}"
+            found.is_empty(),
+            "the core names a type; say it in the type's definition instead (ADR 0038):\n{}",
+            found.join("\n")
         );
     }
 

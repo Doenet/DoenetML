@@ -302,6 +302,7 @@ pub(super) const fn definition(
         extend_value: None,
         triggered: None,
         numbered: None,
+        submit: None,
         roles: &[],
         structure_kind: None,
         response: None,
@@ -409,6 +410,11 @@ impl ComponentDef {
     /// How its full number and title read ([`super::Numbered`]).
     pub(super) const fn numbered(mut self, numbered: super::Numbered) -> Self {
         self.numbered = Some(numbered);
+        self
+    }
+    /// What a submit does to a component of the type ([`super::Submit`]).
+    pub(super) const fn submit(mut self, submit: super::Submit) -> Self {
+        self.submit = Some(submit);
         self
     }
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
@@ -629,14 +635,16 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// Skip`, `scored: Item(credit, weight)` or `scored: Aggregates(weight,
 /// flag)` says what the type is to scoring ([`super::Scored`]). `rewrite
 /// { rendered: ConditionalContent }` makes an element carrying the
-/// attribute one of that type instead. `settle: Collects(Point)`,
-/// `CollectsByAttr(componentType)` or `FromMathText(f)` says what outlining
-/// settles of an element ([`super::Settle`]). `extend_value: Scalar(value)`,
+/// attribute one of that type instead. `settle: Collects(Point,
+/// vertices)`, `CollectsByAttr(componentType, from)` or `FromMathText(f)`
+/// says what outlining settles of an element ([`super::Settle`]). `extend_value: Scalar(value)`,
 /// `Point(f)`, `Expr(f)` or `List` says what `extend="$x.prop"` makes of
 /// the value ([`super::ExtendValue`]). `triggered: Sets(target, value)`
 /// says what a trigger requests ([`super::Triggered`]), and `numbered:
 /// Titled(include, label, f)` how a number and title read
-/// ([`super::Numbered`]). A prop option `infinite` lets a prop hold
+/// ([`super::Numbered`]). `submit: Copies(response, submitted)` or
+/// `Counted(response, submitted, count)` says what a submit does
+/// ([`super::Submit`]). A prop option `infinite` lets a prop hold
 /// infinity. A prop
 /// option `expr_of: expr` or `expr_when: submitted` says the prop stands
 /// for an expression ([`super::ExprOf`]).
@@ -712,6 +720,7 @@ macro_rules! component {
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(triggered: $trkind:ident ($($trarg:tt)+),)?
         $(numbered: $nukind:ident ($($nuarg:tt)+),)?
+        $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
@@ -734,6 +743,7 @@ macro_rules! component {
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.triggered($crate::components::define::component!(@triggered $trkind($($trarg)+))))?
                 $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
+                $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
@@ -764,6 +774,7 @@ macro_rules! component {
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(triggered: $trkind:ident ($($trarg:tt)+),)?
         $(numbered: $nukind:ident ($($nuarg:tt)+),)?
+        $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -816,6 +827,7 @@ macro_rules! component {
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.triggered($crate::components::define::component!(@triggered $trkind($($trarg)+))))?
                 $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
+                $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
@@ -933,6 +945,21 @@ macro_rules! component {
             );
         )+)*)?
     };
+    // What a submit does.
+    (@submit Copies($response:ident, $submitted:ident)) => {
+        $crate::components::Submit {
+            response: $crate::components::define::at(PROPS, stringify!($response)),
+            submitted: $crate::components::define::at(PROPS, stringify!($submitted)),
+            count: None,
+        }
+    };
+    (@submit Counted($response:ident, $submitted:ident, $count:ident)) => {
+        $crate::components::Submit {
+            response: $crate::components::define::at(PROPS, stringify!($response)),
+            submitted: $crate::components::define::at(PROPS, stringify!($submitted)),
+            count: Some($crate::components::define::at(PROPS, stringify!($count))),
+        }
+    };
     // What pressing a trigger requests, and how a number and title read.
     (@triggered Sets($target:ident, $value:ident)) => {
         $crate::components::Triggered {
@@ -964,11 +991,14 @@ macro_rules! component {
     (@settle FromMathText($f:path)) => {
         $crate::components::Settle::FromMathText($f)
     };
-    (@settle Collects($to:ident)) => {
-        $crate::components::Settle::Collects($crate::components::ComponentType::$to)
+    (@settle Collects($to:ident, $from:ident)) => {
+        $crate::components::Settle::Collects(
+            $crate::components::ComponentType::$to,
+            stringify!($from),
+        )
     };
-    (@settle CollectsByAttr($attr:ident)) => {
-        $crate::components::Settle::CollectsByAttr(stringify!($attr))
+    (@settle CollectsByAttr($attr:ident, $from:ident)) => {
+        $crate::components::Settle::CollectsByAttr(stringify!($attr), stringify!($from))
     };
     // What a type is to scoring, each prop it names a position in `PROPS`.
     (@scored Skip) => {

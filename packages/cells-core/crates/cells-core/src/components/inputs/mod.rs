@@ -65,6 +65,7 @@ pub mod choice {
         /// rendered container whose `credit` is what choosing it earns.
         tags: ["choice"],
         flags: [container],
+        roles: [Choice],
         props {
             credit: attr(0.0),
         }

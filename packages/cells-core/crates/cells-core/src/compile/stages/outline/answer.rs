@@ -16,7 +16,9 @@ impl Outlining<'_> {
             .into_iter()
             .filter(|&(t, e)| {
                 let el = &self.outlined(t).elems[e.index()];
-                el.component_type == ComponentType::Answer && !el.cloned && el.node != NodeId::NONE
+                el.component_type.def().machinery == Some(Machinery::Answer)
+                    && !el.cloned
+                    && el.node != NodeId::NONE
             })
             .collect();
         for (t, e) in answers {
@@ -40,7 +42,7 @@ impl Outlining<'_> {
             match self.outlined(t).elems[k.index()].component_type {
                 ty if matches!(ty.response(), Some(ResponseKind::Index(_))) => return Ok(()),
                 ty if ty.response().is_some() => inputs.push(k),
-                ComponentType::Award => awards.push(k),
+                ty if ty.plays(Role::Award) => awards.push(k),
                 _ => return Ok(()),
             }
         }

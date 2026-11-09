@@ -239,7 +239,11 @@ impl<'c> Stamp<'c> {
         // With none, the number gathered is a constant at every count;
         // otherwise a counted value, which reads its repeats' counts.
         let follows = !counts.is_empty();
-        let count = self.g.port(t, e, prop::collect::COUNT);
+        let count = self
+            .component_type(Comp::Elem(t, e))
+            .aggregate_prop(AggOp::Count, Collection::Gathered)
+            .expect("a collect counts what it gathers");
+        let count = self.g.port(t, e, count);
         let def = if follows {
             self.g.counted.push(count);
             self.reading(&counts, t)

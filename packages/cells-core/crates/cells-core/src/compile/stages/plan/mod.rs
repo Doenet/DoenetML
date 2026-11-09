@@ -278,14 +278,17 @@ impl<'a> Planning<'a> {
             component_type: own_type,
             ..
         } = self.rd.outlined(t).elems[e.index()];
-        let polyline = own_type == ComponentType::Polyline;
-        let (attr, refused) = if polyline {
-            (
-                "vertices",
-                Error::Unsupported("<polyline> needs vertices=\"$name\"".into()),
-            )
-        } else {
-            ("from", Error::BadCollect)
+        // What it gathers from, and of which type when its own type fixes
+        // it (a polyline's points).
+        let (attr, fixed) = match own_type.def().settle {
+            Some(Settle::Collects(of, from)) => (from, Some(of)),
+            Some(Settle::CollectsByAttr(_, from)) => (from, None),
+            _ => unreachable!("a collecting element settles what it collects"),
+        };
+        let tag = own_type.tag();
+        let refused = match fixed {
+            Some(_) => Error::Unsupported(format!("<{tag}> needs {attr}=\"$name\"")),
+            None => Error::BadCollect,
         };
         let m = self
             .rd
@@ -295,12 +298,12 @@ impl<'a> Planning<'a> {
             .ok_or(refused)?;
         let p = self.rd.plan_ref(&mut self.ar, t, scope, m)?;
         if self.ar.refs[p.index()].prop.is_some() {
-            return Err(if polyline {
-                Error::Unsupported(
-                    "<polyline vertices> must name a component holding points".into(),
-                )
-            } else {
-                Error::BadCollect
+            return Err(match fixed {
+                Some(of) => Error::Unsupported(format!(
+                    "<{tag} {attr}> must name a component holding {}s",
+                    of.tag()
+                )),
+                None => Error::BadCollect,
             });
         }
         debug_assert!(

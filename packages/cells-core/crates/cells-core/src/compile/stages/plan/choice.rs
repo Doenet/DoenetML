@@ -27,6 +27,7 @@ impl<'a> Planning<'a> {
         let Elem {
             node,
             name_scope: scope,
+            component_type: own_type,
             ..
         } = self.rd.outlined(t).elems[e.index()];
         let hide = match d.attr(node, "hide") {
@@ -60,12 +61,12 @@ impl<'a> Planning<'a> {
                 None => Source::constant(1.0),
             };
             let mut props = prop::select::Props { hide }.into_vec();
-            debug_assert_eq!(props.len(), prop::select::NUM_TO_SELECT);
+            debug_assert_eq!(props.len(), num_to_select_port(own_type));
             props.push(num);
             self.tables[t.index()].plans[e.index()].props = props;
             return Ok(());
         }
-        let mut wiring = ElemWiring::of(ComponentType::ConditionalContent);
+        let mut wiring = ElemWiring::of(own_type);
         let mut conds = Vec::new();
         for c in self.rd.choice(cid).conditions.clone() {
             conds.push(match c {

@@ -625,3 +625,21 @@ pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
     }
     go(arena, id, vx, vy)
 }
+
+/// A `<function>`'s `variables`, split at spaces and commas; `x` when
+/// absent.
+pub(crate) fn function_variables(text: Option<String>) -> Vec<String> {
+    let vars: Vec<String> = text
+        .map(|s| {
+            s.split(|c: char| c.is_whitespace() || c == ',')
+                .filter(|v| !v.is_empty())
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default();
+    if vars.is_empty() {
+        vec!["x".to_string()]
+    } else {
+        vars
+    }
+}

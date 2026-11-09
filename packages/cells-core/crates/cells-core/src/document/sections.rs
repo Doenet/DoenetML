@@ -25,28 +25,36 @@ impl Document {
                 value: self.cells[response.index()],
             })
             .collect();
-        let n = self.comp_cells(answer)[prop::answer::NUM_SUBMISSIONS];
-        requests.push(Request {
-            cell: n,
-            value: self.cells[n.index()] + 1.0,
-        });
+        if let Some(count) = self
+            .component_type(answer)
+            .def()
+            .submit
+            .and_then(|s| s.count)
+        {
+            let n = self.comp_cells(answer)[count];
+            requests.push(Request {
+                cell: n,
+                value: self.cells[n.index()] + 1.0,
+            });
+        }
         requests
     }
 
     /// An answer's responses as (live cell, submitted cell): its own pair,
     /// then one per `response` child its awards reference, each once.
     pub fn answer_responses(&self, answer: CompIdx) -> Vec<(CellIdx, CellIdx)> {
-        let cells = self.comp_cells(answer);
-        let mut out = vec![(
-            cells[prop::answer::RESPONSE],
-            cells[prop::answer::SUBMITTED],
-        )];
+        // What a submit copies of `c`: its response, and where it goes.
+        let pair = |c: CompIdx| {
+            let submit = self.component_type(c).def().submit?;
+            let cells = self.comp_cells(c);
+            Some((cells[submit.response], cells[submit.submitted]))
+        };
+        let mut out: Vec<(CellIdx, CellIdx)> = pair(answer).into_iter().collect();
         for child in self.children(answer) {
             if let Child::Component(r) = child
                 && self.component_type(r).plays(Role::Response)
             {
-                let c = self.comp_cells(r);
-                let pair = (c[prop::response::RESPONSE], c[prop::response::SUBMITTED]);
+                let Some(pair) = pair(r) else { continue };
                 if !out.contains(&pair) {
                     out.push(pair);
                 }

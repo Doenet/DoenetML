@@ -2,7 +2,7 @@
 //! the port makers and [`PlanCtx`], and no DAST type. A planner imports from
 //! here and nothing else of the compile.
 
-pub(crate) use super::ir::expr::{ExprId, Token, tuple_entries};
+pub(crate) use super::ir::expr::{ExprId, Token, function_variables, tuple_entries};
 pub(crate) use super::ir::record::{ChildValue, Member, PointAttr, Record, ValueChildren};
 pub(crate) use super::ir::{
     Attr, DefaultPoint, ElemWiring, Flow, GivenId, GivenPoint, Leaf, MathText, NO_VALUE, Param,

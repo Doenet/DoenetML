@@ -9,6 +9,7 @@ component! {
     tags: ["award"],
     flags: [owned],
     renders: Never,
+    roles: [Award],
     default_prop: awarded,
     props {
         credit: attr(1.0),

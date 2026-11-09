@@ -1,6 +1,7 @@
 # The core names no component type, and components are a crate of their own
 
-Status: proposed 2026-11-09. Steps 1 to 6 of the Migration are done. Builds on
+Status: proposed 2026-11-09. Steps 1 to 7 of the Migration are done;
+step 9 has an open question (see step 7). Builds on
 ADR 0016 (components are defined without knowing the core), whose
 converse this is; on ADR 0034 (a planner is a function of its record),
 which made `compile::api` the one door a planner goes through; and on
@@ -347,6 +348,41 @@ step 1 lower than before.
    `plan/copies.rs`, `outline/answer.rs` and `read/answer.rs` find their
    types through roles and declarations. The count reaches zero, and
    the test now refuses any name.
+   Done. The count reached zero, and `the_core_names_no_type` replaced
+   the list: it refuses any name outside `components/`. The machinery
+   finds its types by four more roles (`Award`, `When`, `Choice`, a
+   choice input's option, and `Function`, which a `<derivative>`, sharing
+   the function's definition, does not claim), by its own variant
+   (`Machinery::Answer`, `Collect`, `FunctionIterates`, `RepeatFor`) and
+   by declarations: a choice is reactive when its kind names a `choice`
+   prop (`choice_prop`), and made at load when the `Choice` machinery
+   plans it and none does (`chooses_at_load`); a collect's count is its
+   `Count` over `Gathered`; a submit is declared (`submit:
+   Counted(response, submitted, numSubmissions)` on `<answer>`,
+   `Copies(response, submitted)` on a response); `settle` names the
+   attribute a collecting element gathers from (`Collects(Point,
+   vertices)`, `CollectsByAttr(componentType, from)`), which `plan_collect`
+   reads with the messages it gave; a choice input's domain is its
+   `ResponseKind::Index`. Three rules moved: a select's `numToSelect` port
+   is the machinery's own layout, the first hidden port after the table
+   (`num_to_select_port`); the check of a `<selectFromSequence>` finds
+   the `SequencePick` in any plan rather than the type; and a function's
+   `variables` is `compile::api::function_variables`, which the curve
+   planner and the iterates machinery share. The answer's own wirings use
+   the answer element's type. The golden diff is identical.
+
+   Open for step 9: the count sees names of types and prop positions,
+   not the typed wirings the machinery builds. `plan/answer.rs`,
+   `plan/choice.rs` and `plan/iterates.rs` still fill components'
+   `prop::<type>::Props` (an answer's, an award's, a when's, a
+   response's, a math input's, a select's, a repeat's, a sequence
+   value's, a number's, a tuple's): 37 lines. In separate crates the
+   engine cannot import them. Either those planners move to
+   `cells-components` (the option deferred under Considered options,
+   which then needs `PlanCtx`, or a machinery context like it, to expose
+   what they reach), or they wire by port names the declarations give,
+   losing the check that a typed `Props` makes every prop planned. This
+   should be settled before step 9 starts.
 8. **`ComponentType` an id, the vocabulary installed**, still in one
    crate. `COMPONENT_DEFS` becomes the `Vocabulary` that
    `components/mod.rs` builds and `lib.rs` installs. Test: `load-diff.sh`

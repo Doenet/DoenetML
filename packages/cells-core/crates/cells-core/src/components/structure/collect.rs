@@ -7,7 +7,7 @@ component! {
     /// and `count` how many (an aggregate).
     tags: ["collect"],
     structure: Transparent,
-    settle: CollectsByAttr(componentType),
+    settle: CollectsByAttr(componentType, from),
     props {
         count: aggregate(Count, Gathered),
     }

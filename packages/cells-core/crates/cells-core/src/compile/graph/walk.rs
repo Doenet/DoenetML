@@ -187,7 +187,11 @@ impl<'c> Stamp<'c> {
                         };
                         let count = match c {
                             Comp::Elem(ct, ce) if follows => {
-                                Count::Node(self.g.port(ct, ce, prop::collect::COUNT))
+                                let count = self
+                                    .component_type(Comp::Elem(ct, ce))
+                                    .aggregate_prop(AggOp::Count, Collection::Gathered)
+                                    .expect("a collect counts what it gathers");
+                                Count::Node(self.g.port(ct, ce, count))
                             }
                             _ => Count::Fixed(items.len() as u32),
                         };

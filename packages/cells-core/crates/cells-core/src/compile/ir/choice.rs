@@ -68,3 +68,12 @@ impl ChoiceSeal {
         }
     }
 }
+
+/// The hidden port, right after its table's props, that holds a load-time
+/// choice's `numToSelect`: a document constant the check evaluates (ADR
+/// 0037) and a build reads as the number it recorded
+/// ([`Plans::num_to_select`](crate::compile::ir::Plans::num_to_select)).
+/// The choice machinery lays it out so (`plan_choice`).
+pub(crate) fn num_to_select_port(component_type: ComponentType) -> usize {
+    component_type.prop_defs().len()
+}

@@ -135,7 +135,9 @@ methods. Rules for planners:
   plays (`roles: [Root]` on `<document>`, `roles: [ImplicitInput]` on
   `<mathInput>`, ADR 0038): the root, a refused element's box, an
   iteration's index, value and item, a list's point, a case, an answer's
-  response and implicit input. The core names the
+  response and implicit input, a `$ref` child's number or text, an award,
+  a when, a choice input's option, and what a function's iterates
+  iterate. The core names the
   [`Role`](crate::components::Role) (`Role::Root.ty()`,
   `ty.plays(Role::Refused)`), never the type, and each role is claimed by
   exactly one type, checked when the crate compiles.
@@ -177,6 +179,11 @@ methods. Rules for planners:
   Titled(include, label, f)` for a section's number and title; and the
   prop option `infinite`. A free owned type is refused with what owns it
   ([`ComponentType::free_owned_refusal`](crate::components::ComponentType::free_owned_refusal)).
+- The core names no type: a unit test in `components/mod.rs`
+  (`the_core_names_no_type`) refuses any `ComponentType` variant or
+  `components::prop` position outside `components/`. What the core needs
+  of a type is one of the declarations above, a role, or a `Machinery`
+  variant.
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The

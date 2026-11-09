@@ -56,6 +56,8 @@ pub struct ComponentDef {
     pub triggered: Option<Triggered>,
     /// How a numbered component's full number and title read.
     pub numbered: Option<Numbered>,
+    /// What a submit does to a component of the type.
+    pub submit: Option<Submit>,
     /// The roles the type plays for the core: what it makes when it needs a
     /// root, a refused element's box, an iteration's index, ... Each role is
     /// claimed by exactly one type.
@@ -257,6 +259,15 @@ pub enum Role {
     Value,
     /// What a `$ref` child naming a prop's text shows as.
     TextValue,
+    /// An answer's award: the credit it gives when its condition holds.
+    Award,
+    /// An award's condition.
+    When,
+    /// One option of an input whose response is an index (a
+    /// `<choiceInput>`'s `<choice>`).
+    Choice,
+    /// What a function's iterates iterate (a `<function>`).
+    Function,
 }
 
 impl Role {
@@ -273,6 +284,10 @@ impl Role {
         Role::ImplicitInput,
         Role::Value,
         Role::TextValue,
+        Role::Award,
+        Role::When,
+        Role::Choice,
+        Role::Function,
     ];
 }
 
@@ -416,11 +431,13 @@ pub(crate) enum Settle {
     /// Its type, from its children's math text, which is kept for the
     /// planner (a `<math>` is a point, a tuple or a math).
     FromMathText(fn(&[crate::compile::ir::expr::Token]) -> ComponentType),
-    /// It collects components of this type (a `<polyline>`'s points).
-    Collects(ComponentType),
-    /// It collects components of the type its literal attribute names,
-    /// which must be copyable (a `<collect componentType>`).
-    CollectsByAttr(&'static str),
+    /// It collects components of this type, under what the attribute
+    /// (the second) names (a `<polyline>`'s points, from `vertices`).
+    Collects(ComponentType, &'static str),
+    /// It collects components of the type its literal attribute (the
+    /// first) names, which must be copyable, under what the second names
+    /// (a `<collect componentType from>`).
+    CollectsByAttr(&'static str, &'static str),
 }
 
 /// What `extend="$x.prop"` makes of the value for an element of a type
@@ -454,6 +471,20 @@ pub struct Triggered {
     pub target: usize,
     /// The prop whose current value it asks for.
     pub value: usize,
+}
+
+/// What a submit does to a component (ADR 0038): copies its live
+/// `response` into `submitted`, and counts the submission in `count` when
+/// it counts them (an answer, and each response of one). Positions in the
+/// type's table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Submit {
+    /// The prop a submit reads.
+    pub response: usize,
+    /// The prop it writes the response into.
+    pub submitted: usize,
+    /// The prop counting the submissions, when it counts them.
+    pub count: Option<usize>,
 }
 
 /// How a numbered component's full number and title read (ADR 0038): its

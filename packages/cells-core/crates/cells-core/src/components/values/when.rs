@@ -8,6 +8,7 @@ component! {
     tags: ["when"],
     flags: [owned],
     renders: Never,
+    roles: [When],
     default_prop: value,
     props {
         value: by_planner,

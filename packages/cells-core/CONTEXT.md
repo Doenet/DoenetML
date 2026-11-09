@@ -103,7 +103,9 @@ _Avoid_: kind (the current core and DoenetML's docs say component type)
 
 **Role** — A part the core needs some component type to play: the root, a
 refused element's box, an iteration's index, value and item, a list's point,
-a case, an answer's response and its implicit input (`Role`, ADR 0038). The
+a case, an answer's response and its implicit input, a `$ref` child's number
+or text, an award, a when, a choice input's option, and the function a
+function's iterates iterate (`Role`, ADR 0038). The
 type's definition claims it (`roles: [Root]`), exactly one type per role, and
 the core names the role, never the type.
 

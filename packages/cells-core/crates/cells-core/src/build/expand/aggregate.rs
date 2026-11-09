@@ -318,7 +318,11 @@ impl<'c> Builder<'c> {
         }
         let entries: Vec<ChildEntry> = copies.iter().map(|&c| ChildEntry::comp(c)).collect();
         self.set_children(comp, &entries);
-        let s0 = self.slot(comp, prop::collect::COUNT);
+        let ty = self.components.component_type[comp.index()];
+        let count = ty
+            .aggregate_prop(AggOp::Count, Collection::Gathered)
+            .expect("a collect counts what it gathers");
+        let s0 = self.slot(comp, count);
         // With no gathered original in an iteration, the number gathered is
         // a constant at every count. Otherwise it is a counted value, which
         // holds the number gathered (ADR 0028).

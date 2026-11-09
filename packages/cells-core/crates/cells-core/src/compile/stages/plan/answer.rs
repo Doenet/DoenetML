@@ -48,7 +48,7 @@ impl<'a> Planning<'a> {
             }
             match self.rd.outlined(t).elems[k.index()].component_type {
                 ty if ty.response().is_some() => inputs.push(k),
-                ComponentType::Award => awards.push(k),
+                ty if ty.plays(Role::Award) => awards.push(k),
                 other => {
                     return Err(Error::Unsupported(format!(
                         "a <{}> inside an <answer>",
@@ -107,7 +107,7 @@ impl<'a> Planning<'a> {
         let needs_input = !text_nodes.is_empty() || forms.iter().any(|f| f.when.is_none());
 
         let ports = answer::Props::PORTS;
-        let mut wiring = ElemWiring::of(ComponentType::Answer);
+        let mut wiring = ElemWiring::of(self.rd.outlined(t).elems[e.index()].component_type);
         let response_attr = d.attr(el, "response");
         let mut response = match (needs_input, response_attr, inputs.as_slice()) {
             (true, Some(a), []) => self.rd.plan_value(
@@ -228,7 +228,9 @@ impl<'a> Planning<'a> {
             .elem_children(t, ci)
             .into_iter()
             .filter(|&k| {
-                self.rd.outlined(t).elems[k.index()].component_type == ComponentType::Choice
+                self.rd.outlined(t).elems[k.index()]
+                    .component_type
+                    .plays(Role::Choice)
             })
             .collect();
         if choices.is_empty() || choices.len() > MAX_CHOICES {
@@ -238,7 +240,7 @@ impl<'a> Planning<'a> {
             )));
         }
         let ports = answer::Props::PORTS;
-        let mut wiring = ElemWiring::of(ComponentType::Answer);
+        let mut wiring = ElemWiring::of(self.rd.outlined(t).elems[e.index()].component_type);
         let weight = self.plan_weight(t, e, el)?;
         let mut args = vec![Arg::Own(ports.submitted)];
         args.extend(
@@ -297,7 +299,7 @@ impl<'a> Planning<'a> {
                 "<answer type=\"text\"> without <award> children".into(),
             ));
         }
-        let mut wiring = ElemWiring::of(ComponentType::Answer);
+        let mut wiring = ElemWiring::of(self.rd.outlined(t).elems[e.index()].component_type);
         let weight = self.plan_weight(t, e, el)?;
         let mut planned: Vec<ElemId> = Vec::new();
         for &a in awards {
@@ -317,7 +319,7 @@ impl<'a> Planning<'a> {
                 text.push_str(d.str(n));
             }
             let id = self.ar.intern_literal(self.rd.dast, text.trim()).to_value();
-            let mut award_wiring = ElemWiring::of(ComponentType::Award);
+            let mut award_wiring = ElemWiring::of(Role::Award.ty());
             let credit = self.award_credit(t, a, form.el)?;
             let correct = award_wiring.hidden(Source::constant(id));
             let holds = award_wiring.hidden(Source::op(
@@ -357,7 +359,7 @@ impl<'a> Planning<'a> {
         responses: &mut Vec<((u32, ElemId), ElemId)>,
     ) -> Result<()> {
         let d = self.rd.dast;
-        let mut wiring = ElemWiring::of(ComponentType::Award);
+        let mut wiring = ElemWiring::of(Role::Award.ty());
         let credit = self.award_credit(t, form.e, form.el)?;
         let compare = self.compare_attrs(&[form.el, answer_el]);
         let holds = match form.when {
@@ -390,7 +392,7 @@ impl<'a> Planning<'a> {
                 }
                 // Each such `$mi` is planned as its response when the
                 // condition plans it (`Settled::submitted`).
-                let mut when_wiring = ElemWiring::of(ComponentType::When);
+                let mut when_wiring = ElemWiring::of(Role::When.ty());
                 let port = self.plan_condition_content(t, w, &nodes, compare, &mut when_wiring)?;
                 when_wiring.set_public_sources(when::Props {
                     value: Source::own(port),

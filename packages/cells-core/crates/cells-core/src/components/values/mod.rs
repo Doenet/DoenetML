@@ -69,6 +69,7 @@ pub mod response {
         flags: [internal, owned],
         renders: Never,
         roles: [Response],
+        submit: Copies(response, submitted),
         default_prop: value,
         props {
             response: by_planner { read_by_action },

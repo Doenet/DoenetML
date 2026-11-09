@@ -16,6 +16,7 @@ component! {
     tags: ["function"],
     flags: [copyable, symbolic],
     renders: InGraph,
+    roles: [Function],
     default_prop: expr,
     props {
         expr: children { expr_of: expr },
@@ -42,7 +43,8 @@ component! {
 
 /// `<derivative>$f</derivative>`: d/dx of a function or math, sampled
 /// like a function; a function's definition under its own tag.
-pub(crate) const DERIVATIVE: ComponentDef = DEFINITION.with_tags(&["derivative"]);
+// A derivative is no function a `<functionIterates>` iterates.
+pub(crate) const DERIVATIVE: ComponentDef = DEFINITION.with_tags(&["derivative"]).roles(&[]);
 
 /// The position of `expr`: the function's expression, a math cell.
 pub const EXPR: usize = Props::AT.expr;
@@ -55,28 +57,10 @@ pub const CURVE: usize = Props::AT.curve;
 /// The position of `samples`: the first of the curve's sample cells.
 pub const SAMPLES: usize = Props::AT.samples;
 
-/// A `<function>`'s `variables`, split at spaces and commas; `x` when
-/// absent.
-pub(crate) fn variables(text: Option<String>) -> Vec<String> {
-    let vars: Vec<String> = text
-        .map(|s| {
-            s.split(|c: char| c.is_whitespace() || c == ',')
-                .filter(|v| !v.is_empty())
-                .map(str::to_string)
-                .collect()
-        })
-        .unwrap_or_default();
-    if vars.is_empty() {
-        vec!["x".to_string()]
-    } else {
-        vars
-    }
-}
-
 /// Whether a `<function>` with `variables` and text `mt` takes several
 /// variables or returns a tuple.
 fn is_vector_function(variables: Option<String>, mt: &MathText) -> bool {
-    self::variables(variables).len() > 1
+    function_variables(variables).len() > 1
         || tuple_entries(mt.tokens()).is_some_and(|entries| entries.len() > 1)
 }
 

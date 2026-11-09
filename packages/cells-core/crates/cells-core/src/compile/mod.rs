@@ -39,8 +39,8 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 
 use crate::components::{
-    ChildrenKind, Collection, ComponentType, ExtendValue, Machinery, PropAt, PropFrom, PropSel,
-    ResponseKind, Role, Settle, StructureKind, prop,
+    AggOp, ChildrenKind, Collection, ComponentType, ExtendValue, Machinery, PropAt, PropFrom,
+    PropSel, ResponseKind, Role, Settle, StructureKind, prop,
 };
 use crate::dast::{AttrId, Dast, NodeId, NodeKind, StrId};
 use crate::diagnostics::Diagnostic;

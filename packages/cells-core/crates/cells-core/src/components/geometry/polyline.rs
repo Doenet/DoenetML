@@ -10,7 +10,7 @@ component! {
     tags: ["polyline"],
     flags: [copyable, located],
     renders: InGraph,
-    settle: Collects(Point),
+    settle: Collects(Point, vertices),
     props {
         numVertices: aggregate(Count, Gathered),
     }

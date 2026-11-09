@@ -44,7 +44,10 @@ impl<'c> Builder<'c> {
                 inst.branch_of.push(b);
             }
         } else {
-            let choice = self.slot(comp, crate::components::prop::conditional_content::CHOICE);
+            let choice = self.components.component_type[comp.index()]
+                .choice_prop()
+                .expect("a reactive choice has its choice");
+            let choice = self.slot(comp, choice);
             for k in 1..=def.branches.len() {
                 let s = self.scope_for(scope, node, k as u32);
                 let n = Role::Case.ty().prop_defs().len();
@@ -187,7 +190,12 @@ impl<'c> Builder<'c> {
     pub(in crate::build) fn choice_sources(&mut self) {
         for i in 0..self.choice_insts.len() {
             let inst = self.choice_insts[i].clone();
-            let choice = self.slot(inst.comp, prop::conditional_content::CHOICE);
+            // A load-time choice has no interface stand-ins.
+            let Some(choice) = self.components.component_type[inst.comp.index()].choice_prop()
+            else {
+                continue;
+            };
+            let choice = self.slot(inst.comp, choice);
             for &ic in &inst.iface_comps {
                 let members = self.stand_ins[&ic].clone();
                 self.stand_in_sources(ic, &members, choice);

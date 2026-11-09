@@ -160,7 +160,8 @@ impl<'a, 'c> Signer<'a, 'c> {
         for (ci, comp) in g.comps.iter().enumerate() {
             let (ty, np) = (comp.component_type, comp.n_public as usize);
             let interactive: Vec<usize> = (0..np).filter(|&pi| ty.is_input_prop(np, pi)).collect();
-            if (interactive.is_empty() && ty != ComponentType::Select)
+            // A choice made at load is an input of its own: its picks.
+            if (interactive.is_empty() && !ty.chooses_at_load())
                 || self.comp_key(ci) == ElemKey::NONE
             {
                 continue;
@@ -542,7 +543,7 @@ impl<'a, 'c> Signer<'a, 'c> {
         let g = self.g;
         let ty = g.comps[ci].component_type;
         match ty {
-            ComponentType::Select => {
+            _ if ty.chooses_at_load() => {
                 let key = self.comp_key(ci);
                 let templates = &self.c.plans.templates;
                 let def =
@@ -559,7 +560,8 @@ impl<'a, 'c> Signer<'a, 'c> {
                 }
                 return Domain::Any;
             }
-            ComponentType::ChoiceInput => {
+            // An index into its choices, its children.
+            _ if matches!(ty.response(), Some(ResponseKind::Index(_))) => {
                 let d = self.c.dast;
                 return Domain::Choices(
                     (0..g.comps.len())

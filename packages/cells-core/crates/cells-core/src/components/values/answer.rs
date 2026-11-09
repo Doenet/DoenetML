@@ -11,6 +11,7 @@ component! {
     tags: ["answer"],
     flags: [copyable, symbolic],
     scored: Item(credit, weight),
+    submit: Counted(response, submitted, numSubmissions),
     default_prop: credit,
     props {
         response: attr(NO_VALUE) { ref_prop: expr, read_by_action, expr_when: submitted },

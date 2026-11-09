@@ -11,8 +11,12 @@ impl Outlining<'_> {
     /// is a conditional content with one case.
     pub(super) fn add_choice(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<()> {
         let d = self.dast;
-        let reactive =
-            self.outlined(t).elems[e.index()].component_type == ComponentType::ConditionalContent;
+        // A choice a prop picks among is reactive; one with none is made at
+        // load.
+        let reactive = self.outlined(t).elems[e.index()]
+            .component_type
+            .choice_prop()
+            .is_some();
         let tag = d.str(el).to_string();
         if d.attr(el, "extend").is_some() || d.attr(el, "copySource").is_some() {
             return Err(Error::Banned(format!(

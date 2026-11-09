@@ -80,14 +80,17 @@ impl Reader<'_> {
         // `<award><math>2 + $a</math></award>`: the math is the content.
         let mut math_child = None;
         for k in self.elem_children(t, a) {
-            match self.outlined(t).elems[k.index()].component_type {
-                ComponentType::When if when.is_none() => {
+            let ty = self.outlined(t).elems[k.index()].component_type;
+            // A `<math>` that settled as math, not as a point or a tuple.
+            let math = matches!(ty.def().settle, Some(Settle::FromMathText(_)));
+            match ty {
+                _ if ty.plays(Role::When) && when.is_none() => {
                     when = Some((k, self.outlined(t).elems[k.index()].node))
                 }
-                ComponentType::Math if math_child.is_none() && when.is_none() => {
+                _ if math && math_child.is_none() && when.is_none() => {
                     math_child = Some(self.outlined(t).elems[k.index()].node)
                 }
-                ComponentType::When => {
+                _ if ty.plays(Role::When) => {
                     return Err(Error::Unsupported("two <when>s in an <award>".into()));
                 }
                 other => {

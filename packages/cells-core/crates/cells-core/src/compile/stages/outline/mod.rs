@@ -323,8 +323,9 @@ impl<'a> Outlining<'a> {
             self.outlined_mut(t).elems[e.index()].clones_pending = true;
         }
         let child_scope = e;
-        match component_type {
-            ComponentType::FunctionIterates => {
+        let machinery = component_type.def().machinery;
+        match component_type.structure_kind() {
+            _ if machinery == Some(Machinery::FunctionIterates) => {
                 // One hidden tuple per iteration, planned with the element
                 // (`plan_function_iterates`); it is element 0 of the body.
                 let sub = self.push_template(Some((t, e)));
@@ -332,13 +333,13 @@ impl<'a> Outlining<'a> {
                 self.outlined_mut(sub).children = vec![Child::Elem(it)];
                 self.outlined_mut(t).elems[e.index()].body = Body::Repeat { template: sub };
             }
-            ComponentType::RepeatForSequence | ComponentType::RepeatFor => {
+            Some(StructureKind::Repeat { .. }) => {
                 let sub = self.push_template(Some((t, e)));
                 // Hidden iteration components first, so `$v` and `$i` resolve
                 // anywhere inside the template; the repeat's planner plans
                 // them (`plan_iteration_names`). A `<repeat>`'s item is a
                 // tuple, element 0 of the body (`plan_repeat_for`).
-                let value_type = if component_type == ComponentType::RepeatFor {
+                let value_type = if machinery == Some(Machinery::RepeatFor) {
                     Role::Item.ty()
                 } else {
                     Role::SequenceValue.ty()
@@ -353,14 +354,15 @@ impl<'a> Outlining<'a> {
                 self.outlined_mut(sub).children = kids;
                 self.outlined_mut(t).elems[e.index()].body = Body::Repeat { template: sub };
             }
-            ComponentType::Collect | ComponentType::PointList => {}
-            ComponentType::ConditionalContent | ComponentType::Select => {
-                self.add_choice(t, e, el)?
-            }
+            // A collect's children are what it gathers, a point list's the
+            // points of the list it extends: none are written.
+            Some(StructureKind::Transparent { .. }) if machinery == Some(Machinery::Collect) => {}
+            _ if component_type.holds_list_points() => {}
+            _ if machinery == Some(Machinery::Choice) => self.add_choice(t, e, el)?,
             // An answer's and an award's element children are components
             // (inputs, awards, whens); their text and `$ref`s are math the
             // answer's planner reads. A when's content is a condition.
-            ComponentType::Answer | ComponentType::Award => {
+            _ if machinery == Some(Machinery::Answer) || component_type.plays(Role::Award) => {
                 let mut kids = Vec::new();
                 for &n in d.children(el) {
                     if d.kind(n) == NodeKind::Element {
@@ -369,7 +371,7 @@ impl<'a> Outlining<'a> {
                 }
                 self.outlined_mut(t).elems[e.index()].children = kids;
             }
-            ComponentType::When => {}
+            _ if component_type.plays(Role::When) => {}
             // Children the type reads (`children:`, ADR 0034) are parsed
             // into its record, not built: a number's value, a point's
             // constraints. Its presentational children (`<label>`) are
@@ -414,8 +416,8 @@ impl<'a> Outlining<'a> {
                 self.work.math_texts.push(((t, e), mt));
                 return Ok(());
             }
-            Some(Settle::Collects(of)) => of,
-            Some(Settle::CollectsByAttr(attr)) => {
+            Some(Settle::Collects(of, _)) => of,
+            Some(Settle::CollectsByAttr(attr, _)) => {
                 let text = d
                     .attr(el, attr)
                     .and_then(|a| self.rd().attr_text(a))

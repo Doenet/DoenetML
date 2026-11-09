@@ -11,7 +11,7 @@ use crate::sym::Handle;
 use crate::build::{Repeat, ScopeId, Structure};
 use crate::session::{Counts, MathStore, Session};
 
-use crate::components::{ComponentType, Role, StructureKind, TextKind, prop};
+use crate::components::{ComponentType, Role, StructureKind, TextKind};
 use crate::dast::{Dast, NodeId, StrId, StringTable};
 use crate::program::{Program, SymRun, SymState, ValueType};
 use crate::tick::eval::{DirtyClosure, Recompute};

@@ -930,7 +930,11 @@ impl<'c> Stamp<'c> {
                 // `active`: whether the choice is this case's position.
                 let active = Role::Case.ty().gate_prop().expect("a case is a gate");
                 let active = self.slot(Comp::Made(case), active);
-                let choice = self.g.port(t, e, prop::conditional_content::CHOICE);
+                let choice = self
+                    .component_type(Comp::Elem(t, e))
+                    .choice_prop()
+                    .expect("a reactive choice has its choice");
+                let choice = self.g.port(t, e, choice);
                 let pos = self.constant((cases.len() + 1) as f64);
                 self.set(
                     active,
@@ -1074,9 +1078,11 @@ impl<'c> Stamp<'c> {
         for ((cid, _), w) in stand_ins {
             let def = &self.c.plans.choices[cid.index()];
             let (t, e) = def.at;
-            let choice = def
-                .reactive
-                .then(|| self.g.port(t, e, prop::conditional_content::CHOICE));
+            let choice = self
+                .component_type(Comp::Elem(t, e))
+                .choice_prop()
+                .filter(|_| def.reactive)
+                .map(|pi| self.g.port(t, e, pi));
             self.stand_in_sources(w, choice);
         }
     }

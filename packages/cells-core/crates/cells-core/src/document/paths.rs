@@ -59,7 +59,7 @@ impl Built {
                         let r = self.structure.repeats.iter().find(|r| r.comp == c)?;
                         iteration = Some(*r.iter_scopes.get(k.checked_sub(1)?)?);
                     }
-                    ComponentType::Select => {
+                    ct if ct.chooses_at_load() => {
                         let mut picks: Vec<ScopeId> = Vec::new();
                         for ch in self.children(c) {
                             if let Child::Component(x) = ch

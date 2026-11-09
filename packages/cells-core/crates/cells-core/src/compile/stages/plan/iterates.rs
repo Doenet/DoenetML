@@ -63,7 +63,9 @@ impl<'a> Planning<'a> {
             .rd
             .static_target(&self.ar, t, fp)
             .filter(|&(ft, fe)| {
-                self.rd.outlined(ft).elems[fe.index()].component_type == ComponentType::Function
+                self.rd.outlined(ft).elems[fe.index()]
+                    .component_type
+                    .plays(Role::Function)
             })
             .ok_or_else(|| {
                 Error::Unsupported("<functionIterates function> must name a <function>".into())
@@ -72,7 +74,12 @@ impl<'a> Planning<'a> {
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
         let (mut toks, src) = self.rd.math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
-        // Variable j is entry j of the previous iterate: `$fi[k-1]`'s tuple.
+        // Variable j is entry j of the previous iterate: `$fi[k-1]`'s item,
+        // whose entries are `x1`, `x2`, ... in its table.
+        let first_entry = Role::Item
+            .ty()
+            .prop_index("x1")
+            .expect("an item's first entry");
         let prev: Vec<RefId> = (0..vars.len())
             .map(|j| {
                 let plan = RefPlan {
@@ -84,7 +91,7 @@ impl<'a> Planning<'a> {
                         }),
                         Step::Elem(ElemId::new(0)),
                     ],
-                    prop: Some(item_ref_prop(crate::components::prop::tuple::X1 + j)),
+                    prop: Some(item_ref_prop(first_entry + j)),
                     display: RefDisplay::Spelled(format!("(previous iterate).{}", vars[j]).into()),
                     node: NodeId::NONE,
                 };
@@ -185,7 +192,7 @@ impl<'a> Planning<'a> {
     /// A `<function>`'s `variables`, split at spaces and commas; `x` when
     /// absent.
     pub(super) fn function_variables(&self, fnode: NodeId) -> Vec<String> {
-        crate::components::values::curve::variables(
+        crate::compile::ir::expr::function_variables(
             self.rd
                 .dast
                 .attr(fnode, "variables")
@@ -270,8 +277,11 @@ impl<'a> Planning<'a> {
             .static_target(&self.ar, t, RefId::from_index(base_id))
         {
             Some((ft, fe))
-                if self.rd.outlined(ft).elems[fe.index()].component_type
-                    == ComponentType::FunctionIterates => {}
+                if self.rd.outlined(ft).elems[fe.index()]
+                    .component_type
+                    .def()
+                    .machinery
+                    == Some(Machinery::FunctionIterates) => {}
             _ => return Err(unsupported()),
         }
         self.tables[t.index()].plans[e.index()].props = prop::repeat_for::Props {

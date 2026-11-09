@@ -360,7 +360,7 @@ impl<'a, 'c> Constants<'a, 'c> {
     pub(crate) fn num_to_select(&mut self, cid: ChoiceId) -> Option<u32> {
         let def = &self.c.plans.choices[cid.index()];
         let (t, e) = def.at;
-        let pi = prop::select::NUM_TO_SELECT;
+        let pi = num_to_select_port(self.c.plans.templates[t.index()].row(e).component_type);
         if (self.g.n_ports[t.index()][e.index()] as usize) <= pi {
             return None;
         }
@@ -648,15 +648,11 @@ pub(crate) fn check_choices(
         let row = tpl.row(e);
         let node = (!row.node.is_none()).then_some(row.node);
         let fail = |error| Failure { error, node };
-        match row.component_type {
-            ComponentType::SelectFromSequence => check_sequence(g, k, c, t, e).map_err(fail)?,
-            ComponentType::Select => {
-                let Body::Choice(cid) = row.body else {
-                    continue;
-                };
-                picks.push((cid, check_select(g, k, c, t, e, cid).map_err(fail)?));
-            }
-            _ => {}
+        check_sequence(g, k, c, t, e).map_err(fail)?;
+        if row.component_type.chooses_at_load()
+            && let Body::Choice(cid) = row.body
+        {
+            picks.push((cid, check_select(g, k, c, t, e, cid).map_err(fail)?));
         }
     }
     picks.sort_by_key(|p| p.0);
@@ -705,9 +701,10 @@ fn constant_param(
     })
 }
 
-/// A `<selectFromSequence>`, element `e` of template `t`: its parameters
-/// constants, its step never 0, and its sequence, less what it excludes,
-/// never empty.
+/// A sequence pick (a `<selectFromSequence>`'s `value`), in element `e` of
+/// template `t`: its parameters constants, its step never 0, and its
+/// sequence, less what it excludes, never empty. Nothing for an element
+/// that plans no pick.
 fn check_sequence(
     g: &TemplateGraph,
     k: &mut Constants<'_, '_>,
@@ -715,12 +712,12 @@ fn check_sequence(
     t: TemplateId,
     e: ElemId,
 ) -> std::result::Result<(), Error> {
-    use crate::components::structure::select_from_sequence as sfs;
     let tpl = &c.plans.templates[t.index()];
     let node = tpl.row(e).node;
-    let Some(Source::Flow(Flow::Op(OpSpec::Vec(VecOp::SequencePick { .. }), args))) =
-        tpl.plan(e).props.get(sfs::VALUE)
-    else {
+    let Some(args) = tpl.plan(e).props.iter().find_map(|s| match s {
+        Source::Flow(Flow::Op(OpSpec::Vec(VecOp::SequencePick { .. }), args)) => Some(args),
+        _ => None,
+    }) else {
         return Ok(());
     };
     let ports: Vec<GraphNode> = args
@@ -730,7 +727,7 @@ fn check_sequence(
             _ => unreachable!("a pick reads its own ports"),
         })
         .collect();
-    let tag = "selectFromSequence";
+    let tag = tpl.row(e).component_type.tag();
     // Draw, from, step, to, then the excludes.
     let names = ["from", "step", "to"];
     for (i, &n) in ports[1..].iter().enumerate() {
@@ -844,7 +841,7 @@ fn check_select(
     cid: ChoiceId,
 ) -> std::result::Result<u32, Error> {
     let node = c.plans.templates[t.index()].row(e).node;
-    let pi = prop::select::NUM_TO_SELECT;
+    let pi = num_to_select_port(c.plans.templates[t.index()].row(e).component_type);
     if (g.n_ports[t.index()][e.index()] as usize) <= pi {
         return Ok(0);
     }
