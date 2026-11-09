@@ -100,6 +100,174 @@ const documents: [string, string, string[]][] = [
     // a tag that does not exist
     ["an unknown tag in a case", inCase(`<bogus/>`), ["doenet-e0002"]],
     ["an unknown tag in a repeat", inRepeat(`<bogus/>`), ["doenet-e0002"]],
+    // an extend that would change what its source makes (D32)
+    [
+        "an extend in a case that changes a sequence's content",
+        `<sequence name="s" from="1" to="3"/>${inCase(`<sequence extend="$s" to="5"/>`)}`,
+        ["doenet-e0056"],
+    ],
+    [
+        "an extend in a repeat that adds a repeat's template",
+        `<repeat name="rr" for="1 2" valueName="w"><text>$w</text></repeat>${inRepeat(`<repeat extend="$rr"><text>z</text></repeat>`)}`,
+        ["doenet-e0057"],
+    ],
+    [
+        "an extend in a case of a case",
+        `<conditionalContent><case name="c1" condition="true"><text>a</text></case></conditionalContent>${inCase(`<case extend="$c1"/>`)}`,
+        ["doenet-e0061"],
+    ],
+    [
+        "an extend in a repeat, written as a math, of an option",
+        `<select><option name="o"><text>a</text></option></select>${inRepeat(`<math extend="$o"/>`)}`,
+        ["doenet-e0061"],
+    ],
+    [
+        "an extend in a case of a choiceInput that shuffles it",
+        `<choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>${inCase(`<choiceInput extend="$ci" shuffleOrder/>`)}`,
+        ["doenet-e0059"],
+    ],
+    [
+        "an extend in a case of a choiceInput that adds a choice",
+        `<choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>${inCase(`<choiceInput extend="$ci"><choice>c</choice></choiceInput>`)}`,
+        ["doenet-e0058"],
+    ],
+    [
+        "an extend in a case of a module that sets one of its attributes",
+        `<module name="mod"><moduleAttributes><text name="title">t</text></moduleAttributes><p>$title</p></module>${inCase(`<module extend="$mod" title="u"/>`)}`,
+        ["doenet-e0060"],
+    ],
+    [
+        "an extend in a case of a sequence named in an iteration",
+        `<repeat name="rs" for="1 2" valueName="w"><sequence name="s" from="1" to="$w"/></repeat>${inCase(`<sequence extend="$rs[1].s" to="5"/>`)}`,
+        ["doenet-e0056"],
+    ],
+    [
+        "a group in a case, of a repeat, with a child, made from what the repeat makes",
+        `<repeat name="rr" for="1 2" valueName="w"><text>$w</text></repeat>${inCase(`<group extend="$rr"><text>z</text></group>`)}`,
+        [],
+    ],
+    // a select whose literals keep it from selecting
+    [
+        "a select in a case with more to select than options",
+        inCase(`<select numToSelect="3"><option>a</option></select>`),
+        ["doenet-e0035"],
+    ],
+    [
+        "a select in a repeat with more to select than options, without replacement",
+        inRepeat(
+            `<select numToSelect="2" withReplacement="false"><option>a</option></select>`,
+        ),
+        ["doenet-e0035"],
+    ],
+    [
+        "a select in a case with a numToSelect that rounds to more than its options",
+        inCase(`<select numToSelect="2.5"><option>a</option></select>`),
+        ["doenet-e0035"],
+    ],
+    [
+        "a select in a case with withReplacement written as False",
+        inCase(
+            `<select numToSelect="3" withReplacement="False"><option>a</option></select>`,
+        ),
+        ["doenet-e0035"],
+    ],
+    [
+        "a select in a case with an option and an extend of it, which is no option",
+        inCase(
+            `<select numToSelect="2"><option name="o1">a</option><option extend="$o1"/></select>`,
+        ),
+        ["doenet-e0061", "doenet-e0035"],
+    ],
+    // what is decided at load is what the content gives when it is made
+    [
+        "a select in a case with no options, which selects nothing",
+        inCase(`<select numToSelect="2"/><select></select>`),
+        [],
+    ],
+    [
+        "a select in a case with withReplacement written as an expression, which is true",
+        inCase(
+            `<select numToSelect="3" withReplacement="1"><option>a</option></select><select numToSelect="3" withReplacement="1>0"><option>a</option></select>`,
+        ),
+        [],
+    ],
+    [
+        "a select in a case with an option written as an extend, which is no option",
+        `<option name="o">q</option>${inCase(`<select numToSelect="3"><option extend="$o"/></select>`)}`,
+        ["doenet-e0061"],
+    ],
+    // a scalar tag of a list whose entries are written
+    [
+        "a tag in a case, of a list of two written entries",
+        `<mathList name="ml">1 2</mathList>${inCase(`<math extend="$ml"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a repeat, of a list with no entries",
+        `<numberList name="nl"/>${inRepeat(`<number extend="$nl"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a case, of a list of entries separated by commas",
+        `<mathList name="ml">x + 1, y</mathList>${inCase(`<math extend="$ml"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a repeat, of a list of texts with spaces, separated by commas",
+        `<textList name="tl">a b, c</textList>${inRepeat(`<text extend="$tl"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a case, of a list of points separated by a comma",
+        `<pointList name="pl">(1,2), (3,4)</pointList>${inCase(`<point extend="$pl"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a repeat, of a list of booleans, one an expression",
+        `<booleanList name="bl">true x=x</booleanList>${inRepeat(`<boolean extend="$bl"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a case, of a list of two numbers written as tags",
+        `<numberList name="nl"><number>1</number><number>2</number></numberList>${inCase(`<number extend="$nl"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a case, of a list whose maxNumber keeps two of its entries",
+        `<numberList name="nl" maxNumber="2.5">1 2 3</numberList>${inCase(`<number extend="$nl"/>`)}`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a tag in a case, of a list whose maxNumber keeps one of its entries",
+        `<numberList name="nl" maxNumber="1.5">1 2</numberList>${inCase(`<number extend="$nl"/>`)}`,
+        [],
+    ],
+    [
+        "a tag in a case, of a list of one tuple, with commas in brackets",
+        `<mathList name="ml">(1, 2)</mathList>${inCase(`<math extend="$ml"/>`)}`,
+        [],
+    ],
+    [
+        "a tag in a case, of a list with an entry in error",
+        `<mathList name="ml">1 <bogus/></mathList>${inCase(`<math extend="$ml"/>`)}`,
+        ["doenet-e0002"],
+    ],
+    // a module made from what is not one
+    [
+        "a module in a case, of a math",
+        inCase(`<module extend="$mm"/>`),
+        ["doenet-e0065"],
+    ],
+    [
+        "a module in a repeat, of a group",
+        `<group name="g"><text>a</text></group>${inRepeat(`<module extend="$g" name="mg"/>`)}`,
+        ["doenet-e0065"],
+    ],
+    [
+        "a module in a case, of a module",
+        `<module name="mod"><text>a</text></module>${inCase(`<module extend="$mod"/>`)}`,
+        [],
+    ],
 ];
 
 describe("Errors are decided when the document loads (DIAG-7) @group4", () => {
@@ -141,5 +309,264 @@ describe("A tag in what it is of @group4", () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("out")].stateValues.text,
         ).eq("1");
+    });
+});
+
+/**
+ * The same errors, in an option a `<select>` did not pick: its content is
+ * never made, but the error is still reported, at load. Each document is
+ * loaded with the content in the first option and in the second, so that
+ * in one of the two it is not picked.
+ */
+const inOption = (content: string, first: boolean) => {
+    const options = [
+        `<option><text>other</text></option>`,
+        `<option>${content}</option>`,
+    ];
+    return `<select>${(first ? options.reverse() : options).join("")}</select>`;
+};
+
+const inOptions: [string, string, string, string[]][] = [
+    [
+        "an extend that changes a sequence's content",
+        `<sequence name="s" from="1" to="3"/>`,
+        `<sequence extend="$s" to="5"/>`,
+        ["doenet-e0056"],
+    ],
+    [
+        "a select with more to select than options",
+        "",
+        `<select numToSelect="3"><option>a</option></select>`,
+        ["doenet-e0035"],
+    ],
+    [
+        "a tag of a list of two written entries",
+        `<mathList name="ml">1, 2</mathList>`,
+        `<math extend="$ml"/>`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a module of a math",
+        `<math name="m">x</math>`,
+        `<module extend="$m"/>`,
+        ["doenet-e0065"],
+    ],
+];
+
+describe("Errors are decided when the document loads, in an option not picked (DIAG-7) @group4", () => {
+    for (const [label, outside, content, codes] of inOptions) {
+        it(label, async () => {
+            for (const first of [true, false]) {
+                const { core } = await createTestCore({
+                    doenetML: `${outside}${inOption(content, first)}`,
+                });
+                await core.returnAllStateVariables(false, true);
+                expect(
+                    getDiagnosticsByType(core).errors.map((e) => e.code),
+                    `first: ${first}`,
+                ).eqls(codes);
+            }
+        });
+    }
+});
+
+/**
+ * What the DoenetML does not give exactly as a literal is not decided at
+ * load, and is decided when the content is made, as it was: the same error
+ * where the content is made at load. These are the inputs where a check at
+ * load once disagreed with the run time (#2491).
+ */
+const leftToRunTime: [string, string, string[]][] = [
+    [
+        "a numToSelect written as an expression",
+        `<select numToSelect="1+2"><option>a</option></select>`,
+        ["doenet-e0035"],
+    ],
+    [
+        "a withReplacement written empty, which is false",
+        `<select numToSelect="3" withReplacement=""><option>a</option></select>`,
+        ["doenet-e0035"],
+    ],
+    [
+        "a list extending a list of two written entries",
+        `<mathList name="ml">1 2</mathList><mathList name="ml2" extend="$ml"/><math extend="$ml2"/>`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a list holding a list of two written entries",
+        `<mathList name="ml">1 2</mathList><mathList name="ml2">$ml</mathList><math extend="$ml2"/>`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a list extending a list that keeps one, with an entry added",
+        `<mathList name="ml" maxNumber="1">1 2</mathList><mathList name="ml2" extend="$ml">3</mathList><math extend="$ml2"/>`,
+        [],
+    ],
+    [
+        "a list of maths, each of which may be a list",
+        `<mathList name="ml"><math>1</math><math>2</math></mathList><math extend="$ml"/>`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a list with a maxNumber written as an expression",
+        `<mathList name="ml" maxNumber="1+1">1 2</mathList><math extend="$ml"/>`,
+        ["doenet-e0064"],
+    ],
+    [
+        "a module of a repeat, with an attribute of the repeat",
+        `<repeat name="x" for="1 2" valueName="w"><text>$w</text></repeat><module extend="$x" for="3"/>`,
+        ["doenet-e0065"],
+    ],
+    [
+        "a module of a sequence, changing its content",
+        `<sequence name="q" to="3"/><module extend="$q" to="5"/>`,
+        ["doenet-e0056"],
+    ],
+];
+
+describe("What is not a literal is decided when the content is made, as before @group4", () => {
+    for (const [label, body, codes] of leftToRunTime) {
+        it(label, async () => {
+            const { core } = await createTestCore({ doenetML: body });
+            await core.returnAllStateVariables(false, true);
+            expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls(
+                codes,
+            );
+        });
+    }
+});
+
+describe("How many entries a value makes a list hold (DIAG-2, DIAG-7) @group4", () => {
+    async function setup(doenetML: string) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function text(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .text;
+        }
+        async function setN(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+        }
+        function countDiagnostics() {
+            return core.core!.diagnostics.filter(
+                (d: any) => d.code === "doenet-e0064",
+            );
+        }
+        return { core, resolvePathToNodeIdx, text, setN, countDiagnostics };
+    }
+
+    it("makes a tag of it missing, with an info, never an error", async () => {
+        const { core, text, setN, countDiagnostics } = await setup(`
+<mathInput name="n" prefill="1"/>
+<mathList name="ml" maxNumber="$n">1 2</mathList>
+<p name="p1"><math extend="$ml"/></p>
+`);
+        expect(await text("p1")).eq("1");
+        expect(countDiagnostics()).eqls([]);
+
+        await setN("2");
+        expect(await text("p1")).eq("＿");
+        expect(countDiagnostics().map((d: any) => [d.type, d.args.count])).eqls(
+            [["info", 2]],
+        );
+
+        await setN("0");
+        expect(await text("p1")).eq("＿");
+        expect(countDiagnostics().map((d: any) => [d.type, d.args.count])).eqls(
+            [["info", 0]],
+        );
+
+        await setN("1");
+        expect(await text("p1")).eq("1");
+        expect(countDiagnostics()).eqls([]);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+
+    it("is an info at load, in content made later, and through an extend of the list", async () => {
+        const { core, resolvePathToNodeIdx, text, countDiagnostics } =
+            await setup(`
+<booleanInput name="b"/>
+<mathInput name="n" prefill="2"/>
+<mathList name="ml" maxNumber="$n">1 2</mathList>
+<mathList name="ml2" extend="$ml"/>
+<p name="p1"><math extend="$ml"/></p>
+<p name="p2"><math extend="$ml2"/></p>
+<conditionalContent><case condition="$b"><p name="p3"><math extend="$ml"/></p></case></conditionalContent>
+`);
+        expect(await text("p1")).eq("＿");
+        expect(await text("p2")).eq("＿");
+        expect(countDiagnostics().map((d: any) => d.type)).eqls([
+            "info",
+            "info",
+        ]);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await text("p3")).eq("＿");
+        expect(countDiagnostics().map((d: any) => d.type)).eqls([
+            "info",
+            "info",
+            "info",
+        ]);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+});
+
+describe("A select whose literals keep it from selecting (DIAG-7) @group4", () => {
+    it("is reported at load, and takes the error from its mark when made, selecting nothing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<booleanInput name="b"/>${inCase(`<select name="s" numToSelect="3"><option><text>a</text></option></select>`)}`,
+        });
+        const errors = () =>
+            getDiagnosticsByType(core).errors.map((e) => [
+                e.code,
+                e.message,
+                e.position?.start.line,
+                e.position?.start.column,
+            ]);
+        await core.returnAllStateVariables(false, true);
+        const atLoad = errors();
+        expect(atLoad).eqls([
+            ["doenet-e0035", "Cannot select 3 components from only 1.", 1, 76],
+        ]);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                .selectedIndices,
+        ).eqls([]);
+        expect(errors()).eqls(atLoad);
+    });
+
+    it("is decided again for a copy that writes its own numToSelect", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<select name="s" numToSelect="3"><option><text>a</text></option></select><select name="c" copy="$s" numToSelect="1"/>`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
+            "doenet-e0035",
+        ]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .selectedIndices,
+        ).eqls([1]);
     });
 });

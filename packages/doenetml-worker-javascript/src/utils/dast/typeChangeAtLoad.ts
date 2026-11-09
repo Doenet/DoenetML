@@ -31,6 +31,14 @@
  * A list tag (`<mathList extend="$g"/>`) takes any number of components,
  * including none, but they must all be of one type.
  *
+ * A scalar tag of a list the author writes (`<math extend="$ml"/>` of
+ * `<mathList name="ml">1 2</mathList>`) needs it to hold one entry, which is
+ * decided here when its entries and `maxNumber` are literals
+ * (`listEntryCountAtLoad.ts`); a list whose `maxNumber` is a value is marked
+ * `entryCountByValue`, and a tag of it is missing, with an info, while it
+ * does not hold one (DIAG-2). A `<module>` tag (`<module extend="$q"/>`) is
+ * made only from a module (`moduleTypeError`).
+ *
  * An index written as a literal into a selector whose `numToSelect` is
  * written (`<math extend="$s[2]"/>` of a one-pick `<select>`) names nothing
  * whatever happens at run time, so it is an error too. Each pick of a
@@ -57,6 +65,11 @@ import { typeChangeRule } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { sequenceEntryComponentType } from "../sequence";
+import {
+    isAuthoredListType,
+    listEntryCountAtLoad,
+} from "./listEntryCountAtLoad";
+import { TAGS_MAKING_THEIR_CONTENT } from "../../components/abstract/Copy";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
 export type TypeChangeAtLoadError = {
@@ -2704,7 +2717,7 @@ export function checkTypeChangesAtLoad({
         }
         const isList = copy.doenetAttributes?.forList !== undefined;
         if (!isList && !isScalarTag(copy)) {
-            return undefined;
+            return moduleTypeError(copy);
         }
         const writtenType = isList ? undefined : tagType(copy);
         // The type of each entry of a list tag.
@@ -2764,6 +2777,11 @@ export function checkTypeChangesAtLoad({
                               writtenType!,
                           )
                         : undefined;
+                }
+                if (
+                    isAuthoredListType(node.componentType, componentInfoObjects)
+                ) {
+                    return authoredListCountError(node);
                 }
                 return fixedTypeError(itemHolding(node, seen), writtenType!);
             }
@@ -3023,10 +3041,130 @@ export function checkTypeChangesAtLoad({
         );
     }
 
+    function componentAt(idx: number) {
+        return referents.componentsByIdx.get(idx);
+    }
+
+    /**
+     * The error for a scalar tag made from the list the author writes
+     * `list`, when the DoenetML decides that it does not hold one entry
+     * (`listEntryCountAtLoad`), as the run time reports it
+     * (`typeChangeStatus` in `Copy.js`); else `undefined`, left to run time.
+     */
+    function authoredListCountError(
+        list: SerializedComponent,
+    ): TypeChangeAtLoadError | undefined {
+        const entries = listEntryCountAtLoad(
+            list,
+            componentInfoObjects,
+            componentAt,
+        );
+        if (entries?.kind !== "written" || entries.count === 1) {
+            return undefined;
+        }
+        return {
+            code: "doenet-e0064",
+            args: {
+                reason: "count",
+                sourceType: list.componentType,
+                part: "other",
+                count: entries.count,
+                holdsNothing: entries.count === 0 ? "true" : "false",
+                // An index selects an entry of a list.
+                indexSelectsOne: "true",
+            },
+        };
+    }
+
+    /**
+     * The error for a `<module>` written as an extend or copy of a component
+     * that is not a module (`<module extend="$q"/>` of a `<math>`), as the
+     * run time reports it (`doenet-e0065`, `typeChangeStatus` in `Copy.js`),
+     * where the reference names, with nothing left for run time, a component
+     * written in the DoenetML. Left to run time are a reference to a
+     * reference (`_copy`) and anything else made for the document (`_`), a
+     * part of a choosing tag (`doenet-e0061`), an input, a component whose
+     * reference reads a value of it (`readsImplicitProp`, as the responses
+     * of an `<answer>`), and a tag that makes its
+     * content with attributes or children written on the extend, which
+     * would change that content (`extendChangesContentErrors`), reported
+     * first.
+     */
+    function moduleTypeError(
+        copy: SerializedComponent,
+    ): TypeChangeAtLoadError | undefined {
+        const writtenType = tagType(copy);
+        const moduleClass = allClasses.module;
+        if (
+            writtenType === undefined ||
+            !(
+                writtenType === "module" ||
+                allClasses[writtenType]?.prototype instanceof moduleClass
+            ) ||
+            literalText(copy.attributes._copyInChildren) !== "true"
+        ) {
+            return undefined;
+        }
+        const ref = refOf(copy);
+        if (!ref || ref.nodeIdx < 0 || (ref.unresolvedPath ?? []).length > 0) {
+            return undefined;
+        }
+        const node = referents.componentsByIdx.get(ref.nodeIdx);
+        const sourceType = node?.componentType;
+        if (
+            sourceType === undefined ||
+            sourceType.startsWith("_") ||
+            !allClasses[sourceType] ||
+            readsImplicitProp(sourceType, writtenType) ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: sourceType,
+                baseComponentType: "_input",
+            }) ||
+            ["case", "else", "option"].includes(sourceType) ||
+            sourceType === writtenType ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: sourceType,
+                baseComponentType: writtenType,
+            })
+        ) {
+            return undefined;
+        }
+        const writesAnything =
+            Object.keys(copy.attributes ?? {}).some(
+                (name) => !name.startsWith("_") && name !== "name",
+            ) ||
+            (copy.children ?? []).some(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+        if (writesAnything && TAGS_MAKING_THEIR_CONTENT.has(sourceType)) {
+            return undefined;
+        }
+        return { code: "doenet-e0065", args: { sourceType } };
+    }
+
     function visit(components: (SerializedComponent | string)[]) {
         for (const component of components) {
             if (typeof component !== "object") {
                 continue;
+            }
+            if (
+                isAuthoredListType(
+                    component.componentType,
+                    componentInfoObjects,
+                ) &&
+                listEntryCountAtLoad(
+                    component,
+                    componentInfoObjects,
+                    componentAt,
+                )?.kind === "byValue"
+            ) {
+                // How many entries it holds is decided by a value, so a tag
+                // made from it is missing, with an info, while it does not
+                // hold one (`typeChangeStatus` in `Copy.js`, DIAG-2).
+                component.doenetAttributes = {
+                    ...component.doenetAttributes,
+                    entryCountByValue: true,
+                };
             }
             if (
                 component.componentType === "_copy" &&

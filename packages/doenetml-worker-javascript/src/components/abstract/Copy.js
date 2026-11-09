@@ -2565,23 +2565,39 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
             });
 
+            // Found when the document loaded, from what is written, where
+            // the DoenetML gives the tag extended, and reported then
+            // (`extendErrorsAtLoad.ts`, DIAG-7): taken from the mark, so they
+            // are the same errors, kept once, whatever index the extend is
+            // made with.
+            const errorsAtLoad = component.doenetAttributes?.extendErrorsAtLoad;
             const errors = link
-                ? extendChangesContentErrors({
-                      replacementType: repl.componentType,
-                      writtenType:
-                          component.attributes._createComponentOfType?.primitive
-                              ?.value,
-                      copyInChildren,
-                      attributeNames: Object.keys(attributesFromComposite),
-                      copyAttributeNames: Object.keys(compositeAttributesObj),
-                      children: component.serializedChildren,
-                      sourceChildren: repl.children,
-                      source: referenceAsWritten(
-                          await component.stateValues.originalPath,
-                          replacementSourceComponent,
-                      ),
-                      componentInfoObjects,
-                  })
+                ? errorsAtLoad?.length > 0
+                    ? errorsAtLoad.map(({ code, args }) =>
+                          codedDiagnostic({
+                              type: "error",
+                              code,
+                              args: { ...args },
+                          }),
+                      )
+                    : extendChangesContentErrors({
+                          replacementType: repl.componentType,
+                          writtenType:
+                              component.attributes._createComponentOfType
+                                  ?.primitive?.value,
+                          copyInChildren,
+                          attributeNames: Object.keys(attributesFromComposite),
+                          copyAttributeNames: Object.keys(
+                              compositeAttributesObj,
+                          ),
+                          children: component.serializedChildren,
+                          sourceChildren: repl.children,
+                          source: referenceAsWritten(
+                              await component.stateValues.originalPath,
+                              replacementSourceComponent,
+                          ),
+                          componentInfoObjects,
+                      })
                 : withState && copyInChildren
                   ? await copyWithStateChangesChoicesErrors({
                         replacementType: repl.componentType,
@@ -2651,6 +2667,19 @@ export default class Copy extends CompositeComponent {
             }
 
             Object.assign(repl.attributes, attributesFromComposite);
+
+            // The choice error a `<select>` was marked with when the document
+            // loaded (`choiceErrorAtLoad`, `choiceErrorsAtLoad.ts`) is of what
+            // its source wrote. A copy that writes attributes or children of
+            // its own may choose from something else, so it is decided again.
+            if (
+                copyInChildren &&
+                repl.doenetAttributes?.choiceErrorAtLoad &&
+                (Object.keys(attributesFromComposite).length > 0 ||
+                    component.serializedChildren.length > 0)
+            ) {
+                delete repl.doenetAttributes.choiceErrorAtLoad;
+            }
 
             if (!link && attributesFromComposite.type) {
                 nComponents = retypeTextPieces({
@@ -7689,10 +7718,13 @@ async function indexNamesNothing({
  * error on the copy (`typeChangeAtLoad`): a `<select>` whose `numToSelect`
  * is not written as 1, a
  * `<repeat>`, cases of two types. What is left to decide here is the value
- * of the one math it holds. A list whose entries are written
- * (`isAuthoredList`) is decided by what the author wrote, too. A composite is read from the components it
- * has made, so it must be expanded, as an `extend` or `copy` of it waits for
- * (`needsReplacementsUpdatedWhenStale`, `unlinkedTargetsExpanded`).
+ * of the one math it holds. How many entries a list the author writes
+ * (`isAuthoredList`) holds is decided there too when its entries are
+ * literals; else it is decided here, as an error, or, when a value decides
+ * it (`entryCountByValue`), as an info. A composite is read from the
+ * components it has made, so it must be expanded, as an `extend` or `copy`
+ * of it waits for (`needsReplacementsUpdatedWhenStale`,
+ * `unlinkedTargetsExpanded`).
  *
  * `propReplacements` are the replacements made of a prop (`$P.coords`),
  * whose type is the source's; without them, a copy of a prop is not decided.
@@ -7988,8 +8020,17 @@ async function typeChangeStatus({
             if (level === "info") {
                 return undefined;
             }
+            // How many a list holds whose `maxNumber` is a value
+            // (`maxNumber="$n"`) can change, so the tag is missing while it
+            // does not hold one, with an info, and no error appears when a
+            // reader changes the value (DIAG-2, DIAG-7). A count its entries
+            // decide, when they are literals, was decided when the document
+            // loaded, and reported from the mark (`typeChangeAtLoad`,
+            // `listEntryCountAtLoad.ts`).
             return mismatch({
-                level,
+                level: sourceComponent.doenetAttributes?.entryCountByValue
+                    ? "info"
+                    : "error",
                 code: "doenet-e0064",
                 args: {
                     reason: "count",
@@ -8206,7 +8247,7 @@ async function everyCompositeExpanded(
  * A `<group>` and a `<module>` are left out: their children are written, and
  * children added to their extend are added after their own.
  */
-const TAGS_MAKING_THEIR_CONTENT = new Set([
+export const TAGS_MAKING_THEIR_CONTENT = new Set([
     "repeat",
     "repeatForSequence",
     "select",
@@ -8251,7 +8292,7 @@ const KIND_OF_CHILDREN = {
  * is a `<case>` by the time it is extended (`conditionalContentSugar`), so it
  * is named as written.
  */
-const PARTS_OF_CHOOSING_TAGS = {
+export const PARTS_OF_CHOOSING_TAGS = {
     case: "conditionalContent",
     else: "conditionalContent",
     option: "select",
@@ -8696,7 +8737,7 @@ async function copyWithStateChangesChoicesErrors({
  *
  * `source` is the reference the extend is of, as written (`$r`).
  */
-function extendChangesContentErrors({
+export function extendChangesContentErrors({
     replacementType,
     writtenType,
     copyInChildren,
