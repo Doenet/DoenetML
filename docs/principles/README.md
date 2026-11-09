@@ -24,7 +24,7 @@ has to read the log.
 | Document | What it covers |
 |---|---|
 | [references-extend-copy.md](references-extend-copy.md) | `$x`, `extend`, `copy`, and what happens when they nest. Name resolution and scope. **Start here.** |
-| [values-and-attributes.md](values-and-attributes.md) | `$x.prop`, references read as values, attribute values, missing values, number formatting |
+| [values-and-attributes.md](values-and-attributes.md) | `$x.prop`, references read as values, attribute values, missing values, number formatting, how a list written as text is split |
 | [inherited-attributes.md](inherited-attributes.md) | `fixed`, `fixLocation`, `draggable`, `disabled`, `hide`, `styleNumber`, display settings, labels |
 | [composites-and-lists.md](composites-and-lists.md) | `group`, `repeat`, `select`, `conditionalContent`, `collect`, `module`, value lists, commas |
 | [interaction-and-state.md](interaction-and-state.md) | inverse updates and `bindValueTo`, saved state and reload, actions, answers, variants |

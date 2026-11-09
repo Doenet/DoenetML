@@ -218,7 +218,10 @@ Tests that assert indices stay the same are Tier 3:
   worth keeping is that the reloaded answers find their saved state; check that by name instead.
 
 The index is still exposed outside the core, in two places:
-- recorded events name their component by index;
+- recorded events name their component by index. A section's or document's `"submitted"` event
+  names it only as `{ componentIdx, componentType }`, with no `rootName`
+  (`submitAllAnswers` in `W/utils/scoredSection.js`). Since #2496 those events carry attempt
+  counts, so a host has a reason to match them across a reload, and can't (D30);
 - the viewer's DOM ids are built from it.
 
 Whether those should use a stable key is decision D30. On doenet.org, an unnamed answer made by a
@@ -295,7 +298,26 @@ Evidence: `answer.test.ts:3583-3947`, `:8892-9232`; the responses section of
 `T/copying/value_references.test.ts`.
 
 ### ANS-3: `maxNumAttempts` and `disableAfterCorrect` stop submission (Tier 1)
-`W/utils/answer.js:846-886`. See CTX-12.
+See CTX-12. Code: `effectiveMaxNumAttempts`, `invertMaxNumAttempts`, and the `maxNumAttempts` and
+`numAttemptsLeft` definitions in `W/utils/answer.js`.
+
+**The host can lower the limit** (#2498). A host page sets the flag `maxNumAttempts` without
+editing the document:
+- an answer allows the smaller of the author's `maxNumAttempts` and the flag. The flag only
+  lowers a limit, never raises it;
+- inside a `sectionWideCheckWork` container, the flag caps the container's check-work button; a
+  container without `sectionWideCheckWork` keeps the author's value;
+- **an exception to "the property is the attribute"** (VAL-1, VAL-7): `$ans.maxNumAttempts` is
+  the limit that applies, so "You have $ans.maxNumAttempts attempts" stays true under a cap;
+- a write to `maxNumAttempts` goes to the attribute, or to the `<number>` it references, or,
+  with no attribute, to a stored value rounded to an integer. The capped value is never stored
+  (INT-2, VAL-7, VAL-11);
+- the flag raises no diagnostic. The warnings that `maxNumAttempts` is ignored (`w0070`, `w0081`)
+  fire only for an attribute the author wrote (DIAG-2, DIAG-4).
+
+Since #2496, a `"submitted"` event from an answer, a pretzel or a section-wide check work carries
+`numSubmissions`, `maxNumAttempts` and `numAttemptsLeft` in its `result`. Every event's
+`timestamp` is ISO 8601 UTC, and the event `version` is `0.2.0`.
 
 ---
 
@@ -334,6 +356,7 @@ contain a Tier 2 property worth restating as a black-box test, noted in the tabl
 | `T/utils/processQueueExclusive.test.ts` | `runExclusive` | "a save never sees a half-applied update" |
 | `T/utils/deferredRendererUpdates.test.ts` | renderer update lanes | "nothing is dropped" (`:507`, `:923`) |
 | `T/utils/statePersistenceRace.test.ts` | ticketed saves | "the newest save wins; payload and score pair" |
+| `T/utils/statePersistenceTimers.test.ts` | save timers (#2497): a submission's save cancels the pending debounce, `terminate` clears timers | "the final save still runs" (SAVE-1) |
 | `T/perf/*` | census and counts | — |
 | key-shape assertions in `statePersistenceKeying.test.ts:80`, `:241`, `:277`, `:359` and `statePersistenceShadows.test.ts:96`, `:163`, `:191` | the format of saved keys | "same document, same keys" and "restores from the source entry alone" |
 | `answer.test.ts:5981` | a lazy getter | — |

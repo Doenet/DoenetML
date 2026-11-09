@@ -32,7 +32,8 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - an index that names nothing at the moment;
   - a construction from a blank input;
   - a collect from content that is not shown;
-  - a value that does not convert to the tag written (`doenet-i0053`).
+  - a value that does not convert to the tag written (`doenet-i0053`);
+  - a list whose brackets don't balance, read with them ignored (`doenet-i0058`, VAL-12).
 
 A warning in a document means something should be fixed. A document that is waiting for the
 reader has none.
@@ -164,9 +165,18 @@ write something else (DIAG-2).
   it is an assertion. In production it is reported as a warning, so the reader sees no error.
 - **A load-time check reads only the DoenetML and its literals**, never a state variable's
   value. That is why REF-5 says "`numToSelect` written as `1`" rather than "whose value is 1".
-- **A variant sweep checks it:** a test helper loads a document at several variants (all of
-  them when there are few) and asserts the same set of errors. The editor can offer the same
-  check to authors.
+- **No variant sweep.** D39 decided that a sweep over today's variants is only a regression aid,
+  not the guarantee, so none was built (#2491). Variant independence comes from the two rules
+  above, and for selections from SEL.
+
+**Done by #2491:** `DiagnosticsManager.markLoaded()`, called at the end of `Core.generateDast`,
+records what was reported by then. A new error after it is handled by `errorsAfterLoad`:
+- **`"assert"`** (the default under Vitest, and in Node with `NODE_ENV=development`): reported and
+  recorded. A setup file (`T/setupErrorsAfterLoad.ts`) fails any test whose document leaves one,
+  unless the test takes them with `takeErrorsReportedAfterLoad()`;
+- **`"warn"`** (the default in a browser): reported as a warning, and an `_error` component made
+  after load becomes a `_missing` one (`＿`). A reload decides it at load, where it is an error
+  again (DIAG-6), but only for content that is already a bug.
 
 The load-time checks of D22, D26, D32 and D36 follow it already, since each reads only the
 DoenetML.
@@ -179,15 +189,19 @@ covers a tag's type errors there (`fixedTypeError` and `reportTypeChangesAtLoad`
 `<conditionalContent>` holding it (`e0005`), and a conversion error such as an unknown tag
 (`e0002`).
 
-**Known violations** (#2463):
-- there is no assertion yet that no error appears after load;
-- choice errors in content made later: `<select numToSelect="3">` with one option, in a case not
-  yet true, gives `e0035` only once it is made. With literal attributes it can be checked at
-  load;
-- the errors of an extend that can't change content (`extendChangesContentErrors` in `Copy.js`:
-  `e0061`, `e0059`, …), in content made later;
+**Known violations** (#2463). Each is now a warning with `＿` in production, and a test that
+reaches it takes its error explicitly:
+- **still decided only when content is made later (#2493):** an extend that would change what it
+  extends (`e0056`–`e0061`), a `<select>` whose literals can't select (`e0035`), a scalar tag of
+  a written list (`e0064`), and `<module extend="$q"/>` of a non-module (`e0065`). #2491 first
+  moved these to load; each of five reviews found an input where load and run time disagreed,
+  so they were split out. #2493 records what was learned: decide at load only what is exactly a
+  literal, mark the decision on the component, and compare against `main`;
 - `e0064` of an authored list whose count changes (`<mathList maxNumber="$n">` as a scalar tag):
-  it depends on a value, so it should be a missing tag with an info;
+  it depends on a value, so it should be a missing tag with an info (#2493);
+- the choice errors of `<selectFromSequence>`, `<selectPrimeNumbers>` and the samplers, for SEL
+  (D39);
+- a sequence extend through an index or a property throws, or gives a spurious `e0005` (#2501);
 - **fixed by #2471:** reference cycles through what is written are `e0005` at load over every
   branch (B32, B40, #2430). Left: cycles through a property, an attribute, an index or a list; a
   cycle through a name every branch declares, found when the case turns true (in a `<select>`,

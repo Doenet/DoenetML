@@ -356,6 +356,36 @@ This is principled, but hard to explain. The `fixed` case is a problem (D7).
 
 ---
 
+### VAL-12: a list written as text is split by one rule: commas if there is one, spaces otherwise (Tier 1; #2494)
+Every list written as text (a value list, an attribute created as one such as `vertices` or
+`exclude`, `<select>` options, `<repeat for>`, the operands of a math or boolean operator, a
+grid, variant names) is split the same way:
+- **the separator:** if the written text has a comma outside brackets, commas separate the
+  entries and the spaces around each are trimmed. Otherwise spaces separate them, a run of
+  spaces counting as one. `<mathList>x + 1, y</mathList>` is two entries,
+  `<mathList>x y z</mathList>` three, and `<mathList>x y, z</mathList>` is `x y` (a product) and
+  `z`;
+- **brackets** `( [ {` and `) ] }` keep their contents together, any closer closing any opener:
+  `(1, 2], [3, 4)` is two intervals. If they don't balance, they are ignored for the whole list,
+  with info **`doenet-i0058`**, an info because such text is valid and often meant
+  (`a) apple, b) banana`; DIAG-1, DIAG-2);
+- **empty entries:** with commas, every comma separates two entries, so `a,,b` has a blank (`＿`)
+  in the middle. Spaces never make one;
+- **only written text counts.** A comma in a reference's or component's value never chooses
+  commas, and in an operator each reference is an operand of its own (`<sum>$a$b$c</sum>` adds
+  three).
+
+**The one exception:** `removeStrings` on a `<mathInput>` keeps spaces only, since a comma is
+its common entry (thousands separators).
+
+The rule is `splitListItems` in `packages/parser/src/list-separation.ts`, shared by the parser
+and the worker. A list records how it split its text (`_listSplitting`), so it splits it again
+the same way. Evidence: `T/tagSpecific/listSeparation.test.ts`,
+`packages/parser/test/list-separation.test.ts`.
+
+Before #2494, lists split on spaces outside parentheses only, so text with a comma usually gave
+something broken (`(a, ＿)`, `NaN`).
+
 ## 4. List entries
 
 ### VAL-9: a list entry stands for the component it came from (Tier 1 for value and label, Tier 2 for targets)
