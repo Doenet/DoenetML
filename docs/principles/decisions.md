@@ -2395,3 +2395,47 @@ variant misses a blank another variant shows.
 3. **Yes:** a change to which values a variant gets is acceptable (D17).
 4. **No separate display:** a warning is located at its line in the DoenetML (DIAG-4), so one
    from an unpicked option isn't confusing.
+
+## D40. Decisions from the review of open issues (November 2026)
+
+A review of the open issues (after #2466's plan) found fifteen waiting on a decision. Seven are
+decided here; the rest are listed as still open.
+
+**Decided:**
+1. **A component whose content holds a missing child is missing** (#2461). Exceptions: `<math>`
+   and `<text>`, where the blank takes part, and containers, which show it inline. A missing
+   list entry is a blank entry. An award whose condition is missing gives no credit. VAL-5.
+2. **`null` is never shown; where it means "no value" the value is missing, and a `NaN` caused by
+   a missing input is missing** (#2460). Only a computation on present inputs that has no value
+   stays `NaN`. VAL-5.
+3. **An `<angle>` whose measure isn't determined is blank** (#2324), for a bare `<angle/>`, one or
+   two `through` points, and one line. 0.7 documents are not converted. VAL-5, D10.
+4. **Names in the arguments of a function reference that names nothing are made, as if in a
+   `<setup>`** (#2489). Feasible in the Rust expansion: keep the argument nodes in an unrendered
+   `<setup>`-like wrapper instead of dropping them and pointing their names at the failed
+   reference (`ref_expand.rs`, `compactify.rs`). NAME-4.
+5. **A property that some component a composite can hold lacks warns, decided at load; each such
+   component contributes a blank** (#2452). VAL-5.
+6. **From outside, withheld content acts as missing:** a value reference is `＿`, an action on
+   it does nothing with an info, reading it does not evaluate it, and its state is kept
+   (#2152). SAVE-4, D18.
+7. **A space beside a reference keeps deciding a list's entries** (#2168); the editor hints at
+   it. VAL-12.
+
+**Still open** (recommendations from the review, not decided):
+- #2235 (D7, D23): a write to `fixed` through a reference. Recommendation: to the source for a
+  component reference with no `fixed` of its own; refused for a property or list entry; a
+  sequence's default-fixed entries can't be unfixed through a reference; a `copy` has its own
+  `fixed`, an `extend` shares it.
+- #2257: a drag writing one value twice. Recommendation: first write wins.
+- #2365 (D30): report a `stateId` for a component with no root name, accepting a one-time split.
+- #2485 item 3: a copy's replacement ids derived from each source's `stateId`. Recommendation:
+  leave it to the new core.
+- #2408 (D34): accept D34 as proposed.
+- #2457: its four converter candidates. Recommendation: rewrite D32 extends to `copy` and an
+  input's `extend` to `bindValueTo`; report child indexing and names that differ across branches.
+- #2156: what a `<select>` returns. Recommendation: defer.
+- #2155: showing a student's answer without presenting a wrong one as fact. Recommendation: defer
+  (a feature).
+- #2127 item 9: the `_copy` name and role.
+

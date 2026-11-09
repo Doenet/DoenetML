@@ -209,6 +209,12 @@ through another component (`xmin="$p"` with `<number name="p">$xmin</number>` in
   `ModuleAttributes.js` gives a module attribute's reference the `<moduleAttributes>` as its
   origin.
 
+**Names in the arguments of a function reference that names nothing (decided, D40; #2489).** In
+`$$f(<math name="m">x</math>)` where `f` names nothing, `m` is still made, as if written in a
+`<setup>`: `$m` is `x`, and an outer `m` in the same scope makes it ambiguous (`w0105`), as a
+`<setup>` name would. **Known violation:** today the argument components are not made and their
+names point at the failed reference, so `$m` is `＿`, or ambiguous beside an outer `m`.
+
 ### NAME-5: an attribute resolves as if it were written in a child of its component (Tier 2)
 The search order is NAME-1's nearest scope, from a child and from an attribute alike:
 1. the component's written descendants;

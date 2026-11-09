@@ -172,14 +172,26 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   `$f.minima`) give their members, possibly none.
 
 **Known violations and open questions:**
-- **A tag whose content holds a missing reference** (`<T>$nonexistent</T>`) is not covered by
-  D37, which is about a tag whose *source* is missing. Some parents show the blank (`<point>`,
-  `<text>`, `<p>`); some equal `<T/>` by coincidence (`<math>`, `<number>`); some ignore the
-  reference (`<boolean>`, `<function>`, the shapes, `<mathInput>`, the lists). #2461 proposes
-  that such a component is itself missing, except containers and where the blank takes part in
-  an expression.
-- **`null` and `NaN` shown to authors** (#2460). No case of `null` on the page is known, but
-  `<median>` of a blank and `<clampNumber>` of nothing show `NaN`. #2460 asks for one rule.
+- **A component whose content holds a missing child is missing (decided, D40; #2461).** A
+  component whose value is made from its children (`<number>`, `<integer>`, `<boolean>`,
+  `<function>`, the shapes, an award's condition) is missing when a child it reads is missing:
+  `<number>$nothing</number>` is `＿`, not `NaN`, and an award whose condition is missing gives
+  no credit. Two exceptions: in a `<math>` and a `<text>` the blank takes part
+  (`<math>$a + 1</math>` is `＿ + 1`, `<text>x $nothing y</text>` is `x ＿ y`), and a container
+  shows the blank inline. In a list a missing entry is a blank entry:
+  `<mathList>$l[5] 2</mathList>` is `＿, 2`. **Known violation:** today some parents ignore the
+  reference (`<boolean>`, `<function>`, the shapes, `<mathInput>`, the lists) or show `<T/>`'s
+  value by coincidence (`<number>` gives `NaN`).
+- **`null` is never shown, and a `NaN` from a missing input is missing (decided, D40; #2460).**
+  `null` or `undefined` never reaches what an author sees. Where `null` means "no value", the
+  value is missing (`＿`); #2483's opt-in for `maxNumber` becomes the rule for every such
+  attribute. A `NaN` caused by a missing or blank input is missing too: `<median>` of a blank and
+  `<clampNumber>` of nothing are `＿`. Only a computation on present inputs that has no value
+  stays `NaN`.
+- **`<angle/>` with no measure is blank (decided, D40; #2324).** An angle whose measure nothing
+  gives or determines (bare, one or two `through` points, one line) has a blank measure and draws
+  nothing, not a right angle. 0.7 documents are not converted. **Known violation:** today it is
+  π/2.
 - `<text>$n.nonexistent</text>` reads `""`: the blank a `<text>` makes is missing only for a
   reference with no referent.
 - a bare reference to a name in a branch that isn't active is a blank whatever it names, so
@@ -219,19 +231,18 @@ an error on a tag, which D37 reversed (#2458). Examples: `$n.nonexistent`,
    no property of that name (`__prop_name_not_found` in `W/components/abstract/Copy.js`). A
    property the type has, but with no value now, stays missing with no warning: `$P.z` of a 2D
    point, `$c.maxNumber` with no limit (above).
-3. **For a composite, everything it holds.** `$cc.value` is fine when the cases hold maths.
-   It warns only when no component the composite holds has the property. #2451 decides this
-   from what it holds now, as a condition diagnostic that comes and goes with the case.
+3. **For a composite, everything it can hold.** `$cc.value` is fine when every case holds maths.
+   **It warns, decided at load, if any component the composite can hold lacks the property**,
+   and each component that lacks it contributes a blank `＿` (decided, D40; #2452). A property
+   none has is `w0104`, as before. **Known violation:** #2451 decides from what the composite
+   holds now, and warns only when none has the property; a component that lacks it is skipped.
 
 Decided with D22 (#2434 item 1). **Done by #2451** (closing #2450), including after names
 (`$x.nonexistent`) and after an index (`$s[1].nonexistent`, `$r[1].nonexistent`). On a tag it
 is, since #2458 (D37), the same warning as the bare form, and the tag is missing.
 
-**Open (#2452):** a property that only some of what a composite holds has is skipped silently
-for the rest. Nothing is named `x`, so `$cc1.x` of a case holding a math, a text and a number
-shows only the math's `x`, and `$cc1.latex` leaves out the text. The proposal is to warn when
-some, but not all, of the components have it. Still open: whether that is decided at load or
-from what the composite holds now, whether it is an error on a tag, and how lists count.
+For example, nothing is named `x`, so `$cc1.x` of a case holding a math, a text and a number
+warns (the text and number have no `x`) and shows the math's `x` beside two blanks.
 
 Before #2458 that table held, a bare reference to one thing that isn't there showed nothing
 (`a $l[5] b` was `a  b`), and `<sum>` left a missing operand out.
@@ -375,6 +386,10 @@ grid, variant names) is split the same way:
 - **only written text counts.** A comma in a reference's or component's value never chooses
   commas, and in an operator each reference is an operand of its own (`<sum>$a$b$c</sum>` adds
   three).
+
+**Kept as is (D40; #2168):** whether a space separates a reference from text beside it changes
+the entries (`2$a` is one entry, `2 $a` two). The editor should hint at it, rather than the rule
+changing.
 
 **The one exception:** `removeStrings` on a `<mathInput>` keeps spaces only, since a comma is
 its common entry (thousands separators).
