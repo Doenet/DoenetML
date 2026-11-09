@@ -37,6 +37,7 @@ pub mod graph {
         /// `<graph>`: its x and y range.
         tags: ["graph"],
         flags: [container],
+        encloses: Graph(xmin, xmax, ymin, ymax),
         props {
             // Pan and zoom request all four.
             xmin: attr(-10.0) { interactive, rendered },
@@ -144,6 +145,7 @@ pub mod sticky_group {
         /// dragged. `threshold` NaN means the default.
         tags: ["stickyGroup"],
         flags: [container],
+        encloses: Sticky(threshold, relativeToGraphScales),
         props {
             threshold: attr(NO_VALUE),
             relativeToGraphScales: attr(0.0),

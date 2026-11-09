@@ -270,8 +270,7 @@ impl Defined {
             let (ty, np) = (comp.component_type, comp.n_public as usize);
             // Snapping reads a sticky group's settings and every point of
             // its members.
-            let sticky = ty == ComponentType::StickyGroup
-                || (comp.in_sticky && ty.sticky_layout().is_some());
+            let sticky = ty.is_sticky_group() || (comp.in_sticky && ty.sticky_layout().is_some());
             for pi in 0..np {
                 if sticky
                     || ty.is_root_prop(np, pi)

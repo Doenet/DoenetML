@@ -587,29 +587,23 @@ impl<'a, 'c> Signer<'a, 'c> {
                         .collect(),
                 );
             }
-            ComponentType::Graph => return Domain::Any,
+            // A graph's own view.
+            _ if ty.graph_bounds().is_some() => return Domain::Any,
             _ => {}
         }
         // Inside a graph: its bounds as the author set them.
         let mut a = g.comps[ci].parent;
-        while a != u32::MAX && g.comps[a as usize].component_type != ComponentType::Graph {
+        let bounds = loop {
+            if a == u32::MAX {
+                return Domain::Any;
+            }
+            if let Some(bounds) = g.comps[a as usize].component_type.graph_bounds() {
+                break bounds;
+            }
             a = g.comps[a as usize].parent;
-        }
-        if a == u32::MAX {
-            return Domain::Any;
-        }
+        };
         let a = a as usize;
-        let bounds: Vec<GraphNode> = ["xmin", "xmax", "ymin", "ymax"]
-            .iter()
-            .map(|p| {
-                self.prop_cell(
-                    a,
-                    ComponentType::Graph
-                        .prop_index(p)
-                        .expect("a graph has bounds"),
-                )
-            })
-            .collect();
+        let bounds: Vec<GraphNode> = bounds.iter().map(|&pi| self.prop_cell(a, pi)).collect();
         let graph_key = self.key(self.comp_key(a));
         let mut literal = Some(Vec::with_capacity(4));
         for &bound in &bounds {

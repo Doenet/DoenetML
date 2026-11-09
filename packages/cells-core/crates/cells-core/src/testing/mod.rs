@@ -162,7 +162,6 @@ pub fn inputs(
     compiled: &crate::Compiled,
 ) -> std::collections::BTreeMap<String, InputState> {
     use crate::ValueType;
-    use crate::components::ComponentType;
 
     let mut key_of = std::collections::HashMap::new();
     for t in &compiled.plans.templates {
@@ -216,25 +215,24 @@ pub fn inputs(
             }
         }
         let mut a = t.parent[c.index()];
-        while a != crate::CompIdx::NONE && doc.component_type(a) != ComponentType::Graph {
+        while a != crate::CompIdx::NONE && doc.component_type(a).graph_bounds().is_none() {
             a = t.parent[a.index()];
         }
-        let bounds = (a != crate::CompIdx::NONE && ty != ComponentType::Graph).then(|| {
+        let bounds = (a != crate::CompIdx::NONE && ty.graph_bounds().is_none()).then(|| {
             let g = doc.comp_cells(a);
-            let author = |p: &str| {
-                let cell = g[ComponentType::Graph.prop_index(p).unwrap()].index();
+            // Each bound as the author set it.
+            let author = |pi: usize| {
+                let cell = g[pi].index();
                 if doc.essentials().contains(&cell) {
                     doc.structure.essential_defaults[cell - doc.n_const]
                 } else {
                     doc.cells[cell]
                 }
             };
-            [
-                author("xmin"),
-                author("xmax"),
-                author("ymin"),
-                author("ymax"),
-            ]
+            doc.component_type(a)
+                .graph_bounds()
+                .expect("a graph")
+                .map(author)
         });
         let scope = doc.scope_path_text(t.scope[c.index()]);
         out.insert(

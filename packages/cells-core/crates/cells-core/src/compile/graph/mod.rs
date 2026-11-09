@@ -746,8 +746,8 @@ impl<'c> Stamp<'c> {
                 _ => {}
             }
             placed.insert(c, (true, sticky));
-            let in_graph = in_graph || ty == ComponentType::Graph;
-            let sticky = sticky || ty == ComponentType::StickyGroup;
+            let in_graph = in_graph || ty.graph_bounds().is_some();
+            let sticky = sticky || ty.is_sticky_group();
             for k in self.children(c) {
                 stack.push((k, in_graph, sticky));
             }

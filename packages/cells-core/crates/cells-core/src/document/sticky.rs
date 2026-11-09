@@ -7,7 +7,7 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 
 use super::*;
-use crate::components::StickyPoints;
+use crate::components::{Encloses, StickyPoints};
 use crate::program::VecOp;
 use crate::tick::invert::PointRequest;
 use crate::tick::snap::{Member, Params, PointIdx, Pt, snap_group};
@@ -39,29 +39,27 @@ impl Built {
         let mut seen: HashSet<Vec<CellIdx>> = HashSet::new();
         let mut out = Vec::new();
         for g in CompIdx::below(self.components.len()) {
-            if self.component_type(g) != ComponentType::StickyGroup {
+            let Some(Encloses::Sticky {
+                threshold,
+                relative,
+            }) = self.component_type(g).encloses()
+            else {
                 continue;
-            }
+            };
             let mut t = StickyTable {
-                threshold: self.comp_cells(g)[prop::sticky_group::THRESHOLD],
-                relative: self.comp_cells(g)[prop::sticky_group::RELATIVE],
+                threshold: self.comp_cells(g)[threshold],
+                relative: self.comp_cells(g)[relative],
                 bounds: None,
                 members: Vec::new(),
                 points: Vec::new(),
                 index: HashMap::new(),
                 gates: Vec::new(),
             };
-            if let Some(p) = self
-                .parent(g)
-                .filter(|&p| self.component_type(p) == ComponentType::Graph)
+            if let Some(p) = self.parent(g)
+                && let Some(bounds) = self.component_type(p).graph_bounds()
             {
                 let c = self.comp_cells(p);
-                t.bounds = Some([
-                    c[prop::graph::XMIN],
-                    c[prop::graph::XMAX],
-                    c[prop::graph::YMIN],
-                    c[prop::graph::YMAX],
-                ]);
+                t.bounds = Some(bounds.map(|pi| c[pi]));
             }
             for (m, gates) in self.components.sticky_members(g) {
                 let component_type = self.component_type(m);

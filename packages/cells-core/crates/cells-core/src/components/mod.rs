@@ -649,6 +649,26 @@ impl ComponentType {
         self.def().text
     }
 
+    /// What a component of the type changes about where its descendants
+    /// are, if anything.
+    pub fn encloses(self) -> Option<Encloses> {
+        self.def().encloses
+    }
+
+    /// The props of the view of a type that encloses a graph
+    /// ([`Encloses::Graph`]): `xmin`, `xmax`, `ymin`, `ymax`.
+    pub fn graph_bounds(self) -> Option<[usize; 4]> {
+        match self.encloses() {
+            Some(Encloses::Graph { bounds }) => Some(bounds),
+            _ => None,
+        }
+    }
+
+    /// Whether the type is a sticky group ([`Encloses::Sticky`]).
+    pub fn is_sticky_group(self) -> bool {
+        matches!(self.encloses(), Some(Encloses::Sticky { .. }))
+    }
+
     /// The 0/1 prop a gate holds its children by ([`StructureKind::Gate`]).
     pub fn gate_prop(self) -> Option<usize> {
         match self.structure_kind() {
@@ -868,13 +888,11 @@ mod tests {
         ("build/expand/aggregate.rs", 15),
         ("build/expand/choice.rs", 2),
         ("build/expand/mod.rs", 10),
-        ("build/live.rs", 1),
         ("compile/graph/aggregate.rs", 14),
-        ("compile/graph/define.rs", 1),
         ("compile/graph/eval.rs", 4),
         ("compile/graph/expand.rs", 7),
-        ("compile/graph/mod.rs", 7),
-        ("compile/graph/signature.rs", 8),
+        ("compile/graph/mod.rs", 5),
+        ("compile/graph/signature.rs", 5),
         ("compile/graph/walk.rs", 1),
         ("compile/ir/record.rs", 1),
         ("compile/read/answer.rs", 3),
@@ -888,19 +906,14 @@ mod tests {
         ("compile/stages/plan/answer.rs", 8),
         ("compile/stages/plan/choice.rs", 2),
         ("compile/stages/plan/copies.rs", 10),
-        ("compile/stages/plan/ctx.rs", 1),
-        ("compile/stages/plan/fix.rs", 1),
         ("compile/stages/plan/iterates.rs", 3),
         ("compile/stages/plan/mod.rs", 2),
-        ("compile/stages/seal/keys.rs", 2),
+        ("compile/stages/seal/keys.rs", 1),
         ("compile/stages/share.rs", 1),
         ("document/mod.rs", 2),
         ("document/paths.rs", 1),
         ("document/request.rs", 3),
         ("document/sections.rs", 9),
-        ("document/sticky.rs", 8),
-        ("document/table.rs", 2),
-        ("testing/mod.rs", 3),
     ];
 
     /// The lines of `text` that name a [`ComponentType`] variant

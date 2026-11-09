@@ -116,8 +116,8 @@ impl ComponentTable {
             }
             rendered[c.index()] = true;
             in_sticky[c.index()] = sticky;
-            let in_graph = in_graph || ty == ComponentType::Graph;
-            let sticky = sticky || ty == ComponentType::StickyGroup;
+            let in_graph = in_graph || ty.graph_bounds().is_some();
+            let sticky = sticky || ty.is_sticky_group();
             let start = self.child_start[c.index()] as usize;
             for e in &self.child_list[start..start + self.child_count[c.index()] as usize] {
                 if let Some(k) = e.as_comp() {

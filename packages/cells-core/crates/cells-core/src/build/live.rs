@@ -57,8 +57,8 @@ impl SlotCells {
             // Snapping reads a sticky group's settings and every point of
             // its members (`document/sticky.rs`); a member is rendered, so
             // in a sticky group is in a rendered one.
-            let sticky = ty == ComponentType::StickyGroup
-                || (in_sticky[c.index()] && ty.sticky_layout().is_some());
+            let sticky =
+                ty.is_sticky_group() || (in_sticky[c.index()] && ty.sticky_layout().is_some());
             for pi in 0..np {
                 if sticky
                     || ty.is_root_prop(np, pi)

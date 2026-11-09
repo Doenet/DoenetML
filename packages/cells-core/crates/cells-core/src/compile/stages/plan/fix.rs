@@ -50,7 +50,7 @@ fn every_type(_: ComponentType) -> bool {
 }
 
 fn is_graph(component_type: ComponentType) -> bool {
-    component_type == ComponentType::Graph
+    component_type.graph_bounds().is_some()
 }
 
 /// Planning, holds: what `fixed`, `fixLocation` and `fixAxes` make of an

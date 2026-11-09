@@ -157,6 +157,13 @@ methods. Rules for planners:
   an answer's input. A value says how it shows in text (`text:
   Number(value)`, [`TextKind`](crate::components::TextKind)); a type
   with none shows its children's text.
+- A type that changes where its descendants are says so (`encloses:
+  Graph(xmin, xmax, ymin, ymax)` on `<graph>`, `encloses:
+  Sticky(threshold, relativeToGraphScales)` on `<stickyGroup>`,
+  [`Encloses`](crate::components::Encloses), ADR 0038). What is drawn
+  only in a graph is drawn inside the first; its bounds are the view a pan
+  or zoom writes, which `fixAxes` holds and saved state keeps apart; the
+  second's members snap by its settings.
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The

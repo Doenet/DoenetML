@@ -276,8 +276,9 @@ impl Keys {
     /// Whether the slot of `key` saved as `prop` is view state: a graph's
     /// own bounds, which only pan and zoom write.
     pub(crate) fn is_view(&self, key: ElemKey, prop: &str) -> bool {
-        self.types[key.index()] == ComponentType::Graph
-            && matches!(prop, "xmin" | "xmax" | "ymin" | "ymax")
+        let ty = self.types[key.index()];
+        ty.graph_bounds()
+            .is_some_and(|bounds| bounds.iter().any(|&pi| ty.prop_defs()[pi].name == prop))
     }
 
     /// The port of `key` that saved state names `name`, as `prop_key` names

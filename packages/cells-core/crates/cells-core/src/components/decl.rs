@@ -55,6 +55,9 @@ pub struct ComponentDef {
     /// How a component of the type shows in text; `None` for its
     /// children's text.
     pub text: Option<TextKind>,
+    /// What a component of the type changes about where its descendants
+    /// are: inside a graph, or in a sticky group.
+    pub encloses: Option<Encloses>,
     /// How a point is constrained to a component of the type: a type without
     /// one is no constraint target.
     pub constrain_target: Option<ConstrainTarget>,
@@ -317,6 +320,27 @@ pub enum TextKind {
     /// The expression's text (`expr`, the first), or the number (`value`)
     /// when there is no expression.
     Math(usize, usize),
+}
+
+/// What a component changes about where its descendants are (ADR 0038):
+/// the core places, snaps and saves by this, not by the type. Each holds
+/// positions in the type's table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Encloses {
+    /// A graph: what is drawn only in a graph (`Renders::InGraph`) is drawn
+    /// inside it, and its `bounds`, `xmin`, `xmax`, `ymin` and `ymax`,
+    /// are the view a pan or a zoom writes.
+    Graph {
+        /// The props of its view, left, right, bottom and top.
+        bounds: [usize; 4],
+    },
+    /// A sticky group: its members snap to one another when dragged.
+    Sticky {
+        /// How near a dragged member must come to snap.
+        threshold: usize,
+        /// 1 when `threshold` is measured in the graph's scales.
+        relative: usize,
+    },
 }
 
 /// A group of element children of given types (`constraints:

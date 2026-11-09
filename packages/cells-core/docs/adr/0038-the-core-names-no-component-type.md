@@ -1,6 +1,6 @@
 # The core names no component type, and components are a crate of their own
 
-Status: proposed 2026-11-09. Steps 1 to 4 of the Migration are done. Builds on
+Status: proposed 2026-11-09. Steps 1 to 5 of the Migration are done. Builds on
 ADR 0016 (components are defined without knowing the core), whose
 converse this is; on ADR 0034 (a planner is a function of its record),
 which made `compile::api` the one door a planner goes through; and on
@@ -302,6 +302,17 @@ step 1 lower than before.
    diff is identical.
 5. **Context.** `encloses` and `bounds`, read by `placement`, the
    graph's own walk and `domain`.
+   Done as one `Encloses`, `Graph(xmin, xmax, ymin, ymax)` or
+   `Sticky(threshold, relativeToGraphScales)`: the bounds sit in the
+   graph's variant, and a sticky group's settings in its own, which
+   `document/sticky.rs` read as prop positions. Beyond the three sites
+   named, the same declaration replaced the other places the core named
+   either type: the sticky tables and their graph's bounds, liveness in
+   the build and the graph, `fixAxes`, a planner's enclosing graph
+   (`PlanCtx::enclosing_graph_prop`), a saved graph's view
+   (`seal/keys.rs`, `is_view`) and the test inputs' bounds. The
+   accessibility lint's `<graph>` is step 6's. The count fell from 160
+   to 137, and the golden diff is identical.
 6. **The rest of the table.** `needs` for lint, `extend_value`,
    `settle`, `rewrite`, `scored`, and the owned-type refusal. The five
    component paths the core calls go with `settle` and `extend_value`.

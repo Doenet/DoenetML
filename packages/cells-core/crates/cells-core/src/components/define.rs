@@ -295,6 +295,7 @@ pub(super) const fn definition(
         structure_kind: None,
         response: None,
         text: None,
+        encloses: None,
         constrain_target: None,
         params: &[],
     }
@@ -353,6 +354,12 @@ impl ComponentDef {
     /// How a component of the type shows in text ([`super::TextKind`]).
     pub(super) const fn text(mut self, text: super::TextKind) -> Self {
         self.text = Some(text);
+        self
+    }
+    /// What a component of the type changes about where its descendants
+    /// are ([`super::Encloses`]).
+    pub(super) const fn encloses(mut self, encloses: super::Encloses) -> Self {
+        self.encloses = Some(encloses);
         self
     }
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
@@ -565,7 +572,10 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 ///
 /// `response: Math(expr)` makes the type an answer's input whose response
 /// reads that prop ([`super::ResponseKind`]), and `text: Number(value)`
-/// says how a component shows in text ([`super::TextKind`]). A prop
+/// says how a component shows in text ([`super::TextKind`]).
+/// `encloses: Graph(xmin, xmax, ymin, ymax)` or `encloses:
+/// Sticky(threshold, relative)` says what it changes about where its
+/// descendants are ([`super::Encloses`]). A prop
 /// option `expr_of: expr` or `expr_when: submitted` says the prop stands
 /// for an expression ([`super::ExprOf`]).
 ///
@@ -670,6 +680,7 @@ macro_rules! component {
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
         $(response: $rkind:ident ($rprop:ident),)?
         $(text: $tkind:ident ($($tprop:ident),+ $(,)?),)?
+        $(encloses: $ekind:ident ($($eprop:ident),+ $(,)?),)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -714,6 +725,7 @@ macro_rules! component {
                 $(.text($crate::components::TextKind::$tkind(
                     $($crate::components::define::at(PROPS, stringify!($tprop))),+
                 )))?
+                $(.encloses($crate::components::define::component!(@encloses $ekind($($eprop),+))))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
@@ -830,6 +842,23 @@ macro_rules! component {
                 ),
             );
         )+)*)?
+    };
+    // What a type encloses, each prop it names a position in `PROPS`.
+    (@encloses Graph($xmin:ident, $xmax:ident, $ymin:ident, $ymax:ident)) => {
+        $crate::components::Encloses::Graph {
+            bounds: [
+                $crate::components::define::at(PROPS, stringify!($xmin)),
+                $crate::components::define::at(PROPS, stringify!($xmax)),
+                $crate::components::define::at(PROPS, stringify!($ymin)),
+                $crate::components::define::at(PROPS, stringify!($ymax)),
+            ],
+        }
+    };
+    (@encloses Sticky($threshold:ident, $relative:ident)) => {
+        $crate::components::Encloses::Sticky {
+            threshold: $crate::components::define::at(PROPS, stringify!($threshold)),
+            relative: $crate::components::define::at(PROPS, stringify!($relative)),
+        }
     };
     // A structure kind, each prop it names a position in `PROPS`.
     (@structure Transparent) => {

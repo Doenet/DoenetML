@@ -124,6 +124,11 @@ answer's `correct`).
 of value it is: math, boolean, text or a choice's index (`ResponseKind`, ADR
 0038). Declaring one makes a type an answer's input.
 
+**Encloses** — What a component changes about where its descendants are: a
+graph (what is drawn only in a graph is drawn inside it, with its bounds as
+the view) or a sticky group (its members snap by its threshold), declared on
+the type (`Encloses`, ADR 0038).
+
 **Reference** — A `$name` or `$name.prop` in the document. A component-level
 reference (`$p1`) produces a copy sharing every cell with the referent,
 except to an input, which it *reads as* a value of the input's declared
