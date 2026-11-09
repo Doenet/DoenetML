@@ -1,6 +1,5 @@
 //! `<polyline>`: its definition and its planner.
 
-use crate::components::ComponentType;
 use crate::components::define::*;
 
 component! {
@@ -11,6 +10,7 @@ component! {
     tags: ["polyline"],
     flags: [copyable, located],
     renders: InGraph,
+    settle: Collects(Point),
     props {
         numVertices: aggregate(Count, Gathered),
     }
@@ -19,6 +19,3 @@ component! {
 
 /// The position of `numVertices`: how many points the polyline collects.
 pub const NUM_VERTICES: usize = Props::AT.numVertices;
-
-/// What a `<polyline>` collects.
-pub(crate) const COLLECTED: ComponentType = ComponentType::Point;

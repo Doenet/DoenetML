@@ -310,16 +310,10 @@ impl<'a> Outlining<'a> {
         let component_type =
             ComponentType::from_tag(tag).ok_or_else(|| Error::UnsupportedTag(tag.to_string()))?;
         // `<group rendered="c">` is a conditional content with one case.
-        let component_type =
-            if component_type == ComponentType::Group && d.attr(el, "rendered").is_some() {
-                ComponentType::ConditionalContent
-            } else {
-                component_type
-            };
-        if component_type == ComponentType::Case {
-            return Err(Error::Unsupported(
-                "<case> outside a <conditionalContent>".into(),
-            ));
+        let component_type = component_type.rewritten(|attr| d.attr(el, attr).is_some());
+        // A case is a branch its choice makes, never an element of its own.
+        if component_type.plays(Role::Case) {
+            return Err(Error::Unsupported(component_type.free_owned_refusal()));
         }
         let name = self.rd().attr_name_str(el, "name").unwrap_or(StrId::NONE);
         let e = self.push_elem(t, el, component_type, name, name_scope)?;
@@ -401,29 +395,36 @@ impl<'a> Outlining<'a> {
         Ok(e)
     }
 
-    /// Settle what a reference to `e` reads that its own source settles: a
-    /// `<math>`'s type, from its tokenized text; what a `<collect>` (its
-    /// `componentType`) or a `<polyline>` (points) collects.
+    /// Settle what a reference to `e` reads that its own source settles,
+    /// as its type declares ([`Settle`]): a `<math>`'s type, from its
+    /// tokenized text; what a `<collect>` (its `componentType`) or a
+    /// `<polyline>` (points) collects.
     fn settle_outline(&mut self, t: TemplateId, e: ElemId, el: NodeId) -> Result<()> {
         let d = self.dast;
-        let elem = &self.outlined(t).elems[e.index()];
-        let component_type = match elem.component_type {
-            ComponentType::Math => {
+        let component_type = match self.outlined(t).elems[e.index()]
+            .component_type
+            .def()
+            .settle
+        {
+            Some(Settle::FromMathText(settled)) => {
                 let mt = self.rd().math_text(d.children(el));
-                let k = match &mt {
-                    Ok(mt) => crate::components::values::math::settled_type(mt.tokens()),
-                    Err(_) => ComponentType::Math,
-                };
-                self.outlined_mut(t).elems[e.index()].component_type = k;
+                if let Ok(mt) = &mt {
+                    self.outlined_mut(t).elems[e.index()].component_type = settled(mt.tokens());
+                }
                 self.work.math_texts.push(((t, e), mt));
                 return Ok(());
             }
-            ComponentType::Collect => crate::components::structure::collect::collected_type(
-                d.attr(el, "componentType")
-                    .and_then(|a| self.rd().attr_text(a)),
-            )?,
-            ComponentType::Polyline => crate::components::geometry::polyline::COLLECTED,
-            _ => return Ok(()),
+            Some(Settle::Collects(of)) => of,
+            Some(Settle::CollectsByAttr(attr)) => {
+                let text = d
+                    .attr(el, attr)
+                    .and_then(|a| self.rd().attr_text(a))
+                    .ok_or(Error::BadCollect)?;
+                ComponentType::from_tag(text.trim())
+                    .filter(|k| k.copyable())
+                    .ok_or_else(|| Error::BadCollectType(text.trim().into()))?
+            }
+            None => return Ok(()),
         };
         self.outlined_mut(t).elems[e.index()].body = Body::Collect { component_type };
         Ok(())

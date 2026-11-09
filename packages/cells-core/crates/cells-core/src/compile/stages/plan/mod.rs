@@ -241,31 +241,15 @@ impl<'a> Planning<'a> {
             return Ok(());
         }
         let component_type = self.rd.outlined(t).elems[e.index()].planned_as;
-        let a = |tag: &str| {
-            if tag.starts_with(['a', 'e', 'i', 'o', 'u']) {
-                "an"
-            } else {
-                "a"
-            }
-        };
-        let tag = component_type.tag();
         // A `<pointList>` only exists as `extend="$shape.points"`, which
         // `elem_shape` takes before planning by type.
-        if component_type == ComponentType::PointList {
+        if let Some(ExtendValue::List) = component_type.def().extend_value {
             return Err(Error::BadValue {
                 attr: "extend".into(),
                 text: "<pointList> needs extend=\"$shape.points\"".into(),
             });
         }
-        Err(Error::Unsupported(match component_type.def().owner {
-            Some(owner) => format!(
-                "{} <{tag}> outside {} <{}>",
-                a(tag),
-                a(owner.tag()),
-                owner.tag()
-            ),
-            None => format!("{} <{tag}>, which only what owns it makes", a(tag)),
-        }))
+        Err(Error::Unsupported(component_type.free_owned_refusal()))
     }
 
     /// An element of a type that names machinery (`machinery:`): the
@@ -429,6 +413,10 @@ mod tests {
                 "a <constrainTo> outside a <point>",
             ),
             (el("award").text("1"), "an <award> outside an <answer>"),
+            (
+                el("case").child(el("number").text("1")),
+                "a <case> outside a <conditionalContent>",
+            ),
         ] {
             let doc = load(document([el("circle").name("c"), free])).unwrap();
             assert!(

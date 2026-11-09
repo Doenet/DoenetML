@@ -24,6 +24,7 @@ pub mod number {
         flags: [copyable],
         roles: [Index],
         text: Number(value),
+        extend_value: Scalar(value),
         default_prop: value,
         props {
             value: children { rendered },

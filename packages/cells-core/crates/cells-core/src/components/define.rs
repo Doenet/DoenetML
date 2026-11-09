@@ -291,6 +291,9 @@ pub(super) const fn definition(
         children: super::ChildrenDecl::RENDERED,
         machinery: None,
         owner: None,
+        rewrite: None,
+        settle: None,
+        extend_value: None,
         roles: &[],
         structure_kind: None,
         response: None,
@@ -373,6 +376,21 @@ impl ComponentDef {
     /// What the type is to scoring ([`super::Scored`]).
     pub(super) const fn scored(mut self, scored: super::Scored) -> Self {
         self.scored = Some(scored);
+        self
+    }
+    /// An element of the type carrying `attr` is a `to` instead.
+    pub(super) const fn rewrite(mut self, attr: &'static str, to: super::ComponentType) -> Self {
+        self.rewrite = Some((attr, to));
+        self
+    }
+    /// What outlining settles of an element of the type ([`super::Settle`]).
+    pub(super) const fn settle(mut self, settle: super::Settle) -> Self {
+        self.settle = Some(settle);
+        self
+    }
+    /// What `extend="$x.prop"` makes of the value ([`super::ExtendValue`]).
+    pub(super) const fn extend_value(mut self, value: super::ExtendValue) -> Self {
+        self.extend_value = Some(value);
         self
     }
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
@@ -591,7 +609,13 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// descendants are ([`super::Encloses`]). `needs: Label` says what the
 /// accessibility lint asks an author for ([`super::Needs`]). `scored:
 /// Skip`, `scored: Item(credit, weight)` or `scored: Aggregates(weight,
-/// flag)` says what the type is to scoring ([`super::Scored`]). A prop
+/// flag)` says what the type is to scoring ([`super::Scored`]). `rewrite
+/// { rendered: ConditionalContent }` makes an element carrying the
+/// attribute one of that type instead. `settle: Collects(Point)`,
+/// `CollectsByAttr(componentType)` or `FromMathText(f)` says what outlining
+/// settles of an element ([`super::Settle`]). `extend_value: Scalar(value)`,
+/// `Point(f)`, `Expr(f)` or `List` says what `extend="$x.prop"` makes of
+/// the value ([`super::ExtendValue`]). A prop
 /// option `expr_of: expr` or `expr_when: submitted` says the prop stands
 /// for an expression ([`super::ExprOf`]).
 ///
@@ -661,6 +685,9 @@ macro_rules! component {
         $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
         $(needs: $needs:ident,)?
         $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
+        $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
+        $(settle: $sekind:ident ($($searg:tt)+),)?
+        $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
@@ -678,6 +705,9 @@ macro_rules! component {
                 $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
                 $(.needs($crate::components::Needs::$needs))?
                 $(.scored($crate::components::define::component!(@scored $sckind $(($($scprop),+))?)))?
+                $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
+                $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
+                $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
@@ -703,6 +733,9 @@ macro_rules! component {
         $(encloses: $ekind:ident ($($eprop:ident),+ $(,)?),)?
         $(needs: $needs:ident,)?
         $(scored: $sckind:ident $(($($scprop:ident),+ $(,)?))?,)?
+        $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
+        $(settle: $sekind:ident ($($searg:tt)+),)?
+        $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -750,6 +783,9 @@ macro_rules! component {
                 $(.encloses($crate::components::define::component!(@encloses $ekind($($eprop),+))))?
                 $(.needs($crate::components::Needs::$needs))?
                 $(.scored($crate::components::define::component!(@scored $sckind $(($($scprop),+))?)))?
+                $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
+                $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
+                $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
@@ -866,6 +902,29 @@ macro_rules! component {
                 ),
             );
         )+)*)?
+    };
+    // What `extend="$x.prop"` makes of the value.
+    (@extend_value Scalar($prop:ident)) => {
+        $crate::components::ExtendValue::Scalar($crate::components::define::at(PROPS, stringify!($prop)))
+    };
+    (@extend_value Point($f:path)) => {
+        $crate::components::ExtendValue::Point($f)
+    };
+    (@extend_value Expr($f:path)) => {
+        $crate::components::ExtendValue::Expr($f)
+    };
+    (@extend_value List) => {
+        $crate::components::ExtendValue::List
+    };
+    // What outlining settles of an element of the type.
+    (@settle FromMathText($f:path)) => {
+        $crate::components::Settle::FromMathText($f)
+    };
+    (@settle Collects($to:ident)) => {
+        $crate::components::Settle::Collects($crate::components::ComponentType::$to)
+    };
+    (@settle CollectsByAttr($attr:ident)) => {
+        $crate::components::Settle::CollectsByAttr(stringify!($attr))
     };
     // What a type is to scoring, each prop it names a position in `PROPS`.
     (@scored Skip) => {

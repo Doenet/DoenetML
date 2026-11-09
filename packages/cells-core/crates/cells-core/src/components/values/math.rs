@@ -15,6 +15,8 @@ component! {
     tags: ["math"],
     flags: [copyable],
     text: Math(expr, value),
+    settle: FromMathText(settled_type),
+    extend_value: Expr(extended),
     default_prop: value,
     props {
         // Both of a math's props are set by the builder from its children.
@@ -38,6 +40,12 @@ pub const VALUE: usize = Props::AT.value;
 /// A math's props: its expression, with `post` applied, and its value.
 pub(crate) fn props_of(id: ExprId, post: Post) -> Vec<Source> {
     wiring_of(id, post).finish().0
+}
+
+/// A math that `extend="$x.prop"` makes of the value: expression `id`,
+/// a leaf of it, unsimplified.
+pub(crate) fn extended(id: ExprId) -> Vec<Source> {
+    props_of(id, Post::None)
 }
 
 /// A math's wiring: its expression, with `post` applied, and its value.

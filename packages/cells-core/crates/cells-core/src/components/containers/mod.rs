@@ -133,6 +133,8 @@ pub(crate) mod group {
         tags: ["group", "label"],
         flags: [container],
         structure: Transparent,
+        // `<group rendered="c">` is a conditional content with one case.
+        rewrite { rendered: ConditionalContent }
         presentation { asList }
         planner: Props,
     }

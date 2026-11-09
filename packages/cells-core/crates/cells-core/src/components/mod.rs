@@ -669,6 +669,39 @@ impl ComponentType {
         matches!(self.encloses(), Some(Encloses::Sticky { .. }))
     }
 
+    /// The type an element of this type is, given whether it carries
+    /// each attribute: the type a `rewrite` names when it carries that
+    /// attribute (`<group rendered>` is a conditional content), else this.
+    pub fn rewritten(self, has_attr: impl Fn(&str) -> bool) -> ComponentType {
+        match self.def().rewrite {
+            Some((attr, to)) if has_attr(attr) => to,
+            _ => self,
+        }
+    }
+
+    /// Why an element of an owned type standing free is refused: what owns
+    /// it (`an <award> outside an <answer>`), or that only its owner makes
+    /// it.
+    pub fn free_owned_refusal(self) -> String {
+        let a = |tag: &str| {
+            if tag.starts_with(['a', 'e', 'i', 'o', 'u']) {
+                "an"
+            } else {
+                "a"
+            }
+        };
+        let tag = self.tag();
+        match self.def().owner {
+            Some(owner) => format!(
+                "{} <{tag}> outside {} <{}>",
+                a(tag),
+                a(owner.tag()),
+                owner.tag()
+            ),
+            None => format!("{} <{tag}>, which only what owns it makes", a(tag)),
+        }
+    }
+
     /// What the type is to scoring, if anything ([`Scored`]).
     pub fn scored(self) -> Option<Scored> {
         self.def().scored
@@ -914,12 +947,11 @@ mod tests {
         ("compile/stages/outline/answer.rs", 2),
         ("compile/stages/outline/choice.rs", 1),
         ("compile/stages/outline/copies.rs", 2),
-        ("compile/stages/outline/mod.rs", 14),
+        ("compile/stages/outline/mod.rs", 7),
         ("compile/stages/plan/answer.rs", 8),
         ("compile/stages/plan/choice.rs", 2),
-        ("compile/stages/plan/copies.rs", 10),
         ("compile/stages/plan/iterates.rs", 3),
-        ("compile/stages/plan/mod.rs", 2),
+        ("compile/stages/plan/mod.rs", 1),
         ("compile/stages/seal/keys.rs", 1),
         ("compile/stages/share.rs", 1),
         ("document/mod.rs", 2),

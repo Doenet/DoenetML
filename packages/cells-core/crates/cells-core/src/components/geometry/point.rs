@@ -14,6 +14,7 @@ component! {
     tags: ["point"],
     flags: [copyable, located],
     roles: [ListPoint],
+    extend_value: Point(props_of),
     default_prop: coords,
     props {
         x: by_planner { interactive, rendered },

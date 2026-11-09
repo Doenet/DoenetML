@@ -64,5 +64,6 @@ pub(crate) mod point_list {
         /// refused.
         tags: ["pointList"],
         flags: [owned],
+        extend_value: List,
     }
 }

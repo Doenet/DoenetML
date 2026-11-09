@@ -13,32 +13,30 @@ impl<'a> Planning<'a> {
     /// `extend="$c.prop"`: the element's value props alias the named prop.
     pub(super) fn plan_extend_prop(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Result<()> {
         let component_type = self.rd.outlined(t).elems[e.index()].component_type;
-        let props = match component_type {
-            ComponentType::Point => prop::point::props_of(Source::coord(p, 0), Source::coord(p, 1)),
-            // A mathInput bound to a cell is a numeric input: no expression
-            // of its own (`components/inputs/math_input.rs`).
-            ComponentType::MathInput => prop::math_input::Props {
-                value: Source::reference(p),
-                expr: Source::absent(),
-            }
-            .into_vec(),
-            ComponentType::Number
-            | ComponentType::NumberInput
-            | ComponentType::Text
-            | ComponentType::TextInput
-            | ComponentType::Boolean
-            | ComponentType::BooleanInput => vec![Source::reference(p)],
-            ComponentType::Math => {
+        let props = match component_type.def().extend_value {
+            Some(ExtendValue::Scalar(value)) => (0..component_type.prop_defs().len())
+                .map(|pi| {
+                    if pi == value {
+                        Source::reference(p)
+                    } else {
+                        // A mathInput bound to a cell is a numeric input:
+                        // no expression of its own.
+                        Source::absent()
+                    }
+                })
+                .collect(),
+            Some(ExtendValue::Point(wire)) => wire(Source::coord(p, 0), Source::coord(p, 1)),
+            Some(ExtendValue::Expr(wire)) => {
                 let id = self.ar.arena.push(Expr::Cell(p));
                 self.ar.sym_text.insert(id, SymText::Leaf(p));
-                prop::math::props_of(id, Post::None)
+                wire(id)
             }
             // Its points are the list's, synthesized when built.
-            ComponentType::PointList => {
+            Some(ExtendValue::List) => {
                 self.tables[t.index()].plans[e.index()].from = Some(p);
                 Vec::new()
             }
-            _ => return Err(Error::PathTooDeep(self.ar.ref_display(self.rd.dast, p))),
+            None => return Err(Error::PathTooDeep(self.ar.ref_display(self.rd.dast, p))),
         };
         self.tables[t.index()].plans[e.index()].props = props;
         Ok(())

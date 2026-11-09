@@ -11,6 +11,7 @@ component! {
     tags: ["text"],
     flags: [copyable],
     text: Text(value),
+    extend_value: Scalar(value),
     default_prop: value,
     props {
         value: children { text, rendered },

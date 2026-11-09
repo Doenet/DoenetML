@@ -16,6 +16,7 @@ component! {
     response: Text(value),
     text: Text(value),
     needs: Label,
+    extend_value: Scalar(value),
     default_prop: value,
     props {
         value: children { attribute: prefill, bind: bindValueTo, text, interactive, rendered },

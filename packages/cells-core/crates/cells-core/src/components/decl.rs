@@ -42,6 +42,16 @@ pub struct ComponentDef {
     pub machinery: Option<Machinery>,
     /// What owns an `owned` type, for the refusal of a free one.
     pub owner: Option<ComponentType>,
+    /// An element of the type carrying this attribute is one of that type
+    /// instead: `<group rendered="c">` is a conditional content.
+    pub rewrite: Option<(&'static str, ComponentType)>,
+    /// What outlining settles of an element of the type from its own
+    /// source, for a reference to it to read: its type, or what it
+    /// collects.
+    pub(crate) settle: Option<Settle>,
+    /// What `extend="$x.prop"` makes of the value for an element of the
+    /// type; `None` for a type that cannot extend a prop.
+    pub(crate) extend_value: Option<ExtendValue>,
     /// The roles the type plays for the core: what it makes when it needs a
     /// root, a refused element's box, an iteration's index, ... Each role is
     /// claimed by exactly one type.
@@ -386,6 +396,42 @@ pub enum Scored {
         /// The literal flag that says it aggregates.
         when: usize,
     },
+}
+
+/// What outlining settles of an element from its own source, before
+/// anything is planned, so a reference to it reads it (ADR 0038).
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum Settle {
+    /// Its type, from its children's math text, which is kept for the
+    /// planner (a `<math>` is a point, a tuple or a math).
+    FromMathText(fn(&[crate::compile::ir::expr::Token]) -> ComponentType),
+    /// It collects components of this type (a `<polyline>`'s points).
+    Collects(ComponentType),
+    /// It collects components of the type its literal attribute names,
+    /// which must be copyable (a `<collect componentType>`).
+    CollectsByAttr(&'static str),
+}
+
+/// What `extend="$x.prop"` makes of the value for an element of a type
+/// (ADR 0038): which of its props alias it.
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum ExtendValue {
+    /// The prop at this position aliases the value, and any other is
+    /// absent (a number, an input).
+    Scalar(usize),
+    /// Its coordinates alias the value's two, wired by the function (a
+    /// point).
+    Point(
+        fn(
+            crate::compile::api::Source,
+            crate::compile::api::Source,
+        ) -> Vec<crate::compile::api::Source>,
+    ),
+    /// The value is a leaf of its expression, wired by the function (a
+    /// math).
+    Expr(fn(crate::compile::ir::expr::ExprId) -> Vec<crate::compile::api::Source>),
+    /// Its points are the value's list's, made when built (a point list).
+    List,
 }
 
 /// A group of element children of given types (`constraints:
