@@ -2231,7 +2231,7 @@ checks that a document's errors are the same across variants.
 
 ## D39. No variant is broken by a selection (decided, Tier 1)
 
-**Decided**, with the answers below. COMP-8 and the SEL principles in
+**Decided** (implementation: #2508), with the answers below. COMP-8 and the SEL principles in
 [composites-and-lists.md](composites-and-lists.md) state it.
 
 **Revised after the questions:**

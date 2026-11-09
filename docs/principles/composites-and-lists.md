@@ -315,7 +315,7 @@ denominator), which authors exclude; constraints on derived values such as `$b^2
 wanted future extension; saved variants from another version of the DoenetML; and continuous
 samplers.
 
-**Known violations** (D39 is not implemented):
+**Known violations** (D39 is not implemented; #2508):
 - a parameter may come from an input, or from a value a reader can change;
 - whether an iteration made later is seeded by its position, so its choice doesn't depend on the
   order iterations were made (SEL-3), is not tested;
