@@ -28,9 +28,12 @@
  * A write to a component reaches its descendants and, through them, what
  * they reference (an inverse definition), until a fixed component stops it:
  * neither a fixed component nor what is under it or what it references is
- * written to. Only a spreadsheet writes past one, to a cell that writes
- * `fixed="false"` in a fixed row or column (a `<cell fixed="false">` in a
- * `<row fixed>`).
+ * written to. Only a spreadsheet writes past one, to its cells directly: a
+ * cell that is not fixed itself (`fixed="false"`) in a fixed row, column,
+ * cell block or group of the spreadsheet is written to.
+ * An unlinked copy (`<point copy="$Q"/>`) is its source's DoenetML pasted
+ * where it sits, so a write to it reaches its source's descendants, fixed
+ * as they are written there and as the copy is, not as its source is.
  * `fixLocation` stops only a write to a location (`isLocation`), as
  * `EssentialValueWriter` does, so it stops a write only at a component
  * that has one (a point, a line): a `<numberList fixLocation>` an input is
@@ -62,14 +65,6 @@ const ACTION_TYPES = new Set([
 
 /** The components a reader edits in place, writing to what they hold. */
 const EDITED_TYPES = new Set(["spreadsheet"]);
-
-/**
- * The components that only arrange what a reader edits in place: a
- * spreadsheet writes to its cells itself, not through a `<row>`, `<column>`
- * or `<cellBlock>`, so a fixed one doesn't stop a write to a cell in it that
- * writes its own `fixed="false"`.
- */
-const ARRANGING_TYPES = new Set(["row", "column", "cellBlock"]);
 
 /**
  * The inputs that write their value back to their value child, when they
@@ -205,6 +200,9 @@ function ownReferencesIn(node: any, found: number[] = []): number[] {
         if (
             key === "children" ||
             key === "attributes" ||
+            // a record of the variant components under it, copies of its
+            // descendants, which are visited on their own
+            key === "variants" ||
             KEYS_NOT_WRITTEN_THROUGH.has(key)
         ) {
             continue;
@@ -314,6 +312,30 @@ export function buildReaderWritableIndex(
     const unfixedOwnNodes = new Set<any>();
     // component indices, or serialized components (an input's value child)
     const seeds: (number | any)[] = [];
+    // the components between a spreadsheet and its cells (a row, a column,
+    // a cell block, a group), which its edit passes by
+    const passedBySpreadsheet = new Set<any>();
+    // what each unlinked copy inherits where it sits
+    const inheritedByCopy = new Map<
+        any,
+        { fixed: boolean; fixLocation: boolean }
+    >();
+
+    /**
+     * Whether `fixed` and `fixLocation` as `node` has them (`own`) stop a
+     * write to it.
+     */
+    function stopsWrite(
+        node: any,
+        own: { fixed: boolean; fixLocation: boolean },
+    ): boolean {
+        return (
+            own.fixed ||
+            (own.fixLocation &&
+                (!componentInfoObjects ||
+                    hasLocation(node.componentType, componentInfoObjects)))
+        );
+    }
 
     // `fixed` and `fixLocation` are each inherited from where a component
     // sits, unless it writes its own (`fixed="false"` in a fixed graph),
@@ -322,30 +344,25 @@ export function buildReaderWritableIndex(
         node: any,
         inGraph: boolean,
         inherited: { fixed: boolean; fixLocation: boolean },
+        inSpreadsheet = false,
     ) {
-        const own = {
-            fixed: node.attributes?.fixed
-                ? writtenAsTrue(node.attributes.fixed)
-                : inherited.fixed,
-            fixLocation: node.attributes?.fixLocation
-                ? writtenAsTrue(node.attributes.fixLocation)
-                : inherited.fixLocation,
-        };
+        const own = ownContext(node, inherited);
         // a reader can't drag what is fixed or has a fixed location
         const isFixed = own.fixed || own.fixLocation;
         const isGraph = node.componentType === "graph";
         if (typeof node.componentIdx === "number" && node.componentIdx >= 0) {
             nodeByIdx.set(node.componentIdx, node);
         }
-        if (
-            own.fixed ||
-            (own.fixLocation &&
-                (!componentInfoObjects ||
-                    hasLocation(node.componentType, componentInfoObjects)))
-        ) {
+        if (stopsWrite(node, own)) {
             fixedNodes.add(node);
         } else if (node.attributes?.fixed || node.attributes?.fixLocation) {
             unfixedOwnNodes.add(node);
+        }
+        if (inSpreadsheet) {
+            passedBySpreadsheet.add(node);
+        }
+        if (isUnlinkedCopy(node)) {
+            inheritedByCopy.set(node, inherited);
         }
         // a fixed input writes nothing back (its inverse isn't called)
         if (node.attributes?.bindValueTo && !own.fixed) {
@@ -381,8 +398,18 @@ export function buildReaderWritableIndex(
                 }
             }
         }
+        // a spreadsheet's edit passes by what is between it and its cells
+        const childrenInSpreadsheet =
+            EDITED_TYPES.has(node.componentType) ||
+            (inSpreadsheet && node.componentType !== "cell");
+        const children = new Set(node.children ?? []);
         for (const under of componentsUnder(node)) {
-            walk(under, inGraph || isGraph, own);
+            walk(
+                under,
+                inGraph || isGraph,
+                own,
+                childrenInSpreadsheet && children.has(under),
+            );
         }
     }
     walk(root, false, { fixed: false, fixLocation: false });
@@ -391,23 +418,47 @@ export function buildReaderWritableIndex(
     // so that a fixed one stops it, and what each references itself (an
     // inverse definition). A write to a fixed component stops there: it
     // reaches nothing under it, as each write passes through it. Only a
-    // spreadsheet writes past a fixed component, to a cell in a fixed row,
-    // column or cell block (`ARRANGING_TYPES`), so under one of those
+    // spreadsheet writes past a fixed component, to its cells directly, so
+    // under a fixed component between a spreadsheet and its cells
     // (`stopped`) it reaches only a descendant that writes its own
     // `fixed="false"` (a `<cell fixed="false">` in a `<row fixed>`), and
     // what is under that one.
+    // A write to an unlinked copy reaches its source's descendants as they
+    // are pasted in the copy (`pasted`: what they inherit there), which a
+    // fixed descendant stops, and what they reference; not its source.
     const writable = new Set<number>();
     const reached = new Set<any>();
     const reachedStopped = new Set<any>();
-    const queue: { item: number | any; stopped: boolean }[] = seeds.map(
-        (item) => ({ item, stopped: false }),
-    );
+    const reachedPasted = new Map<any, Set<string>>();
+    type Item = {
+        item: number | any;
+        stopped: boolean;
+        pasted?: { fixed: boolean; fixLocation: boolean };
+    };
+    const queue: Item[] = seeds.map((item) => ({ item, stopped: false }));
     while (queue.length > 0) {
-        const { item, stopped: stoppedAbove } = queue.pop()!;
+        const { item, stopped: stoppedAbove, pasted } = queue.pop()!;
         const node = typeof item === "number" ? nodeByIdx.get(item) : item;
         if (!node) {
             // a component the serialized document doesn't hold
             writable.add(item);
+            continue;
+        }
+        if (pasted) {
+            const own = ownContext(node, pasted);
+            const key = `${own.fixed},${own.fixLocation}`;
+            const seen = reachedPasted.get(node) ?? new Set<string>();
+            if (seen.has(key) || stopsWrite(node, own)) {
+                continue;
+            }
+            seen.add(key);
+            reachedPasted.set(node, seen);
+            for (const idx of ownReferencesIn(node)) {
+                queue.push({ item: idx, stopped: false });
+            }
+            for (const under of componentsUnder(node)) {
+                queue.push({ item: under, stopped: false, pasted: own });
+            }
             continue;
         }
         const stopped =
@@ -429,8 +480,40 @@ export function buildReaderWritableIndex(
             for (const idx of ownReferencesIn(node)) {
                 queue.push({ item: idx, stopped: false });
             }
+            const source = isUnlinkedCopy(node)
+                ? nodeByIdx.get(sourceIdxOfCopy(node))
+                : undefined;
+            if (source) {
+                // the copy takes the attribute written on its source as its
+                // own, unless it writes one itself
+                const inherited = inheritedByCopy.get(node)!;
+                const ofCopy = {
+                    fixed: node.attributes?.fixed
+                        ? writtenAsTrue(node.attributes.fixed)
+                        : source.attributes?.fixed
+                          ? writtenAsTrue(source.attributes.fixed)
+                          : inherited.fixed,
+                    fixLocation: node.attributes?.fixLocation
+                        ? writtenAsTrue(node.attributes.fixLocation)
+                        : source.attributes?.fixLocation
+                          ? writtenAsTrue(source.attributes.fixLocation)
+                          : inherited.fixLocation,
+                };
+                if (!stopsWrite(source, ofCopy)) {
+                    for (const idx of ownReferencesIn(source)) {
+                        queue.push({ item: idx, stopped: false });
+                    }
+                    for (const under of componentsUnder(source)) {
+                        queue.push({
+                            item: under,
+                            stopped: false,
+                            pasted: ofCopy,
+                        });
+                    }
+                }
+            }
         }
-        if (stopped && !ARRANGING_TYPES.has(node.componentType)) {
+        if (stopped && !passedBySpreadsheet.has(node)) {
             continue;
         }
         for (const under of componentsUnder(node)) {
@@ -438,6 +521,38 @@ export function buildReaderWritableIndex(
         }
     }
     return writable;
+}
+
+/**
+ * `fixed` and `fixLocation` of the serialized component `node`: what it
+ * writes itself, or else what it `inherited`.
+ */
+function ownContext(
+    node: any,
+    inherited: { fixed: boolean; fixLocation: boolean },
+) {
+    return {
+        fixed: node.attributes?.fixed
+            ? writtenAsTrue(node.attributes.fixed)
+            : inherited.fixed,
+        fixLocation: node.attributes?.fixLocation
+            ? writtenAsTrue(node.attributes.fixLocation)
+            : inherited.fixLocation,
+    };
+}
+
+/** Whether the serialized component `node` is an unlinked copy. */
+function isUnlinkedCopy(node: any): boolean {
+    return (
+        node.componentType === "_copy" &&
+        node.attributes?._link?.primitive?.value === false
+    );
+}
+
+/** The index of the component the unlinked copy `node` copies. */
+function sourceIdxOfCopy(node: any): number {
+    const reference = Object.values(node.extending ?? {})[0] as any;
+    return reference?.nodeIdx;
 }
 
 /**

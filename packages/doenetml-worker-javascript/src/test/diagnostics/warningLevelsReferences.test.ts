@@ -416,6 +416,81 @@ describe("What a reader writes to can change", () => {
 <binCounts bins="0 $a 2">1</binCounts>`,
         ],
         [
+            "a number a cell in a fixed group of a spreadsheet references",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<spreadsheet><row><group fixed><cell>$a</cell></group></row></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a cell that is not fixed, in a fixed group of a spreadsheet, references",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<spreadsheet><group fixed><cell fixed="false">$a</cell></group></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a cell that is not fixed, from a repeat in a fixed row, references",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<spreadsheet><row fixed><repeat for="1" valueName="v"><cell fixed="false">$a</cell></repeat></row></spreadsheet>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in a fixed group, in a group dragged in a graph",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<graph><group><group fixed><point>($a,1)</point></group></group></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in a fixed group, an unlinked copy of which is dragged in a graph",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<group fixed><point name="Q">($a,1)</point></group>
+<graph><point copy="$Q"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in a fixed graph, an unlinked copy of which is dragged in a graph",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<graph fixed><point name="Q">($a,1)</point></graph>
+<graph><point copy="$Q"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a fixed point, an unlinked copy of which that is not fixed is dragged",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<graph><point fixed name="Q">($a,1)</point><point copy="$Q" fixed="false"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a fixed point, an unlinked copy of which is in a graph",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<graph><point fixed name="Q">($a,1)</point><point copy="$Q"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number in a point in a fixed graph, a linked copy of which is in a graph",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<graph fixed><point name="Q">($a,1)</point></graph>
+<graph><point extend="$Q"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
             "a number in a point a reader drags in a graph",
             "doenet-w0141",
             "info",
