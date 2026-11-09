@@ -90,7 +90,7 @@ pub mod case {
         /// chosen one. Its children are the branch's content. A renderer shows
         /// the children of an active case only.
         tags: ["case"],
-        flags: [owned],
+        flags: [owned, not_extendable],
         roles: [Case],
         structure: Gate { active: active },
         props {

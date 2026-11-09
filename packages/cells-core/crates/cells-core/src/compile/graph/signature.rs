@@ -169,16 +169,11 @@ impl<'a, 'c> Signer<'a, 'c> {
                 .iter()
                 .map(|&pi| (prop_label(ty, np, pi), self.prop_cell(ci, pi)))
                 .collect();
-            // What an answer submits and what an updateValue sets.
+            // What an action reads: what an answer submits and what an
+            // updateValue sets.
             for pi in 0..np {
-                let name = prop_label(ty, np, pi);
-                let reads = match ty {
-                    ComponentType::Answer | ComponentType::Response => name == "response",
-                    ComponentType::UpdateValue => true,
-                    _ => false,
-                };
-                if reads && !interactive.contains(&pi) {
-                    seeds.push((name, self.prop_cell(ci, pi)));
+                if ty.is_read_by_action_prop(pi) && !interactive.contains(&pi) {
+                    seeds.push((prop_label(ty, np, pi), self.prop_cell(ci, pi)));
                 }
             }
             // Whether it exists or can be acted on: the hide of it and its

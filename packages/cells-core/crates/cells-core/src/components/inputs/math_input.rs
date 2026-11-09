@@ -27,7 +27,7 @@ component! {
         // Typing requests `expr`, or `value` when the input is bound to a
         // number.
         value: children {
-            attribute: prefill, bind: bindValueTo, interactive, rendered, expr_of: expr
+            attribute: prefill, bind: bindValueTo, interactive, rendered, infinite, expr_of: expr
         },
         expr: by_planner { interactive, rendered, expr_of: expr },
     }

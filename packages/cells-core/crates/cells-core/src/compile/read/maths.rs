@@ -147,7 +147,9 @@ impl Reader<'_> {
         component_type: ComponentType,
         mt: &MathText,
     ) -> Result<ParsedMath> {
-        if component_type == ComponentType::Math {
+        // The type that settles from its math text, not what it settled
+        // as (a point, a tuple), is one expression.
+        if matches!(component_type.def().settle, Some(Settle::FromMathText(_))) {
             return Ok(ParsedMath::Expr(self.parse_math_text(ar, t, scope, mt)?));
         }
         let (toks, _) = self.resolve_math(ar, t, scope, mt)?;

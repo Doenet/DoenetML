@@ -865,7 +865,7 @@ impl<'c> Builder<'c> {
                 _ if self.compiled.plans.templates[t.index()]
                     .row(ElemId::from_index(e))
                     .component_type
-                    == ComponentType::PointList =>
+                    .holds_list_points() =>
                 {
                     // A point list that extends a list prop, whose points
                     // are synthesized, or a copy of a point list, whose
@@ -1086,20 +1086,22 @@ impl<'c> Builder<'c> {
         let through_iteration = matches!(target, Resolved::Iter(..));
         match (target, prop) {
             (Resolved::Missing, _) => {
-                self.components.component_type[idx.index()] = ComponentType::Number;
+                let ty = Role::Value.ty();
+                self.components.component_type[idx.index()] = ty;
                 self.allocate_slots(idx, 1);
-                let s = self.slot(idx, prop::number::VALUE);
+                let s = self.slot(idx, ty.scalar_prop().expect("a value"));
                 self.sources[s.index()] = BuiltSource::Alias(self.missing_slot());
             }
             (target, Some(prop)) => {
                 let targets = self.targets_of(target, Some(prop), plan, Some(1), scope)?;
                 // A string id shows as a text.
                 let is_text = self.value_type(targets[0]) == ValueType::Text;
-                let (component_type, value) = if is_text {
-                    (ComponentType::Text, prop::text::VALUE)
+                let component_type = if is_text {
+                    Role::TextValue.ty()
                 } else {
-                    (ComponentType::Number, prop::number::VALUE)
+                    Role::Value.ty()
                 };
+                let value = component_type.scalar_prop().expect("a value");
                 self.components.component_type[idx.index()] = component_type;
                 self.allocate_slots(idx, 1);
                 let s = self.slot(idx, value);
@@ -1108,10 +1110,7 @@ impl<'c> Builder<'c> {
             (target, None) => {
                 let referent = self.single_component(target, plan)?;
                 let component_type = self.components.component_type[referent.index()];
-                if matches!(
-                    component_type,
-                    ComponentType::ConditionalContent | ComponentType::Select | ComponentType::Case
-                ) {
+                if component_type.def().flags.not_extendable {
                     return Err(Error::Banned(format!(
                         "copying a whole <{}>: reference its interface names instead",
                         component_type.tag()
@@ -1232,15 +1231,18 @@ impl<'c> Builder<'c> {
                         inst.scope,
                         n,
                     );
-                    let (sx, sy, sh) = (
-                        self.slot(pt, prop::point::X),
-                        self.slot(pt, prop::point::Y),
-                        self.slot(pt, prop::point::HIDE),
-                    );
-                    self.sources[sx.index()] = BuiltSource::Alias(x);
-                    self.sources[sy.index()] = BuiltSource::Alias(y);
+                    // Its coordinates, its default prop, alias the list's.
+                    let ty = Role::ListPoint.ty();
+                    let coords = ty.default_sel().expect("a list point's coordinates");
+                    for (&pi, coord) in coords.parts().iter().zip([x, y]) {
+                        let s = self.slot(pt, usize::from(pi));
+                        self.sources[s.index()] = BuiltSource::Alias(coord);
+                    }
                     // Not state: a synthesized point has no essential key.
-                    self.sources[sh.index()] = BuiltSource::Const(0.0);
+                    if let Some(hide) = ty.prop_index("hide") {
+                        let s = self.slot(pt, hide);
+                        self.sources[s.index()] = BuiltSource::Const(0.0);
+                    }
                     kids.push(ChildEntry::comp(pt));
                 }
             }
@@ -1555,8 +1557,13 @@ impl<'c> Builder<'c> {
                 }
                 Flow::MathValue(expr) => {
                     if self.is_symbolic(comp) {
-                        // Planned only as a `<math>`'s value (`math::props_of`).
-                        let expr = self.slot(comp, prop::math::EXPR);
+                        // Planned only as a `<math>`'s value (`math::props_of`),
+                        // which stands for its `expr`.
+                        let at = self.components.component_type[comp.index()]
+                            .expr_of(pi)
+                            .expect("a math's value stands for its expr")
+                            .at;
+                        let expr = self.slot(comp, usize::from(at));
                         self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
                     } else {
                         let id = self.instantiate_expr(*expr, inst.scope)?;

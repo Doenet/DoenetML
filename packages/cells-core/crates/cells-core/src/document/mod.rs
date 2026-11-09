@@ -290,12 +290,17 @@ impl Document {
         }
     }
 
-    /// A `<mathInput>` holds any math value, infinity included; every other
-    /// request site rejects an infinite ask.
+    /// A `<mathInput>` holds any math value, infinity included (a prop
+    /// marked `infinite`); every other request site rejects an infinite
+    /// ask.
     fn accepts_infinity(&self, cell: CellIdx) -> bool {
         (CompIdx::below(self.components.len())).any(|c| {
-            self.component_type(c) == ComponentType::MathInput
-                && self.comp_cells(c)[prop::math_input::VALUE] == cell
+            let cells = self.comp_cells(c);
+            self.component_type(c)
+                .prop_defs()
+                .iter()
+                .enumerate()
+                .any(|(pi, d)| d.infinite && cells.get(pi) == Some(&cell))
         })
     }
 

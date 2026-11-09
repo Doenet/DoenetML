@@ -22,7 +22,7 @@ pub mod number {
         /// `<number>`.
         tags: ["number"],
         flags: [copyable],
-        roles: [Index],
+        roles: [Index, Value],
         text: Number(value),
         extend_value: Scalar(value),
         default_prop: value,
@@ -196,6 +196,7 @@ pub mod update_value {
         /// for `newValue`'s current value.
         tags: ["updateValue"],
         renders: Never,
+        triggered: Sets(target, newValue),
         props {
             // Pressing its `<triggerSet>` requests it (`Document::trigger`).
             target: attr(NO_VALUE) { written_by_action },

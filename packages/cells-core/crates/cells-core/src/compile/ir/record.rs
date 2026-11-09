@@ -790,7 +790,7 @@ mod tests {
     #[test]
     fn the_merge_takes_each_part_the_element_lacks() {
         let member = |v: f64| Member {
-            component_type: ComponentType::ConstrainToGrid,
+            component_type: ComponentType::from_tag("constrainToGrid").unwrap(),
             record: Record {
                 values: vec![AttrValue::Literal(Ok(v))],
                 own: vec![true],

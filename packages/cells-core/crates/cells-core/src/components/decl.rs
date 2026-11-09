@@ -52,6 +52,10 @@ pub struct ComponentDef {
     /// What `extend="$x.prop"` makes of the value for an element of the
     /// type; `None` for a type that cannot extend a prop.
     pub(crate) extend_value: Option<ExtendValue>,
+    /// What pressing a trigger above an element of the type requests.
+    pub triggered: Option<Triggered>,
+    /// How a numbered component's full number and title read.
+    pub numbered: Option<Numbered>,
     /// The roles the type plays for the core: what it makes when it needs a
     /// root, a refused element's box, an iteration's index, ... Each role is
     /// claimed by exactly one type.
@@ -248,6 +252,11 @@ pub enum Role {
     Response,
     /// The input an answer makes when it names none.
     ImplicitInput,
+    /// What a `$ref` child naming a prop's number shows as, and one that
+    /// finds nothing: its value prop (`ExtendValue::Scalar`) aliases it.
+    Value,
+    /// What a `$ref` child naming a prop's text shows as.
+    TextValue,
 }
 
 impl Role {
@@ -262,6 +271,8 @@ impl Role {
         Role::Case,
         Role::Response,
         Role::ImplicitInput,
+        Role::Value,
+        Role::TextValue,
     ];
 }
 
@@ -432,6 +443,31 @@ pub(crate) enum ExtendValue {
     Expr(fn(crate::compile::ir::expr::ExprId) -> Vec<crate::compile::api::Source>),
     /// Its points are the value's list's, made when built (a point list).
     List,
+}
+
+/// What pressing a trigger above an element requests (ADR 0038): `target`
+/// gets `value`'s current value (an `<updateValue>`). Positions in the
+/// type's table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Triggered {
+    /// The prop requested.
+    pub target: usize,
+    /// The prop whose current value it asks for.
+    pub value: usize,
+}
+
+/// How a numbered component's full number and title read (ADR 0038): its
+/// number is its `Count` over `SectionsThrough`, after its nearest
+/// numbered ancestor's when `include_parent` is nonzero ("2.1"), and its
+/// title the word `title` gives its `label` ("Problem 3").
+#[derive(Debug, Clone, Copy)]
+pub struct Numbered {
+    /// The 0/1 prop that says its number follows its ancestor's.
+    pub include_parent: usize,
+    /// The prop holding which word its title shows.
+    pub label: usize,
+    /// The word a title shows for a `label`.
+    pub title: fn(usize) -> &'static str,
 }
 
 /// A group of element children of given types (`constraints:
@@ -757,6 +793,9 @@ pub struct PropDef {
     /// For a span over 1, the prop whose nonzero value says the run is
     /// there (a function's `curve`); when it is 0, the prop is one cell.
     pub span_when: Option<u8>,
+    /// The prop takes any math value, infinity included, where every other
+    /// request rejects an infinite ask (a `<mathInput>`'s `value`).
+    pub infinite: bool,
     /// Whether the prop stands for an expression, read in math as the
     /// expression rather than its value: where the expression is, and the
     /// prop whose port says, by being math, that there is one.

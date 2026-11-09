@@ -2,6 +2,7 @@
 //! responses and inputs, and a section's number and automatic title.
 
 use super::*;
+use crate::components::{AggOp, Collection};
 
 /// Answers and sections, as a reader sees them: submitting an answer, its
 /// responses and inputs, a section's number and title.
@@ -91,17 +92,17 @@ impl Document {
     /// after its nearest section ancestor's full number when it includes
     /// its parent's. None for other components.
     pub fn section_number(&self, c: CompIdx) -> Option<String> {
-        if self.component_type(c) != ComponentType::Section {
-            return None;
-        }
+        let ty = self.component_type(c);
+        let numbered = ty.def().numbered?;
+        let number = ty.aggregate_prop(AggOp::Count, Collection::SectionsThrough)?;
         let cells = self.comp_cells(c);
-        let own = self.cells[cells[prop::section::NUMBER].index()].to_string();
-        if self.cells[cells[prop::section::INCLUDE_PARENT_NUMBER].index()] == 0.0 {
+        let own = self.cells[cells[number].index()].to_string();
+        if self.cells[cells[numbered.include_parent].index()] == 0.0 {
             return Some(own);
         }
         let mut p = self.parent(c);
         while let Some(x) = p {
-            if self.component_type(x) == ComponentType::Section {
+            if self.component_type(x).def().numbered.is_some() {
                 return Some(format!("{}.{own}", self.section_number(x)?));
             }
             p = self.parent(x);
@@ -112,10 +113,8 @@ impl Document {
     /// A section's automatic title, such as "Section 2.1" or "Problem 3".
     pub fn section_title(&self, c: CompIdx) -> Option<String> {
         let number = self.section_number(c)?;
-        let label = self.cells[self.comp_cells(c)[prop::section::LABEL].index()] as usize;
-        Some(format!(
-            "{} {number}",
-            crate::components::SECTION_TAGS[label].title
-        ))
+        let numbered = self.component_type(c).def().numbered?;
+        let label = self.cells[self.comp_cells(c)[numbered.label].index()] as usize;
+        Some(format!("{} {number}", (numbered.title)(label)))
     }
 }

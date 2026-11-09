@@ -888,9 +888,7 @@ impl<'c> Stamp<'c> {
                 }
                 Body::Choice(cid) => self.choice(t, e, cid),
                 Body::Collect { .. } => self.collects.push((t, e)),
-                _ if row.component_type == ComponentType::PointList => {
-                    self.point_lists.push((t, e))
-                }
+                _ if row.component_type.holds_list_points() => self.point_lists.push((t, e)),
                 Body::Plain => self.ref_children_of(t, &row.children),
             }
         }
@@ -1204,7 +1202,13 @@ impl<'c> Stamp<'c> {
                 }
                 Flow::MathValue(id) => {
                     if self.is_symbolic(Comp::Elem(t, e)) {
-                        let expr = self.g.port(t, e, prop::math::EXPR);
+                        // A `<math>`'s value stands for its `expr`.
+                        let at = self
+                            .component_type(Comp::Elem(t, e))
+                            .expr_of(pi)
+                            .expect("a math's value stands for its expr")
+                            .at;
+                        let expr = self.g.port(t, e, usize::from(at));
                         Def::Op(GraphOp::Spec(OpSpec::Sym(SymKind::Evaluate)), vec![expr])
                     } else {
                         let id = self.instantiate(*id, t);
@@ -1411,7 +1415,7 @@ impl<'c> Stamp<'c> {
                 }
             }
             Body::Collect { .. } => self.elem_children.get(&(t, e)).cloned().unwrap_or_default(),
-            _ if row.component_type == ComponentType::PointList => {
+            _ if row.component_type.holds_list_points() => {
                 self.elem_children.get(&(t, e)).cloned().unwrap_or_default()
             }
             Body::Plain => self.child_comps(t, &row.children),

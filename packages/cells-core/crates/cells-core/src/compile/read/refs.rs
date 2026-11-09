@@ -570,8 +570,9 @@ impl<'a> Reader<'a> {
                         steps.push(Step::Item(Collection::Picks, ip));
                         at = At::SelectPick(cid);
                     }
-                    _ if self.outlined(cur_t).elems[e.index()].component_type
-                        == ComponentType::PointList =>
+                    _ if self.outlined(cur_t).elems[e.index()]
+                        .component_type
+                        .holds_list_points() =>
                     {
                         let ip = self.plan_index(ar, t, scope, expr, display)?;
                         steps.push(Step::Item(Collection::ListPoints, ip));

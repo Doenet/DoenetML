@@ -22,6 +22,7 @@ component! {
     ],
     flags: [container],
     scored: Aggregates(weight, aggregateScores),
+    numbered: Titled(includeParentNumber, label, title_word),
     props {
         // `creditAchieved`, `percentCreditAchieved` and `number` are
         // aggregates over the tree; the flags are literals the builder
@@ -41,6 +42,11 @@ component! {
         includeParentNumber: LiteralFlag,
     }
     planner: Plan(plan),
+}
+
+/// The word a section's title shows for its `label` ("Problem").
+fn title_word(label: usize) -> &'static str {
+    SECTION_TAGS[label].title
 }
 
 /// A tag that makes a `Section`, and its defaults.

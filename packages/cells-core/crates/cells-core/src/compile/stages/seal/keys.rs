@@ -415,7 +415,8 @@ mod tests {
         let doc = load(r#"<graph><circle name="c" through="(1,2)"/></graph>"#).unwrap();
         let keys = &doc.loaded.keys;
         let c = keys.by_text()["c"];
-        let n_table = crate::components::ComponentType::Circle.prop_defs().len() as u32;
+        let circle = crate::components::ComponentType::from_tag("circle").unwrap();
+        let n_table = circle.prop_defs().len() as u32;
         for (port, name) in [
             (0, "cx"),
             (n_table, "throughX1"),

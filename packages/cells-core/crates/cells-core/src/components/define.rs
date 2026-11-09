@@ -58,6 +58,7 @@ const BLANK: PropDef = PropDef {
     read_by_action: false,
     span: 1,
     span_when: None,
+    infinite: false,
     expr: None,
 };
 
@@ -181,6 +182,11 @@ impl Prop {
         self.def.read_by_action = true;
         self
     }
+    /// Takes any math value, infinity included ([`PropDef::infinite`]).
+    pub(super) const fn infinite(mut self) -> Self {
+        self.def.infinite = true;
+        self
+    }
     /// Stands for the expression in prop `at` when `at` is math: a
     /// `<math>`'s `value` for its `expr` ([`super::ExprOf`]).
     pub(super) const fn expr_of(mut self, at: &'static str) -> Self {
@@ -294,6 +300,8 @@ pub(super) const fn definition(
         rewrite: None,
         settle: None,
         extend_value: None,
+        triggered: None,
+        numbered: None,
         roles: &[],
         structure_kind: None,
         response: None,
@@ -391,6 +399,16 @@ impl ComponentDef {
     /// What `extend="$x.prop"` makes of the value ([`super::ExtendValue`]).
     pub(super) const fn extend_value(mut self, value: super::ExtendValue) -> Self {
         self.extend_value = Some(value);
+        self
+    }
+    /// What pressing a trigger above it requests ([`super::Triggered`]).
+    pub(super) const fn triggered(mut self, triggered: super::Triggered) -> Self {
+        self.triggered = Some(triggered);
+        self
+    }
+    /// How its full number and title read ([`super::Numbered`]).
+    pub(super) const fn numbered(mut self, numbered: super::Numbered) -> Self {
+        self.numbered = Some(numbered);
         self
     }
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
@@ -615,7 +633,11 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// `CollectsByAttr(componentType)` or `FromMathText(f)` says what outlining
 /// settles of an element ([`super::Settle`]). `extend_value: Scalar(value)`,
 /// `Point(f)`, `Expr(f)` or `List` says what `extend="$x.prop"` makes of
-/// the value ([`super::ExtendValue`]). A prop
+/// the value ([`super::ExtendValue`]). `triggered: Sets(target, value)`
+/// says what a trigger requests ([`super::Triggered`]), and `numbered:
+/// Titled(include, label, f)` how a number and title read
+/// ([`super::Numbered`]). A prop option `infinite` lets a prop hold
+/// infinity. A prop
 /// option `expr_of: expr` or `expr_when: submitted` says the prop stands
 /// for an expression ([`super::ExprOf`]).
 ///
@@ -688,6 +710,8 @@ macro_rules! component {
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
+        $(triggered: $trkind:ident ($($trarg:tt)+),)?
+        $(numbered: $nukind:ident ($($nuarg:tt)+),)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
@@ -708,6 +732,8 @@ macro_rules! component {
                 $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
+                $(.triggered($crate::components::define::component!(@triggered $trkind($($trarg)+))))?
+                $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
@@ -736,6 +762,8 @@ macro_rules! component {
         $(rewrite { $rwattr:ident : $rwto:ident $(,)? })?
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
+        $(triggered: $trkind:ident ($($trarg:tt)+),)?
+        $(numbered: $nukind:ident ($($nuarg:tt)+),)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -786,6 +814,8 @@ macro_rules! component {
                 $(.rewrite(stringify!($rwattr), $crate::components::ComponentType::$rwto))?
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
+                $(.triggered($crate::components::define::component!(@triggered $trkind($($trarg)+))))?
+                $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
@@ -902,6 +932,20 @@ macro_rules! component {
                 ),
             );
         )+)*)?
+    };
+    // What pressing a trigger requests, and how a number and title read.
+    (@triggered Sets($target:ident, $value:ident)) => {
+        $crate::components::Triggered {
+            target: $crate::components::define::at(PROPS, stringify!($target)),
+            value: $crate::components::define::at(PROPS, stringify!($value)),
+        }
+    };
+    (@numbered Titled($include:ident, $label:ident, $title:path)) => {
+        $crate::components::Numbered {
+            include_parent: $crate::components::define::at(PROPS, stringify!($include)),
+            label: $crate::components::define::at(PROPS, stringify!($label)),
+            title: $title,
+        }
     };
     // What `extend="$x.prop"` makes of the value.
     (@extend_value Scalar($prop:ident)) => {

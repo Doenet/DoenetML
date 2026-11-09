@@ -622,6 +622,22 @@ impl ComponentType {
         self.def().structure_kind
     }
 
+    /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
+    /// its value, when `to` takes a value rather than a copy: `value`
+    /// whatever `from` is for a boolean (the coercion of a referent's value
+    /// to a boolean, until ADR 0032's table of coercions lands), else
+    /// `from`'s default prop when `extends_as` relates them. Called with
+    /// `from` and `to` different.
+    pub fn extend_reads(from: ComponentType, to: ComponentType) -> Option<&'static str> {
+        if to == ComponentType::Boolean {
+            Some("value")
+        } else if ComponentType::extends_as(from, to) {
+            from.default_prop()
+        } else {
+            None
+        }
+    }
+
     /// The structural cell of a type built like a repeat (one scope per
     /// iteration, [`StructureKind::Repeat`]): its `count` prop.
     pub fn count_prop(self) -> Option<usize> {
@@ -700,6 +716,21 @@ impl ComponentType {
             ),
             None => format!("{} <{tag}>, which only what owns it makes", a(tag)),
         }
+    }
+
+    /// The prop that holds the value of an element of the type, when it
+    /// holds a scalar ([`ExtendValue::Scalar`]): a number's `value`.
+    pub fn scalar_prop(self) -> Option<usize> {
+        match self.def().extend_value {
+            Some(ExtendValue::Scalar(pi)) => Some(pi),
+            _ => None,
+        }
+    }
+
+    /// Whether an element of the type holds the points of the list it
+    /// extends, made when built ([`ExtendValue::List`]): a `<pointList>`.
+    pub fn holds_list_points(self) -> bool {
+        matches!(self.def().extend_value, Some(ExtendValue::List))
     }
 
     /// What the type is to scoring, if anything ([`Scored`]).
@@ -934,30 +965,21 @@ mod tests {
     const NAMING_TYPES: &[(&str, usize)] = &[
         ("build/expand/aggregate.rs", 1),
         ("build/expand/choice.rs", 2),
-        ("build/expand/mod.rs", 10),
         ("compile/graph/eval.rs", 4),
-        ("compile/graph/expand.rs", 7),
-        ("compile/graph/mod.rs", 5),
-        ("compile/graph/signature.rs", 5),
+        ("compile/graph/expand.rs", 1),
+        ("compile/graph/mod.rs", 2),
+        ("compile/graph/signature.rs", 3),
         ("compile/graph/walk.rs", 1),
-        ("compile/ir/record.rs", 1),
         ("compile/read/answer.rs", 3),
-        ("compile/read/maths.rs", 1),
-        ("compile/read/refs.rs", 1),
         ("compile/stages/outline/answer.rs", 2),
         ("compile/stages/outline/choice.rs", 1),
-        ("compile/stages/outline/copies.rs", 2),
         ("compile/stages/outline/mod.rs", 7),
         ("compile/stages/plan/answer.rs", 8),
         ("compile/stages/plan/choice.rs", 2),
         ("compile/stages/plan/iterates.rs", 3),
         ("compile/stages/plan/mod.rs", 1),
-        ("compile/stages/seal/keys.rs", 1),
-        ("compile/stages/share.rs", 1),
-        ("document/mod.rs", 2),
         ("document/paths.rs", 1),
-        ("document/request.rs", 3),
-        ("document/sections.rs", 9),
+        ("document/sections.rs", 4),
     ];
 
     /// The lines of `text` that name a [`ComponentType`] variant

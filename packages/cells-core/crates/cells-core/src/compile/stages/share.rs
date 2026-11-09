@@ -374,11 +374,16 @@ impl Share<'_> {
     /// A derived source as a candidate's operator and inputs, `own` naming
     /// the element's own port `p`; None for a source that never merges.
     /// Math is read only from the element's own template (`own_math`):
-    /// its references resolve from there.
+    /// its references resolve from there. `own_expr` is where the
+    /// expression the source's prop stands for is ([`ExprOf`]), which a
+    /// math's value reads.
+    ///
+    /// [`ExprOf`]: crate::components::ExprOf
     fn derived(
         &mut self,
         source: &Source,
         own_math: bool,
+        own_expr: Option<usize>,
         own: &mut dyn FnMut(&mut Self, Arg) -> Node,
     ) -> Option<(What, Option<OpSpec>, Vec<Node>)> {
         let Source::Flow(flow) = source else {
@@ -403,7 +408,7 @@ impl Share<'_> {
             }
             // A `<math>`'s value reads its own `expr`.
             Flow::MathValue(x) if own_math => {
-                let expr = Port::table(prop::math::EXPR);
+                let expr = Port::table(own_expr.expect("a math's value stands for its expr"));
                 (
                     What::MathValue(self.math_class(*x)),
                     None,
@@ -479,7 +484,7 @@ impl Share<'_> {
                             }
                         };
                         if let Some((what, spec, mut inputs)) =
-                            self.derived(source, false, &mut opaque)
+                            self.derived(source, false, None, &mut opaque)
                         {
                             for x in &mut inputs {
                                 if let Node::Opaque(_) = x {
@@ -520,8 +525,12 @@ impl Share<'_> {
                     nodes.uf.union(i, j);
                     continue;
                 }
+                let own_expr = self.c.templates[t.index()].elems[e.index()]
+                    .component_type
+                    .expr_of(k)
+                    .map(|x| usize::from(x.at));
                 let mut own = |s: &mut Self, a: Arg| s.arg_node(t, e, a);
-                if let Some((what, spec, inputs)) = self.derived(source, true, &mut own) {
+                if let Some((what, spec, inputs)) = self.derived(source, true, own_expr, &mut own) {
                     cands.push(Candidate {
                         node,
                         what,

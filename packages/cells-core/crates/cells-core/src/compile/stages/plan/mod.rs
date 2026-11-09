@@ -243,7 +243,7 @@ impl<'a> Planning<'a> {
         let component_type = self.rd.outlined(t).elems[e.index()].planned_as;
         // A `<pointList>` only exists as `extend="$shape.points"`, which
         // `elem_shape` takes before planning by type.
-        if let Some(ExtendValue::List) = component_type.def().extend_value {
+        if component_type.holds_list_points() {
             return Err(Error::BadValue {
                 attr: "extend".into(),
                 text: "<pointList> needs extend=\"$shape.points\"".into(),

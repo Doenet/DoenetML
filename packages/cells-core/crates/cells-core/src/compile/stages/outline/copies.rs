@@ -132,12 +132,7 @@ impl Outlining<'_> {
                     let el = self.rd().outlined_elem(t, c)?;
                     let (component_type, name) = (el.component_type, el.name);
                     let repeat = matches!(el.body, Body::Repeat { .. });
-                    if repeat
-                        || matches!(
-                            component_type,
-                            ComponentType::Collect | ComponentType::Polyline
-                        )
-                    {
+                    if repeat || component_type.def().machinery == Some(Machinery::Collect) {
                         return Err(Error::UncopyableType(format!(
                             "{} inside a copied container",
                             component_type.tag()
@@ -212,16 +207,9 @@ impl Outlining<'_> {
             && rt != component_type
         {
             // `<boolean extend="$x"/>` reads `x`'s `value` whatever its
-            // type: the coercion of a referent's value to a boolean (until
-            // ADR 0032's table of coercions lands, here, not in a planner).
-            let dp = if component_type == ComponentType::Boolean {
-                Some("value")
-            } else if ComponentType::extends_as(rt, component_type) {
-                rt.default_prop()
-            } else {
-                None
-            };
-            if let Some(dp) = dp {
+            // type, and `<math extend="$n"/>` `n`'s default prop: here, not
+            // in a planner.
+            if let Some(dp) = ComponentType::extend_reads(rt, component_type) {
                 let named = self.rd().prop_named(&self.ar, t, p, dp)?;
                 let r = self.ar.ref_mut(p);
                 r.prop = named;

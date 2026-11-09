@@ -84,8 +84,10 @@ impl<'c> Stamp<'c> {
         let through_iteration = matches!(at, At::Iter(_));
         match (at, prop) {
             (At::Missing, _) => {
-                self.place_as(m, ComponentType::Number, 1);
-                let (s, missing) = (self.slot(Comp::Made(m), 0), self.missing());
+                let ty = Role::Value.ty();
+                self.place_as(m, ty, 1);
+                let s = self.slot(Comp::Made(m), ty.scalar_prop().expect("a value"));
+                let missing = self.missing();
                 self.set(s, Def::Alias(missing));
             }
             (at, Some(prop)) => {
@@ -93,12 +95,15 @@ impl<'c> Stamp<'c> {
                 let target = targets.first().copied().flatten();
                 let is_text = target.is_some_and(|n| self.value_type(n) == PortType::Text);
                 let component_type = if is_text {
-                    ComponentType::Text
+                    Role::TextValue.ty()
                 } else {
-                    ComponentType::Number
+                    Role::Value.ty()
                 };
                 self.place_as(m, component_type, 1);
-                let s = self.slot(Comp::Made(m), 0);
+                let s = self.slot(
+                    Comp::Made(m),
+                    component_type.scalar_prop().expect("a value"),
+                );
                 let target = self.or_missing(target);
                 self.set(s, Def::Alias(target));
                 self.label(s, target, &label);
@@ -108,10 +113,7 @@ impl<'c> Stamp<'c> {
                     return;
                 };
                 let rt = self.component_type(referent);
-                if matches!(
-                    rt,
-                    ComponentType::ConditionalContent | ComponentType::Select | ComponentType::Case
-                ) {
+                if rt.def().flags.not_extendable {
                     self.fail(Error::Banned(format!(
                         "copying a whole <{}>: reference its interface names instead",
                         rt.tag()
@@ -288,15 +290,20 @@ impl<'c> Stamp<'c> {
                 for [x, y] in items {
                     let n = Role::ListPoint.ty().prop_defs().len();
                     let pt = self.make(Role::ListPoint.ty(), t, n, MadeKind::Alias);
-                    for (pi, coord) in [(prop::point::X, x), (prop::point::Y, y)] {
-                        let s = self.slot(Comp::Made(pt), pi);
+                    // Its coordinates, its default prop, alias the list's.
+                    let ty = Role::ListPoint.ty();
+                    let coords = ty.default_sel().expect("a list point's coordinates");
+                    for (&pi, coord) in coords.parts().iter().zip([x, y]) {
+                        let s = self.slot(Comp::Made(pt), usize::from(pi));
                         let coord = self.or_missing(coord);
                         self.set(s, Def::Alias(coord));
                         self.label(s, coord, &label);
                     }
                     // Not state: a made point has no essential key.
-                    let hide = self.slot(Comp::Made(pt), prop::point::HIDE);
-                    self.set(hide, Def::Const(Some(0.0)));
+                    if let Some(hide) = ty.prop_index("hide") {
+                        let hide = self.slot(Comp::Made(pt), hide);
+                        self.set(hide, Def::Const(Some(0.0)));
+                    }
                     kids.push(Comp::Made(pt));
                 }
             }

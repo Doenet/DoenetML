@@ -204,15 +204,14 @@ impl Document {
     /// current value on its target's cell, all in one tick, in document
     /// order. A target is not interactive: only the press writes it.
     pub fn trigger(&mut self, comp: crate::document::CompIdx) -> TickOutcome {
-        use crate::components::{ComponentType, prop::update_value};
         let mut requests = Vec::new();
         let mut stack = vec![comp];
         while let Some(c) = stack.pop() {
-            if self.component_type(c) == ComponentType::UpdateValue {
+            if let Some(t) = self.component_type(c).def().triggered {
                 let cells = self.comp_cells(c);
                 requests.push(Request {
-                    cell: cells[update_value::TARGET],
-                    value: self.cells[cells[update_value::NEW_VALUE].index()],
+                    cell: cells[t.target],
+                    value: self.cells[cells[t.value].index()],
                 });
             }
             let kids: Vec<_> = self
