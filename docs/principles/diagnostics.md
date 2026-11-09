@@ -33,7 +33,8 @@ Paths: `T/` is `packages/doenetml-worker-javascript/src/test/` and `W/` is
   - a construction from a blank input;
   - a collect from content that is not shown;
   - a value that does not convert to the tag written (`doenet-i0053`);
-  - a list whose brackets don't balance, read with them ignored (`doenet-i0058`, VAL-12).
+  - a list of texts whose brackets don't balance, read with them ignored (`doenet-i0058`,
+    VAL-12).
 
 A warning in a document means something should be fixed. A document that is waiting for the
 reader has none.
@@ -53,25 +54,43 @@ Run-time detection alone does not make a diagnostic an info. D33's warning about
 `copyWithState`'s nested choices is found only at run time, but stays a warning, because the
 author should write `copy` instead.
 
-**Known violations:** many warnings fire for value-driven conditions. **[probe]** on main, built
-from `7c2bb1f`:
+**Done by #2495** (closing #2422): every warning call site was classified as authored,
+value-driven or both. Where one check covers both, the level is decided by where the offending
+value comes from. No codes changed. Value-driven conditions now give infos: `w0104` for
+`$l[$i]` with `i` from an input, `w0100`, `w0027`, `w0040`, `w0126` and the other sampling,
+geometry, chart and function codes, `w0072` for a collect from a case whose condition can
+change, and `w0043` for an action's target that holds nothing now. `$l[$i]` of a literal `i`
+stays a warning.
 
-| Document | Diagnostic |
-|---|---|
-| `$l[$i]` while the input `i` is blank or 0 | warning `doenet-w0104` |
-| a `<circle>` through a point that uses a blank input | warning `doenet-w0027` |
-| a `<function>` through a point that uses a blank input | warning `doenet-w0040` |
-| a `<sampleRandomNumbers>` whose `standardDeviation` comes from a blank input | warning `doenet-w0126` |
-| a `<collect>` from content in a case that isn't active | warning `doenet-w0072` |
+**What "can change" means (Tier 2).** One definition, also used by D39's SEL-1. A value can
+change when it is, or reads:
+- an input, an answer, a slider, or a random choice;
+- **anything the reader can write to:** what a `bindValueTo` references; an input's value child
+  (`<mathInput>$a</mathInput>` writes `a`; `prefill` and a label don't); the target of
+  `<updateValue>`, `<animateFromSequence>` or `<callAction>`; everything in a `<graph>` that
+  isn't fixed, with what it references; a `<spreadsheet>` that isn't fixed. `fixed` (and
+  `fixLocation` for a location) stops a write;
+- state a reader sets by an action (opening a hint, solution or section; playing a video);
+- what a composite makes, when its choice can change (a case's `condition`, a repeat's `for`).
 
-Also:
-- `doenet-w0181` ("the `<repeat>` made no iterations"), when the count comes from a value that
-  can change;
-- `doenet-w0100` for an index into a scalar, `$m[2]`, when `m`'s value can change. Since #2444
-  it follows the value, but it is still a warning.
+What is written in place is the author's even when a reader can drag it; the write index is
+consulted only for what a reference reaches. Code: `buildReaderWritableIndex` in
+`W/utils/readerWritable.ts`, `canChange` in `W/utils/decidedByDoenetML.ts`, and the
+`decidedByDoenetML` and `contentDecidedByDoenetML` dependencies. The approximations lean to
+info: a whole write target's subtree counts as writable, `fixed="$b"` counts as not fixed, a
+`fixed="false"` under a fixed ancestor counts as writable, and a reference from inside a graph
+that isn't fixed is writable. New ways a reader can write must be added to the index.
 
-
-The audit of every warning call site is #2422.
+**Known violations:**
+- `doenet-w0181`, past the end of a repeat whose count is a value, on a bare reference
+  (postponed to the new core; #1499, #2281); `w0125` and the per-descendant PreFigure codes
+  (`w0085`, `w0099`, `w0170`, `w0172`) keep their level;
+- infos lost or not coming back: a restored `<selectRandomNumbers>`, `resample()`, `w0072` once
+  a case goes inactive again, and a tag of an iteration that isn't there (#2506);
+- an authored warning given as a condition is reported only while its component is shown, and
+  not before (#2506);
+- `doenet-i0048` (an invalid primitive `type`) is authored but an info (#2506);
+- every attribute of a value child decides the level, including a style attribute (#2506).
 
 **A value-driven diagnostic tracks the value.** It follows from DIAG-1 and DIAG-2: an info
 explains why nothing shows now, so it appears when the condition starts and goes away when it
@@ -86,8 +105,9 @@ ends. While the condition holds there is one of it. Done by #2444 (B33, closing 
   a reload too.
 
 **Known violations:** `doenet-w0181`, past the end of a repeat that shrank, is still decided in
-`RefResolutionDependency` and reported only after a reload (#1499). The call sites in
-`Chart.js`, `CountOperators.js` and `listIndexOperators.js` still use the add-only queue (#2422).
+`RefResolutionDependency` and reported only after a reload (#1499). Since #2495 a state-variable
+definition can return `conditionDiagnostics`, so the chart, counting and list-index call sites
+follow their values too.
 
 Decided in D35.
 

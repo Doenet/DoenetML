@@ -250,33 +250,65 @@ Differences in the cells core:
   Tier 2. The id format asserted in `shuffle.test.ts:791`, `sort.test.ts:1008` and
   `collect.test.ts:3710` is Tier 3.
 
-### SEL: no variant is broken by a selection (Tier 1; D39)
-Every potential variant, not only the ones today's algorithm makes, has selections that satisfy
-what the author wrote. If the DoenetML can't guarantee that, every variant has an error saying
-so (DIAG-7). Checking today's variants is a regression aid, never the guarantee.
+### SEL: what a random choice chooses from is the author's, and every choice can be made (Tier 1; D39)
+> **The reader can decide whether a random choice appears, but never what it chooses from.** What
+> a choice chooses from comes from what the author wrote, never from what the reader enters or
+> does. **Every choice that can appear can be made as written.** If DoenetML can't show that, the
+> document has an error, the same in every variant.
 
-- **SEL-1: what decides a selection comes from the DoenetML and the variant alone.** Its
-  parameters (`numToSelect`, ranges, `step`, `exclude`, `withReplacement`, `coprime`, excluded
-  combinations, weights, `selectForVariants`, the options) may reference other selections and
-  fixed content (`exclude="$a"` keeps two numbers apart). A reference that reaches anything the
-  reader can change is an error at load: an input (even its prefill), an answer, a draggable
-  component or a value one depends on (`a` in `<point>($a, 2)</point>`), a target of
-  `bindValueTo`, `updateValue` or another action, and anything reading these.
-- **SEL-2: a selection never fails by chance.** If a valid selection exists, the select finds
-  one, drawing among valid selections rather than retrying with a limit. Which values a variant
-  gets may change for this.
-- **SEL-3: feasibility is proven at load, over every value the parameters can take.** From the
-  parameters' ranges, not by trying variants. `to="$a" numToSelect="3"` is fine when `a` ranges
-  over 5..10, and an error in every variant when `a` can be 1, naming the value.
-- **SEL-4: a parameter is in an analysable form:** a literal, a reference with a known range (a
-  selection, a literal `<number>`), and `+ − ×`, integer division, `min`, `max`, `abs` of these.
-  A `<number>` or `<integer>` whose content is in these forms counts too, so
-  `<number name="m">$a + 2</number>` and `numToSelect="$m"` is fine; an error there names the
-  `<number>` and the part that isn't analysable. Anything else is an error.
-- **SEL-5: selections depending on each other form an order**, with no cycle (`e0005`), and
+That is the whole author-facing rule. Revealing a case or adding iterations can make a new
+choice appear; nothing a reader does changes what an existing or future choice draws from. The
+guarantee covers every potential variant, not only the ones today's algorithm makes, so checking
+today's variants is a regression aid, never the guarantee (DIAG-7).
+
+The Tier 2 rules below say how it is checked. They can grow (more operators, more analysable
+sources) without changing the statement above.
+
+- **SEL-1: what a choice chooses from comes from the DoenetML, the variant and the choice's
+  position (Tier 2).** Its parameters (`numToSelect`, ranges, `step`, `exclude`,
+  `withReplacement`, `coprime`, excluded combinations, weights, `selectForVariants`, the options)
+  may reference:
+  - other selections and fixed content (`exclude="$a"` keeps two numbers apart);
+  - the iteration it is in: a repeat's `indexName`, always;
+  - a repeat's `valueName`, when what the repeat iterates over is itself one of these (a
+    `<repeatForSequence>` whose `from` and `step` are, or a `<repeat for>` of a literal list or a
+    selection).
+
+  A parameter that reaches anything the reader can change is an error at load, even where its
+  effect could be worked out: an input (even its prefill), an answer, a draggable component or a
+  value one depends on (`a` in `<point>($a, 2)</point>`), a target of `bindValueTo`,
+  `updateValue` or another action, and anything reading these, including a `valueName` of a
+  sequence whose `from` reads an input. "Can change" is DIAG-2's definition, whose write index
+  (`buildReaderWritableIndex`, #2495) this check can reuse.
+- **SEL-2: whether a choice exists may depend on the reader (Tier 2).** A choice in a case whose
+  condition reads an input, or in an iteration of `<repeatForSequence to="$n">` with `n` from an
+  input, is made when the reader causes it. The count or condition is not a parameter of the
+  choice.
+- **SEL-3: a choice made later is the one its position gives (Tier 2).** Iteration *k*'s choice
+  depends only on the variant and *k*, not on when or in what order the iteration was made: a
+  reader going 1 → 5 sees the same iteration 5 as one going 1 → 3 → 5, and as a reload. Shrinking
+  and growing a repeat brings an iteration's choice back; it is never made again (COMP-8, SAVE-4).
+  This is D17's seeding by stable key, applied to template instances.
+- **SEL-4: a choice never fails by chance (Tier 2).** If a valid choice exists, the select finds
+  one, drawing among valid choices rather than retrying with a limit. Which values a variant gets
+  may change for this.
+- **SEL-5: feasibility is proven at load, over every value the parameters can take (Tier 2).**
+  From the parameters' ranges, not by trying variants. `to="$a" numToSelect="3"` is fine when `a`
+  ranges over 5..10, and an error in every variant when `a` can be 1, naming the value. An
+  iteration index ranges over every iteration that can exist: 1..10 for `to="10"`, and 1, 2, 3, …
+  with no end when the count comes from an input. So `to="$i"` with one value drawn is fine in
+  every iteration, and `numToSelect="3"` with `to="$i"` is an error, since iterations 1 and 2
+  can't draw 3.
+- **SEL-6: a parameter is in an analysable form (Tier 2).** A literal; a reference SEL-1 allows,
+  with a known range (a selection, a literal `<number>`, an index); and `+ − ×`, integer
+  division, `min`, `max`, `abs` of these. A `<number>` or `<integer>` whose content is in these
+  forms counts too, so `<number name="m">$a + 2</number>` and `numToSelect="$m"` is fine; an
+  error there names the `<number>` and the part that isn't analysable. Anything else is an error.
+  The list of forms may grow.
+- **SEL-7: choices depending on each other form an order (Tier 2)**, with no cycle (`e0005`), and
   ranges flow forward through it.
-- **SEL-6: every option, case and iteration template is checked, picked or not:** its errors and
-  its warnings, each at its line.
+- **SEL-8: every option, case and iteration template is checked, picked or not (Tier 2):** its
+  errors and its warnings, each at its line.
 
 Outside the guarantee: valid values that make later content degenerate (a random 0 in a
 denominator), which authors exclude; constraints on derived values such as `$b^2 - 4$a$c > 0`, a
@@ -288,7 +320,11 @@ samplers.
 - whether an iteration made later is seeded by its position, so its choice doesn't depend on the
   order iterations were made (SEL-3), is not tested;
 - a failure a value decides is a missing selection with an info in some variants (#2468): `to="$a"`
-  with a random `a`, `e0032` at info level;
+  with a random `a`, `e0032` at info level. Since #2495 a parameter that references only what
+  can't change (`numToSelect="$n"` of `<number name="n">3</number>`) is decided by the DoenetML,
+  so an infeasible selection is an error at load (`choicesDecidedByDoenetML`);
+- an authored warning in an option or case is reported only while it is shown, not at load
+  (SEL-8, #2506);
 - `coprime` draws that find nothing (`i0057`) and the fluke codes `e0052`/`e0053` fail by chance;
 - a cycle through a name every option of a one-pick `<select>` declares stops the variant that
   picks it (#2473);
