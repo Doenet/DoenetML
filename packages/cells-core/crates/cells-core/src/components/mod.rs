@@ -787,6 +787,160 @@ mod tests {
         );
     }
 
+    /// Files outside `components/` that name a type or read a prop's
+    /// position, with how many lines do (ADR 0038): the list only shrinks.
+    /// Each line is a match the core makes on a type, which its definition
+    /// should say instead.
+    const NAMING_TYPES: &[(&str, usize)] = &[
+        ("build/expand/aggregate.rs", 19),
+        ("build/expand/choice.rs", 5),
+        ("build/expand/math.rs", 8),
+        ("build/expand/mod.rs", 15),
+        ("build/expand/resolve.rs", 1),
+        ("build/live.rs", 1),
+        ("compile/graph/aggregate.rs", 23),
+        ("compile/graph/define.rs", 1),
+        ("compile/graph/eval.rs", 4),
+        ("compile/graph/expand.rs", 9),
+        ("compile/graph/mod.rs", 20),
+        ("compile/graph/signature.rs", 15),
+        ("compile/graph/walk.rs", 2),
+        ("compile/ir/boxes.rs", 4),
+        ("compile/ir/record.rs", 1),
+        ("compile/ir/template.rs", 1),
+        ("compile/read/answer.rs", 4),
+        ("compile/read/maths.rs", 1),
+        ("compile/read/refs.rs", 6),
+        ("compile/stages/lint.rs", 7),
+        ("compile/stages/outline/answer.rs", 8),
+        ("compile/stages/outline/choice.rs", 1),
+        ("compile/stages/outline/copies.rs", 2),
+        ("compile/stages/outline/mod.rs", 20),
+        ("compile/stages/plan/answer.rs", 18),
+        ("compile/stages/plan/choice.rs", 2),
+        ("compile/stages/plan/copies.rs", 10),
+        ("compile/stages/plan/ctx.rs", 1),
+        ("compile/stages/plan/fix.rs", 2),
+        ("compile/stages/plan/iterates.rs", 11),
+        ("compile/stages/plan/mod.rs", 2),
+        ("compile/stages/seal/keys.rs", 2),
+        ("compile/stages/seal/types.rs", 9),
+        ("compile/stages/share.rs", 1),
+        ("document/mod.rs", 2),
+        ("document/paths.rs", 4),
+        ("document/request.rs", 3),
+        ("document/sections.rs", 15),
+        ("document/sticky.rs", 8),
+        ("document/table.rs", 20),
+        ("testing/mod.rs", 3),
+    ];
+
+    /// The lines of `text` that name a [`ComponentType`] variant
+    /// (`ComponentType::Graph`) or read a prop's position (`case::ACTIVE`,
+    /// `prop::case::ACTIVE`), where `modules` are `prop`'s modules.
+    fn naming_type_lines<'t>(text: &'t str, modules: &[String]) -> Vec<(usize, &'t str)> {
+        let variants: Vec<String> = ComponentType::ALL
+            .iter()
+            .map(|ty| format!("{ty:?}"))
+            .collect();
+        let ident = |c: char| c.is_ascii_alphanumeric() || c == '_';
+        let names_one = |line: &str| {
+            line.match_indices("::").any(|(at, _)| {
+                let before = &line[..at];
+                let start = before.rfind(|c| !ident(c)).map_or(0, |i| i + 1);
+                let (path, after) = (&before[start..], &line[at + 2..]);
+                let name = &after[..after.find(|c| !ident(c)).unwrap_or(after.len())];
+                (path == "ComponentType" && variants.iter().any(|v| v == name))
+                    || (modules.iter().any(|m| m == path)
+                        && name.starts_with(|c: char| c.is_ascii_uppercase())
+                        && name
+                            .chars()
+                            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_'))
+            })
+        };
+        text.lines()
+            .enumerate()
+            .filter(|(_, l)| names_one(l))
+            .map(|(i, l)| (i + 1, l))
+            .collect()
+    }
+
+    /// No file outside `components/` names a type or reads a prop's
+    /// position more often than `NAMING_TYPES` lists, and none less: a
+    /// file that names fewer lowers its count, or leaves the list at zero.
+    /// Once the list is empty, no file names any (ADR 0038, step 1).
+    #[test]
+    fn the_core_names_types_ever_less() {
+        let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let components = src.join("components");
+        // `prop`'s modules: the names in its `pub use super::...::{..}`.
+        let prop = std::fs::read_to_string(components.join("prop.rs")).unwrap();
+        let modules: Vec<String> = prop
+            .split("pub use ")
+            .skip(1)
+            .filter_map(|u| {
+                let u = &u[..u.find(';')?];
+                Some(&u[u.find('{')? + 1..u.find('}')?])
+            })
+            .flat_map(|names| names.split(','))
+            .map(|m| m.trim().to_string())
+            .filter(|m| !m.is_empty())
+            .collect();
+        assert!(
+            modules.iter().any(|m| m == "case"),
+            "prop's modules: {modules:?}"
+        );
+
+        let mut files = Vec::new();
+        sources(&src, &mut files);
+        files.retain(|p| !p.starts_with(&components));
+        files.sort();
+        let mut found = Vec::new();
+        let mut rose = Vec::new();
+        for p in &files {
+            let text = std::fs::read_to_string(p).unwrap();
+            let lines = naming_type_lines(&text, &modules);
+            let file = p
+                .strip_prefix(&src)
+                .unwrap()
+                .display()
+                .to_string()
+                .replace('\\', "/");
+            let listed = NAMING_TYPES
+                .iter()
+                .find(|(f, _)| *f == file)
+                .map_or(0, |&(_, n)| n);
+            if lines.len() > listed {
+                rose.extend(
+                    lines
+                        .iter()
+                        .map(|(i, l)| format!("{file}:{i}: {}", l.trim())),
+                );
+            }
+            if !lines.is_empty() {
+                found.push((file, lines.len()));
+            }
+        }
+        let listed: Vec<(String, usize)> = NAMING_TYPES
+            .iter()
+            .map(|&(f, n)| (f.to_string(), n))
+            .collect();
+        assert!(
+            rose.is_empty(),
+            "the core names a type more often than NAMING_TYPES lists; say it in the type's \
+             definition instead (ADR 0038):\n{}",
+            rose.join("\n")
+        );
+        let table: String = found
+            .iter()
+            .map(|(f, n)| format!("        (\"{f}\", {n}),\n"))
+            .collect();
+        assert_eq!(
+            found, listed,
+            "the core names types less often than NAMING_TYPES lists; lower it to:\n{table}"
+        );
+    }
+
     /// Types a spec is still to be written for: the list only shrinks.
     const WITHOUT_SPEC: &[super::ComponentType] = {
         use super::ComponentType::*;

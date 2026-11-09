@@ -1,6 +1,6 @@
 # The core names no component type, and components are a crate of their own
 
-Status: proposed 2026-11-09. Draft; no migration step is done. Builds on
+Status: proposed 2026-11-09. Step 1 of the Migration is done. Builds on
 ADR 0016 (components are defined without knowing the core), whose
 converse this is; on ADR 0034 (a planner is a function of its record),
 which made `compile::api` the one door a planner goes through; and on
@@ -249,6 +249,9 @@ step 1 lower than before.
 1. **The count.** A unit test lists, per file outside `components/`,
    how many lines name a `ComponentType` variant or read a
    `components::prop` constant, and fails if any count rises.
+   Done: `NAMING_TYPES` and `the_core_names_types_ever_less` in
+   `components/mod.rs`, at 291 lines in 41 files. A count that falls
+   fails too, until the list is lowered, so it only shrinks.
 2. **Roles.** The types the compile synthesizes are found by role:
    outline's root and refused elements, an iteration's index, value and
    item, a list's points, cases, an answer's response and implicit
