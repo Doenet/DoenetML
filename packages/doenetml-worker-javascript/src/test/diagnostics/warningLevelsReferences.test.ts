@@ -578,6 +578,42 @@ describe("What a reader writes to can change", () => {
 <binCounts bins="0 $a 2">1</binCounts>`,
         ],
         [
+            "a number in a point in a fixed graph, an unlinked copy of an extend of which is dragged",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<graph fixed><point name="Q">($a,1)</point></graph>
+<point name="E" extend="$Q" hide/>
+<graph><point copy="$E"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a number a fixed math references, a copy of an extend of which an input is bound to",
+            "doenet-w0141",
+            "info",
+            `<number name="a">5</number>
+<math name="m" fixed>$a+1</math><math name="E" extend="$m"/><math name="D" copy="$E" fixed="false"/>
+<mathInput bindValueTo="$D"/>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
+            "a point an extend of which is copied unlinked and dragged",
+            "doenet-w0141",
+            "warning",
+            `<point name="Q">(5,1)</point><point name="E" extend="$Q"/>
+<graph><point copy="$E"/></graph>
+<binCounts bins="0 $Q.x 2">1</binCounts>`,
+        ],
+        [
+            "a number in a fixed point, an unlinked copy of an extend of which is dragged",
+            "doenet-w0141",
+            "warning",
+            `<number name="a">5</number>
+<point name="Q" fixed>($a,1)</point><point name="E" extend="$Q"/>
+<graph><point copy="$E"/></graph>
+<binCounts bins="0 $a 2">1</binCounts>`,
+        ],
+        [
             "a number in a point a reader drags in a graph",
             "doenet-w0141",
             "info",

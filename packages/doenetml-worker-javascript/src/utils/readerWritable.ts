@@ -34,7 +34,9 @@
  * An unlinked copy (`<point copy="$Q"/>`) is its source's DoenetML pasted
  * where it sits, so a write to it reaches its source's descendants, fixed
  * as they are written there and as the copy is, not as its source is, and
- * not its source. A copy of a property or an entry (`copy="$Q.x"`) pastes
+ * not its source. A source that is a copy or an extend is pasted as what it
+ * copies or extends (a copy of `<point name="E" extend="$Q"/>` pastes `Q`'s
+ * DoenetML). A copy of a property or an entry (`copy="$Q.x"`) pastes
  * nothing. A reference to what a copy or an extend makes (`$D` of `<math
  * name="D" copy="$m"/>`) names the index it is made with, which stands
  * for the `_copy` here.
@@ -201,8 +203,13 @@ function writtenAsTrue(attribute: any): boolean {
  * (`extending`), and what the expressions of its attributes reference
  * (`slots`), but not what is referenced in its children or in the
  * components of its attributes, which are components of their own.
+ * With `withoutExtending`, what it copies or extends is left out too.
  */
-function ownReferencesIn(node: any, found: number[] = []): number[] {
+function ownReferencesIn(
+    node: any,
+    found: number[] = [],
+    withoutExtending = false,
+): number[] {
     for (const [key, value] of Object.entries(node)) {
         if (
             key === "children" ||
@@ -211,7 +218,8 @@ function ownReferencesIn(node: any, found: number[] = []): number[] {
             // descendants, which are visited on their own
             key === "variants" ||
             // an unlinked copy doesn't write to its source
-            (key === "extending" && isUnlinkedCopy(node)) ||
+            (key === "extending" &&
+                (withoutExtending || isUnlinkedCopy(node))) ||
             KEYS_NOT_WRITTEN_THROUGH.has(key)
         ) {
             continue;
@@ -346,21 +354,25 @@ export function buildReaderWritableIndex(
         );
     }
 
-    /** What the unlinked copy `node` copies whole, if it is one. */
+    /**
+     * What the copy or extend `node` copies whole, if it copies a
+     * component (not a property or an entry of one).
+     */
     function sourceOf(node: any) {
-        const sourceIdx = isUnlinkedCopy(node)
-            ? sourceIdxOfCopy(node)
-            : undefined;
+        const sourceIdx =
+            node.componentType === "_copy" ? sourceIdxOfCopy(node) : undefined;
         return sourceIdx === undefined ? undefined : nodeByIdx.get(sourceIdx);
     }
 
     /**
      * What the unlinked copy `node` pastes, where it `inherited` `fixed`
-     * and `fixLocation`: its source, and the source of that when it is an
-     * unlinked copy too (`sources`, in turn), and the `fixed` and
-     * `fixLocation` of what it makes (`context`): its own attribute, else
-     * the one written on the first source in turn that writes one, else
-     * the inherited one. Undefined if `node` pastes nothing.
+     * and `fixLocation`: its source, and the source of that when it is a
+     * copy or an extend too (`sources`, in turn; an unlinked copy of
+     * `<point name="E" extend="$Q"/>` pastes `Q`'s DoenetML, not a link to
+     * `Q`), and the `fixed` and `fixLocation` of what it makes (`context`):
+     * its own attribute, else the one written on the first source in turn
+     * that writes one, else the inherited one. Undefined if `node` pastes
+     * nothing.
      */
     function pastedBy(
         node: any,
@@ -368,7 +380,7 @@ export function buildReaderWritableIndex(
     ) {
         const sources: any[] = [];
         for (
-            let source = sourceOf(node);
+            let source = isUnlinkedCopy(node) ? sourceOf(node) : undefined;
             source && source !== node && !sources.includes(source);
             source = sourceOf(source)
         ) {
@@ -402,7 +414,15 @@ export function buildReaderWritableIndex(
         context: { fixed: boolean; fixLocation: boolean };
     }) {
         for (const source of sources) {
-            for (const idx of ownReferencesIn(source)) {
+            // what a source in turn copies or extends is pasted as the next
+            // source, not written to; what the last one extends (a property,
+            // `$Q.x`, or a component the document doesn't hold) counts as
+            // written to, erring toward writable
+            for (const idx of ownReferencesIn(
+                source,
+                [],
+                source !== sources[sources.length - 1],
+            )) {
                 queue.push({ item: idx, stopped: false });
             }
             for (const under of componentsUnder(source)) {
