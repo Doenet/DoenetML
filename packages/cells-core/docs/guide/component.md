@@ -164,6 +164,19 @@ methods. Rules for planners:
   only in a graph is drawn inside the first; its bounds are the view a pan
   or zoom writes, which `fixAxes` holds and saved state keeps apart; the
   second's members snap by its settings.
+- The rest of what the core asks of a type is declared beside it too
+  (ADR 0038): `needs: Label` for the accessibility lint; `scored: Skip`,
+  `Item(credit, weight)` or `Aggregates(weight, aggregateScores)` for
+  scoring, an aggregate's own credit and number being the props it
+  declares as aggregates; `rewrite { rendered: ConditionalContent }` for
+  what an element becomes with an attribute; `settle: FromMathText(f)`,
+  `Collects(Point)` or `CollectsByAttr(componentType)` for what outlining
+  settles from the source; `extend_value: Scalar(value)`, `Point(f)`,
+  `Expr(f)` or `List` for what `extend="$x.prop"` makes of a value;
+  `triggered: Sets(target, newValue)` for a trigger; `numbered:
+  Titled(include, label, f)` for a section's number and title; and the
+  prop option `infinite`. A free owned type is refused with what owns it
+  ([`ComponentType::free_owned_refusal`](crate::components::ComponentType::free_owned_refusal)).
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The

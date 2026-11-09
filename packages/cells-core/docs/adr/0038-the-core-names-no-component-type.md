@@ -1,6 +1,6 @@
 # The core names no component type, and components are a crate of their own
 
-Status: proposed 2026-11-09. Steps 1 to 5 of the Migration are done. Builds on
+Status: proposed 2026-11-09. Steps 1 to 6 of the Migration are done. Builds on
 ADR 0016 (components are defined without knowing the core), whose
 converse this is; on ADR 0034 (a planner is a function of its record),
 which made `compile::api` the one door a planner goes through; and on
@@ -316,6 +316,33 @@ step 1 lower than before.
 6. **The rest of the table.** `needs` for lint, `extend_value`,
    `settle`, `rewrite`, `scored`, and the owned-type refusal. The five
    component paths the core calls go with `settle` and `extend_value`.
+   Done, in three commits, with these shapes. `needs: Description |
+   Label`. `scored: Skip | Item(credit, weight) | Aggregates(weight,
+   flag)`: an aggregate's credit, percentage and number are not
+   declared again but found as the props it declares as aggregates
+   (`aggregate_prop`), the document's included, so the `Answer`
+   machinery declares no ports for this. `rewrite { rendered:
+   ConditionalContent }`. A stray `<case>` is refused in outline by its
+   role, with the message every free owned type gets
+   (`free_owned_refusal`), rather than by a generic owner check there,
+   since an award or a constraint is outlined inside its owner while a
+   case never is. `settle: FromMathText(f) | Collects(T) |
+   CollectsByAttr(attr)`, with the copyable check of the last in the
+   core. `extend_value: Scalar(prop) | Point(f) | Expr(f) | List`, with
+   no `Math` variant: `Expr` is the math's. Beyond the table, what still
+   named a type outside the machinery got a declaration or a reading of
+   one: `Role::Value` and `Role::TextValue` for a `$ref` child's
+   stand-in, `triggered` on `<updateValue>`, `numbered` on a section,
+   the prop option `infinite`, `not_extendable` on `<case>`, a math's
+   value reading its `ExprOf`, `holds_list_points`, and
+   `ComponentType::extend_reads` in `components/`. Of the five paths,
+   `collected_type` and `polyline::COLLECTED` are gone, `settled_type`
+   and `math::props_of` are named by their definitions, and
+   `select_from_sequence` (`compile/graph/eval.rs`) and
+   `curve::variables` (`plan/iterates.rs`) are left to step 7 with the
+   selects and the iterates. The count
+   fell from 137 to 46, every remaining line in machinery code, and the
+   golden diff is identical.
 7. **Machinery.** `plan/answer.rs`, `plan/iterates.rs`,
    `plan/copies.rs`, `outline/answer.rs` and `read/answer.rs` find their
    types through roles and declarations. The count reaches zero, and
