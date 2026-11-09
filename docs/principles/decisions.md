@@ -1283,6 +1283,12 @@ handed to the outside, in three places:
   - The event also carries `answerNumber`, which counts answers in document order.
 - **DOM ids.** The viewer builds them from the same `rootName`, so unnamed components get
   `_id_<index>`.
+- **A section's or document's `"submitted"` event** names its object only as
+  `{ componentIdx, componentType }`, with no `rootName` (`submitAllAnswers` in
+  `W/utils/scoredSection.js`). Since #2496 these events carry attempt counts (`numSubmissions`,
+  `maxNumAttempts`, `numAttemptsLeft`), so a host has a reason to match them across a reload,
+  and can't. doenet.org is not affected: its `recordSubmittedEvent` skips events without a
+  `rootName`.
 
 **What doenet.org does with them** (DoenetApps, checked at `8954212`):
 - **Only submissions are recorded.** The assignment viewer records only `submitted` events, and
@@ -2204,7 +2210,8 @@ Most of the plumbing exists for value references, and can be made general:
 
 ## D38. Errors are decided at load, the same for every variant (decided, Tier 1)
 
-**Decided.** DIAG-7 states it. The implementation is #2463.
+**Decided.** DIAG-7 states it. The implementation is #2463: the end-of-load assertion is done by
+#2491; moving the remaining errors to load is #2493, and cycles #2473.
 
 **Today** nothing stops an error from appearing while a reader works, or from appearing in some
 variants only. Errors are drawn in the document, so a reader sees them. **[examples]**
