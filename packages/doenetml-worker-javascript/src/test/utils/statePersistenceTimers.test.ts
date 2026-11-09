@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "./test-core";
 import { submitAnswer, updateTextInputValue } from "./actions";
+import { checkNoErrorsAfterLoad } from "./errorsAfterLoad";
 
 // Timers `StatePersistence` arms must not outlive their use. Each timer's
 // callback closes over the core, so a handle nobody clears keeps the whole
@@ -88,5 +89,21 @@ describe("state persistence leaves no timer behind @group4", () => {
         persistence.scheduleSave(1000);
         expect(persistence.saveDocStateTimeoutID).toBeNull();
         expect(vi.getTimerCount()).eq(0);
+    });
+
+    it("the test harness disposes the cores a test made when the test ends", async () => {
+        // Tests do not, as a rule, terminate their cores. The `afterEach` of
+        // `setupErrorsAfterLoad.ts` calls `checkNoErrorsAfterLoad`, which
+        // must clear the throttle that the load's save armed; otherwise each
+        // core outlives its test by a minute, which ran
+        // `selectsamplerandomnumbers.test.ts` out of memory (#2490).
+        const { core } = await createTestCore({ doenetML: DOC });
+        const persistence = (core as any).core.statePersistence;
+        expect(persistence.saveStateToDBTimerId).not.toBeNull();
+
+        checkNoErrorsAfterLoad();
+
+        expect(persistence.saveStateToDBTimerId).toBeNull();
+        expect(persistence.disposed).eq(true);
     });
 });

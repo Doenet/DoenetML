@@ -792,6 +792,11 @@ describe("A reference written as a different tag is allowed only between related
             core,
         });
         expect(await texts(["p1", "p2"])).eqls({ p1: "＿", p2: "＿" });
+
+        // Showing the case and hiding it again once made a shadowed
+        // replacement with an index another component held, an error caught
+        // into the document as `Found a duplicate componentIdx` (#2475).
+        expect(getDiagnosticsByType(core).errors).eqls([]);
     });
 
     it("an extend of a group holding an extend follows it when what it holds changes", async () => {

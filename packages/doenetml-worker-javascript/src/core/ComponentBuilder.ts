@@ -485,8 +485,14 @@ export async function createChildrenThenComponent({
     }
 
     if (core._components[componentIdx] !== undefined) {
-        console.log(core._components[componentIdx], serializedComponent);
-        throw Error(`Found a duplicate componentIdx: ${componentIdx}`);
+        // Name the two components rather than logging them: a component
+        // prints its class, ancestors, shared parameters and random number
+        // generators, which once made two passing tests write about 195,000
+        // lines into a CI log (#2475).
+        const existing = core._components[componentIdx];
+        throw Error(
+            `Found a duplicate componentIdx: ${componentIdx}, held by a <${existing?.componentType}> while making a <${serializedComponent.componentType}>`,
+        );
     }
 
     const serializedChildren = serializedComponent.children;

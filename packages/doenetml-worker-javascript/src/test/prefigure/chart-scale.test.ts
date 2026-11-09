@@ -1,0 +1,39 @@
+import { describe, expect, it } from "vitest";
+import { niceTickStep } from "../../utils/prefigure/chart/scale";
+
+describe("chart scale @group4", () => {
+    it("takes the step a span asks for whatever the engine's powers of ten", () => {
+        // A span of five times a ladder value asks for exactly that value. On
+        // Node 22, `10 ** -5` is `9.999999999999999e-6`, so a power of ten
+        // computed rather than parsed normalized `0.00005` to just above 5 and
+        // climbed a rung, to `0.0001` (#2490). Spans either side of 1 are
+        // checked too, since the exponent's sign differs there (`5e-1`,
+        // `5e+1`).
+        const cases: [number, number][] = [
+            [0.00025, 0.00005],
+            [0.0002, 0.00005],
+            [2.5, 0.5],
+            [25, 5],
+            [250, 50],
+            [10, 2],
+            [0.1, 0.02],
+            [3, 1],
+            [0.0003, 0.0001],
+        ];
+        for (const [span, step] of cases) {
+            expect(niceTickStep(span, 0), `span ${span}`).eq(step);
+        }
+    });
+
+    it("keeps a usable step for a subnormal span", () => {
+        // Below the smallest power of ten a double holds, there is no round
+        // step, and the step is the rough one rather than 0. For the smallest
+        // spans the rough step itself underflows to 0, whose exponential
+        // form `0e+0` must not be read as a power of ten of 1: the step is
+        // then the smallest double, not a step of 1 that flattens the axis.
+        for (const span of [Number.MIN_VALUE, 2 * Number.MIN_VALUE]) {
+            expect(niceTickStep(span, 0), `span ${span}`).eq(Number.MIN_VALUE);
+        }
+        expect(niceTickStep(5 * Number.MIN_VALUE, 0)).eq(Number.MIN_VALUE);
+    });
+});
