@@ -4631,6 +4631,343 @@ Enter any letter:
         expect(stateVariables[answerIdx].stateValues.numAttemptsLeft).eq(0);
     });
 
+    describe("host's maxNumAttempts flag", () => {
+        /**
+         * Submit `answer1` with each response in turn, then report how many
+         * submissions were counted, the attempts left, and whether it is
+         * disabled.
+         */
+        async function submitResponses({
+            doenetML,
+            flags,
+            responses,
+            initialState,
+        }: {
+            doenetML: string;
+            flags: Record<string, any>;
+            responses: string[];
+            initialState?: string;
+        }) {
+            const { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({ doenetML, flags, initialState });
+            const answerIdx = await resolvePathToNodeIdx("answer1");
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const mathInputIdx =
+                stateVariables[answerIdx].stateValues.inputChildren[0]
+                    .componentIdx;
+            const initialNumAttemptsLeft =
+                stateVariables[answerIdx].stateValues.numAttemptsLeft;
+            for (const latex of responses) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: mathInputIdx,
+                    core,
+                });
+                await submitAnswer({ componentIdx: answerIdx, core });
+            }
+            stateVariables = await core.returnAllStateVariables(false, true);
+            const sv = stateVariables[answerIdx].stateValues;
+            return {
+                core,
+                scoreState,
+                initialNumAttemptsLeft,
+                numSubmissions: sv.numSubmissions,
+                numAttemptsLeft: sv.numAttemptsLeft,
+                disabled: sv.disabled,
+                maxNumAttempts: sv.maxNumAttempts,
+                inputDisabled:
+                    stateVariables[mathInputIdx].stateValues.disabled,
+            };
+        }
+
+        it("caps an answer with no maxNumAttempts", async () => {
+            const result = await submitResponses({
+                doenetML: `<answer name="answer1">x</answer>`,
+                flags: { maxNumAttempts: 2 },
+                responses: ["y", "z", "x"],
+            });
+            expect(result.initialNumAttemptsLeft).eq(2);
+            // The third submission is refused.
+            expect(result.numSubmissions).eq(2);
+            expect(result.numAttemptsLeft).eq(0);
+            expect(result.disabled).eq(true);
+            expect(result.inputDisabled).eq(true);
+            // The public limit reports the cap.
+            expect(result.maxNumAttempts).eq(2);
+        });
+
+        it("the author's smaller maxNumAttempts wins over the flag", async () => {
+            const result = await submitResponses({
+                doenetML: `<answer name="answer1" maxNumAttempts="1">x</answer>`,
+                flags: { maxNumAttempts: 2 },
+                responses: ["y", "x"],
+            });
+            expect(result.initialNumAttemptsLeft).eq(1);
+            expect(result.numSubmissions).eq(1);
+            expect(result.numAttemptsLeft).eq(0);
+            expect(result.disabled).eq(true);
+        });
+
+        it("a larger flag does not raise the author's maxNumAttempts", async () => {
+            const result = await submitResponses({
+                doenetML: `<answer name="answer1" maxNumAttempts="3">x</answer>`,
+                flags: { maxNumAttempts: 5 },
+                responses: ["a", "b", "c", "x"],
+            });
+            expect(result.initialNumAttemptsLeft).eq(3);
+            expect(result.numSubmissions).eq(3);
+            expect(result.numAttemptsLeft).eq(0);
+            expect(result.disabled).eq(true);
+        });
+
+        for (const flagValue of [null, Infinity, undefined, "", "abc"]) {
+            it(`flag ${typeof flagValue === "string" ? `"${flagValue}"` : String(flagValue)} means no cap`, async () => {
+                const result = await submitResponses({
+                    doenetML: `<answer name="answer1">x</answer>`,
+                    flags: { maxNumAttempts: flagValue },
+                    responses: ["a", "b", "c", "d"],
+                });
+                expect(result.numSubmissions).eq(4);
+                expect(result.numAttemptsLeft).eq(Infinity);
+                expect(result.disabled).eq(false);
+            });
+        }
+
+        it("a numeric string flag is a cap; a fraction rounds down", async () => {
+            const fromString = await submitResponses({
+                doenetML: `<answer name="answer1">x</answer>`,
+                flags: { maxNumAttempts: "1" },
+                responses: ["a", "b"],
+            });
+            expect(fromString.numSubmissions).eq(1);
+            expect(fromString.disabled).eq(true);
+
+            const fraction = await submitResponses({
+                doenetML: `<answer name="answer1">x</answer>`,
+                flags: { maxNumAttempts: 1.7 },
+                responses: ["a", "b"],
+            });
+            expect(fraction.initialNumAttemptsLeft).eq(1);
+            expect(fraction.numSubmissions).eq(1);
+        });
+
+        it("a flag of 0 allows no submissions", async () => {
+            const result = await submitResponses({
+                doenetML: `<answer name="answer1">x</answer>`,
+                flags: { maxNumAttempts: 0 },
+                responses: ["x"],
+            });
+            expect(result.initialNumAttemptsLeft).eq(0);
+            expect(result.numSubmissions).eq(0);
+            expect(result.disabled).eq(true);
+        });
+
+        it("a flag of -Infinity allows no submissions", async () => {
+            const result = await submitResponses({
+                doenetML: `<answer name="answer1">x</answer>`,
+                flags: { maxNumAttempts: -Infinity },
+                responses: ["x"],
+            });
+            expect(result.maxNumAttempts).eq(0);
+            expect(result.numSubmissions).eq(0);
+            expect(result.disabled).eq(true);
+        });
+
+        it("caps an answer whose maxNumAttempts is not a number", async () => {
+            // `maxNumAttempts="x"` sets no limit of its own (the value is
+            // NaN), so the flag's cap applies.
+            const result = await submitResponses({
+                doenetML: `<answer name="answer1" maxNumAttempts="x">x</answer>`,
+                flags: { maxNumAttempts: 2 },
+                responses: ["a", "b", "c"],
+            });
+            expect(result.initialNumAttemptsLeft).eq(2);
+            expect(result.numSubmissions).eq(2);
+            expect(result.numAttemptsLeft).eq(0);
+            expect(result.disabled).eq(true);
+            expect(result.maxNumAttempts).eq(2);
+        });
+
+        // Before the flag, `maxNumAttempts` was the attribute's own state
+        // variable and could be changed by the document; it still can.
+        for (const { attr, flags, expected } of [
+            { attr: "", flags: {}, expected: 1 },
+            { attr: ` maxNumAttempts="$n"`, flags: {}, expected: 1 },
+            {
+                attr: ` maxNumAttempts="$n"`,
+                flags: { maxNumAttempts: 2 },
+                expected: 1,
+            },
+            { attr: "", flags: { maxNumAttempts: 2 }, expected: 1 },
+        ]) {
+            it(`an updateValue can change maxNumAttempts (attribute "${attr}", flags ${JSON.stringify(flags)})`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <number name="n">3</number>
+    <answer name="ans"${attr}>x</answer>
+    <updateValue name="uv" target="$ans.maxNumAttempts" newValue="1" />
+  `,
+                    flags,
+                });
+                const ansIdx = await resolvePathToNodeIdx("ans");
+                await updateValue({
+                    componentIdx: await resolvePathToNodeIdx("uv"),
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const sv = stateVariables[ansIdx].stateValues;
+                expect(sv.maxNumAttempts).eq(expected);
+                expect(sv.numAttemptsLeft).eq(expected);
+                if (attr) {
+                    // The change reaches the referenced number.
+                    expect(
+                        stateVariables[await resolvePathToNodeIdx("n")]
+                            .stateValues.value,
+                    ).eq(1);
+                }
+            });
+        }
+
+        it("an updateValue cannot raise maxNumAttempts above the flag", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <answer name="ans" maxNumAttempts="1">x</answer>
+    <updateValue name="uv" target="$ans.maxNumAttempts" newValue="5" />
+  `,
+                flags: { maxNumAttempts: 2 },
+            });
+            const ansIdx = await resolvePathToNodeIdx("ans");
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx("uv"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[ansIdx].stateValues.maxNumAttempts).eq(2);
+            expect(stateVariables[ansIdx].stateValues.numAttemptsLeft).eq(2);
+        });
+
+        // A changed limit is a whole number, with or without the attribute:
+        // the attribute's `<integer>` rounds a write, and so does the stored
+        // value used without one.
+        for (const attr of ["", ` maxNumAttempts="5"`]) {
+            it(`an updateValue to a fraction rounds maxNumAttempts (attribute "${attr}")`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <answer name="ans"${attr}>x</answer>
+    <section name="sec" sectionWideCheckWork${attr}>
+        <answer>x</answer>
+    </section>
+    <updateValue name="uv1" target="$ans.maxNumAttempts" newValue="2.5" type="number" />
+    <updateValue name="uv2" target="$sec.maxNumAttempts" newValue="2.5" type="number" />
+    <p name="p">$ans.maxNumAttempts</p>
+  `,
+                });
+                await updateValue({
+                    componentIdx: await resolvePathToNodeIdx("uv1"),
+                    core,
+                });
+                await updateValue({
+                    componentIdx: await resolvePathToNodeIdx("uv2"),
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                for (const name of ["ans", "sec"]) {
+                    const sv =
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues;
+                    expect(sv.maxNumAttempts).eq(3);
+                    expect(sv.numAttemptsLeft).eq(3);
+                }
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .text,
+                ).eq("3");
+            });
+        }
+
+        for (const flags of [{ maxNumAttempts: 2 }, {}]) {
+            it(`$ans.maxNumAttempts reports the limit that applies (flags ${JSON.stringify(flags)})`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <answer name="ans" maxNumAttempts="3">x</answer>
+    <p name="p">You have $ans.maxNumAttempts attempts; $ans.numAttemptsLeft left.</p>
+  `,
+                    flags,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const expected = "maxNumAttempts" in flags ? 2 : 3;
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .text,
+                ).eq(`You have ${expected} attempts; ${expected} left.`);
+            });
+        }
+
+        it("a maxNumAttempts changed by an updateValue survives a reload", async () => {
+            // With no attribute, the changed limit is a stored value.
+            const doenetML = `
+    <answer name="ans">x</answer>
+    <updateValue name="uv" target="$ans.maxNumAttempts" newValue="1" />
+  `;
+            const first = await createTestCore({ doenetML });
+            await updateValue({
+                componentIdx: await first.resolvePathToNodeIdx("uv"),
+                core: first.core,
+            });
+            await first.core.saveImmediately();
+
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv =
+                stateVariables[await resolvePathToNodeIdx("ans")].stateValues;
+            expect(sv.maxNumAttempts).eq(1);
+            expect(sv.numAttemptsLeft).eq(1);
+        });
+
+        it("the cap still holds after reloading saved state", async () => {
+            const doenetML = `<answer name="answer1">x</answer>`;
+            const first = await submitResponses({
+                doenetML,
+                flags: { maxNumAttempts: 2 },
+                responses: ["y"],
+            });
+            expect(first.numAttemptsLeft).eq(1);
+            await first.core.saveImmediately();
+
+            const reloaded = await submitResponses({
+                doenetML,
+                flags: { maxNumAttempts: 2 },
+                responses: ["z", "x"],
+                initialState: first.scoreState.state,
+            });
+            expect(reloaded.initialNumAttemptsLeft).eq(1);
+            expect(reloaded.numSubmissions).eq(2);
+            expect(reloaded.numAttemptsLeft).eq(0);
+            expect(reloaded.disabled).eq(true);
+        });
+    });
+
     it("disable after correct", async () => {
         const doenetML = `<answer name="answer1" disableAfterCorrect>x</answer>`;
 

@@ -1,5 +1,11 @@
 import { codedDiagnostic } from "./diagnostics";
-import { returnSubmitLabelStateVariableDefinitions } from "./answer";
+import {
+    attemptCountsForEvent,
+    authorMaxNumAttempts,
+    effectiveMaxNumAttempts,
+    invertMaxNumAttempts,
+    returnSubmitLabelStateVariableDefinitions,
+} from "./answer";
 
 /**
  * Builds the `returnDependencies` of a state variable that aggregates one
@@ -320,9 +326,9 @@ export function returnScoredSectionAttributes() {
         },
         maxNumAttempts: {
             createComponentOfType: "integer",
-            createStateVariable: "maxNumAttempts",
+            // No state variable of its own: the public `maxNumAttempts`
+            // combines this attribute with the host's flag of the same name.
             defaultValue: Infinity,
-            public: true,
             groupName: "scoring",
             description:
                 "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
@@ -535,6 +541,56 @@ export function returnScoredSectionStateVariableDefinition() {
         }),
     };
 
+    stateVariableDefinitions.maxNumAttempts = {
+        description:
+            "Maximum number of times the section-wide check-work button can be submitted: the smaller of the `maxNumAttempts` attribute and any limit the hosting page sets. Once reached, all enclosed answers are disabled.",
+        public: true,
+        groupName: "scoring",
+        shadowingInstructions: {
+            createComponentOfType: "integer",
+        },
+        // Holds a limit set by changing `maxNumAttempts` when the author gave
+        // no attribute (see `invertMaxNumAttempts`).
+        hasEssential: true,
+        defaultValue: Infinity,
+        provideEssentialValuesInDefinition: true,
+        returnDependencies: () => ({
+            maxNumAttemptsAttr: {
+                dependencyType: "attributeComponent",
+                attributeName: "maxNumAttempts",
+                variableNames: ["value"],
+            },
+            // The host's cap on submissions. It caps the section-wide
+            // check-work button, which stands in for the per-answer buttons it
+            // suppresses.
+            flagMaxNumAttempts: {
+                dependencyType: "flag",
+                flagName: "maxNumAttempts",
+            },
+            sectionWideCheckWork: {
+                dependencyType: "stateVariable",
+                variableName: "sectionWideCheckWork",
+            },
+        }),
+        definition({ dependencyValues, essentialValues }) {
+            // The host's cap applies only where this container's own button
+            // replaces the answers' buttons, so a container without
+            // `sectionWideCheckWork` reports the author's value as before.
+            const authorValue = authorMaxNumAttempts(
+                dependencyValues,
+                essentialValues,
+            );
+            const maxNumAttempts = dependencyValues.sectionWideCheckWork
+                ? effectiveMaxNumAttempts(
+                      authorValue,
+                      dependencyValues.flagMaxNumAttempts,
+                  )
+                : authorValue;
+            return { setValue: { maxNumAttempts } };
+        },
+        inverseDefinition: invertMaxNumAttempts,
+    };
+
     stateVariableDefinitions.numAttemptsLeft = {
         description:
             "Remaining number of section-wide submissions before the maximum is reached.",
@@ -568,14 +624,15 @@ export function returnScoredSectionStateVariableDefinition() {
                     "numAttemptsLeft",
                 ],
             },
-            // Used to target the ignored-`maxNumAttempts` warning at the
+            // Whether the author set `maxNumAttempts`, for the
+            // ignored-`maxNumAttempts` warning, which it targets at the
             // attribute itself rather than the whole container.
             maxNumAttemptsAttr: {
                 dependencyType: "attributeComponent",
                 attributeName: "maxNumAttempts",
             },
         }),
-        definition({ dependencyValues, usedDefault }) {
+        definition({ dependencyValues }) {
             let sendDiagnostics = [];
 
             let insideSectionWideCheckWork =
@@ -583,7 +640,7 @@ export function returnScoredSectionStateVariableDefinition() {
                     ?.stateValues.suppressAnswerSubmitButtons;
 
             if (
-                !usedDefault.maxNumAttempts &&
+                dependencyValues.maxNumAttemptsAttr &&
                 dependencyValues.sectionWideCheckWork &&
                 insideSectionWideCheckWork
             ) {
@@ -986,6 +1043,16 @@ export async function submitAllAnswers({
         return;
     }
 
+    // A container with its own section-wide check-work button counts this
+    // submission against its attempts, which are the attempts its answers
+    // report. A container nested inside a section-wide check work reports the
+    // enclosing container's attempts, which this submission does not use.
+    const createSubmitAllButton =
+        await component.stateValues.createSubmitAllButton;
+    const insideSectionWideCheckWork =
+        !createSubmitAllButton &&
+        (await component.stateValues.suppressAnswerSubmitButtons);
+
     component.coreFunctions.requestRecordEvent({
         verb: "submitted",
         object: {
@@ -994,6 +1061,13 @@ export async function submitAllAnswers({
         },
         result: {
             creditAchieved: await component.stateValues.creditAchievedIfSubmit,
+            ...attemptCountsForEvent({
+                numSubmissions:
+                    (await component.stateValues.numSubmissions) + 1,
+                maxNumAttempts: await component.stateValues.maxNumAttempts,
+                numAttemptsLeftBefore: numAttemptsLeft,
+                usesAttempt: !insideSectionWideCheckWork,
+            }),
         },
     });
 
@@ -1018,6 +1092,7 @@ export async function submitAllAnswers({
                 // the rendered answer validation state and attempts message
                 // update together.
                 skipRendererUpdate: true,
+                usesContainerAttempt: createSubmitAllButton,
             },
         });
     }

@@ -54,6 +54,19 @@ export class StatePersistence {
      */
     _saveSequence: number;
     _storedSequence: number;
+    /**
+     * Set by `dispose()` once the core is done. From then on nothing here arms
+     * a timer, so a terminated core leaves no handle behind that keeps it (and
+     * a Node process) alive.
+     *
+     * Deliberately not cleared by `reset()`: a terminated core is never run
+     * again. `generateDast` (the only caller of `reset()`) is called once per
+     * `Core`, right after `PublicDoenetMLCore.createCoreGenerateDast`
+     * constructs it, which refuses a second call on the same worker;
+     * `PublicDoenetMLCore.terminate` drops the core, and a new document,
+     * variant or attempt gets a new `Core`.
+     */
+    disposed: boolean;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -64,14 +77,16 @@ export class StatePersistence {
         this.scoreToBeSavedToDatabase = 0;
         this._saveSequence = 0;
         this._storedSequence = 0;
+        this.disposed = false;
     }
 
     /**
-     * Cancel any pending saves and clear the buffered payload. Called from
-     * `Core.generateDast` so timers and state from a previous run do not
-     * leak into the new document.
+     * Cancel the pending debounce and throttle timers, without touching the
+     * buffered payload. Each timer's callback closes over this instance, and
+     * through it the whole core, so a pending one keeps the core in memory
+     * (and a Node event loop running) until it fires.
      */
-    reset(): void {
+    cancelTimers(): void {
         if (this.saveStateToDBTimerId !== null) {
             clearTimeout(this.saveStateToDBTimerId);
             this.saveStateToDBTimerId = null;
@@ -80,6 +95,26 @@ export class StatePersistence {
             clearTimeout(this.saveDocStateTimeoutID);
             this.saveDocStateTimeoutID = null;
         }
+    }
+
+    /**
+     * Called from `Core.terminate` after its final save: cancel every pending
+     * timer and stop arming new ones. A save still in flight (a submission's
+     * is fire-and-forget) still reports when it lands; it just no longer arms
+     * the 60-second throttle behind it.
+     */
+    dispose(): void {
+        this.disposed = true;
+        this.cancelTimers();
+    }
+
+    /**
+     * Cancel any pending saves and clear the buffered payload. Called from
+     * `Core.generateDast` so timers and state from a previous run do not
+     * leak into the new document.
+     */
+    reset(): void {
+        this.cancelTimers();
         this.docStateToBeSavedToDatabase = null;
         this.scoreToBeSavedToDatabase = 0;
         this.changesToBeSaved = false;
@@ -96,6 +131,10 @@ export class StatePersistence {
     scheduleSave(delayMs: number): void {
         if (this.saveDocStateTimeoutID !== null) {
             clearTimeout(this.saveDocStateTimeoutID);
+            this.saveDocStateTimeoutID = null;
+        }
+        if (this.disposed) {
+            return;
         }
         this.saveDocStateTimeoutID = setTimeout(() => {
             this.saveState().catch(
@@ -468,7 +507,15 @@ export class StatePersistence {
         overrideThrottle = false,
         onSubmission = false,
     ): Promise<void> {
-        this.saveDocStateTimeoutID = null;
+        // This save covers whatever the pending debounce would have saved, so
+        // cancel it rather than just forget its handle: a forgotten timer
+        // still fires a redundant save later, and until then it holds the
+        // core in memory (a submission's save reaches here directly, with a
+        // debounce from the edit before it usually still pending).
+        if (this.saveDocStateTimeoutID !== null) {
+            clearTimeout(this.saveDocStateTimeoutID);
+            this.saveDocStateTimeoutID = null;
+        }
 
         const core = this.core;
 
@@ -714,13 +761,18 @@ export class StatePersistence {
 
         this.changesToBeSaved = false;
 
-        // check for changes again after 60 seconds
-        this.saveStateToDBTimerId = setTimeout(() => {
+        // check for changes again after 60 seconds, unless the core is done:
+        // this report is then the last, and nothing should keep it alive
+        if (this.disposed) {
             this.saveStateToDBTimerId = null;
-            this.saveChangesToDatabase().catch(
-                reportTimerError(TimerLabels.throttledSaveChanges),
-            );
-        }, 60000);
+        } else {
+            this.saveStateToDBTimerId = setTimeout(() => {
+                this.saveStateToDBTimerId = null;
+                this.saveChangesToDatabase().catch(
+                    reportTimerError(TimerLabels.throttledSaveChanges),
+                );
+            }, 60000);
+        }
 
         this._reportStateToMainRealm(false);
     }

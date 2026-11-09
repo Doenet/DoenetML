@@ -6,6 +6,7 @@ import {
     returnSimplifyExpandOnCompareWarning,
     returnStandardAnswerAttributes,
     returnStandardAnswerStateVariableDefinition,
+    attemptCountsForEvent,
 } from "../utils/answer";
 import {
     returnLabelAttributes,
@@ -2708,6 +2709,9 @@ export default class Answer extends InlineComponent {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        // Set by `submitAllAnswers` when the container submitting this answer
+        // counts the submission against the section-wide attempts.
+        usesContainerAttempt = false,
     }) {
         const numAttemptsLeft = await this.stateValues.numAttemptsLeft;
         if (numAttemptsLeft < 1) {
@@ -2801,11 +2805,12 @@ export default class Answer extends InlineComponent {
             value: await this.stateValues.creditAchievedDependencies,
         });
 
+        const numSubmissions = (await this.stateValues.numSubmissions) + 1;
         instructions.push({
             updateType: "updateValue",
             componentIdx: this.componentIdx,
             stateVariable: "numSubmissions",
-            value: (await this.stateValues.numSubmissions) + 1,
+            value: numSubmissions,
         });
 
         if (unadjustedCreditAchieved < 1) {
@@ -2898,6 +2903,18 @@ export default class Answer extends InlineComponent {
                         this.state.currentResponses.shadowingInstructions
                             .createComponentOfType,
                     creditAchieved,
+                    ...attemptCountsForEvent({
+                        numSubmissions,
+                        maxNumAttempts: await this.stateValues.maxNumAttempts,
+                        numAttemptsLeftBefore: numAttemptsLeft,
+                        // Inside a section-wide check work, `numAttemptsLeft`
+                        // is the container's, used up only when the container
+                        // submits this answer.
+                        usesAttempt:
+                            !(await this.stateValues
+                                .delegateCheckWorkToAncestor) ||
+                            usesContainerAttempt,
+                    }),
                 },
             },
         });

@@ -1273,8 +1273,10 @@ export default class Core {
                 event.context,
                 serializedComponentsReplacer,
             ),
-            timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
-            version: "0.1.1",
+            // ISO 8601 UTC, such as "2026-11-07T22:21:06.123Z". Before
+            // version 0.2.0 it was "YYYY-MM-DD HH:MM:SS", UTC with no zone.
+            timestamp: new Date().toISOString(),
+            version: "0.2.0",
         };
 
         this.sendEvent(payload);
@@ -1487,6 +1489,11 @@ export default class Core {
         // A request still running past the wait can stop the document with
         // a circular dependency, which rejects the save's queued work
         await this.saveImmediately().catch(ignoreIfStopped);
+
+        // The core is done: clear the save debounce and the 60-second
+        // throttle the final save just armed, and arm no more, so no timer
+        // keeps this core in memory or a Node process from exiting.
+        this.statePersistence.dispose();
     }
 
     // → autoSubmitManager

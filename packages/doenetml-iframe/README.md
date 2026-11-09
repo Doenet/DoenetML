@@ -303,6 +303,59 @@ Notes:
   viewers cheaper.
 - `mountPolicy` is read at mount; changing it afterwards is not supported.
 
+### Host integration
+
+A summary of what a host page can rely on; the subsections below give each
+message in full.
+
+**Commands in** (post on your own window; the wrapper forwards them into the
+iframe):
+
+- `SPLICE.getState.response`: the saved state the viewer asked for at boot.
+- `SPLICE.requestSolutionView.response`: allow or refuse a solution view.
+- `SPLICE.submitAllAnswers`: submit every answer; answered by
+  `SPLICE.submitAllAnswers.response`.
+- `SPLICE.flushState`: push out any state the save throttle is holding
+  back; answered by `SPLICE.flushState.response`.
+
+**Events out** (arrive on your window):
+
+- `SPLICE.reportScoreAndState`: score and serialized state, at most one
+  report per 60 seconds per viewer unless a flush or a page hide pushes one
+  out sooner.
+- `SPLICE.getState`: the request for saved state at boot (with
+  `flags.allowLoadState` and no `initialState`).
+- `SPLICE.requestSolutionView`: the permission request (with
+  `flags.solutionDisplayMode: "buttonRequirePermission"`).
+- `SPLICE.sendEvent`: the event stream (with `flags.allowSaveEvents`).
+
+`iframeReady`, `scrollTo` and `lti.frameResize` also cross the frame
+boundary, but the wrapper consumes them itself: `iframeReady` starts the
+connection to the viewer inside, `scrollTo` scrolls your window to an
+in-document link target (unless you pass `requestScrollTo`), and
+`lti.frameResize` sizes the iframe to its content. A host does not need to
+handle them.
+
+**Capping submissions (`flags.maxNumAttempts`).** A host can limit how many
+times each answer can be submitted without editing the document:
+
+```tsx
+<DoenetViewer doenetML={doenetML} flags={{ maxNumAttempts: 3 }} />
+```
+
+The cap combines with the author's own `maxNumAttempts`: an answer gets the
+smaller of the two, so an author's stricter limit still holds and a larger
+cap never raises it. Inside a container with `sectionWideCheckWork`, the cap
+applies to the container's check-work button, which is what submits its
+answers. `null`, the default, means no cap; `0` allows no submissions. The
+remaining count shows beside each check-work button, and saved state keeps
+the number already used, so a reload does not reset it. `$answer.maxNumAttempts` (and a section-wide container's) reports the limit
+that applies, so text such as "You have $ans.maxNumAttempts attempts" matches
+the count beside the button. The flag is read when the document's core
+starts: changing it on a mounted viewer takes effect only at the next core
+start (a change of `doenetML`, `docId`, `attemptNumber` or the other props
+that re-initialize the document, or a remount).
+
 ### Host message protocol (SPLICE)
 
 The viewer exchanges JSON messages with the host page via `postMessage`.
@@ -561,11 +614,38 @@ content experienced, …). Fire-and-forget; no response is expected:
         object,          // JSON string: the component acted on
         result,          // JSON string: the outcome
         context,         // JSON string: additional context
-        timestamp,       // "YYYY-MM-DD HH:MM:SS"
-        version,
+        timestamp,       // "YYYY-MM-DDTHH:MM:SS.sssZ", ISO 8601 UTC
+        version,         // "0.2.0"
     },
 }
 ```
+
+For a `"submitted"` event from an `<answer>`, a `<pretzel>`, or a
+section-wide check work, `result` also counts attempts, so a host can count
+and cap them without reading the document:
+
+- `numSubmissions`: submissions so far, including this one.
+- `maxNumAttempts`: the component's `maxNumAttempts`, or `null` when
+  attempts are unlimited. That is the author's limit, lowered by
+  `flags.maxNumAttempts` where the flag applies (see "Capping submissions"
+  above).
+- `numAttemptsLeft`: attempts left after this submission, or `null` when
+  unlimited.
+
+Inside a section-wide check work, the section sets the limit. An `<answer>`,
+a `<pretzel>`, or a container nested in the section then reports the
+section's `numAttemptsLeft`, while its `maxNumAttempts` is still its own,
+which does not apply there. Only the section's own check work uses one of
+those attempts. Any other submission inside it (a pretzel's own button,
+auto-submit, a direct action, or a submission of a nested container) reports
+the section's count unchanged.
+
+A submission made after the attempts are used up is ignored and sends no
+event.
+
+Version history: `0.2.0` changed `timestamp` to ISO 8601 UTC (it was
+`"YYYY-MM-DD HH:MM:SS"`, UTC with no zone) and added the attempt counts
+above.
 
 ## Development
 

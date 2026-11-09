@@ -719,6 +719,31 @@ describe("Pretzel tag tests @group1", async () => {
         ).eq(0);
     });
 
+    it("the host's maxNumAttempts flag caps a pretzel", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pretzel name="p">
+        <problem><statement><p>P1</p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+    </pretzel>
+    `,
+            flags: { maxNumAttempts: 1 },
+        });
+        const pretzelIdx = await resolvePathToNodeIdx("p");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[pretzelIdx].stateValues.maxNumAttempts).eq(1);
+        expect(stateVariables[pretzelIdx].stateValues.numAttemptsLeft).eq(1);
+
+        await submitAnswer({ componentIdx: pretzelIdx, core });
+        await submitAnswer({ componentIdx: pretzelIdx, core });
+
+        // The second submission is refused.
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[pretzelIdx].stateValues.numSubmissions).eq(1);
+        expect(stateVariables[pretzelIdx].stateValues.numAttemptsLeft).eq(0);
+        expect(stateVariables[pretzelIdx].stateValues.disabled).eq(true);
+    });
+
     it("pretzel circuit mode pre-fills and disables first input", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
