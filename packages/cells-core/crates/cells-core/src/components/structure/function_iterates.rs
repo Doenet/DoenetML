@@ -12,6 +12,7 @@ component! {
     /// `iterates`, as numbers, are the lengths of those lists.
     tags: ["functionIterates"],
     renders: Never,
+    structure: Repeat { count: count },
     props {
         numIterates: attr(0.0),
         numIteratesFloor: computed(OpSpec::Floor, [numIterates]),

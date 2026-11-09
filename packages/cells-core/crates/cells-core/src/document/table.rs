@@ -79,22 +79,17 @@ impl ComponentTable {
             let start = self.child_start[c.index()] as usize;
             let kids = &self.child_list[start..start + self.child_count[c.index()] as usize];
             for k in kids.iter().rev().filter_map(|e| e.as_comp()) {
-                match self.component_type[k.index()] {
-                    ComponentType::RepeatForSequence
-                    | ComponentType::RepeatFor
-                    | ComponentType::Collect
-                    | ComponentType::Group
-                    | ComponentType::Select
-                    | ComponentType::ConditionalContent => stack.push((k, gates.clone())),
-                    ComponentType::Case => {
-                        let active = self.prop_cells
-                            [self.prop_base[k.index()] as usize + prop::case::ACTIVE];
+                let ty = self.component_type[k.index()];
+                match ty.structure_kind() {
+                    Some(StructureKind::Transparent { .. } | StructureKind::Repeat { .. }) => {
+                        stack.push((k, gates.clone()))
+                    }
+                    Some(StructureKind::Gate { active }) => {
+                        let active = self.prop_cells[self.prop_base[k.index()] as usize + active];
                         stack.push((k, [gates.as_slice(), &[active]].concat()));
                     }
-                    component_type if component_type.sticky_layout().is_some() => {
-                        out.push((k, gates.clone()))
-                    }
-                    _ => {}
+                    None if ty.sticky_layout().is_some() => out.push((k, gates.clone())),
+                    None => {}
                 }
             }
         }
@@ -324,10 +319,11 @@ impl Document {
                     _ => out.push_str(&format_number(value("value").unwrap_or(f64::NAN))),
                 }
             }
-            ComponentType::Case
-                if self.cells[self.comp_cells(c)[prop::case::ACTIVE].index()] != 1.0 => {}
-            ComponentType::ConditionalContent | ComponentType::Select
-                if value("hide").is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
+            ty if ty
+                .gate_prop()
+                .is_some_and(|active| self.cells[self.comp_cells(c)[active].index()] != 1.0) => {}
+            ty if matches!(ty.structure_kind(), Some(StructureKind::Transparent { .. }))
+                && value("hide").is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
             _ => {
                 for ch in self.children(c) {
                     match ch {

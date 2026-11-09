@@ -1,6 +1,6 @@
 # The core names no component type, and components are a crate of their own
 
-Status: proposed 2026-11-09. Steps 1 and 2 of the Migration are done. Builds on
+Status: proposed 2026-11-09. Steps 1 to 3 of the Migration are done. Builds on
 ADR 0016 (components are defined without knowing the core), whose
 converse this is; on ADR 0034 (a planner is a function of its record),
 which made `compile::api` the one door a planner goes through; and on
@@ -270,6 +270,17 @@ step 1 lower than before.
    the signature's seeds and `count_prop`. The two `aggregate.rs` walks
    read the same declarations. Test: `tests/scoring.rs`, `tests/homework.rs`
    and `tests/every_count.rs` unchanged.
+   Done, as `StructureKind` (the build already has a `Structure`), read
+   through `ComponentType::structure_kind`, `count_prop` and `gate_prop`.
+   Departures: `Transparent` carries an optional `choice`, the prop a
+   conditional content's contents depend on, which the signature seeds;
+   the graph's numbering tells a `<select>` by its choice being
+   load-time (`ChoiceDef::reactive`), not by its type; and
+   `<functionIterates>` is a `Repeat` everywhere now, which changes
+   nothing since its iterations hold no section and no sticky member. A
+   case's `active` is read from its kind where the choice stamps it; the
+   choice's own `choice` port is left to step 7. The count fell from 248
+   to 208, and the golden diff is identical.
 4. **Prop declarations.** `expr_of` replaces the three copies of
    `math_target`. `response` replaces the input lists in the answer
    code and `answer_inputs`. `text` replaces `push_text`'s arms.

@@ -107,6 +107,13 @@ a case, an answer's response and its implicit input (`Role`, ADR 0038). The
 type's definition claims it (`roles: [Root]`), exactly one type per role, and
 the core names the role, never the type.
 
+**Structure kind** — How a component type is structure rather than content
+(`StructureKind`, ADR 0038): *transparent* (expanded in place, its children
+scored, numbered and gathered as its parent's: a group, a collect, a choice),
+a *gate* (its children there while its `active` is 1: a case), or a *repeat*
+(one scope per iteration, `count` of them). The walks that look through
+containers read it instead of naming types.
+
 **Reference** — A `$name` or `$name.prop` in the document. A component-level
 reference (`$p1`) produces a copy sharing every cell with the referent,
 except to an input, which it *reads as* a value of the input's declared

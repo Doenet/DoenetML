@@ -265,6 +265,7 @@ pub(super) const fn definition(
         machinery: None,
         owner: None,
         roles: &[],
+        structure_kind: None,
         constrain_target: None,
         params: &[],
     }
@@ -307,6 +308,11 @@ impl ComponentDef {
     /// The roles the type plays for the core ([`super::Role`]).
     pub(super) const fn roles(mut self, roles: &'static [super::Role]) -> Self {
         self.roles = roles;
+        self
+    }
+    /// How the type is structure rather than content ([`super::StructureKind`]).
+    pub(super) const fn structure_kind(mut self, kind: super::StructureKind) -> Self {
+        self.structure_kind = Some(kind);
         self
     }
     pub(super) const fn owner(mut self, owner: super::ComponentType) -> Self {
@@ -512,6 +518,11 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// needs one in that role ([`super::Role`]), so the core names the role,
 /// not the type.
 ///
+/// `structure: Gate { active: active }` says the type is structure rather
+/// than content ([`super::StructureKind`]): `Transparent` (or `Transparent {
+/// choice: p }`), `Gate { active: p }` or `Repeat { count: p }`, each `p`
+/// a prop of the table.
+///
 /// `Props<T>` has one field per prop of the table, in table order: a
 /// planner fills `Props<Wire>` as a struct literal, so a prop left
 /// unplanned does not compile; `Props::PORTS` holds every prop's port, by
@@ -575,6 +586,7 @@ macro_rules! component {
         $(renders: $renders:ident,)?
         $(reads_as: $ras:ident,)?
         $(roles: [$($role:ident),* $(,)?],)?
+        $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
@@ -589,6 +601,7 @@ macro_rules! component {
                 $(.renders($crate::components::Renders::$renders))?
                 $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.roles(&[$($crate::components::Role::$role),*]))?
+                $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
                 .children(CHILDREN)
@@ -608,6 +621,7 @@ macro_rules! component {
         $(renders: $renders:ident,)?
         $(reads_as: $ras:ident,)?
         $(roles: [$($role:ident),* $(,)?],)?
+        $(structure: $stkind:ident $({ $($stfield:ident : $stprop:ident),* $(,)? })?,)?
         $(default_prop: $default:ident,)?
         props {
             $($pname:ident : $kind:ident $(($($karg:tt)*))? $({ $($opt:ident $(: $oval:ident)?),* $(,)? })?),+ $(,)?
@@ -645,6 +659,7 @@ macro_rules! component {
                 $(.renders($crate::components::Renders::$renders))?
                 $(.reads_as($crate::components::ComponentType::$ras))?
                 $(.roles(&[$($crate::components::Role::$role),*]))?
+                $(.structure_kind($crate::components::define::component!(@structure $stkind $({ $($stfield : $stprop),* })?)))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
                 $(.list($crate::components::ListProp {
@@ -761,6 +776,25 @@ macro_rules! component {
                 ),
             );
         )+)*)?
+    };
+    // A structure kind, each prop it names a position in `PROPS`.
+    (@structure Transparent) => {
+        $crate::components::StructureKind::Transparent { choice: None }
+    };
+    (@structure Transparent { choice: $p:ident }) => {
+        $crate::components::StructureKind::Transparent {
+            choice: Some($crate::components::define::at(PROPS, stringify!($p))),
+        }
+    };
+    (@structure Gate { active: $p:ident }) => {
+        $crate::components::StructureKind::Gate {
+            active: $crate::components::define::at(PROPS, stringify!($p)),
+        }
+    };
+    (@structure Repeat { count: $p:ident }) => {
+        $crate::components::StructureKind::Repeat {
+            count: $crate::components::define::at(PROPS, stringify!($p)),
+        }
     };
     // What the attributes and children a type declares make: `ATTRS`,
     // `CHILDREN`, the `attr` module and the typed record `Attrs`.

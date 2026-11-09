@@ -10,6 +10,7 @@ component! {
     /// thing with one case: content shown while its condition holds.
     tags: ["conditionalContent", "feedback"],
     flags: [not_extendable],
+    structure: Transparent { choice: choice },
     props {
         // `hide` hides what the choice shows, not copies of its names.
         choice: by_planner,

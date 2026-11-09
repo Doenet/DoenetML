@@ -9,6 +9,7 @@ component! {
     /// it takes are a `<functionIterates>`' `allIteratesWithInitial` and
     /// `iterates`.
     tags: ["repeat"],
+    structure: Repeat { count: count },
     props {
         count: by_planner,
     }

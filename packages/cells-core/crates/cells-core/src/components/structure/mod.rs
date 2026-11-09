@@ -27,6 +27,7 @@ pub(crate) mod repeat_for_sequence {
         ///
         /// A NaN count means zero iterations.
         tags: ["repeatForSequence"],
+        structure: Repeat { count: count },
         props {
             from: attr(1.0),
             to: attr(NO_VALUE),
@@ -91,6 +92,7 @@ pub mod case {
         tags: ["case"],
         flags: [owned],
         roles: [Case],
+        structure: Gate { active: active },
         props {
             active: by_planner { rendered },
         }

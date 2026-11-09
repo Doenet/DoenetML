@@ -8,6 +8,7 @@ component! {
     /// `<collect>`: its children are copies of the collected components,
     /// and `count` how many (an aggregate).
     tags: ["collect"],
+    structure: Transparent,
     props {
         count: aggregate(Count, Gathered),
     }

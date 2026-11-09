@@ -51,7 +51,8 @@ impl<'c> Builder<'c> {
                 let case =
                     self.new_component(Role::Case.ty(), StrId::NONE, comp, NodeId::NONE, scope, n);
                 let pos = self.const_slot(k as f64);
-                let active_slot = self.slot(case, crate::components::prop::case::ACTIVE);
+                let active = Role::Case.ty().gate_prop().expect("a case is a gate");
+                let active_slot = self.slot(case, active);
                 self.sources[active_slot.index()] = self.op_source(OpSpec::Eq, &[choice, pos]);
                 self.enter_scope(s, def.branches[k - 1]);
                 let these = self.expand(def.branches[k - 1], s, case)?;

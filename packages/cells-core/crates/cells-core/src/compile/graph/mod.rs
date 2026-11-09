@@ -930,7 +930,8 @@ impl<'c> Stamp<'c> {
                 let n = Role::Case.ty().prop_defs().len();
                 let case = self.make(Role::Case.ty(), t, n, MadeKind::Case);
                 // `active`: whether the choice is this case's position.
-                let active = self.slot(Comp::Made(case), prop::case::ACTIVE);
+                let active = Role::Case.ty().gate_prop().expect("a case is a gate");
+                let active = self.slot(Comp::Made(case), active);
                 let choice = self.g.port(t, e, prop::conditional_content::CHOICE);
                 let pos = self.constant((cases.len() + 1) as f64);
                 self.set(

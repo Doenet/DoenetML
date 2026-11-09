@@ -7,6 +7,7 @@ component! {
     /// options it picked, flattened like a repeat's iterations.
     tags: ["select"],
     flags: [not_extendable],
+    structure: Transparent,
     props {
         hide: by_planner { rendered },
     }

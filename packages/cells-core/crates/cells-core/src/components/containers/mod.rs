@@ -129,6 +129,7 @@ pub(crate) mod group {
         /// prototype renders `<label>` the same way.
         tags: ["group", "label"],
         flags: [container],
+        structure: Transparent,
         presentation { asList }
         planner: Props,
     }

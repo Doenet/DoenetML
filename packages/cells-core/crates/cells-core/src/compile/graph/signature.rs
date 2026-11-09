@@ -16,7 +16,6 @@ use super::*;
 use crate::compile::compare::signature::{
     Domain, Input, Signature, bits, canonical_leaves, dast_text, hash_of, prop_label,
 };
-use crate::components::prop::{case, conditional_content};
 use crate::program::ValueType;
 use crate::sym::Engine;
 use crate::sym::engine::template_text;
@@ -192,25 +191,19 @@ impl<'a, 'c> Signer<'a, 'c> {
                 if let Some(h) = aty.prop_index("hide") {
                     seeds.push((label(&self, "hide"), self.prop_cell(a, h)));
                 }
-                match aty {
-                    ComponentType::Case => {
-                        seeds.push((label(&self, "active"), self.prop_cell(a, case::ACTIVE)))
-                    }
-                    ComponentType::ConditionalContent => seeds.push((
-                        label(&self, "choice"),
-                        self.prop_cell(a, conditional_content::CHOICE),
-                    )),
-                    ComponentType::RepeatForSequence
-                    | ComponentType::RepeatFor
-                    | ComponentType::FunctionIterates => {
-                        for pi in 0..anp {
-                            seeds.push((
-                                label(&self, &prop_label(aty, anp, pi)),
-                                self.prop_cell(a, pi),
-                            ));
-                        }
-                    }
-                    _ => {}
+                // What a structure around it names: a gate's `active`, a
+                // choice's `choice`, and every prop of a repeat.
+                let named = match aty.structure_kind() {
+                    Some(StructureKind::Gate { active: pi })
+                    | Some(StructureKind::Transparent { choice: Some(pi) }) => pi..pi + 1,
+                    Some(StructureKind::Repeat { .. }) => 0..anp,
+                    Some(StructureKind::Transparent { choice: None }) | None => 0..0,
+                };
+                for pi in named {
+                    seeds.push((
+                        label(&self, &prop_label(aty, anp, pi)),
+                        self.prop_cell(a, pi),
+                    ));
                 }
                 if ac.parent == u32::MAX {
                     break;

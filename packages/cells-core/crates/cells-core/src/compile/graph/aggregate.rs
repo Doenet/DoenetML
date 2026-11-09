@@ -171,11 +171,6 @@ impl<'c> Stamp<'c> {
             let t = self.template_of(k);
             let (weight, credit) = match self.component_type(k) {
                 ComponentType::Setup => continue,
-                ComponentType::Case => {
-                    let g = self.gate_through(gate, k);
-                    self.scored_items(k, g, out);
-                    continue;
-                }
                 ComponentType::Answer => {
                     // A blank response checks as NaN; it is no credit.
                     let checked = self.slot(k, answer::CREDIT);
@@ -187,7 +182,8 @@ impl<'c> Stamp<'c> {
                     (self.slot(k, section::WEIGHT), self.slot(k, section::CREDIT))
                 }
                 _ => {
-                    self.scored_items(k, gate, out);
+                    let g = self.gate_through(gate, k);
+                    self.scored_items(k, g, out);
                     continue;
                 }
             };
@@ -220,27 +216,27 @@ impl<'c> Stamp<'c> {
     /// between `c` and the component whose children are being counted.
     fn numbers(&mut self, c: Comp, gate: Option<GraphNode>, counter: &mut Counter) {
         for k in self.children(c) {
-            match self.component_type(k) {
-                ComponentType::Case => {
+            let ty = self.component_type(k);
+            match ty.structure_kind() {
+                Some(StructureKind::Gate { .. }) => {
                     let g = self.gate_through(gate, k);
                     self.numbers(k, g, counter);
                 }
-                ComponentType::RepeatForSequence | ComponentType::RepeatFor => {
+                Some(StructureKind::Repeat { .. }) => self.number_through_repeat(k, gate, counter),
+                // A collect that follows the counts of the repeats it
+                // gathers from.
+                Some(StructureKind::Transparent { .. }) if self.follows_counts(k) => {
                     self.number_through_repeat(k, gate, counter)
                 }
-                ComponentType::Collect if self.follows_counts(k) => {
-                    self.number_through_repeat(k, gate, counter)
-                }
-                // A build numbers what its picks hold, and what follows
-                // them by how many they hold.
-                ComponentType::Select => {
-                    counter.varies = true;
+                Some(StructureKind::Transparent { .. }) => {
+                    // A build numbers what a load-time choice's picks
+                    // hold, and what follows them by how many they hold.
+                    if self.picks_at_load(k) {
+                        counter.varies = true;
+                    }
                     self.numbers(k, gate, counter)
                 }
-                ComponentType::ConditionalContent
-                | ComponentType::Group
-                | ComponentType::Collect => self.numbers(k, gate, counter),
-                ComponentType::Section => {
+                None if ty == ComponentType::Section => {
                     let s = self.slot(k, section::NUMBER);
                     if counter.follows {
                         self.g.counted.push(s);
@@ -281,9 +277,23 @@ impl<'c> Stamp<'c> {
         self.collected.get(&(t, e)).is_some_and(|(_, f)| *f)
     }
 
-    /// `gate` times case `k`'s `active`, made in the case's template.
+    /// Whether `c` is a load-time choice (a `<select>`), whose picks a
+    /// build makes.
+    fn picks_at_load(&self, c: Comp) -> bool {
+        let Comp::Elem(t, e) = c else { return false };
+        match self.c.plans.templates[t.index()].row(e).body {
+            Body::Choice(cid) => !self.c.plans.choices[cid.index()].reactive,
+            _ => false,
+        }
+    }
+
+    /// `gate`, times `k`'s `active` when `k` is a gate
+    /// ([`StructureKind::Gate`]), made in `k`'s template.
     fn gate_through(&mut self, gate: Option<GraphNode>, k: Comp) -> Option<GraphNode> {
-        let active = self.slot(k, prop::case::ACTIVE);
+        let Some(active) = self.component_type(k).gate_prop() else {
+            return gate;
+        };
+        let active = self.slot(k, active);
         Some(self.gated(gate, active, self.template_of(k)))
     }
 

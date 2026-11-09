@@ -149,8 +149,8 @@ impl Built {
                 return false;
             }
             // A built case that is not the active one is not there.
-            if self.component_type(pc) == ComponentType::Case
-                && self.cells[self.comp_cells(pc)[prop::case::ACTIVE].index()] != 1.0
+            if let Some(active) = self.component_type(pc).gate_prop()
+                && self.cells[self.comp_cells(pc)[active].index()] != 1.0
             {
                 return false;
             }

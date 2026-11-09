@@ -617,13 +617,24 @@ impl ComponentType {
                 || to.reads_as().is_some_and(|vt| values(vt, from)))
     }
 
+    /// How the type is structure rather than content, if it is.
+    pub fn structure_kind(self) -> Option<StructureKind> {
+        self.def().structure_kind
+    }
+
     /// The structural cell of a type built like a repeat (one scope per
-    /// iteration): its `count` prop.
+    /// iteration, [`StructureKind::Repeat`]): its `count` prop.
     pub fn count_prop(self) -> Option<usize> {
-        match self {
-            ComponentType::RepeatForSequence
-            | ComponentType::RepeatFor
-            | ComponentType::FunctionIterates => self.prop_index("count"),
+        match self.structure_kind() {
+            Some(StructureKind::Repeat { count }) => Some(count),
+            _ => None,
+        }
+    }
+
+    /// The 0/1 prop a gate holds its children by ([`StructureKind::Gate`]).
+    pub fn gate_prop(self) -> Option<usize> {
+        match self.structure_kind() {
+            Some(StructureKind::Gate { active }) => Some(active),
             _ => None,
         }
     }
@@ -836,17 +847,17 @@ mod tests {
     /// Each line is a match the core makes on a type, which its definition
     /// should say instead.
     const NAMING_TYPES: &[(&str, usize)] = &[
-        ("build/expand/aggregate.rs", 24),
-        ("build/expand/choice.rs", 3),
+        ("build/expand/aggregate.rs", 15),
+        ("build/expand/choice.rs", 2),
         ("build/expand/math.rs", 8),
         ("build/expand/mod.rs", 10),
         ("build/live.rs", 1),
-        ("compile/graph/aggregate.rs", 23),
+        ("compile/graph/aggregate.rs", 14),
         ("compile/graph/define.rs", 1),
         ("compile/graph/eval.rs", 4),
         ("compile/graph/expand.rs", 7),
-        ("compile/graph/mod.rs", 16),
-        ("compile/graph/signature.rs", 15),
+        ("compile/graph/mod.rs", 15),
+        ("compile/graph/signature.rs", 8),
         ("compile/graph/walk.rs", 1),
         ("compile/ir/record.rs", 1),
         ("compile/read/answer.rs", 4),
@@ -868,11 +879,11 @@ mod tests {
         ("compile/stages/seal/types.rs", 6),
         ("compile/stages/share.rs", 1),
         ("document/mod.rs", 2),
-        ("document/paths.rs", 3),
+        ("document/paths.rs", 1),
         ("document/request.rs", 3),
         ("document/sections.rs", 14),
         ("document/sticky.rs", 8),
-        ("document/table.rs", 20),
+        ("document/table.rs", 9),
         ("testing/mod.rs", 3),
     ];
 

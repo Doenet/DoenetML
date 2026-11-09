@@ -14,7 +14,8 @@
 //!
 //! **Numbers**: a section's `number` is 1 plus the gates of the sections
 //! before it among its siblings, counted through the containers expanded
-//! in place (choices, cases, groups, repeats, collects).
+//! in place, whatever its type says is structure ([`StructureKind`]:
+//! choices, cases, groups, repeats, collects).
 //!
 //! **Gathered**: a collect's children are copies of the components of its
 //! type under what it gathers from, and its count is how many.
@@ -103,10 +104,14 @@ impl<'c> Builder<'c> {
             .collect()
     }
 
-    /// `gate` times a case's `active` cell.
-    fn gate_through(&mut self, gate: Option<SlotId>, case: CompIdx) -> Option<SlotId> {
-        let active = self.slot(case, crate::components::prop::case::ACTIVE);
-        Some(self.gated(gate, active, self.components.scope[case.index()]))
+    /// `gate`, times `k`'s `active` cell when `k` is a gate
+    /// ([`StructureKind::Gate`]).
+    fn gate_through(&mut self, gate: Option<SlotId>, k: CompIdx) -> Option<SlotId> {
+        let Some(active) = self.components.component_type[k.index()].gate_prop() else {
+            return gate;
+        };
+        let active = self.slot(k, active);
+        Some(self.gated(gate, active, self.components.scope[k.index()]))
     }
 
     /// The weighted mean of `items`, the scored items inside `c`; None
@@ -151,11 +156,6 @@ impl<'c> Builder<'c> {
             let scope = self.components.scope[k.index()];
             let (weight, credit) = match self.components.component_type[k.index()] {
                 ComponentType::Setup => continue,
-                ComponentType::Case => {
-                    let g = self.gate_through(gate, k);
-                    self.scored_items(k, g, out);
-                    continue;
-                }
                 ComponentType::Answer => {
                     // A blank response checks as NaN; it is no credit.
                     let checked = self.slot(k, answer::CREDIT);
@@ -167,7 +167,8 @@ impl<'c> Builder<'c> {
                     (self.slot(k, WEIGHT), self.slot(k, CREDIT))
                 }
                 _ => {
-                    self.scored_items(k, gate, out);
+                    let g = self.gate_through(gate, k);
+                    self.scored_items(k, g, out);
                     continue;
                 }
             };
@@ -201,22 +202,20 @@ impl<'c> Builder<'c> {
     /// counted.
     fn number_sections(&mut self, c: CompIdx, gate: Option<SlotId>, counter: &mut Counter) {
         for k in self.component_children(c) {
-            match self.components.component_type[k.index()] {
-                ComponentType::Case => {
+            let ty = self.components.component_type[k.index()];
+            match ty.structure_kind() {
+                Some(StructureKind::Gate { .. }) => {
                     let g = self.gate_through(gate, k);
                     self.number_sections(k, g, counter);
                 }
-                ComponentType::RepeatForSequence | ComponentType::RepeatFor => {
+                Some(StructureKind::Repeat { .. }) => self.number_through_repeat(k, gate, counter),
+                // A collect that follows the counts of the repeats it
+                // gathers from.
+                Some(StructureKind::Transparent { .. }) if self.follows_counts.contains(&k) => {
                     self.number_through_repeat(k, gate, counter)
                 }
-                ComponentType::Collect if self.follows_counts.contains(&k) => {
-                    self.number_through_repeat(k, gate, counter)
-                }
-                ComponentType::ConditionalContent
-                | ComponentType::Select
-                | ComponentType::Group
-                | ComponentType::Collect => self.number_sections(k, gate, counter),
-                ComponentType::Section => {
+                Some(StructureKind::Transparent { .. }) => self.number_sections(k, gate, counter),
+                None if ty == ComponentType::Section => {
                     let s = self.slot(k, NUMBER);
                     let number = match counter.before {
                         None => self.counted(s, counter.known + 1.0),

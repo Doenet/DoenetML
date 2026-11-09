@@ -139,6 +139,14 @@ methods. Rules for planners:
   [`Role`](crate::components::Role) (`Role::Root.ty()`,
   `ty.plays(Role::Refused)`), never the type, and each role is claimed by
   exactly one type, checked when the crate compiles.
+- A type that is structure rather than content says which kind
+  ([`StructureKind`](crate::components::StructureKind), ADR 0038):
+  `structure: Transparent` on `<group>` and `<collect>`, `Transparent {
+  choice: choice }` on `<conditionalContent>`, `Gate { active: active }`
+  on `<case>`, `Repeat { count: count }` on the repeats. Scoring, section
+  numbers, a sticky group's members, a component's text and the input
+  signature look through it by its kind, so a new container that behaves
+  like one of these declares it and is looked through everywhere.
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The

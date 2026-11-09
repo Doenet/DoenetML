@@ -46,6 +46,9 @@ pub struct ComponentDef {
     /// root, a refused element's box, an iteration's index, ... Each role is
     /// claimed by exactly one type.
     pub roles: &'static [Role],
+    /// How the type is structure rather than content: looked through, a
+    /// gate, or a repeat. `None` for a type whose children are its own.
+    pub structure_kind: Option<StructureKind>,
     /// How a point is constrained to a component of the type: a type without
     /// one is no constraint target.
     pub constrain_target: Option<ConstrainTarget>,
@@ -234,6 +237,38 @@ impl Role {
         Role::Response,
         Role::ImplicitInput,
     ];
+}
+
+/// How a type is structure rather than content (ADR 0038): what the core
+/// looks through when it scores, numbers sections, gathers a sticky
+/// group's members, reads a component's text or signs the input, so no
+/// walk names the types it looks through. Each prop it names is a
+/// position in the type's table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StructureKind {
+    /// Expanded in place (a group, a collect, a choice): its children are
+    /// scored, numbered and gathered as its parent's. A `hide` it has hides
+    /// what it holds from its text. `choice`, when given, is the prop whose
+    /// value picks what it holds, which whether anything inside exists
+    /// depends on (a conditional content's).
+    Transparent {
+        /// The prop that picks what it holds.
+        choice: Option<usize>,
+    },
+    /// Holds its children while `active` is 1 (a reactive choice's case):
+    /// looked through, with what is inside gated by `active`, and nothing
+    /// inside there while it is 0.
+    Gate {
+        /// The 0/1 prop that says whether its children are there.
+        active: usize,
+    },
+    /// One scope per iteration, `count` of them (a repeat, a function's
+    /// iterates): looked through, what is inside numbered as each iteration
+    /// adds it, and whether it exists reads every prop of the repeat.
+    Repeat {
+        /// The structural prop holding how many iterations it has.
+        count: usize,
+    },
 }
 
 /// A group of element children of given types (`constraints:
