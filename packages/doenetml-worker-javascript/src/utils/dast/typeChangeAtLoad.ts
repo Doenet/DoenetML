@@ -66,6 +66,7 @@ import { codedDiagnostic } from "../diagnostics";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { sequenceEntryComponentType } from "../sequence";
 import {
+    holdsError,
     isAuthoredListType,
     listEntryCountAtLoad,
 } from "./listEntryCountAtLoad";
@@ -3085,7 +3086,7 @@ export function checkTypeChangesAtLoad({
      * reference (`_copy`) and anything else made for the document (`_`), a
      * part of a choosing tag (`doenet-e0061`), an input, a component whose
      * reference reads a value of it (`readsImplicitProp`, as the responses
-     * of an `<answer>`), and a tag that makes its
+     * of an `<answer>`), a component holding an error, and a tag that makes its
      * content with attributes or children written on the extend, which
      * would change that content (`extendChangesContentErrors`), reported
      * first.
@@ -3121,6 +3122,9 @@ export function checkTypeChangesAtLoad({
                 baseComponentType: "_input",
             }) ||
             ["case", "else", "option"].includes(sourceType) ||
+            // made an error itself when the document runs, if it cannot
+            // show the error it holds (`<math><bogus/></math>`)
+            holdsError(node) ||
             sourceType === writtenType ||
             componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType: sourceType,

@@ -20,7 +20,8 @@
  * Only what is exactly a literal is read: text, split by the one rule for
  * lists as the list splits it (`splitTextIntoPieces`, with the splitting
  * sugar recorded, `_listSplitting`), and components of the list's entry type
- * that are not maths, each one entry; `maxNumber` written as a number.
+ * that are not maths and hold no error, each one entry; `maxNumber` written
+ * as a number.
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedAttribute } from "./types";
@@ -57,6 +58,38 @@ function attributeOf(component: SerializedComponent, name: string) {
         }
     }
     return undefined;
+}
+
+/**
+ * Whether `component` holds an `_error` among its descendants. A component
+ * that cannot show the error of a child is made an error itself when the
+ * document runs (`<number><bogus/></number>`), and so is what holds it.
+ */
+export function holdsError(component: SerializedComponent): boolean {
+    for (const child of component.children ?? []) {
+        if (
+            typeof child === "object" &&
+            (child.componentType === "_error" || holdsError(child))
+        ) {
+            return true;
+        }
+    }
+    for (const attribute of Object.values(component.attributes ?? {})) {
+        const attr: any = attribute;
+        const inner =
+            attr.type === "component"
+                ? attr.component?.children
+                : attr.children;
+        for (const child of Array.isArray(inner) ? inner : []) {
+            if (
+                typeof child === "object" &&
+                (child.componentType === "_error" || holdsError(child))
+            ) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 /**
@@ -177,7 +210,10 @@ export function listEntryCountAtLoad(
             ) ||
             // a math, whose value may be a list of several entries
             childClass === mathClass ||
-            childClass.prototype instanceof mathClass
+            childClass.prototype instanceof mathClass ||
+            // an entry holding an error (`<number><bogus/></number>`), which
+            // makes the list an error when the document runs, with no count
+            holdsError(child)
         ) {
             return undefined;
         }

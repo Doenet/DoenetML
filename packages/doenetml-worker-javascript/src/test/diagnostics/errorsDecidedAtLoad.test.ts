@@ -252,6 +252,11 @@ const documents: [string, string, string[]][] = [
         `<mathList name="ml">1 <bogus/></mathList>${inCase(`<math extend="$ml"/>`)}`,
         ["doenet-e0002"],
     ],
+    [
+        "a tag in a case, of a list with an error inside an entry",
+        `<numberList name="nl"><number><bogus/></number><number>2</number></numberList>${inCase(`<number extend="$nl"/>`)}`,
+        ["doenet-e0002"],
+    ],
     // a module made from what is not one
     [
         "a module in a case, of a math",
@@ -262,6 +267,11 @@ const documents: [string, string, string[]][] = [
         "a module in a repeat, of a group",
         `<group name="g"><text>a</text></group>${inRepeat(`<module extend="$g" name="mg"/>`)}`,
         ["doenet-e0065"],
+    ],
+    [
+        "a module in a case, of a math holding an error",
+        `<math name="me"><bogus/></math>${inCase(`<module extend="$me"/>`)}`,
+        ["doenet-e0002"],
     ],
     [
         "a module in a case, of a module",
