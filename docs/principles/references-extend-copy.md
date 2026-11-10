@@ -96,13 +96,27 @@ finishes the path after composites expand.
   input follows its value's type, and `$x.value[i]` is the same as `$x[i]`. A scalar has no
   entries. A `<spreadsheet>` is indexed through `.cells`.
 - **Never a container's children.** `$g[2]` on a group, `$s[1][2]` into a picked option,
-  `$cc[1][2]` into a case and `$r[1][2]` into an iteration with several children name nothing,
+  `$cc[1][2]` into a case and `$r[1][2]` into an iteration with several components name nothing,
   with a warning and a blank, like any reference that names nothing (D37). The child is reached
   by name instead: `$s[1].x`. There is no deprecated form (D27 revised; **known violation until
   #2517:** each still gives the child, with `w0179`).
-- **Pass-through.** An instance whose whole content is one indexable thing passes the next index
-  to it. Nested repeats take one index per level: `$r[1][2]` is iteration 2 of the inner repeat
-  in iteration 1.
+- **Pass-through: one component stands for its holder.** A `<group>` (written by the author, or
+  an extend or copy of one) and an instance (a pick, a shown case, an iteration, or an extend or
+  copy of one) whose whole content is one component pass the next index to it. That component
+  decides what the index means: an entry of a list or of a value, an instance, or nothing with a
+  warning (`w0100` for a scalar, `w0180` for a `<p>`). So with `<group name="g">$nl</group>`,
+  `$g[2]` is the list's second entry; with `<option><math>(1,2,3)</math></option>`, `$s[1][2]` is
+  `2`; nested repeats take one index per level (`$r[1][2]` is iteration 2 of the inner repeat in
+  iteration 1).
+  - "One component" ignores blank text, comments and a `<setup>`; other text counts. It is
+    decided at load.
+  - A composite inside passes the index to its own instances: with `<group>$cc</group>`, `$g[1]`
+    is the shown case.
+  - A group stands for its content for a tag and a property as well (`<math extend="$g"/>`,
+    `$g.value`); a `<span>`, `<p>` or `<div>` does not (`e0065`, `w0104`).
+  - D27 revised again (#2517, #2518). **Known violation:** pass-through applies only to
+    instances, and only when the component is a list or makes instances, not a value with
+    entries.
 
 Done by #2424 (instances) and #2431 (values). Diagnostics, each quoting what was written:
 - **`doenet-w0179`, deprecation:** child indexing (`$g[2]`, `$s[1][2]` into a pick that is not one
