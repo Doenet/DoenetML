@@ -1808,58 +1808,6 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(getDiagnosticsByType(mixture.core).errors.length).eq(0);
     });
 
-    it("a selected normal mixture freezes the parameters its values came from", async () => {
-        // As for the log-normal: the selection is drawn once, so a parameter that
-        // kept following a reference would describe a distribution other than the
-        // numbers on the page.
-        //
-        // Each of the three lists is checked, because a list freezes for a reason a
-        // scalar parameter does not need: the list an attribute hands over belongs
-        // to the `<numberList>` it created, which rewrites it in place rather than
-        // replacing it, so a definition that passed it straight through left this
-        // property tracking the reference however immutable it was declared.
-        const doenetML = `
-    <mathInput name="ni" prefill="10" />
-    <selectRandomNumbers name="s" type="normalMixture" numToSelect="4"
-        means="0 $ni" standardDeviations="0 $ni" weights="1 $ni" />
-    `;
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 10]);
-        expect(
-            stateVariables[componentIdx].stateValues.standardDeviations,
-        ).eqls([0, 10]);
-        expect(stateVariables[componentIdx].stateValues.variances).eqls([
-            0, 100,
-        ]);
-        expect(stateVariables[componentIdx].stateValues.weights).eqls([1, 10]);
-
-        const selected = await current_values(core, resolvePathToNodeIdx, "s");
-
-        await updateMathInputValue({
-            latex: "100",
-            componentIdx: await resolvePathToNodeIdx("ni"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 10]);
-        expect(
-            stateVariables[componentIdx].stateValues.standardDeviations,
-        ).eqls([0, 10]);
-        expect(stateVariables[componentIdx].stateValues.variances).eqls([
-            0, 100,
-        ]);
-        expect(stateVariables[componentIdx].stateValues.weights).eqls([1, 10]);
-        expect(await current_values(core, resolvePathToNodeIdx, "s")).eqls(
-            selected,
-        );
-    });
-
     it("a sampled normal mixture's parameters follow a reference", async () => {
         // `<sampleRandomNumbers>` freezes nothing, so the same document reports the
         // new distribution --- which is the difference between the two components.
@@ -1946,187 +1894,6 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
-    it("a selection freezes its moments even when nothing has read them yet", async () => {
-        // `selectedValues` is resolved eagerly, to expand the composite, but the
-        // reported moments are lazy. If a referenced parameter changes before
-        // anything reads them, a moment first evaluated afterwards would freeze the
-        // new parameter while the selected numbers came from the old one. Note the
-        // update happens before any `returnAllStateVariables`, which would otherwise
-        // resolve and freeze everything first and hide the problem.
-        for (const [type, expectedMean] of [
-            ["gaussian", 10],
-            ["poisson", 10],
-        ] as [string, number][]) {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <mathInput name="m" prefill="10" />
-    <selectRandomNumbers name="s" type="${type}" mean="$m" numToSelect="4" />
-    `,
-            });
-
-            await updateMathInputValue({
-                latex: "40",
-                componentIdx: await resolvePathToNodeIdx("m"),
-                core,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx("s");
-            expect(stateVariables[componentIdx].stateValues.mean, type).closeTo(
-                expectedMean,
-                1e-10,
-            );
-        }
-
-        // the same for the spread, which is a separate frozen input
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="sd" prefill="2" />
-    <selectRandomNumbers name="s" type="gaussian" standardDeviation="$sd" numToSelect="4" />
-    `,
-        });
-
-        await updateMathInputValue({
-            latex: "5",
-            componentIdx: await resolvePathToNodeIdx("sd"),
-            core,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-        expect(
-            stateVariables[componentIdx].stateValues.standardDeviation,
-        ).closeTo(2, 1e-10);
-        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-            4,
-            1e-10,
-        );
-
-        // and the same for `exclude`, which narrows the set the moments are taken
-        // over rather than naming one of their terms. It was the one parameter not
-        // frozen here, so the moments described the new exclusion set while the
-        // numbers on the page came from the old one: a 5 was selected that the
-        // reported distribution excludes, beside a 3 it includes that was excluded
-        // when the selection was made.
-        {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <mathInput name="e" prefill="3" />
-    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="6" />
-    `,
-            });
-
-            await updateMathInputValue({
-                latex: "5",
-                componentIdx: await resolvePathToNodeIdx("e"),
-                core,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx("s");
-
-            // the moments of {1, 2, 4, 5}, which is what excluding 3 leaves
-            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
-                3,
-                1e-10,
-            );
-            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-                2.5,
-                1e-10,
-            );
-
-            for (const value of await current_values(
-                core,
-                resolvePathToNodeIdx,
-                "s",
-            )) {
-                expect([1, 2, 4, 5].includes(value), `sample ${value}`).eq(
-                    true,
-                );
-            }
-        }
-
-        // A change that alters how *many* values survive is the sharper case: the
-        // count the moments divide by is frozen, so an exclusion set that moved on
-        // without it gave a mean belonging to no set of values at all --- 1.75 here,
-        // being (1 + 2 + 4) / 4, where the two candidate sets have means 3 and 7/3.
-        {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <mathInput name="e" prefill="3" />
-    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="3 $e" numToSelect="6" />
-    `,
-            });
-
-            await updateMathInputValue({
-                latex: "5",
-                componentIdx: await resolvePathToNodeIdx("e"),
-                core,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx("s");
-
-            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
-                3,
-                1e-10,
-            );
-            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-                2.5,
-                1e-10,
-            );
-        }
-
-        // Selecting nothing is the degenerate case: `selectedValues` returns an
-        // empty list without drawing, so its own definition body never looks at
-        // `exclude`. The exclusion set is pinned all the same, and by either of two
-        // routes on its own. Core fetches every dependency a definition declares
-        // before running it, whether or not the body goes on to read it, and
-        // `selectedValues` declares `exclude`; separately, `selectedValues` depends
-        // on the range, and the definition of `from`/`to`/`numDiscreteValues` reads
-        // `exclude` to count how many values survive, which it does whether or not
-        // anything is drawn. Disabling either route alone leaves this case frozen
-        // exactly as it is; disabling both is what unfreezes it.
-        {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
-    <mathInput name="e" prefill="3" />
-    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="0" />
-    `,
-            });
-
-            await updateMathInputValue({
-                latex: "5",
-                componentIdx: await resolvePathToNodeIdx("e"),
-                core,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const componentIdx = await resolvePathToNodeIdx("s");
-
-            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
-                3,
-                1e-10,
-            );
-            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
-                2.5,
-                1e-10,
-            );
-        }
-    });
-
     it("a sampled distribution's exclusions still follow a reference", async () => {
         // The control for the freezing above: `<sampleRandomNumbers>` freezes
         // nothing, so its moments and its values both move to the new exclusion set.
@@ -2165,41 +1932,40 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
-    it("a selected log-normal freezes the parameters its values came from", async () => {
-        // The log-normal's parameters reach `selectedValues` directly rather than
-        // through the reported moments, so they are frozen on their own account.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="m" prefill="1" />
+    it("a selected distribution's parameter from an input is an error at load", async () => {
+        // A selected distribution used to freeze the parameters its values
+        // came from when an input changed them. What a selection draws from
+        // can't come from an input now (D39, SEL-1), so each of these is an
+        // error at load, and nothing is selected. A sampler still follows
+        // its parameters (the "sampled" tests here).
+        for (const doenetML of [
+            `<mathInput name="ni" prefill="10" />
+    <selectRandomNumbers name="s" type="normalMixture" numToSelect="4"
+        means="0 $ni" standardDeviations="0 $ni" weights="1 $ni" />`,
+            `<mathInput name="m" prefill="10" />
+    <selectRandomNumbers name="s" type="gaussian" mean="$m" numToSelect="4" />`,
+            `<mathInput name="m" prefill="10" />
+    <selectRandomNumbers name="s" type="poisson" mean="$m" numToSelect="4" />`,
+            `<mathInput name="sd" prefill="2" />
+    <selectRandomNumbers name="s" type="gaussian" standardDeviation="$sd" numToSelect="4" />`,
+            `<mathInput name="e" prefill="3" />
+    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="6" />`,
+            `<mathInput name="m" prefill="1" />
     <mathInput name="sd" prefill="0.5" />
-    <selectRandomNumbers name="s" type="logNormal" logMean="$m" logStandardDeviation="$sd" numToSelect="4" />
-    `,
-        });
-        const componentIdx = await resolvePathToNodeIdx("s");
+    <selectRandomNumbers name="s" type="logNormal" logMean="$m" logStandardDeviation="$sd" numToSelect="4" />`,
+            `<mathInput name="n" prefill="10" />
+    <selectRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numToSelect="4" />`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => e.code),
+                doenetML,
+            ).eqls(["doenet-e0070"]);
+        }
+    });
 
-        await updateMathInputValue({
-            latex: "4",
-            componentIdx: await resolvePathToNodeIdx("m"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: await resolvePathToNodeIdx("sd"),
-            core,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const stateValues = stateVariables[componentIdx].stateValues;
-        expect(stateValues.logMean).eq(1);
-        expect(stateValues.logStandardDeviation).closeTo(0.5, 1e-10);
-        expect(stateValues.logVariance).closeTo(0.25, 1e-10);
-        expect(stateValues.mean).closeTo(Math.exp(1.125), 1e-10);
-        expect(stateValues.variance).closeTo(
-            Math.expm1(0.25) * Math.exp(2.25),
-            1e-10,
-        );
-
-        // and a `<sampleRandomNumbers>` in the same shape does follow the reference
+    it("a sampled log-normal's parameters follow a reference", async () => {
+        // `<sampleRandomNumbers>` freezes nothing, so it follows the reference
         const sampled = await createTestCore({
             doenetML: `
     <mathInput name="m" prefill="1" />
@@ -2216,31 +1982,6 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         )[await sampled.resolvePathToNodeIdx("s")].stateValues;
         expect(sampledStateValues.logMean).eq(4);
         expect(sampledStateValues.mean).closeTo(Math.exp(4.5), 1e-10);
-    });
-
-    it("a selected distribution's parameters are frozen with its selection", async () => {
-        // `<selectRandomNumbers>` freezes its moments, so a parameter that kept
-        // tracking a reference would describe a distribution other than the numbers
-        // on the page.
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <mathInput name="n" prefill="10" />
-    <selectRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numToSelect="4" />
-    `,
-        });
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        const componentIdx = await resolvePathToNodeIdx("s");
-        expect(stateVariables[componentIdx].stateValues.numTrials).eq(10);
-        expect(stateVariables[componentIdx].stateValues.mean).closeTo(5, 1e-10);
-
-        await updateMathInputValue({
-            latex: "40",
-            componentIdx: await resolvePathToNodeIdx("n"),
-            core,
-        });
-        stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[componentIdx].stateValues.numTrials).eq(10);
-        expect(stateVariables[componentIdx].stateValues.mean).closeTo(5, 1e-10);
     });
 
     it("a sampled distribution's parameters still follow a reference", async () => {
@@ -3327,8 +3068,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         ).eq(roundedResults2.join(""));
     });
 
-    it("select doesn't change dynamically", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
+    it("numToSelect and the range from an input are an error at load", async () => {
+        // What a selection chooses from can't come from an input (D39,
+        // SEL-1): an error at load in every variant, and nothing is selected.
+        const { core } = await createTestCore({
             doenetML: `
     <mathInput prefill="20" name="numToSelect"/>
     <mathInput prefill="10" name="maxNum"/>
@@ -3343,75 +3086,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     </p>
     `,
         });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        let sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-        expect(sample1replacements.length).eq(20);
-        expect(sample2replacements.length).eq(10);
-        let sample1numbers = sample1replacements.map(
-            (x) => x.stateValues.value,
-        );
-        let sample2numbers = sample2replacements.map(
-            (x) => x.stateValues.value,
-        );
-
-        for (let num of sample1numbers) {
-            expect(num).gte(0);
-            expect(num).lt(10);
-        }
-        for (let num of sample2numbers) {
-            expect([0, 1, 2, 3, 4].includes(num)).eq(true);
-        }
-
-        // Nothing changes when change mathInputs
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: await resolvePathToNodeIdx("numToSelect"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: await resolvePathToNodeIdx("maxNum"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "16",
-            componentIdx: await resolvePathToNodeIdx("numToSelect2"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "18",
-            componentIdx: await resolvePathToNodeIdx("maxNum2"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-
-        expect(sample1replacements.map((x) => x.stateValues.value)).eqls(
-            sample1numbers,
-        );
-        expect(sample2replacements.map((x) => x.stateValues.value)).eqls(
-            sample2numbers,
-        );
+        expect(getDiagnosticsByType(core).errors.map((e) => e.code)).eqls([
+            "doenet-e0070",
+            "doenet-e0070",
+        ]);
     });
 
     it("sampled number does change dynamically", async () => {

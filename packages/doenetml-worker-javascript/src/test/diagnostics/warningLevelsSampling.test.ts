@@ -143,11 +143,12 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         ]);
     });
 
-    it("w0126: a selectRandomNumbers from an input is an info", async () => {
-        // Its selection is made once, so the info stays with it.
+    it("w0126: a selectRandomNumbers from another random choice is an info", async () => {
+        // Its selection is made once, so the info stays with it. (One from
+        // an input would be an error, D39, SEL-1.)
         const { diagnostics } = await setup(`
 <selectRandomNumbers type="gaussian" standardDeviation="-1"/>
-<mathInput name="sd" prefill="-1"/>
+<selectFromSequence name="sd" from="-1" to="-1"/>
 <selectRandomNumbers type="gaussian" standardDeviation="$sd"/>
 `);
         expect(diagnostics("doenet-w0126")).eqls([
@@ -159,7 +160,7 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
     it("w0051: coprime for letters", async () => {
         const { diagnostics } = await setup(`
 <selectFromSequence type="letters" from="a" to="e" coprime/>
-<booleanInput name="c" prefill="true"/>
+<select name="c"><option><boolean>true</boolean></option></select>
 <selectFromSequence type="letters" from="a" to="e" coprime="$c"/>
 `);
         expect(diagnostics("doenet-w0051")).eqls([

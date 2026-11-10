@@ -706,8 +706,11 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         ).eq(num2);
     });
 
-    it("select doesn't change dynamically", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
+    it("numToSelect and the range from an input are an error at load", async () => {
+        // What a selection chooses from can't come from an input
+        // (D39, SEL-1): an error at load in every variant, and the choice
+        // chooses nothing.
+        const { core } = await createTestCore({
             doenetML: `
     <mathInput prefill="5" name="numToSelect"/>
     <mathInput prefill="3" name="maxNum"/>
@@ -722,74 +725,8 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     </p>
     `,
         });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        let sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-        expect(sample1replacements.length).eq(5);
-        expect(sample2replacements.length).eq(2);
-        let sample1numbers = sample1replacements.map(
-            (x) => x.stateValues.value,
-        );
-        let sample2numbers = sample2replacements.map(
-            (x) => x.stateValues.value,
-        );
-
-        for (let num of sample1numbers) {
-            expect([2, 3].includes(num)).eq(true);
-        }
-        for (let num of sample2numbers) {
-            expect([2, 3, 5, 7].includes(num)).eq(true);
-        }
-
-        // Nothing changes when change mathInputs
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: await resolvePathToNodeIdx("numToSelect"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: await resolvePathToNodeIdx("maxNum"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "16",
-            componentIdx: await resolvePathToNodeIdx("numToSelect2"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "18",
-            componentIdx: await resolvePathToNodeIdx("maxNum2"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-
-        expect(sample1replacements.map((x) => x.stateValues.value)).eqls(
-            sample1numbers,
-        );
-        expect(sample2replacements.map((x) => x.stateValues.value)).eqls(
-            sample2numbers,
-        );
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => e.code)).eqls(Array(2).fill("doenet-e0070"));
     });
 
     it("select doesn't resample in dynamic repeat", async () => {

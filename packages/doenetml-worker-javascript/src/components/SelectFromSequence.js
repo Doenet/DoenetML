@@ -35,6 +35,11 @@ import {
     withNumToSelect,
     selectionWithRequested,
 } from "../utils/selectErrors";
+import {
+    coprimeCombinations,
+    drawValidCombination,
+    someValidCombination,
+} from "../utils/validCombinations";
 const { gcd } = me.math;
 
 /**
@@ -1277,8 +1282,52 @@ function makeFreshSelection(dependencyValues) {
             }
         }
 
-        // with 200 chances with at least 70% success,
-        // prob of failure less than 10^(-30)
+        // The combinations to draw from: those of the sequence's values,
+        // excluded values left out, that aren't an excluded combination and,
+        // with `coprime`, have no common factor.
+        const space = {
+            numValues: dependencyValues.length,
+            numToSelect: dependencyValues.numToSelect,
+            withReplacement: dependencyValues.withReplacement,
+            valueAt: (index) =>
+                returnSequenceValueForIndex({
+                    index,
+                    from: dependencyValues.from,
+                    step: dependencyValues.step,
+                    exclude: dependencyValues.exclude,
+                    type: dependencyValues.type,
+                    lowercase: dependencyValues.lowercase,
+                }),
+            isValid: (values) =>
+                (dependencyValues.excludedCombinations.length === 0 ||
+                    !checkForExcludedCombination({
+                        type: dependencyValues.type,
+                        excludedCombinations:
+                            dependencyValues.excludedCombinations,
+                        values,
+                    })) &&
+                // the values are integers, as `coprime` requires
+                (!coprime || integerGcd(values) === 1),
+        };
+
+        // Whether a valid combination exists is decided by the values, so
+        // it is found before any draw, and a select with none fails the same
+        // way in every variant (SEL-4, DIAG-7): with `coprime`, as values
+        // that all share a factor do (`6 10 15`, two at a time, have none),
+        // and otherwise as excluding too many combinations does.
+        if (!someValidCombination(space)) {
+            const error = selectError({
+                code: coprime ? "doenet-e0045" : "doenet-e0044",
+                type: failureType,
+            });
+            return selectionResult(error, {
+                selectedValues: null,
+                selectedIndices: null,
+            });
+        }
+
+        // Draw, and draw again when a combination isn't valid. When most
+        // are valid, a few draws find one.
         let foundValidCombination = false;
         for (let sampnum = 0; sampnum < 200; sampnum++) {
             let selectedObj = selectValuesAndIndices({
@@ -1297,56 +1346,41 @@ function makeFreshSelection(dependencyValues) {
                 });
             }
 
-            selectedValues = selectedObj.selectedValues;
-            selectedIndices = selectedObj.selectedIndices;
-
-            // try again if hit excluded combination
-            if (
-                checkForExcludedCombination({
-                    type: dependencyValues.type,
-                    excludedCombinations: dependencyValues.excludedCombinations,
-                    values: selectedValues,
-                })
-            ) {
-                continue;
+            if (space.isValid(selectedObj.selectedValues)) {
+                selectedValues = selectedObj.selectedValues;
+                selectedIndices = selectedObj.selectedIndices;
+                foundValidCombination = true;
+                break;
             }
-
-            if (coprime && gcd(...selectedValues) !== 1) {
-                continue;
-            }
-
-            foundValidCombination = true;
-            break;
         }
 
         if (!foundValidCombination) {
-            // Without `coprime` this is the extremely unlikely fluke rather
-            // than a sequence that could never have supplied a pair: it
-            // won't happen, as it occurs with prob < 10^(-30).
-            let error;
-            if (!coprime) {
-                // the fluke depends on the variant alone
-                error = selectError({ code: "doenet-e0052", type: "info" });
-            } else if (
-                returnSequenceValues(dependencyValues).reduce(
-                    (a, c) => gcd(a, c),
-                    0,
-                ) !== 1
-            ) {
-                // Every value shares a factor, so no draw could be coprime
-                error = selectError({
-                    code: "doenet-e0045",
-                    type: failureType,
-                });
+            // The draws found none, so valid combinations are rare: draw
+            // among them exactly, so the select never fails by chance
+            // (SEL-4). One exists, as found above. Coprime combinations are
+            // counted rather than gone through, as there can be far too many
+            // combinations to go through (1 and the even numbers to 2000,
+            // three at a time); `coprime` is never set with excluded
+            // combinations.
+            if (coprime) {
+                const possible = returnSequenceValues(dependencyValues, true);
+                const drawn = coprimeCombinations({
+                    values: possible.map((x) => x.value),
+                    numToSelect: dependencyValues.numToSelect,
+                    withReplacement: dependencyValues.withReplacement,
+                }).draw(dependencyValues.variantRng);
+                selectedValues = drawn.values;
+                selectedIndices = drawn.indices.map(
+                    (index) => possible[index].originalIndex + 1,
+                );
             } else {
-                // Coprime values may exist and the draws missed them, which
-                // depends on the variant, so it is never an error (D38)
-                error = selectError({ code: "doenet-i0057", type: "info" });
+                const drawn = drawValidCombination({
+                    ...space,
+                    rng: dependencyValues.variantRng,
+                });
+                selectedValues = drawn.values;
+                selectedIndices = drawn.indices.map((index) => index + 1);
             }
-            return selectionResult(error, {
-                selectedValues: null,
-                selectedIndices: null,
-            });
         }
     }
 
@@ -1388,6 +1422,24 @@ function makeFreshSelection(dependencyValues) {
         selectedValues,
         selectedIndices,
     });
+}
+
+/**
+ * The greatest common divisor of the integers `values`, by Euclid's
+ * algorithm: what `gcd` gives, without its cost for each type it handles,
+ * since the exact draw of a coprime selection asks it of every combination.
+ */
+function integerGcd(values) {
+    let divisor = 0;
+    for (const value of values) {
+        let a = Math.abs(divisor);
+        let b = Math.abs(value);
+        while (b !== 0) {
+            [a, b] = [b, a % b];
+        }
+        divisor = a;
+    }
+    return divisor;
 }
 
 /**
@@ -1436,6 +1488,7 @@ function selectValuesAndIndices({
         // and use rejection method to resample if an excluded is hit
         // or repeat a value when withReplacement=false
 
+        let drewFromAll = true;
         for (let ind = 0; ind < numToSelect; ind++) {
             // with 100 chances with at least 50% success,
             // prob of failure less than 10^(-30)
@@ -1474,20 +1527,23 @@ function selectValuesAndIndices({
             }
 
             if (!foundValid) {
-                // this won't happen, as occurs with prob < 10^(-30)
-                // the fluke depends on the variant alone
-                return {
-                    ...selectError({ code: "doenet-e0053", type: "info" }),
-                    selectedValues: null,
-                    selectedIndices: null,
-                };
+                // The draws found no valid value, which is very unlikely,
+                // but a choice never fails by chance (SEL-4): draw the whole
+                // selection again from the list of valid values, below. A
+                // selection either way is uniform among the valid ones.
+                drewFromAll = false;
+                break;
             }
 
             selectedValues.push(componentValue);
             selectedIndices.push(selectedIndex);
         }
 
-        return { selectedValues, selectedIndices };
+        if (drewFromAll) {
+            return { selectedValues, selectedIndices };
+        }
+        selectedValues = [];
+        selectedIndices = [];
     }
 
     // for cases when a large fraction might be excluded

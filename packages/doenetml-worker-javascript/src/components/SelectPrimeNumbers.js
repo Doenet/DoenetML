@@ -26,6 +26,10 @@ import {
     withNumToSelect,
     selectionWithRequested,
 } from "../utils/selectErrors";
+import {
+    drawValidCombination,
+    someValidCombination,
+} from "../utils/validCombinations";
 
 /**
  * The attributes that decide what a `<selectPrimeNumbers>` can select:
@@ -774,8 +778,31 @@ function makeFreshSelection(dependencyValues) {
             }
         }
 
-        // with 200 chances with at least 70% success,
-        // prob of failure less than 10^(-30)
+        // The combinations to draw from: those of the primes that aren't
+        // an excluded combination.
+        const space = {
+            numValues,
+            numToSelect: dependencyValues.numToSelect,
+            withReplacement: dependencyValues.withReplacement,
+            valueAt: (index) => possibleValues[index],
+            isValid: (values) =>
+                !checkForExcludedCombination({
+                    type: "number",
+                    excludedCombinations: dependencyValues.excludedCombinations,
+                    values,
+                }),
+        };
+
+        // Whether a valid combination exists is decided by the values, so
+        // it is found before any draw, and a select with none fails the same
+        // way in every variant (SEL-4, DIAG-7).
+        if (!someValidCombination(space)) {
+            const error = selectError({ code: "doenet-e0051", type });
+            return selectionResult(error, { selectedValues: null });
+        }
+
+        // Draw, and draw again when a combination is excluded. When most
+        // aren't, a few draws find one.
         let foundValidCombination = false;
         for (let sampnum = 0; sampnum < 200; sampnum++) {
             selectedValues = sampleFromNumberList({
@@ -785,26 +812,20 @@ function makeFreshSelection(dependencyValues) {
                 rng: dependencyValues.variantRng,
             });
 
-            // try again if hit excluded combination
-            if (
-                checkForExcludedCombination({
-                    type: "number",
-                    excludedCombinations: dependencyValues.excludedCombinations,
-                    values: selectedValues,
-                })
-            ) {
-                continue;
+            if (space.isValid(selectedValues)) {
+                foundValidCombination = true;
+                break;
             }
-
-            foundValidCombination = true;
-            break;
         }
 
         if (!foundValidCombination) {
-            // this won't happen, as occurs with prob < 10^(-30), and depends
-            // on the variant alone
-            const error = selectError({ code: "doenet-e0052", type: "info" });
-            return selectionResult(error, { selectedValues: null });
+            // The draws found none, so valid combinations are rare: draw
+            // among them exactly, so the select never fails by chance
+            // (SEL-4). One exists, as found above.
+            selectedValues = drawValidCombination({
+                ...space,
+                rng: dependencyValues.variantRng,
+            }).values;
         }
     }
 

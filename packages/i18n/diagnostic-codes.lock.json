@@ -77,6 +77,7 @@
     "doenet-e0067": "type-change-composite-type-unknown",
     "doenet-e0068": "copy-with-state-changes-choice",
     "doenet-e0069": "copy-with-state-adds-options",
+    "doenet-e0070": "choice-parameter-reader-changeable",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",

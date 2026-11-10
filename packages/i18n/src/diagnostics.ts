@@ -352,6 +352,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0067": "type-change-composite-type-unknown",
     "doenet-e0068": "copy-with-state-changes-choice",
     "doenet-e0069": "copy-with-state-adds-options",
+    "doenet-e0070": "choice-parameter-reader-changeable",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",
@@ -408,6 +409,12 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         "doenet-e0048",
         "doenet-e0049",
         "doenet-e0050",
+        // A choice never fails by chance (SEL-4, D39): when its random draws
+        // find nothing, a select draws among the valid choices exactly, and
+        // whether any exists is decided before it draws.
+        "doenet-e0052",
+        "doenet-e0053",
+        "doenet-i0057",
     ]);
 
 /**

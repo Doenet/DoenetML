@@ -447,11 +447,10 @@ describe("Samplers and sequences as list components @group4", async () => {
         expect(c.value).eq(8);
     });
 
-    it("a value written to a selection stays when the sequence's from changes", async () => {
+    it("a value written to a selection stays", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <mathInput name="from" prefill="1" />
-    <p name="p"><selectFromSequence name="s" from="$from" to="100" numToSelect="2" fixed="false" /></p>
+    <p name="p"><selectFromSequence name="s" from="1" to="100" numToSelect="2" fixed="false" /></p>
     <mathInput name="mi" bindValueTo="$s[1]" />
     `,
         });
@@ -462,16 +461,6 @@ describe("Samplers and sequences as list components @group4", async () => {
         await updateMathInputValue({
             latex: "742",
             componentIdx: await resolvePathToNodeIdx("mi"),
-            core,
-        });
-        expect((await textsOf(core, resolvePathToNodeIdx, ["p"])).p).eq(
-            `742, ${second}`,
-        );
-
-        // The selection is not made again, and neither is the write undone.
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: await resolvePathToNodeIdx("from"),
             core,
         });
         expect((await textsOf(core, resolvePathToNodeIdx, ["p"])).p).eq(

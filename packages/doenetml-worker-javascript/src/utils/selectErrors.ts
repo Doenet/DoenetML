@@ -476,8 +476,8 @@ const NO_DRAW = Symbol("a probe selection does not draw");
  * select gives back, with the `numToSelect` it tried, as when it failed, so a
  * reload is the same. The probe stops at the first draw, so a failure the
  * DoenetML can decide must be found before any draw (`doenet-e0045` of a
- * `<selectFromSequence>`); one found only by drawing depends on the variant
- * and is always an info (`doenet-e0052`, `doenet-e0053`, `doenet-i0057`).
+ * `<selectFromSequence>`, and whether any valid combination exists,
+ * `validCombinations.ts`). A select never fails by drawing (SEL-4).
  *
  * @param rngKey The dependency `select` draws from.
  * @param takeRequested The selection result for nonempty `requested`.

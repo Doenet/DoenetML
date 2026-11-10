@@ -612,6 +612,7 @@ export type MessageKey =
     | "chart-histogram-bar-width-ignored"
     | "copy-with-state-changes-choice"
     | "copy-with-state-adds-options"
+    | "choice-parameter-reader-changeable"
     | "copy-with-state-of-uri"
     | "copy-with-state-attribute-reaches-choice"
     | "editor-update-viewer"
@@ -1292,6 +1293,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "chart-histogram-bar-width-ignored",
     "copy-with-state-changes-choice",
     "copy-with-state-adds-options",
+    "choice-parameter-reader-changeable",
     "copy-with-state-of-uri",
     "copy-with-state-attribute-reaches-choice",
     "editor-update-viewer",
