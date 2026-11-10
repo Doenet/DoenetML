@@ -163,6 +163,10 @@ function forwardFromShadowSourceIfUnmodified(stateDef, varName, conditionName) {
 export default class Function extends InlineComponent {
     static componentType = "function";
 
+    // missing while its content is only missing children (D40,
+    // `BaseComponent.missingWhenContentMissing`)
+    static missingWhenContentMissing = true;
+
     static componentDocs = {
         summary: "A mathematical function, defined by formula or interpolation",
     };

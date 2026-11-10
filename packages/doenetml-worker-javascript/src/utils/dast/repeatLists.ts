@@ -843,6 +843,18 @@ export function convertRepeatsToLists({
             if (node.componentType === "number" && children.length > 1) {
                 return false;
             }
+            if (
+                node.componentType === "number" &&
+                children.length === 1 &&
+                indexedReference(children[0])
+            ) {
+                // A `<number>` that is only a reference with an index
+                // (`<number>$l[$i]</number>`, `<number>$x[3]</number>`) is
+                // missing in an iteration where the index names nothing (D40,
+                // `BaseComponent.missingWhenContentMissing`), which an entry
+                // of the list can't be yet, so the repeat stays a composite.
+                return false;
+            }
             return contentQualifies(children);
         }
 
@@ -1483,6 +1495,20 @@ const BOOLEAN_NODE_ATTRIBUTES = new Set([
  * number (`utils/repeatTemplate.js`): what a `<round>` rounds to.
  */
 const INTEGER_NODE_ATTRIBUTES = new Set(["numdecimals", "numdigits"]);
+
+/** Whether `child` is a reference whose path holds an index (`$l[$i]`). */
+function indexedReference(child: SerializedComponent | string): boolean {
+    if (
+        typeof child === "string" ||
+        !child.extending ||
+        !("Ref" in child.extending)
+    ) {
+        return false;
+    }
+    return (child.extending.Ref.unresolvedPath ?? []).some(
+        (part: SerializedRefResolutionPathPart) => part.index.length > 0,
+    );
+}
 
 /**
  * Whether `attribute` is written as an integer and nothing else (`2`), which

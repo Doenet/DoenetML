@@ -693,7 +693,7 @@ describe("Names in the branches of a conditionalContent or a one-pick select @gr
     <else><math>2</math></else>
 </conditionalContent>
 <p name="p">[$cc.value][$cc.notThere]</p>`);
-        expect(await text()).eq("[2][]");
+        expect(await text()).eq("[2][＿]");
         expect(diagnostics.warnings.map((w) => w.message)).eqls([
             "No referent found for reference: `$cc.notThere`",
         ]);

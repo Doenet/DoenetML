@@ -780,6 +780,13 @@ export async function substituteAdapter({
                 ...newSerializedChild.doenetAttributes,
                 missing: true,
             };
+        } else if (originalChild.canBecomeMissing) {
+            // and missing while it is, for one that can be missing for a
+            // while (`<number>$l[$i]</number>`, D40)
+            newSerializedChild.doenetAttributes = {
+                ...newSerializedChild.doenetAttributes,
+                missingWhileAdaptedMissing: true,
+            };
         }
         core._components[core._components.length] = undefined;
     } else {

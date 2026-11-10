@@ -3,6 +3,11 @@ import { renameStateVariable } from "../../utils/stateVariables";
 
 export default class BooleanOperatorOneInput extends BooleanComponent {
     static componentType = "_booleanOperatorOneInput";
+
+    // Its children are operands, among which a missing one is a blank
+    // (D37), so it is not missing for one
+    // (`BaseComponent.missingWhenContentMissing`).
+    static missingWhenContentMissing = false;
     static rendererType = "boolean";
 
     static returnStateVariableDefinitions() {

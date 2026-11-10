@@ -2,6 +2,11 @@ import BooleanComponent from "../Boolean";
 
 export default class BooleanBaseOperatorOfMath extends BooleanComponent {
     static componentType = "_booleanOperatorOfMath";
+
+    // Its children are operands, among which a missing one is a blank
+    // (D37), so it is not missing for one
+    // (`BaseComponent.missingWhenContentMissing`).
+    static missingWhenContentMissing = false;
     static rendererType = "boolean";
 
     // Include children that can be added due to sugar

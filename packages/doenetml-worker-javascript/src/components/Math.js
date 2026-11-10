@@ -1,3 +1,4 @@
+import { contentMissingDefinition } from "../utils/missing";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import {
@@ -625,6 +626,12 @@ export default class MathComponent extends InlineComponent {
             definition: calculateMathValue,
             inverseDefinition: invertMath,
         };
+
+        // Whether its content is only missing children (`<math>$nothing</math>`).
+        // It is not missing then, since a blank takes part in a math (D37),
+        // but a component made from it is: a `<function>` or a `<number>`
+        // whose children a sugar wrapped in a math (D40).
+        stateVariableDefinitions.contentMissing = contentMissingDefinition();
 
         stateVariableDefinitions.value = {
             description: "The math expression value.",

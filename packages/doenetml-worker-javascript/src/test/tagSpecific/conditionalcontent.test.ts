@@ -616,7 +616,7 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(`pd2`)].stateValues
                     .text,
-            ).eq("");
+            ).eq("＿");
         }
 
         await check_items("mouse", "z");

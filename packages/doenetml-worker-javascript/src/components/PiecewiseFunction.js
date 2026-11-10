@@ -27,6 +27,10 @@ import {
 export default class PiecewiseFunction extends Function {
     static componentType = "piecewiseFunction";
 
+    // Its children are its pieces, each with its own domain, so it is not
+    // missing for a missing one (`BaseComponent.missingWhenContentMissing`).
+    static missingWhenContentMissing = false;
+
     static componentDocs = {
         summary: "A function defined piecewise from sub-functions on intervals",
     };

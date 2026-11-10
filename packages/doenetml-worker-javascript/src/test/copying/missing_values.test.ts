@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
@@ -409,15 +410,18 @@ describe("Missing values and missing tags (D37) @group2", () => {
         ]);
     });
 
-    it("shows a choice input's selected value once a choice is made", async () => {
-        // The tag is linked to the entry, so a write reaches it; it is not
-        // missing before a choice (a known gap), so that a copy of an award's
-        // feedback stays hidden while the award has none.
+    it("shows a choice input's selected value once a choice is made, and a blank before", async () => {
+        // The tag is linked to the entry, so a write reaches it, and it is
+        // missing only while the entry holds no value (#2487).
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
     <p name="p">[<text extend="$ci.selectedValue"/>][$ci.selectedValue]</p>
     `);
-        expect(text).eq("[][＿]");
+        expect(text).eq("[＿][＿]");
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "_blank",
+            "_blank",
+        ]);
         await updateSelectedIndices({
             selectedIndices: [2],
             componentIdx: await resolvePathToNodeIdx("ci"),
@@ -427,6 +431,9 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("[b][b]");
+        expect(
+            rendererTypesOf(core, await resolvePathToNodeIdx("p")),
+        ).not.toContain("_blank");
     });
 
     it("still reports a later branch holding several components after an empty one", async () => {
@@ -554,7 +561,7 @@ describe("Missing values and missing tags (D37) @group2", () => {
             expect((await stateValues(name)).valueMissing, name).eq(true);
         }
         expect((await stateValues("n3")).value).eq(1);
-        expect((await stateValues("n3")).valueMissing).eq(undefined);
+        expect((await stateValues("n3")).valueMissing).eq(false);
         expect((await stateValues("m1")).text).eq("＿");
         expect((await stateValues("m2")).text).eq("＿ + 1");
         expect((await stateValues("b1")).value).eq(false);
@@ -566,5 +573,381 @@ describe("Missing values and missing tags (D37) @group2", () => {
             "_blank",
             "number",
         ]);
+    });
+});
+
+/**
+ * D40 (Doenet/DoenetML#2461, #2487): a component whose value is made from
+ * its children is missing while its content is only missing children, a
+ * property that holds no value is missing as a tag, and a reference to one
+ * thing that makes nothing is a blank in a `<text>` as in a `<p>`.
+ */
+describe("Missing content and missing values (D40) @group2", () => {
+    it("makes a number, boolean or function whose content is only a missing reference missing", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <p name="p"><number name="n1">$nothing</number><integer name="n2">$nothing</integer><number name="n3"><math extend="$nothing"/></number><boolean name="b1">$nothing</boolean><when name="b2">$nothing</when><function name="f1">$nothing</function><function name="f2"><math extend="$nothing"/></function></p>
+    `);
+        expect(text).eq("＿＿＿＿＿＿＿");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["n1", "n2", "n3", "b1", "b2", "f1", "f2"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        // all but the `<when>`, which is not drawn
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls(
+            Array(6).fill("_blank"),
+        );
+    });
+
+    it("keeps a component whose content holds more than a missing reference, or none, as it was", async () => {
+        // The blank takes part in an expression (D37). A `NaN` made from a
+        // blank (`<number>$nothing + 1</number>`) is #2460.
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <number name="nm" extend="$nothing"/>
+    <p name="p">[<number name="n1">$nothing + 1</number>][<boolean name="b1">$nothing = 1</boolean>][<boolean name="b2">$nm = $nm</boolean>][<function name="f1">$nothing + 1</function>][<number name="n2">3</number>][<number name="n3"/>][<boolean name="b3"/>][<and name="a1">$nothing</and>][<math name="m1">$nothing</math>][<text name="t1">$nothing</text>][<math name="m2">$nothing + 1</math>][<text name="t2">x $nothing y</text>]</p>
+    `);
+        expect(text).eq(
+            "[NaN][false][false][＿ + 1][3][NaN][false][false][＿][＿][＿ + 1][x ＿ y]",
+        );
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of [
+            "n1",
+            "b1",
+            "b2",
+            "f1",
+            "n2",
+            "n3",
+            "b3",
+            "a1",
+            "m1",
+            "t1",
+            "m2",
+            "t2",
+        ]) {
+            expect(
+                Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                ),
+                name,
+            ).eq(false);
+        }
+    });
+
+    it("makes a shape whose content is only a missing reference missing, not drawn in a graph", async () => {
+        const { core, resolvePathToNodeIdx } = await shownAndReported(`
+    <graph name="g"><circle name="c">$nothing</circle><polygon name="pg">$nothing</polygon><curve name="cv">$nothing</curve><circle name="c2"/></graph>
+    <p name="p">x</p>
+    `);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["c", "pg", "cv"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                .valueMissing,
+        ).eq(false);
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls([
+            "_blank",
+            "_blank",
+            "_blank",
+            "circle",
+        ]);
+    });
+
+    it("reads a reference to a number whose content is missing as missing, never equal", async () => {
+        const { text } = await shownAndReported(`
+    <number name="n">$nothing</number>
+    <boolean name="bb">$nothing</boolean>
+    <p name="p">[$n][$n.value][<boolean>$n = $n</boolean>][<boolean>$bb = $bb</boolean>][<math>$n + 1</math>]</p>
+    `);
+        expect(text).eq("[＿][＿][false][false][＿ + 1]");
+    });
+
+    it("makes a number whose content is missing from it again once the reference names something", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <mathInput name="i" prefill="5" />
+    <mathList name="l">1 2</mathList>
+    <p name="p"><number name="n">$l[$i]</number></p>
+    `);
+        expect(text).eq("＿");
+        // drawn as a blank now, so the viewer is told to load the renderer
+        // it is drawn with once it is not
+        expect(core.core!.rendererTypesInDocument).toContain("number");
+
+        async function current() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+                missing:
+                    stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                        .valueMissing,
+                drawn: rendererTypesOf(core, await resolvePathToNodeIdx("p")),
+            };
+        }
+        expect(await current()).eqls({
+            text: "＿",
+            missing: true,
+            drawn: ["_blank"],
+        });
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await current()).eqls({
+            text: "2",
+            missing: false,
+            drawn: ["number"],
+        });
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await current()).eqls({
+            text: "＿",
+            missing: true,
+            drawn: ["_blank"],
+        });
+    });
+
+    it("makes a tag or a property of a number whose content is missing missing while it is", async () => {
+        // A tag of it (`b`), a tag of a property of it (`a`), a tag of
+        // another type made around it (`c`, `d`), and the math a math reads
+        // of it (its adapter, in `m`) are missing while it is, and come back
+        // with it. An unlinked copy made while it is missing stays missing.
+        const { core, resolvePathToNodeIdx } = await shownAndReported(`
+    <mathInput name="i" prefill="5"/>
+    <mathList name="l">1 2</mathList>
+    <number name="n">$l[$i]</number>
+    <p name="p">[<number name="a" extend="$n.value"/>][<number name="b" extend="$n"/>][<math name="c" extend="$n"/>][<text name="d" extend="$n"/>][<math name="m"><number extend="$n"/></math>][<number name="e" copy="$n.value"/>]</p>
+    `);
+        async function current() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const missing: Record<string, boolean> = {};
+            for (const name of ["a", "b", "c", "d", "e"]) {
+                missing[name] = Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                );
+            }
+            return {
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+                missing,
+                drawn: rendererTypesOf(core, await resolvePathToNodeIdx("p")),
+            };
+        }
+        expect(await current()).eqls({
+            text: "[＿][＿][＿][＿][＿][＿]",
+            missing: { a: true, b: true, c: true, d: true, e: true },
+            drawn: Array(6)
+                .fill("_blank")
+                .map((t, i) => (i === 4 ? "math" : t)),
+        });
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await current()).eqls({
+            text: "[2][2][2][2][2][＿]",
+            missing: { a: false, b: false, c: false, d: false, e: true },
+            drawn: ["number", "number", "math", "text", "math", "_blank"],
+        });
+    });
+
+    it("keeps an unlinked copy of a number whose content is missing as it was made, after a reload too", async () => {
+        // Made while `n` is missing, a copy is missing for good; made while
+        // it is not, a copy of its value keeps the value it was made with.
+        const doenetML = `
+    <mathInput name="i" prefill="5"/>
+    <mathInput name="j" prefill="1"/>
+    <mathList name="l">1 2</mathList>
+    <number name="n">$l[$i]</number>
+    <number name="n2">$l[$j]</number>
+    <p name="p">[<number copy="$n"/>][<number copy="$n.value"/>][<math copy="$n"/>][<number copy="$n2.value"/>]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[＿][＿][＿][1]");
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("j"),
+            core,
+        });
+        expect(await text()).eq("[＿][＿][＿][1]");
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await text()).eq("[＿][＿][＿][1]");
+    });
+
+    it("gives no credit for an award whose condition is missing", async () => {
+        const { core, resolvePathToNodeIdx } = await shownAndReported(`
+    <answer name="a1"><award>$nothing</award></answer>
+    <answer name="a2"><award><when>$nothing</when></award></answer>
+    <p name="p">x</p>
+    `);
+        for (const name of ["a1", "a2"]) {
+            const componentIdx = await resolvePathToNodeIdx(name);
+            await submitAnswer({ componentIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[componentIdx].stateValues.creditAchieved,
+                name,
+            ).eq(0);
+        }
+    });
+
+    it("makes a tag of a property entry that holds no value missing", async () => {
+        const { text, errors, warnings, core, resolvePathToNodeIdx } =
+            await shownAndReported(`
+    <point name="P">(1,2)</point>
+    <function name="f">x</function>
+    <p name="p">[<number name="n1" extend="$P.z"/>][<number name="n2" extend="$P.x3"/>][<math name="n3" extend="$P.z"/>][<number name="n4" extend="$f.minimumValue1"/>][<number name="n5" copy="$P.z"/>][$P.z][<math name="m" extend="$P.x"/>]</p>
+    `);
+        expect([...errors, ...warnings]).eqls([]);
+        expect(text).eq("[＿][＿][＿][＿][＿][＿][1]");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["n1", "n2", "n3", "n4", "n5"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .valueMissing,
+        ).eq(undefined);
+    });
+
+    it("keeps a tag of an array that holds no entries, which is a list, not missing", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <function name="f">x</function>
+    <function name="g">(x-1)^2</function>
+    <p name="p">[<text name="t1">$f.minima</text>][<text name="t2">$f.minimumValues</text>][$f.minima][<pointList name="pl1" extend="$f.minima"/>][<pointList name="pl2" extend="$g.minima"/>][<numberList name="nl" extend="$g.minimumValues"/>]</p>
+    `);
+        // A tag of an array holds its entries, possibly none.
+        expect(text).eq("[][][][][(1, 0)][0]");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
+        ).eq("");
+        for (const name of ["pl1", "pl2", "nl"]) {
+            expect(
+                Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                ),
+                name,
+            ).eq(false);
+        }
+    });
+
+    it("makes a tag of an answer's submitted response missing before a submission", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <answer name="ans"><mathInput name="mi"/><award>x</award></answer>
+    <p name="p">[<math name="m" extend="$ans.submittedResponse"/>][<boolean>$m = $m</boolean>]</p>
+    `);
+        expect(text).eq("[＿][false]");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .valueMissing,
+        ).eq(true);
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "_blank",
+            "boolean",
+        ]);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[y][true]");
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "math",
+            "boolean",
+        ]);
+    });
+
+    it("shows a reference to one thing that makes nothing through a composite as a blank in a text, a p and a math", async () => {
+        const doenetML = `
+    <p name="src"><text>a</text></p>
+    <collect name="c" componentType="text" from="$src"/>
+    <function name="f">x</function>
+    <repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence>
+    <group name="terms"><text>a</text></group>
+    `;
+        for (const reference of [
+            "$c.maxNumber",
+            "$f.minimumValue1",
+            "$r[3]",
+            "$terms.maths",
+        ]) {
+            const { text, core, resolvePathToNodeIdx } = await shownAndReported(
+                `${doenetML}
+    <p name="p">[<text name="t1">${reference}</text>][<text name="t2">x ${reference} y</text>][${reference}][<math name="m">${reference}</math>][<boolean name="b">${reference} = ${reference}</boolean>]</p>`,
+            );
+            expect(text, reference).eq("[＿][x ＿ y][＿][＿][false]");
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const stateValues = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await stateValues("t1")).value, reference).eq("＿");
+            expect((await stateValues("t2")).value, reference).eq("x ＿ y");
+            expect((await stateValues("m")).text, reference).eq("＿");
+            expect((await stateValues("b")).value, reference).eq(false);
+        }
     });
 });

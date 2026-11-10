@@ -1600,7 +1600,7 @@ describe("Graph tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("graph1")].stateValues
                 .xLabel,
-        ).eq("\\(\uff3f\\)");
+        ).eq("\uff3f");
 
         let mathinputIdx =
             stateVariables[await resolvePathToNodeIdx("x")].stateValues

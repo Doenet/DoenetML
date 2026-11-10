@@ -127,10 +127,21 @@ describe("Repeats whose template is one value @group4", () => {
 <numberList name="l">10 20</numberList>
 <p name="p"><repeatForSequence name="r" from="1" to="3" indexName="i"><math>$l[$i] + 1</math></repeatForSequence></p>
 <p name="pn"><repeatForSequence name="rn" from="1" to="3" indexName="i"><number>$l[$i] + 1</number></repeatForSequence></p>
+`,
+            names: ["p", "pn"],
+        });
+        // A number that is only an entry past the end is missing (D40), which
+        // an entry of a list can't be yet, so the repeat stays a composite.
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">10 20</numberList>
 <p name="pd"><repeatForSequence name="rd" from="1" to="3" indexName="i"><number>$l[$i]</number></repeatForSequence></p>
 `,
-            names: ["p", "pn", "pd"],
+            names: ["pd"],
+            repeatName: "rd",
+            becomesList: false,
         });
+        expect(texts).toEqual({ pd: "10, 20, ＿" });
     });
 
     it("a nested math, simplified", async () => {
@@ -162,10 +173,9 @@ describe("Repeats whose template is one value @group4", () => {
 <p name="p"><repeat name="r" for="$l" valueName="x"><math>$x[1]</math></repeat></p>
 <mathList name="lt">(1,2) (3,4,7)</mathList>
 <p name="p2"><repeat name="r2" for="$lt" valueName="x" indexName="i"><math>$x[1] + $i</math></repeat></p>
-<p name="p3"><repeat name="r3" for="$l" valueName="x"><number>$x[3]</number></repeat></p>
 <p name="p4"><repeat name="r4" for="$l" valueName="x"><math>($x[1], $x)</math></repeat></p>
 `,
-            names: ["p", "p2", "p3", "p4"],
+            names: ["p", "p2", "p4"],
         });
         // An index into a scalar entry (`5`, `x`), which has no entries
         // (D27), is a blank, as an index past an entry's end is.
@@ -174,9 +184,21 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({
             p: "1, ＿, 3, ＿",
             p2: "1 + 1, 3 + 2",
-            p3: "NaN, NaN, 7, NaN",
             p4: "(1, (1, 2)), (＿, 5), (3, (3, 4, 7)), (＿, x)",
         });
+        // A number that is only a coordinate the entry lacks is missing
+        // (D40), which an entry of a list can't be yet, so the repeat stays
+        // a composite.
+        const numbers = await compare({
+            doenetML: `
+<mathList name="l">(1,2) 5 (3,4,7) x</mathList>
+<p name="p3"><repeat name="r3" for="$l" valueName="x"><number>$x[3]</number></repeat></p>
+`,
+            names: ["p3"],
+            repeatName: "r3",
+            becomesList: false,
+        });
+        expect(numbers).toEqual({ p3: "＿, ＿, 7, ＿" });
     });
 
     it("a coordinate past the value's dimensions is a blank, as of a math", async () => {
@@ -631,7 +653,7 @@ describe("Repeats whose template is one value @group4", () => {
 <math name="c" fixed="$r2[1]=6">5</math>
 <p name="p" fixLocation="$r[1]=1"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></p>
 <p name="p2"><repeatForSequence name="r2" from="1" to="2" valueName="v"><math>$v + $c</math></repeatForSequence></p>
-<p name="p3"><repeatForSequence name="r3" from="1" to="3" indexName="i"><number>$l[$i]</number></repeatForSequence></p>
+<p name="p3"><repeatForSequence name="r3" from="1" to="3" indexName="i"><math>$l[$i]</math></repeatForSequence></p>
 `,
             names: ["p", "p2", "p3"],
         });

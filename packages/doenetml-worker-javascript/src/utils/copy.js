@@ -250,6 +250,139 @@ export function postProcessCopy({
     return serializedComponents;
 }
 
+/**
+ * Whether the reference `component`, a `_copy`, names one thing (D37, rule
+ * 1): it has no referent, it has an index (`$s[2]`), or it names a
+ * component, or a property of one, that is not a collection named as a
+ * whole. A reference to a collection as a whole, a composite or a list (`$r`
+ * or `$r.y` of a `<repeat>`, `$g` of a `<group>`), gives its members,
+ * possibly none, unless none of them could have the property it names
+ * (`$g.nonexistent`, `doenet-w0104`), which names nothing. With `withheld`,
+ * what it names is withheld, as in a case that is not active, so any name
+ * after the first is one thing.
+ *
+ * A bare reference to one thing that makes nothing is a blank
+ * (`isBareReferenceToOneThing` in `Copy.js`), and so is one in a parent that
+ * needs it to make something, a `<text>` or a `<math>`
+ * (`verifyReplacementsMatchSpecifiedType`).
+ */
+export async function referenceNamesOneThing(
+    component,
+    components,
+    { withheld = false } = {},
+) {
+    if (component.doenetAttributes?.noReferent) {
+        return true;
+    }
+    const extended = await component.stateValues.extendedComponent;
+    const originalPath = await component.stateValues.originalPath;
+    if (!extended) {
+        // An index that names nothing now, as one below 1 (`$r[$i]` while
+        // `i` is 0), leaves no referent: what it names is one thing.
+        return Boolean(originalPath?.some((part) => part.index.length > 0));
+    }
+    if (extended.componentType === "setup") {
+        return false;
+    }
+    const unresolvedPath = await component.stateValues.unresolvedPath;
+    if (originalPath?.some((part) => part.index.length > 0)) {
+        return true;
+    }
+    if (withheld && originalPath?.length > 1) {
+        // A name in a branch that is not active (`$cc.x`), whatever it
+        // names, as it is decided before the branch is made
+        return true;
+    }
+    // A name, or a property of what it names: one thing, unless it names a
+    // collection as a whole, a composite or a list, whose property is one
+    // of each of its members (`$r.y` of a `<repeat>`), possibly none. A
+    // name after it (`$cc.x` of a name in a case, `pathStartsWithProperty`
+    // unset) is one thing, and so is a property of the collection itself,
+    // read from it rather than from its members (`$c.maxNumber` of a
+    // `<collect>`, #2416), unless it is an array (below).
+    if (
+        unresolvedPath?.length > 0 &&
+        !component.doenetAttributes?.pathStartsWithProperty
+    ) {
+        return true;
+    }
+    const componentInfoObjects = component.componentInfoObjects;
+    // Its only source is the collection itself, which has the property.
+    const replacementSources = await component.stateValues.replacementSources;
+    const ownPropName = (
+        await component.stateValues.effectivePropNameBySource
+    )?.[0];
+    const ownProperty =
+        unresolvedPath?.length > 0 &&
+        replacementSources?.length === 1 &&
+        replacementSources[0]?.componentIdx === extended.componentIdx &&
+        Boolean(ownPropName) &&
+        components[extended.componentIdx]?.state[ownPropName] !== undefined;
+    // A property none of its members could have (`$g.nonexistent`, which
+    // reports `doenet-w0104`) names nothing, so it is one thing.
+    const propNames = await component.stateValues.effectivePropNameBySource;
+    if (
+        unresolvedPath?.length > 0 &&
+        component.doenetAttributes?.pathStartsWithProperty &&
+        propNames?.length > 0 &&
+        propNames.every((name) => name === "__prop_name_not_found")
+    ) {
+        return true;
+    }
+    if (
+        !ownProperty &&
+        (componentInfoObjects.isCompositeComponent({
+            componentType: extended.componentType,
+        }) ||
+            componentInfoObjects.allComponentClasses[extended.componentType]
+                ?.listEntryComponentType !== undefined)
+    ) {
+        return false;
+    }
+    // A property that is an array, such as `$ci.selectedValues` or
+    // `$f.minima`, is a list: its members, possibly none. So is an entry of
+    // an array that spans entries, such as `$f.minimumValues`, unlike one
+    // that is one entry, such as `$P.x` or `$f.minimumValue1`.
+    if (unresolvedPath?.length > 0) {
+        const propName = (
+            await component.stateValues.effectivePropNameBySource
+        )?.[0];
+        const stateVarObj =
+            propName && components[extended.componentIdx]?.state[propName];
+        if (
+            stateVarObj?.isArray ||
+            (stateVarObj?.isArrayEntry &&
+                stateVarObj.numDimensions >
+                    (stateVarObj.wrappingComponents?.length ?? 0))
+        ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Whether `component` is a reference not written as a tag, in a parent that
+ * needs every composite to make something (`compositesMustHaveAReplacement`,
+ * a `<text>`, a `<math>` or a `<boolean>`), that names one thing
+ * (`referenceNamesOneThing`). The blank it is given when it makes nothing is
+ * missing (D37, #2487).
+ */
+async function isReferenceToOneThingInParentNeedingIt(component, components) {
+    if (
+        component.componentType !== "_copy" ||
+        !component.sharedParameters.compositesMustHaveAReplacement ||
+        component.attributes._createComponentOfType?.primitive ||
+        component.doenetAttributes?.forList !== undefined ||
+        !components
+    ) {
+        return false;
+    }
+    return await referenceNamesOneThing(component, components, {
+        withheld: Boolean(await component.stateValues.targetInactive),
+    });
+}
+
 export async function verifyReplacementsMatchSpecifiedType({
     component,
     replacements,
@@ -526,11 +659,18 @@ export async function verifyReplacementsMatchSpecifiedType({
         // (D37): a tag whose source is missing is missing, whatever it adds.
         // So is the filler of a bare reference with no referent (`$nothing`)
         // in a parent that needs it to make something (a `<text>`), which is
-        // a blank there, as `<text extend="$nothing"/>` is.
+        // a blank there, as `<text extend="$nothing"/>` is, and of any other
+        // reference to one thing there that makes nothing (`$c.maxNumber` of
+        // a `<collect>` with no limit, `$r[3]` of a `<repeat>` with two
+        // iterations), as it is in a `<p>` (`referenceNamesOneThing`).
         const madeNothing =
             replacementTypes.length === 0 &&
             (Boolean(component.attributes._createComponentOfType?.primitive) ||
-                Boolean(component.doenetAttributes?.noReferent));
+                Boolean(component.doenetAttributes?.noReferent) ||
+                (await isReferenceToOneThingInParentNeedingIt(
+                    component,
+                    components,
+                )));
 
         replacements = [];
         for (let i = 0; i < requiredLength; i++) {
@@ -592,6 +732,15 @@ export async function verifyReplacementsMatchSpecifiedType({
                     })[0];
 
                     let stateVarObj = target.state[propVariable];
+                    // One entry (`$P.z`, `$f.minimumValue1`), not an array
+                    // (`$f.minima`) or an entry that spans entries
+                    // (`$f.minimumValues`), which are lists, possibly empty.
+                    const isOneEntry =
+                        stateVarObj?.isArrayEntry &&
+                        !(
+                            stateVarObj.numDimensions >
+                            (stateVarObj.wrappingComponents?.length ?? 0)
+                        );
                     if (stateVarObj?.isArray || stateVarObj?.isArrayEntry) {
                         let arrayStateVarObj, arrayKeys;
                         if (stateVarObj.isArray) {
@@ -630,12 +779,16 @@ export async function verifyReplacementsMatchSpecifiedType({
                     }
 
                     if (stateVarObj) {
-                        // Not missing: it holds what the array entry holds
-                        // once it has a value, and a write reaches the
-                        // entry. Missing, it would be a blank where a copy of
-                        // an award's feedback, which the award has none of
-                        // yet, is hidden.
-                        replacements[0].doenetAttributes = {};
+                        // For one entry, missing only while it holds no value
+                        // (`missingWhileEntryEmpty`, D37, #2487): it holds
+                        // what the array entry holds once it has one, and a
+                        // write reaches the entry, so it is not missing for
+                        // good, as a tag made with nothing to read is. A copy
+                        // of an award's feedback, which the award has none
+                        // of yet, is hidden while it is (`Feedback.js`).
+                        replacements[0].doenetAttributes = isOneEntry
+                            ? { missingWhileEntryEmpty: true }
+                            : {};
                         replacements[0].downstreamDependencies = {
                             [replacementSource.componentIdx]: [
                                 {
@@ -741,6 +894,12 @@ function wrapAsWrittenType({
         wrapper.children = [];
         return { nComponents };
     }
+    // Missing while what it holds is (D37): `<math extend="$n"/>` of
+    // `<number name="n">$l[$i]</number>` while the index names nothing.
+    wrapper.doenetAttributes = {
+        ...wrapper.doenetAttributes,
+        missingWhenContentMissing: true,
+    };
     const convertBoolean = {
         type: "primitive",
         name: "convertBoolean",

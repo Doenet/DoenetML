@@ -26,6 +26,10 @@ export default class Polyline extends GraphicalComponent {
         });
     }
     static componentType = "polyline";
+
+    // missing while its content is only missing children (D40,
+    // `BaseComponent.missingWhenContentMissing`)
+    static missingWhenContentMissing = true;
     static styleOverrideCategories = ["line"];
 
     static componentDocs = {

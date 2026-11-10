@@ -7,6 +7,7 @@ import {
     namesReachedThroughCopy,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
+    referenceNamesOneThing,
     TAGS_OF_LIST_FORMS,
     addAttributesToSingleReplacement,
     addAttributesToSingleReplacementChange,
@@ -1608,7 +1609,7 @@ export default class Copy extends CompositeComponent {
     static async createSerializedReplacements(args) {
         const result = await this.createSerializedReplacementsOfCopy(args);
         await reportMissingProperty(args);
-        await missingSourceInPlace({ ...args, result });
+        await missingSourceInPlace({ ...args, result, atCreation: true });
         missingInPlaceOfCopiedError({ ...args, result });
         return result;
     }
@@ -6959,17 +6960,12 @@ function inPlaceOfCopy({
 
 /**
  * Whether the copy `component` is a bare reference (not written as a tag,
- * with no type it must make) to one thing (D37, rule 1): it has no referent,
- * it has an index (`$s[2]`), or it names a component, or a property of one,
- * that is not a collection named as a whole. Such a reference that makes
- * nothing is a blank (`missingReplacement`). A reference to a collection as
- * a whole, a composite or a list (`$r` or `$r.y` of a `<repeat>`, `$g` of a
- * `<group>`), gives its members, possibly none. A parent that needs every
- * composite to make something (`compositesMustHaveAReplacement`, a
- * `<math>`) gets its blank of the type it needs instead
- * (`verifyReplacementsMatchSpecifiedType`). With `withheld`, what it names
- * is withheld, as in a case that is not active, so any name after the
- * first is one thing.
+ * with no type it must make) to one thing (D37, rule 1;
+ * `referenceNamesOneThing`). Such a reference that makes nothing is a blank
+ * (`missingReplacement`). A parent that needs every composite to make
+ * something (`compositesMustHaveAReplacement`, a `<math>` or a `<text>`)
+ * gets its missing blank of the type it needs instead
+ * (`verifyReplacementsMatchSpecifiedType`).
  */
 async function isBareReferenceToOneThing(
     component,
@@ -6984,83 +6980,7 @@ async function isBareReferenceToOneThing(
     ) {
         return false;
     }
-    if (component.doenetAttributes?.noReferent) {
-        return true;
-    }
-    const extended = await component.stateValues.extendedComponent;
-    const originalPath = await component.stateValues.originalPath;
-    if (!extended) {
-        // An index that names nothing now, as one below 1 (`$r[$i]` while
-        // `i` is 0), leaves no referent: what it names is one thing.
-        return Boolean(originalPath?.some((part) => part.index.length > 0));
-    }
-    if (extended.componentType === "setup") {
-        return false;
-    }
-    const unresolvedPath = await component.stateValues.unresolvedPath;
-    if (originalPath?.some((part) => part.index.length > 0)) {
-        return true;
-    }
-    if (withheld && originalPath?.length > 1) {
-        // A name in a branch that is not active (`$cc.x`), whatever it
-        // names, as it is decided before the branch is made
-        return true;
-    }
-    // A name, or a property of what it names: one thing, unless it names a
-    // collection as a whole, a composite or a list, whose property is one
-    // of each of its members (`$r.y` of a `<repeat>`), possibly none. A
-    // name after it (`$cc.x` of a name in a case, `pathStartsWithProperty`
-    // unset) is one thing, and so is a property of the collection itself,
-    // read from it rather than from its members (`$c.maxNumber` of a
-    // `<collect>`, #2416), unless it is an array (below).
-    if (
-        unresolvedPath?.length > 0 &&
-        !component.doenetAttributes?.pathStartsWithProperty
-    ) {
-        return true;
-    }
-    const componentInfoObjects = component.componentInfoObjects;
-    // Its only source is the collection itself, which has the property.
-    const replacementSources = await component.stateValues.replacementSources;
-    const ownPropName = (
-        await component.stateValues.effectivePropNameBySource
-    )?.[0];
-    const ownProperty =
-        unresolvedPath?.length > 0 &&
-        replacementSources?.length === 1 &&
-        replacementSources[0]?.componentIdx === extended.componentIdx &&
-        Boolean(ownPropName) &&
-        components[extended.componentIdx]?.state[ownPropName] !== undefined;
-    if (
-        !ownProperty &&
-        (componentInfoObjects.isCompositeComponent({
-            componentType: extended.componentType,
-        }) ||
-            componentInfoObjects.allComponentClasses[extended.componentType]
-                ?.listEntryComponentType !== undefined)
-    ) {
-        return false;
-    }
-    // A property that is an array, such as `$ci.selectedValues` or
-    // `$f.minima`, is a list: its members, possibly none. So is an entry of
-    // an array that spans entries, such as `$f.minimumValues`, unlike one
-    // that is one entry, such as `$P.x` or `$f.minimumValue1`.
-    if (unresolvedPath?.length > 0) {
-        const propName = (
-            await component.stateValues.effectivePropNameBySource
-        )?.[0];
-        const stateVarObj =
-            propName && components[extended.componentIdx]?.state[propName];
-        if (
-            stateVarObj?.isArray ||
-            (stateVarObj?.isArrayEntry &&
-                stateVarObj.numDimensions >
-                    (stateVarObj.wrappingComponents?.length ?? 0))
-        ) {
-            return false;
-        }
-    }
-    return true;
+    return await referenceNamesOneThing(component, components, { withheld });
 }
 
 /**
@@ -7244,6 +7164,7 @@ async function missingSourceInPlace({
     componentInfoObjects,
     workspace,
     result,
+    atCreation = false,
 }) {
     if (
         component.componentType !== "_copy" ||
@@ -7255,7 +7176,33 @@ async function missingSourceInPlace({
     }
     const extended = await component.stateValues.extendedComponent;
     const source = components[extended?.componentIdx];
-    if (!source?.isMissing && source?.componentType !== "_missing") {
+    // An unlinked copy (`copy`) of a component missing for a while
+    // (`BaseComponent.canBecomeMissing`), made while it is, is missing for
+    // good, as it does not follow its source, and one made while it is not
+    // stays as it was made. A reload makes it as it was made
+    // (`madeFrom.madeMissing`, `heldCopySnapshot`). A linked one is missing
+    // while its source is (`missingWhileSourceMissing`, D40).
+    let missingWhenCopied = false;
+    if (
+        atCreation &&
+        source?.canBecomeMissing &&
+        (await component.stateValues.link) === false
+    ) {
+        const held = readHeldCopySnapshot(
+            component.coreFunctions.savedCopySnapshot?.(component.stateId),
+        );
+        missingWhenCopied = held
+            ? Boolean(held.madeFrom.madeMissing)
+            : Boolean(await source.stateValues.valueMissing);
+        if (missingWhenCopied && workspace.madeFrom) {
+            workspace.madeFrom.madeMissing = true;
+        }
+    }
+    if (
+        !source?.isMissing &&
+        source?.componentType !== "_missing" &&
+        !missingWhenCopied
+    ) {
         return;
     }
     const stateIdInfo = {
