@@ -594,24 +594,21 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("an index that reads the component holding the reference is a circular dependency", async () => {
-            // `i`'s value is the entry its own value picks out: the document
-            // stops with the cycle, as `<number name="n">$n</number>` does
-            await expect(
-                createTestCore({
-                    doenetML: `<numberList name="l">1 2 3</numberList><number name="i">$l[$i]</number>`,
-                }),
-            ).rejects.toThrow(
-                "Circular dependency involving these components: <number> (line 1).",
-            );
-            // the same where the reference into a composite keeps its copy:
-            // the `$i` between its brackets is still read directly
-            await expect(
-                createTestCore({
-                    doenetML: `<group name="s"><number>1</number><number>2</number></group><number name="i">$s[$i]</number>`,
-                }),
-            ).rejects.toThrow(
-                "Circular dependency involving these components: <number> (line 1), <_copy> (line 1).",
-            );
+            // `i`'s value is the entry its own value picks out: a cycle,
+            // decided when the document loads, as for `<number
+            // name="n">$n</number>`, an error at the reference and at the
+            // `$i` between its brackets (#2473)
+            for (const doenetML of [
+                `<numberList name="l">1 2 3</numberList><number name="i">$l[$i]</number>`,
+                // the same where the reference into a composite keeps its
+                // copy: the `$i` between its brackets is still read directly
+                `<group name="s"><number>1</number><number>2</number></group><number name="i">$s[$i]</number>`,
+            ]) {
+                const { core } = await createTestCore({ doenetML });
+                expect(
+                    getDiagnosticsByType(core).errors.map((e) => e.code),
+                ).eqls(["doenet-e0005", "doenet-e0005"]);
+            }
         });
 
         it("a reference is remade when the referenced variable changes type", async () => {

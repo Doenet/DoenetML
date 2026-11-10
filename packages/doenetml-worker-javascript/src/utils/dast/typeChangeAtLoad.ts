@@ -65,6 +65,7 @@ import { typeChangeRule } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { sequenceEntryComponentType } from "../sequence";
+import { errorComponentState } from "./errors";
 import {
     holdsError,
     isAuthoredListType,
@@ -91,6 +92,19 @@ export type BranchNameWarning = {
     copy: SerializedComponent;
     code: string;
     args: Record<string, string | number>;
+};
+
+/**
+ * What a reference to a name the branches of a `<conditionalContent>` or a
+ * one-pick `<select>` declare reads, for the reference cycles decided at
+ * load (`referenceCycles.ts`): the components the name names in the branches
+ * (`named`, each, as the branch shown may be any of them) and what follows
+ * the name (`rest`, a property or an index, empty when the name is the whole
+ * reference).
+ */
+export type BranchRead = {
+    named: number[];
+    rest: any[];
 };
 
 /**
@@ -355,11 +369,26 @@ export function reportTypeChangesAtLoad({
             writtenType,
             source,
         });
-        diagnostics.push({
+        const placed = {
             ...diagnostic,
             position: copy.position,
             sourceDoc: copy.sourceDoc,
-        });
+        };
+        diagnostics.push(placed);
+        if (mark.code === "doenet-e0005") {
+            // The tag in what it is of, made from itself without end: the
+            // error, in place of the copy, from load, as for any reference on
+            // a cycle (`referenceCycles.ts`). A copy written with `copy` or
+            // `copyWithState` reads what it is of before it is replaced when
+            // the document runs, which closes the cycle and stops it.
+            const errorComponent = copy as any;
+            errorComponent.componentType = "_error";
+            errorComponent.state = errorComponentState(placed.message, placed);
+            errorComponent.attributes = {};
+            errorComponent.children = [];
+            errorComponent.doenetAttributes = {};
+            delete errorComponent.extending;
+        }
     }
     return diagnostics;
 }
@@ -374,8 +403,12 @@ export function checkTypeChangesAtLoad({
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
-}): { branchNameWarnings: BranchNameWarning[] } {
+}): {
+    branchNameWarnings: BranchNameWarning[];
+    branchReads: Map<SerializedComponent, BranchRead>;
+} {
     const branchNameWarnings: BranchNameWarning[] = [];
+    const branchReads = new Map<SerializedComponent, BranchRead>();
 
     const referents = documentReferents({
         serializedComponents,
@@ -2641,6 +2674,99 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * Whether the component `componentIdx` is written in what `node` holds:
+     * in its children, or in the attributes or an index of a component
+     * among them (`<mathInput prefill="$cc.y"/>`, `$l[$cc.y]`), at any
+     * depth. Not in an attribute of `node` itself, as the `condition` of a
+     * `<case>`, which is read whether or not it is shown.
+     */
+    function writtenIn(node: SerializedComponent, componentIdx: number) {
+        const stack: (SerializedComponent | string)[] = [
+            ...(node.children ?? []),
+        ];
+        while (stack.length > 0) {
+            const child = stack.pop()!;
+            if (typeof child !== "object") {
+                continue;
+            }
+            if (child.componentIdx === componentIdx) {
+                return true;
+            }
+            for (const attribute of Object.values(child.attributes ?? {})) {
+                const attr: any = attribute;
+                if (attr.type === "component" && attr.component) {
+                    stack.push(attr.component);
+                } else if (Array.isArray(attr.children)) {
+                    stack.push(...attr.children);
+                }
+            }
+            for (const value of indexContents(child)) {
+                stack.push(...value);
+            }
+            stack.push(...(child.children ?? []));
+        }
+        return false;
+    }
+
+    /**
+     * What `copy`, a reference to a name the branches of a container declare
+     * that the every-branch rule allows (`checkBranchName`), reads: the
+     * components the name names in the branches, found as a reference from
+     * outside them finds them (`visibleNamed`), and what follows the name.
+     * `undefined` when it names no such name, or what it names is not known
+     * from the DoenetML.
+     */
+    function branchReadOf(copy: SerializedComponent): BranchRead | undefined {
+        const ref = refOf(copy);
+        if (!ref || ref.nodeIdx < 0) {
+            return undefined;
+        }
+        const path = ref.unresolvedPath ?? [];
+        const indexed = isIndexIntoPicks(path);
+        const namePath = path.slice(indexed ? 1 : 0);
+        if (typeof namePath[0]?.name !== "string" || namePath[0].name === "") {
+            return undefined;
+        }
+        const container = branchContainerAt(ref.nodeIdx, indexed);
+        if (!container) {
+            return undefined;
+        }
+        const { names, trailingIndex, rest } = leadingNames(namePath, true);
+        if (names.length === 0) {
+            return undefined;
+        }
+        let named = visibleNamed(container, names);
+        if (!named || named.length === 0) {
+            return undefined;
+        }
+        // A reference written in one of the branches of a container that
+        // shows one (`$cc.y` in a case of `cc`) is there only while that
+        // branch is shown, so it names what the name names in that branch,
+        // not in the others.
+        const holding = branchKind(container)
+            ? container.children?.find(
+                  (branch): branch is SerializedComponent =>
+                      typeof branch === "object" &&
+                      writtenIn(branch, copy.componentIdx),
+              )
+            : undefined;
+        if (holding) {
+            named = named.filter((component) =>
+                contains(holding, component.componentIdx),
+            );
+            if (named.length === 0) {
+                return undefined;
+            }
+        }
+        return {
+            named: named.map((component) => component.componentIdx),
+            rest: trailingIndex
+                ? [{ name: "", index: trailingIndex }, ...rest]
+                : rest,
+        };
+    }
+
+    /**
      * Decide the every-branch, same-type rule for the reference `copy`
      * (`branchDeclaration`). A reference written as a tag records what it
      * finds on the copy (`typeChangeAtLoad`): types that differ are an
@@ -3176,6 +3302,10 @@ export function checkTypeChangesAtLoad({
             ) {
                 // decided by the every-branch rule
             } else if (component.componentType === "_copy") {
+                const read = branchReadOf(component);
+                if (read) {
+                    branchReads.set(component, read);
+                }
                 const decision = decide(component);
                 if (decision !== undefined) {
                     component.doenetAttributes = {
@@ -3208,5 +3338,5 @@ export function checkTypeChangesAtLoad({
     collectNames(serializedComponents);
     visit(serializedComponents);
 
-    return { branchNameWarnings };
+    return { branchNameWarnings, branchReads };
 }

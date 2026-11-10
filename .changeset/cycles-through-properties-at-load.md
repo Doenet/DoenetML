@@ -1,0 +1,30 @@
+---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+"@doenet/v06-to-v07": patch
+---
+
+More reference cycles are reported when the document loads, as a circular-dependency error (`doenet-e0005`) at each reference on the cycle, while the rest of the document renders. They are found in every case of a `<conditionalContent>` and every option of a `<select>`, whether shown or not, so the same errors are there before and after a reader changes the case, and in every variant. Before, each of these stopped the document, when it loaded or when the case holding it was shown, or was reported only once it was reached:
+
+- a property made from what is written in the tag: `<number name="n">$n.value</number>`, `<text name="t">$t.value</text>`, `<p name="q">$q.text</p>`;
+- an input's starting value: `<mathInput name="mi" prefill="$mi.value"/>`, and its `bindValueTo`, a `<choiceInput>`'s `preselectChoice` and a `<slider>`'s `initialValue`;
+- an attribute of a `<sequence>`, a `<selectFromSequence>`, a `<select>`, a `<repeat>`, a `<conditionalContent>` or a sampler that reads what it makes: `<sequence name="a" from="1" length="$a[1]"/>`, `<selectFromSequence name="a" from="1" to="10" exclude="$a[1]"/>`, a `<case>`'s `condition`, an `<option>`'s `selectWeight`;
+- an index read by the component it picks from: `<number name="i">$l[$i]</number>`, and an index into a `<mathList>` or a `<numberList>` in it (`<mathList name="l">1 $l[1]</mathList>`);
+- a name every case of a `<conditionalContent>` or every option of a one-pick `<select>` declares. In a `<select>`, the variant that picked the option on the cycle used to fail to load. Such a name written inside one of the cases or options names what that case or option declares, as it is there only while that one is shown, so the cases reading each other's names (`<math name="x">$cc.y</math>` in one case, `<math name="y">$cc.x</math>` in another) are not a cycle;
+- a tag whose content is its children, such as a `<p>`, a `<section>`, a `<div>` or a `<li>`, holding a reference to itself (`<p name="q">a $q</p>`), now in a case not shown too;
+- a tag written with `copy` or `copyWithState` of what it is in (`<group name="g"><math copy="$g"/></group>`), as the `extend` form already was.
+
+A `<section>` whose `<title>` holds a reference to the section (`<title>T $S</title>`) now shows its default title ("Section 1"), as a title holding any error found at load does, where it used to show the title without the reference.
+
+A `<math>`, a `<text>` or a `<boolean>` holding an index that reads it (`<math name="i">$m[$i]</math>`) used to load, where shown, with the error at the reference in the index only, that reference shown blank (a `<boolean>` holding only it, false) and a warning that the index did not work out to a number (`doenet-w0163`). The tag is now that error, with the error at both references, and no warning.
+
+An index into a math written with `extend`, in it (`<math name="m2" extend="$m">$m2[1]</math>`), is now that error, where the document used to fail to load with an internal error.
+
+Not every property and attribute is covered. A cycle through one that is not (`<math name="m" simplify="$m=1">`), through a function (`$$f($n)`), through an index into a `<repeat>` in its own template, through a reference in a point's or an input's `<label>`, or through both a `<mathInput>`'s `prefill`, `prefillLatex` or `bindValueTo` (a `<matrixInput>`'s `prefill` or `bindValueTo`, a `<choiceInput>`'s `preselectChoice`) and an index into a `<mathList>` or a `<numberList>`, is still reported, or stops the document, when it is reached. An input starting from an index into a list that holds it (`<mathList name="l">1 $mi</mathList><mathInput name="mi" prefill="$l[1]"/>`) is valid, and stays so.
+
+The v0.6-to-v0.7 converter leaves the `<copy>` tags of a document holding a reference cycle found at load as they are (`copy/could-not-load-document`), so it now does so for these cycles too, including one in a case not shown (`<p name="q">a $q</p>`), whose `<copy>` tags it used to convert. The rest of such a document is converted, as before.
+
+Closes #2473.

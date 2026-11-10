@@ -651,7 +651,7 @@ export async function normalizedDastToSerializedComponents(
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag
     // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
-    const { branchNameWarnings } = checkTypeChangesAtLoad({
+    const { branchNameWarnings, branchReads } = checkTypeChangesAtLoad({
         serializedComponents: sugarResult.components,
         componentInfoObjects,
     });
@@ -725,6 +725,7 @@ export async function normalizedDastToSerializedComponents(
         ...breakReferenceCycles({
             serializedComponents: sugarResult.components,
             componentInfoObjects,
+            branchReads,
         }),
     );
 
