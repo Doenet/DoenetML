@@ -24,7 +24,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B3 | One-input math operators report `canBeModified` from the wrong variable. `<sign>$n</sign>` claims it can be changed, but a bound input snaps back | yes | `W/components/abstract/MathBaseOperatorOneInput.js:94-97` reads `mathOperator` rather than `inverseMathOperator` |
 | B4 | `copy="$r[2].p"` of repeat content that shows `$i`, or a copy landing in a repeat whose `valueName` matches an outside name, shows `＿` **with no warning**. The `extend` form works. **Fixed by #2397** (D1): it shows the iteration's value | yes | `resolvesIntoOwnAncestry` (`W/core/dependencies/refResolutionDependencies.ts:320`). An unlinked copy has no shadows chain to fall back on |
 | B5 | **Partly fixed** (**[probe]** at `894d3ea`): `maxNumber` on a copy of a collect (#2215) and `valueName` on a copy of a repeat with no children (#2211 row 1) now work; `condition` on a copy (#2217), `valueName`/`indexName` with children (#2211) and `replacement` on a copy of a substitute (#2216) remain. Was: Attributes on a copy or extend of a composite are mishandled: `condition` on a copy of a conditionalContent is ignored (#2217), `valueName` on a copy of a repeat misreads (#2211), and `maxNumber` on an extend of a collect blanks it (#2215) | #2217 confirmed | `W/components/abstract/Copy.js` |
-| B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 this form becomes an error, but the panic should be fixed meanwhile | — | `ref_expand.rs` |
+| B6 | An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 (revised) this form names nothing, with a warning; #2517 checks the panic goes with it | — | `ref_expand.rs` |
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
 | B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
 | B9 | **Fixed** (by #2393; confirmed and pinned by #2470, closing #2371). **Partly fixed on main** (**[probe]** at `a90ac9b`, after #2393): `$r[1].d.h` and `$cc.d.h` in #2371's repeat and conditionalContent examples now resolve; its reload example is not rechecked. A reference that reaches a list copy through a repeat index or a `<conditionalContent>` case renders empty, where the `<p>` form works: `$r[1].d.h` from outside a repeat (also after a reload, for iterations made at load), and `$cc.d.h` after the case switches (#2371). It breaks NAME-2 | reported in the issue | `RefResolutionDependency` waits for a list copy's `_copy` only when the path's first resolved node is the list copy itself (`W/core/dependencies/refResolutionDependencies.ts`) |
@@ -523,7 +523,8 @@ migrate. Mark the affected tests "changed" (listed in
 [composites-and-lists.md](composites-and-lists.md) §6). PR #2281 already has rewritten versions.
 
 Positional double indexing into *repeats* (`$a[2][1][3]`) exposes the same hidden grouping. D27
-proposes removing child indexing everywhere, not only for choices.
+removes child indexing everywhere, not only for choices (#2424, and with no deprecation period,
+#2517).
 
 ## D14. Cycles are always a located diagnostic, and the rest of the document still renders
 
@@ -886,7 +887,19 @@ about an unrecognized tag name, not an unrelated pair, and is unaffected.
 
 ## D27. What may an index select?
 
-**Decided: an index never selects among a container's children. Done by #2424** (closing #2420; value half done by #2431, closing #2421). NAME-2 states the rule. It selects among the
+**Decided: an index never selects among a container's children. Done by #2424** (closing #2420; value half done by #2431, closing #2421).
+
+**Revised (November 2026): no deprecation period; child indexing is removed** (#2517). The
+cells core, meant to be 0.8's core, won't build a shim for the deprecated form, so the
+JavaScript core doesn't keep investing in one that won't survive to a 0.8 release. An index that
+would select a child (`w0179` today) names nothing, with a **warning** and a blank, like any
+reference that names nothing (D37). The warning says to name the child. It covers every
+`<group>` an index reaches: one the author wrote (and its extend or copy), a select's pick, a
+`<conditionalContent>` case or `<else>`, a repeat's iteration, an extend of an iteration, and a
+group reached through `<collect>`. Pass-through, instances and entries of values are unchanged.
+The v07-to-v08 converter (#2457) names the child and rewrites the reference where it can, with
+the same name in every branch; where those children differ in type, so the name couldn't be
+referenced (D22), it reports the reference instead. NAME-2 states the rule. It selects among the
 instances a tag produces, as proposed below, with consequences 1–4. Nested repeats then take one
 index per level: `$r[1][2]` is iteration 2 of the inner repeat in iteration 1 of the outer.
 
@@ -969,8 +982,9 @@ to be counted. It is also fragile under edits, and it would make (3) ambiguous a
   `reference/select.mdx`, plus `option.mdx`, `vectorList.mdx` and `tupleList.mdx`.
 
 The list examples keep working, since entries are instances. Child indexing is on 0.7, and its
-select docs teach it (`$roll[1][1]`, `$groupSelect[2][2]`), so 0.8 gives a deprecation warning
-first. Pass-through takes its new meaning directly, with no compatibility mode: the old reading
+select docs taught it (`$roll[1][1]`, `$groupSelect[2][2]`), so 0.8 was to give a deprecation
+warning first. **Superseded by the revision above:** no deprecation period; the converter
+migrates what it can (#2517, #2457). Pass-through takes its new meaning directly, with no compatibility mode: the old reading
 of nested repeats was confusing and little used. `$a[2][1][3]` becomes `$a[2][3]`, and the old
 form now reads differently (#2420).
 
@@ -2441,7 +2455,9 @@ decided here; the rest are listed as still open.
   leave it to the new core.
 - #2408 (D34): accept D34 as proposed.
 - #2457: its four converter candidates. Recommendation: rewrite D32 extends to `copy` and an
-  input's `extend` to `bindValueTo`; report child indexing and names that differ across branches.
+  input's `extend` to `bindValueTo`; report names that differ across branches. **Child indexing
+  decided** (D27 revised, #2517): the converter names the child, the same in every branch, and
+  rewrites the reference; where the children differ in type, it reports.
 - #2156: what a `<select>` returns. Recommendation: defer.
 - #2155: showing a student's answer without presenting a wrong one as fact. Recommendation: defer
   (a feature).
