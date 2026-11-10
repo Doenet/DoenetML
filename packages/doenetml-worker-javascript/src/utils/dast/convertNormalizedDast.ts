@@ -421,15 +421,23 @@ export async function normalizedDastToSerializedComponents(
 
                             // The arguments of a function reference that
                             // names nothing (`$a` of `$$f($a)`), which the
-                            // resolver keeps (`ref_expand.rs`). They are not
-                            // shown, but a reference in them is resolved, and
-                            // reported when it fails, now rather than once
-                            // the function reference is fixed (#2434).
+                            // resolver keeps in a `<setup>` (`ref_expand.rs`).
+                            // They are made as if written in a `<setup>` at
+                            // the reference's place (D40, #2489): not shown,
+                            // but a component named in them is made, and a
+                            // reference in them is resolved, and reported when
+                            // it fails, now rather than once the function
+                            // reference is fixed (#2434).
                             const input = (
                                 node as { input?: UntaggedContent[][] }
                             ).input;
                             for (const argument of input ?? []) {
-                                unflattenDastNodes(argument, diagnostics);
+                                unflattenedNodes.push(
+                                    ...unflattenDastNodes(
+                                        argument,
+                                        diagnostics,
+                                    ),
+                                );
                             }
 
                             // Depending on the parent, we still want something to show up for these invalid reference.
