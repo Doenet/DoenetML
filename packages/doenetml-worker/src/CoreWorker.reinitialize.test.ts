@@ -11,6 +11,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { CoreWorker, DOCUMENT_BUILD_ERROR_NAME } from "./CoreWorker";
+import { take_last_panic_message } from "@doenet/doenetml-worker-rust";
+
+// The panic slot the Rust hook records into, made replaceable so a test can
+// stand in for a trap (below). It reads the real slot unless a test says
+// otherwise.
+vi.mock("@doenet/doenetml-worker-rust", async (importOriginal) => {
+    const actual =
+        await importOriginal<typeof import("@doenet/doenetml-worker-rust")>();
+    return {
+        ...actual,
+        take_last_panic_message: vi.fn(actual.take_last_panic_message),
+    };
+});
 
 vi.hoisted(() => {
     // `CoreWorker.ts` exposes a default instance over Comlink as it loads,
@@ -197,22 +210,29 @@ describe.skipIf(!wasmAvailable)("document-build failures (#1920)", () => {
     });
 
     it("marks a failure to build the document, and reports what actually fired", async () => {
-        // A document that traps the Rust expander: an index into a composite
-        // written before the composite, so `$g[1]` resolves to a child that
-        // has not been expanded yet (#1942, pinned on the Rust side by
-        // `an_index_into_a_composite_of_refs_traps`). It fails the same way on
-        // `main`; what is new is what the worker does with the failure.
-        //
-        // If #1942 is fixed this document will simply render and this test
-        // will fail -- swap in whatever still traps, or delete it along with
-        // the Rust test that pins the same shape.
+        // No document an author can write traps the Rust core any more: the
+        // last ones, an index into a group whose child had not been expanded
+        // (`$g[1]<group name="g">$x</group>`, #1942), name nothing since an
+        // index stopped selecting a child of a group (#2517), and
+        // `dast/panic_reachability.test.rs` checks that they don't panic. So
+        // the trap is stood in for: the build rejects as a trap does, with
+        // `RuntimeError: unreachable`, while the panic hook holds the message
+        // it recorded. What is tested is what the worker does with them.
         const worker = new CoreWorker();
         worker.setCoreType("javascript");
+        await worker.setSource(sourceArgs("<p>A</p>"));
+        await worker.setFlags({ flags: FLAGS });
+        vi.spyOn(worker.javascriptCore!, "initializeWorker").mockRejectedValue(
+            new Error("unreachable"),
+        );
+        const panic = "panicked at src/dast/ref_expand.rs: Expected an element";
+        vi.mocked(take_last_panic_message)
+            // the slot cleared before the build
+            .mockReturnValueOnce(undefined)
+            // the message the trap recorded
+            .mockReturnValueOnce(panic);
 
-        const err = await initialize(
-            worker,
-            `$g[1]<group name="g">$x</group><p name="x">hello</p>`,
-        ).then(
+        const err = await worker.initializeJavascriptCore(INIT_ARGS).then(
             () => {
                 throw new Error("expected this document to fail to build");
             },
@@ -226,10 +246,8 @@ describe.skipIf(!wasmAvailable)("document-build failures (#1920)", () => {
         // This is why the read is a free function rather than a method on the
         // core: the trapping entry point takes `&mut self`, and the borrow its
         // glue took is never dropped, so a `&self` method called next throws
-        // "recursive use of an object" instead of answering. As a method the
-        // message below was `unreachable`.
-        expect(err.message).toContain("Expected an element");
-        expect(err.message).not.toBe("unreachable");
+        // "recursive use of an object" instead of answering.
+        expect(err.message).toBe(panic);
     });
 
     it("leaves a precondition failure unmarked, so it can still be retried", async () => {
