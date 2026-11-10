@@ -85,6 +85,17 @@ describe("Circular reference tests @group2", async () => {
             `<select name="s"><option selectWeight="$s[1]"><number>1</number></option><option><number>2</number></option></select>`,
             "doenet-e0005 1:40-45",
         ],
+        // a sampler
+        [
+            "sampleRandomNumbers numSamples",
+            `<sampleRandomNumbers name="s" numSamples="$s[1]"/>`,
+            "doenet-e0005 1:43-48",
+        ],
+        [
+            "selectRandomNumbers to",
+            `<selectRandomNumbers name="s" from="1" to="$s[1]"/>`,
+            "doenet-e0005 1:44-49",
+        ],
         // a whole reference to the component, in an attribute it is made from
         [
             "selectFromSequence exclude, by the whole selection",
@@ -706,6 +717,19 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         expect(rest).eq("rest");
     });
 
+    it("the error at a reference in an index names the type of what it is of", async () => {
+        // not the `<integer>` the index is made, which is not written
+        const { core } = await errorsAndRest(
+            `<numberList name="l">1 2 3</numberList><number name="n">$l[$n]</number>`,
+        );
+        expect(
+            getDiagnosticsByType(core).errors.map((error) => error.message),
+        ).eqls([
+            "Circular dependency detected involving `<numberList>` component.",
+            "Circular dependency detected involving `<number>` component.",
+        ]);
+    });
+
     it("an index into a math list or a number list it is in", async () => {
         const math = await errorsAndRest(
             `<mathList name="l">1 $l[1]</mathList>`,
@@ -870,6 +894,23 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         expect(errorsAt(core)).eqls(errors);
     });
 
+    // the same for the other tags whose content is their children
+    for (const [tag, doenetML] of [
+        ["div", `<div name="q">a $q</div>`],
+        ["li", `<ol><li name="q">a $q</li></ol>`],
+        ["section", `<section name="q"><p>a $q</p></section>`],
+        ["title", `<section name="q"><title>a $q</title></section>`],
+    ]) {
+        it(`a ${tag} holding a reference to itself, in a case not shown yet`, async () => {
+            const { errors, rest } = await errorsAndRest(
+                `<booleanInput name="b"/><conditionalContent condition="$b">${doenetML}</conditionalContent>`,
+            );
+            expect(errors).toHaveLength(1);
+            expect(errors[0]).toMatch(/^doenet-e0005 /);
+            expect(rest).eq("rest");
+        });
+    }
+
     it("two paragraphs holding references to each other", async () => {
         const { errors, rest } = await errorsAndRest(
             `<p name="q">a $r</p><p name="r">$q</p>`,
@@ -958,6 +999,54 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
             const { errors, rest } = await errorsAndRest(doenetML);
             expect(errors).eqls([]);
             expect(rest).eq("rest");
+        });
+    }
+});
+
+/**
+ * Cycles the load-time check does not find (the "not covered" list of #2473):
+ * each still stops the document when it is reached, as before. A new edge in
+ * `referenceCycles.ts` that finds one moves it to the tests above.
+ */
+describe("Reference cycles not found at load @group2", async () => {
+    for (const [description, doenetML] of [
+        [
+            "an attribute of a tag that is neither a composite nor an input",
+            `<math name="m" simplify="$m=1">1</math>`,
+        ],
+        [
+            "a function evaluated at the component",
+            `<function name="f">x</function><number name="n">$$f($n)</number>`,
+        ],
+        [
+            "an index into a repeat in its own template",
+            `<repeat name="r" for="1 2" valueName="v"><math>$v+$r[1]</math></repeat>`,
+        ],
+        [
+            "an index into a text list as its own entry",
+            `<textList name="l">a $l[1]</textList>`,
+        ],
+        [
+            "both an input's prefill and an index into a math list",
+            `<mathList name="l">1 $mi</mathList><mathInput name="mi" prefill="$l[2]"/>`,
+        ],
+        [
+            "a case's condition reading a name its conditionalContent declares",
+            `<conditionalContent name="cc"><case condition="$cc.x=1"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>`,
+        ],
+        [
+            "an index into a shuffle in its own children",
+            `<shuffle name="sh"><math>1</math><math>$sh[1]</math></shuffle>`,
+        ],
+        [
+            "an index into a sort in its own children",
+            `<sort name="sh"><math>1</math><math>$sh[1]</math></sort>`,
+        ],
+    ]) {
+        it(`${description} still stops the document`, async () => {
+            await expect(createTestCore({ doenetML })).rejects.toThrow(
+                "Circular dependency involving these components",
+            );
         });
     }
 });

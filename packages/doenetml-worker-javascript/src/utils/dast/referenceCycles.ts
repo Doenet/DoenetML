@@ -1075,9 +1075,15 @@ export function breakReferenceCycles({
             branchNamed !== undefined
                 ? nodeFor(branchNamed)
                 : targetOf(component);
+        const named = target ? typeOf(target) : undefined;
+        // a reference in an index (`$n` in `$l[$n]`) is made an `<integer>`,
+        // a tag the author did not write (#1919), so it names the type of
+        // what it is of
         members.push([
             component,
-            writtenType(component) ?? (target ? typeOf(target) : undefined),
+            component.doenetAttributes?.isIndex
+                ? (named ?? writtenType(component))
+                : (writtenType(component) ?? named),
         ]);
     }
     const diagnostics: DiagnosticRecord[] = [];
