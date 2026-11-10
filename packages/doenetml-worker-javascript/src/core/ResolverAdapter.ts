@@ -63,7 +63,7 @@ export async function addReplacementsToResolver({
         return;
     }
 
-    const { parentIdx, indexResolution } =
+    const { parentIdx, indexResolution: placedIndexResolution } =
         await determineParentAndIndexResolutionForResolver({
             core,
             component,
@@ -86,6 +86,20 @@ export async function addReplacementsToResolver({
         serializedReplacements,
         component,
     );
+    // The fragment's children are then all the children of that
+    // replacement, so they replace all of its index resolutions, not the
+    // range of the composite's old replacements that an update replaces
+    // (that range counts replacements, one level up). A `<group
+    // extend="$r[1]"/>` of an iteration missing at load had an empty group
+    // as its replacement, and the range (0..1) was past the end of that
+    // group's index resolutions, so none were added when the iteration
+    // appeared: an index passing through it named nothing until a reload
+    // (REF-7, SAVE-1, #2478).
+    const indexResolution =
+        fragmentParent &&
+        placedIndexResolution.ReplaceRange?.parent === parentIdx
+            ? { ReplaceAll: { parent: parentIdx } }
+            : placedIndexResolution;
     const fragmentChildren: any[] = [];
     let parentSourceSequence: any = null;
     let parentIndexPassThrough: number | undefined;

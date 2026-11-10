@@ -2546,6 +2546,20 @@ export async function arrayEntryNamesFromPropIndex({
         } else if (stateVarObj.isArrayEntry) {
             let arrayStateVarObj =
                 component.state[stateVarObj.arrayStateVariable];
+            // The same past the dimensions of an entry of an array, which
+            // are those left after its prefix (`returnEntryDimensions`):
+            // `$line.point1[2][1]` and `$f.maximumLocations[1][1]` name
+            // nothing, as `$line.points[1][2][1]` does, where each
+            // `arrayVarNameFromPropIndex` dropped the extra index (D27,
+            // NAME-2, #2478).
+            if (
+                !arrayStateVarObj.indexesAnyDepth &&
+                propIndex.length > stateVarObj.numDimensions
+            ) {
+                reportPropIndexFailure(varName, " as it has too many indices");
+                newVarNames.push(INDEX_NAMES_NOTHING);
+                continue;
+            }
             newName = arrayStateVarObj.arrayVarNameFromPropIndex(
                 propIndex,
                 varName,

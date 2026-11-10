@@ -518,6 +518,63 @@ describe("An index selects instances, not children @group4", async () => {
         ]);
     });
 
+    it("follows an iteration missing at load into an extend of it, as after a reload (#2478)", async () => {
+        // `g` is made an empty group while `r` has no iteration 1. When the
+        // iteration appears, an index passes through `g` to the one repeat
+        // or list that is its content, as it does through `$r[1]`, the same
+        // as after a reload (SAVE-1).
+        for (const content of [
+            `<repeatForSequence length="3" valueName="w"><math>$v $w</math></repeatForSequence>`,
+            `<mathList>$v 2$v 3$v</mathList>`,
+        ]) {
+            const doenetML = `<mathInput name="n" prefill="0" />
+    <repeatForSequence name="r" length="$n" valueName="v">${content}</repeatForSequence>
+    <group name="g" extend="$r[1]" />
+    <p name="p">[$r[1][2]] [$g[2]]</p>`;
+            let { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({ doenetML });
+            async function text() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text;
+            }
+            function reportedSinceLoad(before: number) {
+                return getDiagnosticsByType(core)
+                    .warnings.slice(before)
+                    .map((w) => [w.code, w.args.reference]);
+            }
+            expect(await text(), content).eq("[＿] [＿]");
+            const numWarningsAtLoad =
+                getDiagnosticsByType(core).warnings.length;
+
+            const shown = content.startsWith("<mathList")
+                ? "[2 * 1] [2 * 1]"
+                : "[1 * 2] [1 * 2]";
+            for (const n of ["1", "2"]) {
+                await updateMathInputValue({
+                    latex: n,
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+                expect(await text(), content).eq(shown);
+                // nothing new is reported: it no longer names nothing
+                // past the group's index resolutions (`doenet-w0104`)
+                expect(reportedSinceLoad(numWarningsAtLoad), content).eqls([]);
+            }
+
+            await core.saveImmediately();
+            ({ core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                initialState: scoreState.state,
+            }));
+            expect(await text(), content).eq(shown);
+            expect(getDiagnosticsByType(core).warnings, content).eqls([]);
+        }
+    });
+
     it("names nothing again after an index when an extend of an iteration is made again from an ordinary group", async () => {
         // `x` is an extend of an iteration in one case and an ordinary
         // group in the other, so `g` passes an index through and then

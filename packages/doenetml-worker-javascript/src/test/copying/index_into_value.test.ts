@@ -5,6 +5,7 @@ import {
     movePoint,
     updateMathInputValue,
     updateMatrixInputValue,
+    updateTextInputValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -199,6 +200,14 @@ describe("An index into a value with entries @group4", async () => {
             "$line.points[1][2][1]",
             "$f.maxima[1][2][1]",
             "$ss.cells[1][1][1]",
+            // past the dimensions of an entry of an array, which are those
+            // left after its name (#2478)
+            "$poly.vertex1[2][1]",
+            "$line.point1[2][1]",
+            "$f.maximumLocations[1][1]",
+            "$f.maximum1[2][1]",
+            "$ss.row1[1][1]",
+            "$line.pointX1_2[1]",
         ]) {
             const { text, warnings, errors, infos } = await shownAndReported(
                 reference,
@@ -211,6 +220,40 @@ describe("An index into a value with entries @group4", async () => {
                 reference,
             ).eqls(["doenet-w0100"]);
         }
+        // while an index within them still selects
+        await expectShownSilently(
+            [
+                ["$poly.vertex1[2]", "2"],
+                ["$line.point1[2]", "2"],
+                ["$f.maximum1[2]", "0.385"],
+                ["$ss.row1[2]", "b"],
+            ],
+            arrays,
+        );
+    });
+
+    it("writes nothing through an index past the dimensions of an entry of an array (#2478)", async () => {
+        const doenetML = `<line name="line" through="(1,2) (3,4)"/>
+<mathInput name="w" bindValueTo="$line.point1[2][1]"><label>w</label></mathInput>
+<p name="pline">$line.point1</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function textOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .text;
+        }
+        expect(await textOf("w")).eq("＿");
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("w"),
+            core,
+        });
+        expect(await textOf("pline")).eq("(1, 2)");
     });
 
     it("indexes a value at every level that has entries (#2438)", async () => {
@@ -853,6 +896,145 @@ describe("An index into an entry of a list @group4", async () => {
                 reference,
             ).eqls([code]);
             expect(warnings[0].args, reference).eqls({ reference });
+        }
+    });
+
+    it("reports an index into a scalar entry of any list, and past the dimensions of an entry's property (#2478)", async () => {
+        const scalarLists = `<setup>
+<numberList name="nl">4 5 6</numberList>
+<textList name="tl">a b c</textList>
+<booleanList name="bl">true false</booleanList>
+<pointList name="pl">(1,2) (3,4)</pointList>
+</setup>`;
+        // An entry of a `<numberList>` or `<textList>` is a scalar, as one
+        // of a `<mathList>` holding `5` is (`$ml[2][1]` above), and `xs[1]`
+        // of a point entry is a coordinate, with no entries, as `$P.xs[1][1]`
+        for (const reference of [
+            "$nl[2][1]",
+            "$tl[2][1]",
+            "$bl[1][1]",
+            "$pl[2].xs[1][1]",
+            "$pl[2].coords[1][1]",
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                reference,
+                scalarLists,
+            );
+            expect(text, reference).eq("[＿]");
+            expect([...errors, ...infos], reference).eqls([]);
+            expect(
+                warnings.map((w) => w.code),
+                reference,
+            ).eqls(["doenet-w0100"]);
+            expect(warnings[0].args, reference).eqls({ reference });
+        }
+        await expectShownSilently(
+            [
+                ["$nl[2]", "5"],
+                ["$tl[2]", "b"],
+                ["$pl[2].xs[1]", "3"],
+                // past the end of the list or of the entry is silent
+                ["$nl[4]", "＿"],
+                ["$pl[2].xs[3]", "＿"],
+            ],
+            scalarLists,
+        );
+    });
+
+    it("reads an index into an entry's value given by a reference as one written out (#2478)", async () => {
+        const before = `<setup>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<mathList name="ml">(1,2) (3,4)</mathList>
+<number name="one">1</number>
+<number name="two">2</number>
+</setup>`;
+        await expectShownSilently(
+            [
+                ["$pl[2].value[$one]", "3"],
+                ["$pl[2].value[1]", "3"],
+                ["$pl[$two].value[$two]", "4"],
+                ["$ml[2].value[$one]", "3"],
+            ],
+            before,
+        );
+    });
+
+    it("writes nothing through an index into a scalar entry or past an entry property's dimensions (#2478)", async () => {
+        const doenetML = `<numberList name="nl">4 5 6</numberList>
+<textList name="tl">a b c</textList>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<number name="one">1</number>
+<mathInput name="wnl" bindValueTo="$nl[2][1]"><label>wnl</label></mathInput>
+<textInput name="wtl" bindValueTo="$tl[2][1]"><label>wtl</label></textInput>
+<mathInput name="wxs" bindValueTo="$pl[2].xs[1][1]"><label>wxs</label></mathInput>
+<mathInput name="wvalue" bindValueTo="$pl[2].value[$one]"><label>wvalue</label></mathInput>
+<p name="pnl">$nl</p><p name="ptl">$tl</p><p name="ppl">$pl</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function textOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .text;
+        }
+
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("wnl"),
+            core,
+        });
+        expect(await textOf("pnl")).eq("4, 5, 6");
+        await updateTextInputValue({
+            text: "z",
+            componentIdx: await resolvePathToNodeIdx("wtl"),
+            core,
+        });
+        expect(await textOf("ptl")).eq("a, b, c");
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("wxs"),
+            core,
+        });
+        expect(await textOf("ppl")).eq("(1, 2), (3, 4)");
+
+        // and an index given by a reference writes what it names, as
+        // `$pl[2].value[1]` does
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: await resolvePathToNodeIdx("wvalue"),
+            core,
+        });
+        expect(await textOf("ppl")).eq("(1, 2), (8, 4)");
+    });
+});
+
+describe("An index into a pick that is a number or a text (#2478) @group4", async () => {
+    it("names nothing, reported as an index into a scalar, for every selector and sampler", async () => {
+        for (const selector of [
+            `<selectFromSequence name="s" from="1" to="10"/>`,
+            `<selectFromSequence name="s" type="letters" from="a" to="j"/>`,
+            `<selectPrimeNumbers name="s" from="2" to="20"/>`,
+            `<selectRandomNumbers name="s"/>`,
+            `<sampleRandomNumbers name="s"/>`,
+            `<samplePrimeNumbers name="s" from="2" to="20"/>`,
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                "$s[1][1]",
+                selector,
+            );
+            expect(text, selector).eq("[＿]");
+            expect([...errors, ...infos], selector).eqls([]);
+            expect(
+                warnings.map((w) => [w.code, w.args]),
+                selector,
+            ).eqls([["doenet-w0100", { reference: "$s[1][1]" }]]);
+
+            // while the pick itself is shown
+            const { text: pick } = await shownAndReported("$s[1]", selector);
+            expect(pick, selector).not.eq("[＿]");
         }
     });
 });
