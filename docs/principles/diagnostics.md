@@ -224,8 +224,9 @@ reaches it takes its error explicitly:
   `<math>` entries and entries holding an error, `mergeMathLists`, `maxNumber` written as an
   expression, a composite or index source that isn't one written tag, and `<module extend="$t"/>`
   where `t` is a name inside a case or holds an error;
-- the choice errors of `<selectFromSequence>`, `<selectPrimeNumbers>` and the samplers, for SEL
-  (D39);
+- the choice errors of `<selectFromSequence>` and `<selectPrimeNumbers>` that a value decides,
+  for SEL-5 (D39, #2508 part 3). A parameter reaching what can change, or a sampler, is `e0070`
+  at load since #2511;
 - a sequence extend through an index or a property throws, or gives a spurious `e0005` (#2501);
 - **fixed by #2471:** reference cycles through what is written are `e0005` at load over every
   branch (B32, B40, #2430). Left: cycles through a property, an attribute, an index or a list; a
@@ -235,9 +236,9 @@ reaches it takes its error explicitly:
 - **fixed by #2468:** choice errors that depended on the variant or on values. A requested
   variant's choices are taken as given (`e0037`–`e0040`, `e0048`–`e0050` are retired). A failure
   is an error only when every attribute deciding it is written without a reference; otherwise it
-  is an info and the selection is missing (`to="$a"` with a random `a`). The fluke codes
-  `e0052`/`e0053` are always infos, and `coprime` draws that find nothing are info `i0057`.
-  Those variants are still broken, which D39 addresses;
+  is an info and the selection is missing (`to="$a"` with a random `a`). Those variants are
+  still broken, which D39 addresses. #2511 retired the fluke codes `e0052`/`e0053` and `coprime`'s
+  `i0057`: a selection never fails by chance (SEL-4);
 - state-variable cycles that throw (D14) through a property or an attribute,
   `<number name="n">$n.value</number>` (#2473). Whole-component cycles such as
   `<math name="z" extend="$z"/>` are `e0005` since #2471;

@@ -199,7 +199,7 @@ No test pins the loss, so adopting the rule breaks nothing.
 
 ### COMP-8: a selection is made once, from the variant, and is never made again (Tier 1)
 `<select>`, `<selectFromSequence>`, `<selectPrimeNumbers>`, `<selectRandomNumbers>`, `<shuffle>`,
-the samplers and every other choosing tag choose once, from the document's variant. **Changing a
+`<pretzel>` and a `<choiceInput shuffleOrder>` choose once, from the document's variant. **Changing a
 selection after it has been made is prohibited, for any reason:**
 - **not when what it was made from changes.** `numToSelect`, a range, `exclude`, weights and the
   options are read once, when the selection is made, and fixed with it. A later change to them
@@ -218,6 +218,13 @@ chooses for itself (D33). An `extend` and a `copyWithState` show the same select
 - **References agree.** Copies and extends show the same picks, however deeply the choice is
   nested in what was copied (CPY-8; #2344 fixed the nested-group case, #2342).
 - **Content stays live.** The *content* of a chosen option still updates.
+
+**Samplers are not selections.** `<sampleRandomNumbers>`, `<samplePrimeNumbers>` and
+`<sampleMultivariateRandomNumber>` draw from the variant too, but they are meant to draw again:
+when what they read changes, and when they are resampled (`resample()`). So a sampler may read
+what a reader changes, and redrawing when a parameter changes is correct. A reload still brings
+back the draws it had (SAVE-4; #2477 for a `copyWithState`). Because a sampler can draw again,
+a selection may not read one (SEL-1).
 
 Evidence:
 - `T/tagSpecific/select.test.ts:432` (copies do not resample), `:544` ("does not change
@@ -256,6 +263,9 @@ Differences in the cells core:
 > does. **Every choice that can appear can be made as written.** If DoenetML can't show that, the
 > document has an error, the same in every variant.
 
+A "random choice" here is a selection (COMP-8). A sampler is not one: it is meant to draw again
+when what it reads changes, so it may read what the reader changes, and no choice may read it.
+
 That is the whole author-facing rule. Revealing a case or adding iterations can make a new
 choice appear; nothing a reader does changes what an existing or future choice draws from. The
 guarantee covers every potential variant, not only the ones today's algorithm makes, so checking
@@ -274,12 +284,23 @@ sources) without changing the statement above.
     `<repeatForSequence>` whose `from` and `step` are, or a `<repeat for>` of a literal list or a
     selection).
 
-  A parameter that reaches anything the reader can change is an error at load, even where its
-  effect could be worked out: an input (even its prefill), an answer, a draggable component or a
-  value one depends on (`a` in `<point>($a, 2)</point>`), a target of `bindValueTo`,
-  `updateValue` or another action, and anything reading these, including a `valueName` of a
-  sequence whose `from` reads an input. "Can change" is DIAG-2's definition, whose write index
-  (`buildReaderWritableIndex`, #2495) this check can reuse.
+  A parameter that reaches anything that can change is an error at load (`e0070`), even where
+  its effect could be worked out:
+  - what a reader can change: an input (even its prefill), an answer, a slider, a draggable
+    component or a value one depends on (`a` in `<point>($a, 2)</point>`), a target of
+    `bindValueTo`, `updateValue` or another action;
+  - a sampler, whatever its own parameters read, since it can be resampled;
+  - anything reading these, including a `valueName` of a sequence whose `from` reads an input.
+
+  "Can change by a reader" is DIAG-2's definition, whose write index
+  (`buildReaderWritableIndex`, #2495) the check reuses.
+
+  **Done by #2511** (`W/utils/dast/choiceParametersAtLoad.ts`, `CHOICE_PARAMETERS`). The
+  selection in error becomes an `_error` that selects nothing, reported at load wherever it is
+  (DIAG-7), and isn't counted as a variant. An extend or copy of it is the same error, reported
+  once. `selectForVariants` takes no reference (`w0106`), and `<shuffle>`, `<pretzel>` and
+  `shuffleOrder` take only literals, so none of them needs the check. Where the check can't tell,
+  it allows: a false error is worse than a missed one.
 - **SEL-2: whether a choice exists may depend on the reader (Tier 2).** A choice in a case whose
   condition reads an input, or in an iteration of `<repeatForSequence to="$n">` with `n` from an
   input, is made when the reader causes it. The count or condition is not a parameter of the
@@ -288,10 +309,16 @@ sources) without changing the statement above.
   depends only on the variant and *k*, not on when or in what order the iteration was made: a
   reader going 1 → 5 sees the same iteration 5 as one going 1 → 3 → 5, and as a reload. Shrinking
   and growing a repeat brings an iteration's choice back; it is never made again (COMP-8, SAVE-4).
-  This is D17's seeding by stable key, applied to template instances.
+  This is D17's seeding by stable key, applied to template instances. Tested by #2511
+  (`T/diagnostics/selectionParameters.test.ts`); iteration seeds already follow position. A
+  sampler reading the `valueName` draws again when its iteration is removed and made again,
+  since its parameter changed, as a sampler should.
 - **SEL-4: a choice never fails by chance (Tier 2).** If a valid choice exists, the select finds
   one, drawing among valid choices rather than retrying with a limit. Which values a variant gets
-  may change for this.
+  may change for this. **Done by #2511** (`W/utils/validCombinations.ts`): the existing rejection
+  draws run first, so a variant that succeeded before keeps its values, and only when they find
+  nothing is the selection drawn exactly among the valid combinations. A `coprime` request with
+  no coprime combination is `e0045` at load. `e0052`, `e0053` and `i0057` are retired.
 - **SEL-5: feasibility is proven at load, over every value the parameters can take (Tier 2).**
   From the parameters' ranges, not by trying variants. `to="$a" numToSelect="3"` is fine when `a`
   ranges over 5..10, and an error in every variant when `a` can be 1, naming the value. An
@@ -312,24 +339,32 @@ sources) without changing the statement above.
 
 Outside the guarantee: valid values that make later content degenerate (a random 0 in a
 denominator), which authors exclude; constraints on derived values such as `$b^2 - 4$a$c > 0`, a
-wanted future extension; saved variants from another version of the DoenetML; and continuous
-samplers.
+wanted future extension; saved variants from another version of the DoenetML; and samplers,
+which aren't choices.
 
-**Known violations** (D39 is not implemented; #2508):
-- a parameter may come from an input, or from a value a reader can change;
-- whether an iteration made later is seeded by its position, so its choice doesn't depend on the
-  order iterations were made (SEL-3), is not tested;
+**Known violations** (#2508; SEL-1, SEL-3's test and SEL-4 done by #2511):
+- SEL-1 errs toward an error in places, where it reads a component rather than a property:
+  - `$sec.sectionNumber` of a `<section>` holding an input is an error, though the number can't
+    change;
+  - everything in a `<graph>` that isn't `fixed` counts as draggable (#2495's index), so a
+    `<number>` placed in a graph, or `$g.xMax` of a `<graph fixAxes>`, is an error;
+  - state a reader sets by an action (a hint opened) isn't checked at all, the other way;
+- a property of a selection in error (`$s.value`) also warns `w0104`, since the `_error` has no
+  such property;
+- `<selectFromSequence extend="$r"/>` of a sampler fails to load, as before #2511; it should be
+  an `e0070`;
+- `e0044`/`e0051` reject a selection once 70% of combinations are excluded, even when valid ones
+  remain (SEL-4);
 - a failure a value decides is a missing selection with an info in some variants (#2468): `to="$a"`
   with a random `a`, `e0032` at info level. Since #2495 a parameter that references only what
   can't change (`numToSelect="$n"` of `<number name="n">3</number>`) is decided by the DoenetML,
   so an infeasible selection is an error at load (`choicesDecidedByDoenetML`);
 - an authored warning in an option or case is reported only while it is shown, not at load
   (SEL-8, #2506);
-- `coprime` draws that find nothing (`i0057`) and the fluke codes `e0052`/`e0053` fail by chance;
 - a cycle through a name every option of a one-pick `<select>` declares stops the variant that
   picks it (#2473);
 - warnings in unpicked options and cases are not reported;
-- a `copyWithState` of a sampler doesn't keep its draws through a reload (#2477, COMP-8).
+- a `copyWithState` of a sampler doesn't keep its draws through a reload (#2477, SAVE-4).
 
 ### COMP-9: `conditionalContent` shows the first case whose condition is true, else the `<else>` (Tier 1)
 The single-case form `<conditionalContent condition="…">` shows its children or nothing.

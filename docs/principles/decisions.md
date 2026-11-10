@@ -2248,6 +2248,12 @@ checks that a document's errors are the same across variants.
   now SEL-4, SEL-3 is SEL-5, SEL-4 is SEL-6, SEL-5 is SEL-7, SEL-6 is SEL-8; SEL-2 and SEL-3 are
   new). SEL-4 accepts an intermediate
 `<number>` or `<integer>` (decided after the questions below).
+- **Samplers are not choices (corrected after #2511).** #2508 listed the samplers among the
+  choices, which was a mistake. A sampler is meant to draw again when what it reads changes or
+  when it is resampled, so it may read what the reader changes, and redrawing then is correct.
+  Instead, **no selection parameter may depend on a sampler**, even one with literal parameters,
+  since it can be resampled (`e0070`, like a value a reader can change). COMP-8's "never made
+  again" is for selections only.
 
 **The goal.** A student should never get a variant the author didn't know was broken. A select
 that errors in some variants is broken, but so is one that selects nothing, a blank, or values
@@ -2373,8 +2379,8 @@ variant misses a blank another variant shows.
 - **A saved or requested variant from another version of the DoenetML** (COMP-8). Its choices are
   taken as given, so they may contradict the current DoenetML. Only possible while the DoenetML is
   edited.
-- **Samplers of continuous distributions** cannot fail to draw, but can draw values the content
-  handles badly. As above.
+- **Samplers**, which aren't choices (see the correction above). One of a continuous
+  distribution cannot fail to draw, but can draw values the content handles badly. As above.
 
 ### What it changes
 

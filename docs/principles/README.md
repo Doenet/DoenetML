@@ -152,10 +152,12 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
     is separated by commas, as a list is. (COMP-1, COMP-2)
 12. Selections are made once, from the variant, and never made again: not when what they were
     made from changes, not on a reload, not to recover from a problem. The same variant gives
-    the same selections. (COMP-8, VAR-1)
+    the same selections. A sampler is different: it draws again when what it reads changes or
+    when it is resampled. (COMP-8, VAR-1)
 13. The reader can decide whether a random choice appears, but never what it chooses from: that
-    comes from what you wrote. Every choice that can appear can be made as written; if DoenetML
-    can't show that, you get an error, the same in every variant. (SEL, D39)
+    comes from what you wrote, and can't read a sampler. Every choice that can appear can be made
+    as written; if DoenetML can't show that, you get an error, the same in every variant. (SEL,
+    D39)
 
 **Inherited attributes**
 
