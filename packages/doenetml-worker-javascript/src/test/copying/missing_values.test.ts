@@ -678,6 +678,9 @@ describe("Missing content and missing values (D40) @group2", () => {
     <p name="p"><number name="n">$l[$i]</number></p>
     `);
         expect(text).eq("＿");
+        // drawn as a blank now, so the viewer is told to load the renderer
+        // it is drawn with once it is not
+        expect(core.core!.rendererTypesInDocument).toContain("number");
 
         async function current() {
             const stateVariables = await core.returnAllStateVariables(

@@ -420,8 +420,12 @@ export default class BaseComponent {
             rendererTypes.add(this.rendererType);
         }
         // A missing component is drawn as its type once its source is there
-        // again.
-        if (this.isMissing && this.constructor.rendererType) {
+        // again, and one missing for a while (`canBecomeMissing`, drawn as a
+        // blank now through `drawnMissing`) once it is not.
+        if (
+            (this.isMissing || this.canBecomeMissing) &&
+            this.constructor.rendererType
+        ) {
             rendererTypes.add(this.constructor.rendererType);
         }
 
