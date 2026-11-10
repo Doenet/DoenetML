@@ -578,9 +578,11 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
             const expected = [
                 "2 x",
-                // TODO: was "full" when the copy was of the reference in a
-                // group. An item of a collect, sort or list does not carry
-                // `simplify`, even when the item is `m` itself.
+                // "full" when the copy was of the reference in a group, which
+                // an index no longer reaches (D27). An item of a collect does
+                // not carry `simplify`, a limitation of `<collect>` that this
+                // test does not cover (see "an item of a collect carries
+                // `simplify`" below).
                 "none",
                 3,
                 "display",
@@ -597,6 +599,28 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 core,
             });
             expect(await copies()).eqls(expected);
+        });
+
+        // Found while moving the test above off an index into a group
+        // (#2517), and not fixed here: an extend of a collect's item does not
+        // carry `simplify`, though `styleNumber` and `renderMode` are carried.
+        it.fails("an item of a collect carries `simplify`", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="x+x" />
+    <p name="pp"><math name="m" simplify>$mi</math></p>
+    <collect name="gm" componentType="math" from="$pp" />
+    <math name="um" extend="$gm[1]" />
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("um")].stateValues
+                    .simplify,
+            ).eq("full");
         });
 
         it("a drawn reference is updated in place, not drawn anew, when its value changes", async () => {

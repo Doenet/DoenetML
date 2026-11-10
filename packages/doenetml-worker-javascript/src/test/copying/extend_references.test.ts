@@ -19,6 +19,7 @@ import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { typeAsPresented } from "../utils/list-entries";
+import { childOfInstance } from "../utils/instance-children";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -6642,13 +6643,19 @@ describe("Extend and references tests @group2", async () => {
         });
         await check(2);
 
-        // Only the index into the group is reported, and once
+        // Only the index into the group is reported: once while its third
+        // item is the string `-8`, and once more when it became the unnamed
+        // number `2`
         expect(
             getDiagnosticsByType(core).warnings.map((w) => [
                 w.code,
                 w.args?.reference,
+                w.args?.child,
             ]),
-        ).eqls([["doenet-w0188", "$g[3]"]]);
+        ).eqls([
+            ["doenet-w0188", "$g[3]", "none"],
+            ["doenet-w0188", "$g[3]", "unnamed"],
+        ]);
     });
 
     it("extending a property that does not exist is missing, with a warning", async () => {
@@ -7655,18 +7662,7 @@ describe("Extend and references tests @group2", async () => {
             resolvePathToNodeIdx: ResolvePathToNodeIdx,
             position: number,
         ) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const sections = stateVariables[
-                await resolvePathToNodeIdx("G")
-            ].replacements.filter(
-                (replacement: any) =>
-                    typeof replacement === "object" &&
-                    replacement.componentType === "section",
-            );
-            return sections[position - 1].componentIdx;
+            return childOfInstance(core, resolvePathToNodeIdx, "G", position);
         }
 
         it("an attribute on a copy or extend sees the children written inside the tag", async () => {
