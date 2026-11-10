@@ -120,6 +120,25 @@ export function createPackageJsonTransformer({
                 return filePath;
             });
         }
+        // `bin` names files by the same `./dist` paths, and npm links the
+        // command to whatever it says, so it is rewritten the same way.
+        if (typeof pkg.bin === "string") {
+            pkg.bin = getPathRelativeToPackageJson(
+                pkg.bin,
+                outputPackageJsonPath,
+                pkgRootDir,
+            );
+        } else if (pkg.bin && typeof pkg.bin === "object") {
+            for (const [command, binPath] of Object.entries(
+                pkg.bin as Record<string, string>,
+            )) {
+                pkg.bin[command] = getPathRelativeToPackageJson(
+                    binPath,
+                    outputPackageJsonPath,
+                    pkgRootDir,
+                );
+            }
+        }
         for (const exp of Object.values(pkg.exports ?? {}) as Record<
             string,
             string

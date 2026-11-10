@@ -16,6 +16,9 @@
     "files": [
         "/dist"
     ],
+    "bin": {
+        "doenet-headless": "./dist/cli.js"
+    },
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
