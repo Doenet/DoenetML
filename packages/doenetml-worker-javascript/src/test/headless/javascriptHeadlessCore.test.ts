@@ -40,6 +40,16 @@ describe("JavaScript headless core @group4", () => {
         );
     });
 
+    it("runs with the viewer's default flags but for the events it sends", () => {
+        // A flag whose default differs is a document that behaves differently
+        // when graded than when viewed, so a change to the viewer's defaults
+        // fails here until it is decided for the headless core too.
+        expect(HEADLESS_DEFAULT_FLAGS).toEqual({
+            ...defaultFlags,
+            allowSaveEvents: false,
+        });
+    });
+
     it("reports what it is and that it loads state only at creation", async () => {
         const core = await create(
             `<selectFromSequence name="s" from="1" to="4" />`,

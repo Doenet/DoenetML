@@ -97,7 +97,7 @@ it again from the Actions tab with the version npm now serves under `dev`
 ## Cutting a stable release
 
 1. Merge the open **"chore: version packages"** PR. That is what applies the
-   accumulated changesets, bumps the six fixed-group manifests and writes the
+   accumulated changesets, bumps the seven fixed-group manifests and writes the
    CHANGELOGs.
 2. Create a **GitHub Release** tagged `vX.Y.Z` on that merge commit, targeting the
    right branch. Nothing automates this. Choose **Latest** for a release of the
@@ -114,7 +114,7 @@ Guards that run before anything is published, and what they mean if they fail:
 | guard | means |
 |---|---|
 | `verify-ci.mjs` | CI has not succeeded for that exact commit. It waits out a run still in progress, so a genuine failure here is a red or absent CI run. |
-| `validate-tag-versions.mjs` | the tag does not match all **six** manifests (four npm packages plus both VS Code manifests) |
+| `validate-tag-versions.mjs` | the tag does not match all **seven** manifests (five npm packages plus both VS Code manifests) |
 | "tag commit is on `<branch>`" | the tag was cut from somewhere that branch cannot reach |
 
 ## Backporting to the maintenance line
@@ -192,9 +192,9 @@ landing.** The window closes for good once `main` is on the new line's numbers.
 These live only on the maintenance branch. They are never merged back, and a
 cherry-picked backport touches none of them, so the lines do not contend.
 
-- **Each of the four npm line packages pins `--tag <line>-stable`** in its
+- **Each of the five npm line packages pins `--tag <line>-stable`** in its
   `publish` script, and a parallel `publish:dev` pins `<line>-dev`; the root
-  `publish:dev` fans out to all four. This is the primary guard: a bare
+  `publish:dev` fans out to all five. This is the primary guard: a bare
   `npm publish` applies `latest`, so without it a backport could move `latest`
   from a laptop as easily as from CI.
 - **`packages/prefigure`'s `publish` script is replaced by a refusal** that
@@ -229,7 +229,7 @@ cherry-picked backport touches none of them, so the lines do not contend.
   skill and `packages/vscode-extension/README.md`, each amended to say what is
   different here. Read those on the branch rather than `main`'s.
 - The VS Code manifests stay in the changesets `fixed` group even though nothing
-  publishes them, because `validate-tag-versions.mjs` requires all six to match
+  publishes them, because `validate-tag-versions.mjs` requires all seven to match
   the tag.
 
 ## Things that surprise people

@@ -203,6 +203,8 @@ plugs in by passing its factory as the `core` option of `createHeadlessCore`,
 `src/defaultCore.ts`.
 
 The JavaScript core computes in English, has no host to fetch external
-DoenetML from (a `copy="doenet:..."` reference is reported as an error), and
-runs with the viewer's default flags except that it keeps no local state,
-sends no events and does not auto-submit.
+DoenetML from (a `copy="doenet:..."` reference is reported as an error, and
+the document is graded without the content it names, where a viewer whose host
+fetches it shows that content and its answers), and
+runs with the viewer's default flags except that it sends no events (as the
+viewer does by default, it keeps no local state and does not auto-submit).

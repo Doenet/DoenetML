@@ -33,12 +33,13 @@ import { resolvePathFromRoot, rootNameToPath } from "./resolvePath";
  * The flags a headless core runs with unless the caller overrides them.
  *
  * The viewer's defaults (`defaultFlags` in `packages/doenetml/src/flags.ts`,
- * which this package cannot import), except for what has no meaning without a
- * browser and a host listening: no IndexedDB (`allowLocalState`), no events
- * (`allowSaveEvents`), no messages to a parent frame and no auto-submit.
- * `allowSaveState` stays on, because `serializeState` reads the state through
- * the same report a host receives. A test keeps the key set in step with the
- * viewer's.
+ * which this package cannot import), except that it sends no events
+ * (`allowSaveEvents`), since no host is listening. The viewer's defaults
+ * already keep no local state (`allowLocalState`), post no messages to a
+ * parent frame and do not auto-submit. `allowSaveState` stays on, because
+ * `serializeState` reads the state through the same report a host receives.
+ * A test keeps these equal to the viewer's but for `allowSaveEvents`, so a
+ * change to the viewer's defaults is decided here too.
  */
 export const HEADLESS_DEFAULT_FLAGS: Record<string, unknown> = {
     showCorrectness: true,
