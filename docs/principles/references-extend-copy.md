@@ -95,8 +95,11 @@ finishes the path after composites expand.
   whose value is a tuple or vector; and the rows (as 1×n matrices) and entries of a matrix. An
   input follows its value's type, and `$x.value[i]` is the same as `$x[i]`. A scalar has no
   entries. A `<spreadsheet>` is indexed through `.cells`.
-- **Never a container's children.** `$g[2]` on a group, or `$s[1][2]` into an option with
-  several children, is reached by naming the child instead: `$s[1].x`.
+- **Never a container's children.** `$g[2]` on a group, `$s[1][2]` into a picked option,
+  `$cc[1][2]` into a case and `$r[1][2]` into an iteration with several children name nothing,
+  with a warning and a blank, like any reference that names nothing (D37). The child is reached
+  by name instead: `$s[1].x`. There is no deprecated form (D27 revised; **known violation until
+  #2517:** each still gives the child, with `w0179`).
 - **Pass-through.** An instance whose whole content is one indexable thing passes the next index
   to it. Nested repeats take one index per level: `$r[1][2]` is iteration 2 of the inner repeat
   in iteration 1.
@@ -104,7 +107,9 @@ finishes the path after composites expand.
 Done by #2424 (instances) and #2431 (values). Diagnostics, each quoting what was written:
 - **`doenet-w0179`, deprecation:** child indexing (`$g[2]`, `$s[1][2]` into a pick that is not one
   indexable component, `$cc[1][2]`) still gives the child, and the warning names the form to
-  write. A `<conditionalContent>`'s case keeps child indexing, deprecated;
+  write. A `<conditionalContent>`'s case keeps child indexing, deprecated. **Being removed**
+  (#2517): every form, including an iteration's children, an extend of an iteration and a group
+  reached through `<collect>`, will name nothing with a warning;
 - **`doenet-w0180`:** an index on something that takes none (`$sec[2]`);
 - **`doenet-w0181`:** past the end of a repeat, select, `selectFromSequence`, shuffle, sort or
   collect that stays a composite ("the `<select>` made only 2 picks"). Past the end of a list is
@@ -127,7 +132,8 @@ Evidence: `T/copying/indexSelectsInstances.test.ts`, `T/copying/index_into_value
 - an index never reaches the `<setup>` a repeat adds;
 - an index into a scalar entry of a `<mathList>` is missing with `w0100`, and refuses a write;
 - an index past the content of an iteration that holds something other than one list or repeat
-  is the deprecated child index, `w0104` (it used to be silent).
+  is the deprecated child index, `w0104` (it used to be silent). After #2517 any child index of
+  an iteration names nothing.
 
 Known violations:
 - `$nl[2][1]` of a `<numberList>` or `<textList>` entry is silent; an extra index on an array
@@ -147,8 +153,8 @@ Limits:
   `T/copying/extend_references.test.ts:4703`. Whether they are a guarantee is an open question
   ([decisions.md](decisions.md), D19).
 - **An index into a composite of references** (`$g[1]` with `<group name="g">$x</group>`) can
-  panic the resolver (#1942). Under D27, indexing a group's children is an error, so this form
-  would give a diagnostic instead.
+  panic the resolver (#1942). Under D27 (revised), indexing a group's children names nothing, so
+  this form gives a warning instead (#2517).
 
 ### NAME-3: names inside a copy or a repeat iteration are private (Tier 1)
 A copy brings its content's names into existence only beneath the copy's own name. A bare `$h`
@@ -652,7 +658,8 @@ Evidence: `T/copying/type_change.test.ts`, `T/copying/type_change_run_time.test.
 Not decided yet (behave as before): content holding a list (written there or by a bare `$l`), a
 list or `<group>` written as the tag, internal list forms, and unresolved paths. An index after a
 reference to a copy (`$a1[2]` of `<group name="a1" extend="$a"/>`) selects a child of the copy,
-not a pick of what it copies, so it is left to run time (compare B26).
+not a pick of what it copies, so it is left to run time (compare B26). After #2517 it names
+nothing, so there is nothing left to decide.
 
 **Done by #2484** (closing #2440, #2429, #2437; B22, B24, B30): an input written as a related
 tag reads its value, so `<point extend="$mi"/>` is `(1, 2)` and dragging it edits `mi`. A boolean
@@ -782,7 +789,7 @@ Known bugs, open: #2217, #2211 (with children, and `indexName`), and the copy ha
   Evidence: `T/copying/extend_references.test.ts:6549` "reference inside composite adds to index
   resolution but not names". That test also asserts that `$sec2.g[1].t` reaches `t` by its
   position in the group. That part changes under D27, which decides that an index never selects
-  a child of a group.
+  a child of a group (#2517).
 
 To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.
 
