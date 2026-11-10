@@ -13,7 +13,7 @@
 import { realpathSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { parseArgs } from "node:util";
+import { format, parseArgs } from "node:util";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { check, type CheckResult } from "./check";
 import { HeadlessError } from "./errors";
@@ -41,8 +41,24 @@ failure; 3 the saved state was refused.`;
 type Output = { out: (text: string) => void; err: (text: string) => void };
 
 /**
+ * The console methods the CLI redirects while it runs. `log`, `info` and
+ * `debug` write to standard output, and the core logs through them
+ * (`console.log` on a text-format `<math>` whose content does not parse, for
+ * one), so a line of that would come before the report and break `--json`.
+ * `warn` already writes to standard error; it is redirected too, so that a
+ * caller's `output.err` receives everything the core logs.
+ */
+const STDOUT_CONSOLE_METHODS = ["log", "info", "debug", "warn"] as const;
+
+/**
  * Run the CLI on `argv` (without the node and script paths) and return the
  * exit code. Writes through `output`, so a test can run it in-process.
+ *
+ * Standard output carries only the command's own report: while it runs,
+ * whatever the core writes with `console.log`, `console.info`,
+ * `console.debug` or `console.warn` goes to `output.err` instead, and the
+ * console is restored afterwards. `console.error` is left as it is (it
+ * already writes to standard error).
  */
 export async function runCli(
     argv: string[],
@@ -51,6 +67,20 @@ export async function runCli(
         err: (text) => process.stderr.write(text + "\n"),
     },
 ): Promise<number> {
+    const saved = STDOUT_CONSOLE_METHODS.map((name) => console[name]);
+    for (const name of STDOUT_CONSOLE_METHODS) {
+        console[name] = (...args: unknown[]) => output.err(format(...args));
+    }
+    try {
+        return await run(argv, output);
+    } finally {
+        STDOUT_CONSOLE_METHODS.forEach((name, i) => {
+            console[name] = saved[i];
+        });
+    }
+}
+
+async function run(argv: string[], output: Output): Promise<number> {
     let parsed;
     try {
         parsed = parseArgs({

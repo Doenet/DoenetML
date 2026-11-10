@@ -193,7 +193,10 @@ doenet-headless check <file> [--variant <n>] [--json]
 doenet-headless grade <file> --variant <n> --state <state.json> [--attempt <n>] [--json]
 ```
 
-Human-readable by default, JSON with `--json`. Exit codes: 0 when the
+Human-readable by default, JSON with `--json`. Standard output carries only
+that report: anything the core logs while it runs (with `console.log`,
+`console.info`, `console.debug` or `console.warn`) goes to standard error, as
+do refusals and errors. Exit codes: 0 when the
 document has no errors; 1 when it has an error among its diagnostics (the
 report is still printed); 2 for a usage or file problem or any other failure;
 3 when `grade` refuses the saved state.

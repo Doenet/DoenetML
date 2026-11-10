@@ -212,4 +212,42 @@ describe("doenet-headless CLI", () => {
         expect(help.code).toBe(0);
         expect(help.stdout).toContain("Usage:");
     });
+
+    it("keeps what the core logs off standard output", async () => {
+        // The core logs a line with `console.log` for a text-format <math>
+        // whose content does not parse. On standard output it would come
+        // before the report and break --json.
+        const loggingFile = path.join(dir, "logs.doenet");
+        fs.writeFileSync(
+            loggingFile,
+            `<math name="m" format="text">?</math>\n<answer name="a">x</answer>\n`,
+        );
+        const logged = "Invalid value for a math of text format";
+
+        const json = await runCli(["check", loggingFile, "--json"]);
+        expect(json.code).toBe(0);
+        expect(JSON.parse(json.stdout).answers[0].stableKey).toBe("a");
+        expect(json.stdout).not.toContain(logged);
+        expect(json.stderr).toContain(logged);
+
+        const text = await runCli(["check", loggingFile]);
+        expect(text.code).toBe(0);
+        expect(text.stdout).not.toContain(logged);
+        expect(text.stdout).toContain("  a: mathInput");
+        expect(text.stderr).toContain(logged);
+    });
+
+    it("restores the console after a run in-process", async () => {
+        const { runCli: runInProcess } = await import("../src/cli");
+        const log = console.log;
+        const out: string[] = [];
+        const err: string[] = [];
+        const code = await runInProcess(["check", docFile, "--json"], {
+            out: (t) => out.push(t),
+            err: (t) => err.push(t),
+        });
+        expect(code).toBe(0);
+        expect(() => JSON.parse(out.join("\n"))).not.toThrow();
+        expect(console.log).toBe(log);
+    });
 });
