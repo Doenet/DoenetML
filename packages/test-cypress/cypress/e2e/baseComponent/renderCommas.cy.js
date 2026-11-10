@@ -189,12 +189,14 @@ $fi.iterates
 
         function check(n) {
             const entries = [...Array(n).keys()].map((i) => i + 1);
-            cy.get(cesc("#sec1.p")).should(
+            // `p` and `p4` are unique names, so their ids are not qualified
+            // by the section, as `p3`, written in both, is
+            cy.get(cesc("#p")).should(
                 "have.text",
                 [-6, ...entries, -8].join(", "),
             );
             cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: ＿");
-            for (const name of ["#sec2.p3", "#sec2.p4"]) {
+            for (const name of ["#sec2.p3", "#p4"]) {
                 cy.get(cesc(name)).should(
                     "have.text",
                     `2nd entry: ${n >= 2 ? 2 : "＿"}`,
