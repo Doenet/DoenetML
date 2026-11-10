@@ -885,53 +885,56 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
 
         cy.get("#a").should("have.text", "a"); // to wait for page to load
 
+        // A cell the spreadsheet doesn't have is missing, and so is the
+        // text of it, shown as a blank (D37, #2487).
+
         let row = ["1", "2", "3"];
         let column = ["2", "5", "7"];
 
-        cy.get("#R1").should("have.text", "");
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
-        cy.get("#C1").should("have.text", "");
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#R1").should("have.text", "＿");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
+        cy.get("#C1").should("have.text", "＿");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("1{enter}", { force: true });
         cy.get("#R1").should("have.text", row[0]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[0]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
         cy.get("#R1").should("have.text", row[1]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[1]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
         cy.get("#R1").should("have.text", row[2]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[2]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get("#R1").should("have.text", "");
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
-        cy.get("#C1").should("have.text", "");
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#R1").should("have.text", "＿");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
+        cy.get("#C1").should("have.text", "＿");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
     });
 
     it("copy multidimensional propIndex of evaluated cells, dot and array notation", () => {
@@ -985,50 +988,50 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         let row = ["1", "2", "3"];
         let column = ["2", "5", "7"];
 
-        cy.get("#R1").should("have.text", "");
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
-        cy.get("#C1").should("have.text", "");
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#R1").should("have.text", "＿");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
+        cy.get("#C1").should("have.text", "＿");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("1{enter}", { force: true });
         cy.get("#R1").should("have.text", row[0]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[0]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
         cy.get("#R1").should("have.text", row[1]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[1]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
         cy.get("#R1").should("have.text", row[2]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[2]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get("#R1").should("have.text", "");
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
-        cy.get("#C1").should("have.text", "");
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#R1").should("have.text", "＿");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
+        cy.get("#C1").should("have.text", "＿");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
     });
 
     it("copy multidimensional propIndex of evaluated rows and columns, dot and array notation", () => {
@@ -1082,50 +1085,50 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         let row = ["1", "2", "3"];
         let column = ["2", "5", "7"];
 
-        cy.get("#R1").should("have.text", "");
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
-        cy.get("#C1").should("have.text", "");
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#R1").should("have.text", "＿");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
+        cy.get("#C1").should("have.text", "＿");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("1{enter}", { force: true });
         cy.get("#R1").should("have.text", row[0]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[0]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
         cy.get("#R1").should("have.text", row[1]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[1]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
         cy.get("#R1").should("have.text", row[2]);
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
         cy.get("#C1").should("have.text", column[2]);
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get("#R1").should("have.text", "");
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
-        cy.get("#C1").should("have.text", "");
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#R1").should("have.text", "＿");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
+        cy.get("#C1").should("have.text", "＿");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
     });
 
     it("copy single propIndex of evaluated rows and columns, dot and array notation", () => {
@@ -1187,12 +1190,12 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
             ["3", "F", "I"],
         ];
 
-        cy.get("#R1").should("have.text", "");
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
-        cy.get("#C1").should("have.text", "");
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#R1").should("have.text", "＿");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
+        cy.get("#C1").should("have.text", "＿");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
 
         cy.get("#n" + " textarea").type("1{enter}", { force: true });
         cy.get("#R1").should("have.text", rows[0][0]);
@@ -1225,12 +1228,12 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         cy.get("#n" + " textarea").type("{end}{backspace}4{enter}", {
             force: true,
         });
-        cy.get("#R1").should("have.text", "");
-        cy.get("#R2").should("have.text", "");
-        cy.get("#R3").should("have.text", "");
-        cy.get("#C1").should("have.text", "");
-        cy.get("#C2").should("have.text", "");
-        cy.get("#C3").should("have.text", "");
+        cy.get("#R1").should("have.text", "＿");
+        cy.get("#R2").should("have.text", "＿");
+        cy.get("#R3").should("have.text", "＿");
+        cy.get("#C1").should("have.text", "＿");
+        cy.get("#C2").should("have.text", "＿");
+        cy.get("#C3").should("have.text", "＿");
     });
 
     it("copy propIndex of points in cells, dot and array notation", () => {
