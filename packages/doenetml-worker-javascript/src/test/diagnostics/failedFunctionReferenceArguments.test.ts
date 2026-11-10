@@ -47,11 +47,25 @@ describe("The arguments of a function reference that names nothing @group4", asy
     });
 
     it("declares a name in them where the reference is, as a setup there would", async () => {
-        // A name further out is found from outside, and the one in the
-        // arguments from beside them
-        const { texts } = await shownAndReported(
+        // Beside the arguments, the name in them is found before one further
+        // out. From outside, both are found, which is ambiguous, as for a name
+        // written in a `<setup>` there.
+        const outer = await shownAndReported(
             `<math name="m">y</math><p name="p">[$$f(<math name="m">x</math>)] [$m]</p><p name="q">[$m]</p>`,
             ["p", "q"],
+        );
+        const outerSetup = await shownAndReported(
+            `<math name="m">y</math><p name="p">[<setup><math name="m">x</math></setup>] [$m]</p><p name="q">[$m]</p>`,
+            ["p", "q"],
+        );
+        expect(outer.texts).eqls(["[＿] [x]", "[＿]"]);
+        expect(outerSetup.texts).eqls(["[] [x]", "[＿]"]);
+        expect(outer.warnings.map((w) => [w.code, w.args.reference])).eqls([
+            ["doenet-w0104", '$$f(<math name="m">x</math>)'],
+            ["doenet-w0105", "$m"],
+        ]);
+        expect(outerSetup.warnings.map((w) => [w.code, w.args.reference])).eqls(
+            [["doenet-w0105", "$m"]],
         );
         // The same name as another in the same scope is ambiguous, as for a
         // name written in a `<setup>` beside it
@@ -64,7 +78,6 @@ describe("The arguments of a function reference that names nothing @group4", asy
         expect(ambiguous.texts[0]).eq(setup.texts[0].replace("[]", "[＿]"));
         expect(ambiguous.warnings.map((w) => w.code)).toContain("doenet-w0105");
         expect(setup.warnings.map((w) => w.code)).toContain("doenet-w0105");
-        expect(texts[0]).eq("[＿] [x]");
     });
 
     it("reports a reference in them that names nothing, with the function reference", async () => {

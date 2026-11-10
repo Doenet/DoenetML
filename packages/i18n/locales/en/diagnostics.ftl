@@ -441,15 +441,17 @@ reference-index-selects-nothing = `{ $reference }`: an index cannot select anyth
 # on a `<group name="g">`, or `$r[1][2]`, an index after an iteration of a
 # repeat that holds more than one component. The reference names nothing.
 # $reference is the reference as the author wrote it, up to and including that
-# index, with its `$`. $container is what the author wrote the group as:
+# index, with its `$` (and, when the index ends it, the arguments of a function
+# reference: `$$f[2](2)`). $container is what the author wrote the group as:
 # `iteration` for an iteration of a repeat, `pick` for what a select picked,
 # `case` for what a `<conditionalContent>` shows, and `group` for a `<group>`;
-# $component is the tag name of that repeat, select or `<conditionalContent>`.
+# $component is the tag name of that repeat, select or `<conditionalContent>`,
+# and `group` for a `<group>`.
 # $child is `named` when the index is at a child with a name, `unnamed` when it
 # is at one with none, and `none` when the group has no child there;
 # $suggestion is the reference with that index replaced by `.` and the child's
-# name (or `x`, for a child with no name). Tags, references and attributes
-# stay as written.
+# name (or `x`, for a child with no name), followed by the arguments when
+# $reference has them. Tags, references and attributes stay as written.
 
 reference-index-selects-child =
     { $container ->

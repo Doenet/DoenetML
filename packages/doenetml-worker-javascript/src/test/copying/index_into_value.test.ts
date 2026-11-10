@@ -1037,4 +1037,30 @@ describe("An index into a pick that is a number or a text (#2478) @group4", asyn
             expect(pick, selector).not.eq("[＿]");
         }
     });
+
+    it("writes nothing through an index into a pick", async () => {
+        const doenetML = `<selectFromSequence name="s" from="1" to="10"/>
+<mathInput name="w" bindValueTo="$s[1][1]"><label>w</label></mathInput>
+<p name="ps">$s[1]</p>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        async function textOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .text;
+        }
+        const picked = await textOf("ps");
+        expect(await textOf("w")).eq("＿");
+        await updateMathInputValue({
+            latex: "17",
+            componentIdx: await resolvePathToNodeIdx("w"),
+            core,
+        });
+        expect(await textOf("ps")).eq(picked);
+        expect(await textOf("w")).eq("＿");
+    });
 });

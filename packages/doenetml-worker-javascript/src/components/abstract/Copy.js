@@ -2922,7 +2922,7 @@ export default class Copy extends CompositeComponent {
                 // Don't actually make those changes, so the workspace still
                 // describes the replacements kept. Reset, it would count none
                 // of them, and the next update would leave them beside what
-                // it makes: a reference past the end of a list at load, then
+                // it makes: a reference past the end at load, then
                 // after a `<group>` (`childIndex`), then naming an entry,
                 // showed the entry and a blank.
                 Object.assign(workspace, previousWorkspace);
