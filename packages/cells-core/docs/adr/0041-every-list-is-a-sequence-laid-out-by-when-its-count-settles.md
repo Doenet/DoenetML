@@ -1,6 +1,7 @@
 # Every list is a sequence, laid out by when its count settles
 
-Status: proposed 2026-11-10. Nothing is built. The survey behind it is
+Status: proposed 2026-11-10. Nothing is built. Drafted as 0038, and
+renumbered as `cells` took 0038 to 0040 first. The survey behind it is
 `docs/lists-design-notes.md`.
 
 A **sequence** is a count and a family of entries of one entry type. Every
