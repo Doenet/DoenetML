@@ -2674,16 +2674,6 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * Decide the every-branch, same-type rule for the reference `copy`
-     * (`branchDeclaration`). A reference written as a tag records what it
-     * finds on the copy (`typeChangeAtLoad`): types that differ are an
-     * error in its place, and a name a branch lacks, or a literal index past
-     * the picks, a warning with a missing tag (D37). A scalar tag made from a
-     * name no case may hold (no `<else>`) is allowed, and missing while no
-     * case is active. Any other reference names nothing, with a warning
-     * (`branchNameWarnings`). Returns whether it was decided here.
-     */
-    /**
      * What `copy`, a reference to a name the branches of a container declare
      * that the every-branch rule allows (`checkBranchName`), reads: the
      * components the name names in the branches, found as a reference from
@@ -2710,9 +2700,28 @@ export function checkTypeChangesAtLoad({
         if (names.length === 0) {
             return undefined;
         }
-        const named = visibleNamed(container, names);
+        let named = visibleNamed(container, names);
         if (!named || named.length === 0) {
             return undefined;
+        }
+        // A reference written in one of the branches of a container that
+        // shows one (`$cc.y` in a case of `cc`) is there only while that
+        // branch is shown, so it names what the name names in that branch,
+        // not in the others.
+        const holding = branchKind(container)
+            ? container.children?.find(
+                  (branch): branch is SerializedComponent =>
+                      typeof branch === "object" &&
+                      contains(branch, copy.componentIdx),
+              )
+            : undefined;
+        if (holding) {
+            named = named.filter((component) =>
+                contains(holding, component.componentIdx),
+            );
+            if (named.length === 0) {
+                return undefined;
+            }
         }
         return {
             named: named.map((component) => component.componentIdx),
@@ -2722,6 +2731,16 @@ export function checkTypeChangesAtLoad({
         };
     }
 
+    /**
+     * Decide the every-branch, same-type rule for the reference `copy`
+     * (`branchDeclaration`). A reference written as a tag records what it
+     * finds on the copy (`typeChangeAtLoad`): types that differ are an
+     * error in its place, and a name a branch lacks, or a literal index past
+     * the picks, a warning with a missing tag (D37). A scalar tag made from a
+     * name no case may hold (no `<else>`) is allowed, and missing while no
+     * case is active. Any other reference names nothing, with a warning
+     * (`branchNameWarnings`). Returns whether it was decided here.
+     */
     function checkBranchName(copy: SerializedComponent) {
         let declared = branchNameOf(copy);
         if (!declared) {

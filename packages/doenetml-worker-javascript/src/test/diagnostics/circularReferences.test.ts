@@ -783,6 +783,62 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         }
     });
 
+    // A reference in a case is there only while that case is shown, so it
+    // names what its own case declares, not what the others do.
+    it("a name every case declares, read from within a case, from the other case's", async () => {
+        const { errors, rest, core, resolvePathToNodeIdx } =
+            await errorsAndRest(
+                `<booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">$cc.y</math><math name="y">1</math></case><else><math name="x">2</math><math name="y">$cc.x</math></else></conditionalContent><p name="out">$cc.x, $cc.y</p>`,
+            );
+        expect(errors).eqls([]);
+        expect(rest).eq("rest");
+        for (const [value, shown] of [
+            [true, "1, 1"],
+            [false, "2, 2"],
+        ] as const) {
+            await updateBooleanInputValue({
+                boolean: value,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("out")].stateValues
+                    .text,
+            ).eq(shown);
+            expect(errorsAt(core)).eqls([]);
+        }
+    });
+
+    it("a name every option of a one-pick select declares, read from within an option, from the other option's", async () => {
+        for (const requestedVariantIndex of [1, 2]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<select name="s"><option><math name="x">$s.y</math><math name="y">1</math></option><option><math name="x">2</math><math name="y">$s.x</math></option></select><p name="out">$s.x, $s.y</p>`,
+                requestedVariantIndex,
+            });
+            expect(errorsAt(core)).eqls([]);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("out")].stateValues
+                    .text,
+            ).oneOf(["1, 1", "2, 2"]);
+        }
+    });
+
+    it("a name every case declares, read from within a case, from its own case's", async () => {
+        const { errors, rest } = await errorsAndRest(
+            `<conditionalContent name="cc"><case condition="false"><math name="x">$cc.x+1</math></case><else><math name="x">1</math></else></conditionalContent>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:70-75"]);
+        expect(rest).eq("rest");
+    });
+
     it("a paragraph holding a reference to itself, in a case not shown yet", async () => {
         const { errors, rest, core, resolvePathToNodeIdx } =
             await errorsAndRest(
@@ -857,6 +913,28 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         [
             "an index into a group, in an attribute that only shows it",
             `<group name="g" hide="$g[1]"><boolean>false</boolean></group>`,
+        ],
+        // an input that starts from an index into a list that holds it
+        // reads only that entry
+        [
+            "a mathInput prefilled with an index into a math list that holds it",
+            `<mathList name="l">1 $mi</mathList><mathInput name="mi" prefill="$l[1]"/>`,
+        ],
+        [
+            "a mathInput bound to an index into a number list that holds it",
+            `<numberList name="l">1 $mi</numberList><mathInput name="mi" bindValueTo="$l[1]"/>`,
+        ],
+        [
+            "a mathInput prefilled with a math reading an index into a math list that holds it",
+            `<mathList name="l">1 $mi</mathList><math name="y">$l[1]</math><mathInput name="mi" prefill="$y"/>`,
+        ],
+        [
+            "a matrixInput prefilled with an index into a math list that holds it",
+            `<mathList name="l">1 $mi</mathList><matrixInput name="mi" prefill="$l[1]"/>`,
+        ],
+        [
+            "a choiceInput preselecting an index into a number list that holds it",
+            `<numberList name="l">1 $ci.selectedIndex</numberList><choiceInput name="ci" preselectChoice="$l[1]"><choice>a</choice><choice>b</choice></choiceInput>`,
         ],
     ];
     for (const [description, doenetML] of notCycles) {

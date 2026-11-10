@@ -88,9 +88,12 @@
  * A cycle through a property or an attribute not listed, an index into a
  * composite in what that composite makes (`$r[1]` in the template of a
  * `<repeat name="r">`), a reference in the `<label>` of a component whose
- * value reads it, or a component in the attributes of a component that is
- * not a composite or an input (`<math simplify="$m">`) is not found here; it
- * is still reported, or stops the document, when it is reached.
+ * value reads it, a component in the attributes of a component that is
+ * not a composite or an input (`<math simplify="$m">`), or both the
+ * `prefill` of a `<mathInput>` (or a few other attributes an input starts
+ * from) and an index into a `<mathList>` or a `<numberList>`
+ * (`INPUTS_READING_ONE_ENTRY`) is not found here; it is still reported,
+ * or stops the document, when it is reached.
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
@@ -350,6 +353,26 @@ export const INPUTS: [
 ]);
 
 /**
+ * The attributes of an input, by the tag it is of, from which its value
+ * starting from (or bound to) an index into a `<mathList>` or a
+ * `<numberList>` that holds the input is not a cycle when the document runs:
+ * `<mathList name="l">1 $mi</mathList><mathInput name="mi"
+ * prefill="$l[1]"/>` is valid, as is the same through a `<math>` that reads
+ * the index (`<math name="y">$l[1]</math>`, `prefill="$y"`). A cycle that
+ * goes through both one of these attributes and an index into one of those
+ * lists is not found here; it is still reported, or stops the document, when
+ * it is reached (`prefill="$l[2]"`, which reads the input itself). Each
+ * found when the document runs; read the same way, a `<choiceInput>`'s
+ * `bindValueTo`, a `<slider>`'s `initialValue` and a `<textInput>`'s
+ * `prefill` are each a cycle, so are found. Lower case.
+ */
+const INPUTS_READING_ONE_ENTRY: Record<string, string[]> = {
+    mathinput: ["prefill", "prefilllatex", "bindvalueto"],
+    matrixinput: ["prefill", "bindvalueto"],
+    choiceinput: ["preselectchoice"],
+};
+
+/**
  * The composites, and the lists of values not written as their entries,
  * that are made from their attributes when the document runs, so that an
  * index into one reads them (`$a[1]` in `<sequence name="a" length="$a[1]"/>`
@@ -478,6 +501,12 @@ export function breakReferenceCycles({
     // `_error`.
     const sameIdx = new Map<number, SerializedComponent[]>();
     const copiesByCreatedIdx = new Map<number, SerializedComponent>();
+    // The edges from an input to what is in its attributes of
+    // `INPUTS_READING_ONE_ENTRY`, and those from a reference to the
+    // `<mathList>` or `<numberList>` it indexes, as `from>to`: a cycle
+    // through one of each is not one (`INPUTS_READING_ONE_ENTRY`).
+    const inputStartEdges = new Set<string>();
+    const listIndexEdges = new Set<string>();
 
     function gather(components: (SerializedComponent | string)[]) {
         for (const component of components) {
@@ -697,16 +726,24 @@ export function breakReferenceCycles({
      */
     function inputEdges(input: SerializedComponent) {
         const read = entryFor(INPUTS, input.componentType)?.attributes ?? [];
+        const readingOneEntry =
+            INPUTS_READING_ONE_ENTRY[input.componentType.toLowerCase()] ?? [];
         const edges: number[] = [];
         for (const [name, attribute] of Object.entries(
             input.attributes ?? {},
         )) {
             if (read.includes(name.toLowerCase())) {
-                edges.push(
-                    ...componentsOfAttribute(attribute).map(
-                        (component) => component.componentIdx,
-                    ),
+                const readsOneEntry = readingOneEntry.includes(
+                    name.toLowerCase(),
                 );
+                for (const component of componentsOfAttribute(attribute)) {
+                    edges.push(component.componentIdx);
+                    if (readsOneEntry) {
+                        inputStartEdges.add(
+                            `${input.componentIdx}>${component.componentIdx}`,
+                        );
+                    }
+                }
             }
         }
         return edges;
@@ -772,11 +809,15 @@ export function breakReferenceCycles({
     }
 
     /**
-     * The edges for a reference that names `target` with `path` left after
-     * it (`null` for the whole of it): what it reads there, as listed in the
-     * comment at the top.
+     * The edges for the reference `from` that names `target` with `path`
+     * left after it (`null` for the whole of it): what it reads there, as
+     * listed in the comment at the top.
      */
-    function readEdges(target: SerializedComponent, path: any[] | null) {
+    function readEdges(
+        from: SerializedComponent,
+        target: SerializedComponent,
+        path: any[] | null,
+    ) {
         if (path === null || path.length === 0) {
             return [target.componentIdx];
         }
@@ -795,6 +836,15 @@ export function breakReferenceCycles({
                 )
             ) {
                 // reads the whole value
+                if (
+                    ["mathList", "numberList"].some((base) =>
+                        inherits(targetType, base),
+                    )
+                ) {
+                    listIndexEdges.add(
+                        `${from.componentIdx}>${target.componentIdx}`,
+                    );
+                }
                 return [target.componentIdx];
             }
             if (
@@ -851,6 +901,7 @@ export function breakReferenceCycles({
                     if (named) {
                         edges.push(
                             ...readEdges(
+                                component,
                                 named,
                                 branchRead.rest.length > 0
                                     ? branchRead.rest
@@ -865,7 +916,9 @@ export function breakReferenceCycles({
                 // makes too
                 edges.push(component.componentIdx);
             } else if (target && !indexThroughCopy(reference!)) {
-                edges.push(...readEdges(target, reference!.unresolvedPath));
+                edges.push(
+                    ...readEdges(component, target, reference!.unresolvedPath),
+                );
             }
             const written = writtenType(component);
             if (
@@ -907,14 +960,7 @@ export function breakReferenceCycles({
         return [];
     }
 
-    // Strongly connected parts (Tarjan), iteratively, as a document can be
-    // deeper than the stack.
-    const index = new Map<number, number>();
-    const lowLink = new Map<number, number>();
-    const onStack = new Set<number>();
-    const stack: number[] = [];
     const edgesByIdx = new Map<number, number[]>();
-    let nextIndex = 0;
     const onCycle = new Set<number>();
 
     function edges(idx: number) {
@@ -932,58 +978,86 @@ export function breakReferenceCycles({
         return result;
     }
 
-    for (const start of componentsByIdx.keys()) {
-        if (index.has(start)) {
-            continue;
-        }
-        const work: { idx: number; edge: number }[] = [{ idx: start, edge: 0 }];
-        index.set(start, nextIndex);
-        lowLink.set(start, nextIndex);
-        nextIndex++;
-        stack.push(start);
-        onStack.add(start);
+    /**
+     * Add to `onCycle` each node on a cycle of the graph without the edges
+     * in `left`. Strongly connected parts (Tarjan), iteratively, as a
+     * document can be deeper than the stack.
+     */
+    function findCycles(left: Set<string>) {
+        const index = new Map<number, number>();
+        const lowLink = new Map<number, number>();
+        const onStack = new Set<number>();
+        const stack: number[] = [];
+        let nextIndex = 0;
+        const outOf = (idx: number) =>
+            edges(idx).filter((next) => !left.has(`${idx}>${next}`));
 
-        while (work.length > 0) {
-            const frame = work[work.length - 1];
-            const out = edges(frame.idx);
-            if (frame.edge < out.length) {
-                const next = out[frame.edge++];
-                if (!index.has(next)) {
-                    index.set(next, nextIndex);
-                    lowLink.set(next, nextIndex);
-                    nextIndex++;
-                    stack.push(next);
-                    onStack.add(next);
-                    work.push({ idx: next, edge: 0 });
-                } else if (onStack.has(next)) {
-                    lowLink.set(
-                        frame.idx,
-                        Math.min(lowLink.get(frame.idx)!, index.get(next)!),
-                    );
-                }
+        for (const start of componentsByIdx.keys()) {
+            if (index.has(start)) {
                 continue;
             }
-            work.pop();
-            if (work.length > 0) {
-                const parent = work[work.length - 1].idx;
-                lowLink.set(
-                    parent,
-                    Math.min(lowLink.get(parent)!, lowLink.get(frame.idx)!),
-                );
-            }
-            if (lowLink.get(frame.idx) === index.get(frame.idx)) {
-                const part: number[] = [];
-                let member: number;
-                do {
-                    member = stack.pop()!;
-                    onStack.delete(member);
-                    part.push(member);
-                } while (member !== frame.idx);
-                if (part.length > 1 || out.includes(frame.idx)) {
-                    part.forEach((idx) => onCycle.add(idx));
+            const work: { idx: number; edge: number; out: number[] }[] = [
+                { idx: start, edge: 0, out: outOf(start) },
+            ];
+            index.set(start, nextIndex);
+            lowLink.set(start, nextIndex);
+            nextIndex++;
+            stack.push(start);
+            onStack.add(start);
+
+            while (work.length > 0) {
+                const frame = work[work.length - 1];
+                const out = frame.out;
+                if (frame.edge < out.length) {
+                    const next = out[frame.edge++];
+                    if (!index.has(next)) {
+                        index.set(next, nextIndex);
+                        lowLink.set(next, nextIndex);
+                        nextIndex++;
+                        stack.push(next);
+                        onStack.add(next);
+                        work.push({ idx: next, edge: 0, out: outOf(next) });
+                    } else if (onStack.has(next)) {
+                        lowLink.set(
+                            frame.idx,
+                            Math.min(lowLink.get(frame.idx)!, index.get(next)!),
+                        );
+                    }
+                    continue;
+                }
+                work.pop();
+                if (work.length > 0) {
+                    const parent = work[work.length - 1].idx;
+                    lowLink.set(
+                        parent,
+                        Math.min(lowLink.get(parent)!, lowLink.get(frame.idx)!),
+                    );
+                }
+                if (lowLink.get(frame.idx) === index.get(frame.idx)) {
+                    const part: number[] = [];
+                    let member: number;
+                    do {
+                        member = stack.pop()!;
+                        onStack.delete(member);
+                        part.push(member);
+                    } while (member !== frame.idx);
+                    if (part.length > 1 || out.includes(frame.idx)) {
+                        part.forEach((idx) => onCycle.add(idx));
+                    }
                 }
             }
         }
+    }
+
+    // A cycle through both an attribute of an input of
+    // `INPUTS_READING_ONE_ENTRY` and an index into a `<mathList>` or a
+    // `<numberList>` is not one, so the cycles are those of the graph without
+    // the one kind of edge, or without the other. Each node's edges are
+    // marked as they are made, before they are searched, and all are made by
+    // the first search, which reaches every node.
+    findCycles(inputStartEdges);
+    if (inputStartEdges.size > 0) {
+        findCycles(listIndexEdges);
     }
 
     // In document order, so the errors are reported in the order written.
