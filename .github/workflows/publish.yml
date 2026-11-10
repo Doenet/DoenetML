@@ -85,7 +85,7 @@ jobs:
             - name: Build workspaces
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w packages/doenetml-headless
               env:
                   WIREIT_CACHE: "local"
                   # Dev builds use @latest so they remain functional even when a
@@ -106,7 +106,7 @@ jobs:
             # @doenet/standalone that has taken well over an hour; see that file.
             #
             # Gated on the publish having *run*, not on it having succeeded:
-            # `npm run publish` is four independent workspace publishes and npm
+            # `npm run publish` is five independent workspace publishes and npm
             # does not stop at the first one that fails, so a failed step tells
             # you nothing about whether @doenet/standalone went out. Skipping
             # the purge on that signal would leave `dev` on the CDN a release
@@ -215,7 +215,7 @@ jobs:
             - name: Build workspaces
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w @doenet/vscode-extension
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w packages/doenetml-headless -w @doenet/vscode-extension
               env:
                   WIREIT_CACHE: "local"
 
@@ -264,7 +264,7 @@ jobs:
             # anyway, and it is tied to the npm publish instead.
             #
             # Tied to that step having *run*, though, not to it having
-            # succeeded. `npm run publish` is four independent workspace
+            # succeeded. `npm run publish` is five independent workspace
             # publishes and npm does not stop at the first one that fails, so a
             # failed step is equally consistent with @doenet/standalone — the
             # only package this purges — having published fine while

@@ -14,3 +14,4 @@ together:
 - `@doenet/standalone`
 - `@doenet/doenetml-iframe`
 - `@doenet/v06-to-v07`
+- `@doenet/doenetml-headless`

@@ -189,14 +189,15 @@ describe("createPackageJsonTransformer", () => {
     });
 
     it("rewrites bin paths the way it rewrites exports, in either form", () => {
-        // `exports` names `./dist/index.js`; a bin beside it must come out
-        // beside the rewritten export, whatever root the test resolves.
+        // `exports` names `./dist/index.js`; a bin naming the same file must
+        // come out as the rewritten export does. (What that is depends on
+        // where the test resolves the package root: `dist/` has its own
+        // manifest once built.)
         const objectForm = transformFields(
             { bin: { "some-cli": "./dist/index.js" } },
             [],
         ).pkg;
         expect(objectForm.bin["some-cli"]).toBe(objectForm.exports["."].import);
-        expect(objectForm.bin["some-cli"]).not.toBe("./dist/index.js");
 
         const stringForm = transformFields({ bin: "./dist/index.js" }, []).pkg;
         expect(stringForm.bin).toBe(stringForm.exports["."].import);
