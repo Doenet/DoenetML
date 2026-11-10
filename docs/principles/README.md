@@ -68,6 +68,12 @@ removed.
    An index selects what a tag produces (entries, iterations, picks) or the entries of a value
    (coordinates, matrix entries), never a container's children: name the child instead. Nested
    repeats take one index per level, `$r[1][2]`. (D27)
+
+   A `<group>` shows what it holds and, when it holds one component, stands for it: a tag, a
+   property or an index after the group applies to that component (`$g[2]` of a group holding a
+   list is the list's second entry). A pick, a shown case and an iteration do the same. A
+   `<span>`, `<p>` or `<div>` is an element of its own, so none of these reach through it.
+   (NAME-2, REF-0)
 2. Names inside a copied or repeated piece are private to it. Reach them through the
    container's name: `$copy.h`, `$r[2].h`. (NAME-3)
 

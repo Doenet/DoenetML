@@ -899,7 +899,30 @@ reference that names nothing (D37). The warning says to name the child. It cover
 group reached through `<collect>`. Pass-through, instances and entries of values are unchanged.
 The v07-to-v08 converter (#2457) names the child and rewrites the reference where it can, with
 the same name in every branch; where those children differ in type, so the name couldn't be
-referenced (D22), it reports the reference instead. NAME-2 states the rule. It selects among the
+referenced (D22), it reports the reference instead.
+
+**Revised again (November 2026): a group, or an instance, whose content is one component stands
+for it** (#2517, #2518). Two changes to pass-through:
+1. **A `<group>` the author writes passes an index through like an instance.** A group already
+   stands for its content for a tag (`<math extend="$g"/>` of a group holding one math is that
+   math; of a `<span>` it is `e0065`) and for a property (`$g.value`, VAL-5's collections). So
+   `$g[2]` of `<group name="g">$nl</group>` is the list's second entry. Considered against:
+   authors may wonder why a group takes an index and a `<span>` doesn't. Accepted because the
+   group already differs from a span in the other two ways, and the author model now says what a
+   group is (README item 1).
+2. **"Indexable" includes values with entries.** Any one component passes the index on, and that
+   component decides what it means: a list's or value's entry (`$s[1][2]` of an option holding
+   `<math>(1,2,3)</math>` is `2`), an instance, or nothing with a warning (a scalar, `w0100`; a
+   `<p>`, `w0180`).
+
+"One component" ignores blank text, comments and a `<setup>`; any other text counts. It is
+decided at load. A composite inside passes the index to its own instances (`<group>$cc</group>`:
+`$g[1]` is the shown case). This changes the meaning of some 0.7 references with no warning:
+`[1]` after a group or instance holding one component selected that component, and now applies
+to it (`$s[1][1]` of an option holding one point was the point, and is now its x). The converter
+(#2457) drops that `[1]` (`$s[1][1]` → `$s[1]`, `$g[1]` → `$g`).
+
+NAME-2 states the rule. It selects among the
 instances a tag produces, as proposed below, with consequences 1–4. Nested repeats then take one
 index per level: `$r[1][2]` is iteration 2 of the inner repeat in iteration 1 of the outer.
 
