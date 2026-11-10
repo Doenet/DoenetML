@@ -5904,31 +5904,29 @@ describe("Extend and references tests @group2", async () => {
         await check_items(1, 1, 2, 2);
     });
 
-    it("dot and array notation from group", async () => {
+    it("dot notation from group, and an index into it naming nothing", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="grp">
-      <math>x</math>
+      <math name="ma">x</math>
       copied will be blank
-      <text fixed>hello</text>
+      <text fixed name="te">hello</text>
       copied will also be blank
-      <point>(4,5)</point>
-      <line through="(10,9) (9,8)" />
-      <p>A <math name="m">y</math> and a <text name="t">word</text>.</p>
+      <point name="po">(4,5)</point>
+      <line through="(10,9) (9,8)" name="li" />
+      <p name="pa">A <math name="m">y</math> and a <text name="t">word</text>.</p>
     </group>
     
-    <p name="p1">the math: $grp[1]</p>
-    <p name="p2">a blank: $grp[2]</p>
-    <p name="p3">the text: $grp[3]</p>
-    <p name="p4">another blank: $grp[4]</p>
-    <p name="p5">the point: $grp[5]</p>
-    <p name="p6">the point x: $grp[5].x</p>
-    <p name="p7">the line: $grp[6]</p>
-    <p name="p8">the line, point 1: $grp[6].points[1]</p>
-    <p name="p9">the line, point 2, y: $grp[6].points[2].y</p>
-    <p name="p10">math from p: $grp[7].m</p>
-    <p name="p11">text from p: $grp[7].t</p>
-    <p name="p12">nothing: $grp[8]</p>
+    <p name="p1">the math: $grp.ma</p>
+    <p name="p3">the text: $grp.te</p>
+    <p name="p5">the point: $grp.po</p>
+    <p name="p6">the point x: $grp.po.x</p>
+    <p name="p7">the line: $grp.li</p>
+    <p name="p8">the line, point 1: $grp.li.points[1]</p>
+    <p name="p9">the line, point 2, y: $grp.li.points[2].y</p>
+    <p name="p10">math from p: $grp.pa.m</p>
+    <p name="p11">text from p: $grp.pa.t</p>
+    <p name="p12">nothing: $grp[1]</p>
     <p name="p13">Prop fixed from group: $grp.fixed</p>
     <p name="p14">Prop x from group: $grp.x</p>
     `,
@@ -5940,14 +5938,8 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
         ).eq("the math: x");
         expect(
-            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq("a blank: ＿");
-        expect(
             stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
         ).eq("the text: hello");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
-        ).eq("another blank: ＿");
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
         ).eq("the point: (4, 5)");
@@ -5969,9 +5961,16 @@ describe("Extend and references tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p11")].stateValues.text,
         ).eq("text from p: word");
+        // An index does not select a child of a group (D27)
         expect(
             stateVariables[await resolvePathToNodeIdx("p12")].stateValues.text,
         ).eq("nothing: ＿");
+        expect(
+            getDiagnosticsByType(core).warnings.map((w) => [
+                w.code,
+                w.args?.suggestion,
+            ]),
+        ).eqls([["doenet-w0188", "$grp.ma"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("p13")].stateValues.text,
         ).eq("Prop fixed from group: falsetruefalsefalsefalse");
@@ -6512,21 +6511,21 @@ describe("Extend and references tests @group2", async () => {
     </section>
 
     <section name="sec5">
-        <p>One can reference by group index: $sec2.g[1].t.</p>$sec2.g[1]
+        <p>Nor by an index into the group: $sec2.g[1].t.</p>$sec2.g[1]
     </section>
     `,
         });
 
-        // Selecting the child of a group by index still works but is
-        // deprecated (D27): an index selects among what a component makes.
+        // An index does not select a child of a group (D27): an index
+        // selects among what a component makes.
         expect(
             getDiagnosticsByType(core).warnings.map((w) => [
                 w.code,
                 w.args?.reference,
             ]),
         ).eqls([
-            ["doenet-w0179", "$sec2.g[1]"],
-            ["doenet-w0179", "$sec2.g[1]"],
+            ["doenet-w0188", "$sec2.g[1]"],
+            ["doenet-w0188", "$sec2.g[1]"],
         ]);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -6563,17 +6562,21 @@ describe("Extend and references tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("sec5")]
                     .activeChildren[1].componentIdx
             ].stateValues.text,
-        ).eq("One can reference by group index: hi.");
+        ).eq("Nor by an index into the group: ＿.");
         expect(
             stateVariables[
                 stateVariables[await resolvePathToNodeIdx("sec5")]
                     .activeChildren[2].componentIdx
-            ].stateValues.text,
-        ).eq("hi");
+            ].componentType,
+        ).eq("_missing");
     });
 
     it("dynamically change index resolutions with reference inside composite", async () => {
         // Note: cypress test of same name in `renderCommas.cy.js` tests the DOM
+        //
+        // An index after a `<group>` names nothing (D27), whatever it holds.
+        // An iteration whose whole content is one reference to a list
+        // selects among the list's entries, which change as the list does.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="n">1</mathInput>
@@ -6582,250 +6585,76 @@ describe("Extend and references tests @group2", async () => {
     <section name="sec1">
         <p name="p"><group name="g" asList>-6 $s-8</group></p>
 
-        <p extend="$p" name="p2" />
-
-        <p name="p3">3rd entry: $g[3], $p2.g[3]</p>
+        <p name="p3">3rd entry: $g[3]</p>
     </section>
 
     <section name="sec2">
-        <p name="p"><group name="g" asList><number>-6</number>$s<number>-8</number></group></p>
+        <repeatForSequence name="r" length="1">$s</repeatForSequence>
 
-        <p extend="$p" name="p2" />
-
-        <p name="p3">3rd entry: $g[3], $p2.g[3]</p>
+        <p name="p3">2nd entry: $r[1][2]</p>
+        <p extend="$p3" name="p4" />
     </section>
 
 
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        async function check(n: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const entries = [...Array(n).keys()].map((i) => i + 1);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
+                    .text,
+            ).eq([-6, ...entries, -8].join(", "));
+            expect(
+                stateVariables[await resolvePathToNodeIdx("sec1.p3")]
+                    .stateValues.text,
+            ).eq("3rd entry: ＿");
+            for (const name of ["sec2.p3", "sec2.p4"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .text,
+                    name,
+                ).eq(`2nd entry: ${n >= 2 ? 2 : "＿"}`);
+            }
+        }
 
-        let pText = "-6, 1, -8";
+        await check(1);
 
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
-                .text,
-        ).eq("3rd entry: ＿, ＿");
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
-                .text,
-        ).eq("3rd entry: -8, -8");
-
-        // Add another replacement, shifting so that the third entry comes from the sequence
+        // Add an entry, so that the iteration has a second one
         await updateMathInputValue({
             latex: "2",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
+        await check(2);
 
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        pText = "-6, 1, 2, -8";
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
-                .text,
-        ).eq("3rd entry: 2, 2");
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
-                .text,
-        ).eq("3rd entry: 2, 2");
-
-        // Remove all replacements, shifting so that there is no longer a third entry
-
+        // Remove all entries
         await updateMathInputValue({
             latex: "0",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
+        await check(0);
 
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        pText = "-6, -8";
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
-                .text,
-        ).eq("3rd entry: ＿, ＿");
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
-                .text,
-        ).eq("3rd entry: ＿, ＿");
-
-        // Add three replacements, so that third entry is again a number
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: await resolvePathToNodeIdx("n"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        pText = "-6, 1, 2, 3, -8";
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
-                .text,
-        ).eq("3rd entry: 2, 2");
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
-                .text,
-        ).eq("3rd entry: 2, 2");
-
-        // Back to one replacements, so that third entry is back to a string for first section
-        await updateMathInputValue({
-            latex: "1",
-            componentIdx: await resolvePathToNodeIdx("n"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        pText = "-6, 1, -8";
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
-                .text,
-        ).eq("3rd entry: ＿, ＿");
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
-                .text,
-        ).eq("3rd entry: -8, -8");
-
-        // Back to 2 replacements
+        // Back to 2 entries
         await updateMathInputValue({
             latex: "2",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
+        await check(2);
 
-        stateVariables = await core.returnAllStateVariables(false, true);
-
-        pText = "-6, 1, 2, -8";
-
+        // Only the index into the group is reported, and once
         expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p")].stateValues
-                .text,
-        ).eq(pText);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p2")].stateValues
-                .text,
-        ).eq(pText);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec1.p3")].stateValues
-                .text,
-        ).eq("3rd entry: 2, 2");
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.p3")].stateValues
-                .text,
-        ).eq("3rd entry: 2, 2");
+            getDiagnosticsByType(core).warnings.map((w) => [
+                w.code,
+                w.args?.reference,
+            ]),
+        ).eqls([["doenet-w0188", "$g[3]"]]);
     });
 
     it("extending a property that does not exist is missing, with a warning", async () => {
@@ -7055,20 +6884,19 @@ describe("Extend and references tests @group2", async () => {
             // An index before a function reference's arguments picks which
             // function to call, so `$$fs[<number>2</number>](3)` calls the
             // second of them — the same question `$$fs[2](3)` asks.
+            // The functions are the iterations' content, which an index
+            // selects among: an index into a `<group>` would name nothing
+            // (D27).
             const functions = `
-    <group name="fs">
-      <function variables="x">x^2</function>
-      <function variables="x">x^3</function>
-    </group>`;
+    <repeat name="fs" for="2 3" valueName="k">
+      <function variables="x">x^$k</function>
+    </repeat>`;
             const { text, diagnostics } = await textOf(`${functions}
     <p name="p1">$$fs[<number>2</number>](3)</p>
             `);
             expect(text).eq("27");
             expect(diagnostics.errors.length).eq(0);
-            // Selecting a child of a `<group>` by index is deprecated (D27)
-            expect(diagnostics.warnings.map((w) => w.code)).eqls([
-                "doenet-w0179",
-            ]);
+            expect(diagnostics.warnings).eqls([]);
 
             // Which is the point of #1909: the position can be worked out rather
             // than written down.
@@ -7823,6 +7651,30 @@ describe("Extend and references tests @group2", async () => {
             return stateVariables[await resolvePathToNodeIdx(path)].stateValues;
         }
 
+        /**
+         * The section at `position` (from 1) of the `<group name="G">`. An
+         * index does not select a child of a group (D27), and these have no
+         * unique names, so it is found among what the group holds.
+         */
+        async function sectionOfG(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            position: number,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sections = stateVariables[
+                await resolvePathToNodeIdx("G")
+            ].replacements.filter(
+                (replacement: any) =>
+                    typeof replacement === "object" &&
+                    replacement.componentType === "section",
+            );
+            return sections[position - 1].componentIdx;
+        }
+
         it("an attribute on a copy or extend sees the children written inside the tag", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -8003,10 +7855,15 @@ describe("Extend and references tests @group2", async () => {
             expect(getDiagnosticsByType(core).errors).eqls([]);
             // A same-named descendant comes first, on an ordinary element and on a copy
             for (const index of [1, 2]) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
                 expect(
-                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}]`))
-                        .hidden,
-                    `G[${index}]`,
+                    stateVariables[
+                        await sectionOfG(core, resolvePathToNodeIdx, index)
+                    ].stateValues.hidden,
+                    `section ${index}`,
                 ).eq(true);
             }
             // Then the component itself, ahead of a same-named sibling
@@ -8016,10 +7873,15 @@ describe("Extend and references tests @group2", async () => {
                 [5, true],
                 [6, false],
             ] as [number, boolean][]) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
                 expect(
-                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}]`))
-                        .hidden,
-                    `G[${index}]`,
+                    stateVariables[
+                        await sectionOfG(core, resolvePathToNodeIdx, index)
+                    ].stateValues.hidden,
+                    `section ${index}`,
                 ).eq(hidden);
             }
         });
@@ -8048,10 +7910,21 @@ describe("Extend and references tests @group2", async () => {
                 [5, "first"],
                 [6, "second"],
             ] as [number, string][]) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const section = await sectionOfG(
+                    core,
+                    resolvePathToNodeIdx,
+                    index,
+                );
+                const q = stateVariables[section].activeChildren.find(
+                    (child: any) => child.componentType === "p",
+                ).componentIdx;
                 expect(
-                    (await stateOf(core, resolvePathToNodeIdx, `G[${index}].q`))
-                        .text,
-                    `G[${index}].q`,
+                    stateVariables[q].stateValues.text,
+                    `section ${index}`,
                 ).eq(text);
             }
         });

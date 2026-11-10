@@ -536,7 +536,7 @@ describe("Polyline tag tests @group1", async () => {
   <graph name="g1">
     <setup><sequence from="-5" to="5" name="s"/></setup>
     <repeat hide name="mps" for="$s" valueName="x">
-      <point>($x + <math>0</math>, 5sin($x) + <math>0</math>)</point>
+      <point name="P">($x + <math>0</math>, 5sin($x) + <math>0</math>)</point>
     </repeat>
     <polyline vertices="$mps" name="pg" />
   </graph>
@@ -559,13 +559,13 @@ describe("Polyline tag tests @group1", async () => {
         vertices[8] = [-8, 4];
 
         await movePoint({
-            componentIdx: await resolvePathToNodeIdx("g1.mps[1][1]"),
+            componentIdx: await resolvePathToNodeIdx("g1.mps[1].P"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
         await movePoint({
-            componentIdx: await resolvePathToNodeIdx("g1.mps[9][1]"),
+            componentIdx: await resolvePathToNodeIdx("g1.mps[9].P"),
             x: vertices[8][0],
             y: vertices[8][1],
             core,
