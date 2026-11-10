@@ -510,7 +510,7 @@ impl<'s, 'a> Types<'s, 'a> {
                     Some(rp) => rp.sel_on(Role::ListPoint.ty()),
                     None => Role::ListPoint.ty().default_sel(),
                 }
-                .map_or(0, |sel| sel_len(sel, Some(0)).unwrap_or(0));
+                .map_or(0, |sel| sel_len(sel, 2, Some(0)).unwrap_or(0));
                 cells.types = vec![PortType::Num; n];
                 return Ok(cells);
             }
@@ -531,13 +531,9 @@ impl<'s, 'a> Types<'s, 'a> {
                 cells.known = false;
                 continue;
             };
-            let n_points = self
-                .seal
-                .view(ct)
-                .plan(ce)
-                .n_public(ty)
-                .map(|n| (n - ty.prop_defs().len()) / 2);
-            let Some(len) = sel_len(sel, n_points) else {
+            let n_public = self.seal.view(ct).plan(ce).n_public(ty);
+            let n_points = n_public.map(|n| ty.list_len(n));
+            let Some(len) = sel_len(sel, ty.list_width(), n_points) else {
                 // As many as the referent has: known only when built.
                 cells.known = false;
                 continue;
@@ -555,8 +551,26 @@ impl<'s, 'a> Types<'s, 'a> {
                         cells.types[k] = cells.types[k].join(self.port(ct, ce, i as usize));
                     }
                 }
-                // A list's points are numbers, which `Num` already says.
-                PropSel::At(_) | PropSel::TableList => {}
+                // A list's entries: a point's coordinates are numbers,
+                // which `Num` already says; a value list's are its ports'.
+                PropSel::At(at) => {
+                    let n = n_public.unwrap_or(0);
+                    let w = ty.list_width();
+                    let slots: Vec<Option<usize>> = match at {
+                        PropAt::Item(k) => (0..w).map(|j| ty.list_slot(n, k, j)).collect(),
+                        PropAt::Coord(k, j) => vec![ty.list_slot(n, k, j)],
+                        PropAt::List => (1..=ty.list_len(n))
+                            .flat_map(|k| (0..w).map(move |j| ty.list_slot(n, k, j)))
+                            .collect(),
+                        PropAt::Position(_) => unreachable!("matched above"),
+                    };
+                    for (k, pi) in slots.into_iter().enumerate() {
+                        if let Some(pi) = pi {
+                            cells.types[k] = cells.types[k].join(self.port(ct, ce, pi));
+                        }
+                    }
+                }
+                PropSel::TableList => {}
             }
         }
         Ok(cells)
@@ -928,11 +942,11 @@ struct Cells {
 
 /// How many cells `sel` is, given how many points the element's list holds
 /// (`None` when only a build knows).
-fn sel_len(sel: PropSel, n_points: Option<usize>) -> Option<usize> {
+fn sel_len(sel: PropSel, width: usize, n_points: Option<usize>) -> Option<usize> {
     Some(match sel {
         PropSel::At(PropAt::Position(_)) | PropSel::At(PropAt::Coord(..)) => 1,
-        PropSel::At(PropAt::Item(_)) => 2,
-        PropSel::At(PropAt::List) => 2 * n_points?,
+        PropSel::At(PropAt::Item(_)) => width,
+        PropSel::At(PropAt::List) => width * n_points?,
         PropSel::Parts { len, .. } => len as usize,
         // Not slots: the build refuses it by name.
         PropSel::TableList => 0,

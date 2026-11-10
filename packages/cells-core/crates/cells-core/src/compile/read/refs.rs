@@ -411,10 +411,29 @@ impl<'a> Reader<'a> {
                         // found once per type and spelling (`prop_sel`).
                         let sel = ar.prop_sel(self.dast, component_type, names[i]);
                         let prop_of = |sel| RefProp::of(component_type, sel);
+                        // `$l.numbers[k]`: an entry of a value list, its
+                        // count known only to the build (ADR 0041).
+                        if sel == Some(PropSel::At(PropAt::List))
+                            && component_type.list_width() == 1
+                        {
+                            let mut indices = d.part_indices(part);
+                            if let Some(first) = indices.next() {
+                                if indices.next().is_some() || i + 1 != parts.len() {
+                                    return Err(Error::PathTooDeep(display.to_string()));
+                                }
+                                let index = self.plan_entry_index(ar, t, scope, first, display)?;
+                                entries.push(EntryIndex { index, width: 1 });
+                            } else if i + 1 != parts.len() {
+                                return Err(Error::PathTooDeep(display.to_string()));
+                            }
+                            prop = sel.map(prop_of);
+                            break;
+                        }
                         // A list's points are as many as the element has: an
                         // index past them is the missing value when built.
                         let list = component_type
                             .given_coords()
+                            .filter(|_| component_type.lists_points())
                             .filter(|_| sel == Some(PropSel::At(PropAt::List)));
                         let items = (sel == Some(PropSel::TableList))
                             .then(|| component_type.table_points())
@@ -519,7 +538,7 @@ impl<'a> Reader<'a> {
                         // (`center`) or a list's point (`vertex3`).
                         let given_item = |sel: Option<PropSel>| match sel {
                             Some(PropSel::At(PropAt::Item(k))) => {
-                                component_type.given_coords().map(|_| k)
+                                component_type.lists_points().then_some(k)
                             }
                             _ => None,
                         };
@@ -598,6 +617,19 @@ impl<'a> Reader<'a> {
                 };
                 // `$p[2]`: a coordinate of a point (a `<math>` may be one).
                 let ek = self.outlined_elem(cur_t, e)?.component_type;
+                // `$l[k]`: an entry of a value list (ADR 0041), whose
+                // count only the build knows.
+                if let Some(dsel @ PropSel::At(PropAt::List)) = ek.default_sel()
+                    && ek.list_width() == 1
+                {
+                    if prop.is_some() || i + 1 != parts.len() {
+                        return Err(Error::PathTooDeep(display.to_string()));
+                    }
+                    let index = self.plan_entry_index(ar, t, scope, expr, display)?;
+                    entries.push(EntryIndex { index, width: 1 });
+                    prop = Some(RefProp::of(ek, dsel));
+                    continue;
+                }
                 if let Some(dsel @ PropSel::Parts { .. }) = ek.default_sel() {
                     if prop.is_some() || i + 1 != parts.len() {
                         return Err(Error::PathTooDeep(display.to_string()));

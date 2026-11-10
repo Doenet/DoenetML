@@ -81,8 +81,10 @@ An extend with overrides is planned from its own record merged under
 its referent's, the referent's rebased through the path when the
 referent sits in another template.
 
-**List prop** — A component type's one prop of points, read alike however
+**List prop** — A component type's one prop of entries, read alike however
 they are stored (`$c.throughPoints`, `$c.throughPoint2`, `$l.points[2].x`).
+An entry is a point, two cells, or a value, one cell (a `<numberList>`'s
+`numbers`, ADR 0041); `ComponentType::list_width` says which.
 Its points are either as many as the element was given (a circle's
 `throughPoints`, a polygon's `vertices`), stored after the props of the
 type's table, its length the element's prop count less the table's, so it

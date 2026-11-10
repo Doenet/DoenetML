@@ -183,6 +183,10 @@ pub enum ChildrenKind {
     /// `<number>`'s, a `<text>`'s, an input's initial state), the one
     /// reference planned.
     Value,
+    /// Entries of a list (ADR 0041): text split into pieces at the spaces
+    /// outside any bracket pair, and each reference one entry, in order
+    /// (a `<numberList>`'s, a `<textList>`'s).
+    List,
     /// Content a renderer shows: every child is built as a component, and
     /// nothing reads them as a value. What a type that declares nothing
     /// has.
@@ -259,6 +263,9 @@ pub enum Role {
     Value,
     /// What a `$ref` child naming a prop's text shows as.
     TextValue,
+    /// What a `$ref` child naming an entry of a boolean list shows as
+    /// (ADR 0041).
+    BooleanValue,
     /// An answer's award: the credit it gives when its condition holds.
     Award,
     /// An award's condition.
@@ -284,6 +291,7 @@ impl Role {
         Role::ImplicitInput,
         Role::Value,
         Role::TextValue,
+        Role::BooleanValue,
         Role::Award,
         Role::When,
         Role::Choice,
@@ -575,24 +583,44 @@ pub enum Renders {
 /// Where a list's points are.
 pub enum ListPoints {
     /// As many as the element was given, stored after the props of the type's
-    /// table, two per point; the list's length is what is left over. Point `k`
-    /// (1-based) has coordinates `coords[0]` k and `coords[1]` k (`throughX2`),
+    /// table, `coords.len()` cells per entry (ADR 0041): two for a point,
+    /// one for a value; the list's length is what is left over. Entry `k`
+    /// (1-based) has cells `coords[0]` k, `coords[1]` k (`throughX2`),
     /// also spelled `alternate_name` k `_` 1 and `_` 2 (`throughPointX2_1`).
-    /// The points are given by the attribute `attribute`, and the list keeps at
-    /// most `max` of them.
+    /// The entries are given by the attribute `attribute`, or by the
+    /// element's children when it has none (a value list's), and the list
+    /// keeps at most `max` of them.
     Given {
-        /// The names of a point's coordinates, before its number: `throughX`.
-        coords: [&'static str; 2],
+        /// The names of an entry's cells, before its number: `throughX`,
+        /// `throughY`; a value list's one, `number`.
+        coords: &'static [&'static str],
         /// The current core's name for them: `throughPointX`.
         alternate_name: Option<&'static str>,
-        /// The attribute that gives the points.
-        attribute: crate::compile::api::Attr,
+        /// The attribute that gives the points; None for a list its
+        /// children give.
+        attribute: Option<crate::compile::api::Attr>,
         /// The most points the list keeps.
         max: Option<usize>,
+        /// What an entry is: a point, or a value of a kind.
+        entry: EntryKind,
     },
     /// A fixed number, each a pair of the table's props: a line's two
     /// points are `x1`, `y1` and `x2`, `y2`.
     Table(&'static [[&'static str; 2]]),
+}
+
+/// What an entry of a given list is (ADR 0041): a point, two cells; or one
+/// cell holding a value of a kind, which says how it reads as text.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EntryKind {
+    /// A point's two coordinates.
+    Point,
+    /// A number.
+    Number,
+    /// A string id.
+    Text,
+    /// 1 for true, else false.
+    Boolean,
 }
 
 /// Where a sticky group member's points are, as (x, y) pairs.

@@ -172,6 +172,21 @@ function inputPresentation(table: CellsTable, c: number) {
     };
 }
 
+/** The contract of a value list whose entries read as text by `show`:
+ * drawn as a `<text>` of them, comma-separated. */
+function valueList(show: (r: Reads, cell: number) => string): Contract {
+    return {
+        name: () => "text",
+        props: (r, c) => ({
+            value: r.table
+                .listCells(c)
+                .map((cell) => show(r, cell))
+                .join(", "),
+        }),
+        noChildren: true,
+    };
+}
+
 function flag(table: CellsTable, c: number, name: string): boolean {
     const text = table.attr(c, name);
     return text !== null && text.trim().toLowerCase() !== "false";
@@ -383,6 +398,17 @@ export const CONTRACTS: Record<string, Contract> = {
             ),
         }),
     },
+    // A value list (ADR 0041) is drawn, until its entries are rows of
+    // their own, as the text of its entries separated by commas, each as
+    // its kind reads.
+    numberList: valueList((r, cell) => formatNumber(r.cell(cell), null)),
+    textList: valueList((r, cell) => {
+        const id = r.cell(cell);
+        return Number.isNaN(id) ? "" : r.table.string(id);
+    }),
+    booleanList: valueList((r, cell) =>
+        r.cell(cell) === 1 ? "true" : "false",
+    ),
     tuple: {
         props: (r, c) => {
             const n = r.num(c, "n");

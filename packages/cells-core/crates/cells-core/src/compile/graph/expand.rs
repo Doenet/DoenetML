@@ -94,10 +94,10 @@ impl<'c> Stamp<'c> {
                 let (targets, label) = self.port_targets(p, at, Some(prop), label, t, Some(1));
                 let target = targets.first().copied().flatten();
                 let is_text = target.is_some_and(|n| self.value_type(n) == PortType::Text);
-                let component_type = if is_text {
-                    Role::TextValue.ty()
-                } else {
-                    Role::Value.ty()
+                let component_type = match prop.of.shows_as(prop.sel) {
+                    Some(role) => role.ty(),
+                    None if is_text => Role::TextValue.ty(),
+                    None => Role::Value.ty(),
                 };
                 self.place_as(m, component_type, 1);
                 let s = self.slot(

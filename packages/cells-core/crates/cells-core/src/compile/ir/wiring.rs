@@ -199,8 +199,8 @@ pub(crate) struct ElemWiring {
     component_type: ComponentType,
     /// Each port's source, by [`Port::index`].
     props: Vec<Option<Source>>,
-    /// How many points the list holds, two ports each after the table's
-    /// props.
+    /// How many entries the list holds after the table's props: two ports
+    /// a point, one a value (`ComponentType::list_width`).
     n_points: usize,
     /// Which port holds each given leaf, by what gave it.
     given: HashMap<GivenId, Port>,
@@ -265,8 +265,8 @@ impl ElemWiring {
     }
 
     /// Wiring for an element of `component_type` whose list holds
-    /// `n_points` points, two public ports each after the table's props
-    /// (`item`).
+    /// `n_points` entries after the table's props: two public ports a point
+    /// (`item`), one a value (`entry`).
     pub(crate) fn with_list(component_type: ComponentType, n_points: usize) -> Self {
         debug_assert!(component_type.given_coords().is_some());
         let mut wiring = Self::of(component_type);
@@ -278,14 +278,37 @@ impl ElemWiring {
     /// How many of the ports are public: the table's props and the list's
     /// points.
     fn n_public(&self) -> usize {
-        self.component_type.prop_defs().len() + 2 * self.n_points
+        self.component_type.prop_defs().len() + self.component_type.list_width() * self.n_points
+    }
+
+    /// The port holding entry `k` (0-based) of a value list (ADR 0041).
+    pub(crate) fn entry(&self, k: usize) -> Port {
+        assert!(
+            k < self.n_points && self.component_type.list_width() == 1,
+            "entry {k} of a value list of {}",
+            self.n_points
+        );
+        Port::table(self.component_type.prop_defs().len() + k)
+    }
+
+    /// A value list's entries, which fill the public ports after the
+    /// table's props (`entry`), with their given leaves.
+    pub(crate) fn set_entries(&mut self, entries: Vec<Wire>) {
+        assert_eq!(entries.len(), self.n_points, "the wiring holds the entries");
+        for (k, e) in entries.into_iter().enumerate() {
+            let port = self.entry(k);
+            self.props[port.index()] = Some(e.source);
+            if let Some(id) = e.given {
+                self.given.insert(id, port);
+            }
+        }
     }
 
     /// The two ports holding the coordinates of list point `k` (0-based),
     /// which the wiring holds.
     pub(crate) fn item(&self, k: usize) -> [Port; 2] {
         assert!(
-            k < self.n_points,
+            k < self.n_points && self.component_type.lists_points(),
             "list point {k} of a list of {} points",
             self.n_points
         );

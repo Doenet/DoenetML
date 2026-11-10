@@ -19,7 +19,8 @@ inverses. `ARCHITECTURE.md` is the map, `CONTEXT.md` the vocabulary,
 Tags the core understands: `document`, `graph`, `point`, `number`,
 `numberInput`, `booleanInput`, `slider` (numeric mode), `math`, `evaluate`,
 `repeatForSequence`, `collect`, `line`, `lineSegment`, `circle`, `polygon`
-(and `triangle`), `pointList`, `p`, `setup`, `stickyGroup`, `mathInput`,
+(and `triangle`), `pointList`, `numberList`, `textList` and `booleanList`
+(from text and references), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
 or a `choiceInput` of `choice`s), `conditionalContent` (`case`, `else`) and
 `feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one

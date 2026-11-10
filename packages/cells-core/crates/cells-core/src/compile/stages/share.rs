@@ -250,7 +250,7 @@ impl Share<'_> {
         let tpl = &self.c.templates[t.index()];
         let ty = tpl.elems[e.index()].component_type;
         match tpl.tables.plans[e.index()].list {
-            ListLen::Points(n) => ty.prop_defs().len() + 2 * n as usize,
+            ListLen::Points(n) => ty.prop_defs().len() + ty.list_width() * n as usize,
             _ => ty.prop_defs().len(),
         }
     }

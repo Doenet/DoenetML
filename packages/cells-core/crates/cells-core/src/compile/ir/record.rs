@@ -83,6 +83,19 @@ enum Content {
     Math(Box<[NodeId]>),
     /// `Value`.
     Value(ValueChildren),
+    /// `List`.
+    List(Vec<ListPiece>),
+}
+
+/// One entry of a list's children (`children: List`, ADR 0041): a piece
+/// of text, or a reference.
+#[derive(Debug, Clone)]
+pub(crate) enum ListPiece {
+    /// Text between spaces outside any bracket pair, trimmed: `2.5`,
+    /// `(a, b)`.
+    Text(String),
+    /// A reference, planned where it was written.
+    Reference(RefId),
 }
 
 /// Children read as a value (`children: Value`): a [`PropFrom::Children`]
@@ -262,6 +275,14 @@ impl Record {
         match &self.children.content {
             Content::Value(v) => v.clone(),
             _ => ValueChildren::blank(),
+        }
+    }
+
+    /// `children: List`: the entries, none when there are no children.
+    pub(crate) fn child_list(&self) -> Vec<ListPiece> {
+        match &self.children.content {
+            Content::List(pieces) => pieces.clone(),
+            _ => Vec::new(),
         }
     }
 
@@ -488,6 +509,9 @@ impl Reader<'_> {
             ChildrenKind::Value => {
                 Content::Value(self.parse_value_children(ar, t, scope, content)?)
             }
+            ChildrenKind::List => {
+                Content::List(self.parse_list_children(ar, t, scope, node, &content)?)
+            }
         };
         Ok(children)
     }
@@ -521,6 +545,69 @@ impl Reader<'_> {
             component_type,
             record,
         })
+    }
+
+    /// Content nodes read as a list's entries ([`ListPiece`]): text split
+    /// at the spaces outside any bracket pair (`(1, 2) [3, 4]` is two), and
+    /// each reference one entry, planned here, where it was written. A
+    /// reference inside brackets, or an element, is not yet read.
+    fn parse_list_children(
+        &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
+        owner: NodeId,
+        nodes: &[NodeId],
+    ) -> Result<Vec<ListPiece>> {
+        let d = self.dast;
+        let mut pieces = Vec::new();
+        let mut piece = String::new();
+        let mut depth = 0i32;
+        fn end(piece: &mut String, pieces: &mut Vec<ListPiece>) {
+            let text = piece.trim();
+            if !text.is_empty() {
+                pieces.push(ListPiece::Text(text.to_string()));
+            }
+            piece.clear();
+        }
+        for &n in nodes {
+            match d.kind(n) {
+                NodeKind::Text => {
+                    for c in d.str(n).chars() {
+                        match c {
+                            '(' | '[' | '{' => depth += 1,
+                            ')' | ']' | '}' => depth -= 1,
+                            _ => {}
+                        }
+                        if c.is_whitespace() && depth <= 0 {
+                            end(&mut piece, &mut pieces);
+                        } else {
+                            piece.push(c);
+                        }
+                    }
+                }
+                NodeKind::Macro if depth <= 0 => {
+                    end(&mut piece, &mut pieces);
+                    pieces.push(ListPiece::Reference(self.plan_ref(ar, t, scope, n)?));
+                }
+                NodeKind::Macro => {
+                    return Err(Error::Unsupported(format!(
+                        "a reference inside brackets in <{}>",
+                        d.str(owner)
+                    )));
+                }
+                NodeKind::Element => {
+                    return Err(Error::Unsupported(format!(
+                        "<{}> among the children of <{}>",
+                        d.str(n),
+                        d.str(owner)
+                    )));
+                }
+                _ => {}
+            }
+        }
+        end(&mut piece, &mut pieces);
+        Ok(pieces)
     }
 
     /// Content nodes read as a value ([`ChildValue`]): a reference among

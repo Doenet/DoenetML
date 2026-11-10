@@ -328,13 +328,19 @@ impl<'c> Builder<'c> {
             let mut inputs = Vec::with_capacity(items.len() + 1);
             inputs.push(index);
             inputs.extend_from_slice(items);
-            return self.op_slot(
+            let s = self.op_slot(
                 OpSpec::Vec(VecOp::Choose {
                     n: byte(items.len()),
                 }),
                 &inputs,
                 scope,
             );
+            // What it holds, as `value_type` reads it, for emit.
+            match self.value_type(s) {
+                ValueType::Number => {}
+                kind => self.typed_slots.push((s, kind)),
+            }
+            return s;
         }
         let mut chunks = Vec::with_capacity(items.len().div_ceil(CAP));
         for (ci, chunk) in items.chunks(CAP).enumerate() {

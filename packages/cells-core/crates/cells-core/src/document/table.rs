@@ -2,7 +2,7 @@
 //! children and prop cells.
 
 use super::*;
-use crate::components::PropAt;
+use crate::components::{EntryKind, PropAt};
 
 /// The component table as parallel arrays indexed by [`CompIdx`]. Props are
 /// implicit: component `c` of type `k` owns `prop_cells[prop_base[c] + i]` for
@@ -260,10 +260,13 @@ impl Built {
         let coord = |k: usize, j: usize| component_type.list_slot(n, k, j).map(|i| cells[i]);
         match component_type.prop_at(prop)? {
             PropAt::Position(i) => Some(vec![cells[i]]),
-            PropAt::Item(k) => Some(vec![coord(k, 0)?, coord(k, 1)?]),
+            PropAt::Item(k) => (0..component_type.list_width())
+                .map(|j| coord(k, j))
+                .collect(),
             PropAt::Coord(k, j) => Some(vec![coord(k, j)?]),
             PropAt::List => (1..=component_type.list_len(n))
-                .flat_map(|k| [coord(k, 0), coord(k, 1)])
+                .flat_map(|k| (0..component_type.list_width()).map(move |j| (k, j)))
+                .map(|(k, j)| coord(k, j))
                 .collect(),
         }
     }
@@ -296,6 +299,23 @@ impl Document {
         let cells = self.comp_cells(c);
         let value = |pi: usize| cells.get(pi).map(|cell| self.cells[cell.index()]);
         let ty = self.component_type(c);
+        // A value list shows its entries, separated by commas (ADR 0041).
+        if let Some(kind) = ty.list_entry().filter(|&k| k != EntryKind::Point) {
+            let n_table = ty.prop_defs().len();
+            for (k, cell) in cells.iter().skip(n_table).enumerate() {
+                if k > 0 {
+                    out.push_str(", ");
+                }
+                let v = self.cells[cell.index()];
+                match kind {
+                    EntryKind::Number => out.push_str(&format_number(v)),
+                    EntryKind::Text => out.push_str(&self.text_value(*cell)),
+                    EntryKind::Boolean => out.push_str(if v == 1.0 { "true" } else { "false" }),
+                    EntryKind::Point => unreachable!("filtered above"),
+                }
+            }
+            return;
+        }
         match ty.text_kind() {
             Some(TextKind::Text(pi)) => out.push_str(&self.text_value(cells[pi])),
             Some(TextKind::Number(pi)) => {

@@ -111,6 +111,9 @@ component_types! {
     LineSegment => geometry::segment::DEFINITION,
     Polygon => geometry::polygon::DEFINITION,
     PointList => geometry::point_list::DEFINITION,
+    NumberList => values::number_list::DEFINITION,
+    TextList => values::text_list::DEFINITION,
+    BooleanList => values::boolean_list::DEFINITION,
     P => containers::p::DEFINITION,
     ShortDescription => containers::short_description::DEFINITION,
     Error => containers::error::DEFINITION,
@@ -280,7 +283,13 @@ impl ComponentType {
 
     /// The coordinate names of the type's list when its points are as many
     /// as an element was given ([`ListPoints::Given`]), with the list.
-    fn given_list(self) -> Option<(&'static ListProp, [&'static str; 2], Option<&'static str>)> {
+    fn given_list(
+        self,
+    ) -> Option<(
+        &'static ListProp,
+        &'static [&'static str],
+        Option<&'static str>,
+    )> {
         let list = self.list()?;
         match list.points {
             ListPoints::Given {
@@ -292,11 +301,43 @@ impl ComponentType {
         }
     }
 
-    /// The coordinate names of the type's list when its points are as many
-    /// as an element was given, stored after the table: `throughX` and
-    /// `throughY`.
-    pub fn given_coords(self) -> Option<[&'static str; 2]> {
+    /// The cell names of an entry of the type's list when its entries are
+    /// as many as an element was given, stored after the table: `throughX`
+    /// and `throughY`, or a value list's one, `number`.
+    pub fn given_coords(self) -> Option<&'static [&'static str]> {
         self.given_list().map(|(_, coords, _)| coords)
+    }
+
+    /// How many cells an entry of the type's given list is: two for a
+    /// point, one for a value (ADR 0041); 0 without a given list.
+    pub fn list_width(self) -> usize {
+        self.given_coords().map_or(0, <[_]>::len)
+    }
+
+    /// What a `$ref` child naming `sel` of this type shows as, when the
+    /// port alone says: an entry of a boolean list is a boolean (ADR 0041).
+    pub fn shows_as(self, sel: PropSel) -> Option<Role> {
+        match sel {
+            PropSel::At(PropAt::List | PropAt::Item(_) | PropAt::Coord(..))
+                if self.list_entry() == Some(EntryKind::Boolean) =>
+            {
+                Some(Role::BooleanValue)
+            }
+            _ => None,
+        }
+    }
+
+    /// What an entry of the type's given list is, if it has one.
+    pub fn list_entry(self) -> Option<EntryKind> {
+        match self.list()?.points {
+            ListPoints::Given { entry, .. } => Some(entry),
+            ListPoints::Table(_) => None,
+        }
+    }
+
+    /// Whether the type's given list holds points, two cells an entry.
+    pub fn lists_points(self) -> bool {
+        self.list_width() == 2
     }
 
     /// The attribute that gives the type's list its points, and the most
@@ -304,7 +345,7 @@ impl ComponentType {
     /// ([`ListPoints::Given`]): a circle's `through`, at most three.
     pub(crate) fn given_from(self) -> Option<(crate::compile::api::Attr, Option<usize>)> {
         match self.list()?.points {
-            ListPoints::Given { attribute, max, .. } => Some((attribute, max)),
+            ListPoints::Given { attribute, max, .. } => Some((attribute?, max)),
             ListPoints::Table(_) => None,
         }
     }
@@ -461,9 +502,8 @@ impl ComponentType {
     /// The position of coordinate `j` of list point `k` (1-based) in an
     /// element with `n_props` props, if the element has that point.
     pub fn list_slot(self, n_props: usize, k: usize, j: usize) -> Option<usize> {
-        let n_table = self.prop_defs().len();
-        (self.given_list().is_some() && k >= 1 && n_table + 2 * k <= n_props)
-            .then(|| n_table + 2 * (k - 1) + j)
+        let (n_table, w) = (self.prop_defs().len(), self.list_width());
+        (w > 0 && j < w && k >= 1 && n_table + w * k <= n_props).then(|| n_table + w * (k - 1) + j)
     }
 
     /// The name of prop `pi` of an element with `n_props` public props:
@@ -475,15 +515,16 @@ impl ComponentType {
             return Some(self.prop_defs()[pi].name.into());
         }
         let coords = self.given_coords().filter(|_| pi < n_props)?;
-        let (k, j) = ((pi - n_table) / 2 + 1, (pi - n_table) % 2);
+        let w = coords.len();
+        let (k, j) = ((pi - n_table) / w + 1, (pi - n_table) % w);
         Some(format!("{}{k}", coords[j]).into())
     }
 
     /// How many points the list of an element with `n_props` props holds.
     pub fn list_len(self, n_props: usize) -> usize {
-        match self.given_list() {
-            Some(_) => (n_props - self.prop_defs().len()) / 2,
-            None => 0,
+        match self.list_width() {
+            0 => 0,
+            w => (n_props - self.prop_defs().len()) / w,
         }
     }
 

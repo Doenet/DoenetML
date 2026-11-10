@@ -1,0 +1,8 @@
+text pieces are the entries, by every name: cells 5 · essential 0 · constant 5 · instrs 0 · components 2
+no children: no entries: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
+a piece that is no number is the missing value: cells 5 · essential 0 · constant 5 · instrs 0 · components 2
+an entry by a literal, past the end, between two, and by a cell: cells 8 · essential 1 · constant 6 · instrs 1 · components 9
+a write through an entry lands on the list's own text piece: cells 6 · essential 1 · constant 5 · instrs 0 · components 4
+a reference is an entry, and a write through it goes to its source: cells 6 · essential 1 · constant 5 · instrs 0 · components 6
+a list of one reads as its entry: cells 7 · essential 0 · constant 7 · instrs 0 · components 4
+a bare copy has the referent's entries: cells 5 · essential 0 · constant 5 · instrs 0 · components 4

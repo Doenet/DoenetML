@@ -110,7 +110,9 @@ methods. Rules for planners:
 - Declare how the type reads its children (`children: Value`, ADR 0034):
   `None` (read and built as nothing, a shape's), `Math` (math text, as
   written: a `<math>`'s, a point's `(a, b)`), `Value` (a blank, a literal,
-  one reference or math text: a `<number>`'s, a `<text>`'s), or, the
+  one reference or math text: a `<number>`'s, a `<text>`'s), `List` (a
+  list's entries: pieces of text split at the spaces outside any bracket
+  pair, and each reference one, a `<numberList>`'s; ADR 0041), or, the
   default, `Rendered` (built as components). Groups of element children
   follow the kind (`children: Math { constraints: [ConstrainTo,
   ConstrainToGrid] }`): each member is parsed into a record of its own, as

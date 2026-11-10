@@ -1,18 +1,60 @@
 //! Number, boolean, text, math, evaluate, clamp number, tuple, update
 //! value, function, derivative and answer (with its award, when and
-//! response): types that hold a value, numeric or symbolic. Function,
-//! derivative and answer are `symbolic`, planned as math cells.
+//! response), and the value lists: types that hold a value, numeric or
+//! symbolic, or a sequence of them (ADR 0041). Function, derivative and
+//! answer are `symbolic`, planned as math cells.
 
 use super::define::*;
+use crate::compile::api::{ElemWiring, GivenId, ListPiece, NO_VALUE, PlanCtx, Source, Wire};
+use crate::components::EntryKind;
 use crate::program::SymKind;
 
 pub mod answer;
 pub mod award;
 pub mod boolean;
+pub(crate) mod boolean_list;
 pub mod curve;
 pub mod math;
+pub(crate) mod number_list;
 pub mod text;
+pub(crate) mod text_list;
 pub mod when;
+
+/// Plans a value list's entries from its children (ADR 0041, decision 1:
+/// a static sequence, its count a fact of the source): one entry per
+/// piece, a piece of text a given value of the list's entry kind, a
+/// reference an alias of what it names. Returns the wiring, the entries
+/// set, and how many there are.
+pub(crate) fn plan_list(
+    ctx: &mut PlanCtx<'_, '_>,
+    pieces: Vec<ListPiece>,
+) -> crate::error::Result<(ElemWiring, usize)> {
+    let component_type = ctx.component_type();
+    let kind = component_type.list_entry().expect("a value list");
+    let n = pieces.len();
+    let mut wiring = ElemWiring::with_list(component_type, n);
+    let entries = pieces
+        .into_iter()
+        .enumerate()
+        .map(|(k, piece)| match piece {
+            ListPiece::Reference(p) => Source::reference(p).into(),
+            ListPiece::Text(text) => {
+                let id = GivenId::Children(k as u32);
+                match kind {
+                    // A piece that is no number is the missing value.
+                    EntryKind::Number => Wire::given(id, text.parse().unwrap_or(NO_VALUE)),
+                    EntryKind::Text => Wire::given_text(id, ctx.intern(&text)),
+                    EntryKind::Boolean => {
+                        Wire::given(id, f64::from(u8::from(text.eq_ignore_ascii_case("true"))))
+                    }
+                    EntryKind::Point => unreachable!("a value list's entries are values"),
+                }
+            }
+        })
+        .collect();
+    wiring.set_entries(entries);
+    Ok((wiring, n))
+}
 
 /// `<number>`: a numeric value.
 pub mod number {

@@ -1,7 +1,7 @@
 # Every list is a sequence, laid out by when its count settles
 
-Status: proposed 2026-11-10. Step 1 of the Migration is done, with its
-departures recorded there. Drafted as 0038, and renumbered as `cells`
+Status: proposed 2026-11-10. Step 1 of the Migration is done, and
+step 2's first piece, with their departures recorded there. Drafted as 0038, and renumbered as `cells`
 took 0038 to 0040 first.
 
 A **sequence** is a count and a family of entries of one entry type. Every
@@ -341,6 +341,44 @@ otherwise.
    static sequences of their children and text pieces, with decision 5's
    reading in every parent and decision 6's writes. Test:
    `listcomponentvaluelists.test.ts`, `listcomponentpointlists.test.ts`.
+
+   *Piece 1, done 2026-11-10*, on today's declaration format (ADRs 0039
+   and 0040 are drafts). `ListPoints::Given` holds entries of a kind
+   (`EntryKind`): a point, two cells, as before, or a value, one cell
+   (`ComponentType::list_width`), and every reader of a list takes
+   entries `list_width` cells at a time. `<numberList>`, `<textList>`
+   and `<booleanList>` (`components/values/*_list.rs`) are static
+   sequences: `children: List` splits their text at the spaces outside
+   any bracket pair (`ListPiece`), each piece a given value and each
+   reference an entry aliasing what it names, so a write through an
+   entry lands on the list's own piece or on the reference's source.
+   Their entries are `numbers`, `texts` or `booleans` (`number2`),
+   their count `numComponents` (`numValues`); `$l[k]`, `$l[$k]` and
+   `$l.numbers[k]` are entry steps (step 1), and a `$ref` child naming a
+   boolean list's entry shows as a `<boolean>` (`Role::BooleanValue`).
+   A paragraph shows a list as its entries separated by commas, each as
+   its kind reads (`rendered_text`), and the bridge draws one as a
+   `<text>` of the same until entries are rows (step 3). A choose holds
+   what its branches hold, so `$tl[$k]` and `$r[$k].t.value` show as
+   text, not as a string id. Tested by the three types' specs, `tests/sequence.rs` and a
+   `value-lists` document in `tests/every_count.rs`; the golden diff is
+   identical. Left for the next pieces:
+
+   - Decision 5's reading of a list of other than one entry where one
+     value is read: `<math>$l</math>` (a `list` head), `<text>$tl</text>`
+     (joined), `<number>$l</number>` with none (the missing value). Each
+     is refused as an arity mismatch, and its element boxed.
+   - A reference to a list among a list's children contributes one
+     entry, refused as an arity mismatch when it names several; a
+     nested list's entries spliced (`<numberList>$nl 4</numberList>`)
+     need a count only the referent's plan knows.
+   - Element children (`<numberList><number>5</number></numberList>`),
+     and a reference inside brackets, are refused.
+   - A piece of a `<numberList>` that is no plain number (`pi`, `1/2`) is
+     the missing value, not the math it reads as.
+   - `<mathList>`, `<intervalList>`, `<pointList>` of its own points and
+     `<vectorList>`, `mergeMathLists`, `maxNumber`, `unordered` and
+     display settings.
 3. **Entries as rows.** Rows per entry, renderer address `list:k`, targets.
    Test: `listentrytargets.test.ts`, `listcomponentvaluelistgraphs.test.ts`.
 4. **Structural sequences.** `<sequence>`, the samplers, a list with a

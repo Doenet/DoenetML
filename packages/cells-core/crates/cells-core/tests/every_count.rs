@@ -393,6 +393,22 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         </repeatForSequence>
         <number name="c">$r[$k].s[$k] + $pg.vertices[$k][2]</number>"#,
     ),
+    (
+        // Value lists (ADR 0041, step 2): text pieces and references, an
+        // entry by a cell, by an iteration's index and past the end, and a
+        // write through an entry, inside a repeat whose count a cell sets.
+        "value-lists",
+        r#"<numberInput name="k" value="1"/>
+        <numberList name="nl">1 $k 3</numberList>
+        <textList name="tl">a b</textList>
+        <booleanList name="bl">true $b</booleanList><booleanInput name="b"/>
+        <mathInput name="mi" bindValueTo="$nl[1]"/>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <numberList name="m">$nl[$i] $nl[$k] $nl[9]</numberList>
+          <p>$tl[$i] $bl[$k] $m</p>
+        </repeatForSequence>
+        <number name="c">$r[$k].m[2] + $nl[$k]</number>"#,
+    ),
 ];
 
 #[test]

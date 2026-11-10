@@ -15,6 +15,7 @@ component! {
     /// `expandOnCompare` are read at plan time.
     tags: ["boolean"],
     flags: [copyable],
+    roles: [BooleanValue],
     text: Boolean(value),
     extend_value: Scalar(value),
     default_prop: value,

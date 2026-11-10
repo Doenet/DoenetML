@@ -185,3 +185,55 @@ fn entries_inside_a_repeat_follow_the_count() {
     assert_eq!(v(&doc, "q", "x"), 3.0);
     assert_eq!(reference::check(&doc), None);
 }
+
+fn text(doc: &cells_core::Document, name: &str) -> String {
+    doc.rendered_text(doc.resolve_path(name).unwrap())
+}
+
+/// Step 2's value lists: a paragraph shows a list's entries separated by
+/// commas, each as its kind reads; an index reads one, as a number, a
+/// text or a boolean.
+#[test]
+fn a_value_list_shows_its_entries() {
+    let mut doc = load(
+        r#"<numberInput name="k" value="2"/>
+           <numberList name="nl">1 2.5 3</numberList>
+           <textList name="tl">a b c</textList>
+           <booleanList name="bl">true false true</booleanList>
+           <p name="pnl">$nl</p>
+           <p name="ptl">$tl</p>
+           <p name="pbl">$bl</p>
+           <p name="index">$nl[2] $tl[1] $bl[2]</p>
+           <p name="byK">$tl[$k] $bl[$k]</p>
+           <numberList name="nl2">$nl[3] 4</numberList>
+           <p name="pnl2">$nl2</p>
+           <p name="empty">[$nl[4]]</p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "pnl"), "1, 2.5, 3");
+    assert_eq!(text(&doc, "ptl"), "a, b, c");
+    assert_eq!(text(&doc, "pbl"), "true, false, true");
+    assert_eq!(text(&doc, "index"), "2.5 a false");
+    assert_eq!(text(&doc, "byK"), "b false");
+    assert_eq!(text(&doc, "pnl2"), "3, 4");
+    assert_eq!(text(&doc, "empty"), "[NaN]");
+    doc.request(&[req(&doc, "k", "value", 3.0)]);
+    assert_eq!(text(&doc, "byK"), "c true");
+    assert_eq!(reference::check(&doc), None);
+}
+
+/// A choose holds what its branches hold: a text read through a cell index
+/// into a repeat shows as text.
+#[test]
+fn a_text_chosen_by_a_cell_is_text() {
+    let doc = load(
+        r#"<numberInput name="k" value="2"/>
+           <textList name="l">a b c</textList>
+           <repeatForSequence name="r" length="3" indexName="i">
+             <text name="t">$l[$i]</text>
+           </repeatForSequence>
+           <p name="p">$r[$k].t.value</p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "p"), "b");
+}

@@ -632,13 +632,13 @@ impl<'c> Builder<'c> {
             Some(i) => b.slot(comp, i),
             None => b.missing_slot(),
         };
+        let w = component_type.list_width();
         Some(match at {
             PropAt::Position(i) => vec![self.slot(comp, i)],
-            PropAt::Item(k) => vec![coord(self, k, 0), coord(self, k, 1)],
+            PropAt::Item(k) => (0..w).map(|j| coord(self, k, j)).collect(),
             PropAt::Coord(k, j) => vec![coord(self, k, j)],
             PropAt::List => (1..=component_type.list_len(n))
-                .flat_map(|k| [k, k])
-                .zip([0, 1].into_iter().cycle())
+                .flat_map(|k| (0..w).map(move |j| (k, j)))
                 .map(|(k, j)| coord(self, k, j))
                 .collect(),
         })
@@ -1096,10 +1096,10 @@ impl<'c> Builder<'c> {
                 let targets = self.port_targets(target, Some(prop), plan, Some(1), scope)?;
                 // A string id shows as a text.
                 let is_text = self.value_type(targets[0]) == ValueType::Text;
-                let component_type = if is_text {
-                    Role::TextValue.ty()
-                } else {
-                    Role::Value.ty()
+                let component_type = match prop.of.shows_as(prop.sel) {
+                    Some(role) => role.ty(),
+                    None if is_text => Role::TextValue.ty(),
+                    None => Role::Value.ty(),
                 };
                 let value = component_type.scalar_prop().expect("a value");
                 self.components.component_type[idx.index()] = component_type;

@@ -783,6 +783,9 @@ macro_rules! component {
         $(list {
             names: [$($lname:ident),+ $(,)?],
             item: $litem:ident,
+            $(values: $lv:ident of $lvkind:ident
+                $(, interactive: $lvinteractive:literal)?
+                $(, rendered: $lvrendered:literal)? $(,)?)?
             $(points: [$([$px:ident, $py:ident]),+ $(,)?]
                 $(, interactive: $lpinteractive:literal)?
                 $(, rendered: $lprendered:literal)? $(,)?)?
@@ -836,9 +839,10 @@ macro_rules! component {
                     points: $crate::components::define::component!(@list_points
                         $(table [$([$px, $py]),+])?
                         $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
+                        $(values [$lv $lvkind])?
                     ),
-                    interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)?),
-                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)?),
+                    interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)? $($($lvinteractive)?)?),
+                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
@@ -1150,16 +1154,18 @@ macro_rules! component {
     };
     (@ctype Math) => { Option<Box<[$crate::dast::NodeId]>> };
     (@ctype Value) => { $crate::compile::api::ValueChildren };
+    (@ctype List) => { Vec<$crate::compile::api::ListPiece> };
     (@ctype None) => { () };
     (@ctype Rendered) => { () };
     (@ctype $other:ident) => {
         compile_error!(concat!(
             "component!: children kind `", stringify!($other),
-            "` is not one of None, Math, Value, Rendered"
+            "` is not one of None, Math, Value, List, Rendered"
         ))
     };
     (@cget Math, $r:ident) => { $r.child_math() };
     (@cget Value, $r:ident) => { $r.child_value() };
+    (@cget List, $r:ident) => { $r.child_list() };
     (@cget $other:ident, $r:ident) => { () };
     // A type that names machinery, or is owned, plans nothing itself.
     (@planner) => { $crate::compile::api::Planner::Props };
@@ -1225,10 +1231,20 @@ macro_rules! component {
     };
     (@list_points given [$x:ident, $y:ident] [$($alt:ident)?] [$attr:ident] [$($max:expr)?]) => {
         $crate::components::ListPoints::Given {
-            coords: [stringify!($x), stringify!($y)],
+            coords: &[stringify!($x), stringify!($y)],
             alternate_name: $crate::components::define::component!(@alternate_name $($alt)?),
-            attribute: attr::$attr,
+            attribute: Some(attr::$attr),
             max: $crate::components::define::component!(@max $($max)?),
+            entry: $crate::components::EntryKind::Point,
+        }
+    };
+    (@list_points values [$v:ident $kind:ident]) => {
+        $crate::components::ListPoints::Given {
+            coords: &[stringify!($v)],
+            alternate_name: None,
+            attribute: None,
+            max: None,
+            entry: $crate::components::EntryKind::$kind,
         }
     };
     (@list_points) => {

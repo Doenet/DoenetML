@@ -288,7 +288,9 @@ impl Keys {
         let n_table = component_type.prop_defs().len();
         let public = match component_type.prop_at(name) {
             Some(PropAt::Position(i)) => Some(i as u32),
-            Some(PropAt::Coord(k, j)) => Some((n_table + 2 * (k - 1) + j) as u32),
+            Some(PropAt::Coord(k, j)) => {
+                Some((n_table + component_type.list_width() * (k - 1) + j) as u32)
+            }
             _ => None,
         };
         if let Some(port) = public.filter(|&p| p < self.n_public[key.index()]) {

@@ -185,6 +185,21 @@ impl<'c> Builder<'c> {
         if let BuiltSource::Alias(t) = self.sources[slot.index()] {
             return self.value_type_within(t, depth - 1);
         }
+        // A choose holds what its branches hold: text or math when one
+        // does (`$tl[$k]`, `$r[$k].t`; ADR 0041).
+        if let BuiltSource::Op(PlannedOp::Spec(OpSpec::Vec(VecOp::Choose { n })), start, _) =
+            &self.sources[slot.index()]
+        {
+            let start = start.index() + 1;
+            let mut kind = ValueType::Number;
+            for &t in &self.op_inputs[start..start + *n as usize] {
+                match self.value_type_within(t, depth - 1) {
+                    ValueType::Number => {}
+                    k => kind = k,
+                }
+            }
+            return kind;
+        }
         let comp = self.slot_comp[slot.index()];
         if comp == CompIdx::NONE {
             return ValueType::Number;

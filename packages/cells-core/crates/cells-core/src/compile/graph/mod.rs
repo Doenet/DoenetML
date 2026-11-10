@@ -1500,7 +1500,20 @@ impl<'c> Stamp<'c> {
                 MadeKind::Alias => alias(self),
                 MadeKind::Case => PortType::Num,
             },
-            None => PortType::Num,
+            // A choose holds what its branches hold (ADR 0041).
+            None => match &self.g.defs[n.index()] {
+                Def::Op(GraphOp::Spec(OpSpec::Vec(VecOp::Choose { .. })), inputs) => {
+                    let mut kind = PortType::Num;
+                    for &input in &inputs[1..] {
+                        match self.value_type_within(input, depth - 1) {
+                            PortType::Num => {}
+                            k => kind = k,
+                        }
+                    }
+                    kind
+                }
+                _ => PortType::Num,
+            },
         }
     }
 
@@ -1545,12 +1558,14 @@ impl<'c> Stamp<'c> {
         };
         let n = self.n_public(c);
         let coord = |k: usize, j: usize| component_type.list_slot(n, k, j).map(|i| self.slot(c, i));
+        let w = component_type.list_width();
         Some(match at {
             PropAt::Position(i) => vec![Some(self.slot(c, i))],
-            PropAt::Item(k) => vec![coord(k, 0), coord(k, 1)],
+            PropAt::Item(k) => (0..w).map(|j| coord(k, j)).collect(),
             PropAt::Coord(k, j) => vec![coord(k, j)],
             PropAt::List => (1..=component_type.list_len(n))
-                .flat_map(|k| [coord(k, 0), coord(k, 1)])
+                .flat_map(|k| (0..w).map(move |j| (k, j)))
+                .map(|(k, j)| coord(k, j))
                 .collect(),
         })
     }
