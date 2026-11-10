@@ -1133,7 +1133,10 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
         None,
     );
     assert_stops_at_child_index(&referent, g_idx, None);
-    assert_eq!(referent.unwrap().unresolved_path, Some(unresolved_path.clone()));
+    assert_eq!(
+        referent.unwrap().unresolved_path,
+        Some(unresolved_path.clone())
+    );
 
     // Add a fragment without a parent but as the second index resolution of the `<group>`.
     let flat_fragment = flat_fragment_from_str(
@@ -1202,7 +1205,10 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
         None,
     );
     assert_stops_at_child_index(&referent, g_idx, None);
-    assert_eq!(referent.unwrap().unresolved_path, Some(unresolved_path.clone()));
+    assert_eq!(
+        referent.unwrap().unresolved_path,
+        Some(unresolved_path.clone())
+    );
 }
 
 /// The nested repeats of D27: `<repeat name="r">` whose first two iterations each hold one `<repeat name="q">`

@@ -21,4 +21,12 @@ Also fixed:
 - `$st[2]` of a `<setup>` is a blank, where it showed nothing.
 - A component named in the arguments of a function reference that names nothing (`$$f(<math name="m">x</math>)` with no `f`) is made, as if written in a `<setup>` at the reference's place (D40): `$m` is `x`, where it was a blank. The arguments are still not shown. Closes #2489.
 
-Closes #2517.
+An index past the dimensions of a value, or into a value with no entries, names nothing with the warning `doenet-w0100` in more places (#2478):
+
+- an index into an entry of a `<numberList>`, `<textList>` or `<booleanList>`, and into the pick of a `<selectFromSequence>`, `<selectPrimeNumbers>`, `<selectRandomNumbers>` or a sampler (`$nl[2][1]`, `$s[1][1]`), where it named nothing silently, as `$n[1]` of a `<number>` does;
+- an extra index on an entry of an array property named directly (`$line.point1[2][1]`, `$f.maximumLocations[1][1]`), where the extra index was dropped, as `$line.points[1][2][1]` does;
+- an extra index on an array property of a list entry (`$pl[2].xs[1][1]`), where it gave `doenet-w0180`.
+
+A write through any of these is refused. Also, `$pl[2].value[$i]` of a `<pointList>` is the same as `$pl[2].value[1]` when `i` is 1, where it named nothing, and `<group extend="$r[1]"/>` of an iteration that does not exist when the document loads follows the iteration when it appears, as after a reload, where an index after it named nothing.
+
+Closes #2517. Closes #2478.

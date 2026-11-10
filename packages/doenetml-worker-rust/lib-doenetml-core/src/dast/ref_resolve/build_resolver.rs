@@ -196,9 +196,8 @@ impl Resolver {
         // If the new nodes are also index resolutions for a parent,
         // add them to `index_resolutions`
         let index_parent = match &index_resolution {
-            IndexResolution::ReplaceAll { parent } | IndexResolution::ReplaceRange { parent, .. } => {
-                Some(*parent)
-            }
+            IndexResolution::ReplaceAll { parent }
+            | IndexResolution::ReplaceRange { parent, .. } => Some(*parent),
             IndexResolution::None => None,
         };
         self.splice_index_resolutions(&flat_fragment.children, index_resolution);

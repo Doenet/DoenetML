@@ -19,7 +19,9 @@ pub fn assert_stops_at_child_index(
     container_idx: Index,
     child_idx: Option<Index>,
 ) {
-    let resolution = resolution.as_ref().expect("the path should resolve to the group");
+    let resolution = resolution
+        .as_ref()
+        .expect("the path should resolve to the group");
     assert_eq!(resolution.node_idx, container_idx);
     assert_eq!(
         resolution.child_index,
