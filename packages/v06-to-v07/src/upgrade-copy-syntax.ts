@@ -445,7 +445,9 @@ function copyReference(
     const propKey = findAttr("prop");
     // v0.6 picked out one replacement of a composite source with `componentIndex`
     // and one entry of an array prop with `propIndex`. v0.7 says both with an index
-    // in the reference: `$g[2].x`, `$poly.vertices[2][1]`.
+    // in the reference: `$s[2]`, `$poly.vertices[2][1]`. An index after a `<group>`
+    // names nothing in v0.7, so a `componentIndex` into one does not resolve and
+    // the `<copy>` is left as it was.
     const componentIndexKey = findAttr("componentindex");
     const propIndexKey = findAttr("propindex");
     // These attributes are noted but not removed yet: if the referent cannot be

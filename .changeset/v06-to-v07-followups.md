@@ -3,7 +3,7 @@
 ---
 
 Convert more v0.6 `<copy>` and `<map>` forms:
-- `propIndex` and `componentIndex` on a `<copy>` become indices in the reference, e.g. `$poly.vertices[2][1]` and `$g[2]`.
+- `propIndex` and `componentIndex` on a `<copy>` become indices in the reference, e.g. `$poly.vertices[2][1]` and `$s[2]`.
 - `$(a{assignNames='b'})` inside an attribute value names its copy `b`.
 - A `<map>` with several `<sources>` becomes nested repeats. With `behavior="parallel"` or `assignNames` it is left with a diagnostic.
 - An inner `<map>` whose sources refer to the outer map's alias converts.

@@ -643,9 +643,20 @@ describe("v06 to v07 update", () => {
         correctSource = `<group name="g"><math>a</math></group><group extend="$g" componentIndex="" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
-        source = `<group name="g"><math>a</math><point>(1,2)</point></group><copy source="g" componentIndex="2" /><copy source="g" componentIndex="2" prop="x" />`;
-        correctSource = `<group name="g"><math>a</math><point>(1,2)</point></group><point extend="$g[2]" /><math extend="$g[2].x" />`;
+        source = `<select name="s"><option><math>a</math><point>(1,2)</point></option></select><copy source="s" componentIndex="1" /><sequence name="q" length="3" /><copy source="q" componentIndex="2" />`;
+        correctSource = `<select name="s"><option><math>a</math><point>(1,2)</point></option></select><group extend="$s[1]" /><sequence name="q" length="3" /><number extend="$q[2]" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // An index after a group names nothing in v0.7 (it never selects a
+        // child), so a `componentIndex` into a `<group>` has no counterpart and
+        // the copy is left as it was.
+        source = `<group name="g"><math>a</math><point>(1,2)</point></group><copy source="g" componentIndex="2" /><copy source="g" componentIndex="2" prop="x" />`;
+        const groupRes = await updateSyntaxFromV06toV07(source);
+        expect(groupRes.xml).toEqual(source);
+        expect(groupRes.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+            "copy/unresolved-referent",
+        ]);
 
         // A propIndex on a prop that is not an array meant nothing, and the copy is
         // left as it was, attributes and all.
