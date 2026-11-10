@@ -2881,7 +2881,22 @@ describe("Select tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("e1")].stateValues.text,
         ).eq("");
 
-        expect(getDiagnosticsByType(core).warnings).eqls([]);
+        // An index after the pick that `a1` extends names nothing (D27
+        // revised, #2517). The warning tells a component (the texts the
+        // macros make) from a string, and blank strings are not counted.
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0188",
+            "doenet-w0188",
+            "doenet-w0188",
+            "doenet-w0188",
+        ]);
+        expect(warnings.map((w) => [w.args.reference, w.args.child])).eqls([
+            ["$a1[1]", "none"],
+            ["$a1[2]", "unnamed"],
+            ["$a1[3]", "unnamed"],
+            ["$a1[4]", "none"],
+        ]);
     });
 
     it("correctly reference select inside another select", async () => {
