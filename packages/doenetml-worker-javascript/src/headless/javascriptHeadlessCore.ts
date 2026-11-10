@@ -279,6 +279,11 @@ export async function createJavascriptHeadlessCore({
                 actionName,
                 args,
             });
+            if (result?.actionUnavailable) {
+                throw Error(
+                    `A <${component(componentIdx).componentType}> has no action "${actionName}".`,
+                );
+            }
             if (result && result.success === false) {
                 throw Error(
                     `The core refused the action "${actionName}"` +
@@ -374,12 +379,15 @@ export async function createJavascriptHeadlessCore({
                 throw Error("This headless core has been terminated.");
             }
             await core.saveImmediately();
-            if (!lastStateReport) {
-                throw Error(
-                    "The core reported no state. Saving state needs the `allowSaveState` flag, which a headless core has on unless the caller turns it off.",
-                );
+            if (lastStateReport) {
+                return lastStateReport;
             }
-            return lastStateReport;
+            // Nothing has been reported: the core was created from a saved
+            // state that nothing has changed since, so a save had nothing to
+            // report (or the caller turned `allowSaveState` off). Build the
+            // payload a report would carry.
+            return core.statePersistence.buildDocStatePayload(false)
+                .payload as HeadlessSavedState;
         },
 
         async terminate() {

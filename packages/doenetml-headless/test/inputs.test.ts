@@ -228,6 +228,11 @@ describe("setInput and submit", () => {
 
                 error = await refusal(setInput(core, "nothing", "x"));
                 expect(error.code).toBe("notFound");
+
+                // Nothing to submit on a text: the core says so
+                await expect(submit(core, "t")).rejects.toThrow(
+                    'A <text> has no action "submitAllAnswers"',
+                );
             },
         );
     });

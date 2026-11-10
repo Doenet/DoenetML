@@ -172,6 +172,12 @@ describe("JavaScript headless core @group4", () => {
             numSubmissions: 1,
         });
         expect(restored.creditAchievedIfSubmit).toBe(0);
+
+        // Nothing changed since the load, so nothing was reported; the state
+        // is still there to serialize, and it is the one loaded
+        const again = await second.serializeState();
+        expect(again.coreState).toBe(state.coreState);
+        expect(again.data_format_version).toBe(data_format_version);
         await second.terminate();
     });
 
@@ -191,6 +197,14 @@ describe("JavaScript headless core @group4", () => {
         await expect(
             core.dispatchAction({ componentIdx: 9999, actionName: "x" }),
         ).rejects.toThrow("No component with index 9999");
+        const p = await core.resolvePath("p");
+        if (p.status !== "resolved") throw Error("p");
+        await expect(
+            core.dispatchAction({
+                componentIdx: p.component.componentIdx,
+                actionName: "submitAnswer",
+            }),
+        ).rejects.toThrow('A <p> has no action "submitAnswer"');
         await core.terminate();
         await expect(core.getAnswers()).rejects.toThrow("terminated");
         // A second terminate does nothing
