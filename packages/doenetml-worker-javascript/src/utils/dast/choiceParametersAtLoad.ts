@@ -567,6 +567,11 @@ export function checkChoiceParametersAtLoad({
                     sources,
                 ),
                 changeableType: authoredTypeOf(found.changeable),
+                // a sampler is an error whatever it reads, so its message
+                // says it draws again, not that a reader changes it
+                kind: SAMPLER_TYPES.has(typeMadeBy(found.changeable))
+                    ? "sampler"
+                    : "reader",
             },
             position,
             sourceDoc,

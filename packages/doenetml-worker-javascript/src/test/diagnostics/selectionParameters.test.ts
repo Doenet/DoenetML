@@ -46,6 +46,8 @@ describe("A choice's parameter a reader can change is an error at load @group4",
         componentType: string;
         reference: string;
         changeableType: string;
+        /** `sampler` when what is reached is a sampler; `reader` if not given. */
+        kind?: "sampler";
         /** The text of the parameter as written, where the error is. */
         written: string;
     }[] = [
@@ -172,6 +174,7 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             componentType: "selectFromSequence",
             reference: "$r",
             changeableType: "sampleRandomNumbers",
+            kind: "sampler",
             written: `to="$r"`,
         },
         {
@@ -183,6 +186,7 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             componentType: "select",
             reference: "$m",
             changeableType: "samplePrimeNumbers",
+            kind: "sampler",
             written: `numToSelect="$m"`,
         },
         {
@@ -242,6 +246,7 @@ describe("A choice's parameter a reader can change is an error at load @group4",
                     componentType: c.componentType,
                     reference: c.reference,
                     changeableType: c.changeableType,
+                    kind: c.kind ?? "reader",
                 });
                 // at the parameter, as written
                 const start = error.position!.start.offset!;
@@ -250,6 +255,17 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             }
         });
     }
+
+    it("the message for a sampler says it draws again, not that a reader changes it", async () => {
+        // a sampler with literal parameters is an error too, though no
+        // reader changes it
+        const { errors } = await load(
+            `<sampleRandomNumbers name="r" from="1" to="10"/><selectFromSequence to="$r"/>`,
+        );
+        expect(errors[0].message).eq(
+            "`to` of `<selectFromSequence>` reads `$r`, which reaches a `<sampleRandomNumbers>`, a sampler, which draws again when what it reads changes or when it is resampled. What a random selection chooses from must come from what the author wrote: literals, other random selections (not samplers), content that can't change, and a repeat's `indexName`.",
+        );
+    });
 
     it("the message names the parameter, the reference and what can change", async () => {
         const { errors } = await load(
@@ -468,6 +484,16 @@ describe("An iteration's choice is the one its position gives @group4", () => {
             doenetML: `<mathInput name="n" prefill="1"/>
 <repeatForSequence name="r" from="3" length="$n" valueName="v">
   <selectFromSequence name="s" to="$v" numToSelect="2"/>
+</repeatForSequence>`,
+        },
+        {
+            // the selected-distribution tests that changed a parameter by an
+            // input are now e0070 tests; this is where a `<selectRandomNumbers>`
+            // still sees a parameter change, as its iteration is withheld
+            tag: "<repeatForSequence>, a <selectRandomNumbers> reading the valueName",
+            doenetML: `<mathInput name="n" prefill="1"/>
+<repeatForSequence name="r" from="3" length="$n" valueName="v">
+  <selectRandomNumbers name="s" from="0" to="$v" numToSelect="2"/>
 </repeatForSequence>`,
         },
         {
