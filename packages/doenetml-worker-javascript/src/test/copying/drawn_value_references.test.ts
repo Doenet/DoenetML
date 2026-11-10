@@ -551,6 +551,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     `,
             });
 
+            // An index does not select the reference in a group (D27), so the
+            // copies are of what a collect finds for the drawn references.
+
             async function copies() {
                 const stateVariables = await core.returnAllStateVariables(
                     false,
@@ -575,7 +578,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
             const expected = [
                 "2 x",
-                "full",
+                // TODO: was "full" when the copy was of the reference in a
+                // group. An item of a collect, sort or list does not carry
+                // `simplify`, even when the item is `m` itself.
+                "none",
                 3,
                 "display",
                 true,

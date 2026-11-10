@@ -485,7 +485,8 @@ describe("Missing values and missing tags (D37) @group2", () => {
             ["$l[0]", "math", "＿", ["W doenet-w0104"]],
             ["$r[$i].m", "math", "＿", ["I doenet-i0054"]],
             ["$r[3].m", "math", "＿", ["I doenet-i0054"]],
-            ["$g[2]", "math", "＿", ["I doenet-i0054"]],
+            // an index after a group names nothing (D27)
+            ["$g[2]", "math", "＿", ["W doenet-w0188"]],
             ["$s[$i]", "math", "＿", ["I doenet-i0054"]],
             ["$s[3]", "math", "＿", ["W doenet-w0181"]],
             ["$n[1]", "number", "＿", ["W doenet-w0100"]],

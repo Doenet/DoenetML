@@ -1369,11 +1369,11 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pc1")].stateValues
                     .text,
-            ).eq(`c1: ${animal}`);
+            ).eq("c1: ＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("pd1")].stateValues
                     .text,
-            ).eq(`d1: ${verb}`);
+            ).eq("d1: ＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("pe1")].stateValues
                     .text,
@@ -1386,11 +1386,11 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("c1")].stateValues
                     .text,
-            ).eq(animal);
+            ).eq("");
             expect(
                 stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                     .text,
-            ).eq(verb);
+            ).eq("");
             expect(
                 stateVariables[await resolvePathToNodeIdx("e1")].stateValues
                     .text,
@@ -1415,17 +1415,24 @@ describe("Conditional content tag tests @group2", async () => {
         });
         await check_items("elephant", "trumpets");
 
-        // Selecting a child of what the conditionalContent shows by its
-        // position still works, but is deprecated (D27). The pieces that are
-        // strings are nothing to select, and give no warning of their own.
+        // An index never selects a child of what the conditionalContent
+        // shows (D27): each of these names nothing, with a warning that says
+        // so. The pieces that are strings are nothing to select.
         const warnings = getDiagnosticsByType(core).warnings;
-        expect(warnings.map((w) => w.code)).eqls([
-            "doenet-w0179",
-            "doenet-w0179",
-        ]);
-        expect(warnings.map((w) => w.args?.reference).sort()).eqls([
-            "$cc[1][2]",
-            "$cc[1][3]",
+        expect(
+            warnings
+                .map((w) => [
+                    w.code,
+                    w.args?.reference,
+                    w.args?.child,
+                    w.args?.container,
+                ])
+                .sort((a, b) => String(a[1]).localeCompare(String(b[1]))),
+        ).eqls([
+            ["doenet-w0188", "$cc[1][1]", "none", "case"],
+            ["doenet-w0188", "$cc[1][2]", "unnamed", "case"],
+            ["doenet-w0188", "$cc[1][3]", "unnamed", "case"],
+            ["doenet-w0188", "$cc[1][4]", "none", "case"],
         ]);
     });
 

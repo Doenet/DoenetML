@@ -1609,9 +1609,9 @@ describe("Extend and references tests @group2", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="n" prefill="1" />
-  <group name="outergrp">
-    <group name="g1">
-      <p name="p1">values: <group name="grp"><number name="n1">1</number> <number name="n2">2</number></group> <number name="n3">3</number></p>
+  <repeatForSequence name="outergrp" length="2" valueName="v">
+    <group name="g">
+      <p name="p1">values: <group name="grp"><number name="n1">3$v-2</number> <number name="n2">3$v-1</number></group> <number name="n3">3$v</number></p>
       
       <section name="section1"><p extend="$p1" name="p2" /></section>
       
@@ -1620,23 +1620,17 @@ describe("Extend and references tests @group2", async () => {
       <section extend="$section1" name="s1a" />
       
     </group>
-    <group name="g2">
-      <p name="p1">values: <group name="grp"><number name="n1">4</number> <number name="n2">5</number></group> <number name="n3">6</number></p>
-
-      <section name="section1"><p extend="$p1" name="p2" /></section>
-      
-      <p extend="$p2" name="p2a" />
-
-      <section extend="$section1" name="s1a" />
-      
-    </group>
-  </group>
+  </repeatForSequence>
 
   <group extend="$outergrp[$n]" name="thegrp" />
 
 
     `,
         });
+
+        // An index never selects a child of a group (D27), so the groups
+        // `thegrp` is chosen from by a variable index are the iterations of a
+        // repeat, each wrapping a group `g`.
 
         async function test_group(
             resolvePathToNodeIdx: ResolvePathToNodeIdx,
@@ -1753,16 +1747,16 @@ describe("Extend and references tests @group2", async () => {
             ).eqls([await resolvePathToNodeIdx(`${name_prefix}.s1a.p2`)]);
         }
 
-        // check g1
+        // check the first iteration
 
-        await test_group(resolvePathToNodeIdx, "g1", 1, 2, 3);
+        await test_group(resolvePathToNodeIdx, "outergrp[1].g", 1, 2, 3);
 
-        // check g2
+        // check the second iteration
 
-        await test_group(resolvePathToNodeIdx, "g2", 4, 5, 6);
+        await test_group(resolvePathToNodeIdx, "outergrp[2].g", 4, 5, 6);
 
         // check thegrp
-        await test_group(resolvePathToNodeIdx, "thegrp", 1, 2, 3);
+        await test_group(resolvePathToNodeIdx, "thegrp.g", 1, 2, 3);
 
         // Change index for thegrp
         await updateMathInputValue({
@@ -1771,7 +1765,7 @@ describe("Extend and references tests @group2", async () => {
             core,
         });
 
-        await test_group(resolvePathToNodeIdx, "thegrp", 4, 5, 6);
+        await test_group(resolvePathToNodeIdx, "thegrp.g", 4, 5, 6);
 
         // Change to invalid index for thegrp
         await updateMathInputValue({
@@ -1791,7 +1785,7 @@ describe("Extend and references tests @group2", async () => {
             core,
         });
 
-        await test_group(resolvePathToNodeIdx, "thegrp", 1, 2, 3);
+        await test_group(resolvePathToNodeIdx, "thegrp.g", 1, 2, 3);
     });
 
     it("copy group of groups retains name", async () => {

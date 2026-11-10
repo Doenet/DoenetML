@@ -937,23 +937,29 @@ describe("Group tag tests @group2", async () => {
             ).eq(text);
         }
 
-        // an index past what the group holds is a blank (D37)
-        await check("7 8 1 2 9 ＿");
+        // An index never selects what a `<group>` holds, even through a
+        // reference to another group (D27): each names nothing, with a
+        // warning that says so, however many items the sequence makes.
+        await check("＿ ＿ ＿ ＿ ＿ ＿");
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w) => w.code)).eqls(Array(6).fill("doenet-w0188"));
+        expect(warnings.map((w) => w.args?.container)).eqls(
+            Array(6).fill("group"),
+        );
 
-        // A longer sequence moves the items after it along.
         await updateMathInputValue({
             latex: "3",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        await check("7 8 1 2 3 9");
+        await check("＿ ＿ ＿ ＿ ＿ ＿");
 
         await updateMathInputValue({
             latex: "1",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        await check("7 8 1 9 ＿ ＿");
+        await check("＿ ＿ ＿ ＿ ＿ ＿");
     });
 
     it("index into a group holding a reference to a group whose items contain references", async () => {
@@ -969,12 +975,12 @@ describe("Group tag tests @group2", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("3 1 5");
-        // Each index selects a child of the `<group>`, which is deprecated (D27)
+        ).eq("＿ ＿ ＿");
+        // An index never selects a child of a `<group>` (D27)
         expect(getDiagnosticsByType(core).warnings.map((w) => w.code)).eqls([
-            "doenet-w0179",
-            "doenet-w0179",
-            "doenet-w0179",
+            "doenet-w0188",
+            "doenet-w0188",
+            "doenet-w0188",
         ]);
     });
 });
