@@ -621,7 +621,9 @@ Here `$rep[2]` references the second iteration of the repeat and
 
 An index selects an iteration, not one of the components inside it: to reach a
 component in an iteration, give it a name and write the name after the index, as
-`$rep[2].squared` does. When the whole content of a repeat is another repeat, an
+`$rep[2].squared` does. Unless an iteration holds only a list or a repeat
+(below), a further index after it, as after a `<group>{:dn}`, names nothing, and
+DoenetML gives a warning that shows the name to use. When the whole content of a repeat is another repeat, an
 index after an iteration passes on to the inner repeat, so nested repeats take
 one index for each level. A `<group>` that extends or copies an iteration, such
 as `<group name="g" extend="$table[2]"/>{:dn}`, is the iteration again and takes

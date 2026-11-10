@@ -2010,9 +2010,11 @@ describe("A copy of a component that references itself @group2", async () => {
     // the section again: a change of source remakes the copy's counterpart
     // of the reference each time.
     it("a copy of a group whose reference switches between the group and another component loads", async () => {
+        // An index after a `<group>` names nothing (D27), so the group's
+        // paragraphs are collected for `$n` to select among
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<mathInput name="n" prefill="1"/>
-<group name="g"><text>one</text><p name="q">hi [$g[$n]]</p></group>
+<group name="g"><setup><collect name="ps" componentType="p" from="$g"/></setup><p>one</p><p name="q">hi [$ps[$n]]</p></group>
 <group name="g2" copy="$g"/>
 <p name="after">after</p>`,
         });
