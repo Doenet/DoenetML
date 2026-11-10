@@ -2674,6 +2674,41 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * Whether the component `componentIdx` is written in what `node` holds:
+     * in its children, or in the attributes or an index of a component
+     * among them (`<mathInput prefill="$cc.y"/>`, `$l[$cc.y]`), at any
+     * depth. Not in an attribute of `node` itself, as the `condition` of a
+     * `<case>`, which is read whether or not it is shown.
+     */
+    function writtenIn(node: SerializedComponent, componentIdx: number) {
+        const stack: (SerializedComponent | string)[] = [
+            ...(node.children ?? []),
+        ];
+        while (stack.length > 0) {
+            const child = stack.pop()!;
+            if (typeof child !== "object") {
+                continue;
+            }
+            if (child.componentIdx === componentIdx) {
+                return true;
+            }
+            for (const attribute of Object.values(child.attributes ?? {})) {
+                const attr: any = attribute;
+                if (attr.type === "component" && attr.component) {
+                    stack.push(attr.component);
+                } else if (Array.isArray(attr.children)) {
+                    stack.push(...attr.children);
+                }
+            }
+            for (const value of indexContents(child)) {
+                stack.push(...value);
+            }
+            stack.push(...(child.children ?? []));
+        }
+        return false;
+    }
+
+    /**
      * What `copy`, a reference to a name the branches of a container declare
      * that the every-branch rule allows (`checkBranchName`), reads: the
      * components the name names in the branches, found as a reference from
@@ -2712,7 +2747,7 @@ export function checkTypeChangesAtLoad({
             ? container.children?.find(
                   (branch): branch is SerializedComponent =>
                       typeof branch === "object" &&
-                      contains(branch, copy.componentIdx),
+                      writtenIn(branch, copy.componentIdx),
               )
             : undefined;
         if (holding) {

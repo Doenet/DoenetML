@@ -831,6 +831,22 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         }
     });
 
+    it("a name every case declares, read from an attribute within a case, from the other case's", async () => {
+        for (const value of [true, false]) {
+            const { errors, rest } = await errorsAndRest(
+                `<boolean name="b">${value}</boolean><conditionalContent name="cc"><case condition="$b"><p><mathInput name="x" prefill="$cc.y"/></p><mathInput name="y"/></case><else><mathInput name="x"/><mathInput name="y" prefill="$cc.x"/></else></conditionalContent>`,
+            );
+            expect(errors).eqls([]);
+            expect(rest).eq("rest");
+        }
+        // within one case, still a cycle
+        const { errors, rest } = await errorsAndRest(
+            `<conditionalContent name="cc"><case condition="false"><mathInput name="x" prefill="$cc.y"/><math name="y">$cc.x</math></case><else><mathInput name="x"/><math name="y">1</math></else></conditionalContent>`,
+        );
+        expect(errors).eqls(["doenet-e0005 1:84-89", "doenet-e0005 1:107-112"]);
+        expect(rest).eq("rest");
+    });
+
     it("a name every case declares, read from within a case, from its own case's", async () => {
         const { errors, rest } = await errorsAndRest(
             `<conditionalContent name="cc"><case condition="false"><math name="x">$cc.x+1</math></case><else><math name="x">1</math></else></conditionalContent>`,
