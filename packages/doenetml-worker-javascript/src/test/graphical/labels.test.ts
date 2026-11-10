@@ -608,8 +608,9 @@ describe("Label tests @group3", async () => {
     });
 
     it("labelIsName and copies", async () => {
-        // Note: we add groups just so that we can reference the children
-        // inside the DoenetML
+        // Note: we add a group and collect its point just so that we can
+        // reference the point the bare `$A` makes inside the DoenetML (an
+        // index after a `<group>` names nothing, D27)
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph>
@@ -624,16 +625,17 @@ describe("Label tests @group3", async () => {
   <graph name="g4">
     <group name="grp1">$A</group>
   </graph>
+  <setup><collect name="grp1Points" componentType="point" from="$grp1" /></setup>
 
   <p><text extend="$A.label" name="lA" /></p>
   <p><label extend="$B.label" name="lB" /></p>
   <p><text extend="$C.label" name="lC" /></p>
-  <p><label extend="$grp1[1].label" name="lp4" /></p>
+  <p><label extend="$grp1Points[1].label" name="lp4" /></p>
 
   <p><textInput bindValueTo="$A.label" name="tiA" /></p>
   <p><textInput bindValueTo="$B.label" name="tiB" /></p>
   <p><textInput bindValueTo="$C.label" name="tiC" /></p>
-  <p><textInput bindValueTo="$grp1[1].label" name="tip4" /></p>
+  <p><textInput bindValueTo="$grp1Points[1].label" name="tip4" /></p>
     `,
         });
 

@@ -543,7 +543,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <mathInput name="mi" prefill="x+x" />
     <math name="m" simplify styleNumber="3" renderMode="display" hide>$mi</math>
     <text name="t" styleNumber="4">hi</text>
-    <p><group name="gm">$m</group> <group name="gt">$t</group></p>
+    <p name="pg">$m $t</p>
+    <collect name="gm" componentType="math" from="$pg" />
+    <collect name="gt" componentType="text" from="$pg" />
     <math name="um" copy="$gm[1]" />
     <text name="ut" copy="$gt[1]" />
     `,

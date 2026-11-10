@@ -386,9 +386,11 @@ describe("An index that names nothing @group4", async () => {
 
     it("keeps the info of a tag whose child has a warning of its own", async () => {
         // A warning in what is written in the tag says nothing about its
-        // index; one in its reference (`$l[$nothing]`) does.
+        // index; one in its reference (`$l[$nothing]`) does. The index is
+        // past the iterations of a repeat: after a `<group>`, it would name
+        // nothing by a warning of its own (D27).
         const { warnings, errors, infos } = await shownAndReported(
-            `<mathInput name="i" prefill="5"/><group name="pg"><text>a</text><text>b</text></group><p name="p"><text extend="$pg[$i]">$nothing</text><math extend="$l[$nothing]"/></p>`,
+            `<mathInput name="i" prefill="5"/><repeat name="pg" for="a b" valueName="v"><text>$v</text></repeat><p name="p"><text extend="$pg[$i]">$nothing</text><math extend="$l[$nothing]"/></p>`,
         );
         expect(errors).eqls([]);
         expect(warnings.map((w) => w.args)).eqls([
