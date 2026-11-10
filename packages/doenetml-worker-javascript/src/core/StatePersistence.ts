@@ -481,6 +481,10 @@ export class StatePersistence {
                     madeFrom?.sourceCase,
                     component.unlinkedMadeFrom?.sourceCase,
                 ) &&
+                // nor one made missing because what it copies was then
+                // (`madeMissing`, `missingSourceInPlace`), which one made
+                // now does not decide
+                !component.unlinkedMadeFrom?.madeMissing &&
                 // nor one that would decide an index warning otherwise
                 // (`reportIndexIntoScalarAsMade`), which what it shows need
                 // not reveal, as of a blank value

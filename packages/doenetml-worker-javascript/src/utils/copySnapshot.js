@@ -272,6 +272,9 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
  * - `indexIntoScalar`, by the reference as written, whether an index of the
  *   copy named nothing because it indexed into a scalar, which is reported
  *   as it was when the copy was made (`reportIndexIntoScalarAsMade`).
+ * - `madeMissing`, whether it was made missing because what it copies, a
+ *   component missing for a while (`BaseComponent.canBecomeMissing`), was
+ *   missing then (`missingSourceInPlace` in `Copy.js`).
  *
  * A copy with none of these is held as its snapshot alone, as saves made
  * before these were held are.
@@ -286,6 +289,7 @@ export function heldCopySnapshot(component) {
         madeFrom.typeChange === undefined &&
         madeFrom.caseIndex === undefined &&
         madeFrom.sourceCase === undefined &&
+        !madeFrom.madeMissing &&
         !hasIndexWarnings
     ) {
         return component.unlinkedSnapshot;
@@ -301,6 +305,7 @@ export function heldCopySnapshot(component) {
         ...(madeFrom.sourceCase !== undefined && {
             sourceCase: madeFrom.sourceCase,
         }),
+        ...(madeFrom.madeMissing && { madeMissing: true }),
         ...(hasIndexWarnings && { indexIntoScalar }),
     };
 }

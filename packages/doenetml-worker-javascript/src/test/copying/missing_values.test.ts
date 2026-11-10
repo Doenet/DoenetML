@@ -770,6 +770,49 @@ describe("Missing content and missing values (D40) @group2", () => {
         });
     });
 
+    it("keeps an unlinked copy of a number whose content is missing as it was made, after a reload too", async () => {
+        // Made while `n` is missing, a copy is missing for good; made while
+        // it is not, a copy of its value keeps the value it was made with.
+        const doenetML = `
+    <mathInput name="i" prefill="5"/>
+    <mathInput name="j" prefill="1"/>
+    <mathList name="l">1 2</mathList>
+    <number name="n">$l[$i]</number>
+    <number name="n2">$l[$j]</number>
+    <p name="p">[<number copy="$n"/>][<number copy="$n.value"/>][<math copy="$n"/>][<number copy="$n2.value"/>]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[＿][＿][＿][1]");
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("j"),
+            core,
+        });
+        expect(await text()).eq("[＿][＿][＿][1]");
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await text()).eq("[＿][＿][＿][1]");
+    });
+
     it("gives no credit for an award whose condition is missing", async () => {
         const { core, resolvePathToNodeIdx } = await shownAndReported(`
     <answer name="a1"><award>$nothing</award></answer>

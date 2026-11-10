@@ -1609,7 +1609,7 @@ export default class Copy extends CompositeComponent {
     static async createSerializedReplacements(args) {
         const result = await this.createSerializedReplacementsOfCopy(args);
         await reportMissingProperty(args);
-        await missingSourceInPlace({ ...args, result });
+        await missingSourceInPlace({ ...args, result, atCreation: true });
         missingInPlaceOfCopiedError({ ...args, result });
         return result;
     }
@@ -7164,6 +7164,7 @@ async function missingSourceInPlace({
     componentInfoObjects,
     workspace,
     result,
+    atCreation = false,
 }) {
     if (
         component.componentType !== "_copy" ||
@@ -7177,12 +7178,26 @@ async function missingSourceInPlace({
     const source = components[extended?.componentIdx];
     // An unlinked copy (`copy`) of a component missing for a while
     // (`BaseComponent.canBecomeMissing`), made while it is, is missing for
-    // good, as it does not follow its source. A linked one is missing while
-    // its source is (`missingWhileSourceMissing`, D40).
-    const missingWhenCopied =
+    // good, as it does not follow its source, and one made while it is not
+    // stays as it was made. A reload makes it as it was made
+    // (`madeFrom.madeMissing`, `heldCopySnapshot`). A linked one is missing
+    // while its source is (`missingWhileSourceMissing`, D40).
+    let missingWhenCopied = false;
+    if (
+        atCreation &&
         source?.canBecomeMissing &&
-        (await component.stateValues.link) === false &&
-        Boolean(await source.stateValues.valueMissing);
+        (await component.stateValues.link) === false
+    ) {
+        const held = readHeldCopySnapshot(
+            component.coreFunctions.savedCopySnapshot?.(component.stateId),
+        );
+        missingWhenCopied = held
+            ? Boolean(held.madeFrom.madeMissing)
+            : Boolean(await source.stateValues.valueMissing);
+        if (missingWhenCopied && workspace.madeFrom) {
+            workspace.madeFrom.madeMissing = true;
+        }
+    }
     if (
         !source?.isMissing &&
         source?.componentType !== "_missing" &&

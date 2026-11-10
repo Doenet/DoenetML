@@ -1496,11 +1496,6 @@ const BOOLEAN_NODE_ATTRIBUTES = new Set([
  */
 const INTEGER_NODE_ATTRIBUTES = new Set(["numdecimals", "numdigits"]);
 
-/**
- * Whether `attribute` is written as an integer and nothing else (`2`), which
- * the list reads as a `<number>` would; another literal (`1+1`) keeps the
- * composite, whose `<number>` evaluates it.
- */
 /** Whether `child` is a reference whose path holds an index (`$l[$i]`). */
 function indexedReference(child: SerializedComponent | string): boolean {
     if (
@@ -1515,6 +1510,11 @@ function indexedReference(child: SerializedComponent | string): boolean {
     );
 }
 
+/**
+ * Whether `attribute` is written as an integer and nothing else (`2`), which
+ * the list reads as a `<number>` would; another literal (`1+1`) keeps the
+ * composite, whose `<number>` evaluates it.
+ */
 function isIntegerLiteral(attribute: SerializedAttribute): boolean {
     if (attribute.type === "primitive") {
         return Number.isInteger(attribute.primitive.value);
