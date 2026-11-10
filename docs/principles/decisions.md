@@ -2211,7 +2211,8 @@ Most of the plumbing exists for value references, and can be made general:
 ## D38. Errors are decided at load, the same for every variant (decided, Tier 1)
 
 **Decided.** DIAG-7 states it. The implementation is #2463: the end-of-load assertion is done by
-#2491, moving the remaining errors to load by #2507 (closing #2493); cycles are #2473.
+#2491, moving the remaining errors to load by #2507 (closing #2493); cycles by #2471 and #2513
+(closing #2473), with the shapes left in #2515.
 
 **Today** nothing stops an error from appearing while a reader works, or from appearing in some
 variants only. Errors are drawn in the document, so a reader sees them. **[examples]**
@@ -2280,7 +2281,7 @@ never the guarantee.
 - `coprime` draws that find nothing in 200 tries (`i0057`), and the "fluke" codes `e0052`/`e0053`:
   the selection fails by chance in some variants;
 - a cycle through a name every option of a one-pick `<select>` declares: the variant that picks
-  that option doesn't finish loading (#2473);
+  that option doesn't finish loading (#2473; fixed by #2513);
 - a sampler's draws aren't kept through a reload of a `copyWithState` (#2477), which breaks
   COMP-8;
 - a parameter read from an input (`numToSelect="$mi"`) is read once, when the selection is made
@@ -2411,6 +2412,7 @@ decided here; the rest are listed as still open.
 1. **A component whose content holds a missing child is missing** (#2461). Exceptions: `<math>`
    and `<text>`, where the blank takes part, and containers, which show it inline. A missing
    list entry is a blank entry. An award whose condition is missing gives no credit. VAL-5.
+   Done by #2514 except for lists (PR 7 of #2509) and the leftovers in #2516.
 2. **`null` is never shown; where it means "no value" the value is missing, and a `NaN` caused by
    a missing input is missing** (#2460). Only a computation on present inputs that has no value
    stays `NaN`. VAL-5.

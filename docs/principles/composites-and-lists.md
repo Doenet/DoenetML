@@ -361,8 +361,6 @@ which aren't choices.
   so an infeasible selection is an error at load (`choicesDecidedByDoenetML`);
 - an authored warning in an option or case is reported only while it is shown, not at load
   (SEL-8, #2506);
-- a cycle through a name every option of a one-pick `<select>` declares stops the variant that
-  picks it (#2473);
 - warnings in unpicked options and cases are not reported;
 - a `copyWithState` of a sampler doesn't keep its draws through a reload (#2477, SAVE-4).
 
