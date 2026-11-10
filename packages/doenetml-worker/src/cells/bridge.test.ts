@@ -31,6 +31,18 @@ function byName(root: ReturnType<CellsBridge["flatDast"]>, name: string) {
 }
 
 describe("flat DAST", () => {
+    it("draws a value list as the text of its entries (ADR 0041)", async () => {
+        const bridge = await load(`<numberList>1 2.5 3</numberList>
+<textList>a b</textList>
+<booleanList>true false</booleanList>`);
+        const root = bridge.flatDast();
+        expect(byName(root, "text").map((e) => (e.data as any).props)).toEqual([
+            { value: "1, 2.5, 3" },
+            { value: "a, b" },
+            { value: "true, false" },
+        ]);
+    });
+
     it("gives each component its renderer's props", async () => {
         const bridge = await load(`<section><title>Intro</title>
 <p><text>hello</text> <number>3.25</number> <math>x+1</math> <boolean>true</boolean> <point>(1,2)</point></p>
