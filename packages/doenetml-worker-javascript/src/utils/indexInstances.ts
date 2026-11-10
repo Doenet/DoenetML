@@ -215,6 +215,11 @@ export function referencedIndexable(
     components: Record<number, any>,
     containerIdx: number,
     componentInfoObjects: ComponentInfoObjects,
+    resolvedReference?: {
+        componentIdx: number;
+        nodeIdx: number;
+        unresolvedPath: unknown;
+    },
 ): any {
     const container = components[containerIdx];
     const instanceKind = instanceKindOf(
@@ -227,9 +232,14 @@ export function referencedIndexable(
     if (!content) {
         return undefined;
     }
-    const resolution = refResolutionAt(
-        components[content.reference.componentIdx],
-    );
+    // What the reference names once the worker has finished resolving it
+    // (`resolvedReference`), as when it names a component through a
+    // composite (`$cc.x` of a name in a case), which the resolution made when
+    // the reference was created stops at, or else that resolution
+    const resolution =
+        resolvedReference?.componentIdx === content.reference.componentIdx
+            ? resolvedReference
+            : refResolutionAt(components[content.reference.componentIdx]);
     if (!resolution || resolution.unresolvedPath !== null) {
         return null;
     }

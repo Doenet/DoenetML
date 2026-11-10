@@ -348,6 +348,61 @@ describe("An index selects instances, not children @group4", async () => {
         );
     });
 
+    it("passes an index through a pick or iteration holding only a reference to a list named through a composite", async () => {
+        // What `$cc.x` and `$ls[2].m` name is found once the composite is
+        // expanded, not when the reference is made
+        const named = await shownAndReported(
+            `<repeatForSequence name="ls" length="2" valueName="v"><mathList name="m">$v 7</mathList></repeatForSequence><select name="s"><option>$ls[2].m</option></select><p name="p">[$s[1][1]] [$s[1][2]]</p>`,
+        );
+        expect(named.text).eq("[2] [7]");
+        expect(named.warnings).eqls([]);
+
+        for (const [body, prefill] of [
+            [`<select name="s"><option>$cc.x</option></select>`, "1"],
+            [
+                `<repeatForSequence name="s" length="1">$cc.x</repeatForSequence>`,
+                "2",
+            ],
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="k" prefill="${prefill}" />
+    <conditionalContent name="cc">
+      <case condition="$k=1"><mathList name="x">a b</mathList></case>
+      <case condition="$k=3"><mathList name="x">c d e</mathList></case>
+    </conditionalContent>
+    ${body}
+    <p name="p">[$s[1][2]] [$s[1][3]]</p>
+    `,
+            });
+            async function text() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text;
+            }
+            const shown: string[] = [await text()];
+            for (const k of ["1", "2", "3", "1"]) {
+                await updateMathInputValue({
+                    latex: k,
+                    componentIdx: await resolvePathToNodeIdx("k"),
+                    core,
+                });
+                shown.push(await text());
+            }
+            const atLoad = prefill === "1" ? "[b] [＿]" : "[＿] [＿]";
+            expect(shown, body).eqls([
+                atLoad,
+                "[b] [＿]",
+                "[＿] [＿]",
+                "[d] [e]",
+                "[b] [＿]",
+            ]);
+        }
+    });
+
     it("names nothing after an index into a group, an iteration, a pick or a case, and says how to name the child", async () => {
         const cases: {
             body: string;
@@ -965,5 +1020,52 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
         );
         expect(text).eq("[b] [c] [＿]");
         expect(warnings.map((w) => w.code)).eqls(["doenet-w0100"]);
+    });
+
+    it("shows only the entry once an index past the end, then after a group, names one", async () => {
+        // `$g[3]` is past the end of an iteration at load, then after an
+        // ordinary group, then past the end again, and then names an entry
+        // as the iteration grows. Each blank is replaced, not left beside
+        // what the reference names.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="b" />
+    <mathInput name="n" prefill="2" />
+    <repeat name="r" for="1 2" valueName="v"><repeatForSequence length="$n" valueName="w"><math>$w</math></repeatForSequence></repeat>
+    <conditionalContent name="cc">
+      <case condition="$b"><group name="x"><math>a</math><math>b</math><math>c</math></group></case>
+      <else><group name="x" extend="$r[1]"/></else>
+    </conditionalContent>
+    <group name="g" extend="$cc.x"/>
+    <p name="p">[$g[3]]</p>
+    `,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[＿]");
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await text()).eq("[＿]");
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await text()).eq("[＿]");
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(await text()).eq("[3]");
     });
 });

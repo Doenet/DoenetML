@@ -2833,6 +2833,15 @@ export default class Copy extends CompositeComponent {
 
             let previousZeroSourceIndices =
                 workspace.sourceIndices.length === 0;
+            const previousWorkspace = {
+                numReplacementsBySource: workspace.numReplacementsBySource,
+                numNonStringReplacementsBySource:
+                    workspace.numNonStringReplacementsBySource,
+                propVariablesCopiedBySource:
+                    workspace.propVariablesCopiedBySource,
+                sourceContainsCopyBySource:
+                    workspace.sourceContainsCopyBySource,
+            };
 
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
@@ -2910,7 +2919,13 @@ export default class Copy extends CompositeComponent {
             if (previousZeroSourceIndices) {
                 // didn't have sources before and still don't have sources.
                 // we're just getting filler components being recreated.
-                // Don't actually make those changes
+                // Don't actually make those changes, so the workspace still
+                // describes the replacements kept. Reset, it would count none
+                // of them, and the next update would leave them beside what
+                // it makes: a reference past the end of a list at load, then
+                // after a `<group>` (`childIndex`), then naming an entry,
+                // showed the entry and a blank.
+                Object.assign(workspace, previousWorkspace);
                 return { replacementChanges: [], diagnostics, nComponents };
             }
 

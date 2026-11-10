@@ -9,6 +9,7 @@ import {
 import {
     instanceGroupAttributes,
     instanceKindOf,
+    referenceContent,
     referencedIndexable,
 } from "../utils/indexInstances";
 
@@ -141,7 +142,7 @@ export async function addReplacementsToResolver({
         fragmentChildren.push(...serializedReplacements);
     }
 
-    const indexParentInstances = indexParentInstancesOf(
+    const indexParentInstances = await indexParentInstancesOf(
         core,
         component,
         indexResolution,
@@ -246,21 +247,38 @@ function indexPassThroughOfCopiedInstance(
  * (`FlatFragment.indexParentInstances`, `referencedIndexable`). `undefined`
  * when the replacements go anywhere else.
  */
-function indexParentInstancesOf(
+async function indexParentInstancesOf(
     core: Core,
     component: any,
     indexResolution: any,
-): boolean | undefined {
+): Promise<boolean | undefined> {
     const indexParent =
         indexResolution?.ReplaceAll?.parent ??
         indexResolution?.ReplaceRange?.parent;
     if (indexParent === undefined || indexParent === component.componentIdx) {
         return undefined;
     }
+    // When `component` is that reference, what it names as the worker
+    // resolved it, which the resolution made with the reference stops short
+    // of when it names a component through a composite
+    // (`<option>$cc.x</option>` of a list in a case of a
+    // `<conditionalContent>`)
+    const content = referenceContent(
+        core._components[indexParent]?.serializedChildren ?? [],
+    );
+    const resolvedReference =
+        content?.reference.componentIdx === component.componentIdx
+            ? {
+                  componentIdx: component.componentIdx,
+                  nodeIdx: await component.stateValues.extendIdx,
+                  unresolvedPath: await component.stateValues.unresolvedPath,
+              }
+            : undefined;
     const referent = referencedIndexable(
         core._components,
         indexParent,
         core.componentInfoObjects,
+        resolvedReference,
     );
     return referent === undefined ? undefined : referent !== null;
 }
