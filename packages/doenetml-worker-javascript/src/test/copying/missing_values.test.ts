@@ -720,6 +720,56 @@ describe("Missing content and missing values (D40) @group2", () => {
         });
     });
 
+    it("makes a tag or a property of a number whose content is missing missing while it is", async () => {
+        // A tag of it (`b`), a tag of a property of it (`a`), a tag of
+        // another type made around it (`c`, `d`), and the math a math reads
+        // of it (its adapter, in `m`) are missing while it is, and come back
+        // with it. An unlinked copy made while it is missing stays missing.
+        const { core, resolvePathToNodeIdx } = await shownAndReported(`
+    <mathInput name="i" prefill="5"/>
+    <mathList name="l">1 2</mathList>
+    <number name="n">$l[$i]</number>
+    <p name="p">[<number name="a" extend="$n.value"/>][<number name="b" extend="$n"/>][<math name="c" extend="$n"/>][<text name="d" extend="$n"/>][<math name="m"><number extend="$n"/></math>][<number name="e" copy="$n.value"/>]</p>
+    `);
+        async function current() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const missing: Record<string, boolean> = {};
+            for (const name of ["a", "b", "c", "d", "e"]) {
+                missing[name] = Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                );
+            }
+            return {
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+                missing,
+                drawn: rendererTypesOf(core, await resolvePathToNodeIdx("p")),
+            };
+        }
+        expect(await current()).eqls({
+            text: "[＿][＿][＿][＿][＿][＿]",
+            missing: { a: true, b: true, c: true, d: true, e: true },
+            drawn: Array(6)
+                .fill("_blank")
+                .map((t, i) => (i === 4 ? "math" : t)),
+        });
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await current()).eqls({
+            text: "[2][2][2][2][2][＿]",
+            missing: { a: false, b: false, c: false, d: false, e: true },
+            drawn: ["number", "number", "math", "text", "math", "_blank"],
+        });
+    });
+
     it("gives no credit for an award whose condition is missing", async () => {
         const { core, resolvePathToNodeIdx } = await shownAndReported(`
     <answer name="a1"><award>$nothing</award></answer>

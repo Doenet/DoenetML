@@ -843,6 +843,18 @@ export function convertRepeatsToLists({
             if (node.componentType === "number" && children.length > 1) {
                 return false;
             }
+            if (
+                node.componentType === "number" &&
+                children.length === 1 &&
+                indexedReference(children[0])
+            ) {
+                // A `<number>` that is only a reference with an index
+                // (`<number>$l[$i]</number>`, `<number>$x[3]</number>`) is
+                // missing in an iteration where the index names nothing (D40,
+                // `BaseComponent.missingWhenContentMissing`), which an entry
+                // of the list can't be yet, so the repeat stays a composite.
+                return false;
+            }
             return contentQualifies(children);
         }
 
@@ -1489,6 +1501,20 @@ const INTEGER_NODE_ATTRIBUTES = new Set(["numdecimals", "numdigits"]);
  * the list reads as a `<number>` would; another literal (`1+1`) keeps the
  * composite, whose `<number>` evaluates it.
  */
+/** Whether `child` is a reference whose path holds an index (`$l[$i]`). */
+function indexedReference(child: SerializedComponent | string): boolean {
+    if (
+        typeof child === "string" ||
+        !child.extending ||
+        !("Ref" in child.extending)
+    ) {
+        return false;
+    }
+    return (child.extending.Ref.unresolvedPath ?? []).some(
+        (part: SerializedRefResolutionPathPart) => part.index.length > 0,
+    );
+}
+
 function isIntegerLiteral(attribute: SerializedAttribute): boolean {
     if (attribute.type === "primitive") {
         return Number.isInteger(attribute.primitive.value);

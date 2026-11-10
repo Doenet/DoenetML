@@ -4,6 +4,7 @@ import {
     missingWhenContentMissingDefinitions,
     missingWhileEntryEmptyDefinition,
     missingWhileSourceMissingDefinition,
+    missingWhileAdaptedMissingDefinition,
     contentMissingDefinition,
 } from "../../utils/missing";
 import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefinitionFactory";
@@ -155,6 +156,8 @@ export default class BaseComponent {
             this.state.valueMissing = missingWhileEntryEmptyDefinition();
         } else if (this.doenetAttributes.missingWhileSourceMissing) {
             this.state.valueMissing = missingWhileSourceMissingDefinition();
+        } else if (this.doenetAttributes.missingWhileAdaptedMissing) {
+            this.state.valueMissing = missingWhileAdaptedMissingDefinition();
         } else if (
             this.doenetAttributes.missingWhenContentMissing &&
             !this.constructor.missingWhenContentMissing
@@ -319,7 +322,8 @@ export default class BaseComponent {
      * entry that is missing while the entry holds no value
      * (`doenetAttributes.missingWhileEntryEmpty`), and one that shadows a
      * property of a component that can be missing
-     * (`doenetAttributes.missingWhileSourceMissing`). A missing component
+     * (`doenetAttributes.missingWhileSourceMissing`) or adapts one
+     * (`doenetAttributes.missingWhileAdaptedMissing`). A missing component
      * (`isMissing`) is missing for as long as it exists.
      */
     get canBecomeMissing() {
@@ -329,7 +333,8 @@ export default class BaseComponent {
                 Boolean(
                     this.doenetAttributes.missingWhenContentMissing ||
                     this.doenetAttributes.missingWhileEntryEmpty ||
-                    this.doenetAttributes.missingWhileSourceMissing,
+                    this.doenetAttributes.missingWhileSourceMissing ||
+                    this.doenetAttributes.missingWhileAdaptedMissing,
                 ))
         );
     }

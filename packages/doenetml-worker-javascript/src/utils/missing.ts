@@ -177,24 +177,69 @@ export function missingWhileEntryEmptyDefinition() {
  * `<number extend="$n.value"/>` of `<number name="n">$l[$i]</number>` is
  * missing while `n` is, as a property of a missing component is (D37).
  */
-export function missingWhileSourceMissingDefinition() {
+export function missingWhileSourceMissingDefinition(sourceIdx?: number) {
     return {
+        // The component whose property it shadows, `sourceIdx`; a linked
+        // copy of it shadows it instead, as a whole (`shadowSource`).
         returnDependencies: () => ({
-            source: {
-                dependencyType: "shadowSource",
-                variableNames: ["valueMissing"],
-            },
+            source:
+                sourceIdx === undefined
+                    ? {
+                          dependencyType: "shadowSource",
+                          variableNames: ["valueMissing"],
+                      }
+                    : {
+                          dependencyType: "stateVariable",
+                          componentIdx: sourceIdx,
+                          variableName: "valueMissing",
+                          variablesOptional: true,
+                      },
         }),
         definition({
             dependencyValues,
         }: {
             dependencyValues: { source: any };
         }) {
+            const source = dependencyValues.source;
             return {
                 setValue: {
                     valueMissing: Boolean(
-                        dependencyValues.source?.stateValues?.valueMissing,
+                        typeof source === "object" && source !== null
+                            ? source.stateValues?.valueMissing
+                            : source,
                     ),
+                },
+            };
+        },
+        // drawn as a blank while it is missing
+        // (`RendererInstructionBuilder.updateDrawnMissing`)
+        markStale: () => ({ updateParentRenderedChildren: true }),
+    };
+}
+
+/**
+ * The definition of `valueMissing` of an adapter of a component that can be
+ * missing for a while (`doenetAttributes.missingWhileAdaptedMissing`,
+ * `ChildMatcher`): the `<math>` a `<math>` reads of `<number
+ * name="n">$l[$i]</number>` is missing while `n` is, as the adapter of a
+ * missing component is missing (D37).
+ */
+export function missingWhileAdaptedMissingDefinition() {
+    return {
+        returnDependencies: () => ({
+            adaptedMissing: {
+                dependencyType: "adapterSourceStateVariable",
+                variableName: "valueMissing",
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: { adaptedMissing: any };
+        }) {
+            return {
+                setValue: {
+                    valueMissing: Boolean(dependencyValues.adaptedMissing),
                 },
             };
         },

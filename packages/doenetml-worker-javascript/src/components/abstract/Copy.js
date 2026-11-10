@@ -7175,7 +7175,19 @@ async function missingSourceInPlace({
     }
     const extended = await component.stateValues.extendedComponent;
     const source = components[extended?.componentIdx];
-    if (!source?.isMissing && source?.componentType !== "_missing") {
+    // An unlinked copy (`copy`) of a component missing for a while
+    // (`BaseComponent.canBecomeMissing`), made while it is, is missing for
+    // good, as it does not follow its source. A linked one is missing while
+    // its source is (`missingWhileSourceMissing`, D40).
+    const missingWhenCopied =
+        source?.canBecomeMissing &&
+        (await component.stateValues.link) === false &&
+        Boolean(await source.stateValues.valueMissing);
+    if (
+        !source?.isMissing &&
+        source?.componentType !== "_missing" &&
+        !missingWhenCopied
+    ) {
         return;
     }
     const stateIdInfo = {

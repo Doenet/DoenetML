@@ -274,7 +274,7 @@ whose content is only a missing reference is missing in the same way:
 and a `<circle>$nothing</circle>{:dn}` isn't drawn. An `<award>{:dn}` whose
 condition is missing gives no credit. It is made from its content again once
 the reference names something, as `<number>$l[$i]</number>{:dn}` is once `i`
-is an index of `l`. Where the blank is part of an expression, it takes part:
+is an index of `l`, and a reference to it, or a tag of it, follows it. Where the blank is part of an expression, it takes part:
 `<math>$nothing + 1</math>{:dn}` is `＿ + 1`, `<text>x $nothing y</text>{:dn}`
 is `x ＿ y`, and `<boolean>$nothing = 1</boolean>{:dn}` is false. A `<p>{:dn}`
 or other container shows the blank inline.

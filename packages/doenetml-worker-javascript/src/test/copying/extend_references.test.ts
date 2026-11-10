@@ -4749,7 +4749,7 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p4")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿`);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p5")].stateValues
                     .text,

@@ -868,7 +868,7 @@ export async function createChildrenThenComponent({
                     // `<number name="n">$l[$i]</number>`.
                     newComponent.doenetAttributes.missingWhileSourceMissing = true;
                     newComponent.state.valueMissing =
-                        missingWhileSourceMissingDefinition();
+                        missingWhileSourceMissingDefinition(idx);
                 }
                 if (!shadowedComponent.shadowedBy) {
                     shadowedComponent.shadowedBy = [];
