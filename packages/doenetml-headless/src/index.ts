@@ -14,6 +14,13 @@ export {
     type CheckResult,
     type CheckedAnswer,
 } from "./check";
+export {
+    setInput,
+    submit,
+    SUPPORTED_INPUT_TYPES,
+    type InputTarget,
+    type InputValue,
+} from "./inputs";
 export { HeadlessError, type HeadlessErrorCode } from "./errors";
 export { defaultCoreFactory } from "./defaultCore";
 export { RESOLVER_WASM_ENV } from "./resolverWasm";
