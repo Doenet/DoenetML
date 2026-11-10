@@ -1807,7 +1807,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
-    it("animate sourceIndex of group", () => {
+    it("animate sourceIndex of numbers in a group", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1821,7 +1821,11 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
 
                 <p>Index to animate: <mathInput prefill="1" name="ind" /></p>
 
-                <animateFromSequence name="x" animationMode='increase' animationOn='$b' target='$grp[$ind]' animationInterval='100' />
+                <!-- An index does not select a child of a group (D27), so
+                the numbers are indexed through a collect of them -->
+                <setup><collect componentType="number" from="$grp" name="col" /></setup>
+
+                <animateFromSequence name="x" animationMode='increase' animationOn='$b' target='$col[$ind]' animationInterval='100' />
 
                 <booleanInput name="b" />
 
@@ -2128,7 +2132,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
-    it("animate sourceIndex of group with target subnames", () => {
+    it("animate sourceIndex of paragraphs in a group with target subnames", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -2141,8 +2145,12 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
 
   <p>Index to animate: <mathInput prefill="1" name="ind" /></p>
 
-  <animateFromSequence name="x" animationMode='increase' animationOn='$b' target='$grp[$ind].n1' animationInterval='100' />
-  <animateFromSequence name="x2" animationMode='increase' animationOn='$b2' target='$grp[$ind].n2' animationInterval='100' />
+  <!-- An index does not select a child of a group (D27), so the paragraphs
+  are indexed through a collect of them -->
+  <setup><collect componentType="p" from="$grp" name="ps" /></setup>
+
+  <animateFromSequence name="x" animationMode='increase' animationOn='$b' target='$ps[$ind].n1' animationInterval='100' />
+  <animateFromSequence name="x2" animationMode='increase' animationOn='$b2' target='$ps[$ind].n2' animationInterval='100' />
 
   <booleanInput name="b" />
   <booleanInput name="b2" />
