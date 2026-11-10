@@ -143,10 +143,12 @@ pub enum VecOp {
         /// How many conditions.
         n: u8,
     },
-    /// An interface name of a choice whose branches are all built: inputs
-    /// are the choice cell and the name's cell in each of the `n` branches;
-    /// the output is the active branch's cell (NaN when none is active).
-    /// The inverse writes the active branch only.
+    /// An interface name of a choice whose branches are all built, or an
+    /// entry by a cell index (`$r[$k]`, `$P[$k]`): inputs are the choice
+    /// cell and the name's cell in each of the `n` branches; the output is
+    /// the active branch's cell, NaN when none is active: a choice that is
+    /// not an integer from 1 to `n` (ADR 0041). The inverse writes the
+    /// active branch only.
     Choose {
         /// How many branches.
         n: u8,
@@ -262,9 +264,10 @@ fn clamp(x: f64, lo: f64, hi: f64) -> f64 {
 }
 
 /// The input position of the active branch of a `Choose` over `n`
-/// branches, from its choice cell's value.
+/// branches, from its choice cell's value: an integer from 1 to `n`. Any
+/// other value chooses none; an index is never rounded (ADR 0041).
 fn active_branch(choice: f64, n: u8) -> Option<usize> {
-    (choice >= 1.0 && choice <= n as f64).then_some(choice as usize)
+    (choice >= 1.0 && choice <= n as f64 && choice.fract() == 0.0).then_some(choice as usize)
 }
 
 impl VecOp {
@@ -310,22 +313,16 @@ impl VecOp {
 
     /// A range holding every value its first output can take from inputs
     /// in `inputs` (ADR 0037, `program/range.rs`): ⊤ for an operator with
-    /// no rule. `First` is a position or 0; `Choose` the union of the
-    /// branches it may choose, ⊤ when it may choose none (NaN); `Clamp`
+    /// no rule. `First` is a position or 0; `Choose` the branch its one
+    /// known choice chooses, ⊤ when it may choose none (NaN); `Clamp`
     /// its input held between its bounds.
     pub fn range(&self, inputs: &[Range]) -> Range {
         match *self {
             VecOp::First { n } => Range::Span(0.0, n as f64),
-            VecOp::Choose { n } => match inputs.first() {
-                Some(&Range::Span(lo, hi)) if lo >= 1.0 && hi <= n as f64 => {
-                    // A choice past a whole number chooses the branch below it.
-                    let (lo, hi) = (lo.floor() as usize, hi.floor() as usize);
-                    inputs[lo..=hi]
-                        .iter()
-                        .copied()
-                        .reduce(Range::hull)
-                        .unwrap_or(Range::Top)
-                }
+            // A choice that is no integer chooses none (NaN), so only one
+            // known branch has a range.
+            VecOp::Choose { n } => match inputs.first().and_then(|r| r.as_point()) {
+                Some(k) if active_branch(k, n).is_some() => inputs[k as usize],
                 _ => Range::Top,
             },
             VecOp::Clamp => match inputs {

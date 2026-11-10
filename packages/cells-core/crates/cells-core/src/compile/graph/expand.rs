@@ -91,7 +91,7 @@ impl<'c> Stamp<'c> {
                 self.set(s, Def::Alias(missing));
             }
             (at, Some(prop)) => {
-                let (targets, label) = self.targets_of(at, Some(prop), label, t, Some(1));
+                let (targets, label) = self.port_targets(p, at, Some(prop), label, t, Some(1));
                 let target = targets.first().copied().flatten();
                 let is_text = target.is_some_and(|n| self.value_type(n) == PortType::Text);
                 let component_type = if is_text {

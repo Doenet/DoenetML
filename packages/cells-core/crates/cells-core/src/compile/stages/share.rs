@@ -103,12 +103,16 @@ impl Carried {
     }
 }
 
+/// What a reference plan's class is told by: its hops, steps, port and
+/// entries.
+type RefKey<'c> = (u32, &'c [Step], Option<RefProp>, &'c [EntryIndex]);
+
 /// Reference plans by class: two plans are one class when they walk the
 /// same steps to the same port, so from one template they name the same
 /// cell in every instance.
 #[derive(Default)]
 struct RefClasses<'c> {
-    by_plan: FxMap<(u32, &'c [Step], Option<RefProp>), u32>,
+    by_plan: FxMap<RefKey<'c>, u32>,
     of: FxMap<RefId, u32>,
 }
 
@@ -121,7 +125,7 @@ impl<'c> RefClasses<'c> {
         let n = self.by_plan.len() as u32;
         let k = *self
             .by_plan
-            .entry((p.hops, &p.steps[..], p.prop))
+            .entry((p.hops, &p.steps[..], p.prop, &p.entries[..]))
             .or_insert(n);
         self.of.insert(r, k);
         k
@@ -305,7 +309,7 @@ impl Share<'_> {
         let [Step::Elem(e)] = plan.steps[..] else {
             return None;
         };
-        if plan.hops != 0 || !self.takes_part(t, e) {
+        if plan.hops != 0 || !plan.entries.is_empty() || !self.takes_part(t, e) {
             return None;
         }
         let tpl = &self.c.templates[t.index()];

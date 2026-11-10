@@ -142,10 +142,33 @@ impl<'a> Reader<'a> {
                 other => other.clone(),
             });
         }
+        // An entry's index is a literal or a cell, read from where the
+        // referent sits.
+        let entries = inner_plan
+            .entries
+            .iter()
+            .map(|entry| EntryIndex {
+                index: IndexPlan {
+                    terms: entry
+                        .index
+                        .terms
+                        .iter()
+                        .map(|term| match term {
+                            IndexTerm::Cell(p) => {
+                                IndexTerm::Cell(self.rebase_ref(ar, path, down, *p))
+                            }
+                            other => other.clone(),
+                        })
+                        .collect(),
+                },
+                width: entry.width,
+            })
+            .collect();
         let plan = RefPlan {
             hops,
             steps,
             prop: inner_plan.prop,
+            entries,
             display: RefDisplay::Spelled(
                 format!(
                     "{} (of {})",

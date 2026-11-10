@@ -82,6 +82,28 @@ pub(crate) struct IndexPlan {
 }
 
 impl IndexPlan {
+    /// The literal index `k`.
+    pub(crate) fn constant(k: i64) -> IndexPlan {
+        IndexPlan {
+            terms: vec![IndexTerm::Const(k)],
+        }
+    }
+
+    /// Its value when it is one literal.
+    pub(crate) fn constant_value(&self) -> Option<i64> {
+        match self.terms[..] {
+            [IndexTerm::Const(k)] => Some(k),
+            _ => None,
+        }
+    }
+
+    /// The entry (1-based) of `n` it names when it is a literal in range.
+    pub(crate) fn entry_in(&self, n: usize) -> Option<usize> {
+        self.constant_value()
+            .filter(|&k| k >= 1 && k as u64 <= n as u64)
+            .map(|k| k as usize)
+    }
+
     /// Whether the index reads a cell, so which item it names is known
     /// only when the document runs.
     pub(crate) fn is_dynamic(&self) -> bool {
@@ -89,9 +111,20 @@ impl IndexPlan {
     }
 }
 
+/// `[k]` on the sequence a port holds (ADR 0041, decision 3): entry `k`
+/// of its cells taken `width` at a time, a coordinate (`$P[$k]`, width 1)
+/// or a point of a list (`$l.points[$k]`, width 2). An index that is not
+/// an integer from 1 to the count names the missing value. A literal in
+/// range is no entry step: planning binds it as the port's own entry.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub(crate) struct EntryIndex {
+    pub(crate) index: IndexPlan,
+    pub(crate) width: u8,
+}
+
 /// A reference planned: the template levels up to where its first name is, the
-/// steps of its path, and the prop it ends on. Expansion resolves it per
-/// instance.
+/// steps of its path, the prop it ends on, and the entries it takes of
+/// that prop's sequence. Expansion resolves it per instance.
 #[derive(Debug, Clone)]
 pub(crate) struct RefPlan {
     /// Template levels up from the referencing element to where the first
@@ -101,6 +134,9 @@ pub(crate) struct RefPlan {
     /// The port the final part names, if any, resolved on the type the
     /// path reaches.
     pub(crate) prop: Option<RefProp>,
+    /// `[k]` steps on the sequence the prop holds, in order, each over
+    /// the cells the one before it left; empty for most plans.
+    pub(crate) entries: Vec<EntryIndex>,
     /// How the plan is shown in an error.
     pub(crate) display: RefDisplay,
     /// The macro node the plan came from, or NONE for a plan the build

@@ -1,7 +1,8 @@
 # Every list is a sequence, laid out by when its count settles
 
-Status: proposed 2026-11-10. Nothing is built. Drafted as 0038, and
-renumbered as `cells` took 0038 to 0040 first.
+Status: proposed 2026-11-10. Step 1 of the Migration is done, with its
+departures recorded there. Drafted as 0038, and renumbered as `cells`
+took 0038 to 0040 first.
 
 A **sequence** is a count and a family of entries of one entry type. Every
 ordered collection the language has is one: a `<mathList>`'s entries, a
@@ -297,6 +298,43 @@ otherwise.
    `$p[$k]` and `$l.points[$k]` allowed. Test: a document with `$P[3]`,
    `$P[0]`, `$P[2.5]` and `$P[$k]` loads and reads the missing value or
    the chosen coordinate.
+
+   *Done 2026-11-10* (`tests/sequence.rs`, and an `entries` document in
+   `tests/every_count.rs`; the golden diff is identical). A reference plan
+   ends in *entry steps* (`EntryIndex`, `compile/ir/refs.rs`): `[k]` on
+   the cells its port holds, taken one at a time for a coordinate and two
+   at a time for a list's point. A build (`Builder::port_targets`) and
+   the template graph (`Stamp::port_targets`) take them alike, a choose
+   per cell for a cell index and the missing value for one that names no
+   entry, and the type pass types them (`port_cells`, then the entries).
+   `$P[k]`, `$c.center[k]`, `$l.point1[k]`, `$l.points[k]`,
+   `$l.points[k][j]` and `$l.points[k].y` take a literal, a cell or an
+   iteration's index name; an index that is a number but no integer in
+   range (`3`, `0`, `-1`, `2.5`) reads the missing value where it was
+   refused, on a repeat, a collect and a select as on a port. `Choose`
+   chooses nothing for a choice that is no integer, and its range rule
+   is the one branch a known choice chooses. Departures:
+
+   - `PropSel::Parts` stays, as the static layout of a sequence of
+     coordinates: a literal in range is still bound at planning to the
+     coordinate's port, so a plan that read it before reads it the same.
+     The arity check on coordinate indices is gone; removing the
+     selector itself, decision 1's "`Parts` goes", is left to step 5,
+     with the point, tuple and vector merge.
+   - An iteration's index name in an entry step is read as the cell of
+     the index it names, a choose, not a literal per iteration: the
+     template graph stands one iteration for all, so a literal would
+     name one coordinate in the graph and another in the build. A sum
+     (`$P[$i + 1]`) is still `cells-dynamic-index`.
+   - A table's points by a non-literal index (`$l.points[$k]` on a
+     line) are read as one sequence of every table point's coordinates,
+     so a table of more than four points is refused; none has that many.
+   - `[k]` after an entry that is one coordinate (`$P[1][1]`) is still
+     too deep, though decision 1 makes a scalar a sequence of one.
+   - An entry of a list reads as one point where points are read
+     (`vertices="$q $pg.vertices[$k]"`); where a whole list is read (a
+     list's items, `<pointList extend="$pg.vertices[$k]"/>`) it is
+     refused, as a literal entry already was.
 2. **Sequences in the type table.** `ListProp` generalized from points to
    any entry type; `<mathList>`, `<numberList>`, `<textList>`,
    `<booleanList>`, `<intervalList>`, `<pointList>` and `<vectorList>` as

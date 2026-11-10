@@ -411,11 +411,19 @@ through a choice's interface name, ending at a port resolved on the type
 the path reaches). Expansion turns plans into slots per scope by walking
 arrays; it compares no name.
 
-**Dynamic index** — An index that reads a cell (`$r[$n].p.x`, ADR 0032):
-the step keeps every item of the collection, and a value read through it
-is a *choose* over the items' values by the cell, NaN past them, whose
-inverse writes the item the cell names. A select's pick comes from the
-seed, so its index is never a cell.
+**Dynamic index** — An index that reads a cell (`$r[$n].p.x`, ADR 0032;
+`$P[$k]`, `$l.points[$k]`, ADR 0041): the step keeps every item of the
+collection, and a value read through it is a *choose* over the items'
+values by the cell, NaN unless the cell holds an integer from 1 to the
+count (an index is never rounded), whose inverse writes the item the cell
+names. A select's pick comes from the seed, so its index is never a cell.
+
+**Entry step** — `[k]` after a port, on the sequence of cells it holds
+(ADR 0041, `EntryIndex`): a point's coordinates, a combined prop's, a
+list's points. A literal in range is planned as the entry's own port; a
+cell index, or one that names nothing (`$P[3]` on a two-dimensional
+point, `$P[0]`, `$P[2.5]`), is an entry step the build takes after the
+port's cells: a choose, or the missing value.
 
 **Collection** — A set of components around an element, described at
 compile time and materialized by the build (ADR 0032): the scored items
@@ -484,8 +492,8 @@ component's scope outward. Scope ids are stable for the life of a document.
 line's `points`, a polygon's `vertices`): one point per item, each aliasing
 the item's cells.
 
-**Missing referent** — An indexed reference that names no component
-(`$r[32]` when there are ten iterations). It resolves to the shared constant
+**Missing referent** — An indexed reference that names no component or
+entry (`$r[32]` when there are ten iterations, `$r[2.5]`, `$P[3]`). It resolves to the shared constant
 NaN cell; after a rebuild that creates iteration 32 it aliases the real cell.
 
 **Dropped request** — A request whose inverse was undefined for the current

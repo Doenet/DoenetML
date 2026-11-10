@@ -395,6 +395,7 @@ impl<'a> Planning<'a> {
             hops: 1,
             steps: vec![Step::Elem(e)],
             prop: Some(prop_sel),
+            entries: Vec::new(),
             display: RefDisplay::Spelled(format!("(repeat).{prop}").into()),
             node: NodeId::NONE,
         };

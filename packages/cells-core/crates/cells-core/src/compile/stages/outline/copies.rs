@@ -150,6 +150,7 @@ impl Outlining<'_> {
                         hops: 0,
                         steps: vec![Step::Elem(c)],
                         prop: None,
+                        entries: Vec::new(),
                         display: RefDisplay::Spelled(
                             format!("(copy of {})", self.rd().elem_label(t, c)).into(),
                         ),

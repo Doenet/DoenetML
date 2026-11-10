@@ -92,6 +92,7 @@ impl<'a> Planning<'a> {
                         Step::Elem(ElemId::new(0)),
                     ],
                     prop: Some(item_ref_prop(first_entry + j)),
+                    entries: Vec::new(),
                     display: RefDisplay::Spelled(format!("(previous iterate).{}", vars[j]).into()),
                     node: NodeId::NONE,
                 };
@@ -307,6 +308,7 @@ impl<'a> Planning<'a> {
                         hops: base.hops + 1,
                         steps: steps.clone(),
                         prop: Some(item_ref_prop(i)),
+                        entries: Vec::new(),
                         display: RefDisplay::Spelled(
                             format!("({}[i]).{prop}", display_of(self.rd.dast, &base)).into(),
                         ),

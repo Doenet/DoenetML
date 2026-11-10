@@ -101,11 +101,11 @@ pub enum Error {
     Cycle(String),
     /// A reference's index has a form the core cannot plan.
     #[error(
-        "index in '${0}' is not supported: a repeat, collect or point list takes a literal integer, an iteration index name (plus or minus a literal) or one reference to a cell; anything else takes a literal integer or an iteration index name"
+        "index in '${0}' is not supported: a repeat, collect or point list takes a literal integer, an iteration index name (plus or minus a literal) or one reference to a cell; a point's coordinates and a list's points take a literal integer or one reference to a cell"
     )]
     DynamicIndex(String),
-    /// A reference's index does not parse, or is out of range for what it
-    /// indexes.
+    /// A reference's index is not a number. One that is a number but names
+    /// no entry reads the missing value instead (ADR 0041).
     #[error("bad index in '${0}'")]
     BadIndex(String),
     /// A reference indexes a component that is neither a repeat nor a collect.

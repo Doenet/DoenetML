@@ -342,7 +342,70 @@ impl<'c> Stamp<'c> {
         expected: Option<usize>,
     ) -> (Vec<Option<GraphNode>>, Label) {
         let (at, prop, label) = self.resolve(p, t);
-        self.targets_of(at, prop, label, t, expected)
+        self.port_targets(p, at, prop, label, t, expected)
+    }
+
+    /// `targets_of`, then plan `p`'s entry steps on the nodes the port
+    /// holds (ADR 0041), as a build takes them: what a reference to a port
+    /// names, and the label of a read of it.
+    pub(super) fn port_targets(
+        &mut self,
+        p: RefId,
+        at: At,
+        prop: Option<RefProp>,
+        label: Label,
+        t: TemplateId,
+        expected: Option<usize>,
+    ) -> (Vec<Option<GraphNode>>, Label) {
+        let entries = &self.c.plans.refs[p.index()].entries;
+        if entries.is_empty() || matches!(at, At::Missing) {
+            return self.targets_of(at, prop, label, t, expected);
+        }
+        let (mut nodes, mut label) = self.targets_of(at, prop, label, t, None);
+        for entry in entries {
+            (nodes, label) = self.entry_of(&nodes, entry, label, t);
+            self.walking = p;
+        }
+        (nodes, label)
+    }
+
+    /// Entry `entry.index` of `nodes` taken `entry.width` at a time, read
+    /// with `label`: those nodes, none when the index names no entry, or
+    /// for a cell index a choose per node over the entries, read plainly.
+    fn entry_of(
+        &mut self,
+        nodes: &[Option<GraphNode>],
+        entry: &EntryIndex,
+        label: Label,
+        t: TemplateId,
+    ) -> (Vec<Option<GraphNode>>, Label) {
+        let width = usize::from(entry.width);
+        let n = nodes.len() / width;
+        if let [IndexTerm::Cell(cell)] = entry.index.terms[..] {
+            // The index cell's own walk, with its own label.
+            let (index, index_label) = self.resolve_one(cell, t);
+            let index = self.or_missing(index);
+            let out = (0..width)
+                .map(|j| {
+                    if n == 0 {
+                        return None;
+                    }
+                    let column: Vec<GraphNode> = (0..n)
+                        .map(|k| nodes[k * width + j])
+                        .collect::<Vec<_>>()
+                        .into_iter()
+                        .map(|node| self.or_missing(node))
+                        .collect();
+                    Some(self.choose_over(index, &index_label, &column, &label, t))
+                })
+                .collect();
+            return (out, Label::new());
+        }
+        let k = self.index_value(&entry.index, t);
+        match (k >= 1 && k as u64 <= n as u64).then(|| (k - 1) as usize) {
+            Some(i) => (nodes[i * width..(i + 1) * width].to_vec(), label),
+            None => (vec![None; width], label),
+        }
     }
 
     /// The nodes a walk labelled `label` names, by its port or the type's
@@ -504,6 +567,10 @@ impl<'c> Stamp<'c> {
         t: TemplateId,
     ) -> (Vec<[Option<GraphNode>; 2]>, Label) {
         let (at, prop, label) = self.resolve(p, t);
+        if !self.c.plans.refs[p.index()].entries.is_empty() && !matches!(at, At::Missing) {
+            self.fail(Error::PathTooDeep(self.display()));
+            return (Vec::new(), label);
+        }
         (self.items_of(at, prop), label)
     }
 

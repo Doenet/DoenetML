@@ -374,6 +374,25 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         </graph>
         <number name="k">$l.slope</number>"#,
     ),
+    (
+        // Entries of a port's sequence (ADR 0041): a coordinate and a
+        // list's point by a cell, by an iteration's index, past the end
+        // and between two entries, inside a repeat whose iterations a
+        // cell index also chooses among.
+        "entries",
+        r#"<numberInput name="k" value="1"/>
+        <graph>
+          <point name="p">(1,2)</point>
+          <polygon name="pg" vertices="(1,2) (3,4) (5,6)"/>
+          <point name="q" coords="$pg.vertices[$k]"/>
+        </graph>
+        <number name="a">$p[$k] + $p[3] + $p[2.5]</number>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <point name="s" x="$i" y="$pg.vertices[$i].y"/>
+          <number name="b">$p[$i] + $s[$k]</number>
+        </repeatForSequence>
+        <number name="c">$r[$k].s[$k] + $pg.vertices[$k][2]</number>"#,
+    ),
 ];
 
 #[test]

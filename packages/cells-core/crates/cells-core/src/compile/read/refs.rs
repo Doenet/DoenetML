@@ -73,6 +73,9 @@ impl<'a> Reader<'a> {
         p: RefId,
     ) -> Option<(TemplateId, ElemId)> {
         let plan = &ar.refs[p.index()];
+        if !plan.entries.is_empty() {
+            return None;
+        }
         let mut last = None;
         for step in &plan.steps {
             match step {
@@ -308,6 +311,7 @@ impl<'a> Reader<'a> {
         let mut steps = vec![Step::Elem(e0)];
         let mut at = At::Elem(e0);
         let mut prop = None;
+        let mut entries = Vec::new();
         // Past an interface name only props may follow.
         let mut after_iface = false;
         for (i, &part) in parts.iter().enumerate() {
@@ -402,8 +406,8 @@ impl<'a> Reader<'a> {
                             } if steps.len() > 1 => ck,
                             _ => component_type,
                         };
-                        // `$l.points[1]`, `$l.points[1][2]`, `$l.points[2].y`:
-                        // points of a list, by literal index. The prop is
+                        // `$l.points[1]`, `$l.points[$k][2]`, `$l.points[2].y`:
+                        // points of a list, by any index (ADR 0041). The prop is
                         // found once per type and spelling (`prop_sel`).
                         let sel = ar.prop_sel(self.dast, component_type, names[i]);
                         let prop_of = |sel| RefProp::of(component_type, sel);
@@ -417,45 +421,97 @@ impl<'a> Reader<'a> {
                             .flatten();
                         if list.is_some() || items.is_some() {
                             let items = items.unwrap_or(&[]);
-                            let idx: Vec<i64> = d
-                                .part_indices(part)
-                                .map(|expr| self.literal_index(expr, display))
-                                .collect::<Result<_>>()?;
-                            let (Some(&k), rest) = (idx.first(), &idx[1.min(idx.len())..]) else {
+                            let mut indices = d.part_indices(part);
+                            let Some(first) = indices.next() else {
                                 if i + 1 != parts.len() {
                                     return Err(Error::PathTooDeep(display.to_string()));
                                 }
                                 prop = sel.map(prop_of);
                                 break;
                             };
-                            if k < 1 || (list.is_none() && k as usize > items.len()) {
-                                return Err(Error::BadIndex(display.to_string()));
+                            let second = indices.next();
+                            if indices.next().is_some() {
+                                return Err(Error::PathTooDeep(display.to_string()));
                             }
-                            let k = k as usize;
-                            let coord_sel = |j: usize| match list {
-                                Some(_) => PropSel::At(PropAt::Coord(k, j)),
-                                None => PropSel::At(PropAt::Position(
-                                    component_type.parts_sel(&items[k - 1]).parts()[j] as usize,
-                                )),
-                            };
-                            let coord = match (rest.first(), parts.get(i + 1)) {
-                                (Some(&j), None) => Some(j),
-                                (None, Some(_)) if i + 2 == parts.len() => {
-                                    Some(match d.strings.get(names[i + 1]).trim() {
+                            let point = self.plan_entry_index(ar, t, scope, first, display)?;
+                            // The coordinate: a second index, or `.x`, `.y`
+                            // after the point.
+                            let coord = match (second, parts.get(i + 1)) {
+                                (Some(expr), None) => {
+                                    Some(self.plan_entry_index(ar, t, scope, expr, display)?)
+                                }
+                                (None, Some(_)) if i + 2 == parts.len() => Some(
+                                    IndexPlan::constant(match d.strings.get(names[i + 1]).trim() {
                                         "x" | "1" => 1,
                                         "y" | "2" => 2,
-                                        _ => return Err(Error::PathTooDeep(display.to_string())),
-                                    })
-                                }
+                                        _ => {
+                                            return Err(Error::PathTooDeep(display.to_string()));
+                                        }
+                                    }),
+                                ),
                                 (None, None) => None,
                                 _ => return Err(Error::PathTooDeep(display.to_string())),
                             };
-                            prop = Some(prop_of(match (coord, list) {
-                                (Some(1), _) => coord_sel(0),
-                                (Some(2), _) => coord_sel(1),
-                                (Some(_), _) => return Err(Error::BadIndex(display.to_string())),
-                                (None, Some(_)) => PropSel::At(PropAt::Item(k)),
-                                (None, None) => component_type.parts_sel(&items[k - 1]),
+                            // A literal point is the element's own: of a
+                            // list, at any position (past the points it has
+                            // is the missing value when built); of a
+                            // table, one it has.
+                            let fixed = point.constant_value().filter(|&k| {
+                                k >= 1 && (list.is_some() || k as usize <= items.len())
+                            });
+                            let Some(k) = fixed else {
+                                // Any other is an entry of the whole list's
+                                // points (ADR 0041).
+                                let whole = match list {
+                                    Some(_) => PropSel::At(PropAt::List),
+                                    None => {
+                                        let flat: Vec<&str> =
+                                            items.iter().flatten().copied().collect();
+                                        if flat.len() > crate::components::MAX_PARTS {
+                                            return Err(Error::Unsupported(format!(
+                                                "'${display}': an index other than a literal into more than {} points",
+                                                crate::components::MAX_PARTS / 2
+                                            )));
+                                        }
+                                        component_type.parts_sel(&flat)
+                                    }
+                                };
+                                prop = Some(prop_of(whole));
+                                entries.push(EntryIndex {
+                                    index: point,
+                                    width: 2,
+                                });
+                                if let Some(coord) = coord {
+                                    entries.push(EntryIndex {
+                                        index: coord,
+                                        width: 1,
+                                    });
+                                }
+                                break;
+                            };
+                            let k = k as usize;
+                            let point_sel = match list {
+                                Some(_) => PropSel::At(PropAt::Item(k)),
+                                None => component_type.parts_sel(&items[k - 1]),
+                            };
+                            let coord_sel = |j: usize| match list {
+                                Some(_) => PropSel::At(PropAt::Coord(k, j)),
+                                None => {
+                                    PropSel::At(PropAt::Position(point_sel.parts()[j] as usize))
+                                }
+                            };
+                            prop = Some(prop_of(match coord {
+                                None => point_sel,
+                                Some(coord) => match coord.entry_in(2) {
+                                    Some(j) => coord_sel(j - 1),
+                                    None => {
+                                        entries.push(EntryIndex {
+                                            index: coord,
+                                            width: 1,
+                                        });
+                                        point_sel
+                                    }
+                                },
                             }));
                             break;
                         }
@@ -480,14 +536,23 @@ impl<'a> Reader<'a> {
                         };
                         // `$l.point1[2]`: a coordinate of a point-valued prop.
                         if let (true, Some(expr)) = (point_parts, d.part_indices(part).next()) {
-                            let k = self.literal_index(expr, display)?;
-                            if !(1..=2).contains(&k)
-                                || d.part_indices(part).nth(1).is_some()
-                                || i + 1 != parts.len()
-                            {
+                            if d.part_indices(part).nth(1).is_some() || i + 1 != parts.len() {
                                 return Err(Error::PathTooDeep(display.to_string()));
                             }
-                            prop = part_sel(k as usize - 1).map(prop_of);
+                            let index = self.plan_entry_index(ar, t, scope, expr, display)?;
+                            let n = match sel {
+                                Some(s @ PropSel::Parts { .. }) => s.parts().len(),
+                                _ => 2,
+                            };
+                            // A literal in range is that coordinate; any
+                            // other index an entry (ADR 0041).
+                            prop = match index.entry_in(n) {
+                                Some(k) => part_sel(k - 1).map(prop_of),
+                                None => {
+                                    entries.push(EntryIndex { index, width: 1 });
+                                    sel.map(prop_of)
+                                }
+                            };
                             break;
                         }
                         if d.part_indices(part).next().is_some() {
@@ -537,13 +602,21 @@ impl<'a> Reader<'a> {
                     if prop.is_some() || i + 1 != parts.len() {
                         return Err(Error::PathTooDeep(display.to_string()));
                     }
-                    let k = self.literal_index(expr, display)?;
+                    let index = self.plan_entry_index(ar, t, scope, expr, display)?;
                     let parts_of = dsel.parts();
-                    if !(1..=parts_of.len() as i64).contains(&k) {
-                        return Err(Error::BadIndex(display.to_string()));
-                    }
-                    let pi = parts_of[k as usize - 1] as usize;
-                    prop = Some(RefProp::of(ek, PropSel::At(PropAt::Position(pi))));
+                    // A literal in range is that coordinate; any other
+                    // index is an entry of them, the missing value when it
+                    // names none (ADR 0041).
+                    prop = Some(RefProp::of(
+                        ek,
+                        match index.entry_in(parts_of.len()) {
+                            Some(k) => PropSel::At(PropAt::Position(parts_of[k - 1] as usize)),
+                            None => {
+                                entries.push(EntryIndex { index, width: 1 });
+                                dsel
+                            }
+                        },
+                    ));
                     continue;
                 }
                 // The step's kind is the body's (ADR 0032, decision 5): the
@@ -608,30 +681,54 @@ impl<'a> Reader<'a> {
             hops,
             steps,
             prop,
+            entries,
             display: RefDisplay::Written,
             node: m,
         };
         Ok(ar.push_ref(plan))
     }
 
-    /// A literal integer index (list props are static, so `[$n]` is not
-    /// supported on them).
-    pub(in crate::compile) fn literal_index(
+    /// The index of an entry of a port's sequence (`$P[k]`,
+    /// `$l.points[k]`, ADR 0041): a literal, or one reference to a cell
+    /// (`$P[$k]`), an iteration's index name among them. A literal that is
+    /// a number but no integer (`2.5`) names nothing, as zero does.
+    pub(in crate::compile) fn plan_entry_index(
         &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
         expr: &[NodeId],
         display: impl std::fmt::Display,
-    ) -> Result<i64> {
+    ) -> Result<IndexPlan> {
         let d = self.dast;
-        if expr.iter().any(|&n| d.kind(n) == NodeKind::Macro) {
-            return Err(Error::DynamicIndex(display.to_string()));
+        let mut macros = expr.iter().filter(|&&n| d.kind(n) == NodeKind::Macro);
+        if let Some(&m) = macros.next() {
+            let only = macros.next().is_none()
+                && expr
+                    .iter()
+                    .all(|&n| d.kind(n) != NodeKind::Text || d.str(n).trim().is_empty());
+            if !only {
+                return Err(Error::DynamicIndex(display.to_string()));
+            }
+            let p = self.plan_ref(ar, t, scope, m)?;
+            return Ok(IndexPlan {
+                terms: vec![IndexTerm::Cell(p)],
+            });
         }
         // The text of the nodes as one, trimmed: read in place.
-        let chars = expr
-            .iter()
-            .filter(|&&n| d.kind(n) == NodeKind::Text)
-            .flat_map(|&n| d.str(n).chars())
-            .skip_while(|c| c.is_whitespace());
-        parse_index(chars).ok_or_else(|| Error::BadIndex(display.to_string()))
+        let chars = || {
+            expr.iter()
+                .filter(|&&n| d.kind(n) == NodeKind::Text)
+                .flat_map(|&n| d.str(n).chars())
+                .skip_while(|c| c.is_whitespace())
+        };
+        if let Some(k) = parse_index(chars()) {
+            return Ok(IndexPlan::constant(k));
+        }
+        if names_nothing(&chars().collect::<String>()) {
+            return Ok(IndexPlan::constant(0));
+        }
+        Err(Error::BadIndex(display.to_string()))
     }
 
     /// An index expression: a sum of literal integers and iteration
@@ -648,6 +745,7 @@ impl<'a> Reader<'a> {
     ) -> Result<IndexPlan> {
         let d = self.dast;
         let mut terms = Vec::new();
+        let mut nothing = false;
         for &n in expr {
             match d.kind(n) {
                 NodeKind::Text => {
@@ -661,9 +759,14 @@ impl<'a> Reader<'a> {
                         .chars()
                         .filter(|c| !c.is_whitespace())
                         .skip_while(|&c| c == '+');
-                    let k =
-                        parse_index(chars).ok_or_else(|| Error::BadIndex(display.to_string()))?;
-                    terms.push(IndexTerm::Const(k));
+                    let text: String = chars.collect();
+                    match parse_index(text.chars()) {
+                        Some(k) => terms.push(IndexTerm::Const(k)),
+                        // A number that is no integer: the whole index
+                        // names nothing, whatever else it adds (ADR 0041).
+                        None if names_nothing(&text) => nothing = true,
+                        None => return Err(Error::BadIndex(display.to_string())),
+                    }
                 }
                 NodeKind::Macro => {
                     let path = d.macro_path(n);
@@ -702,6 +805,9 @@ impl<'a> Reader<'a> {
         if terms.len() > 1 && terms.iter().any(|t| matches!(t, IndexTerm::Cell(_))) {
             return Err(Error::DynamicIndex(display.to_string()));
         }
+        if nothing {
+            return Ok(IndexPlan::constant(0));
+        }
         Ok(IndexPlan { terms })
     }
 }
@@ -735,6 +841,13 @@ impl std::fmt::Display for Written<'_> {
 /// (its type, its row, its children), so it is boxed when that is.
 pub(in crate::compile) fn record_read(reads: &mut Vec<Read>, t: TemplateId, e: ElemId, p: RefId) {
     reads.push((t, e, p));
+}
+
+/// Whether index text that is no integer is still a number (`2.5`, `NaN`),
+/// so the index names nothing rather than being refused (ADR 0041,
+/// decision 3: an index is never rounded).
+fn names_nothing(text: &str) -> bool {
+    text.trim().parse::<f64>().is_ok()
 }
 
 /// An integer as `str::parse::<i64>` reads it, from `chars` with no
@@ -865,8 +978,8 @@ mod tests {
     use super::parse_index;
 
     /// `parse_index` reads as `str::parse` does a `plan_index` term
-    /// (whitespace stripped, leading `+`s dropped) and a `literal_index`
-    /// (trimmed).
+    /// (whitespace stripped, leading `+`s dropped) and a
+    /// `plan_entry_index` literal (trimmed).
     #[test]
     fn index_text_reads_as_parse_does() {
         let cases = [

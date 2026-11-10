@@ -442,6 +442,38 @@ impl<'s, 'a> Types<'s, 'a> {
         p: RefId,
         check: bool,
     ) -> std::result::Result<Cells, Failure> {
+        let mut cells = self.port_cells(t, e, p, check)?;
+        let entries = &self.seal.ar.refs[p.index()].entries;
+        if entries.is_empty() || cells.types.is_empty() {
+            return Ok(cells);
+        }
+        // An entry of the port's sequence (ADR 0041): its cells, typed as
+        // the entries they may be, and no port of the table, since it may
+        // be the missing value.
+        for entry in entries {
+            let width = usize::from(entry.width);
+            let n = cells.types.len() / width;
+            cells.types = match entry.index.entry_in(n) {
+                Some(k) => cells.types[(k - 1) * width..k * width].to_vec(),
+                None => (0..width)
+                    .map(|j| {
+                        (0..n).fold(PortType::Num, |ty, k| ty.join(cells.types[k * width + j]))
+                    })
+                    .collect(),
+            };
+        }
+        cells.at.clear();
+        Ok(cells)
+    }
+
+    /// `ref_cells` before the plan's entry steps: the cells of the port.
+    fn port_cells(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        p: RefId,
+        check: bool,
+    ) -> std::result::Result<Cells, Failure> {
         let plan = &self.seal.ar.refs[p.index()];
         let Target { at, lands } = self.walk(t, p);
         let mut cells = Cells {

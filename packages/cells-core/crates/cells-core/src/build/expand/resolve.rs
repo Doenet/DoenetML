@@ -364,7 +364,58 @@ impl<'c> Builder<'c> {
         expected: Option<usize>,
     ) -> Result<Vec<SlotId>> {
         let (target, prop) = self.resolve(plan, scope)?;
-        self.targets_of(target, prop, plan, expected, scope)
+        self.port_targets(target, prop, plan, expected, scope)
+    }
+
+    /// `targets_of`, then the plan's entry steps on the cells the port
+    /// holds (ADR 0041): what a reference to a port names.
+    pub(in crate::build) fn port_targets(
+        &mut self,
+        target: Resolved,
+        prop: Option<RefProp>,
+        plan: RefId,
+        expected: Option<usize>,
+        scope: ScopeId,
+    ) -> Result<Vec<SlotId>> {
+        let entries = &self.compiled.plans.refs[plan.index()].entries;
+        if entries.is_empty() || matches!(target, Resolved::Missing) {
+            return self.targets_of(target, prop, plan, expected, scope);
+        }
+        let mut slots = self.targets_of(target, prop, plan, None, scope)?;
+        for entry in entries {
+            slots = self.entry_of(&slots, entry, scope)?;
+        }
+        Ok(slots)
+    }
+
+    /// Entry `entry.index` of `slots` taken `entry.width` at a time: those
+    /// slots, the missing value when the index names no entry, or for a
+    /// cell index a choose per slot over the entries.
+    fn entry_of(
+        &mut self,
+        slots: &[SlotId],
+        entry: &EntryIndex,
+        scope: ScopeId,
+    ) -> Result<Vec<SlotId>> {
+        let width = usize::from(entry.width);
+        let n = slots.len() / width;
+        if let [IndexTerm::Cell(cell)] = entry.index.terms[..] {
+            let index = self.resolve_one(cell, scope)?;
+            let mut out = Vec::with_capacity(width);
+            for j in 0..width {
+                let column: Vec<SlotId> = (0..n).map(|k| slots[k * width + j]).collect();
+                out.push(match column[..] {
+                    [] => self.missing_slot(),
+                    _ => self.choose_over(index, &column, scope),
+                });
+            }
+            return Ok(out);
+        }
+        let k = self.index_value(&entry.index, scope);
+        Ok(match in_range(n, k) {
+            Some(i) => slots[i * width..(i + 1) * width].to_vec(),
+            None => vec![self.missing_slot(); width],
+        })
     }
 
     /// The one slot a reference names, and the label of a reader's edge to

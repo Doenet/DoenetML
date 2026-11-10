@@ -1093,7 +1093,7 @@ impl<'c> Builder<'c> {
                 self.sources[s.index()] = BuiltSource::Alias(self.missing_slot());
             }
             (target, Some(prop)) => {
-                let targets = self.targets_of(target, Some(prop), plan, Some(1), scope)?;
+                let targets = self.port_targets(target, Some(prop), plan, Some(1), scope)?;
                 // A string id shows as a text.
                 let is_text = self.value_type(targets[0]) == ValueType::Text;
                 let component_type = if is_text {
@@ -1180,6 +1180,10 @@ impl<'c> Builder<'c> {
         // An index past the count names no items.
         if matches!(target, Resolved::Missing) {
             return Ok(Vec::new());
+        }
+        // An entry of a list is no list.
+        if !self.compiled.plans.refs[plan.index()].entries.is_empty() {
+            return Err(Error::PathTooDeep(self.compiled.ref_display(plan)));
         }
         let comp = self.single_component(target, plan)?;
         let component_type = self.components.component_type[comp.index()];
