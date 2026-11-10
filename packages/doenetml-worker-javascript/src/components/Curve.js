@@ -29,6 +29,10 @@ export default class Curve extends GraphicalComponent {
         });
     }
     static componentType = "curve";
+
+    // missing while its content is only missing children (D40,
+    // `BaseComponent.missingWhenContentMissing`)
+    static missingWhenContentMissing = true;
     static styleOverrideCategories = ["line", "fill"];
 
     static componentDocs = {

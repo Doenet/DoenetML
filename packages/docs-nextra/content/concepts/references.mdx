@@ -268,6 +268,17 @@ a missing point isn't drawn in a graph. It is not the same as the empty tag:
 reference to it, or to a property of it, is missing too. `hide` still hides it.
 Written bare, `$nothing` shows `＿` too, with the same warning.
 
+A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}` or shape
+whose content is only a missing reference is missing in the same way:
+`<number>$nothing</number>{:dn}` shows `＿`, not `NaN`, never equals anything,
+and a `<circle>$nothing</circle>{:dn}` isn't drawn. An `<award>{:dn}` whose
+condition is missing gives no credit. It is made from its content again once
+the reference names something, as `<number>$l[$i]</number>{:dn}` is once `i`
+is an index of `l`. Where the blank is part of an expression, it takes part:
+`<math>$nothing + 1</math>{:dn}` is `＿ + 1`, `<text>x $nothing y</text>{:dn}`
+is `x ＿ y`, and `<boolean>$nothing = 1</boolean>{:dn}` is false. A `<p>{:dn}`
+or other container shows the blank inline.
+
 Other errors, each with the form to write instead:
 
 * to use the text of a `<p>` or another container that has one, write `$p.text`;
@@ -547,7 +558,9 @@ Warnings panel and as a tooltip on hover.
 
 The same warning is given for a property the component doesn't have, such as
 `$count.total`. A property it has, but with no value now, such as `$P.z` of a
-point in two dimensions, shows `＿` with no warning.
+point in two dimensions, shows `＿` with no warning, in a `<p>{:dn}` or a
+`<text>{:dn}`. Written as a tag, such as `<number extend="$P.z"/>{:dn}`, it is
+missing while the property has no value, and holds the value once it has one.
 
 Written as a tag, such as `<number extend="$total"/>{:dn}`, the same reference
 gives the same warning, and the tag is missing: it shows `＿`, whatever the tag

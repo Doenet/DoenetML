@@ -43,6 +43,10 @@ export default class NumberComponent extends InlineComponent {
     }
     static componentType = "number";
 
+    // missing while its content is only missing children (D40,
+    // `BaseComponent.missingWhenContentMissing`)
+    static missingWhenContentMissing = true;
+
     static componentDocs = {
         summary: "A numeric floating point value",
     };

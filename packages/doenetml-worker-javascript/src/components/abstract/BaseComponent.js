@@ -1,5 +1,11 @@
 import createStateProxyHandler from "../../StateProxyHandler";
-import { BLANK_RENDERER_TYPE } from "../../utils/missing";
+import {
+    BLANK_RENDERER_TYPE,
+    missingWhenContentMissingDefinitions,
+    missingWhileEntryEmptyDefinition,
+    missingWhileSourceMissingDefinition,
+    contentMissingDefinition,
+} from "../../utils/missing";
 import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefinitionFactory";
 import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
@@ -145,6 +151,19 @@ export default class BaseComponent {
 
         if (this.doenetAttributes.missing) {
             this.state.valueMissing = missingDefinition();
+        } else if (this.doenetAttributes.missingWhileEntryEmpty) {
+            this.state.valueMissing = missingWhileEntryEmptyDefinition();
+        } else if (this.doenetAttributes.missingWhileSourceMissing) {
+            this.state.valueMissing = missingWhileSourceMissingDefinition();
+        } else if (
+            this.doenetAttributes.missingWhenContentMissing &&
+            !this.constructor.missingWhenContentMissing
+        ) {
+            const definitions = missingWhenContentMissingDefinitions();
+            if (!this.state.contentMissing) {
+                this.state.contentMissing = contentMissingDefinition();
+            }
+            this.state.valueMissing = definitions.valueMissing;
         }
 
         if (serializedComponent.variants !== undefined) {
@@ -280,11 +299,51 @@ export default class BaseComponent {
      * VAL-5).
      */
     get rendererType() {
-        if (this.isMissing && this.constructor.rendererType !== undefined) {
+        if (
+            (this.isMissing || this.drawnMissing) &&
+            this.constructor.rendererType !== undefined
+        ) {
             return BLANK_RENDERER_TYPE;
         }
         return this.constructor.rendererType;
     }
+
+    /**
+     * Whether this component can be missing for a while and then not, so
+     * whether it is drawn as a blank is decided each time its parent's
+     * children are drawn (`RendererInstructionBuilder.updateDrawnMissing`,
+     * which sets `drawnMissing`): a component of a type that is missing while
+     * its content is only missing children (`missingWhenContentMissing`), or
+     * made so by an `extend` of another type around what it extends
+     * (`doenetAttributes.missingWhenContentMissing`), one made for an array
+     * entry that is missing while the entry holds no value
+     * (`doenetAttributes.missingWhileEntryEmpty`), and one that shadows a
+     * property of a component that can be missing
+     * (`doenetAttributes.missingWhileSourceMissing`). A missing component
+     * (`isMissing`) is missing for as long as it exists.
+     */
+    get canBecomeMissing() {
+        return (
+            !this.isMissing &&
+            (this.constructor.missingWhenContentMissing ||
+                Boolean(
+                    this.doenetAttributes.missingWhenContentMissing ||
+                    this.doenetAttributes.missingWhileEntryEmpty ||
+                    this.doenetAttributes.missingWhileSourceMissing,
+                ))
+        );
+    }
+
+    /**
+     * Whether a component of this type is missing while its content is only
+     * missing children (D40, VAL-5, #2461; `missingWhenContentMissingDefinitions`):
+     * `<number>$nothing</number>` is a missing number, `＿`, not `NaN`. Set
+     * on the types whose value is made from their children (`<number>`,
+     * `<boolean>`, `<function>` and the shapes), not on a `<math>` or a
+     * `<text>`, in which a blank takes part (`<math>$nothing + 1</math>` is
+     * `＿ + 1`), nor on a container (`<p>`), which shows the blank inline.
+     */
+    static missingWhenContentMissing = false;
 
     /**
      * Whether this component is missing (D37): a tag whose source is
@@ -1125,6 +1184,13 @@ export default class BaseComponent {
                 return { setValue: { doenetML } };
             },
         };
+
+        if (this.missingWhenContentMissing) {
+            Object.assign(
+                stateVariableDefinitions,
+                missingWhenContentMissingDefinitions(),
+            );
+        }
 
         return stateVariableDefinitions;
     }
@@ -1993,6 +2059,20 @@ export default class BaseComponent {
 
         // delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
+        if (
+            parameters.copyAll &&
+            (this.doenetAttributes.missingWhileEntryEmpty ||
+                this.doenetAttributes.missingWhileSourceMissing)
+        ) {
+            // An unlinked copy follows neither the entry nor the source, so
+            // it is missing if this is now, and for good (D37).
+            delete serializedComponent.doenetAttributes.missingWhileEntryEmpty;
+            delete serializedComponent.doenetAttributes
+                .missingWhileSourceMissing;
+            if (await this.stateValues.valueMissing) {
+                serializedComponent.doenetAttributes.missing = true;
+            }
+        }
         if (parameters.copyAll) {
             await snapshotListEntrySource(
                 serializedComponent,

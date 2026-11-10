@@ -759,22 +759,31 @@ export class RendererInstructionBuilder {
      * nothing to read now (`valueMissing`), so it is
      * drawn as a blank while it has nothing (D37, `ValueRef.rendererType`).
      * Its `hidden` reads `valueMissing`, so a change to it updates the
-     * children its parent renders, which calls this again.
+     * children its parent renders, which calls this again. So for a component
+     * that can be missing for a while (`BaseComponent.canBecomeMissing`,
+     * D40): `<number>$l[$i]</number>` while `i` is past the end of `l`. Its
+     * `valueMissing` updates the children its parent renders when it changes
+     * (`markStale`).
      */
     async updateDrawnMissing(child: any): Promise<void> {
-        if (
-            typeof child !== "object" ||
-            child === null ||
-            !child.rendererConstants ||
-            child.rendererType === undefined
+        if (typeof child !== "object" || child === null) {
+            return;
+        }
+        if (child.rendererConstants) {
+            if (child.rendererType === undefined) {
+                return;
+            }
+            addOnDemandStateVariables({
+                core: this.core,
+                component: child,
+                stateVariables: ["valueMissing"],
+            });
+        } else if (
+            !child.canBecomeMissing ||
+            child.constructor.rendererType === undefined
         ) {
             return;
         }
-        addOnDemandStateVariables({
-            core: this.core,
-            component: child,
-            stateVariables: ["valueMissing"],
-        });
         child.drawnMissing = Boolean(await child.stateValues.valueMissing);
     }
 

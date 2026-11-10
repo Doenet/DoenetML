@@ -1,3 +1,4 @@
+import { missingWhileSourceMissingDefinition } from "../utils/missing";
 import { expressionAttributeDefinitions } from "../utils/expressionAttribute";
 import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
@@ -855,6 +856,20 @@ export async function createChildrenThenComponent({
                 }
 
                 const shadowedComponent = core._components[idx];
+                if (
+                    shadowInfo.propVariable !== undefined &&
+                    shadowedComponent.canBecomeMissing &&
+                    !newComponent.isMissing &&
+                    !newComponent.doenetAttributes.missingWhileEntryEmpty
+                ) {
+                    // A property of a component that can be missing for a
+                    // while is missing while it is (D37):
+                    // `<number extend="$n.value"/>` of
+                    // `<number name="n">$l[$i]</number>`.
+                    newComponent.doenetAttributes.missingWhileSourceMissing = true;
+                    newComponent.state.valueMissing =
+                        missingWhileSourceMissingDefinition();
+                }
                 if (!shadowedComponent.shadowedBy) {
                     shadowedComponent.shadowedBy = [];
                 }

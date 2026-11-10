@@ -3,6 +3,11 @@ import { returnGroupIntoListEntriesOfComponentType } from "../commonsugar/lists"
 
 export default class BooleanOperator extends BooleanComponent {
     static componentType = "_booleanOperator";
+
+    // Its children are operands, among which a missing one is a blank
+    // (D37), so it is not missing for one
+    // (`BaseComponent.missingWhenContentMissing`).
+    static missingWhenContentMissing = false;
     static rendererType = "boolean";
 
     static descendantCompositesMustHaveAReplacement = false;
