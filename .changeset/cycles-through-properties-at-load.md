@@ -4,6 +4,7 @@
 "@doenet/doenetml-iframe": patch
 "@doenet/vscode-extension": patch
 "doenet-vscode-extension": patch
+"@doenet/v06-to-v07": patch
 ---
 
 More reference cycles are reported when the document loads, as a circular-dependency error (`doenet-e0005`) at each reference on the cycle, while the rest of the document renders. They are found in every case of a `<conditionalContent>` and every option of a `<select>`, whether shown or not, so the same errors are there before and after a reader changes the case, and in every variant. Before, each of these stopped the document, when it loaded or when the case holding it was shown, or was reported only once it was reached:
@@ -18,8 +19,12 @@ More reference cycles are reported when the document loads, as a circular-depend
 
 A `<section>` whose `<title>` holds a reference to the section (`<title>T $S</title>`) now shows its default title ("Section 1"), as a title holding any error found at load does, where it used to show the title without the reference.
 
+A `<math>`, a `<text>` or a `<boolean>` holding an index that reads it (`<math name="i">$m[$i]</math>`) used to load with the error at the reference in the index only, the tag shown empty (a `<boolean>`, false) and a warning that the index did not work out to a number (`doenet-w0163`). The tag is now that error, with the error at both references, and no warning.
+
 An index into a math written with `extend`, in it (`<math name="m2" extend="$m">$m2[1]</math>`), is now that error, where the document used to fail to load with an internal error.
 
 Not every property and attribute is covered. A cycle through one that is not (`<math name="m" simplify="$m=1">`), through a function (`$$f($n)`), through an index into a `<repeat>` in its own template, through a reference in a point's or an input's `<label>`, or through both a `<mathInput>`'s `prefill`, `prefillLatex` or `bindValueTo` (a `<matrixInput>`'s `prefill` or `bindValueTo`, a `<choiceInput>`'s `preselectChoice`) and an index into a `<mathList>` or a `<numberList>`, is still reported, or stops the document, when it is reached. An input starting from an index into a list that holds it (`<mathList name="l">1 $mi</mathList><mathInput name="mi" prefill="$l[1]"/>`) is valid, and stays so.
+
+The v0.6-to-v0.7 converter leaves the `<copy>` tags of a document holding a reference cycle found at load as they are (`copy/could-not-load-document`), so it now does so for these cycles too, including one in a case not shown, whose document it used to convert.
 
 Closes #2473.

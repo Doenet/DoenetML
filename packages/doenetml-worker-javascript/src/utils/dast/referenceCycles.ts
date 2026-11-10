@@ -989,8 +989,9 @@ export function breakReferenceCycles({
         const onStack = new Set<number>();
         const stack: number[] = [];
         let nextIndex = 0;
-        const outOf = (idx: number) =>
-            edges(idx).filter((next) => !left.has(`${idx}>${next}`));
+        function outOf(idx: number) {
+            return edges(idx).filter((next) => !left.has(`${idx}>${next}`));
+        }
 
         for (const start of componentsByIdx.keys()) {
             if (index.has(start)) {

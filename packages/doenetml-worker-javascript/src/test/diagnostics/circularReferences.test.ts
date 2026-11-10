@@ -717,6 +717,41 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         expect(rest).eq("rest");
     });
 
+    it("a math, a text or a boolean whose index reads it", async () => {
+        // Before, these loaded with the error at the index's reference only,
+        // a blank where the reference is and a warning that the index did not
+        // work out to a number (`doenet-w0163`); now the reference is on the
+        // cycle too, and the tag holding it is the error.
+        for (const [doenetML, componentType] of [
+            [`<math name="m">(1,2)</math><math name="i">$m[$i]</math>`, "math"],
+            [
+                `<numberList name="l">1 2 3</numberList><text name="i">$l[$i]</text>`,
+                "text",
+            ],
+            [
+                `<numberList name="l">1 2 3</numberList><boolean name="i">$l[$i]</boolean>`,
+                "boolean",
+            ],
+        ]) {
+            const { errors, rest, core, resolvePathToNodeIdx } =
+                await errorsAndRest(doenetML);
+            expect(errors).toHaveLength(2);
+            expect(rest).eq("rest");
+            const diagnostics = getDiagnosticsByType(core);
+            expect(diagnostics.errors[1].message).eq(
+                `Circular dependency detected involving \`<${componentType}>\` component.`,
+            );
+            expect(diagnostics.warnings).toHaveLength(0);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("i")].componentType,
+            ).eq("_error");
+        }
+    });
+
     it("the error at a reference in an index names the type of what it is of", async () => {
         // not the `<integer>` the index is made, which is not written
         const { core } = await errorsAndRest(
