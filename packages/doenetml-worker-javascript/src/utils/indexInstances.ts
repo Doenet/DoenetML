@@ -10,11 +10,18 @@
  * component: in `<repeat name="r"><repeat>…</repeat></repeat>`, `$r[1][2]` is
  * iteration 2 of the inner repeat in iteration 1. The worker marks such a
  * group with `_indexPassThrough`, which the resolver reads (Rust,
- * `IndexKind::PassThrough`). An index into any other `<group>` still selects
- * its child, as a deprecated form the resolver reports (`childIndexes`), and
- * `_instanceOf` tells that warning what the author wrote the group as.
+ * `IndexKind::PassThrough`). When its whole content is one reference
+ * (`<option>$l</option>`), what the reference makes takes its place, and an
+ * index selects among it when the reference names a list or a composite of
+ * instances (`referencedIndexable`): the worker marks such a group with
+ * `_indexReference` (Rust, `IndexKind::Reference`), and tells the resolver
+ * what the reference names once it has expanded. An index after any other
+ * `<group>` names nothing (D27): the resolver stops at the group, giving the
+ * child the index would have selected (`childIndex`), and `_instanceOf`
+ * tells the warning what the author wrote the group as.
  */
 import type { ComponentInfoObjects } from "./componentInfoObjects";
+import { refResolutionAt } from "./referenceSlot";
 
 /**
  * What a warning calls the instances of a composite: the `iteration`s of a
@@ -98,6 +105,10 @@ export function instanceOfAttribute(instanceOf: string) {
  *   an index into the group counts, which are all but blank strings, from 1.
  *   A `<setup>` is not content, so it does not count against there being
  *   only one component.
+ * - `_indexReference`, if the whole content is one reference (a `_copy`)
+ *   with nothing before it (`referenceContent`): how many children an index
+ *   counts come after it. An index selects among what the reference makes,
+ *   which takes its place, if it names a list or a composite of instances.
  */
 export function instanceGroupAttributes({
     children,
@@ -140,7 +151,91 @@ export function instanceGroupAttributes({
             type: "primitive",
             primitive: { type: "number", value: indexablePosition },
         };
+    } else {
+        const reference = referenceContent(children);
+        if (reference) {
+            attributes._indexReference = {
+                type: "primitive",
+                primitive: { type: "number", value: reference.after },
+            };
+        }
     }
 
     return attributes;
+}
+
+/**
+ * When the whole content of an iteration or a pick with children `children`
+ * is one reference (a `_copy`) with nothing before it, that reference, with
+ * how many of the children an index counts (all but blank strings) come after
+ * it; `undefined` otherwise. A `<setup>` is not content, but one written
+ * before the reference shifts what an index counts, so the reference's
+ * replacements would not be what `[1]`, `[2]`, … select.
+ */
+export function referenceContent(
+    children: any[],
+): { reference: any; after: number } | undefined {
+    const counted = (children ?? []).filter(
+        (child: any) => typeof child !== "string" || child.trim() !== "",
+    );
+    const content = counted.filter(
+        (child: any) =>
+            typeof child === "string" || child.componentType !== "setup",
+    );
+    if (
+        content.length !== 1 ||
+        content[0].componentType !== "_copy" ||
+        counted[0] !== content[0]
+    ) {
+        return undefined;
+    }
+    return { reference: content[0], after: counted.length - 1 };
+}
+
+/**
+ * The component that the whole content of the `<group>` `containerIdx` (an
+ * iteration or a pick) refers to, when that content is one reference
+ * (`referenceContent`) to a whole component whose instances an index selects
+ * (`indexSelectsInstances`): a list, or a repeat, select or other composite of
+ * `INSTANCE_KINDS`. `null` when the content is one reference to anything else,
+ * or to nothing yet, and `undefined` when the content is not one reference, or
+ * the group is not an iteration or a pick.
+ *
+ * Such a group is marked `_indexReference` when it is made, since what the
+ * reference names is not known then, and an index into it selects among the
+ * reference's replacements, which are the referent's instances, as one into
+ * `<option><mathList extend="$l"/></option>` passes to the list (#2428).
+ *
+ * Only an iteration or a pick, which would pass an index through to the
+ * list written in place: after a `<group>` the author wrote, or what a
+ * `<conditionalContent>` shows, an index names nothing, as it does after
+ * `<group><mathList/></group>`, so it does for a reference too.
+ */
+export function referencedIndexable(
+    components: Record<number, any>,
+    containerIdx: number,
+    componentInfoObjects: ComponentInfoObjects,
+): any {
+    const container = components[containerIdx];
+    const instanceKind = instanceKindOf(
+        container?.attributes?._instanceOf?.primitive?.value,
+    );
+    if (instanceKind !== "iteration" && instanceKind !== "pick") {
+        return undefined;
+    }
+    const content = referenceContent(container?.serializedChildren ?? []);
+    if (!content) {
+        return undefined;
+    }
+    const resolution = refResolutionAt(
+        components[content.reference.componentIdx],
+    );
+    if (!resolution || resolution.unresolvedPath !== null) {
+        return null;
+    }
+    const referent = components[resolution.nodeIdx];
+    return referent &&
+        indexSelectsInstances(referent.componentType, componentInfoObjects)
+        ? referent
+        : null;
 }

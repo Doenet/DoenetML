@@ -98,7 +98,11 @@ impl Resolver {
                         Some(extract_source_sequence_from_attribute(source_sequence));
                 }
                 if let Some(position) = flat_fragment.parent_index_pass_through {
-                    self.set_index_pass_through(idx, position);
+                    self.set_index_pass_through(
+                        idx,
+                        position,
+                        flat_fragment.parent_index_reference,
+                    );
                 }
                 NodeParent::Node(idx)
             }
@@ -191,7 +195,18 @@ impl Resolver {
 
         // If the new nodes are also index resolutions for a parent,
         // add them to `index_resolutions`
+        let index_parent = match &index_resolution {
+            IndexResolution::ReplaceAll { parent } | IndexResolution::ReplaceRange { parent, .. } => {
+                Some(*parent)
+            }
+            IndexResolution::None => None,
+        };
         self.splice_index_resolutions(&flat_fragment.children, index_resolution);
+        if let Some(index_parent) = index_parent
+            && let Some(instances) = flat_fragment.index_parent_instances
+        {
+            self.set_index_reference_instances(index_parent, instances);
+        }
 
         self.add_implicit_index_resolutions(
             &FlatRootOrFragment::Fragment(flat_fragment),

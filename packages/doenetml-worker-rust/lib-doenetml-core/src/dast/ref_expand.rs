@@ -51,30 +51,23 @@ impl Expander {
                     //flat_root.nodes[idx] = resolved
                     match resolver.resolve(&ref_.path, ref_.idx, false) {
                         Ok(ref_resolution) => {
-                            // Get the tag name of the referent
-                            // Author-reachable, and the one thing #1921's audit
-                            // found. The resolver registers *names* only for
-                            // elements (`build_resolver` walks elements), which
-                            // is what the invariant used to rest on -- but
-                            // `resolve` also follows *index* resolutions, and
-                            // those are recorded for whatever a composite's
-                            // child is (`ref_resolve/index_resolutions.rs`),
-                            // with no element check. `expand_refs` walks in
-                            // ascending index order, so `$g[1]<group
-                            // name="g">$x</group>` resolves to a child that is
-                            // still a `FlatNode::Ref` and traps here, taking
-                            // the whole document down. The shapes are pinned in
-                            // `dast/panic_reachability.test.rs`
-                            // (`an_index_into_a_composite_of_refs_traps`).
+                            // Get the tag name of the referent.
                             //
-                            // Left as a panic here, and tracked in #1942. It
-                            // traps the same way on `main`, and the choice
-                            // between reporting it (the `FlatError` the `Err`
-                            // arm below already builds) and resolving it
-                            // whatever the order is a decision of its own: the
-                            // first renders the page but leaves the reference
-                            // yielding nothing, which is not what the author
-                            // wrote.
+                            // The resolver registers *names* only for elements
+                            // (`build_resolver` walks elements). It also
+                            // follows *index* resolutions, which are recorded
+                            // for whatever a composite's child is
+                            // (`ref_resolve/index_resolutions.rs`), but before
+                            // any component is made the only nodes holding
+                            // them are `<group>`s, after which an index names
+                            // nothing (D27), so that the resolution stops at
+                            // the group, and the `<_postponeRenderContainer>`s
+                            // the parser makes, which have no name to reach
+                            // them by. So an index no longer reaches a child
+                            // that is still a `FlatNode::Ref`, as
+                            // `$g[1]<group name="g">$x</group>` did until
+                            // #1942, and this is an internal invariant. Those
+                            // shapes are in `dast/panic_reachability.test.rs`.
                             let name = match &flat_root.nodes[ref_resolution.node_idx] {
                                 FlatNode::Element(e) => e.name.clone(),
                                 _ => panic!("Expected an element"),
@@ -193,33 +186,60 @@ impl Expander {
 
                                 FlatNode::Element(evaluate_node)
                             }
-                            Err(err) => FlatNode::Error(FlatError {
-                                idx: function_ref.idx,
-                                parent: function_ref.parent,
-                                message: format_error_message(err, &function_ref.path),
-                                error_type: ErrorType::Warning,
-                                // Coded as a plain reference's failure is, so
-                                // `$$f(2)` is reported, and shows the missing
-                                // value, as `$f` does. The worker quotes the
-                                // whole function reference, arguments
-                                // included, from this node's position
-                                // (`convertNormalizedDast.ts`).
-                                code: Some(resolution_error_code(err).into()),
-                                args: None,
-                                unresolved_path: if let ResolutionError::NoReferent = err {
-                                    Some(function_ref.path.clone())
-                                } else {
-                                    None
-                                },
-                                // Kept, so that the worker still resolves
-                                // the arguments and reports a reference in
-                                // them that fails (`$a` of `$$f($a)`) with
-                                // the function reference, not once that is
-                                // fixed (#2434).
-                                input: function_ref.input,
-                                position: function_ref.position.clone(),
-                                source_doc: function_ref.source_doc,
-                            }),
+                            Err(err) => {
+                                // The arguments are made as if written in a `<setup>` at the
+                                // reference's place (D40, NAME-4): not shown, but a component
+                                // named there is made, and that name names it, as a name in a
+                                // `<setup>` does (`$m` of `$$f(<math name="m"/>)`). A reference
+                                // in them is resolved, and reported when it fails, now rather
+                                // than once the function reference is fixed (#2434, #2489).
+                                let input = function_ref.input.map(|inputs| {
+                                    let dast_setup = DastElement {
+                                        name: "setup".to_string(),
+                                        attributes: HashMap::new(),
+                                        children: Vec::new(),
+                                        position: function_ref.position.clone(),
+                                        source_doc: function_ref.source_doc,
+                                        data: None,
+                                    };
+                                    let setup = flat_root.merge_content(
+                                        &DastElementContent::Element(dast_setup),
+                                        Some(idx),
+                                    );
+                                    // Internal invariant: `merge_content` was just handed a
+                                    // `DastElementContent::Element`, so it made an element.
+                                    let setup_idx = lookup_idx(&setup).unwrap();
+                                    flat_root.set_children(
+                                        setup_idx,
+                                        inputs.into_iter().flatten().collect(),
+                                    );
+                                    vec![vec![setup]]
+                                });
+                                FlatNode::Error(FlatError {
+                                    idx: function_ref.idx,
+                                    parent: function_ref.parent,
+                                    message: format_error_message(err, &function_ref.path),
+                                    error_type: ErrorType::Warning,
+                                    // Coded as a plain reference's failure is, so
+                                    // `$$f(2)` is reported, and shows the missing
+                                    // value, as `$f` does. The worker quotes the
+                                    // whole function reference, arguments
+                                    // included, from this node's position
+                                    // (`convertNormalizedDast.ts`).
+                                    code: Some(resolution_error_code(err).into()),
+                                    args: None,
+                                    unresolved_path: if let ResolutionError::NoReferent = err {
+                                        Some(function_ref.path.clone())
+                                    } else {
+                                        None
+                                    },
+                                    // The `<setup>` holding the arguments, which the worker
+                                    // makes beside the missing value (`convertNormalizedDast.ts`)
+                                    input,
+                                    position: function_ref.position.clone(),
+                                    source_doc: function_ref.source_doc,
+                                })
+                            }
                         };
 
                     resolved

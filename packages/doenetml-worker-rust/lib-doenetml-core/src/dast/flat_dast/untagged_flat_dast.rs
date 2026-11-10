@@ -243,11 +243,12 @@ pub struct FlatError {
     pub args: Option<DiagnosticArgs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unresolved_path: Option<Vec<FlatPathPart>>,
-    /// The arguments of a function reference (`$$f($a)`) that names nothing
-    /// or more than one thing, as [`FlatFunctionRef::input`] held them. Not
-    /// shown: kept so that a reference in them is still resolved, and
-    /// reported when it fails, at the same time as the function reference
-    /// (#2434).
+    /// For a function reference (`$$f($a)`) that names nothing or more than
+    /// one thing, the `<setup>` holding its arguments, as the one input. Not
+    /// shown, but made, as if written in a `<setup>` at the reference's place
+    /// (D40): a component named in them is made, and that name names it, and a
+    /// reference in them is resolved, and reported when it fails, at the same
+    /// time as the function reference (#2434, #2489).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub input: Option<Vec<Vec<UntaggedContent>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -495,6 +496,24 @@ pub struct FlatFragment {
     #[serde(default)]
     #[cfg_attr(feature = "web", tsify(optional))]
     pub parent_index_pass_through: Option<usize>,
+    /// When `parent_index_pass_through` is `Some(0)` and the content of the iteration or pick
+    /// the parent is made of is one reference, how many of the parent's `index_resolutions`
+    /// follow what that reference makes, as the [`INDEX_REFERENCE_ATTRIBUTE`] of the iteration
+    /// or pick gives it. The parent then indexes as that iteration or pick does
+    /// (see `IndexKind::Reference`).
+    ///
+    /// [`INDEX_REFERENCE_ATTRIBUTE`]: crate::dast::ref_resolve::INDEX_REFERENCE_ATTRIBUTE
+    #[serde(default)]
+    #[cfg_attr(feature = "web", tsify(optional))]
+    pub parent_index_reference: Option<usize>,
+    /// For the fragment that a reference made when that reference is the whole content of an
+    /// iteration or a pick, the parent of the fragment's `IndexResolution`: whether the
+    /// reference names a list or a component that produces instances, whose instances an index
+    /// after the iteration or pick then selects among (see `IndexKind::Reference`).
+    /// `None` leaves the index kind of that parent as it is.
+    #[serde(default)]
+    #[cfg_attr(feature = "web", tsify(optional))]
+    pub index_parent_instances: Option<bool>,
     /// A map of the a node's index into its index in the array `nodes`
     idx_map: HashMap<usize, usize>,
 }
@@ -573,6 +592,8 @@ impl FlatFragment {
             parent_source_sequence: None,
             copied_content: false,
             parent_index_pass_through: None,
+            parent_index_reference: None,
+            index_parent_instances: None,
             idx_map,
         }
     }

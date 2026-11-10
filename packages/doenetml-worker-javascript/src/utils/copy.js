@@ -281,13 +281,15 @@ export async function referenceNamesOneThing(
         // `i` is 0), leaves no referent: what it names is one thing.
         return Boolean(originalPath?.some((part) => part.index.length > 0));
     }
+    // An index names one thing, or nothing, even after a `<setup>` (`$st[2]`,
+    // which names nothing, as a `<setup>` makes nothing an index selects)
+    if (originalPath?.some((part) => part.index.length > 0)) {
+        return true;
+    }
     if (extended.componentType === "setup") {
         return false;
     }
     const unresolvedPath = await component.stateValues.unresolvedPath;
-    if (originalPath?.some((part) => part.index.length > 0)) {
-        return true;
-    }
     if (withheld && originalPath?.length > 1) {
         // A name in a branch that is not active (`$cc.x`), whatever it
         // names, as it is decided before the branch is made

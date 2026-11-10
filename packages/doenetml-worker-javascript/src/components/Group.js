@@ -71,12 +71,17 @@ export default class Group extends CompositeComponent {
         // (`utils/indexInstances.ts`): the type of the component that made
         // it, and, for an iteration or a pick whose whole content is one
         // indexable component, that component's position, to which an index
-        // after the group passes.
+        // after the group passes, or, when that content is one reference, how
+        // many children follow it.
         attributes._instanceOf = {
             createPrimitiveOfType: "string",
             excludeFromSchema: true,
         };
         attributes._indexPassThrough = {
+            createPrimitiveOfType: "number",
+            excludeFromSchema: true,
+        };
+        attributes._indexReference = {
             createPrimitiveOfType: "number",
             excludeFromSchema: true,
         };

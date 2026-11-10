@@ -41,26 +41,45 @@ pub const INDEX_PASS_THROUGH_ATTRIBUTE: &str = "_indexPassThrough";
 /// [`NodeResolverData::iteration_aliases`]: super::NodeResolverData
 pub const ITERATION_ALIASES_ATTRIBUTE: &str = "_iterationAliases";
 
+/// The attribute the worker puts on a `<group>` it makes for an iteration of a repeat
+/// or a pick of a select when the whole content of that iteration or pick is one
+/// reference (`<option>$l</option>`), which can make the instances of what it names.
+/// Its value is how many of the group's `index_resolutions` come after what the
+/// reference makes: the `<setup>`s that may follow it, which are not content.
+/// An index after such a group selects among what the reference made, as it would
+/// after the list or repeat the reference names, once the worker confirms that it
+/// names one (see [`IndexKind::Reference`]).
+pub const INDEX_REFERENCE_ATTRIBUTE: &str = "_indexReference";
+
 /// What an index after a node selects among (D27).
 ///
 /// An index selects among the instances a component produces: the entries of a list,
-/// the iterations of a repeat, the picks of a select. It does not select among the
-/// children of a container. A `<group>` is the one container whose children an index
-/// still reaches, as a deprecated form, and the resolver records each such step
-/// in [`super::RefResolution::child_indexes`] so that it can be reported.
+/// the iterations of a repeat, the picks of a select. It never selects among the
+/// children of a container. A `<group>` keeps its children as its `index_resolutions`,
+/// as the root names of the components in it are made from them, but a reference with
+/// an index after the group names nothing (see [`super::RefResolution::child_index`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 pub enum IndexKind {
     /// The node's `index_resolutions`, if any, are the instances it produces.
     #[default]
     Instances,
-    /// The node is a `<group>`, whose `index_resolutions` are its children.
-    /// Selecting one of them is deprecated child indexing.
+    /// The node is a `<group>`, whose `index_resolutions` are its children,
+    /// which an index does not select.
     Children,
     /// The node is an iteration or a pick whose whole content is one indexable component,
     /// the one at `position` (from 1) of its `index_resolutions`
     /// (it carries [`INDEX_PASS_THROUGH_ATTRIBUTE`]). An index after the node passes to that component:
     /// `$r[1][2]` is iteration 2 of the repeat that makes up iteration 1 of `r`.
     PassThrough { position: usize },
+    /// The node is an iteration or a pick whose whole content is one reference
+    /// (it carries [`INDEX_REFERENCE_ATTRIBUTE`]), whose replacements take its place among the
+    /// node's `index_resolutions`, followed by `after` more. When the reference names a list or
+    /// a component that produces instances (`instances`), its replacements are those instances,
+    /// and an index after the node selects among them, as `<option><mathList extend="$l"/></option>`
+    /// passes an index to the list. Otherwise the replacements are children, as for
+    /// [`IndexKind::Children`]. Until the worker says which (`FlatFragment::index_parent_instances`),
+    /// an index is taken to select among them, so that it waits for the reference to be expanded.
+    Reference { after: usize, instances: bool },
 }
 
 impl IndexKind {
@@ -71,17 +90,26 @@ impl IndexKind {
         if element.name != "group" {
             return IndexKind::Instances;
         }
-        let position = element
-            .attributes
-            .iter()
-            .find(|attr| attr.name == INDEX_PASS_THROUGH_ATTRIBUTE)
-            .and_then(|attr| match &attr.children[..] {
-                [UntaggedContent::Text(position)] => position.trim().parse::<usize>().ok(),
-                _ => None,
-            })
-            .filter(|position| *position > 0);
-        match position {
-            Some(position) => IndexKind::PassThrough { position },
+        let attribute_value = |name: &str| {
+            element
+                .attributes
+                .iter()
+                .find(|attr| attr.name == name)
+                .and_then(|attr| match &attr.children[..] {
+                    [UntaggedContent::Text(value)] => value.trim().parse::<usize>().ok(),
+                    _ => None,
+                })
+        };
+        if let Some(position) =
+            attribute_value(INDEX_PASS_THROUGH_ATTRIBUTE).filter(|position| *position > 0)
+        {
+            return IndexKind::PassThrough { position };
+        }
+        match attribute_value(INDEX_REFERENCE_ATTRIBUTE) {
+            Some(after) => IndexKind::Reference {
+                after,
+                instances: true,
+            },
             None => IndexKind::Children,
         }
     }
@@ -107,22 +135,50 @@ impl Resolver {
     }
 
     /// Make an index after the `<group>` `idx` pass to the component at `position` (from 1)
-    /// of its `index_resolutions`, or, for a `position` of `0`, select among its children,
-    /// as a copy or an extend of an iteration or a pick does
-    /// (see [`FlatFragment::parent_index_pass_through`](crate::dast::flat_dast::FlatFragment::parent_index_pass_through)).
+    /// of its `index_resolutions`, or, for a `position` of `0`, index as a group made from an
+    /// iteration or a pick whose whole content is one reference does, when `reference` gives how
+    /// many of its `index_resolutions` follow what that reference makes (see [`IndexKind::Reference`]),
+    /// and otherwise name nothing, as an index after any group does. A copy or an extend of an
+    /// iteration or a pick does this (see
+    /// [`FlatFragment::parent_index_pass_through`](crate::dast::flat_dast::FlatFragment::parent_index_pass_through)).
     /// A node whose index selects among its instances is not a `<group>`, and is left as it is.
-    pub(super) fn set_index_pass_through(&mut self, idx: Index, position: usize) {
+    pub(super) fn set_index_pass_through(
+        &mut self,
+        idx: Index,
+        position: usize,
+        reference: Option<usize>,
+    ) {
         let Some(node_data) = self.node_resolver_data.get_mut(idx + 1) else {
             return;
         };
         if node_data.index_kind.is_instances() {
             return;
         }
-        let index_kind = if position > 0 {
-            IndexKind::PassThrough { position }
-        } else {
-            IndexKind::Children
+        let index_kind = match (position, reference) {
+            (1.., _) => IndexKind::PassThrough { position },
+            (0, Some(after)) => IndexKind::Reference {
+                after,
+                instances: true,
+            },
+            (0, None) => IndexKind::Children,
         };
+        self.set_index_kind(idx, index_kind);
+    }
+
+    /// Whether an index after the iteration or pick `idx`, whose whole content is one reference,
+    /// selects among what that reference made (see [`IndexKind::Reference`]).
+    /// Any other node is left as it is.
+    pub(super) fn set_index_reference_instances(&mut self, idx: Index, instances: bool) {
+        let Some(node_data) = self.node_resolver_data.get(idx + 1) else {
+            return;
+        };
+        if let IndexKind::Reference { after, .. } = node_data.index_kind {
+            self.set_index_kind(idx, IndexKind::Reference { after, instances });
+        }
+    }
+
+    fn set_index_kind(&mut self, idx: Index, index_kind: IndexKind) {
+        let node_data = &mut self.node_resolver_data[idx + 1];
         if node_data.index_kind != index_kind {
             node_data.index_kind = index_kind;
             // What the names of the group and of the component an index passes to reach changes

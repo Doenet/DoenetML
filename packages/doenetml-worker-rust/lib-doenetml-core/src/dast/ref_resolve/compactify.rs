@@ -5,25 +5,10 @@ use super::{NodeParent, NodeResolverData, Ref, Resolver};
 impl Resolver {
     /// Compactify the resolver so that it corresponds to the new indices
     /// of the compactified dast.
-    ///
-    /// A name, or an index, now resolves to `name_targets` of the node it
-    /// resolved to: its new index, or, for a node in the arguments of a
-    /// function reference that names nothing, the index of that reference
-    /// (`FlatRoot::compactify`).
-    pub fn compactify(
-        &mut self,
-        node_is_referenced: &[bool],
-        old_to_new_indices: &[usize],
-        name_targets: &[usize],
-    ) {
-        // A container in the arguments of a failed function reference has no
-        // branches to resolve a name through: the name resolves to that
-        // reference itself.
+    pub fn compactify(&mut self, node_is_referenced: &[bool], old_to_new_indices: &[usize]) {
         let remap = |ref_: &Ref| match ref_ {
-            Ref::Branches(idx) if name_targets[*idx] == old_to_new_indices[*idx] => {
-                Ref::Branches(name_targets[*idx])
-            }
-            ref_ => Ref::Unique(name_targets[ref_.single_idx().unwrap()]),
+            Ref::Branches(idx) => Ref::Branches(old_to_new_indices[*idx]),
+            ref_ => Ref::Unique(old_to_new_indices[ref_.single_idx().unwrap()]),
         };
         // Note: the first entry, which corresponds to the flat_root, is always present
         let new_node_resolver_data: Vec<NodeResolverData> = self
@@ -53,7 +38,7 @@ impl Resolver {
                 let index_resolutions = node_data
                     .index_resolutions
                     .iter()
-                    .map(|v| v.map(|idx| name_targets[idx]))
+                    .map(|v| v.map(|idx| old_to_new_indices[idx]))
                     .collect();
 
                 if idx_plus_1 == 0 {

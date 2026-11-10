@@ -104,7 +104,7 @@ fn can_resolve_names() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -116,7 +116,7 @@ fn can_resolve_names() {
             unresolved_path: None,
             original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -134,7 +134,7 @@ fn can_resolve_names() {
             }]),
             original_path: make_path(["y", "z", "w"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -166,7 +166,7 @@ fn parent_name_supersedes_unique_descendant() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -179,7 +179,7 @@ fn parent_name_supersedes_unique_descendant() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y"], None), d_idx, false);
@@ -190,7 +190,7 @@ fn parent_name_supersedes_unique_descendant() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![d_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -203,7 +203,7 @@ fn parent_name_supersedes_unique_descendant() {
             unresolved_path: None,
             original_path: make_path(["y", "y"], None),
             nodes_in_resolved_path: vec![b_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "y"], None), d_idx, false);
@@ -214,7 +214,7 @@ fn parent_name_supersedes_unique_descendant() {
             unresolved_path: None,
             original_path: make_path(["y", "y"], None),
             nodes_in_resolved_path: vec![d_idx, b_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -252,7 +252,7 @@ fn parent_name_supersedes_ambiguous_descendants() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y"], None), d_idx, false);
@@ -263,7 +263,7 @@ fn parent_name_supersedes_ambiguous_descendants() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![d_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -321,7 +321,7 @@ fn parent_name_supersedes_unique_descendant_swapping_order() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -334,7 +334,7 @@ fn parent_name_supersedes_unique_descendant_swapping_order() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y"], None), d_idx, false);
@@ -345,7 +345,7 @@ fn parent_name_supersedes_unique_descendant_swapping_order() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![d_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -358,7 +358,7 @@ fn parent_name_supersedes_unique_descendant_swapping_order() {
             unresolved_path: None,
             original_path: make_path(["y", "y"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "y"], None), d_idx, false);
@@ -369,7 +369,7 @@ fn parent_name_supersedes_unique_descendant_swapping_order() {
             unresolved_path: None,
             original_path: make_path(["y", "y"], None),
             nodes_in_resolved_path: vec![d_idx, c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -433,7 +433,7 @@ fn parent_name_supersedes_ambiguous_descendants_swapping_order() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![e_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y"], None), d_idx, false);
@@ -444,7 +444,7 @@ fn parent_name_supersedes_ambiguous_descendants_swapping_order() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![d_idx, e_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -501,7 +501,7 @@ fn resolve_with_skip_parent_match() {
             unresolved_path: Some(make_path(["y"], None)),
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -515,7 +515,7 @@ fn resolve_with_skip_parent_match() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -529,7 +529,7 @@ fn resolve_with_skip_parent_match() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -573,7 +573,7 @@ fn elements_with_children_invisible_to_their_grandparents() {
             unresolved_path: None,
             original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, option_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -586,7 +586,7 @@ fn elements_with_children_invisible_to_their_grandparents() {
             unresolved_path: None,
             original_path: make_path(["q"], None),
             nodes_in_resolved_path: vec![c_idx, d_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -620,7 +620,7 @@ fn names_in_branches_resolve_through_their_container() {
                 unresolved_path: Some(make_path(["x"], None)),
                 original_path: make_path(&path, None),
                 nodes_in_resolved_path: vec![p_idx, cc_idx],
-                child_indexes: vec![],
+                child_index: None,
             }),
             "{path:?}"
         );
@@ -784,7 +784,7 @@ fn cannot_reference_elements_from_other_source_doc_without_parent_reference() {
             unresolved_path: None,
             original_path: make_path(["y", "y2"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "y2", "z"], None), a_idx, false);
@@ -795,7 +795,7 @@ fn cannot_reference_elements_from_other_source_doc_without_parent_reference() {
             unresolved_path: None,
             original_path: make_path(["y", "y2", "z"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "u"], None), a_idx, false);
@@ -806,7 +806,7 @@ fn cannot_reference_elements_from_other_source_doc_without_parent_reference() {
             unresolved_path: None,
             original_path: make_path(["y", "u"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx, d_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "z", "u"], None), a_idx, false);
@@ -817,7 +817,7 @@ fn cannot_reference_elements_from_other_source_doc_without_parent_reference() {
             unresolved_path: None,
             original_path: make_path(["y", "z", "u"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx, c_idx, d_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -870,7 +870,7 @@ fn elements_from_other_source_doc_cannot_reference_outside_doc() {
             unresolved_path: None,
             original_path: make_path(["y2"], Some(1.into())),
             nodes_in_resolved_path: vec![c_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -883,7 +883,7 @@ fn elements_from_other_source_doc_cannot_reference_outside_doc() {
             unresolved_path: None,
             original_path: make_path(["u"], Some(1.into())),
             nodes_in_resolved_path: vec![c_idx, d_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -946,7 +946,7 @@ fn references_can_span_three_source_documents() {
             unresolved_path: None,
             original_path: make_path(["y", "y2"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     // Searches for `y.z` and `y.u` stop at `y` as we added a second layer of source documents
@@ -958,7 +958,7 @@ fn references_can_span_three_source_documents() {
             unresolved_path: Some(make_path(["z"], None)),
             original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "u"], None), a_idx, false);
@@ -969,7 +969,7 @@ fn references_can_span_three_source_documents() {
             unresolved_path: Some(make_path(["u"], None)),
             original_path: make_path(["y", "u"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -982,7 +982,7 @@ fn references_can_span_three_source_documents() {
             unresolved_path: None,
             original_path: make_path(["y", "y2", "y3"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "y2", "z"], None), a_idx, false);
@@ -993,7 +993,7 @@ fn references_can_span_three_source_documents() {
             unresolved_path: None,
             original_path: make_path(["y", "y2", "z"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "y2", "u"], None), a_idx, false);
@@ -1004,7 +1004,7 @@ fn references_can_span_three_source_documents() {
             unresolved_path: None,
             original_path: make_path(["y", "y2", "u"], None),
             nodes_in_resolved_path: vec![a_idx, s_idx, d_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }

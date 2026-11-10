@@ -7588,13 +7588,6 @@ async function indexNamesNothing({
     const originalPath = await component.stateValues.originalPath;
     const extendedType = (await component.stateValues.extendedComponent)
         ?.componentType;
-    if (
-        // a `<setup>`, reached by the index of a child (`doenet-w0179`),
-        // which shows nothing
-        extendedType === "setup"
-    ) {
-        return undefined;
-    }
     if (!originalPath?.some((part) => part.index.length > 0)) {
         // A composite named as a whole that holds nothing now, such as a
         // `<conditionalContent>` with no case true and no `<else>` (D37).
@@ -7912,8 +7905,7 @@ async function typeChangeStatus({
         sourceType === "_missing"
     ) {
         // An error is reported already, where it was made. A `<setup>`,
-        // reached by name or by the deprecated index of a child (`$g[1]`,
-        // `doenet-w0179`), is not content written to be shown.
+        // reached by name, is not content written to be shown.
         return undefined;
     }
     const sourceClass = componentInfoObjects.allComponentClasses[sourceType];

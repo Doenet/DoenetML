@@ -15,12 +15,13 @@
 //! three the viewer runs before any component exists -- and asserts what each
 //! one does with them.
 //!
-//! The audit found one. `ref_expand.rs`'s "Expected an element" is reachable
-//! from ordinary markup, and `an_index_into_a_composite_of_refs_traps` pins the
-//! shapes that reach it. It fails the same way on `main` and is tracked in
-//! #1942, which is where the choice between reporting it and resolving it
-//! whatever the order belongs -- so #1921's own instruction, to convert the
-//! reachable ones, is not carried out here and #1921 stays open.
+//! The audit found one. `ref_expand.rs`'s "Expected an element" was reachable
+//! from ordinary markup: an index into a `<group>` resolved to the group's
+//! child, which could still be an unexpanded reference (#1942). An index no
+//! longer selects a child of a container (D27), so the resolver stops at the
+//! group and that site is an internal invariant again. The shapes that reached
+//! it are in the corpus below. #1921's instruction, to convert the reachable
+//! ones, then has nothing left to convert.
 
 use std::panic;
 
@@ -87,9 +88,8 @@ fn the_probe_detects_a_panic() {
 /// - `ref_expand.rs` (x2) "Expected an element"
 /// - `flat_dast/untagged_flat_dast_merge.rs` (x3) `set_*` on the wrong node kind
 ///
-/// One shape does reach the first of the two `ref_expand.rs` sites; it is
-/// pinned separately in `an_index_into_a_composite_of_refs_traps` rather than
-/// left here to fail.
+/// The shapes that reached the first of the two `ref_expand.rs` sites until an
+/// index into a `<group>` named nothing (#1942) are included.
 ///
 /// Every one is a shape the parser accepts, which is what makes running
 /// documents the right way to probe them rather than reasoning per site.
@@ -136,6 +136,18 @@ fn no_document_reaches_a_panic() {
         // Half-typed markup, which is where the parser's own throws lived.
         r#"<p>$a[<n/>][</p>"#,
         r#"<p>$$g($$f(<n/>)</p>"#,
+        // An index into a group whose child the expander had not reached yet,
+        // which trapped in `ref_expand.rs` until an index stopped selecting a
+        // child of a group (#1942): written before the group, or reaching a
+        // child that is the index itself, or one in another group not yet
+        // expanded.
+        r#"$g[1]<group name="g">$x</group><p name="x">hello</p>"#,
+        r#"$g[1]<group name="g">$nothere</group>"#,
+        r#"$g[1]<group name="g">$$f(1)</group>"#,
+        r#"$g[1].y<group name="g">$x</group><p name="x">hello</p>"#,
+        r#"<group name="g">$g[1]$g[2]</group>"#,
+        r#"<group name="a">$b[1]</group><group name="b">$a[1]</group>"#,
+        r#"<p name="x">hello</p><group name="g">$x</group>$g[1]"#,
     ];
 
     let reached: Vec<String> = sources
@@ -149,64 +161,5 @@ fn no_document_reaches_a_panic() {
         reached.is_empty(),
         "documents reached a panic on the build path:\n  {}",
         reached.join("\n  ")
-    );
-}
-
-/// The one the audit found: `ref_expand.rs`'s first "Expected an element" is
-/// reachable from ordinary markup, so it is not the internal invariant the
-/// other five are.
-///
-/// `resolve` follows index resolutions as well as names, and an index
-/// resolution is recorded for whatever a composite's child happens to be
-/// (`ref_resolve/index_resolutions.rs`) -- no element check, unlike the name
-/// side. `expand_refs` walks nodes in ascending index order, so an `$g[1]`
-/// written *before* the group resolves to a child that is still a
-/// `FlatNode::Ref`, and traps. Writing the group first expands the child before
-/// the index reaches it, which is why the corpus above misses it and why the
-/// control below renders.
-///
-/// Ordering is not the whole of it, though, and a fix built only on ordering
-/// would not cover the rest. The condition is that the child the index lands on
-/// has not been expanded when the index reaches it, and an index that resolves
-/// to itself or into a mutual reference satisfies that at any position: both
-/// `<group name="g">$g[1]$g[2]</group>` and `<group name="a">$b[1]</group>
-/// <group name="b">$a[1]</group>` are written group-first and still trap. They
-/// trap in the expander, so they never reach the JavaScript core's
-/// circular-dependency report and are not the #387 family.
-///
-/// This is pinned rather than fixed. It traps identically on `main`, and
-/// turning it into a `FlatError` means choosing a message and a diagnostic code
-/// for it, which is a change of its own. The assertion is the wrong way round
-/// on purpose: the day the site becomes a diagnostic, this test fails and says
-/// what to delete.
-#[test]
-fn an_index_into_a_composite_of_refs_traps() {
-    let sources = vec![
-        r#"$g[1]<group name="g">$x</group><p name="x">hello</p>"#,
-        r#"$g[1]<group name="g">$nothere</group>"#,
-        r#"$g[1]<group name="g">$$f(1)</group>"#,
-        r#"$g[1].y<group name="g">$x</group><p name="x">hello</p>"#,
-        // Group first, and still trapping: the index resolves to a child that
-        // is the index itself, or to one in the other group that has not been
-        // expanded yet.
-        r#"<group name="g">$g[1]$g[2]</group>"#,
-        r#"<group name="a">$b[1]</group><group name="b">$a[1]</group>"#,
-    ];
-
-    for source in &sources {
-        assert_eq!(
-            panic_message_for(source).as_deref(),
-            Some("Expected an element"),
-            "expected this shape to still trap: {source}"
-        );
-    }
-
-    // The control: the same document with the group written before the index
-    // expands the child first, and does not trap. Without it, the assertions
-    // above would also pass if every document panicked for some unrelated
-    // reason.
-    assert_eq!(
-        panic_message_for(r#"<p name="x">hello</p><group name="g">$x</group>$g[1]"#),
-        None
     );
 }

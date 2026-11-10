@@ -49,7 +49,7 @@ fn resolution_stops_at_path_index_with_no_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -95,13 +95,13 @@ fn resolution_stops_at_path_index_with_no_index_resolutions() {
             ]),
             original_path: path,
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
 
 #[test]
-fn resolution_resolves_path_index_with_implicit_index_resolutions() {
+fn an_index_after_a_group_with_implicit_index_resolutions_names_its_child_and_stops() {
     let dast_root = dast_root_no_position(
         r#"<a name="x">
             <group name="g">
@@ -114,8 +114,6 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
     let a_idx = find(&flat_root, "a").unwrap();
     let c_idx = find(&flat_root, "c").unwrap();
     let d_idx = find(&flat_root, "d").unwrap();
-    let e_idx = find(&flat_root, "e").unwrap();
-    let f_idx = find(&flat_root, "f").unwrap();
     let g_idx = find(&flat_root, "group").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
@@ -162,16 +160,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
         source_doc: None,
     }];
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: c_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, c_idx],
-            child_indexes: vec![child_index(g_idx, c_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(c_idx));
 
     // `$x.g[2]`
     let path = vec![
@@ -189,16 +178,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
         },
     ];
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: d_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, d_idx],
-            child_indexes: vec![child_index(g_idx, d_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(d_idx));
 
     // `$g[2].z`
     let path = vec![
@@ -217,16 +197,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
     ];
 
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: f_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, d_idx, f_idx],
-            child_indexes: vec![child_index(g_idx, d_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(d_idx));
 
     // `$x.g[1].z`
     let path = vec![
@@ -251,16 +222,7 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
     ];
 
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: e_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, c_idx, e_idx],
-            child_indexes: vec![child_index(g_idx, c_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(c_idx));
 
     // the index of `$g[3].z` is not resolved
     let path = vec![
@@ -293,16 +255,8 @@ fn resolution_resolves_path_index_with_implicit_index_resolutions() {
     ];
 
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: g_idx,
-            unresolved_path: Some(unresolved_path),
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx],
-            child_indexes: vec![],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, None);
+    assert_eq!(referent.unwrap().unresolved_path, Some(unresolved_path));
 }
 
 #[test]
@@ -355,7 +309,7 @@ fn resolution_matches_largest_possible_when_index_present() {
             },]),
             original_path: path,
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -420,7 +374,7 @@ fn add_nodes_with_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx, g1_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -445,7 +399,7 @@ fn add_nodes_with_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx, g2_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -485,7 +439,7 @@ fn add_nodes_with_index_resolutions() {
             unresolved_path: Some(unresolved_path.clone()),
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -505,7 +459,7 @@ fn add_nodes_with_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx, g2_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -530,7 +484,7 @@ fn add_nodes_with_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx, g1_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -589,7 +543,7 @@ fn replace_nodes_with_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx, g1_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -614,7 +568,7 @@ fn replace_nodes_with_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx, g2_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -654,7 +608,7 @@ fn replace_nodes_with_index_resolutions() {
             unresolved_path: Some(unresolved_path.clone()),
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -702,7 +656,7 @@ fn replace_nodes_with_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx, g1_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -727,7 +681,7 @@ fn replace_nodes_with_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx, g3_idx, d_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -767,7 +721,7 @@ fn replace_nodes_with_index_resolutions() {
             unresolved_path: Some(unresolved_path.clone()),
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, s_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -779,10 +733,13 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             <group name="g"><b /> hello</group>
         </a>"#,
     );
-    let flat_root = FlatRoot::from_dast(&dast_root);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
     let a_idx = find(&flat_root, "a").unwrap();
     let b_idx = find(&flat_root, "b").unwrap();
     let g_idx = find(&flat_root, "group").unwrap();
+    // An index selects among what the group holds, as an iteration holding one reference does,
+    // rather than naming nothing, as it would after a group the author wrote
+    mark_index_reference_of_nodes(&mut flat_root.nodes, &[g_idx], 0);
 
     let mut resolver = Resolver::from_flat_root(&flat_root);
 
@@ -802,7 +759,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx, b_idx],
-            child_indexes: vec![child_index(g_idx, b_idx)],
+            child_index: None,
         })
     );
 
@@ -831,7 +788,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: Some(unresolved_path),
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -858,7 +815,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: Some(unresolved_path),
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -896,7 +853,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx, b_idx],
-            child_indexes: vec![child_index(g_idx, b_idx)],
+            child_index: None,
         })
     );
 
@@ -916,7 +873,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx, c_idx],
-            child_indexes: vec![child_index(g_idx, c_idx)],
+            child_index: None,
         })
     );
 
@@ -945,7 +902,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: Some(unresolved_path),
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -983,7 +940,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx, d_idx],
-            child_indexes: vec![child_index(g_idx, d_idx)],
+            child_index: None,
         })
     );
 
@@ -1003,7 +960,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx, b_idx],
-            child_indexes: vec![child_index(g_idx, b_idx)],
+            child_index: None,
         })
     );
 
@@ -1023,7 +980,7 @@ fn replace_nodes_with_index_resolutions_initially_resolving_to_text_node_or_noth
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx, c_idx],
-            child_indexes: vec![child_index(g_idx, c_idx)],
+            child_index: None,
         })
     );
 }
@@ -1054,16 +1011,7 @@ fn replace_index_resolutions() {
         None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: b_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, b_idx],
-            child_indexes: vec![child_index(g_idx, b_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(b_idx));
 
     // `g[2]` resolves to c
     let path = make_path_with_indices(
@@ -1074,16 +1022,7 @@ fn replace_index_resolutions() {
         None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: c_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, c_idx],
-            child_indexes: vec![child_index(g_idx, c_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(c_idx));
 
     // replace the first index resolution of `g` to be `d` rather than `a``
     resolver.replace_index_resolutions(
@@ -1103,16 +1042,7 @@ fn replace_index_resolutions() {
         None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: d_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, d_idx],
-            child_indexes: vec![child_index(g_idx, d_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(d_idx));
 
     // `g[2]` still resolves to c
     let path = make_path_with_indices(
@@ -1123,16 +1053,7 @@ fn replace_index_resolutions() {
         None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: c_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, c_idx],
-            child_indexes: vec![child_index(g_idx, c_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(c_idx));
 }
 
 #[test]
@@ -1167,16 +1088,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
         None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: c_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, b_idx, c_idx],
-            child_indexes: vec![child_index(g_idx, b_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(b_idx));
 
     let path = make_path_with_indices(
         &[
@@ -1199,7 +1111,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -1220,16 +1132,8 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
         }],
         None,
     );
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: g_idx,
-            unresolved_path: Some(unresolved_path.clone()),
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx],
-            child_indexes: vec![],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, None);
+    assert_eq!(referent.unwrap().unresolved_path, Some(unresolved_path.clone()));
 
     // Add a fragment without a parent but as the second index resolution of the `<group>`.
     let flat_fragment = flat_fragment_from_str(
@@ -1240,7 +1144,6 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
     );
 
     let d_idx = c_idx + 1;
-    let e_idx = c_idx + 2;
 
     resolver.add_nodes(
         &flat_fragment,
@@ -1265,16 +1168,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
         None,
     );
     let referent = resolver.resolve(path.clone(), a_idx, false);
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: e_idx,
-            unresolved_path: None,
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx, d_idx, e_idx],
-            child_indexes: vec![child_index(g_idx, d_idx)],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, Some(d_idx));
 
     let path = make_path(["g", "z"], None);
     let referent = resolver.resolve(path.clone(), a_idx, false);
@@ -1286,7 +1180,7 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
             unresolved_path: Some(make_path(["z"], None)),
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -1307,16 +1201,8 @@ fn replace_nodes_with_no_parent_but_index_resolutions() {
         }],
         None,
     );
-    assert_eq!(
-        referent,
-        Ok(RefResolution {
-            node_idx: g_idx,
-            unresolved_path: Some(unresolved_path.clone()),
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, g_idx],
-            child_indexes: vec![],
-        })
-    );
+    assert_stops_at_child_index(&referent, g_idx, None);
+    assert_eq!(referent.unwrap().unresolved_path, Some(unresolved_path.clone()));
 }
 
 /// The nested repeats of D27: `<repeat name="r">` whose first two iterations each hold one `<repeat name="q">`
@@ -1431,7 +1317,7 @@ fn an_index_passes_through_an_iteration_holding_one_repeat() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, r_idx, g1_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -1444,7 +1330,7 @@ fn an_index_passes_through_an_iteration_holding_one_repeat() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, r_idx, g1_idx, q1_idx, g12_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -1473,7 +1359,7 @@ fn an_index_passes_through_an_iteration_holding_one_repeat() {
     );
     let resolution = resolver.resolve(path, a_idx, false).unwrap();
     assert!(resolution.unresolved_path.is_none());
-    assert!(resolution.child_indexes.is_empty());
+    assert!(resolution.child_index.is_none());
 }
 
 #[test]
@@ -1513,7 +1399,7 @@ fn an_index_past_the_instances_it_passes_to_is_left_unresolved_there() {
 }
 
 #[test]
-fn an_index_into_a_group_reports_the_child_it_selects() {
+fn an_index_into_a_group_names_nothing_and_reports_the_child_it_would_select() {
     let NestedRepeats {
         resolver,
         a_idx,
@@ -1525,23 +1411,25 @@ fn an_index_into_a_group_reports_the_child_it_selects() {
         ..
     } = nested_repeats();
 
-    // `$r[1][2][2]`: the inner iteration holds two components,
-    // so its second child is selected by the deprecated child indexing
+    // `$r[1][2][2]`: the inner iteration holds two components, and an index
+    // does not select a child, so the path stops at the iteration
     let path = index_path("r", vec!["1", "2", "2"]);
-    let resolution = resolver.resolve(path, a_idx, false).unwrap();
-    assert_eq!(resolution.node_idx, f_idx);
-    assert_eq!(resolution.child_indexes, vec![child_index(g12_idx, f_idx)]);
+    let resolution = resolver.resolve(path, a_idx, false);
+    assert_stops_at_child_index(&resolution, g12_idx, Some(f_idx));
 
     let path = index_path("r", vec!["1", "2", "1"]);
-    let resolution = resolver.resolve(path, a_idx, false).unwrap();
-    assert_eq!(resolution.node_idx, e_idx);
-    assert_eq!(resolution.child_indexes, vec![child_index(g12_idx, e_idx)]);
+    let resolution = resolver.resolve(path, a_idx, false);
+    assert_stops_at_child_index(&resolution, g12_idx, Some(e_idx));
 
-    // `$r[3][2]`: an iteration holding two components selects among its children, as a `<group>` does
+    // `$r[3][2]`: an iteration holding two components names nothing after an index, as a `<group>` does
     let path = index_path("r", vec!["3", "2"]);
-    let resolution = resolver.resolve(path, a_idx, false).unwrap();
-    assert_eq!(resolution.node_idx, t_idx);
-    assert_eq!(resolution.child_indexes, vec![child_index(g3_idx, t_idx)]);
+    let resolution = resolver.resolve(path, a_idx, false);
+    assert_stops_at_child_index(&resolution, g3_idx, Some(t_idx));
+
+    // `$r[3][5]`: past its children, there is no child to report
+    let path = index_path("r", vec!["3", "5"]);
+    let resolution = resolver.resolve(path, a_idx, false);
+    assert_stops_at_child_index(&resolution, g3_idx, None);
 }
 
 #[test]
@@ -1560,7 +1448,7 @@ fn an_index_passes_through_an_iteration_to_the_component_at_the_marked_position(
     assert_eq!(resolution.node_idx, q4_idx);
     assert!(resolution.nodes_in_resolved_path.contains(&g4_idx));
     assert!(resolution.unresolved_path.is_some());
-    assert!(resolution.child_indexes.is_empty());
+    assert!(resolution.child_index.is_none());
 }
 
 #[test]
@@ -1588,14 +1476,14 @@ fn a_child_index_records_where_the_index_was_written() {
     path[0].index[0].position = Some(position.clone());
 
     let resolution = resolver.resolve(path, a_idx, false).unwrap();
-    assert_eq!(resolution.node_idx, c_idx);
+    assert_eq!(resolution.node_idx, g_idx);
     assert_eq!(
-        resolution.child_indexes,
-        vec![ChildIndex {
+        resolution.child_index,
+        Some(ChildIndex {
             container_idx: g_idx,
-            child_idx: c_idx,
+            child_idx: Some(c_idx),
             position: Some(position),
-        }]
+        })
     );
 }
 
@@ -1627,28 +1515,19 @@ fn an_index_does_not_reach_the_setup_a_repeat_adds() {
         IndexResolution::ReplaceAll { parent: r_idx },
     );
 
-    // `$r[1][1]` selects the child before the setup, and `$r[1][3]` the one after it
+    // `$r[1][1]` and `$r[1][3]` would select the children before and after the setup,
+    // which an index does not do
     for (index, child_idx) in [("1", c_idx), ("3", e_idx)] {
-        assert_eq!(
-            resolver
-                .resolve(index_path("r", vec!["1", index]), a_idx, false)
-                .map(|res| res.node_idx),
-            Ok(child_idx)
+        assert_stops_at_child_index(
+            &resolver.resolve(index_path("r", vec!["1", index]), a_idx, false),
+            g_idx,
+            Some(child_idx),
         );
     }
 
-    // `$r[1][2]` would select the setup
+    // `$r[1][2]` would select the setup, which is not reported as a child
     let path = index_path("r", vec!["1", "2"]);
-    assert_eq!(
-        resolver.resolve(path.clone(), a_idx, false),
-        Ok(RefResolution {
-            node_idx: g_idx,
-            unresolved_path: Some(index_path("", vec!["2"])),
-            original_path: path,
-            nodes_in_resolved_path: vec![a_idx, r_idx, g_idx],
-            child_indexes: vec![],
-        })
-    );
+    assert_stops_at_child_index(&resolver.resolve(path.clone(), a_idx, false), g_idx, None);
 
     // and `$r[1][2].v` does not reach what the setup holds
     let path = make_path_with_indices(
@@ -1667,6 +1546,92 @@ fn an_index_does_not_reach_the_setup_a_repeat_adds() {
     assert_eq!(
         resolver.resolve(path, a_idx, false).map(|res| res.node_idx),
         Ok(g_idx)
+    );
+}
+
+/// An iteration whose whole content is one reference (`<option>$l</option>`), marked with
+/// `INDEX_REFERENCE_ATTRIBUTE`, selects among what that reference made, which takes its place
+/// among the iteration's index resolutions, and not among what follows it. Once the worker says
+/// that the reference names nothing that produces instances (`index_parent_instances`), an index
+/// after the iteration names nothing, as after any group, until it says otherwise.
+#[test]
+fn an_index_after_an_iteration_holding_one_reference_selects_what_it_made() {
+    let dast_root = dast_root_no_position(r#"<a><repeat name="r"><b/></repeat></a>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let r_idx = find(&flat_root, "repeat").unwrap();
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    // The iteration: what the reference made (`c` and `d`), then a setup
+    let next_idx = flat_root.nodes.len();
+    let mut flat_fragment = flat_fragment_from_str(
+        r#"<group><c/><d/><setup><e name="v"/></setup></group>"#,
+        next_idx,
+        Some(r_idx),
+    );
+    let g_idx = next_idx;
+    let c_idx = next_idx + 1;
+    let d_idx = next_idx + 2;
+    mark_index_reference(&mut flat_fragment, &[g_idx], 1);
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: r_idx },
+    );
+
+    for (index, idx) in [("1", c_idx), ("2", d_idx)] {
+        let path = index_path("r", vec!["1", index]);
+        assert_eq!(
+            resolver.resolve(path.clone(), a_idx, false),
+            Ok(RefResolution {
+                node_idx: idx,
+                unresolved_path: None,
+                original_path: path,
+                nodes_in_resolved_path: vec![a_idx, r_idx, g_idx, idx],
+                child_index: None,
+            })
+        );
+    }
+
+    // `$r[1][3]` is past what the reference made, and does not reach the setup:
+    // it is left for the worker, which says how many there are
+    let resolution = resolver
+        .resolve(index_path("r", vec!["1", "3"]), a_idx, false)
+        .unwrap();
+    assert_eq!(resolution.node_idx, g_idx);
+    assert!(resolution.unresolved_path.is_some());
+    assert!(resolution.child_index.is_none());
+
+    // The reference names something that produces no instances: what it made are children
+    let mut flat_fragment = flat_fragment_from_str(r#""#, next_idx + 5, Some(c_idx));
+    flat_fragment.index_parent_instances = Some(false);
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: g_idx,
+            range: Range { start: 0, end: 0 },
+        },
+    );
+    assert_stops_at_child_index(
+        &resolver.resolve(index_path("r", vec!["1", "1"]), a_idx, false),
+        g_idx,
+        Some(c_idx),
+    );
+
+    // and again something that does
+    let mut flat_fragment = flat_fragment_from_str(r#""#, next_idx + 5, Some(c_idx));
+    flat_fragment.index_parent_instances = Some(true);
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: g_idx,
+            range: Range { start: 0, end: 0 },
+        },
+    );
+    assert_eq!(
+        resolver
+            .resolve(index_path("r", vec!["1", "2"]), a_idx, false)
+            .map(|res| res.node_idx),
+        Ok(d_idx)
     );
 }
 
@@ -1712,18 +1677,17 @@ fn a_group_made_from_an_iteration_takes_its_pass_through() {
             unresolved_path: None,
             original_path: path,
             nodes_in_resolved_path: vec![a_idx, g_idx, q_idx, q2_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
-    // Made again from content that is not one indexable component, `g` selects its children
+    // Made again from content that is not one indexable component, an index after `g` names nothing
     let mut flat_fragment = flat_fragment_from_str(r#""#, next_idx + 4, Some(g_idx));
     flat_fragment.parent_index_pass_through = Some(0);
     resolver.add_nodes(&flat_fragment, IndexResolution::None);
-    assert_eq!(
-        resolver
-            .resolve(index_path("g", vec!["1"]), a_idx, false)
-            .map(|res| (res.node_idx, res.child_indexes.len())),
-        Ok((q_idx, 1))
+    assert_stops_at_child_index(
+        &resolver.resolve(index_path("g", vec!["1"]), a_idx, false),
+        g_idx,
+        Some(q_idx),
     );
 }

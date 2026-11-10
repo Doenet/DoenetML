@@ -1762,8 +1762,7 @@ export function checkTypeChangesAtLoad({
                 idx = ref.nodeIdx;
                 continue;
             }
-            // A `<setup>` shows nothing; one reached by the index of a
-            // child (`$g[1]`, `doenet-w0179`) is not decided.
+            // A `<setup>` shows nothing, so what it holds is not decided.
             return isHolder(type) && type !== "setup" ? node : undefined;
         }
     }

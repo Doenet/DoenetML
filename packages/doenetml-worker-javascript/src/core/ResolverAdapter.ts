@@ -9,6 +9,7 @@ import {
 import {
     instanceGroupAttributes,
     instanceKindOf,
+    referencedIndexable,
 } from "../utils/indexInstances";
 
 /**
@@ -88,6 +89,7 @@ export async function addReplacementsToResolver({
     const fragmentChildren: any[] = [];
     let parentSourceSequence: any = null;
     let parentIndexPassThrough: number | undefined;
+    let parentIndexReference: number | undefined;
     if (fragmentParent) {
         if (fragmentParent.children) {
             fragmentChildren.push(...fragmentParent.children);
@@ -117,13 +119,19 @@ export async function addReplacementsToResolver({
                 sourceDoc: sourceSequence.sourceDoc,
             };
         }
-        parentIndexPassThrough = indexPassThroughOfCopiedInstance(
-            fragmentParent,
-            core,
-        );
+        ({
+            passThrough: parentIndexPassThrough,
+            reference: parentIndexReference,
+        } = indexPassThroughOfCopiedInstance(fragmentParent, core));
     } else {
         fragmentChildren.push(...serializedReplacements);
     }
+
+    const indexParentInstances = indexParentInstancesOf(
+        core,
+        component,
+        indexResolution,
+    );
 
     // We add all the parent's descendants to the resolver.
     // What a copy or an extend made is reached only through the name of the
@@ -139,6 +147,8 @@ export async function addReplacementsToResolver({
         parentIdx,
         parentSourceSequence,
         parentIndexPassThrough,
+        parentIndexReference,
+        indexParentInstances,
         copiedContent: component.componentType === "_copy",
         idxMap: {},
     };
@@ -181,32 +191,64 @@ export async function addReplacementsToResolver({
  * (`<group extend="$r[1]"/>`, REF-7): the position of the one indexable
  * component that is its whole content (`instanceGroupAttributes`), as it is
  * for the iteration or pick itself, or `0` when its content is not that,
- * as when the author added to it. `0` too for a `<group>` made from anything
- * else, so a group that was made from an iteration and is made again from an
- * ordinary group (a name in cases of a `<conditionalContent>`) selects its
- * children again. `undefined` for a replacement that is not a `<group>`,
- * whose index kind the resolver does not change.
+ * as when the author added to it. When that content is instead one reference
+ * (`<option>$l</option>`), how many children follow it
+ * (`FlatFragment.parentIndexReference`, `_indexReference`), as for the
+ * iteration or pick. `0` too for a `<group>` made from anything else, so a
+ * group that was made from an iteration and is made again from an ordinary
+ * group (a name in cases of a `<conditionalContent>`) names nothing after an
+ * index again. `undefined` for a replacement that is not a `<group>`, whose
+ * index kind the resolver does not change.
  */
 function indexPassThroughOfCopiedInstance(
     fragmentParent: any,
     core: Core,
-): number | undefined {
+): { passThrough: number | undefined; reference: number | undefined } {
     if (fragmentParent.componentType !== "group") {
-        return undefined;
+        return { passThrough: undefined, reference: undefined };
     }
     const instanceKind = instanceKindOf(
         fragmentParent.attributes?._instanceOf?.primitive?.value,
     );
     if (instanceKind !== "iteration" && instanceKind !== "pick") {
-        return 0;
+        return { passThrough: 0, reference: undefined };
     }
-    return (
-        instanceGroupAttributes({
-            children: fragmentParent.children ?? [],
-            instanceOf: fragmentParent.attributes._instanceOf.primitive.value,
-            componentInfoObjects: core.componentInfoObjects,
-        })._indexPassThrough?.primitive.value ?? 0
+    const attributes = instanceGroupAttributes({
+        children: fragmentParent.children ?? [],
+        instanceOf: fragmentParent.attributes._instanceOf.primitive.value,
+        componentInfoObjects: core.componentInfoObjects,
+    });
+    return {
+        passThrough: attributes._indexPassThrough?.primitive.value ?? 0,
+        reference: attributes._indexReference?.primitive.value,
+    };
+}
+
+/**
+ * For the replacements of `component` that take their place among the index
+ * resolutions of an iteration or a pick whose whole content is one reference
+ * (`_indexReference`), whether that reference names a list or a composite of
+ * instances, which an index into the iteration or pick then selects among
+ * (`FlatFragment.indexParentInstances`, `referencedIndexable`). `undefined`
+ * when the replacements go anywhere else.
+ */
+function indexParentInstancesOf(
+    core: Core,
+    component: any,
+    indexResolution: any,
+): boolean | undefined {
+    const indexParent =
+        indexResolution?.ReplaceAll?.parent ??
+        indexResolution?.ReplaceRange?.parent;
+    if (indexParent === undefined || indexParent === component.componentIdx) {
+        return undefined;
+    }
+    const referent = referencedIndexable(
+        core._components,
+        indexParent,
+        core.componentInfoObjects,
     );
+    return referent === undefined ? undefined : referent !== null;
 }
 
 /**
