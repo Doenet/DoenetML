@@ -189,6 +189,57 @@ describe("gradeState", () => {
         expect(result.document.stored.creditAchieved).toBe(0);
     });
 
+    it("gives the same credit whatever the display flags", async () => {
+        const doenetML = `<problem>
+        <p><answer name="a">x</answer></p>
+        <hint><p>Think.</p></hint>
+        <solution><p>It is x.</p></solution>
+        <p><answer name="b"><award>y</award><award credit="0.5">z</award></answer></p>
+        <feedback condition="$a.creditAchieved = 1"><p>Good.</p></feedback>
+    </problem>`;
+        const state = await stateAfter(doenetML, async (core) => {
+            const a = await answerIdx(core, "a");
+            await typeMath(core, a.inputs[0].componentIdx, "x");
+            await submitAnswerAt(core, a.componentIdx);
+            const b = await answerIdx(core, "b");
+            await typeMath(core, b.inputs[0].componentIdx, "z");
+            await submitAnswerAt(core, b.componentIdx);
+        });
+        const credits = async (flags?: Record<string, unknown>) => {
+            const result = await gradeState(doenetML, 1, state, { flags });
+            return {
+                answers: result.answers.map((a) => [a.credit, a.stored]),
+                document: result.document,
+            };
+        };
+        const expected = await credits();
+        expect(expected.document.credit).toBe(0.75);
+        for (const flags of [
+            { showCorrectness: false },
+            { showFeedback: false },
+            { showHints: false },
+            { solutionDisplayMode: "none" },
+            { readOnly: true },
+        ]) {
+            expect(await credits(flags), JSON.stringify(flags)).toEqual(
+                expected,
+            );
+        }
+    });
+
+    it("reports the document's credit as NaN when it weighs nothing", async () => {
+        // The document's own value, passed through (see the README)
+        for (const doenetML of [
+            `<p>No answers.</p>`,
+            `<answer name="a" weight="0">x</answer>`,
+            `<problem><p>Nothing to answer.</p></problem><answer name="a">x</answer>`,
+        ]) {
+            const state = await stateAfter(doenetML, async () => {});
+            const result = await gradeState(doenetML, 1, state);
+            expect(result.document.credit, doenetML).toBeNaN();
+        }
+    });
+
     describe("refuses", () => {
         it("a state whose data_format_version the core does not read", async () => {
             const state = await stateAfter(twoAnswers, async () => {});
@@ -222,6 +273,32 @@ describe("gradeState", () => {
                 gradeState(twoAnswers, 1, state, { attemptNumber: 2 }),
             );
             expect(error.code).toBe("attemptMismatch");
+
+            // A state that records no attempt is not checked against one
+            const { attemptNumber, ...noAttempt } = state;
+            expect(attemptNumber).toBe(1);
+            await gradeState(twoAnswers, 1, noAttempt, { attemptNumber: 2 });
+        });
+
+        it("a variant the document does not have, even when the state names it", async () => {
+            // With no cid to tie the state to its source, the state's own
+            // variant passes the first check; the core then runs the only
+            // variant there is.
+            const state = await stateAfter(twoAnswers, async () => {});
+            const coreInfo = JSON.parse(state.coreInfo as string);
+            coreInfo.generatedVariantString = JSON.stringify({
+                ...JSON.parse(coreInfo.generatedVariantString),
+                index: 2,
+            });
+            const error = await refusal(
+                gradeState(twoAnswers, 2, {
+                    ...state,
+                    cid: "",
+                    coreInfo: JSON.stringify(coreInfo),
+                }),
+            );
+            expect(error.code).toBe("variantMismatch");
+            expect(error.message).toContain("ran as variant 1");
         });
 
         it("a state written for a different document source", async () => {

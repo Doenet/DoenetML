@@ -35,6 +35,8 @@ export interface HeadlessCore {
      * `$`) from the document root, expanding whatever composites the path runs
      * through. A path resolves only if each step resolves uniquely from the one
      * before it, which is what makes it a stable key for the component.
+     * Throws if `path` is not written as names joined by `.` with literal
+     * indices.
      */
     resolvePath(path: string): Promise<HeadlessPathResolution>;
 
@@ -51,7 +53,15 @@ export interface HeadlessCore {
         propertyNames: string[],
     ): Promise<Record<string, unknown>>;
 
-    /** Every `<answer>` in the document, in document order. */
+    /**
+     * The document's `<answer>` components, in the order a reader meets them
+     * (a repeat's answers iteration by iteration, a select's in the order
+     * selected). Not included: a copy of an answer that shadows it (the
+     * answer itself is reported once), an answer whose content has not been
+     * created (inside an unopened `<solution>`), and a `<pretzel>`, nor the
+     * `<answer>` that gives each of its problems' answer, which the pretzel
+     * turns into text; a pretzel's credit is in the document's.
+     */
     getAnswers(): Promise<HeadlessAnswer[]>;
 
     /** The document's own credit. */
@@ -183,7 +193,13 @@ export type HeadlessAnswer = HeadlessComponent & {
 };
 
 export type HeadlessDocumentCredit = {
-    /** The document's credit if every answer were submitted now. */
+    /**
+     * The document's credit if every answer were submitted now. `NaN` when
+     * the document weighs nothing (no scored part, or every weight 0), or
+     * when a `<problem>` or other aggregating section in it has no scored
+     * part (each divides by the weight of what it holds, with no guard for
+     * none).
+     */
     creditAchievedIfSubmit: number;
     /** The document's credit from the stored credit of its parts. */
     stored: {

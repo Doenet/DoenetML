@@ -34,7 +34,17 @@ So, in a result:
 - `document.credit` is the document's own `creditAchievedIfSubmit`. The
   document weighs its parts itself, so a `<pretzel>` or a section with
   `sectionWideCheckWork` counts as the one part it is; read this, do not add
-  up the answers.
+  up the answers. It is `NaN` (`null` in JSON) when the document weighs
+  nothing (no answers, or every weight 0), and also when a `<problem>` or
+  other aggregating section in it has no answers, whatever the rest earns
+  (each divides by the weight of what it holds, with no guard for none).
+
+`answers` are the document's `<answer>` components in the order a reader meets
+them (a repeat's iteration by iteration, a select's in the order selected). A
+copy of an answer is not reported beside it, an answer inside an unopened
+`<solution>` does not exist yet, and a `<pretzel>` is not among them (nor is
+the `<answer>` that gives each of its problems' answer, which it turns into
+text): its credit is only in `document.credit`.
 
 **Snapshot the state at the moment of submission.** `creditAchievedIfSubmit`
 reflects the inputs as they were when the state was saved, not as they were
@@ -95,8 +105,10 @@ than misapplied. It is not a runtime version: many releases share one format
 version, so a match does not mean the same release wrote the state. Whether to
 grade each state with the release that wrote it is the host's decision.
 
-Options: `flags` (viewer flags, as `DoenetViewer` takes them), `attemptNumber`,
-and `core` (see [Cores](#cores)).
+Options: `flags` (viewer flags, as `DoenetViewer` takes them; none of them
+changes the credit, and `allowLoadState` is not consulted, since the state is
+always applied), `attemptNumber` (a state that records no attempt is not
+checked), and `core` (see [Cores](#cores)).
 
 ## Checking a document
 
@@ -150,7 +162,10 @@ from 1. The second form is the only way to reach an input that cannot be
 named, such as the one `<answer name="ans">x</answer>` makes for itself, or an
 unnamed `<mathInput/>` written inside the answer. Either way the target needs a
 stable key, and an input reached through an answer needs the answer to have
-one. A target without one is refused (`noStableKey`), never guessed.
+one. A target without one is refused (`noStableKey`), never guessed; a path
+that names nothing, an `answer` that names something other than an
+`<answer>`, or a position the answer has no input at is refused as `notFound`. A string that is not written as
+a path at all (names joined by `.`, literal indices) throws a plain `Error`.
 
 | input | value |
 | --- | --- |

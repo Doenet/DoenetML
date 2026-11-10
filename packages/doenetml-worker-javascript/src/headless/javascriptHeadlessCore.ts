@@ -101,7 +101,9 @@ function ensureWasmInitialized(
  *
  * A saved state is applied the way `DocViewer` applies one: its `coreState`
  * as the state-variable changes, the variant recorded in its `coreInfo`, and
- * its `initializeCounters`. The JavaScript core applies saved state only when
+ * its `initializeCounters`. The attempt number is the one the state records
+ * (a viewer has it from its host); it goes back into the state this core
+ * writes and changes nothing it computes. The JavaScript core applies saved state only when
  * it is created, so this core has no `loadState`. Nothing here checks that the
  * saved state belongs to this document or variant; that is the caller's job
  * (`gradeState` in `@doenet/doenetml-headless` does it).

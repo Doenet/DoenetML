@@ -206,7 +206,9 @@ describe("setInput and submit", () => {
             <mathInput name="m" disabled />
             <graph><point name="P" fixed>(1,2)</point></graph>
             <choiceInput name="c"><choice>a</choice><choice>b</choice></choiceInput>
-            <text name="t">x</text>`,
+            <text name="t">x</text>
+            <answer name="ans">x</answer>
+            <graph><point name="Q" draggable="false">(1,2)</point></graph>`,
             async (core) => {
                 let error = await refusal(setInput(core, "s", "x"));
                 expect(error.code).toBe("unsupportedInput");
@@ -228,6 +230,27 @@ describe("setInput and submit", () => {
 
                 error = await refusal(setInput(core, "nothing", "x"));
                 expect(error.code).toBe("notFound");
+
+                // An answer target that is no answer, or has no such input
+                error = await refusal(
+                    setInput(core, { answer: "c", position: 1 }, [1]),
+                );
+                expect(error.code).toBe("notFound");
+                expect(error.message).toContain("not an <answer>");
+                for (const position of [0, 2, 1.5]) {
+                    error = await refusal(
+                        setInput(core, { answer: "ans", position }, "x"),
+                    );
+                    expect(error.code, String(position)).toBe("notFound");
+                }
+
+                error = await refusal(setInput(core, "Q", [3, 4]));
+                expect(error.code).toBe("inputDisabled");
+
+                // Not written as a path at all: a caller's mistake, not a refusal
+                await expect(setInput(core, "a b", "x")).rejects.toThrow(
+                    "is not a path",
+                );
 
                 // Nothing to submit on a text: the core says so
                 await expect(submit(core, "t")).rejects.toThrow(

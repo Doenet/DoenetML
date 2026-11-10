@@ -183,6 +183,20 @@ describe("doenet-headless CLI", () => {
         ]);
         expect(notState.code).toBe(3);
         expect(notState.stderr).toContain("Refused (invalidState)");
+
+        // --attempt is checked against the attempt the state records (1)
+        const graded = [
+            "grade",
+            docFile,
+            "--variant",
+            "2",
+            "--state",
+            stateFile,
+        ];
+        expect((await runCli([...graded, "--attempt", "1"])).code).toBe(0);
+        const otherAttempt = await runCli([...graded, "--attempt", "2"]);
+        expect(otherAttempt.code).toBe(3);
+        expect(otherAttempt.stderr).toContain("Refused (attemptMismatch)");
     });
 
     it("exits 2 on a usage or file problem", async () => {

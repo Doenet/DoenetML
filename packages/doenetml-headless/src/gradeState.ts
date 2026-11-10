@@ -53,7 +53,9 @@ export type GradeStateResult = {
         /**
          * The document's own `creditAchievedIfSubmit`, recomputed on load.
          * Read from the document, which weighs its answers, pretzels and
-         * sections itself; not a sum of `answers`.
+         * sections itself; not a sum of `answers`. `NaN` (`null` in JSON)
+         * when the document weighs nothing, or a `<problem>` or other
+         * aggregating section in it has no scored part.
          */
         credit: number;
         /** The document's credit from the stored credit of its parts. */
