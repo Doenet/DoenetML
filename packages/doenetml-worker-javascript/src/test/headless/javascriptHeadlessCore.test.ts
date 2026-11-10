@@ -4,6 +4,7 @@ import path from "node:path";
 import { data_format_version } from "@doenet/utils";
 import {
     createJavascriptHeadlessCore,
+    createJavascriptHeadlessCoreFactory,
     HEADLESS_DEFAULT_FLAGS,
 } from "../../headless";
 import { defaultFlags } from "../../../../doenetml/src/flags";
@@ -46,7 +47,9 @@ describe("JavaScript headless core @group4", () => {
         );
         expect(core.capabilities.loadState).toBe(false);
         expect(core.loadState).toBeUndefined();
-        expect(core.dataFormatVersion).toBe(data_format_version);
+        expect(
+            createJavascriptHeadlessCoreFactory({ wasm }).dataFormatVersion,
+        ).toBe(data_format_version);
         expect(core.numVariants).toBe(4);
         expect(core.variantIndex).toBe(3);
         await core.terminate();
@@ -68,6 +71,7 @@ describe("JavaScript headless core @group4", () => {
             "e.dup",
             "inGroup",
         ]);
+        expect(answers[0].position?.start.line).toBe(2);
         for (const answer of answers) {
             expect(answer.componentType).toBe("answer");
             expect(answer.inputs.map((i) => i.componentType)).toEqual([

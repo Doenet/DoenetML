@@ -5,6 +5,7 @@
  */
 export {
     createJavascriptHeadlessCore,
+    createJavascriptHeadlessCoreFactory,
     HEADLESS_DEFAULT_FLAGS,
     type JavascriptHeadlessCoreOptions,
     type ResolverWasmSource,

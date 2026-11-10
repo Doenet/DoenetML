@@ -19,6 +19,7 @@ import {
     type HeadlessAnswer,
     type HeadlessComponent,
     type HeadlessCore,
+    type HeadlessCoreFactory,
     type HeadlessCoreOptions,
     type HeadlessDocumentCredit,
     type HeadlessSavedState,
@@ -265,7 +266,6 @@ export async function createJavascriptHeadlessCore({
 
     return {
         capabilities: { loadState: false },
-        dataFormatVersion: data_format_version,
         variantIndex:
             typeof generatedVariant.index === "number"
                 ? generatedVariant.index
@@ -331,6 +331,7 @@ export async function createJavascriptHeadlessCore({
                     componentIdx: answer.componentIdx,
                     componentType: answer.componentType,
                     stableKey: stableKeyOf(answer.componentIdx),
+                    ...(answer.position ? { position: answer.position } : {}),
                     creditAchievedIfSubmit: await values.creditAchievedIfSubmit,
                     stored: {
                         creditAchieved: await values.creditAchieved,
@@ -339,7 +340,15 @@ export async function createJavascriptHeadlessCore({
                     inputs: (await values.inputChildren).map(toComponent),
                 });
             }
-            return answers;
+            // In document order: by where each is written, and, for the
+            // copies a repeat or a select makes of one template, in the
+            // order they were made.
+            return answers.sort(
+                (a, b) =>
+                    (a.position?.start.offset ?? Infinity) -
+                        (b.position?.start.offset ?? Infinity) ||
+                    a.componentIdx - b.componentIdx,
+            );
         },
 
         async getDocumentCredit(): Promise<HeadlessDocumentCredit> {
@@ -379,6 +388,22 @@ export async function createJavascriptHeadlessCore({
             }
             terminated = true;
             await release();
+        },
+    };
+}
+
+/**
+ * The JavaScript core's `HeadlessCoreFactory`: what `@doenet/doenetml-headless`
+ * uses as its default core. `wasm` is the resolver WASM, as
+ * `createJavascriptHeadlessCore` takes it.
+ */
+export function createJavascriptHeadlessCoreFactory({
+    wasm,
+}: Pick<JavascriptHeadlessCoreOptions, "wasm">): HeadlessCoreFactory {
+    return {
+        dataFormatVersion: data_format_version,
+        create(options) {
+            return createJavascriptHeadlessCore({ ...options, wasm });
         },
     };
 }

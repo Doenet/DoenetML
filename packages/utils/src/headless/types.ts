@@ -1,4 +1,4 @@
-import type { DiagnosticRecord } from "../diagnostics/types";
+import type { DiagnosticRecord, Position } from "../diagnostics/types";
 
 /**
  * The interface between `@doenet/doenetml-headless` and a DoenetML core.
@@ -8,7 +8,7 @@ import type { DiagnosticRecord } from "../diagnostics/types";
  * for its answers, credit and diagnostics. `@doenet/doenetml-headless` depends
  * on this interface alone, so another core can stand in for the JavaScript one
  * without changing that package's API or CLI. The JavaScript core's
- * implementation is `createJavascriptHeadlessCore` in
+ * implementation is `createJavascriptHeadlessCoreFactory` in
  * `@doenet/doenetml-worker-javascript/headless`.
  *
  * It lives here, rather than in either package, so that both can import it
@@ -17,12 +17,6 @@ import type { DiagnosticRecord } from "../diagnostics/types";
 export interface HeadlessCore {
     /** What this core can do beyond the required members. */
     readonly capabilities: HeadlessCoreCapabilities;
-
-    /**
-     * The `data_format_version` this core writes into a saved state, and the
-     * only one it reads back.
-     */
-    readonly dataFormatVersion: string;
 
     /** The variant this core is running, numbered from 1. */
     readonly variantIndex: number;
@@ -104,10 +98,16 @@ export type HeadlessCoreOptions = {
     savedState?: HeadlessSavedState | null;
 };
 
-/** Creates a core. Each core implementation provides one. */
-export type HeadlessCoreFactory = (
-    options: HeadlessCoreOptions,
-) => Promise<HeadlessCore>;
+/** Creates cores. Each core implementation provides one. */
+export type HeadlessCoreFactory = {
+    /**
+     * The `data_format_version` the cores write into a saved state, and the
+     * only one they read back. On the factory rather than on a core, so that a
+     * saved state can be checked before a core is made from it.
+     */
+    readonly dataFormatVersion: string;
+    create(options: HeadlessCoreOptions): Promise<HeadlessCore>;
+};
 
 /**
  * A saved state: the payload the viewer delivers through
@@ -158,6 +158,8 @@ export type HeadlessAnswer = HeadlessComponent & {
      * its way from the root.
      */
     stableKey: string | null;
+    /** Where the answer is written in the source, when the core knows. */
+    position?: Position;
     /**
      * The credit the answer would get if it were submitted now, computed from
      * its current inputs. It ignores attempt limits and is not reduced by
