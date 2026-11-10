@@ -124,9 +124,6 @@ Decided in D35.
   authors learn the rule, so it is part of the rule.
 
 **Known violations:**
-- an index into a tag written with `extend` that reads itself,
-  `<math name="m2" extend="$m">$m2[1]</math>`, gives an internal error (#2473). B29 was fixed by
-  #2471;
 - `<p name="p" copy="$p"/>` reports an internal `<_copy>` (NAME-7);
 - `<repeat for="">` gives an uncoded "Invalid empty attribute for" (#2488).
 
@@ -228,18 +225,17 @@ reaches it takes its error explicitly:
   for SEL-5 (D39, #2508 part 3). A parameter reaching what can change, or a sampler, is `e0070`
   at load since #2511;
 - a sequence extend through an index or a property throws, or gives a spurious `e0005` (#2501);
-- **fixed by #2471:** reference cycles through what is written are `e0005` at load over every
-  branch (B32, B40, #2430). Left: cycles through a property, an attribute, an index or a list; a
-  cycle through a name every branch declares, found when the case turns true (in a `<select>`,
-  the variant that picks it doesn't finish loading); a cycle through a `<p>`; and a `copy` in
-  what it is of (#2473);
+- **fixed by #2471 and #2513:** reference cycles are `e0005` at load over every branch and
+  variant (B32, B40, #2430, #2473), including through a property, an input's starting value, an
+  attribute a composite is made from, an index, a name every branch declares, a `<p>` and a
+  `copy` in what it is of. Left: the shapes listed under NAME-7 (#2515), still found when
+  reached;
 - **fixed by #2468:** choice errors that depended on the variant or on values. A requested
   variant's choices are taken as given (`e0037`–`e0040`, `e0048`–`e0050` are retired). A failure
   is an error only when every attribute deciding it is written without a reference; otherwise it
   is an info and the selection is missing (`to="$a"` with a random `a`). Those variants are
   still broken, which D39 addresses. #2511 retired the fluke codes `e0052`/`e0053` and `coprime`'s
   `i0057`: a selection never fails by chance (SEL-4);
-- state-variable cycles that throw (D14) through a property or an attribute,
-  `<number name="n">$n.value</number>` (#2473). Whole-component cycles such as
-  `<math name="z" extend="$z"/>` are `e0005` since #2471;
+- state-variable cycles that throw (D14) through what #2513 doesn't cover: a property or
+  attribute not in its tables, `$$f($n)`, an index into a `<repeat>` in its own template (#2515);
 - exceptions during interaction (DIAG-5). B36's on reload was fixed by #2481.

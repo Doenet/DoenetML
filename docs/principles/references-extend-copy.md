@@ -270,15 +270,37 @@ a component's own `<label>` are not edges, so `$P` in a point's label stays allo
 B29 (`<math name="m">(1, $m[2])</math>`), B32, B40, `<math name="z" extend="$z"/>` and two maths
 reading each other are now `e0005` at load.
 
+**Done by #2513** (closing #2473): the edges `W/utils/dast/referenceCycles.ts` adds, each an
+`e0005` at load at every reference on the cycle, in every branch and variant:
+- a property made from what is written (`<number name="n">$n.value</number>`), from the table
+  `PROPERTIES_READ`. A property not made from it (`$x.hide`) is no edge;
+- an input's starting value (`<mathInput name="mi" prefill="$mi.value"/>`, `bindValueTo`,
+  `preselectChoice`, `initialValue`; `INPUTS`);
+- an index into a composite or list of values reads what it is made from: its attributes
+  (`<sequence name="a" from="1" length="$a[1]"/>`), a case's `condition` and an option's
+  `selectWeight` (`MADE_FROM_ATTRIBUTES`), but not what is written in it, so
+  `<group name="g">…$g[1]…</group>` stays valid;
+- an index component, an index into a `<mathList>`/`<numberList>`, and an index into a tag
+  written with `extend` (no longer an internal error);
+- a name every branch declares (`branchReads`). A reference inside a branch reads only its own
+  branch's names, so two cases reading each other's names stay valid;
+- a tag whose content is its children (`<p>`, `<div>`, `<section>`, `<li>`, `<title>`;
+  `CONTENT_FROM_CHILDREN`). A point's or input's `<label>` still isn't, so `$P` there stays
+  allowed;
+- a `copy` or `copyWithState` in what it is of becomes the `_error` at load.
+
+A section whose title is on a cycle shows its default title. A v0.6 document holding one of these
+cycles in a case not shown keeps its `<copy>` tags in the converter.
+
 Known violations:
-- cycles through a property (`<number name="n">$n.value</number>`), an attribute
-  (`<mathInput name="mi" prefill="$mi.value"/>`, `exclude="$a[1]"` on `a`), a reference inside an
-  index, or an index into a list still stop the document (#2473);
-- also in #2473: an index into a tag written with `extend` (`<math name="m2" extend="$m">$m2[1]</math>`)
-  fails with an internal error; a cycle through a name every branch declares is found only when
-  the case turns true, and in a `<select>` the variant that picks it doesn't finish loading; a
-  cycle through a `<p>`, `<section>` or `<div>` is found only when reached; and a `copy` or
-  `copyWithState` in what it is of stops the document;
+- not found at load, still reported or stopping the document when reached (#2515): a property or
+  attribute not in the tables, an attribute of a tag that is neither a composite nor an input
+  (`<math simplify="$m=1">`), `$$f($n)` through an `<evaluate>`; an index into a `<repeat>` in
+  its own template, or an index followed by a name (`to="$r[1].v"`); a reference in a point's or
+  input's `<label>`; `<textList name="l">a $l[1]</textList>`; `$a.currentResponse` inside answer
+  `a`'s `<when>`; a cycle through both an input's `prefill` and an index into a list holding it;
+  a `<case>`'s `condition` reading a name its own `<conditionalContent>` declares; and an index
+  into a `<shuffle>` or `<sort>` in its own children;
 - a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
@@ -343,7 +365,8 @@ So the bare form and the tag report the same diagnostics, at the same level (REF
   The tag form has its `i0054`;
 - a list tag over an index that names nothing at run time (`<numberList extend="$l[$i]"/>` out of
   range) is an empty list, not one blank, and a list leaves out a missing entry
-  (`<mathList>$l[5] 2</mathList>` holds only `2`). Decided with #2461;
+  (`<mathList>$l[5] 2</mathList>` holds only `2`). Decided with #2461 (D40: a blank entry); PR 7
+  of #2509;
 - a `<group>` tag of an index that names nothing (`<group extend="$r[$i]"/>`) shows nothing with
   `w0181`/`w0104`. It is not a scalar tag, so it is not made missing;
 - a tag of an iteration has its `i0054` until the iteration is made, but not again once the

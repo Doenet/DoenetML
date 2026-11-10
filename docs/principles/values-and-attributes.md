@@ -179,9 +179,32 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   no credit. Two exceptions: in a `<math>` and a `<text>` the blank takes part
   (`<math>$a + 1</math>` is `＿ + 1`, `<text>x $nothing y</text>` is `x ＿ y`), and a container
   shows the blank inline. In a list a missing entry is a blank entry:
-  `<mathList>$l[5] 2</mathList>` is `＿, 2`. **Known violation:** today some parents ignore the
-  reference (`<boolean>`, `<function>`, the shapes, `<mathInput>`, the lists) or show `<T/>`'s
-  value by coincidence (`<number>` gives `NaN`).
+  `<mathList>$l[5] 2</mathList>` is `＿, 2`.
+
+  **Done by #2514** for components that aren't lists. `<number>`, `<integer>`, `<boolean>` (and
+  `<when>`, `<matchesPattern>`, `<hasSameFactoring>`), `<function>` and the shapes set
+  `missingWhenContentMissing` (`BaseComponent`; `contentMissing` and `valueMissing` in
+  `W/utils/missing.ts`). Such a component is missing when it has a missing child and nothing else
+  but blank text, labels and descriptions. `<math>` gets `contentMissing` only, so a `<number>`
+  or `<function>` of such a math is missing. Operators and `<piecewiseFunction>` opt out, and an
+  expression is unchanged: `<number>$nothing + 1</number>` is still `NaN` (#2460).
+  - It can be missing for a while: `<number>$l[$i]</number>` comes back once `i` names an entry,
+    and the renderer switches to the blank and back (`canBecomeMissing`, `drawnMissing`).
+  - What is made from it follows it (D37): a tag of another type around it, a property tag of it
+    (`<number extend="$n.value"/>`), and its adapter. An unlinked `copy` made while it is missing
+    is missing for good, and a reload keeps that (`madeFrom.madeMissing`).
+
+  **Known violations:**
+  - lists and list entries (`<mathList>$l[5] 2</mathList>` holds only `2`), and an entry of
+    `_repeatValueList` (PR 7 of #2509);
+  - `<mathInput>$nothing</mathInput>` and `<isNumber>` are unchanged;
+  - a `<math>` whose child is missing for a while can still be `NaN`: with `n` =
+    `<number>$l[$i]</number>` while `i` names nothing, `<math><math extend="$n"/></math>` and
+    `<math><number>$nothing</number></math>` are `NaN`, though `<math>$n</math>` is `＿`. The
+    child's `valueMissing` is true but its `value` isn't the blank (#2516);
+  - `valueMissing`'s `markStale` fires on every change of the content it reads, so a parent
+    re-checks its rendered children on each keystroke. Nothing is re-sent and no cost was
+    measured (#2516).
 - **`null` is never shown, and a `NaN` from a missing input is missing (decided, D40; #2460).**
   `null` or `undefined` never reaches what an author sees. Where `null` means "no value", the
   value is missing (`＿`); #2483's opt-in for `maxNumber` becomes the rule for every such
@@ -192,8 +215,6 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   gives or determines (bare, one or two `through` points, one line) has a blank measure and draws
   nothing, not a right angle. 0.7 documents are not converted. **Known violation:** today it is
   π/2.
-- `<text>$n.nonexistent</text>` reads `""`: the blank a `<text>` makes is missing only for a
-  reference with no referent.
 - a bare reference to a name in a branch that isn't active is a blank whatever it names, so
   `<indexOf target="$cc.shown">` of a `<numberList>` in that case has one blank target.
 - a bare text child of `<considerAsResponses>` beside a component throws (as before #2458).
@@ -216,10 +237,14 @@ How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
 show `＿`. An index into a scalar entry of a
 list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
 limit, is missing (`＿`) since #2483 (closing #2416), through an opt-in `nullIsMissing` that only
-`maxNumber` uses; other attributes whose `null` means unset wait on #2460. **Known violations
-(#2487):** `<number extend="$P.z"/>` of a point in the plane holds `NaN` without being missing,
-and in a `<text>` a reference that makes nothing through a composite (`<text>$c.maxNumber</text>`,
-`<text>$r[3]</text>`) is empty, not `＿`.
+`maxNumber` uses; other attributes whose `null` means unset wait on #2460. **Fixed by #2514
+(closing #2487):** a tag of a property entry with no value is missing while it has none
+(`<number extend="$P.z"/>` of a point in the plane, `$f.minimumValue1`, `$ci.selectedValue`
+before a choice, `$ans.submittedResponse` before a submission, a spreadsheet cell it doesn't
+have). A reference naming one thing that makes nothing is `＿` in a `<text>`, `<math>` or
+`<boolean>` (`<text>$c.maxNumber</text>`, `$r[3]`), as is a property no member of a collection
+has (`$terms.maths`, `$cc.notThere`), in a `<p>` too. A whole array (`$f.minima`) is still a
+list, possibly empty.
 
 **A property the source doesn't have** is a mistake in what the author wrote, so it is warning
 `doenet-w0104` (DIAG-2), bare or on a tag, and the reference is missing (D37). Since #2447 it is
