@@ -607,10 +607,10 @@ describe("Missing content and missing values (D40) @group2", () => {
         // blank (`<number>$nothing + 1</number>`) is #2460.
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <number name="nm" extend="$nothing"/>
-    <p name="p">[<number name="n1">$nothing + 1</number>][<boolean name="b1">$nothing = 1</boolean>][<boolean name="b2">$nm = $nm</boolean>][<function name="f1">$nothing + 1</function>][<number name="n2">3</number>][<number name="n3"/>][<boolean name="b3"/>][<and name="a1">$nothing</and>][<math name="m1">$nothing</math>][<text name="t1">$nothing</text>]</p>
+    <p name="p">[<number name="n1">$nothing + 1</number>][<boolean name="b1">$nothing = 1</boolean>][<boolean name="b2">$nm = $nm</boolean>][<function name="f1">$nothing + 1</function>][<number name="n2">3</number>][<number name="n3"/>][<boolean name="b3"/>][<and name="a1">$nothing</and>][<math name="m1">$nothing</math>][<text name="t1">$nothing</text>][<math name="m2">$nothing + 1</math>][<text name="t2">x $nothing y</text>]</p>
     `);
         expect(text).eq(
-            "[NaN][false][false][＿ + 1][3][NaN][false][false][＿][＿]",
+            "[NaN][false][false][＿ + 1][3][NaN][false][false][＿][＿][＿ + 1][x ＿ y]",
         );
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (const name of [
@@ -624,6 +624,8 @@ describe("Missing content and missing values (D40) @group2", () => {
             "a1",
             "m1",
             "t1",
+            "m2",
+            "t2",
         ]) {
             expect(
                 Boolean(
@@ -859,13 +861,59 @@ describe("Missing content and missing values (D40) @group2", () => {
     it("keeps a tag of an array that holds no entries, which is a list, not missing", async () => {
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <function name="f">x</function>
-    <p name="p">[<text name="t1">$f.minima</text>][<text name="t2">$f.minimumValues</text>][$f.minima]</p>
+    <function name="g">(x-1)^2</function>
+    <p name="p">[<text name="t1">$f.minima</text>][<text name="t2">$f.minimumValues</text>][$f.minima][<pointList name="pl1" extend="$f.minima"/>][<pointList name="pl2" extend="$g.minima"/>][<numberList name="nl" extend="$g.minimumValues"/>]</p>
     `);
-        expect(text).eq("[][][]");
+        // A tag of an array holds its entries, possibly none.
+        expect(text).eq("[][][][][(1, 0)][0]");
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
         ).eq("");
+        for (const name of ["pl1", "pl2", "nl"]) {
+            expect(
+                Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                ),
+                name,
+            ).eq(false);
+        }
+    });
+
+    it("makes a tag of an answer's submitted response missing before a submission", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <answer name="ans"><mathInput name="mi"/><award>x</award></answer>
+    <p name="p">[<math name="m" extend="$ans.submittedResponse"/>][<boolean>$m = $m</boolean>]</p>
+    `);
+        expect(text).eq("[＿][false]");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .valueMissing,
+        ).eq(true);
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "_blank",
+            "boolean",
+        ]);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[y][true]");
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "math",
+            "boolean",
+        ]);
     });
 
     it("shows a reference to one thing that makes nothing through a composite as a blank in a text, a p and a math", async () => {

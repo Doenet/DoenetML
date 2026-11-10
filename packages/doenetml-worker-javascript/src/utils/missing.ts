@@ -91,12 +91,12 @@ export function contentMissingDefinition() {
  * is a missing number, shown as `＿`, never equal to anything, and drawn as a
  * blank, not the `NaN` of `<number/>`. It is made from its children again
  * once a reference among them names something (`<number>$l[$i]</number>`
- * once `i` is an index of `l`), so it is missing only while they are. A
- * tag whose source is missing (`BaseComponent.isMissing`) is instead missing
- * for as long as it exists, and a new one is made once the source is there.
- * So is a component an `extend` makes of another type around what it
- * extends (`doenetAttributes.missingWhenContentMissing`, `<math
- * extend="$n"/>` of such a number).
+ * once `i` is an index of `l`), so it is missing only while they are. So,
+ * through its `valueMissing`, is a component an `extend` makes of another
+ * type around what it extends (`doenetAttributes.missingWhenContentMissing`,
+ * `<math extend="$n"/>` of such a number). A tag whose source is missing
+ * (`BaseComponent.isMissing`) is instead missing for as long as it exists,
+ * and a new one is made once the source is there.
  */
 export function missingWhenContentMissingDefinitions() {
     return {
