@@ -204,6 +204,23 @@ async function checkSavedState({
         );
     }
 
+    let coreState: unknown;
+    try {
+        coreState = JSON.parse(state.coreState);
+    } catch (e) {
+        coreState = undefined;
+    }
+    if (
+        typeof coreState !== "object" ||
+        coreState === null ||
+        Array.isArray(coreState)
+    ) {
+        throw new HeadlessError(
+            "invalidState",
+            "The saved state's `coreState` is not the JSON of an object.",
+        );
+    }
+
     if (typeof state.cid === "string" && state.cid !== "") {
         const cid = await cidFromText(doenetML);
         if (state.cid !== cid) {

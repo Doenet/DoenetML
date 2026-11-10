@@ -250,6 +250,72 @@ describe("setInput and submit", () => {
         );
     });
 
+    it("refuses a choice selection no reader could make", async () => {
+        await withCore(
+            `<answer name="c"><choiceInput name="ci">
+                <choice credit="1">red</choice><choice>green</choice><choice>blue</choice>
+            </choiceInput></answer>
+            <choiceInput name="many" selectMultiple>
+                <choice>a</choice><choice>b</choice><choice>c</choice>
+            </choiceInput>
+            <choiceInput name="cd"><choice disabled>a</choice><choice>b</choice></choiceInput>`,
+            async (core) => {
+                let error = await refusal(setInput(core, "ci", [1, 2]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("one position");
+                error = await refusal(setInput(core, "many", [2, 2]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("at most once");
+                for (const bad of [0, 4]) {
+                    error = await refusal(setInput(core, "ci", bad));
+                    expect(error.code).toBe("invalidValue");
+                }
+                error = await refusal(setInput(core, "cd", 1));
+                expect(error.code).toBe("inputDisabled");
+                expect(error.message).toContain("choice 1");
+                expect((await credits(core)).c.ifSubmit).toBe(0);
+
+                await setInput(core, "many", [3, 1]);
+                await setInput(core, "cd", 2);
+                const read = async (name: string) => {
+                    const r = await core.resolvePath(name);
+                    if (r.status !== "resolved") throw Error(name);
+                    return (
+                        await core.readProperties(r.component.componentIdx, [
+                            "selectedIndices",
+                        ])
+                    ).selectedIndices;
+                };
+                expect(await read("many")).toEqual([3, 1]);
+                expect(await read("cd")).toEqual([2]);
+            },
+        );
+    });
+
+    it("refuses a point value with more or fewer coordinates than the point", async () => {
+        await withCore(
+            `<graph><point name="P">(0,0)</point></graph><point name="Q">(0,0,0)</point>`,
+            async (core) => {
+                let error = await refusal(setInput(core, "P", [1, 2, 3]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("2 coordinates");
+                error = await refusal(setInput(core, "Q", [1, 2]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("3 coordinates");
+                await setInput(core, "Q", [1, 2, 3]);
+                const r = await core.resolvePath("Q");
+                if (r.status !== "resolved") throw Error("Q");
+                expect(
+                    (
+                        await core.readProperties(r.component.componentIdx, [
+                            "xs",
+                        ])
+                    ).xs,
+                ).toEqual([1, 2, 3]);
+            },
+        );
+    });
+
     it("submits everything under a section-wide check work", async () => {
         await withCore(
             `<section name="sec" sectionWideCheckWork>

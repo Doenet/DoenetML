@@ -23,11 +23,13 @@ export type InputTarget = string | { answer: string; position: number };
  * - `textInput`: the text, a string.
  * - `booleanInput`: a boolean.
  * - `choiceInput`: the selected choices' positions, numbered from 1 (an array,
- *   or one number), in the order the reader sees the choices.
+ *   or one number), in the order the reader sees the choices: one unless the
+ *   input has `selectMultiple`, each at most once, none of a disabled choice.
  * - `fractionInput`: `{ numerator, denominator }`, each the LaTeX typed.
  * - `matrixInput`: the LaTeX of each cell, as an array of rows; its shape must
  *   be the matrix's.
- * - `point`: its coordinates, `[x, y]` or `[x, y, z]`, moved as a drag does.
+ * - `point`: its coordinates, `[x, y]` or `[x, y, z]` as the point has,
+ *   moved as a drag does.
  */
 export type InputValue =
     | string
@@ -55,7 +57,8 @@ export const SUPPORTED_INPUT_TYPES = [
  * Refuses, with a `HeadlessError`, a target with no stable key (`noStableKey`)
  * or that names nothing (`notFound`), a component of a type it does not know
  * (`unsupportedInput`, never a guess), a disabled input or a point that cannot
- * be moved (`inputDisabled`), and a value of the wrong shape (`invalidValue`).
+ * be moved, or a disabled choice (`inputDisabled`), and a value of the wrong
+ * shape (`invalidValue`).
  */
 export async function setInput(
     core: HeadlessCore,
@@ -263,9 +266,12 @@ async function selectChoices(
     where: string,
 ) {
     const selectedIndices = typeof value === "number" ? [value] : value;
-    const { numChoices } = await core.readProperties(input.componentIdx, [
-        "numChoices",
-    ]);
+    const { numChoices, selectMultiple, choicesDisabled } =
+        await core.readProperties(input.componentIdx, [
+            "numChoices",
+            "selectMultiple",
+            "choicesDisabled",
+        ]);
     if (
         !Array.isArray(selectedIndices) ||
         !selectedIndices.every(
@@ -279,6 +285,28 @@ async function selectChoices(
         throw invalid(
             where,
             `a <choiceInput> takes the positions of the selected choices, whole numbers from 1 to ${numChoices}`,
+        );
+    }
+    const indices = selectedIndices as number[];
+    // What a reader can select: one choice at most unless the input selects
+    // several, each once, and none that is disabled. The input itself would
+    // take any list, and grade a selection no reader could make.
+    if (new Set(indices).size !== indices.length) {
+        throw invalid(where, "a <choiceInput> takes each choice at most once");
+    }
+    if (selectMultiple !== true && indices.length > 1) {
+        throw invalid(
+            where,
+            "this <choiceInput> selects one choice; it takes one position",
+        );
+    }
+    const disabledIndex = indices.find(
+        (index) => Array.isArray(choicesDisabled) && choicesDisabled[index - 1],
+    );
+    if (disabledIndex !== undefined) {
+        throw new HeadlessError(
+            "inputDisabled",
+            `${where}: choice ${disabledIndex} is disabled, so it cannot be selected.`,
         );
     }
     await core.dispatchAction({
@@ -374,6 +402,17 @@ async function movePoint(
         throw invalid(
             where,
             "a <point> takes [x, y] or [x, y, z], finite numbers",
+        );
+    }
+    const { numDimensions } = await core.readProperties(input.componentIdx, [
+        "numDimensions",
+    ]);
+    if (typeof numDimensions === "number" && value.length !== numDimensions) {
+        // A drag moves every coordinate: a coordinate left out would keep its
+        // value, and one past the point's dimensions would be dropped.
+        throw invalid(
+            where,
+            `this <point> has ${numDimensions} coordinates; it takes ${numDimensions} numbers`,
         );
     }
     const [x, y, z] = value as number[];

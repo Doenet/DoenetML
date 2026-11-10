@@ -106,6 +106,42 @@ describe("JavaScript headless core @group4", () => {
         await core.terminate();
     });
 
+    it("reports answers in document order, not source order, and not a copy that shadows one", async () => {
+        const core = await create(`
+    <repeat name="r" for="1 2" valueName="v">
+        <answer name="a">$v</answer><answer name="b">$v</answer>
+    </repeat>
+    <answer name="c">x</answer>
+    $c
+    <answer name="d" copy="$c" />
+    `);
+        expect((await core.getAnswers()).map((a) => a.stableKey)).toEqual([
+            "r[1].a",
+            "r[1].b",
+            "r[2].a",
+            "r[2].b",
+            "c",
+            "d",
+        ]);
+        await core.terminate();
+
+        // A select's options come in the order selected. Variant 1 selects
+        // the second option and then the first.
+        const select = await create(`
+    <select name="s" numToSelect="2">
+        <option><answer name="a">x</answer></option>
+        <option><answer name="a">y</answer></option>
+        <option><answer name="a">z</answer></option>
+    </select>
+    `);
+        const answers = await select.getAnswers();
+        expect(answers.map((a) => a.stableKey)).toEqual(["s[1].a", "s[2].a"]);
+        expect(answers[0].position!.start.offset).toBeGreaterThan(
+            answers[1].position!.start.offset,
+        );
+        await select.terminate();
+    });
+
     it("resolves paths from the root, telling missing from not unique", async () => {
         const core = await create(`
     <text name="t" /><text name="t" />

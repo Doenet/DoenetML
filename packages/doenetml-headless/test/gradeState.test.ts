@@ -237,6 +237,15 @@ describe("gradeState", () => {
                 );
                 expect(error.code).toBe("invalidState");
             }
+            // The right fields, but a `coreState` that is no state
+            const state = await stateAfter(twoAnswers, async () => {});
+            for (const coreState of ["not json", "null", "[]", "3"]) {
+                const error = await refusal(
+                    gradeState(twoAnswers, 1, { ...state, coreState }),
+                );
+                expect(error.code, coreState).toBe("invalidState");
+                expect(error.message).toContain("coreState");
+            }
         });
     });
 });

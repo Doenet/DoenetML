@@ -257,6 +257,29 @@ export async function createJavascriptHeadlessCore({
         return rootName === undefined ? null : rootNameToPath(rootName);
     }
 
+    /**
+     * Each component's place in a depth-first walk of the document's active
+     * children: the order a reader meets them.
+     */
+    function documentOrder(): Map<number, number> {
+        const order = new Map<number, number>();
+        const stack = [core._components[core.documentIdx]];
+        while (stack.length > 0) {
+            const next = stack.pop();
+            if (!next || order.has(next.componentIdx)) {
+                continue;
+            }
+            order.set(next.componentIdx, order.size);
+            const children = (next.activeChildren ?? []).filter(
+                (child: any) => typeof child === "object" && child,
+            );
+            for (let i = children.length - 1; i >= 0; i--) {
+                stack.push(children[i]);
+            }
+        }
+        return order;
+    }
+
     function toComponent(child: any): HeadlessComponent {
         return {
             componentIdx: child.componentIdx,
@@ -345,13 +368,21 @@ export async function createJavascriptHeadlessCore({
                     inputs: (await values.inputChildren).map(toComponent),
                 });
             }
-            // In document order: by where each is written, and, for the
-            // copies a repeat or a select makes of one template, in the
-            // order they were made.
+            // In document order: where each sits in the document as it now
+            // stands, which is not where it is written once a repeat or a
+            // select has made copies (a repeat's second answer in its first
+            // iteration comes before its first answer in the second; a
+            // select's options come in the order selected). An answer outside
+            // the document's tree goes last, by where it is written.
+            const order = documentOrder();
+            const rank = (answer: HeadlessAnswer) =>
+                order.get(answer.componentIdx) ?? Infinity;
+            const offset = (answer: HeadlessAnswer) =>
+                answer.position?.start.offset ?? Infinity;
             return answers.sort(
                 (a, b) =>
-                    (a.position?.start.offset ?? Infinity) -
-                        (b.position?.start.offset ?? Infinity) ||
+                    compare(rank(a), rank(b)) ||
+                    compare(offset(a), offset(b)) ||
                     a.componentIdx - b.componentIdx,
             );
         },
@@ -466,4 +497,9 @@ function savedStateForCore(savedState: HeadlessSavedState | null | undefined) {
         stateVariableChanges: savedState.coreState,
         initializeCounters,
     };
+}
+
+/** Compare two numbers, either of which may be `Infinity`, for a sort. */
+function compare(a: number, b: number): number {
+    return a === b ? 0 : a < b ? -1 : 1;
 }

@@ -157,13 +157,13 @@ one. A target without one is refused (`noStableKey`), never guessed.
 | `<mathInput>` | the LaTeX typed, a string |
 | `<textInput>` | the text, a string |
 | `<booleanInput>` | `true` or `false` |
-| `<choiceInput>` | the positions of the selected choices, numbered from 1 in the order the reader sees them (shuffled, if the choices are), as an array or one number |
+| `<choiceInput>` | the positions of the selected choices, numbered from 1 in the order the reader sees them (shuffled, if the choices are), as an array or one number; one position unless it has `selectMultiple`, each at most once, none of a disabled choice |
 | `<fractionInput>` | `{ numerator, denominator }`, each the LaTeX typed |
 | `<matrixInput>` | the LaTeX of every cell, as an array of rows of the matrix's current size |
-| `<point>` | its coordinates, `[x, y]` or `[x, y, z]`, moved as a drag moves it |
+| `<point>` | its coordinates, `[x, y]` or `[x, y, z]` as the point has, moved as a drag moves it |
 
 Each value is turned into the actions the input's renderer sends. Any other
-type is refused (`unsupportedInput`), as are a disabled input or a point that
+type is refused (`unsupportedInput`), as are a disabled input, a disabled choice, or a point that
 cannot be moved (`inputDisabled`, since it would ignore the value) and a value
 of the wrong shape (`invalidValue`).
 

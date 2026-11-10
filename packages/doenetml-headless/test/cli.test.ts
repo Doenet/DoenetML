@@ -163,6 +163,26 @@ describe("doenet-headless CLI", () => {
         ]);
         expect(json.code).toBe(3);
         expect(JSON.parse(json.stderr).refused).toBe("dataFormatVersion");
+
+        // Valid JSON that is not a state report is refused, not a crash
+        const notStateFile = path.join(dir, "not-state.json");
+        fs.writeFileSync(
+            notStateFile,
+            JSON.stringify({
+                ...JSON.parse(fs.readFileSync(stateFile, "utf8")),
+                coreState: "not json",
+            }),
+        );
+        const notState = await runCli([
+            "grade",
+            docFile,
+            "--variant",
+            "2",
+            "--state",
+            notStateFile,
+        ]);
+        expect(notState.code).toBe(3);
+        expect(notState.stderr).toContain("Refused (invalidState)");
     });
 
     it("exits 2 on a usage or file problem", async () => {
