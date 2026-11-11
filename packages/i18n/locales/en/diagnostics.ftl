@@ -844,6 +844,15 @@ copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored
 # stays in English.
 list-brackets-unmatched = The brackets in the list of `<{ $componentType }>` don't all match, so they are ignored: the commas or spaces inside them separate entries like any others. To keep one inside an entry, balance the brackets, or, in a list written between tags, write its entries as children.
 
+# An editor hint, not a run-time diagnostic: in a list separated by spaces
+# (`<mathList>`, `<textList>` and the other list tags), a reference written
+# with no space beside other text or another reference is part of the one
+# entry they make together, so `2$a` is one entry and `2 $a` two (#2168,
+# D40). The hint points at the entry so an author can see where the list was
+# split. $entry is the entry as written and $componentType an element name;
+# both are DoenetML, so they stay in English.
+list-reference-joins-entry = `{ $entry }` is one entry of the `<{ $componentType }>`: a reference written with no space beside the text around it is part of the same entry. To make them separate entries, put a space between them.
+
 # An `extend` is the same component again: it shares its source's content and
 # state, so it can't change what the component makes or what its state can
 # hold (#2404). Each message names the tag, what it makes, why an extend can't
