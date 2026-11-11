@@ -98,8 +98,9 @@ finishes the path after composites expand.
 - **Never a container's children.** `$g[2]` on a group, `$s[1][2]` into a picked option,
   `$cc[1][2]` into a case and `$r[1][2]` into an iteration with several components name nothing,
   with a warning and a blank, like any reference that names nothing (D37). The child is reached
-  by name instead: `$s[1].x`. There is no deprecated form (D27 revised; **known violation until
-  #2517:** each still gives the child, with `w0179`).
+  by name instead: `$s[1].x`. There is no deprecated form (D27 revised). The warning is
+  `doenet-w0188`, which says how many components the holder has and suggests the name to write
+  (`$g.b`, or "give it a name").
 - **Pass-through: one component stands for its holder.** A `<group>` (written by the author, or
   an extend or copy of one) and an instance (a pick, a shown case, an iteration, or an extend or
   copy of one) whose whole content is one component pass the next index to it. That component
@@ -114,16 +115,44 @@ finishes the path after composites expand.
     is the shown case.
   - A group stands for its content for a tag and a property as well (`<math extend="$g"/>`,
     `$g.value`); a `<span>`, `<p>` or `<div>` does not (`e0065`, `w0104`).
-  - D27 revised again (#2517, #2518). **Known violation:** pass-through applies only to
-    instances, and only when the component is a list or makes instances, not a value with
-    entries.
+  - A further index goes on into what the first reached: `$g[2][1]` of
+    `<group name="g">$ml</group>` is `$ml[2][1]`.
+  - A reference as the one component (`<group>$x</group>`) stands for what it makes: a list or a
+    composite of instances takes the index among its instances; one component takes it; several
+    name nothing (`w0188`, counting what it made, so `<group>$g</group>` of a group of four says
+    4). A value reference passes the index to its value (`$g[2]` of `<group>$m</group>` is
+    `$m[2]`).
+  - D27 revised again (#2517). **Done by #2518.**
+
+**Done by #2518** (closing #2517, #2166, #1942): the resolver decides it once, from the group's
+children, for every group (`IndexKind::of_node` / `of_content` in `RS/index_resolutions.rs`): at
+load for an authored group, and when made for a group the worker adds. A group that extends or
+copies something waits (`Pending`) until its content is made. For a reference as the one
+component, the worker says what it made (`referenceContentOf` in `W/utils/indexInstances.ts`)
+and updates it as that changes. `w0179` is retired, never released. #2166's leak is gone: an
+index after a group is never passed to several items as a property. #1942's documents no longer
+trap the resolver.
+
+Root names follow a pass-through only into a component that produces instances. A math or a
+nested group keeps the name its place gives it (`g:1`), and an unnamed component in an iteration
+keeps `r:1:2`. Some renderer ids changed: the iterations of a repeat that is a group's whole
+content can be `g:1` (was `r:1`). The id is also the `rootName` an answer's `submitted` event
+reports (Tier 3).
+
+Known violations (#2520):
+- options or cases that differ, some holding one component and some several, aren't warned of at
+  load, so what `$s[1][2]` means depends on the branch shown;
+- an index past the end of a `<conditionalContent>`'s shown cases is applied as a property to what
+  the case holds (`$cc[2]` is `7, 9` for a case holding `(6,7)` and `(8,9)`), as #2166 was for a
+  group;
+- through a reference to a group holding a repeat, an index past the iterations is silent, not
+  `w0181`; `$s[1][1]` of `<option>$g</option>` (`g` holding one scalar) is `w0100` at info level,
+  where `<option>$m</option>` warns; an extend of an iteration holding `$cc.x` doesn't follow the
+  case switching; `w0188`'s suggestion can name a `<setup>`.
 
 Done by #2424 (instances) and #2431 (values). Diagnostics, each quoting what was written:
-- **`doenet-w0179`, deprecation:** child indexing (`$g[2]`, `$s[1][2]` into a pick that is not one
-  indexable component, `$cc[1][2]`) still gives the child, and the warning names the form to
-  write. A `<conditionalContent>`'s case keeps child indexing, deprecated. **Being removed**
-  (#2517): every form, including an iteration's children, an extend of an iteration and a group
-  reached through `<collect>`, will name nothing with a warning;
+- **`doenet-w0188`:** an index after a group or instance that doesn't hold one component (#2518;
+  it replaced the deprecation `w0179`, which gave the child);
 - **`doenet-w0180`:** an index on something that takes none (`$sec[2]`);
 - **`doenet-w0181`:** past the end of a repeat, select, `selectFromSequence`, shuffle, sort or
   collect that stays a composite ("the `<select>` made only 2 picks"). Past the end of a list is
@@ -146,15 +175,18 @@ Evidence: `T/copying/indexSelectsInstances.test.ts`, `T/copying/index_into_value
 - an index never reaches the `<setup>` a repeat adds;
 - an index into a scalar entry of a `<mathList>` is missing with `w0100`, and refuses a write;
 - an index past the content of an iteration that holds something other than one list or repeat
-  is the deprecated child index, `w0104` (it used to be silent). After #2517 any child index of
-  an iteration names nothing.
+  is the deprecated child index, `w0104` (it used to be silent). Since #2518 it is `w0188`, or
+  passes through when the iteration holds one component.
+
+**Done by #2518** (closing #2478): `$nl[2][1]` of a `<numberList>`, `<textList>` or
+`<booleanList>` entry, an extra index on an array entry named directly (`$line.point1[2][1]`),
+`$pl[2].xs[1][1]`, and an index into a selector's or sampler's pick give `w0100`.
+`$pl[2].value[$one]` reads as `$pl[2].value[1]`. `<group extend="$r[1]"/>` of an iteration
+missing at load follows it as it appears. Past the end, `$nl[4][1]` gives `w0100` (the entry type
+decides), while `$ml[4][1]` stays silent. An alias of an array's first entry still selects among
+the entries (`$P.x[2]`, `$P.x1[2]` is `x2`, `$ode.numericalSolution[2]`), as before.
 
 Known violations:
-- `$nl[2][1]` of a `<numberList>` or `<textList>` entry is silent; an extra index on an array
-  entry named directly (`$line.point1[2][1]`) is dropped; `$pl[2].xs[1][1]` gives `w0180`; and
-  `<group extend="$r[1]"/>` of an iteration missing at load doesn't fully follow it appearing;
-  and an index into a number a `<selectFromSequence>` picked (`$s[1][1]`) is `＿` with no
-  warning, where an index into a `<number>` gives `w0100` (#2478);
 - `w0181` is a warning even when the count comes from a value that can change, such as a repeat
   of `length="$n"`, which DIAG-2 makes an info (#2422).
 
@@ -166,9 +198,6 @@ Limits:
   today. About 20 assertions are commented out with `XXX: restore` at
   `T/copying/extend_references.test.ts:4703`. Whether they are a guarantee is an open question
   ([decisions.md](decisions.md), D19).
-- **An index into a composite of references** (`$g[1]` with `<group name="g">$x</group>`) can
-  panic the resolver (#1942). Under D27 (revised), indexing a group's children names nothing, so
-  this form gives a warning instead (#2517).
 
 ### NAME-3: names inside a copy or a repeat iteration are private (Tier 1)
 A copy brings its content's names into existence only beneath the copy's own name. A bare `$h`
@@ -232,8 +261,11 @@ through another component (`xmin="$p"` with `<number name="p">$xmin</number>` in
 **Names in the arguments of a function reference that names nothing (decided, D40; #2489).** In
 `$$f(<math name="m">x</math>)` where `f` names nothing, `m` is still made, as if written in a
 `<setup>`: `$m` is `x`, and an outer `m` in the same scope makes it ambiguous (`w0105`), as a
-`<setup>` name would. **Known violation:** today the argument components are not made and their
-names point at the failed reference, so `$m` is `＿`, or ambiguous beside an outer `m`.
+`<setup>` name would. **Done by #2518** (closing #2489): `ref_expand.rs` puts the arguments in a
+`<setup>`, and `compactify`'s redirect of their names is gone. Accepted consequences: that setup
+takes a position among its parent's children, so a stateful sibling after it gets a new
+`stateId` (saved state from before doesn't reload into it), and a choice in the arguments counts
+toward the document's variants, as one in a written `<setup>` does.
 
 ### NAME-5: an attribute resolves as if it were written in a child of its component (Tier 2)
 The search order is NAME-1's nearest scope, from a child and from an attribute alike:
@@ -672,8 +704,8 @@ Evidence: `T/copying/type_change.test.ts`, `T/copying/type_change_run_time.test.
 Not decided yet (behave as before): content holding a list (written there or by a bare `$l`), a
 list or `<group>` written as the tag, internal list forms, and unresolved paths. An index after a
 reference to a copy (`$a1[2]` of `<group name="a1" extend="$a"/>`) selects a child of the copy,
-not a pick of what it copies, so it is left to run time (compare B26). After #2517 it names
-nothing, so there is nothing left to decide.
+not a pick of what it copies, so it is left to run time (compare B26). Since #2518 the rule
+decides it: the copy passes the index through if it holds one component, else names nothing.
 
 **Done by #2484** (closing #2440, #2429, #2437; B22, B24, B30): an input written as a related
 tag reads its value, so `<point extend="$mi"/>` is `(1, 2)` and dragging it edits `mi`. A boolean
@@ -803,7 +835,7 @@ Known bugs, open: #2217, #2211 (with children, and `indexName`), and the copy ha
   Evidence: `T/copying/extend_references.test.ts:6549` "reference inside composite adds to index
   resolution but not names". That test also asserts that `$sec2.g[1].t` reaches `t` by its
   position in the group. That part changes under D27, which decides that an index never selects
-  a child of a group (#2517).
+  a child of a group (#2518).
 
 To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.
 
