@@ -157,15 +157,17 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
     shown where the tag is written, as if written there. Content it repeats, picks or gathers
     is separated by commas, as a list is. (COMP-1, COMP-2)
 
-    What an index or a property after a tag reaches depends on what the tag is to you:
+    What an index, a name or a property after a tag reaches depends on what the tag is to you:
     - **one thing** (a point, a vector, a matrix, a math holding a tuple) has its own properties,
       and an index reaches an entry of its value;
-    - **many things** (a list, a collect, a sort or shuffle, a repeat, a select, a conditional)
-      are indexed by item, and a property or a name after them applies to each item, except
-      `numItems` and settings such as `hide`, which are the collection's own;
-    - **a wrapper** (a group, and each iteration, pick or shown case) stands for the one thing it
-      holds. When it holds several, name the one you mean: an index or a property after it names
-      nothing.
+    - **many things** (a list, a collect, a sort or shuffle, a repeat, a select, a conditional):
+      an index picks an item, and a name or a property reaches into every item. A name always
+      works (`$r.P`). A property works when each item is one component: every list entry, or
+      what you write inside a repeat, in each option or in each case. When that holds several
+      components, name the one you mean: `$r.P.x`. `numItems` and settings such as `hide` are
+      the collection's own;
+    - **a `<group>`** holding one component stands for it; holding several, name the one you
+      mean.
 
     A `<sort>` or `<shuffle>` takes one type; a shuffle of groups shuffles them as units. (COLL-1
     to COLL-4, D41)

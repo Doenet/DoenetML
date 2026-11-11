@@ -124,17 +124,27 @@ neither the dual implementation nor the guard list of about 40 forms that must s
 (`repeatValueLists.test.ts:836-920`). Keep the observable expectations and drop the "which form
 was built" assertions.
 
-### COLL-1: one thing, many things, and wrappers (Tier 1; D41)
-> **What an index or a property after a tag reaches depends on what the tag is to you, not on
-> how it is built.** A tag is one thing, many things, or a wrapper:
+### COLL-1: one thing or many things (Tier 1; D41)
+> **What an index, a name or a property after a tag reaches depends on what the tag is to you,
+> not on how it is built.**
 > - **One thing** (a point, a vector, a matrix, a math holding a tuple) has its own properties.
 >   An index reaches an entry of its value.
 > - **Many things** (a list, a sequence, a collect, a sort or shuffle, a repeat, a select, a
->   conditional, the random choosers) are indexed by item, and a property or a name after them
->   applies to each item, except the few that belong to the collection itself: `numItems` and the
->   settings every component has, such as `hide`.
-> - **A wrapper** (a group, and each iteration, pick or shown case) stands for the one thing it
->   holds. When it holds several, name the one you mean.
+>   conditional, the random choosers): an index picks an item, and a name or a property reaches
+>   into every item.
+>   - **A name always works:** `$r.P` is the `P` from every item, as `$r[2].P` is the `P` from
+>     item 2.
+>   - **A property works when each item is one component:** every list entry, and a repeat,
+>     select or conditional where what you write inside the repeat, in each option or in each
+>     case is one component. `$r.x` is every item's `x`.
+>   - **When what you write for an item holds several components,** a property can't tell which
+>     you mean: name it and write `$r.P.x`.
+> - **A `<group>`** holding one component stands for it. Holding several, name the one you mean.
+
+How this is built from smaller rules is Tier 2: an item of a repeat, select or conditional is a
+*wrapper* (an iteration, a pick or a shown case), as a `<group>` is, and a property after a
+collection applies to each item and then through the wrapper (COLL-2 with COLL-3). Authors don't
+need the word.
 
 The kinds, precisely (Tier 2):
 - **One thing:** a point, vector, coords, a math holding a tuple or vector, a matrix, a math or
@@ -149,13 +159,16 @@ The kinds, precisely (Tier 2):
 Whether a tag is built as a composite or a list component never changes which kind it is
 (COMP-4).
 
-### COLL-2: a collection is indexed by item, and a property or name applies to each item (Tier 1; D41)
+### COLL-2: a collection is indexed by item, and a property or name applies to each item (Tier 2; D41)
 - **Index:** an item (NAME-2).
 - **Property:** each item's (`$pl.x` is `1, 3`). An item that lacks it gives a blank, with a
   warning decided at load (#2452).
 - **Name:** each item's component of that name: `$r.P` is every iteration's `P`, and `$s.P.x` each
   pick's `P`'s x. The name must be declared in every option or case, with one type (COMP-11);
-  a repeat's template declares it in every iteration.
+  what is written inside a repeat declares it in every iteration.
+- **Options or cases that differ** (some holding one component, some several): a property or an
+  index after the select or conditional works only for some branches, so the author gets a
+  warning at load naming the branches that hold several (#2520 item 1).
 - **Own properties, a fixed set:** `numItems` (entries, iterations, picks; 0 or 1 for a
   conditional), and the settings every component has (`hide`, `fixed`, `disabled`). They win
   over the items' properties of the same name; an item that is itself a collection is reached by
@@ -170,7 +183,10 @@ Whether a tag is built as a composite or a list component never changes which ki
 - a name after a collection names nothing (`$rmix.P`) or is ambiguous (`$s.P.x`, `w0105`);
 - an item lacking a property is dropped silently (`$rmix.x` over a point and a text is `1, 2`).
 
-### COLL-3: a wrapper stands for its one component; with several, it is only a container (Tier 1; D41)
+### COLL-3: a wrapper stands for its one component; with several, it is only a container (Tier 2; D41)
+A wrapper is a `<group>`, or an item a repeat, select or conditional makes: an iteration, a pick
+or a shown case. Authors see a `<group>` (COLL-1's last bullet); the others they meet only as
+"what you write for an item".
 - **One component:** a tag, an index or a property after the wrapper applies to that component
   (`<math extend="$g"/>`, `$g[2]`, `$g.x`). "One component" ignores blank text, comments and a
   `<setup>`, and is decided at load (NAME-2).
