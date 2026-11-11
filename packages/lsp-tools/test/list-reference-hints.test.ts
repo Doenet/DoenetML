@@ -106,6 +106,28 @@ describe("list reference hints", () => {
         expect(await hints(`${A}<textList>&amp;$a 3</textList>`)).toEqual([]);
     });
 
+    it("gives no hint in an empty list", async () => {
+        expect(await hints(`${A}<mathList></mathList>`)).toEqual([]);
+        expect(await hints(`${A}<mathList> \n\t </mathList>`)).toEqual([]);
+        expect(await hints(`${A}<mathList/>`)).toEqual([]);
+    });
+
+    it("reads tabs as spaces and ignores brackets that do not balance", async () => {
+        expect(await hintedText(`${A}<mathList>x\t2$a</mathList>`)).toEqual([
+            "2$a",
+        ]);
+        // Unbalanced, the brackets group nothing: `(2$a` is one entry.
+        expect(await hintedText(`${A}<mathList>(2$a 3</mathList>`)).toEqual([
+            "(2$a",
+        ]);
+    });
+
+    it("reads the tag name as the worker does", async () => {
+        expect(await hintedText(`${A}<MathList>2$a 3</MathList>`)).toEqual([
+            "2$a",
+        ]);
+    });
+
     it("points into a list written over several lines", async () => {
         const source = `${A}\n<mathList>\n  x\n  2$a\n</mathList>`;
         const found = await hints(source);

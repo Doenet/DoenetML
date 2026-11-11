@@ -1060,6 +1060,33 @@ describe.skipIf(!wasmAvailable)(
             expect(noIndex!.visibleDescendantNames).toEqual([]);
         });
 
+        it("$rep[n]. lists branch names in a repeatForSequence, through a group, and not inside a nested repeat", async () => {
+            const cc = `<conditionalContent><case condition="true"><math name="x">1</math></case><else><math name="x">2</math></else></conditionalContent>`;
+            // `$rfs[1].x` and `$rep[1].x` (the container in a group) resolve
+            // to the active branch's `x`.
+            expect(
+                await refNameLabels(
+                    `<repeatForSequence name="rfs" from="1" to="2">${cc}</repeatForSequence>\n<p>$rfs[1].`,
+                ),
+            ).toContain("x");
+            expect(
+                await refNameLabels(
+                    `<repeat name="rep" for="1 2"><group>${cc}</group></repeat>\n<p>$rep[1].`,
+                ),
+            ).toContain("x");
+            // `$outer[1].m` for an `m` in a nested repeat names nothing
+            // (it needs `$outer[1].inner[n].m`).
+            const nested = `<repeat name="outer" for="1 2"><repeat name="inner" for="a b"><math name="m">1</math></repeat></repeat>\n<p>$outer[1].`;
+            const outerLabels = await refNameLabels(nested);
+            expect(outerLabels).toContain("inner");
+            expect(outerLabels).not.toContain("m");
+            expect(
+                await refNameLabels(
+                    nested.replace("$outer[1].", "$outer[1].inner[2]."),
+                ),
+            ).toContain("m");
+        });
+
         it("offers no property after an index on a component that takes none", async () => {
             // `$v[1].head.x` for a plain vector `v` names nothing (runtime
             // `doenet-w0180`), so `$v[1].head.` offers no alias (issue
@@ -1084,6 +1111,30 @@ describe.skipIf(!wasmAvailable)(
             ).toEqual(expect.arrayContaining(["x", "y", "z"]));
             // An index further along (`$v.head[1].`) is not on `v`, and
             // is left to the alias chase as before.
+        });
+
+        it("offers no property after a wrong index earlier in a longer path", async () => {
+            // `$sec.v[1].head.x`, `$sec[1].v.head.x` and `$rep.v.head.x` name
+            // nothing at runtime; `$sec.v.head.x` and `$rep[1].v.head.x` are
+            // the coordinate.
+            const sec = `<section name="sec"><vector name="v" head="(1,2)"/></section>\n<p>`;
+            const rep = `<repeat name="rep" for="1 2"><vector name="v" head="(1,2)"/></repeat>\n<p>`;
+            for (const source of [
+                `${sec}$sec.v[1].head.`,
+                `${sec}$sec[1].v.head.`,
+                `${rep}$rep.v.head.`,
+                `${rep}$rep[1].v[1].head.`,
+            ]) {
+                expect(await refNameLabels(source)).toEqual([]);
+            }
+            for (const source of [
+                `${sec}$sec.v.head.`,
+                `${rep}$rep[1].v.head.`,
+            ]) {
+                expect(await refNameLabels(source)).toEqual(
+                    expect.arrayContaining(["x", "y", "z"]),
+                );
+            }
         });
 
         it("does not read a branch tag written in another case as a branch", async () => {
