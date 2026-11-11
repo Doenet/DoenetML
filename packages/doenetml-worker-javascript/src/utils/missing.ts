@@ -97,25 +97,63 @@ export function contentMissingDefinition() {
  * `<math extend="$n"/>` of such a number). A tag whose source is missing
  * (`BaseComponent.isMissing`) is instead missing for as long as it exists,
  * and a new one is made once the source is there.
+ *
+ * A shape is also missing while a point among those an attribute gives it
+ * (`entriesAttributes`, `BaseComponent.missingWhenEntriesMissing`) is
+ * missing, and a shape that is not made from its children
+ * (`contentMissing` false: a `<line>`, `<lineSegment>` or `<angle>`) is
+ * missing only then (D40).
  */
-export function missingWhenContentMissingDefinitions() {
+export function missingWhenContentMissingDefinitions({
+    contentMissing = true,
+    entriesAttributes = [],
+}: {
+    contentMissing?: boolean;
+    entriesAttributes?: string[];
+} = {}) {
     return {
-        contentMissing: contentMissingDefinition(),
+        ...(contentMissing
+            ? { contentMissing: contentMissingDefinition() }
+            : {}),
         valueMissing: {
             returnDependencies: () => ({
-                contentMissing: {
-                    dependencyType: "stateVariable",
-                    variableName: "contentMissing",
-                },
+                ...(contentMissing
+                    ? {
+                          contentMissing: {
+                              dependencyType: "stateVariable",
+                              variableName: "contentMissing",
+                          },
+                      }
+                    : {}),
+                // A point among the points a shape is made from that is
+                // missing (`entriesMissing`): `<polygon vertices="(1,0)
+                // $nothing (0,1)"/>`, `<angle through="… $pl[3]"/>` (D40).
+                ...Object.fromEntries(
+                    entriesAttributes.map((attributeName) => [
+                        `entries_${attributeName}`,
+                        {
+                            dependencyType: "attributeComponent",
+                            attributeName,
+                            variableNames: ["entriesMissing"],
+                        },
+                    ]),
+                ),
             }),
             definition({
                 dependencyValues,
             }: {
-                dependencyValues: { contentMissing: boolean };
+                dependencyValues: Record<string, any>;
             }) {
+                const entryMissing = entriesAttributes.some((attributeName) =>
+                    dependencyValues[
+                        `entries_${attributeName}`
+                    ]?.stateValues?.entriesMissing?.some(Boolean),
+                );
                 return {
                     setValue: {
-                        valueMissing: Boolean(dependencyValues.contentMissing),
+                        valueMissing:
+                            Boolean(dependencyValues.contentMissing) ||
+                            entryMissing,
                     },
                 };
             },

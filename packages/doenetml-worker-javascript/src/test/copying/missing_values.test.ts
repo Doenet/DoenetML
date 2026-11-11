@@ -989,20 +989,80 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         ]);
     });
 
-    it("skips such a reference in a list of points, which has no blank to draw", async () => {
-        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
-    <pointList name="pl">(1,2)</pointList>
-    <booleanList name="bl">true</booleanList>
-    <p name="p">[<pointList>$pl[3] (3,4)</pointList>][<booleanList>$bl[3] true</booleanList>]</p>
-    <graph><angle name="A" through="(1,0) (0,0) $pl[3]" /></graph>
-    `);
-        expect(text).eq("[(3, 4)][＿, true]");
-        // two points, so the angle's default, not one through a point made up
-        const stateVariables = await core.returnAllStateVariables(false, true);
+    it("makes a blank entry of a list of points missing, not drawn, and a shape made from it missing", async () => {
+        // A missing point is not `<point/>`'s (0, 0) (VAL-5): it shows `＿`
+        // inline and is not drawn, and a shape whose points include it is
+        // missing (D40), until the reference names a point again.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <point name="M" extend="$nothing"/>
+    <graph name="g">
+      <pointList name="q">$pts[$i] (5,6)</pointList>
+      <angle name="A" through="(1,0) (0,0) $pts[$i]" />
+      <polygon name="poly" vertices="(1,0) (0,0) $pts[$i]" />
+      <polygon name="poly2" vertices="(1,0) (0,0) $M" />
+      <lineSegment name="ls" endpoints="(1,0) $pts[$i]" />
+      <circle name="c" through="(1,0) $pts[$i] (0,1)" />
+      <line name="l" through="(1,0) $pts[$i]" />
+    </graph>
+    <p name="p">[$q][$q[1]][$q[1].x][<point extend="$q[1]"/>]</p>
+    `,
+        });
+        const shapes = ["A", "poly", "ls", "c", "l"];
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("q")).entriesMissing).eqls([missing, false]);
+            for (const name of shapes) {
+                expect((await sv(name)).valueMissing, name).eq(missing);
+            }
+            expect((await sv("poly2")).valueMissing).eq(true);
+            const rendererState =
+                core.core!.rendererInstructionBuilder.rendererState;
+            const drawn = rendererState[
+                await resolvePathToNodeIdx("g")
+            ].childrenInstructions.map((child: any) => child.rendererType);
+            const blank = missing ? "_blank" : undefined;
+            expect(drawn).eqls([
+                blank ?? "point",
+                "point",
+                blank ?? "angle",
+                blank ?? "polygon",
+                "_blank",
+                blank ?? "lineSegment",
+                blank ?? "circle",
+                blank ?? "line",
+            ]);
+        }
+        let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("A")].stateValues.radians
-                .tree,
-        ).closeTo(Math.PI / 2, 1e-12);
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿, (5, 6)][＿][＿][＿]");
+        await check(true);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[(3, 4), (5, 6)][(3, 4)][3][(3, 4)]");
+        await check(false);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(true);
     });
 
     it("shows a list tag over an index that names nothing as one blank entry", async () => {

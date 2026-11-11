@@ -13,6 +13,7 @@ import { returnStickyGroupDefinitions } from "../utils/constraints";
 import { evaluateToNumber } from "../utils/math";
 
 export default class Polyline extends GraphicalComponent {
+    static missingWhenEntriesMissing = ["vertices"];
     constructor(args) {
         super(args);
 

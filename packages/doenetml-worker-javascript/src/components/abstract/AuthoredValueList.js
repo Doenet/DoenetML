@@ -1291,6 +1291,9 @@ export default class AuthoredValueList extends ValueListComponent {
             entryPrefixes: ["entryMissing"],
             // A reference to the whole list reads the list's.
             shadowVariable: true,
+            // an entry is drawn as a blank while it is missing
+            // (`RendererInstructionBuilder.childrenToRenderOf`)
+            markStale: () => ({ updateParentRenderedChildren: true }),
             returnArraySizeDependencies: () => ({
                 numEntries: {
                     dependencyType: "stateVariable",

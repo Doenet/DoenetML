@@ -337,6 +337,7 @@ export default class BaseComponent {
         return (
             !this.isMissing &&
             (this.constructor.missingWhenContentMissing ||
+                this.constructor.missingWhenEntriesMissing.length > 0 ||
                 Boolean(
                     this.doenetAttributes.missingWhenContentMissing ||
                     this.doenetAttributes.missingWhileEntryEmpty ||
@@ -357,6 +358,16 @@ export default class BaseComponent {
      * `＿ + 1`), nor on a container (`<p>`), which shows the blank inline.
      */
     static missingWhenContentMissing = false;
+
+    /**
+     * The attributes giving a shape its points (`vertices`, `through`,
+     * `endpoints`, each a `pointList`) whose missing entry makes it missing
+     * (D40, VAL-5): `<polygon vertices="(1,0) (0,0) $pl[3]"/>` while `pl` has
+     * two points is a missing polygon, not drawn, rather than one with a
+     * vertex at the origin, and is made from its points again when the
+     * entry is there (`missingWhenContentMissingDefinitions`).
+     */
+    static missingWhenEntriesMissing = [];
 
     /**
      * Whether this component is missing (D37): a tag whose source is
@@ -1202,10 +1213,16 @@ export default class BaseComponent {
             },
         };
 
-        if (this.missingWhenContentMissing) {
+        if (
+            this.missingWhenContentMissing ||
+            this.missingWhenEntriesMissing.length > 0
+        ) {
             Object.assign(
                 stateVariableDefinitions,
-                missingWhenContentMissingDefinitions(),
+                missingWhenContentMissingDefinitions({
+                    contentMissing: this.missingWhenContentMissing,
+                    entriesAttributes: this.missingWhenEntriesMissing,
+                }),
             );
         }
 

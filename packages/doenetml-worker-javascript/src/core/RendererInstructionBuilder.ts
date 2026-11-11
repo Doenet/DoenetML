@@ -125,6 +125,12 @@ export class RendererInstructionBuilder {
      * the index of its node in the resolver.
      */
     listEntryIndexContent: Map<number, string>;
+    /**
+     * Whether the renderer of each list entry, by its renderer index, draws
+     * it as a blank, as an entry for a reference that names nothing is
+     * (D40, `entriesMissing`).
+     */
+    listEntryDrawnMissing: Map<number, boolean>;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -141,6 +147,7 @@ export class RendererInstructionBuilder {
         this.listEntryOfRendererIdx = new Map();
         this.listEntryNodesInResolver = new Set();
         this.listEntryIndexContent = new Map();
+        this.listEntryDrawnMissing = new Map();
     }
 
     /**
@@ -157,6 +164,7 @@ export class RendererInstructionBuilder {
         this.listEntryOfRendererIdx = new Map();
         this.listEntryNodesInResolver = new Set();
         this.listEntryIndexContent = new Map();
+        this.listEntryDrawnMissing = new Map();
     }
 
     /**
@@ -313,11 +321,16 @@ export class RendererInstructionBuilder {
                         )
                     ).items.entries()) {
                         if (item.listEntry) {
+                            // and whether the entry is drawn as a blank (D40)
                             currentChildIdentifiers.push(
                                 `nameType:${this.rendererIdxForListEntry(
                                     item.listEntry.list,
                                     item.listEntry.entryIndex,
-                                )};${item.listEntry.list.constructor.listEntryComponentType}`,
+                                )};${item.listEntry.list.constructor.listEntryComponentType}${blankSuffix(
+                                    item.listEntry.missing
+                                        ? BLANK_RENDERER_TYPE
+                                        : undefined,
+                                )}`,
                             );
                         } else if (item.child === null) {
                             currentChildIdentifiers.push("");
@@ -435,15 +448,20 @@ export class RendererInstructionBuilder {
                 const list = this.core._components[componentIdx];
                 for (const [entryIndex, entryIdx] of listEntryIndices) {
                     if (list && entryIdx in this.componentsToRender) {
+                        const missing =
+                            this.listEntryDrawnMissing.get(entryIdx) ?? false;
                         const stateValues = await this.listEntryRendererState(
                             list,
                             entryIndex,
+                            missing,
                         );
                         this.rendererState[entryIdx] = { stateValues };
                         rendererStatesToUpdate.push({
                             componentIdx: entryIdx,
                             stateValues,
-                            rendererType: list.rendererType,
+                            rendererType: missing
+                                ? BLANK_RENDERER_TYPE
+                                : list.rendererType,
                         });
                     }
                 }
@@ -735,6 +753,12 @@ export class RendererInstructionBuilder {
             } else if (this.isListComponent(child)) {
                 const numEntries = await child.stateValues.numEntries;
                 const entriesHidden = await this.listEntriesHidden(child);
+                // an entry for a reference that names nothing is drawn as a
+                // blank (D40, `entriesMissing`)
+                const entriesMissing =
+                    "entriesMissing" in child.state
+                        ? await child.stateValues.entriesMissing
+                        : undefined;
                 for (
                     let entryIndex = 0;
                     entryIndex < numEntries;
@@ -743,7 +767,15 @@ export class RendererInstructionBuilder {
                     items.push(
                         entriesHidden?.[entryIndex]
                             ? { child: null }
-                            : { listEntry: { list: child, entryIndex } },
+                            : {
+                                  listEntry: {
+                                      list: child,
+                                      entryIndex,
+                                      missing: Boolean(
+                                          entriesMissing?.[entryIndex],
+                                      ),
+                                  },
+                              },
                     );
                 }
             } else {
@@ -885,6 +917,7 @@ export class RendererInstructionBuilder {
             return this.initializeListEntryInstruction(
                 item.listEntry.list,
                 item.listEntry.entryIndex,
+                item.listEntry.missing,
             );
         }
         const child = item.child;
@@ -938,22 +971,28 @@ export class RendererInstructionBuilder {
      * What the renderer of entry `entryIndex` of `list` is sent: each
      * variable the renderer of the entry's type reads, from the list's
      * variable for it (`listEntryStateVariables`), the entry's own value of
-     * one that holds a value per entry (`listPerEntryVariables`).
+     * one that holds a value per entry (`listPerEntryVariables`). Of an
+     * entry drawn as a blank (`missing`), only whether it is hidden.
      */
     async listEntryRendererState(
         list: any,
         entryIndex: number,
+        missing = false,
     ): Promise<Record<string, any>> {
         const listClass = list.constructor;
         const stateValues: Record<string, any> = {};
-        for (const name of [
-            ...Object.keys(
-                this.core.rendererVariablesByComponentType[
-                    listClass.listEntryComponentType
-                ],
-            ),
-            ...listClass.listEntryAdditionalRendererVariables,
-        ]) {
+        // An entry drawn as a blank (D40) is sent only whether it is hidden,
+        // as a value reference drawn as one is (`rendererStateValuesOf`).
+        for (const name of missing
+            ? ["hidden"]
+            : [
+                  ...Object.keys(
+                      this.core.rendererVariablesByComponentType[
+                          listClass.listEntryComponentType
+                      ],
+                  ),
+                  ...listClass.listEntryAdditionalRendererVariables,
+              ]) {
             const listVariable = listClass.listEntryStateVariables[name];
             if (listVariable === undefined || !(listVariable in list.state)) {
                 continue;
@@ -978,9 +1017,15 @@ export class RendererInstructionBuilder {
     async initializeListEntryInstruction(
         list: any,
         entryIndex: number,
+        missing = false,
     ): Promise<any> {
         const entryIdx = this.rendererIdxForListEntry(list, entryIndex);
-        const stateValues = await this.listEntryRendererState(list, entryIndex);
+        this.listEntryDrawnMissing.set(entryIdx, missing);
+        const stateValues = await this.listEntryRendererState(
+            list,
+            entryIndex,
+            missing,
+        );
 
         this.rendererState[entryIdx] = {
             stateValues,
@@ -988,10 +1033,13 @@ export class RendererInstructionBuilder {
         };
         this.componentsToRender[entryIdx] = { children: [] };
 
+        // a blank takes no action: it is not drawn in a graph, and can't be
+        // dragged or clicked (VAL-5)
         const actions: Record<string, any> = {};
-        for (const actionName of LIST_ENTRY_ACTIONS[
-            list.constructor.listEntryComponentType
-        ] ?? []) {
+        for (const actionName of missing
+            ? []
+            : (LIST_ENTRY_ACTIONS[list.constructor.listEntryComponentType] ??
+              [])) {
             actions[actionName] = { actionName, componentIdx: entryIdx };
         }
 
@@ -1001,7 +1049,7 @@ export class RendererInstructionBuilder {
                 effectiveIdx: entryIdx,
                 id: `${this.getRendererId(list)}:${entryIndex + 1}`,
                 componentType: list.constructor.listEntryComponentType,
-                rendererType: list.rendererType,
+                rendererType: missing ? BLANK_RENDERER_TYPE : list.rendererType,
                 actions,
                 position: list.position,
             },
