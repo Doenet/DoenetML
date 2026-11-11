@@ -253,7 +253,11 @@ async function resolveCopyTags(
     const referenced: {
         node: DastElement;
         parent: DastElement | DastRoot;
-        referentType: Promise<ReferentInfo>;
+        /**
+         * With `standsForGroup` when a `componentIndex="1"` into a group holding one
+         * component was dropped (`holdsOneComponent`).
+         */
+        referentType: Promise<ReferentInfo & { standsForGroup: boolean }>;
         referentName: string;
         /**
          * The `prop`, `propIndex` and `componentIndex` attributes, now said by the
@@ -274,7 +278,8 @@ async function resolveCopyTags(
         if (!reference) {
             return;
         }
-        const { referentName, consumedKeys } = reference;
+        const { referentName, consumedKeys, source, componentIndex } =
+            reference;
 
         // `assignNames` has already become a `name` in `upgradeCopyElements`, which runs
         // early enough to register the renames this pass would be too late for.
@@ -282,13 +287,23 @@ async function resolveCopyTags(
         referenced.push({
             node,
             parent: parents[0] ?? tree,
-            referentType: findReferentType(
-                core,
-                referentName,
-                parents,
-                context,
-                tree,
-            ),
+            referentType: (async () => {
+                const standsForGroup =
+                    componentIndex === "1" &&
+                    (await holdsOneComponent(core, source));
+                return {
+                    ...(await findReferentType(
+                        core,
+                        standsForGroup
+                            ? referentName.replace(`${source}[1]`, source)
+                            : referentName,
+                        parents,
+                        context,
+                        tree,
+                    )),
+                    standsForGroup,
+                };
+            })(),
             referentName,
             consumedKeys,
         });
@@ -307,7 +322,21 @@ async function resolveCopyTags(
                 componentType: referentType,
                 isMultiple,
                 path: referentPath,
+                standsForGroup,
             } = await referentPromise;
+
+            // The group stands for its one component, which the v0.6 copy made, so
+            // the reference to the group says it all, as v0.6's macro did. With
+            // anything more to say, it is an extend of the group.
+            if (standsForGroup && onlySaysWhatItCopies(node, consumedKeys)) {
+                parent.children.splice(parent.children.indexOf(node), 1, {
+                    type: "macro",
+                    path: referentPath,
+                    attributes: {},
+                });
+                converted++;
+                continue;
+            }
 
             // v0.7 has no `link`: an `extend` attribute is always linked and a `copy`
             // attribute never is, so the choice between them says it instead.
@@ -419,9 +448,16 @@ async function resolveCopyTags(
  * attributes that path now says; `undefined` for a copy with no `source`, or one of
  * another document.
  */
-function copyReference(
-    node: DastElement,
-): { referentName: string; consumedKeys: string[] } | undefined {
+function copyReference(node: DastElement):
+    | {
+          referentName: string;
+          consumedKeys: string[];
+          /** The `source`, as written. */
+          source: string;
+          /** The `componentIndex`, if there is one. */
+          componentIndex?: string;
+      }
+    | undefined {
     // A `uri` still on a `<copy>` means `upgradeCopyElements` declined to convert it
     // and reported why. Its target is another document, so resolving a `source`
     // against *this* one would rename the element and leave the `uri` behind on
@@ -446,8 +482,10 @@ function copyReference(
     // v0.6 picked out one replacement of a composite source with `componentIndex`
     // and one entry of an array prop with `propIndex`. v0.7 says both with an index
     // in the reference: `$s[2]`, `$poly.vertices[2][1]`. An index after a `<group>`
-    // names nothing in v0.7, so a `componentIndex` into one does not resolve and
-    // the `<copy>` is left as it was.
+    // holding several components names nothing in v0.7, so a `componentIndex` into
+    // one does not resolve and the `<copy>` is left as it was. A group holding one
+    // component passes an index on to it, so `componentIndex="1"`, which meant that
+    // component, becomes the group itself, which stands for it (`holdsOneComponent`).
     const componentIndexKey = findAttr("componentindex");
     const propIndexKey = findAttr("propindex");
     // These attributes are noted but not removed yet: if the referent cannot be
@@ -455,10 +493,13 @@ function copyReference(
     // quietly widen what it copies while the diagnostic claims the tag was
     // untouched.
     const consumedKeys: string[] = [];
+    const source = referentName;
+    let componentIndex: string | undefined;
     if (componentIndexKey) {
         const index = toXml(node.attributes[componentIndexKey].children).trim();
         if (index) {
             referentName += `[${index}]`;
+            componentIndex = index;
             consumedKeys.push(componentIndexKey);
         }
     }
@@ -478,7 +519,35 @@ function copyReference(
         }
         consumedKeys.push(propKey);
     }
-    return { referentName, consumedKeys };
+    return { referentName, consumedKeys, source, componentIndex };
+}
+
+/**
+ * Whether `source` names a `<group>` whose whole content is one component, blank
+ * text and `<setup>`s aside. v0.6's `componentIndex="1"` into it meant that
+ * component, which v0.7 reaches as the group itself: an index after the group
+ * passes on to the component (NAME-2), so `$g[1]` would index into it instead.
+ */
+async function holdsOneComponent(
+    core: Awaited<ReturnType<typeof createCoreForLookup>>,
+    source: string,
+): Promise<boolean> {
+    let idx: number;
+    try {
+        idx = await core.resolvePathToNodeIdx(source.replace(/^\$/, ""));
+    } catch (e) {
+        return false;
+    }
+    const group = core.core.core?.components?.[idx] as any;
+    if (group?.componentType !== "group") {
+        return false;
+    }
+    const content = (group.replacements ?? []).filter((child: any) =>
+        typeof child === "string"
+            ? child.trim() !== ""
+            : child?.componentType !== "setup",
+    );
+    return content.length === 1;
 }
 
 /**

@@ -647,9 +647,16 @@ describe("v06 to v07 update", () => {
         correctSource = `<select name="s"><option><math>a</math><point>(1,2)</point></option></select><group extend="$s[1]" /><sequence name="q" length="3" /><number extend="$q[2]" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
-        // An index after a group names nothing in v0.7 (it never selects a
-        // child), so a `componentIndex` into a `<group>` has no counterpart and
-        // the copy is left as it was.
+        // A group holding one component stands for it in v0.7, and an index
+        // after the group passes on to that component, so `componentIndex="1"`,
+        // which meant the component, becomes the group itself.
+        source = `<group name="g"><math>(1,2)</math></group><copy source="g" componentIndex="1" /><copy source="g" componentIndex="1" name="c" />`;
+        correctSource = `<group name="g"><math>(1,2)</math></group>$g<group extend="$g" name="c" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // An index after a group holding several components names nothing in
+        // v0.7 (it never selects a child), so a `componentIndex` into such a
+        // `<group>` has no counterpart and the copy is left as it was.
         source = `<group name="g"><math>a</math><point>(1,2)</point></group><copy source="g" componentIndex="2" /><copy source="g" componentIndex="2" prop="x" />`;
         const groupRes = await updateSyntaxFromV06toV07(source);
         expect(groupRes.xml).toEqual(source);

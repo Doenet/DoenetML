@@ -621,12 +621,24 @@ Here `$rep[2]` references the second iteration of the repeat and
 
 An index selects an iteration, not one of the components inside it: to reach a
 component in an iteration, give it a name and write the name after the index, as
-`$rep[2].squared` does. Unless an iteration holds only a list or a repeat
-(below), a further index after it, as after a `<group>{:dn}`, names nothing, and
-DoenetML gives a warning that shows the name to use. When the whole content of a repeat is another repeat, an
-index after an iteration passes on to the inner repeat, so nested repeats take
-one index for each level. A `<group>` that extends or copies an iteration, such
-as `<group name="g" extend="$table[2]"/>{:dn}`, is the iteration again and takes
+`$rep[2].squared` does.
+
+An iteration whose whole content is **one component** stands for that
+component, and passes a further index on to it. The component decides what the
+index means: the iterations of a repeat, so nested repeats take one index for
+each level (below); an entry of a list, or of a value such as the tuple of a
+`<math>{:dn}` or a `<point>{:dn}`; or nothing, with a warning, for a component
+with nothing to index, such as a `<number>{:dn}` holding one number or a
+`<p>{:dn}`. A `<group>{:dn}`, a pick of a [`<select>`](../reference/select) and
+what a `<conditionalContent>{:dn}` shows do the same, and so does a reference
+as that one component: with `<group name="g">$nl</group>{:dn}`, `$g[2]` is the
+second entry of `nl`. Blank text and a `<setup>{:dn}` don't count, but any
+other text does. When an iteration or a group holds several components, or text
+beside one, a further index names nothing, and DoenetML gives a warning that
+says how many it holds and shows the name to use.
+
+A `<group>` that extends or copies an iteration, such as
+`<group name="g" extend="$table[2]"/>{:dn}`, is the iteration again and takes
 indices the same way: `$g[3]` is `$table[2][3]`. The `valueName` and `indexName`
 bindings are reached only by name, as `$rep[1].v` does, never by an index past
 an iteration's content.
