@@ -11,6 +11,7 @@ import {
 } from "@doenet/parser";
 import { AutoCompleter } from "..";
 import { codedLspDiagnostic } from "../../coded-lsp-diagnostic";
+import { listReferenceHints } from "./list-reference-hints";
 
 /**
  * Get a list of places where the schema is violated.
@@ -301,6 +302,17 @@ export async function getSchemaViolations(
             }
             return ret;
         },
+    );
+
+    // Not a violation, but a hint where a list joins a reference to the
+    // text beside it (`2$a` is one entry), Doenet/DoenetML#2168.
+    ret.push(
+        ...listReferenceHints(
+            this.sourceObj.dast,
+            this.sourceObj.source,
+            offsetRange,
+            (name) => this.normalizeElementName(name),
+        ),
     );
 
     return ret;

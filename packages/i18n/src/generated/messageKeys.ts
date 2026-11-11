@@ -486,6 +486,7 @@ export type MessageKey =
     | "extend-children-ignored"
     | "copy-attribute-invalid-for-component"
     | "list-brackets-unmatched"
+    | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
     | "extend-children-change-content"
     | "extend-choice-input-choices"
@@ -1168,6 +1169,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "extend-children-ignored",
     "copy-attribute-invalid-for-component",
     "list-brackets-unmatched",
+    "list-reference-joins-entry",
     "extend-attribute-changes-content",
     "extend-children-change-content",
     "extend-choice-input-choices",

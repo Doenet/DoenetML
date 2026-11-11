@@ -118,6 +118,11 @@ of them separate the entries by the same rule:
   the entry it is written in (`2$a + 1, 3`), and a comma in its value does not
   make the list use commas. In `<sum>{:dn}` and the other math and boolean
   operators, though, each reference is an entry of its own.
+* **A space beside a reference counts.** In a list separated by spaces, a
+  reference written with no space beside text or another reference is part of
+  the same entry: `<mathList>2$a</mathList>{:dn}` is one entry, 2 times
+  the value of `$a`, while `<mathList>2 $a</mathList>{:dn}` is two. The
+  editor points out such an entry with a hint.
 
 Adding one comma changes how the rest of the list is read: `x y, z` is the
 two entries `xy` (the product) and `z`. In a list written between tags,

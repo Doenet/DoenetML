@@ -780,6 +780,37 @@ export class RustResolverAdapter {
                     visibleDescendantNames: [],
                 };
                 if (!branchContainerKind(coreResolvedNode, true)) {
+                    // The names the core left are properties of the node it
+                    // resolved, read by the alias chase. Not when a name it
+                    // resolved is written with an index it does not take
+                    // (`$v[1].head.` for a plain vector `v`, runtime
+                    // `doenet-w0180`), or reaches a component that takes an
+                    // index without one (`$rep.x.value.`): the path names
+                    // nothing, so no property is offered (issue #2479).
+                    const resolvedParts = lookupParts.slice(
+                        0,
+                        lookupParts.length - unresolvedPathParts.length,
+                    );
+                    const lastResolved = resolvedParts.length - 1;
+                    const blocked =
+                        this._firstBlockedSegment(
+                            resolution.nodesInResolvedPath,
+                            resolvedParts,
+                            effectivePathPartHasIndex,
+                            false,
+                        ) ??
+                        (lastResolved >= 0 &&
+                        effectivePathPartHasIndex[lastResolved] &&
+                        !this._componentTakesIndex(coreResolvedNode.name)
+                            ? lastResolved
+                            : null);
+                    if (blocked != null) {
+                        return {
+                            node: null,
+                            unresolvedPathParts: lookupParts.slice(blocked),
+                            visibleDescendantNames: [],
+                        };
+                    }
                     return unresolvedHere;
                 }
                 // The last path part the core resolved (`cc` in `$cc.x`, `a`
@@ -1015,13 +1046,23 @@ export class RustResolverAdapter {
             }
 
             // For other takesIndex composites with an index present (a
-            // repeat), compute visible descendants by walking their
-            // children.
+            // repeat), the names in an instance (`$rep[2].x`): those named
+            // once in it, and those every branch of a branch container in
+            // it declares (issue #2479), as `$sec.` has them below. The core
+            // resolves each from the composite, which keeps only those a
+            // reference reaches.
             if (
                 resolvedPartHasEffectiveIndex &&
                 this._componentTakesIndex(resolvedNode.name)
             ) {
-                const names = collectNamesFromCompositeChildren(resolvedNode);
+                const names = await this._probedDescendantNames(
+                    resolution.nodeIdx,
+                    [
+                        ...collectNamesFromCompositeChildren(resolvedNode),
+                        ...namesSharedByBranchesIn(resolvedNode),
+                    ],
+                    offset,
+                );
                 // For repeat/repeatForSequence, also expose
                 // valueName/indexName as member completions when
                 // accessed with an index (e.g. $rep[1].v).
@@ -1037,86 +1078,20 @@ export class RustResolverAdapter {
             // Determine which descendant names are actually visible
             // from the resolved node using the Rust name_map (which
             // respects ChildrenInvisibleToTheirGrandparents etc.).
-            const resolvedIdx = resolution.nodeIdx;
-            let visibleDescendantNames =
-                this._getCachedVisibleDescendantNames(resolvedIdx);
-            if (!visibleDescendantNames) {
-                // Names every branch of a branch container below it
-                // declares (`$sec.x` for an `x` in each case of a
-                // `<conditionalContent>` in `sec`, issue #2455), which the
-                // unique-name walk drops for being declared more than once.
-                // The probe below keeps those the core resolves through the
-                // container and the branches share.
-                const allNames = [
-                    ...new Set([
-                        ...this._sourceObj.getUniqueDescendantNamesForNode(
-                            resolvedNode,
-                        ),
-                        ...namesSharedByBranchesIn(resolvedNode),
-                    ]),
-                ];
-                const probeResults = await Promise.all(
-                    allNames.map(async (name) => {
-                        try {
-                            const probe = await this._core!.resolvePath({
-                                path: {
-                                    path: [
-                                        {
-                                            type: "flatPathPart" as const,
-                                            name,
-                                            index: [],
-                                        },
-                                    ],
-                                },
-                                origin: resolvedIdx,
-                                skipParentSearch: true,
-                            });
-                            const probeElement =
-                                this._rustIndexToDastElement.get(probe.nodeIdx);
-                            // A name the core leaves for a branch container
-                            // (`Ref::Branches`) is visible when every branch
-                            // declares it with one tag.
-                            if (
-                                probe.unresolvedPath &&
-                                probe.unresolvedPath.length > 0
-                            ) {
-                                return (
-                                    probeElement != null &&
-                                    probe.unresolvedPath.length === 1 &&
-                                    probe.unresolvedPath[0].name === name &&
-                                    resolveThroughBranches(
-                                        probeElement,
-                                        [name],
-                                        false,
-                                    ) !== null &&
-                                    !this._isHiddenBySugar(
-                                        probe.nodeIdx,
-                                        offset,
-                                    )
-                                );
-                            }
-                            // Otherwise a fully-resolved path means the name
-                            // matched a visible descendant.
-                            const probeName = probeElement
-                                ? getElementNameAttributeValue(probeElement)
-                                : null;
-                            if (probeName !== name) {
-                                return false;
-                            }
-                            return true;
-                        } catch {
-                            return false;
-                        }
-                    }),
-                );
-                visibleDescendantNames = allNames.filter(
-                    (_name, i) => probeResults[i],
-                );
-                this._setCachedVisibleDescendantNames(
-                    resolvedIdx,
-                    visibleDescendantNames,
-                );
-            }
+            // Names every branch of a branch container below it declares
+            // (`$sec.x` for an `x` in each case of a `<conditionalContent>`
+            // in `sec`, issue #2455), which the unique-name walk drops for
+            // being declared more than once, are candidates too.
+            const visibleDescendantNames = await this._probedDescendantNames(
+                resolution.nodeIdx,
+                [
+                    ...this._sourceObj.getUniqueDescendantNamesForNode(
+                        resolvedNode,
+                    ),
+                    ...namesSharedByBranchesIn(resolvedNode),
+                ],
+                offset,
+            );
 
             return {
                 node: resolvedNode,
@@ -1127,6 +1102,75 @@ export class RustResolverAdapter {
             // Resolution error (NoReferent, NonUniqueReferent, etc.)
             return null;
         }
+    }
+
+    /**
+     * The names among `candidates` that a reference from the node
+     * `resolvedIdx` reaches below it, as the core resolves them: a name
+     * that resolves to an element by it, or that the core leaves for a
+     * branch container (`Ref::Branches`) whose branches every one declares
+     * it with one tag, in a container not hidden by sugar at `offset`.
+     * Cached per node until the source changes.
+     */
+    async _probedDescendantNames(
+        resolvedIdx: number,
+        candidates: string[],
+        offset: number,
+    ): Promise<string[]> {
+        const cached = this._getCachedVisibleDescendantNames(resolvedIdx);
+        if (cached) {
+            return cached;
+        }
+        const allNames = [...new Set(candidates)];
+        const probeResults = await Promise.all(
+            allNames.map(async (name) => {
+                try {
+                    const probe = await this._core!.resolvePath({
+                        path: {
+                            path: [
+                                {
+                                    type: "flatPathPart" as const,
+                                    name,
+                                    index: [],
+                                },
+                            ],
+                        },
+                        origin: resolvedIdx,
+                        skipParentSearch: true,
+                    });
+                    const probeElement = this._rustIndexToDastElement.get(
+                        probe.nodeIdx,
+                    );
+                    if (
+                        probe.unresolvedPath &&
+                        probe.unresolvedPath.length > 0
+                    ) {
+                        return (
+                            probeElement != null &&
+                            probe.unresolvedPath.length === 1 &&
+                            probe.unresolvedPath[0].name === name &&
+                            resolveThroughBranches(
+                                probeElement,
+                                [name],
+                                false,
+                            ) !== null &&
+                            !this._isHiddenBySugar(probe.nodeIdx, offset)
+                        );
+                    }
+                    // Otherwise a fully-resolved path means the name
+                    // matched a visible descendant.
+                    return (
+                        probeElement != null &&
+                        getElementNameAttributeValue(probeElement) === name
+                    );
+                } catch {
+                    return false;
+                }
+            }),
+        );
+        const visible = allNames.filter((_name, i) => probeResults[i]);
+        this._setCachedVisibleDescendantNames(resolvedIdx, visible);
+        return visible;
     }
 
     /**

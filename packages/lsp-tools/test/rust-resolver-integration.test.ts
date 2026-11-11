@@ -1007,6 +1007,85 @@ describe.skipIf(!wasmAvailable)(
             expect(await refNameLabels(cc("z"))).toContain("hide");
         });
 
+        it("$rep[n]. lists a name every branch of a container in the repeat declares", async () => {
+            // `$rep[1].x` resolves to the active branch's `x` in the
+            // repeat's first instance (issue #2479), as `$cc.x` does.
+            const cc = (a: string, b: string) =>
+                `<conditionalContent><case condition="true">${a}</case><else>${b}</else></conditionalContent>`;
+            const repeat = (body: string) =>
+                `<repeat name="rep" for="1 2" valueName="v">${body}</repeat>\n<p>$rep[1].`;
+            const shared = repeat(
+                cc('<math name="x">1</math>', '<math name="x">2</math>'),
+            );
+            const result = await memberNames(
+                shared,
+                ["rep", ""],
+                [true, false],
+            );
+            expect(result!.visibleDescendantNames).toContain("x");
+            expect(await refNameLabels(shared)).toContain("x");
+
+            // A one-pick select's options count as branches too.
+            const select = repeat(
+                `<select><option><math name="x">1</math></option><option><math name="x">2</math></option></select>`,
+            );
+            expect(await refNameLabels(select)).toContain("x");
+
+            // Not when a branch lacks it, the tags differ, or it is also
+            // declared beside the container (ambiguous).
+            for (const doc of [
+                repeat(
+                    cc('<math name="x">1</math>', '<math name="z">2</math>'),
+                ),
+                repeat(
+                    cc('<math name="x">1</math>', '<text name="x">2</text>'),
+                ),
+                repeat(
+                    `${cc('<math name="x">1</math>', '<math name="x">2</math>')}<math name="x">3</math>`,
+                ),
+            ]) {
+                const other = await memberNames(
+                    doc,
+                    ["rep", ""],
+                    [true, false],
+                );
+                expect(other!.visibleDescendantNames).not.toContain("x");
+            }
+
+            // Without the index, nothing in the repeat is offered.
+            const noIndex = await memberNames(
+                shared.replace("$rep[1].", "$rep."),
+                ["rep", ""],
+            );
+            expect(noIndex!.visibleDescendantNames).toEqual([]);
+        });
+
+        it("offers no property after an index on a component that takes none", async () => {
+            // `$v[1].head.x` for a plain vector `v` names nothing (runtime
+            // `doenet-w0180`), so `$v[1].head.` offers no alias (issue
+            // #2479).
+            const source = `<vector name="v" head="(1,2)"/>\n<p>$v[1].head.`;
+            const result = await memberNames(
+                source,
+                ["v", "head", ""],
+                [true, false, false],
+            );
+            expect(result?.node ?? null).toBeNull();
+            expect(result?.partiallyResolvedNode ?? null).toBeNull();
+            expect(await refNameLabels(source)).toEqual([]);
+            // Help for `$v[1].head.x` describes no property either.
+            const helpSource = `${source}x`;
+            const { completer } = await createCompleterWithAdapter(helpSource);
+            const help = await computeContextHelp(completer, helpSource.length);
+            expect(help?.kind).not.toBe("property");
+            // Without the index, `$v.head.x` is the coordinate.
+            expect(
+                await refNameLabels(source.replace("$v[1].", "$v.")),
+            ).toEqual(expect.arrayContaining(["x", "y", "z"]));
+            // An index further along (`$v.head[1].`) is not on `v`, and
+            // is left to the alias chase as before.
+        });
+
         it("does not read a branch tag written in another case as a branch", async () => {
             // `<Else>` and `<Option>` are no branches (`doenet-e0002`), but
             // children beside them: a name in them is left out from
