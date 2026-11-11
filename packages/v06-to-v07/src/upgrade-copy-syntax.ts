@@ -31,6 +31,7 @@ import {
     isComponentType,
     isCompositeComponentType,
     isModuleComponentType,
+    wasCompositeInV06,
 } from "./core-info/determine-prop-type";
 
 type ReferentInfo = {
@@ -524,9 +525,17 @@ function copyReference(node: DastElement):
 
 /**
  * Whether `source` names a `<group>` whose whole content is one component, blank
- * text and `<setup>`s aside. v0.6's `componentIndex="1"` into it meant that
- * component, which v0.7 reaches as the group itself: an index after the group
- * passes on to the component (NAME-2), so `$g[1]` would index into it instead.
+ * text and `<setup>`s aside, that is not a composite. v0.6's `componentIndex="1"`
+ * into it meant that component, which v0.7 reaches as the group itself: an index
+ * after the group passes on to the component (NAME-2), so `$g[1]` would index into
+ * it instead.
+ *
+ * v0.6 counted `componentIndex` among the group's replacements with every composite
+ * among them expanded (its copy's `replacement` dependency was `recursive`), so a
+ * group holding a nested group or a copy holds one component only when what that
+ * expands to is one component. A group holding a `<sequence>`, a repeat or any
+ * other v0.6 composite (`wasCompositeInV06`) does not: `componentIndex="1"` meant
+ * its first item, which `$g[1]` names in v0.7 too, as the index passes to it.
  */
 async function holdsOneComponent(
     core: Awaited<ReturnType<typeof createCoreForLookup>>,
@@ -538,16 +547,48 @@ async function holdsOneComponent(
     } catch (e) {
         return false;
     }
-    const group = core.core.core?.components?.[idx] as any;
+    const components = core.core.core?.components;
+    const group = components?.[idx] as any;
     if (group?.componentType !== "group") {
         return false;
     }
-    const content = (group.replacements ?? []).filter((child: any) =>
-        typeof child === "string"
-            ? child.trim() !== ""
-            : child?.componentType !== "setup",
-    );
-    return content.length === 1;
+    // The components `items` expand to, through groups and copies, or
+    // `undefined` if another composite, or a copy not expanded, is among them
+    function expanded(items: any[]): any[] | undefined {
+        const result: any[] = [];
+        for (const item of items) {
+            if (typeof item === "string") {
+                if (item.trim() !== "") {
+                    result.push(item);
+                }
+                continue;
+            }
+            const component = components?.[item?.componentIdx] ?? item;
+            if (component?.componentType === "setup") {
+                continue;
+            }
+            if (
+                component?.componentType === "group" ||
+                component?.componentType === "_copy"
+            ) {
+                if (!component.isExpanded) {
+                    return undefined;
+                }
+                const inner = expanded(component.replacements ?? []);
+                if (inner === undefined) {
+                    return undefined;
+                }
+                result.push(...inner);
+                continue;
+            }
+            if (wasCompositeInV06(component?.componentType)) {
+                return undefined;
+            }
+            result.push(component);
+        }
+        return result;
+    }
+    return expanded(group.replacements ?? [])?.length === 1;
 }
 
 /**

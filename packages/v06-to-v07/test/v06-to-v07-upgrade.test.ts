@@ -654,6 +654,20 @@ describe("v06 to v07 update", () => {
         correctSource = `<group name="g"><math>(1,2)</math></group>$g<group extend="$g" name="c" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
+        // v0.6 counted `componentIndex` with the composites in the group expanded:
+        // a nested group or copy that expands to one component is that component,
+        source = `<group name="x"><math>(1,2)</math></group><group name="g"><group><math>(3,4)</math></group></group><group name="h"><copy source="x"/></group><copy source="g" componentIndex="1" /><copy source="h" componentIndex="1" />`;
+        correctSource = `<group name="x"><math>(1,2)</math></group><group name="g"><group><math>(3,4)</math></group></group><group name="h"><group extend="$x" /></group>$g$h`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+        // and `componentIndex="1"` into a group holding a sequence, a map or a
+        // copy of several components meant the first of them, not the group's
+        // whole content, so `$g` would not say it.
+        source = `<group name="x"><math>1</math><math>2</math></group><group name="g"><sequence length="3" /></group><group name="h"><copy source="x"/></group><group name="k"><map><template><math>$v</math></template><sources alias="v"><sequence length="2"/></sources></map></group><copy source="g" componentIndex="1" /><copy source="h" componentIndex="1" /><copy source="k" componentIndex="1" />`;
+        const expandedRes = await updateSyntaxFromV06toV07(source);
+        expect(expandedRes.xml).not.toContain("$g");
+        expect(expandedRes.xml).not.toContain("$h");
+        expect(expandedRes.xml).not.toContain("$k");
+
         // An index after a group holding several components names nothing in
         // v0.7 (it never selects a child), so a `componentIndex` into such a
         // `<group>` has no counterpart and the copy is left as it was.

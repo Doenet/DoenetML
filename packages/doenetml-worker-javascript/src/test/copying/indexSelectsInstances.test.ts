@@ -1384,6 +1384,95 @@ describe("One component stands for its holder (NAME-2, D27 revised again) @group
         }
     });
 
+    it("passes an index after a group holding a reference to a group holding a reference to a composite", async () => {
+        // `$x` stands for `x`, which stands for what `$cc` or `$r` names, so
+        // `$g` indexes as `$cc` or `$r` does, and counts as one component
+        // when beside others
+        const { text, warnings } = await textAndWarnings(`
+    <conditionalContent name="cc"><case condition="true"><math>(4,5)</math></case></conditionalContent>
+    <group name="x">$cc</group>
+    <group name="g">$x</group>
+    <select name="s"><option>$x</option></select>
+    <repeat name="r" for="1 2" valueName="v"><math>($v,9)</math></repeat>
+    <group name="y">$r</group>
+    <group name="h">$y</group>
+    <p name="p">[$g[1]] [$g[1][2]] [$s[1][1][2]] [$h[2]] [$h[2][1]]</p>
+    `);
+        expect(text).eq("[(4, 5)] [5] [5] [(2, 9)] [2]");
+        expect(warnings).eqls([]);
+
+        const several = await shownAndReported(`
+    <select name="s" numToSelect="3"><option><math>7</math></option><option><math>8</math></option><option><math>9</math></option></select>
+    <group name="g"><math>1</math><math>2</math><math>3</math>$s</group>
+    <group name="h">$g</group>
+    <p name="p">[$g[1]] [$h[1]]</p>
+    `);
+        expect(several.text).eq("[＿] [＿]");
+        expect(
+            several.warnings.map((w) => [
+                w.code,
+                w.args.reference,
+                w.args.count,
+            ]),
+        ).eqls([
+            ["doenet-w0188", "$g[1]", 4],
+            ["doenet-w0188", "$h[1]", 4],
+        ]);
+    });
+
+    it("passes a second index into a list entry reached through a group holding a reference to the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml">(1,2) (3,4)</mathList>
+    <group name="x">$ml</group>
+    <select name="s"><option>$ml</option></select>
+    <repeatForSequence name="r" length="2" valueName="v"><math>($v,9)</math></repeatForSequence>
+    <group name="y">$r</group>
+    <mathInput name="mi" bindValueTo="$x[2][1]" />
+    <p name="p">[$x[2][1]] [$s[1][2][2]] [$y[2][1]]</p>
+    <p name="q">$ml</p>
+    `,
+        });
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return [
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                stateVariables[await resolvePathToNodeIdx("q")].stateValues
+                    .text,
+            ];
+        }
+        expect(await texts()).eqls(["[3] [4] [2]", "(1, 2), (3, 4)"]);
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await texts()).eqls(["[7] [4] [2]", "(1, 2), (7, 4)"]);
+    });
+
+    it("says an index cannot apply to a group whose one component is text", async () => {
+        const { text, warnings } = await textAndWarnings(`
+    <group name="g">hello</group>
+    <select name="s"><option>hello</option></select>
+    <group name="h">$g</group>
+    <text name="t">hello</text>
+    <p name="p">[$g[1]] [$s[1][1]] [$h[1]] [$t[1]]</p>
+    `);
+        expect(text).eq("[＿] [＿] [＿] [＿]");
+        expect(warnings).eqls([
+            ["doenet-w0100", "$g[1]"],
+            ["doenet-w0100", "$s[1][1]"],
+            ["doenet-w0100", "$h[1]"],
+            ["doenet-w0100", "$t[1]"],
+        ]);
+    });
+
     it("writes through an index passed to a group's one math", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

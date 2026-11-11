@@ -171,7 +171,10 @@ function namesInstances(
  * - `Pending`, while a reference among what it made has not expanded.
  *
  * What a reference among what it made (`$g2` of a group holding `$m`) makes
- * takes its place in turn. `made` gives what `component`, being given its
+ * takes its place in turn, unless that reference names instances itself
+ * (`$x` of a group holding `$cc`): it then counts as one component, and is
+ * `Instances` when it is the only one, as it would be for its own group.
+ * `made` gives what `component`, being given its
  * replacements when it first expands, makes, which it does not hold yet;
  * without them, what each reference holds now.
  */
@@ -207,8 +210,12 @@ export async function referenceContentOf({
     let count = 0;
     let onePosition = 0;
     let oneComponent: any;
+    // Whether the one component is a reference among what it made that
+    // names instances (`$cc` in a group `$g` names), which then stand for
+    // the group as they do for that reference's own group
+    let oneNamesInstances = false;
     let pending = false;
-    function walk(items: any[]) {
+    async function walk(items: any[]) {
         for (const item of items) {
             if (typeof item === "string") {
                 if (item.trim() !== "") {
@@ -216,16 +223,27 @@ export async function referenceContentOf({
                     count++;
                     onePosition = position;
                     oneComponent = item;
+                    oneNamesInstances = false;
                 }
                 continue;
             }
             if (isBareReference(item)) {
                 if (item.componentIdx === component?.componentIdx) {
-                    walk(made);
-                } else if (item.isExpanded) {
-                    walk(item.replacements ?? []);
-                } else {
+                    await walk(made);
+                } else if (!item.isExpanded) {
                     pending = true;
+                } else if (
+                    item.stateValues &&
+                    namesInstances(
+                        components[await item.stateValues.extendIdx],
+                        await item.stateValues.unresolvedPath,
+                        componentInfoObjects,
+                    )
+                ) {
+                    count++;
+                    oneNamesInstances = true;
+                } else {
+                    await walk(item.replacements ?? []);
                 }
                 continue;
             }
@@ -236,9 +254,10 @@ export async function referenceContentOf({
             count++;
             onePosition = position;
             oneComponent = item;
+            oneNamesInstances = false;
         }
     }
-    walk(
+    await walk(
         reference.componentIdx === component?.componentIdx
             ? made
             : (reference.replacements ?? []),
@@ -248,6 +267,14 @@ export async function referenceContentOf({
         return "Pending";
     }
     if (count !== 1) {
+        return { Several: { count } };
+    }
+    if (oneNamesInstances) {
+        return "Instances";
+    }
+    // Text takes no index: as for a group holding only text, the resolver
+    // stops at the group, and the warning says text takes no index
+    if (typeof oneComponent === "string") {
         return { Several: { count } };
     }
     // A list a reference made is indexed by its entries, which take its

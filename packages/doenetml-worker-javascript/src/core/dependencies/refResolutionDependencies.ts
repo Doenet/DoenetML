@@ -809,20 +809,27 @@ export class RefResolutionDependency extends Dependency {
             refResolution.nodeIdx,
         );
         if (listEntry) {
+            const entryIndex = {
+                value: [String(listEntry.entryIndex + 1)],
+            };
+            // An index after the entry (`$g[2][1]` of `<group
+            // name="g">$ml</group>`) is left by the resolver as a path part
+            // with no name, which goes with the entry's index into one part,
+            // as for `$ml[2][1]`, rather than read as a property.
+            const [next, ...rest] = refResolution.unresolvedPath ?? [];
             refResolution = {
                 ...refResolution,
                 nodeIdx: listEntry.listIdx,
-                unresolvedPath: [
-                    {
-                        name: "",
-                        index: [
-                            {
-                                value: [String(listEntry.entryIndex + 1)],
-                            },
-                        ],
-                    },
-                    ...(refResolution.unresolvedPath ?? []),
-                ],
+                unresolvedPath:
+                    next?.name === ""
+                        ? [
+                              { ...next, index: [entryIndex, ...next.index] },
+                              ...rest,
+                          ]
+                        : [
+                              { name: "", index: [entryIndex] },
+                              ...(refResolution.unresolvedPath ?? []),
+                          ],
             };
         }
 
@@ -1079,8 +1086,9 @@ export class RefResolutionDependency extends Dependency {
     /**
      * Warn that the reference names nothing because an index came after a
      * `<group>` holding several components or none (`childIndex` of the
-     * resolution): such a group does not pass the index on to one component
-     * (NAME-2), and an index never selects a child of a container (D27). The
+     * resolution), or one that is text, which takes no index (`w0100`): such
+     * a group does not pass the index on to one component (NAME-2), and an
+     * index never selects a child of a container (D27). The
      * warning quotes the reference up to that index, says how many components
      * the group holds (`count`), and shows the form to write instead, which
      * names the child the index would have selected (`childIdx`), if there is
@@ -1147,6 +1155,22 @@ export class RefResolutionDependency extends Dependency {
             const before = `${dollars}${source.substring(start, indexStart)}`;
             reference = `${dollars}${source.substring(start, indexEnd)}${args}`;
             suggestion = `${before}.${childName ?? "x"}${args}`;
+        }
+
+        if (childIndex.count === 1) {
+            // The one component is text (the resolver counts text as a
+            // component but passes no index to it): it stands for the group,
+            // and takes no index, as a `<text>` does not.
+            core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0100",
+                    args: { reference },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+            return;
         }
 
         core.addDiagnostic(
