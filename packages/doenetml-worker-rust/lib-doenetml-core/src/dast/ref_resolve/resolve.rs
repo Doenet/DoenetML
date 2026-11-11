@@ -26,7 +26,8 @@ pub struct RefResolution {
     pub unresolved_path: Option<Vec<FlatPathPart>>,
     /// The original path that was resolved with origin `nodes_in_resolved_path[0]`
     pub original_path: Vec<FlatPathPart>,
-    /// The index of the path that came after a `<group>` holding several components or none
+    /// The index of the path that came after a `<group>` that does not hold one component
+    /// (several, none, or only text)
     /// (see [`IndexKind::Children`]), if any. An index never selects a child of a
     /// container (D27), so the path names nothing: the resolution stops at the group,
     /// `node_idx`, with that index left in `unresolved_path`, and the reference is reported
@@ -36,7 +37,8 @@ pub struct RefResolution {
     pub child_index: Option<ChildIndex>,
 }
 
-/// An index of a path written after a `<group>` holding several components or none,
+/// An index of a path written after a `<group>` that does not hold one component
+/// (several, none, or only text),
 /// which names nothing (D27).
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
