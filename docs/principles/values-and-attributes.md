@@ -168,8 +168,9 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   blank in it too. A `<label>` honours its children's `hide`, as a `<p>` does.
 - **Answers:** a missing component, or a reference to one, is recorded as one blank math and
   counted as one response, wherever it is.
-- **Collections:** `$r`, `$r.y`, `$g`, a list, and an array property (`$ci.selectedValues`,
-  `$f.minima`) give their members, possibly none.
+- **Collections:** `$r`, `$r.y`, a list, and an array property (`$ci.selectedValues`,
+  `$f.minima`) give their members, possibly none. A bare `$g` shows what the group holds, but a
+  property after a group of several names nothing (COLL-3, D41).
 
 **Known violations and open questions:**
 - **A component whose content holds a missing child is missing (decided, D40; #2461).** A
@@ -256,7 +257,8 @@ an error on a tag, which D37 reversed (#2458). Examples: `$n.nonexistent`,
    no property of that name (`__prop_name_not_found` in `W/components/abstract/Copy.js`). A
    property the type has, but with no value now, stays missing with no warning: `$P.z` of a 2D
    point, `$c.maxNumber` with no limit (above).
-3. **For a composite, everything it can hold.** `$cc.value` is fine when every case holds maths.
+3. **For a collection, everything its items can be** (COLL-2; a wrapper of several takes no
+   property, COLL-3). `$cc.value` is fine when every case holds one math.
    **It warns, decided at load, if any component the composite can hold lacks the property**,
    and each component that lacks it contributes a blank `＿` (decided, D40; #2452). A property
    none has is `w0104`, as before. **Known violation:** #2451 decides from what the composite

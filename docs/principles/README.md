@@ -156,6 +156,19 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
 11. What a `<repeat>`, `<select>`, `<conditionalContent>`, `<collect>` or `<group>` produces is
     shown where the tag is written, as if written there. Content it repeats, picks or gathers
     is separated by commas, as a list is. (COMP-1, COMP-2)
+
+    What an index or a property after a tag reaches depends on what the tag is to you:
+    - **one thing** (a point, a vector, a matrix, a math holding a tuple) has its own properties,
+      and an index reaches an entry of its value;
+    - **many things** (a list, a collect, a sort or shuffle, a repeat, a select, a conditional)
+      are indexed by item, and a property or a name after them applies to each item, except
+      `numItems` and settings such as `hide`, which are the collection's own;
+    - **a wrapper** (a group, and each iteration, pick or shown case) stands for the one thing it
+      holds. When it holds several, name the one you mean: an index or a property after it names
+      nothing.
+
+    A `<sort>` or `<shuffle>` takes one type; a shuffle of groups shuffles them as units. (COLL-1
+    to COLL-4, D41)
 12. Selections are made once, from the variant, and never made again: not when what they were
     made from changes, not on a reload, not to recover from a problem. The same variant gives
     the same selections. A sampler is different: it draws again when what it reads changes or

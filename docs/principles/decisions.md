@@ -611,7 +611,8 @@ The exact tables in `T/variants/uniqueVariants.test.ts` become Tier 3. Keep the 
 - **Deep property chains** (`$l.points[1].coords`). Either commit to supporting them, and restore
   the 20 commented-out assertions, or document "one property after an index" as the limit.
 - **`asList` defaults.** State "groups are not lists". Decide whether a conditionalContent
-  whose active case yields several items is a list.
+  whose active case yields several items is a list. **Decided by D41:** the case is a wrapper,
+  not a list.
 - **`draggable`.** Move the check into the writer next to `fixLocation`. The behavior is
   unchanged.
 
@@ -2487,3 +2488,106 @@ decided here; the rest are listed as still open.
   (a feature).
 - #2127 item 9: the `_copy` name and role.
 
+
+## D41. One thing, many things, and wrappers: what an index and a property reach (decided, Tier 1)
+
+**Decided** (November 2026). The principles are COLL-1 to COLL-4 in
+[composites-and-lists.md](composites-and-lists.md). Implementation: #2523.
+
+**Why.** What an index or a property did after a tag depended on how the current core happened
+to build it, not on anything an author would think about. On `main` (**[probe]**):
+
+| Reference | Result | Why |
+|---|---|---|
+| `$pl.numComponents` of a `<pointList>`, `$cp.numComponents` of a collect of points | `2` | list components have it |
+| `$cpp.numComponents` of a collect of `<p>`s, `$sq.numComponents` of a `<sequence>`, `$rp.numComponents` of a repeat | `＿`, `w0104` | composites, and `<sequence>`, don't |
+| `$cp.numPoints` of a collect of points | `＿`, `w0104` | an alias the collect inherited from `<pointList>` by accident (#2271) |
+| `$g.x` of a group of two points | `57` | the property is given to each child, then run together, since a group isn't a list |
+| `$gmix.x` of a group of a point and a number | `1` | the number is dropped silently |
+| `$cc.x` of a case holding two points | `1, 3` | the case's children each give their `x` |
+| `$rmix.P`, `$rmix.P.x` (`P` named in the template) | nothing, `＿` | a name inside an iteration is reached only as `$rmix[1].P` |
+| `$s.P.x` (two picks, each with a `P`) | `w0105` | ambiguous |
+| `<sort><number>3</number><text>a</text></sort>` | `3, a` | sorted across types |
+| `<shuffle>` of three groups of two maths | `4, 1, 5, 6, 2, 3` | the groups are flattened, so the pairs are split |
+
+A mathList could be built as a composite (it once was) or as a list component; a collect is
+built either way depending on what it collects. The rules below are stated in categories an
+author has, so that a change of build can't change them (COMP-4 states the same for one tag).
+
+### The kinds
+
+**Index.** Only two kinds of thing take an index:
+1. **One thing: a value with entries.** A point, a vector, coords, a math holding a tuple or
+   vector, a matrix, and a math or matrix input. Its properties are its own and never apply per
+   coordinate (`$P.x` is the point's x). An index is secondary: it reaches an entry of the value
+   (NAME-2). A set, if it gets a tag, is one thing too, and takes no index, having no order.
+   `<solveEquations>` is one thing (its name doesn't say "a list of solutions").
+2. **Many things: a collection.** The lists (`<mathList>` … `<intervalList>`), `<sequence>`, the
+   random selectors and samplers, the list operators, `<collect>`, `<sort>`, `<shuffle>`,
+   `<repeat>`, `<select>`, `<conditionalContent>` (at most one item: the shown case), and
+   `<functionIterates>` (its name is plural). An index selects an item.
+
+**A wrapper is not an index kind.** A `<group>`, and each iteration, pick or shown case, never
+takes an index itself. With one component, the index passes to the component; with several, it
+names nothing (D27 revised, #2518).
+
+### Decided
+
+1. **A property or a name after a collection applies to each item.** `$pl.x` is `1, 3`. A name
+   applies the same way: `$rmix.P` is each iteration's `P`, and `$s.P.x` each pick's `P`'s x. A
+   name reached this way follows the rules for a name in branches: declared in every option or
+   case, with one type (D22, COMP-11); a template declares it in every iteration. An item that
+   lacks a property gives a blank, with a warning decided at load (#2452, D40 decision 5).
+2. **A collection's own properties are a fixed set,** the same for every collection however it is
+   built, and they win over the items' properties of the same name:
+   - `numItems`, the number of items an index selects among (entries, iterations, picks; 0 or 1
+     for a `<conditionalContent>`), on every collection;
+   - the settings every component has (`hide`, `fixed`, `disabled`, …).
+
+   Nothing else belongs to the collection, so a new attribute or property never shadows the
+   items' properties: attributes of a collection are not readable as properties, as on `main`
+   (`$cp.from`, `$rp.for`, `$sq.length` name nothing). An item that is itself a collection is
+   reached by index (`$c[1].numItems`). Accidental properties go away: an alias a collect or sort
+   inherits from the list it is built on (`numPoints`, `numVectors`, `numIntervals`).
+3. **A wrapper with several components is only a container.** A property after it names nothing,
+   with a warning to name the component; a name reaches a component (`$g.P`). With one
+   component it stands for it, for a tag, an index and a property alike (NAME-2). Its own
+   settings are its own either way (`$g.hide` is the group's). An empty wrapper is missing.
+4. **`<sort>` and `<shuffle>` take one type, decided at load.** A child that is a list or a
+   collection is flattened into its items, so several lists can be sorted together. A wrapper
+   is not flattened:
+   - a `<shuffle>` of wrappers shuffles them as units (`<shuffle>` of groups of two keeps each
+     pair together);
+   - a `<sort>` of wrappers with several components is an error, as there is nothing to compare;
+   - a wrapper with one component stands for it, and is sorted or shuffled as that component.
+
+   A mix (a number and a text, or a math and a group of several) is an error at load.
+5. **`<functionIterates>` is a collection,** so it should render its iterates as a list, as
+   other collections do. Today it renders nothing.
+6. **`<solveEquations>` is one thing.** It is not a value with entries, so an index after it
+   names nothing (`w0180`); the solutions are `$s.solutions[1]`. Today `$s[1]` is the first
+   solution (`variableForIndexAsProp`).
+
+### Open
+
+- **The count's older names on authored lists.** `numComponents` is documented on the lists, and
+  `numPoints`, `numVectors`, `numValues` and `numIntervals` are aliases on some. Keep them as
+  aliases of `numItems` on those tags only, or retire them (the converter can rewrite them, since
+  it knows the referent is a list). Recommendation: retire, so every collection has the same
+  set.
+- **`$M.x` of a matrix** gives the whole matrix. As one thing, a matrix's `x` should be what a
+  math's `x` is, or name nothing.
+- **`<extrema>`** is not an author tag (`excludeFromSchema`, its `<maxima>`/`<minima>` are commented
+  out), so it is not classified. If it becomes one, its plural name makes it a collection.
+
+### What it changes
+
+- VAL-5's "collections" bullet: `$g` with several components is a container, not a collection.
+- #2452 (D40 decision 5) applies across a collection's items, not inside a wrapper.
+- D19's "is a case holding several items a list?": no, it is a wrapper.
+- D24: the three kinds replace "composite" in what authors are taught.
+- NAME-3: names in an iteration stay private; `$r.P` reaches them only per item, never one
+  iteration's `P` alone.
+- The converter (#2457): `$g.x` over several components becomes `$g.P.x` when exactly one
+  component has the property and can be named, and is reported otherwise; `$s[i]` of a
+  `<solveEquations>` becomes `$s.solutions[i]`; a sort or shuffle of mixed types is reported.

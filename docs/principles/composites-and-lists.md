@@ -124,6 +124,78 @@ neither the dual implementation nor the guard list of about 40 forms that must s
 (`repeatValueLists.test.ts:836-920`). Keep the observable expectations and drop the "which form
 was built" assertions.
 
+### COLL-1: one thing, many things, and wrappers (Tier 1; D41)
+> **What an index or a property after a tag reaches depends on what the tag is to you, not on
+> how it is built.** A tag is one thing, many things, or a wrapper:
+> - **One thing** (a point, a vector, a matrix, a math holding a tuple) has its own properties.
+>   An index reaches an entry of its value.
+> - **Many things** (a list, a sequence, a collect, a sort or shuffle, a repeat, a select, a
+>   conditional, the random choosers) are indexed by item, and a property or a name after them
+>   applies to each item, except the few that belong to the collection itself: `numItems` and the
+>   settings every component has, such as `hide`.
+> - **A wrapper** (a group, and each iteration, pick or shown case) stands for the one thing it
+>   holds. When it holds several, name the one you mean.
+
+The kinds, precisely (Tier 2):
+- **One thing:** a point, vector, coords, a math holding a tuple or vector, a matrix, a math or
+  matrix input, and `<solveEquations>`. A set would be one thing with no index.
+- **Many things:** the lists (`<mathList>` … `<intervalList>`), `<sequence>`, the random
+  selectors and samplers, the list operators, `<collect>`, `<sort>`, `<shuffle>`, `<repeat>`,
+  `<repeatForSequence>`, `<select>`, `<conditionalContent>` (0 or 1 items: the shown case) and
+  `<functionIterates>`.
+- **Wrappers:** `<group>`, an iteration, a pick and a shown case. A wrapper is not indexable
+  itself (COLL-3).
+
+Whether a tag is built as a composite or a list component never changes which kind it is
+(COMP-4).
+
+### COLL-2: a collection is indexed by item, and a property or name applies to each item (Tier 1; D41)
+- **Index:** an item (NAME-2).
+- **Property:** each item's (`$pl.x` is `1, 3`). An item that lacks it gives a blank, with a
+  warning decided at load (#2452).
+- **Name:** each item's component of that name: `$r.P` is every iteration's `P`, and `$s.P.x` each
+  pick's `P`'s x. The name must be declared in every option or case, with one type (COMP-11);
+  a repeat's template declares it in every iteration.
+- **Own properties, a fixed set:** `numItems` (entries, iterations, picks; 0 or 1 for a
+  conditional), and the settings every component has (`hide`, `fixed`, `disabled`). They win
+  over the items' properties of the same name; an item that is itself a collection is reached by
+  index (`$c[1].numItems`). A collection's attributes are not properties, so adding one never
+  shadows the items' properties.
+
+**Known violations** (#2523, **[probe]** on `main`):
+- the count is `numComponents`, and only on lists and the list form of a collect, sort or shuffle
+  (`$cp.numComponents` is `2`; `$cpp`, `$sq`, `$rp`, `$sel`, `$cc` give `w0104`);
+- a collect or sort built as a list inherits that list's aliases, which then fail
+  (`$cp.numPoints`, #2271);
+- a name after a collection names nothing (`$rmix.P`) or is ambiguous (`$s.P.x`, `w0105`);
+- an item lacking a property is dropped silently (`$rmix.x` over a point and a text is `1, 2`).
+
+### COLL-3: a wrapper stands for its one component; with several, it is only a container (Tier 1; D41)
+- **One component:** a tag, an index or a property after the wrapper applies to that component
+  (`<math extend="$g"/>`, `$g[2]`, `$g.x`). "One component" ignores blank text, comments and a
+  `<setup>`, and is decided at load (NAME-2).
+- **Several:** reach a component by name (`$g.P`). An index or a property after the wrapper names
+  nothing, with a warning that says to name the component.
+- **None:** the wrapper is missing (D37).
+- **Its own settings** are its own either way: `$g.hide` is the group's.
+
+**Known violations** (#2523): a property after a wrapper of several is given to each child:
+`$g.x` of a group of two points is `57`, run together; `$gmix.x` of a point and a number is `1`,
+the number dropped; `$cc.x` of a case holding two points is `1, 3`.
+
+### COLL-4: `<sort>` and `<shuffle>` take one type, decided at load (Tier 2; D41)
+- A child that is a list or a collection is flattened into its items, so several lists sort
+  together.
+- A wrapper is not flattened. A `<shuffle>` of wrappers shuffles them as units; a `<sort>` of
+  wrappers with several components is an error, having nothing to compare. A wrapper with one
+  component stands for it.
+- Items of more than one type (a number and a text; a math and a group of several) are an error
+  at load.
+
+**Known violations** (#2523): `<sort><number>3</number><text>a</text></sort>` sorts across
+types (`3, a`); a `<shuffle>` of three groups of two maths flattens them and splits the pairs
+(`4, 1, 5, 6, 2, 3`).
+
 ---
 
 ## 2. Repeats
