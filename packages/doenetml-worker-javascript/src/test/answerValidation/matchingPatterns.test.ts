@@ -266,30 +266,20 @@ describe("matching patterns answer tests @group2", async () => {
                             )
                         ).stateValues.value.tree,
                     ).eqls(res.response);
+                    // a list tag of a response the answer doesn't have
+                    // holds one blank entry (D40)
                     expect(
-                        await componentOrListEntry(
-                            core,
-                            stateVariables,
-                            resolvePathToNodeIdx,
-                            "quad[1]",
-                        ),
-                    ).be.undefined;
+                        stateVariables[await resolvePathToNodeIdx("quad")]
+                            .stateValues.entriesMissing,
+                    ).eqls([true]);
                     expect(
-                        await componentOrListEntry(
-                            core,
-                            stateVariables,
-                            resolvePathToNodeIdx,
-                            "lin[1]",
-                        ),
-                    ).be.undefined;
+                        stateVariables[await resolvePathToNodeIdx("lin")]
+                            .stateValues.entriesMissing,
+                    ).eqls([true]);
                     expect(
-                        await componentOrListEntry(
-                            core,
-                            stateVariables,
-                            resolvePathToNodeIdx,
-                            "const[1]",
-                        ),
-                    ).be.undefined;
+                        stateVariables[await resolvePathToNodeIdx("const")]
+                            .stateValues.entriesMissing,
+                    ).eqls([true]);
                     expect(
                         stateVariables[await resolvePathToNodeIdx("ans")]
                             .stateValues.submittedResponse1.tree,
