@@ -230,6 +230,18 @@ describe("An index into a value with entries @group4", async () => {
             ],
             arrays,
         );
+        // An entry that a property stands for (`x` for `x1`) arrives under
+        // the entry's name, so an index after the entry named directly
+        // selects among the array's entries, as an index after the property
+        // does, as before (#2478)
+        await expectShownSilently(
+            [
+                ["$P.x1[2]", "5"],
+                ["$P.x[2]", "5"],
+                ["$v.x1[2]", "7"],
+            ],
+            `<setup><point name="P">(4,5)</point><vector name="v">(6,7)</vector></setup>`,
+        );
     });
 
     it("writes nothing through an index past the dimensions of an entry of an array (#2478)", async () => {

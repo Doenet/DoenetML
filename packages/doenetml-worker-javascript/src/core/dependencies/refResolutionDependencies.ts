@@ -782,8 +782,9 @@ export class RefResolutionDependency extends Dependency {
         }
 
         if (refResolution.childIndex) {
-            // An index after a `<group>` does not select one of its children
-            // (D27): the reference names nothing, and is a blank (D37). The
+            // An index after a `<group>` holding several components, or none,
+            // or only text, does not select one of its children (D27,
+            // NAME-2): the reference names nothing, and is a blank (D37). The
             // resolver stops at the group, giving the child the index would
             // have selected, which the warning names.
             this.addDependenciesOnCompositesInPath(

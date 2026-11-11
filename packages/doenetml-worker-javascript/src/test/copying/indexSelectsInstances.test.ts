@@ -15,14 +15,15 @@ vi.mock("hyperformula");
  * the entries of a list, the iterations of a repeat, the picks of a select --
  * and never among the children of a container.
  *
- * - An iteration or a pick whose whole content is one indexable component
- *   passes the next index to it, so nested repeats take one index per level.
- * - An iteration or a pick whose whole content is one reference to a list or
- *   to a composite with instances passes the next index to what it names.
- * - An index after a `<group>`, after an iteration or pick that holds anything
- *   else, or after what a `<conditionalContent>` shows, names nothing (D27
- *   revised, #2517): a blank (D37), with a warning that says how to name the
- *   child (`doenet-w0188`).
+ * - A `<group>`, an iteration, a pick or what a `<conditionalContent>` shows
+ *   whose whole content is one component stands for it (NAME-2), and passes
+ *   the next index to it, which decides what the index means: nested repeats
+ *   take one index per level, a list or a math tuple gives its entry, and a
+ *   number (`doenet-w0100`) or a `<p>` (`doenet-w0180`) names nothing. A
+ *   reference as that one component passes the index to what it names.
+ * - An index after one that holds several components, or none, names nothing
+ *   (D27 revised, #2517): a blank (D37), with a warning that says how many it
+ *   holds and how to name the child (`doenet-w0188`).
  * - The diagnostics name what the author wrote.
  * - An extend of an iteration or a pick indexes as it does (REF-7, #2438).
  * - An index never reaches the `<setup>` a repeat adds to an iteration for
@@ -1322,6 +1323,40 @@ describe("One component stands for its holder (NAME-2, D27 revised again) @group
         expect([s1, s2].sort()).eqls(["[1]", "[7]"]);
         expect(rest.join(" ")).eq("[5] [1] [9] [2] [4] [5]");
         expect(warnings).eqls([]);
+    });
+
+    it("passes an index to an iteration's one text, and names nothing past a group of several", async () => {
+        // The examples in the docs (`reference/select.mdx`) and the
+        // changesets: a text takes no index (`doenet-w0100`), and an index
+        // past the end of a group holding several names nothing, as one
+        // within it does
+        const { text, warnings } = await textAndWarnings(`
+    <select name="s"><option><math>(1,2,3)</math></option></select>
+    <repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+    <group name="g"><math>a</math><math>b</math></group>
+    <p name="p">[$s[1][2]] [$r[1][2]] [$g[5]]</p>
+    `);
+        expect(text).eq("[2] [＿] [＿]");
+        expect(warnings).eqls([
+            ["doenet-w0100", "$r[1][2]"],
+            ["doenet-w0188", "$g[5]"],
+        ]);
+    });
+
+    it("names the iterations of a repeat that is a group's whole content from an extend of the group", async () => {
+        // `$e[1]` names the first iteration, and its name is the shortest
+        // path to it (`e:1`, not `e.r:1`). The renderer ids are these names.
+        const { core } = await createTestCore({
+            doenetML: `
+    <group name="g"><repeat name="r" for="1 2" valueName="v"><math name="m">$v</math></repeat></group>
+    <group name="e" extend="$g"/>
+    `,
+        });
+        const rootNames = Object.values((core as any).core.rootNames);
+        expect(rootNames).toEqual(
+            expect.arrayContaining(["e:1", "e:1.m", "e:2", "e:2.m"]),
+        );
+        expect(rootNames).not.toContain("e.r:1");
     });
 
     it("names nothing after a group holding text beside its component, and says how many it holds", async () => {

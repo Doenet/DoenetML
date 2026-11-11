@@ -87,8 +87,8 @@ export function indexSelectsInstances(
 /**
  * The `_instanceOf` attribute of a `<group>` made by a component of type
  * `instanceOf` (an iteration, a pick, or what a `<conditionalContent>`
- * shows), which names the group in the warning for an index that selects one
- * of its children.
+ * shows), which names the group in the warning for an index after it that
+ * names nothing (`doenet-w0188`).
  */
 export function instanceOfAttribute(instanceOf: string) {
     return {

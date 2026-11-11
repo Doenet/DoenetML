@@ -2557,7 +2557,9 @@ export async function arrayEntryNamesFromPropIndex({
             // (an alias, `numericalSolution` for `numericalSolution1`):
             // the name arrives here as the entry's, and an index after the
             // alias selects among the array's entries, as it always has
-            // (`$ode.numericalSolution[2]` is `numericalSolution2`).
+            // (`$ode.numericalSolution[2]` is `numericalSolution2`). Nor,
+            // as the two arrive the same, for that entry named directly:
+            // `$P.x1[2]` is `x2`, as before.
             const aliasTargets = Object.values(component.stateVarAliases ?? {});
             if (
                 !arrayStateVarObj.indexesAnyDepth &&
