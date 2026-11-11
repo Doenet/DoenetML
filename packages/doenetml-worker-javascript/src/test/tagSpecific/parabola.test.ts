@@ -1290,9 +1290,11 @@ describe("Parabola Tag Tests @group2", async () => {
             t3y = 4;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
-            undefined,
-        );
+        // an index that names nothing gives one blank point (D40)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
             undefined,
         );
@@ -1420,9 +1422,11 @@ describe("Parabola Tag Tests @group2", async () => {
             core,
         });
         stateVariables = await core.returnAllStateVariables(false, true);
-        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
-            undefined,
-        );
+        // an index that names nothing gives one blank point (D40)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
             undefined,
         );

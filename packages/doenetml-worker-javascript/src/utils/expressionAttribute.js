@@ -359,6 +359,30 @@ function pointListDefinitions(attribute) {
         };
     }
 
+    // whether each point of the list is missing (`entriesMissing`), which
+    // makes a shape whose points they are missing (D40)
+    definitions[`${prefix}entriesMissing`] = {
+        stateVariablesDeterminingDependencies: [listName],
+        returnDependencies({ stateValues }) {
+            const list = stateValues[listName];
+            return list === null
+                ? {}
+                : {
+                      fromList: {
+                          dependencyType: "stateVariable",
+                          componentIdx: list,
+                          variableName: "entriesMissing",
+                          variablesOptional: true,
+                      },
+                  };
+        },
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                [`${prefix}entriesMissing`]: dependencyValues.fromList ?? [],
+            },
+        }),
+    };
+
     const arrayName = `${prefix}points`;
     const entryPrefix = `${prefix}pointX`;
     definitions[arrayName] = {

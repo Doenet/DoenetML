@@ -4572,9 +4572,11 @@ describe("Polygon tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
-            undefined,
-        );
+        // an index that names nothing gives one blank point (D40)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
             undefined,
         );
@@ -4706,9 +4708,11 @@ describe("Polygon tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
-            undefined,
-        );
+        // an index that names nothing gives one blank point (D40)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
             undefined,
         );

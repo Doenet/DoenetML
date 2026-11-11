@@ -1003,6 +1003,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
       <angle name="A" through="(1,0) (0,0) $pts[$i]" />
       <polygon name="poly" vertices="(1,0) (0,0) $pts[$i]" />
       <polygon name="poly2" vertices="(1,0) (0,0) $M" />
+      <polygon name="poly3" vertices="$q" />
       <lineSegment name="ls" endpoints="(1,0) $pts[$i]" />
       <circle name="c" through="(1,0) $pts[$i] (0,1)" />
       <line name="l" through="(1,0) $pts[$i]" />
@@ -1010,7 +1011,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
     <p name="p">[$q][$q[1]][$q[1].x][<point extend="$q[1]"/>]</p>
     `,
         });
-        const shapes = ["A", "poly", "ls", "c", "l"];
+        const shapes = ["A", "poly", "ls", "c", "l", "poly3"];
         async function check(missing: boolean) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
@@ -1035,6 +1036,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
                 blank ?? "angle",
                 blank ?? "polygon",
                 "_blank",
+                blank ?? "polygon",
                 blank ?? "lineSegment",
                 blank ?? "circle",
                 blank ?? "line",
