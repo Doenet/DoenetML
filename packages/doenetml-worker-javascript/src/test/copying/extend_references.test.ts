@@ -6511,16 +6511,17 @@ describe("Extend and references tests @group2", async () => {
     `,
         });
 
-        // An index does not select a child of a group (D27): an index
-        // selects among what a component makes.
+        // The group holds one component, the reference, so an index after
+        // it passes to what the reference made, a `<p>`, which takes no
+        // index (NAME-2): it does not reach the `<p>`'s names.
         expect(
             getDiagnosticsByType(core).warnings.map((w) => [
                 w.code,
                 w.args?.reference,
             ]),
         ).eqls([
-            ["doenet-w0188", "$sec2.g[1]"],
-            ["doenet-w0188", "$sec2.g[1]"],
+            ["doenet-w0180", "$sec2.g[1]"],
+            ["doenet-w0180", "$sec2.g[1].t"],
         ]);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -6569,7 +6570,8 @@ describe("Extend and references tests @group2", async () => {
     it("dynamically change index resolutions with reference inside composite", async () => {
         // Note: cypress test of same name in `renderCommas.cy.js` tests the DOM
         //
-        // An index after a `<group>` names nothing (D27), whatever it holds.
+        // An index after a `<group>` holding several components, here text
+        // beside a reference, names nothing (D27), whatever they are.
         // An iteration whose whole content is one reference to a list
         // selects among the list's entries, which change as the list does.
         let { core, resolvePathToNodeIdx } = await createTestCore({

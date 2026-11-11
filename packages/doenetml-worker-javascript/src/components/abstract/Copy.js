@@ -3934,7 +3934,12 @@ async function diagnosticForUnusedIndex({
         }
     }
 
-    if (sourceClass?.variableForImplicitProp) {
+    // A value reference (`_ref`) is a value, as `$P.x` reached through a
+    // group holding only it (`$g[1]` of `<group name="g">$P.x</group>`)
+    if (
+        sourceClass?.variableForImplicitProp ||
+        replacementSource.componentType === "_ref"
+    ) {
         return codedDiagnostic({
             type: "warning",
             code: "doenet-w0100",

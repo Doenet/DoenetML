@@ -1,6 +1,6 @@
 import { serializedAttributeComponent } from "../utils/literalAttribute";
 import CompositeComponent from "./abstract/CompositeComponent";
-import { instanceGroupAttributes } from "../utils/indexInstances";
+import { instanceOfAttribute } from "../utils/indexInstances";
 import {
     deepClone,
     enumerateSelectionCombinations,
@@ -917,14 +917,14 @@ export default class Select extends CompositeComponent {
                 componentType: "group",
                 componentIdx: nComponents++,
                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                // What made the pick, for the warning of an index after it.
                 // An index after the pick passes to its content when that is
-                // one indexable component, and otherwise selects one of its
-                // children (D27)
-                attributes: instanceGroupAttributes({
-                    children: serializedGrandchildren,
-                    instanceOf: component.componentType,
-                    componentInfoObjects,
-                }),
+                // one component, and otherwise names nothing, as the resolver
+                // decides from its children (D27, NAME-2,
+                // `IndexKind::of_content`).
+                attributes: {
+                    _instanceOf: instanceOfAttribute(component.componentType),
+                },
                 doenetAttributes: Object.assign(
                     {},
                     selectedChild.doenetAttributes,

@@ -27,7 +27,10 @@ import { preprocessAttributesObject } from "../utils/attributes";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createComponentIndicesForShadowedReplacements } from "../utils/componentIndices";
 import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
-import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
+import {
+    giveListEntriesToIndexParent,
+    giveReferenceContentToIndexParent,
+} from "./listEntryResolverNodes";
 
 /**
  * Loose-typed bag describing one entry in the `componentChanges` array
@@ -616,6 +619,12 @@ export class CompositeReplacementUpdater {
 
         // A list component among the items is indexed by its entries.
         await giveListEntriesToIndexParent({
+            core: this.core,
+            composite: component,
+        });
+        // What an index after a group holding only a reference does with what
+        // the reference made, now that it changed
+        await giveReferenceContentToIndexParent({
             core: this.core,
             composite: component,
         });

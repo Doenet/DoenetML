@@ -204,23 +204,18 @@ describe("A function reference that names nothing @group4", async () => {
                 marked: "$$(f[2])((x), 3)",
             },
             {
-                // an index past the one child of a group names nothing, as
-                // any index after a group does (D27)
+                // an index after a group holding one function passes to it
+                // (NAME-2), which takes none
                 doenetML: `${groupF}<p name="p">[$$f[2](2)]</p>`,
                 text: "[＿]",
-                code: "doenet-w0188",
-                args: {
-                    reference: "$$f[2](2)",
-                    suggestion: "$$f.x(2)",
-                    child: "none",
-                    container: "group",
-                    component: "group",
-                },
+                code: "doenet-w0180",
+                args: { reference: "$$f[2](2)", component: "function" },
                 marked: "$$f[2](2)",
             },
             {
-                // an index never selects the child of a group (D27)
-                doenetML: `${groupF}<p name="p">[$$f[1](2)]</p>`,
+                // an index never selects the child of a group holding two
+                // (D27)
+                doenetML: `<group name="f"><function>x^2</function><function>x^3</function></group><p name="p">[$$f[1](2)]</p>`,
                 text: "[＿]",
                 code: "doenet-w0188",
                 args: {
@@ -229,6 +224,7 @@ describe("A function reference that names nothing @group4", async () => {
                     child: "unnamed",
                     container: "group",
                     component: "group",
+                    count: 2,
                 },
                 marked: "$$f[1](2)",
             },

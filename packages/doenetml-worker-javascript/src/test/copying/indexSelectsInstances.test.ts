@@ -144,8 +144,8 @@ describe("An index selects instances, not children @group4", async () => {
     it("reads the old form of an index into nested repeats with the new meaning", async () => {
         // `$a[2][1][3]` used to be iteration 3 of the repeat that is the first
         // child of iteration 2. It is now iteration 1 of that repeat, then
-        // index 3 after that iteration, which holds only one `<number>`, so it
-        // names nothing, as an index after a group does.
+        // index 3 after that iteration, which holds only one `<number>`, so
+        // the index passes to the number, which takes none.
         const { text, warnings } = await shownAndReported(`
     <repeatForSequence from="1" to="3" valueName="i" name="a">
       <repeatForSequence from="1" to="3" valueName="j" name="b">
@@ -155,14 +155,9 @@ describe("An index selects instances, not children @group4", async () => {
     <p name="p">[$a[2][3]] [$a[2][3].c] [$a[2][1][3]]</p>
     `);
         expect(text).eq("[11] [11] [＿]");
-        expect(warnings.map((w) => w.code)).eqls(["doenet-w0188"]);
-        expect(warnings[0].args).eqls({
-            reference: "$a[2][1][3]",
-            suggestion: "$a[2][1].x",
-            child: "none",
-            container: "iteration",
-            component: "repeatForSequence",
-        });
+        expect(warnings.map((w) => [w.code, w.args.reference])).eqls([
+            ["doenet-w0100", "$a[2][1][3]"],
+        ]);
     });
 
     it("passes an index through a pick holding one list", async () => {
@@ -242,20 +237,15 @@ describe("An index selects instances, not children @group4", async () => {
         ]);
     });
 
-    it("names nothing after a pick holding a setup written before a reference to a list", async () => {
-        // The setup takes position 1, so the reference's entries are not what
-        // `[1]`, `[2]`, … would count: the pick holds children, which an index
-        // does not select.
-        for (const index of ["[1].n", "[2]"]) {
-            const { text, warnings } = await shownAndReported(
-                `<setup><mathList name="nl">a b c</mathList></setup><select name="s"><option><setup><number name="n">5</number></setup>$nl</option></select><p name="p">[$s[1]${index}]</p>`,
-            );
-            expect(text, index).eq("[＿]");
-            expect(
-                warnings.map((w) => w.code),
-                index,
-            ).eqls(["doenet-w0188"]);
-        }
+    it("passes an index through a pick holding a setup and a reference to a list", async () => {
+        // A setup is not content, before the reference or after it: the
+        // pick holds one component, the reference, whose entries an index
+        // selects
+        const before = await shownAndReported(
+            `<setup><mathList name="nl">a b c</mathList></setup><select name="s"><option><setup><number name="n">5</number></setup>$nl</option></select><p name="p">[$s[1][1]] [$s[1][2]] [$s[1][4]]</p>`,
+        );
+        expect(before.text).eq("[a] [b] [＿]");
+        expect(before.warnings).eqls([]);
 
         // A setup after the reference shifts nothing, and is not reached by
         // an index past the entries.
@@ -266,44 +256,70 @@ describe("An index selects instances, not children @group4", async () => {
         expect(after.warnings).eqls([]);
     });
 
-    it("names nothing after a pick holding only a reference to a component that makes no instances", async () => {
-        const { text, warnings } = await shownAndReported(
-            `<setup><math name="m">x</math><group name="g"><math>y</math></group></setup><select name="s" numToSelect="2"><option>$m</option><option>$g</option></select><p name="p">[$s[1][1]] [$s[2][1]]</p>`,
+    it("passes an index after a pick holding only a reference to one component to what it made", async () => {
+        // `$m` and the one math of `g` are scalars, which take no index (as
+        // an info for what `g` made, whose value a reference copies and could
+        // change)
+        for (const [setup, option] of [
+            [`<math name="m">x</math>`, `$m`],
+            [`<group name="g"><math>y</math></group>`, `$g`],
+        ]) {
+            const { text, warnings, infos } = await shownAndReported(
+                `<setup>${setup}</setup><select name="s"><option>${option}</option></select><p name="p">[$s[1][1]]</p>`,
+            );
+            expect(text, option).eq("[＿]");
+            expect(
+                [...warnings, ...infos].map((w) => [w.code, w.args.reference]),
+                option,
+            ).eqls([["doenet-w0100", "$s[1][1]"]]);
+        }
+
+        // and a reference to a group holding two names nothing after it,
+        // whose children have the names of what it copies, not of a child of
+        // the pick
+        const two = await shownAndReported(
+            `<setup><group name="g"><math>y</math><math>z</math></group></setup><select name="s"><option>$g</option></select><p name="p">[$s[1][1]]</p>`,
         );
-        expect(text).eq("[＿] [＿]");
-        expect(warnings.map((w) => [w.code, w.args.container])).eqls([
-            ["doenet-w0188", "pick"],
-            ["doenet-w0188", "pick"],
-        ]);
-        // What a reference made has the name of what it copies, which is
-        // not the name of a child of the pick
-        expect(warnings.map((w) => w.args.child)).eqls(["unnamed", "unnamed"]);
+        expect(two.text).eq("[＿]");
+        expect(
+            two.warnings.map((w) => [
+                w.code,
+                w.args.container,
+                w.args.child,
+                w.args.count,
+            ]),
+        ).eqls([["doenet-w0188", "pick", "unnamed", 2]]);
     });
 
-    it("names nothing after a group or a case holding only a reference to a list", async () => {
-        // Neither passes an index through to a list written in place
-        // (`<group><mathList/></group>`), so neither does it for a reference.
+    it("passes an index through a group or a case holding only a reference to a list or a repeat", async () => {
+        // As through a pick: past the end of a list is silent, and past the
+        // iterations of a repeat says how many it made
         const setup = `<setup><mathList name="nl">a b c</mathList><repeat name="rp" for="1 2" valueName="w"><math>$w</math></repeat></setup>`;
-        for (const [body, name, past] of [
-            [`<group name="g">$nl</group>`, "g", "$g[5]"],
-            [`<group name="g">$rp</group>`, "g", "$g[5]"],
+        for (const [body, name, past, shown, codes] of [
+            [`<group name="g">$nl</group>`, "g", "$g[5]", "[b] [＿]", []],
+            [
+                `<group name="g">$rp</group>`,
+                "g",
+                "$g[5]",
+                "[2] [＿]",
+                ["doenet-w0181"],
+            ],
             [
                 `<conditionalContent name="g"><case condition="true">$nl</case></conditionalContent>`,
                 "g[1]",
                 "$g[1][5]",
+                "[b] [＿]",
+                [],
             ],
-        ]) {
+        ] as const) {
             const { text, warnings } = await shownAndReported(
                 `${setup}${body}<p name="p">[$${name}[2]] [${past}]</p>`,
             );
-            expect(text, body).eq("[＿] [＿]");
+            expect(text, body).eq(shown);
             expect(
-                warnings.map((w) => [w.code, w.args.child]),
+                warnings.map((w) => w.code),
                 body,
-            ).eqls([
-                ["doenet-w0188", "unnamed"],
-                ["doenet-w0188", "none"],
-            ]);
+            ).eqls(codes);
         }
     });
 
@@ -412,6 +428,7 @@ describe("An index selects instances, not children @group4", async () => {
             child: string;
             container: string;
             component: string;
+            count: number;
         }[] = [
             {
                 body: `<group name="g"><math>a</math><math>b</math></group><p name="p">[$g[2]]</p>`,
@@ -421,6 +438,7 @@ describe("An index selects instances, not children @group4", async () => {
                 child: "unnamed",
                 container: "group",
                 component: "group",
+                count: 2,
             },
             {
                 body: `<group name="g"><math>a</math><math name="m">b</math></group><p name="p">[$g[2]]</p>`,
@@ -430,6 +448,7 @@ describe("An index selects instances, not children @group4", async () => {
                 child: "named",
                 container: "group",
                 component: "group",
+                count: 2,
             },
             {
                 body: `<select name="s"><option><math>a</math><math>b</math></option></select><p name="p">[$s[1][2]]</p>`,
@@ -439,16 +458,7 @@ describe("An index selects instances, not children @group4", async () => {
                 child: "unnamed",
                 container: "pick",
                 component: "select",
-            },
-            {
-                // A pick holding one component that is not indexable
-                body: `<select name="s"><option><math name="m">a</math></option></select><p name="p">[$s[1][1]]</p>`,
-                text: "[＿]",
-                reference: "$s[1][1]",
-                suggestion: "$s[1].m",
-                child: "named",
-                container: "pick",
-                component: "select",
+                count: 2,
             },
             {
                 body: `<repeatForSequence name="r" length="2" valueName="v"><math>$v</math><math>2$v</math></repeatForSequence><p name="p">[$r[2][2]]</p>`,
@@ -458,6 +468,7 @@ describe("An index selects instances, not children @group4", async () => {
                 child: "unnamed",
                 container: "iteration",
                 component: "repeatForSequence",
+                count: 2,
             },
             {
                 body: `<repeat name="r" for="1 2" valueName="v"><math>$v</math><math name="w">2$v</math></repeat><p name="p">[$r[1][2]]</p>`,
@@ -467,6 +478,7 @@ describe("An index selects instances, not children @group4", async () => {
                 child: "named",
                 container: "iteration",
                 component: "repeat",
+                count: 2,
             },
             {
                 body: `<conditionalContent name="cc"><case condition="true"><math>a</math><math>b</math></case></conditionalContent><p name="p">[$cc[1][2]]</p>`,
@@ -476,6 +488,7 @@ describe("An index selects instances, not children @group4", async () => {
                 child: "unnamed",
                 container: "case",
                 component: "conditionalContent",
+                count: 2,
             },
         ];
 
@@ -496,23 +509,29 @@ describe("An index selects instances, not children @group4", async () => {
         // `<setup>` that holds `valueName`, which showed nothing, and `.v`
         // after it reached the value. That setup is not the author's content
         // (NAME-3), so it is not named as the child the index would select,
-        // and the index names nothing, as one after any `<group>` does.
+        // and the index names nothing, as one after any `<group>` holding two
+        // components does.
         const { text, warnings, errors, infos } = await shownAndReported(`
-    <repeat name="r" for="a b" valueName="v"><text>$v</text></repeat>
+    <repeat name="r" for="a b" valueName="v"><text>$v</text><text>!</text></repeat>
     <repeat name="r2" extend="$r" />
     <group name="g" extend="$r[1]" />
-    <p name="p">[$r[1][2]] [$r2[1][2]] [$g[2]] [$r[1][2].v] [$g[2].v]</p>
+    <p name="p">[$r[1][3]] [$r2[1][3]] [$g[3]] [$r[1][3].v] [$g[3].v]</p>
     `);
         expect(text).eq("[＿] [＿] [＿] [＿] [＿]");
         // There is no child there, and the setup is not named as one
         expect(
-            warnings.map((w) => [w.code, w.args.reference, w.args.child]),
+            warnings.map((w) => [
+                w.code,
+                w.args.reference,
+                w.args.child,
+                w.args.count,
+            ]),
         ).eqls([
-            ["doenet-w0188", "$r[1][2]", "none"],
-            ["doenet-w0188", "$r2[1][2]", "none"],
-            ["doenet-w0188", "$g[2]", "none"],
-            ["doenet-w0188", "$r[1][2]", "none"],
-            ["doenet-w0188", "$g[2]", "none"],
+            ["doenet-w0188", "$r[1][3]", "none", 2],
+            ["doenet-w0188", "$r2[1][3]", "none", 2],
+            ["doenet-w0188", "$g[3]", "none", 2],
+            ["doenet-w0188", "$r[1][3]", "none", 2],
+            ["doenet-w0188", "$g[3]", "none", 2],
         ]);
         expect(errors).eqls([]);
         expect(infos).eqls([]);
@@ -733,31 +752,33 @@ describe("An index selects instances, not children @group4", async () => {
         await check("[2] [＿] [＿] [＿]");
     });
 
-    it("warns of a setup the author wrote, as of any other child", async () => {
-        // Only the `<setup>` a repeat adds is skipped: one the author wrote is
-        // a child the index would select, even last in a repeat with no
-        // `valueName`, or in a copy of the repeat
-        const cases: { body: string; references: string[] }[] = [
+    it("does not count a setup the author wrote as content", async () => {
+        // A `<setup>` is not content, the author's as the one a repeat adds:
+        // each of these holds one component, a scalar, to which the index
+        // passes, even with the setup last in a repeat with no `valueName`,
+        // or in a copy of the repeat. The scalar takes no index.
+        const cases: { body: string; reference: string }[] = [
             {
                 body: `<select name="s"><option><setup><number name="n">5</number></setup><math name="m">$n</math></option></select><p name="p">[$s[1][1].n]</p>`,
-                references: ["$s[1][1]"],
+                reference: "$s[1][1].n",
             },
             {
                 body: `<repeat name="r" for="a b"><text>x</text><setup><number name="n">5</number></setup></repeat><p name="p">[$r[1][2].n]</p>`,
-                references: ["$r[1][2]"],
+                reference: "$r[1][2].n",
             },
             {
                 body: `<repeat name="r" for="a b" valueName="v"><setup><number name="n">5</number></setup><text>$v</text></repeat><repeat name="r2" extend="$r" /><p name="p">[$r2[1][1].n]</p>`,
-                references: ["$r2[1][1]"],
+                reference: "$r2[1][1].n",
             },
         ];
 
-        for (const { body, references } of cases) {
-            const { warnings } = await shownAndReported(body);
+        for (const { body, reference } of cases) {
+            const { text, warnings } = await shownAndReported(body);
+            expect(text, body).eq("[＿]");
             expect(
                 warnings.map((w) => [w.code, w.args.reference]),
                 body,
-            ).eqls(references.map((r) => ["doenet-w0188", r]));
+            ).eqls([["doenet-w0100", reference]]);
         }
     });
 
@@ -766,9 +787,9 @@ describe("An index selects instances, not children @group4", async () => {
             `<select name="s"><option><math>a</math><math name="m">b</math></option></select><p name="p">$s[1][1] $s[1][2] $s[1][3]</p>`,
         );
         expect(warnings.map((w) => w.message).sort()).eqls([
-            '`$s[1][1]` names nothing: an index does not select a child of what a `<select>` picked. An index selects among what a component makes, such as the entries of a list or the iterations of a repeat. To refer to the child, give it a name, such as `name="x"`, and write `$s[1].x`.',
-            "`$s[1][2]` names nothing: an index does not select a child of what a `<select>` picked. An index selects among what a component makes, such as the entries of a list or the iterations of a repeat. To refer to the child, write `$s[1].m`.",
-            "`$s[1][3]` names nothing: an index does not select a child of what a `<select>` picked. An index selects among what a component makes, such as the entries of a list or the iterations of a repeat. To refer to a child, give it a name and write that name after a `.`.",
+            '`$s[1][1]` names nothing: what the `<select>` picked holds 2 components, and an index passes into a pick only when it holds one. An index never selects a child. To refer to the child, give it a name, such as `name="x"`, and write `$s[1].x`.',
+            "`$s[1][2]` names nothing: what the `<select>` picked holds 2 components, and an index passes into a pick only when it holds one. An index never selects a child. To refer to the child, write `$s[1].m`.",
+            "`$s[1][3]` names nothing: what the `<select>` picked holds 2 components, and an index passes into a pick only when it holds one. An index never selects a child. To refer to a child, give it a name and write that name after a `.`.",
         ]);
     });
 
@@ -916,10 +937,11 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
                 references: ["$c[1][2]"],
             },
             {
-                // a group inside an iteration, where the iteration holding
-                // it already names nothing after an index, which is what the
-                // warning quotes, and a group reached by name
-                body: `<repeat name="r" for="1 2" valueName="v"><group><math>$v</math><math>2$v</math></group></repeat><section name="a"><group name="g"><math>x</math></group></section><p name="p">[$r[1][1][2]] [$a.g[1]]</p>`,
+                // a group inside an iteration, which the iteration holding
+                // only it passes the index after it to, so that index is
+                // the one after the group, which the warning quotes, and a
+                // group reached by name
+                body: `<repeat name="r" for="1 2" valueName="v"><group><math>$v</math><math>2$v</math></group></repeat><section name="a"><group name="g"><math>x</math><math>y</math></group></section><p name="p">[$r[1][1][2]] [$a.g[1]]</p>`,
                 references: ["$r[1][1]", "$a.g[1]"],
             },
             {
@@ -942,16 +964,15 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
         }
     });
 
-    it("does not read an index after a group into the group's items (#2166)", async () => {
+    it("does not read an index after a group holding two components into its items (#2166)", async () => {
         // The index used to be passed to each item as a property: `$g[2]`
-        // was `5`, the second entry of the math
+        // was `5`, the second entry of the math. A group holding one
+        // component passes the index to it (below).
         for (const holds of [
-            `<math>(4,5,6)</math>`,
             `<math>(4,5,6)</math><number>9</number>`,
             `<number>9</number><math>(4,5,6)</math>`,
             `<math>(4,5,6)</math><math>(7,8)</math>`,
             `<point>(4,5)</point><point>(7,8)</point>`,
-            `<numberList>4 5 6</numberList>`,
         ]) {
             const { text, warnings } = await shownAndReported(
                 `<group name="g">${holds}</group><number name="i">3</number><p name="p">[$g[1]] [$g[2]] [$g[3]] [$g[$i]]</p>`,
@@ -965,19 +986,44 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
     });
 
     it("loads a document indexing into a group whose child is a reference not yet expanded (#1942)", async () => {
-        // These trapped in the Rust core, which blanked the document
-        for (const doenetML of [
-            `$g[1]<group name="g">$x</group><p name="x">hello</p><p name="p">[$g[1]] [$x]</p>`,
-            `$g[1]<group name="g">$nothere</group><p name="p">[$g[1]]</p>`,
-            `$g[1]<group name="g">$$f(1)</group><p name="p">[$g[1]]</p>`,
-            `$g[1].y<group name="g">$x</group><p name="x">hello</p><p name="p">[$g[1].y]</p>`,
-            `<group name="g">$g[1]$g[2]</group><p name="p">[$g[1]]</p>`,
-            `<group name="a">$b[1]</group><group name="b">$a[1]</group><p name="p">[$a[1]]</p>`,
+        // These trapped in the Rust core, which blanked the document. The
+        // index passes to the reference, the group's one component, and so
+        // to what it names: a `<p>`, which takes no index; nothing; or the
+        // reference itself, through a chain of groups, which names nothing.
+        for (const [doenetML, code] of [
+            [
+                `$g[1]<group name="g">$x</group><p name="x">hello</p><p name="p">[$g[1]] [$x]</p>`,
+                "doenet-w0180",
+            ],
+            [
+                `$g[1]<group name="g">$nothere</group><p name="p">[$g[1]]</p>`,
+                "doenet-w0104",
+            ],
+            [
+                `$g[1]<group name="g">$$f(1)</group><p name="p">[$g[1]]</p>`,
+                "doenet-w0104",
+            ],
+            [
+                `$g[1].y<group name="g">$x</group><p name="x">hello</p><p name="p">[$g[1].y]</p>`,
+                "doenet-w0180",
+            ],
+            [
+                `<group name="g">$g[1]$g[2]</group><p name="p">[$g[1]]</p>`,
+                "doenet-w0188",
+            ],
+            [
+                `<group name="a">$b[1]</group><group name="b">$a[1]</group><p name="p">[$a[1]]</p>`,
+                "doenet-w0104",
+            ],
+            [
+                `<group name="g">$g[1]</group><p name="p">[$g[1]]</p>`,
+                "doenet-w0104",
+            ],
         ]) {
             const { text, warnings } = await shownAndReported(doenetML);
             expect(text.startsWith("[＿]"), doenetML).eq(true);
             expect(
-                warnings.some((w) => w.code === "doenet-w0188"),
+                warnings.some((w) => w.code === code),
                 doenetML,
             ).eq(true);
         }
@@ -1067,5 +1113,293 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
             core,
         });
         expect(await text()).eq("[3]");
+    });
+});
+
+describe("One component stands for its holder (NAME-2, D27 revised again) @group4", async () => {
+    /** The text of `p`, and the code and reference of each warning. */
+    async function textAndWarnings(doenetML: string) {
+        const { text, warnings, errors, infos } =
+            await shownAndReported(doenetML);
+        expect([...errors, ...infos], doenetML).eqls([]);
+        return {
+            text,
+            warnings: warnings.map((w) => [w.code, w.args.reference]),
+        };
+    }
+
+    it("passes an index after a group to its one component, which decides what it means", async () => {
+        const cases: {
+            holds: string;
+            references: string;
+            text: string;
+            warnings?: string[][];
+        }[] = [
+            // a list: its entries
+            {
+                holds: `<numberList>4 5 6</numberList>`,
+                references: `[$g[1]] [$g[3]]`,
+                text: `[4] [6]`,
+            },
+            // a math tuple: the entries of its value
+            {
+                holds: `<math>(4,5,6)</math>`,
+                references: `[$g[1]] [$g[2]] [$g[3]]`,
+                text: `[4] [5] [6]`,
+            },
+            // a point: its coordinates
+            {
+                holds: `<point>(4,5)</point>`,
+                references: `[$g[1]] [$g[2]]`,
+                text: `[4] [5]`,
+            },
+            // a vector, a matrix and a math input
+            {
+                holds: `<vector>(1,2)</vector>`,
+                references: `[$g[2]]`,
+                text: `[2]`,
+            },
+            {
+                holds: `<matrix><row>1 2</row><row>3 4</row></matrix>`,
+                references: `[$g[2][1]]`,
+                text: `[3]`,
+            },
+            {
+                holds: `<mathInput prefill="(1,2)"/>`,
+                references: `[$g[2]]`,
+                text: `[2]`,
+            },
+            // a repeat: its iterations
+            {
+                holds: `<repeat for="1 2" valueName="v"><math>$v</math></repeat>`,
+                references: `[$g[2]]`,
+                text: `[2]`,
+            },
+            // a scalar number takes no index
+            {
+                holds: `<number>4</number>`,
+                references: `[$g[1]]`,
+                text: `[＿]`,
+                warnings: [["doenet-w0100", "$g[1]"]],
+            },
+            // nor does a `<p>`
+            {
+                holds: `<p>hi</p>`,
+                references: `[$g[1]]`,
+                text: `[＿]`,
+                warnings: [["doenet-w0180", "$g[1]"]],
+            },
+            // blank text and a `<setup>` are not content
+            {
+                holds: `
+                <setup><number name="k">3</number></setup>
+                <math>(4,5)</math>
+            `,
+                references: `[$g[2]]`,
+                text: `[5]`,
+            },
+            // a group holding one group holding one math
+            {
+                holds: `<group><math>(4,5)</math></group>`,
+                references: `[$g[2]]`,
+                text: `[5]`,
+            },
+        ];
+        for (const { holds, references, text, warnings = [] } of cases) {
+            const result = await textAndWarnings(
+                `<group name="g">${holds}</group><p name="p">${references}</p>`,
+            );
+            expect(result.text, holds).eq(text);
+            expect(result.warnings, holds).eqls(warnings);
+        }
+    });
+
+    it("passes an index after a group holding only a reference to what it names", async () => {
+        const cases: {
+            before: string;
+            holds: string;
+            references: string;
+            text: string;
+            warnings?: string[][];
+        }[] = [
+            // a list: its entries
+            {
+                before: `<numberList name="nl">4 5 6</numberList>`,
+                holds: `$nl`,
+                references: `[$g[1]] [$g[2]]`,
+                text: `[4] [5]`,
+            },
+            // a math and a point: the entries of their values
+            {
+                before: `<math name="m">(4,5,6)</math>`,
+                holds: `$m`,
+                references: `[$g[1]] [$g[3]]`,
+                text: `[4] [6]`,
+            },
+            {
+                before: `<point name="P">(4,5)</point>`,
+                holds: `$P`,
+                references: `[$g[2]]`,
+                text: `[5]`,
+            },
+            // a repeat: its iterations
+            {
+                before: `<repeatForSequence name="r" length="3" valueName="v"><number>$v</number></repeatForSequence>`,
+                holds: `$r`,
+                references: `[$g[2]]`,
+                text: `[2]`,
+            },
+            // a `<conditionalContent>`: the case it shows, and then into it
+            {
+                before: `<conditionalContent name="cc"><case condition="false"><math>(1,2)</math></case><else><math>(3,4)</math></else></conditionalContent>`,
+                holds: `$cc`,
+                references: `[$g[1]] [$g[1][2]]`,
+                text: `[(3, 4)] [4]`,
+            },
+            // a group holding one component: that component
+            {
+                before: `<group name="g2"><math>(7,8)</math></group>`,
+                holds: `$g2`,
+                references: `[$g[2]]`,
+                text: `[8]`,
+            },
+            // a scalar number takes no index
+            {
+                before: `<number name="n">4</number>`,
+                holds: `$n`,
+                references: `[$g[1]]`,
+                text: `[＿]`,
+                warnings: [["doenet-w0100", "$g[1]"]],
+            },
+            // nor does a `<p>`
+            {
+                before: `<p name="q">hi</p>`,
+                holds: `$q`,
+                references: `[$g[1]]`,
+                text: `[＿]`,
+                warnings: [["doenet-w0180", "$g[1]"]],
+            },
+            // a group holding two components: they name nothing after an index
+            {
+                before: `<group name="g2"><math>1</math><math>2</math></group>`,
+                holds: `$g2`,
+                references: `[$g[2]]`,
+                text: `[＿]`,
+                warnings: [["doenet-w0188", "$g[2]"]],
+            },
+        ];
+        for (const {
+            before,
+            holds,
+            references,
+            text,
+            warnings = [],
+        } of cases) {
+            const result = await textAndWarnings(
+                `${before}<group name="g">${holds}</group><p name="p">${references}</p>`,
+            );
+            expect(result.text, holds).eq(text);
+            expect(result.warnings, holds).eqls(warnings);
+        }
+    });
+
+    it("passes an index after a pick, a case or an iteration holding one value", async () => {
+        const { text, warnings } = await textAndWarnings(`
+    <select name="s" numToSelect="2">
+      <option><math>(1,2,3)</math></option>
+      <option><point>(7,8)</point></option>
+    </select>
+    <math name="m">(4,5)</math>
+    <select name="t"><option>$m</option></select>
+    <repeat name="r" for="1 2" valueName="v"><point>($v,9)</point></repeat>
+    <repeat name="r2" for="1 2" valueName="v"><math>($v,9)</math></repeat>
+    <conditionalContent name="cc"><case condition="false"><math>(1,2)</math></case><else><math>(3,4)</math></else></conditionalContent>
+    <conditionalContent name="cc2" condition="true"><math>(5,6)</math></conditionalContent>
+    <p name="p">[$s[1][1]] [$s[2][1]] [$t[1][2]] [$r[1][1]] [$r[2][2]] [$r2[2][1]] [$cc[1][2]] [$cc2[1][1]]</p>
+    `);
+        // the picks are in an order chosen at random
+        const [s1, s2, ...rest] = text.split(" ");
+        expect([s1, s2].sort()).eqls(["[1]", "[7]"]);
+        expect(rest.join(" ")).eq("[5] [1] [9] [2] [4] [5]");
+        expect(warnings).eqls([]);
+    });
+
+    it("names nothing after a group holding text beside its component, and says how many it holds", async () => {
+        const { text, warnings, errors, infos } = await shownAndReported(
+            `<numberList name="nl">4 5 6</numberList><group name="g">Value: $nl</group><group name="h"><math>1</math><math>2</math><math>3</math></group><p name="p">[$g[1]] [$h[1]]</p>`,
+        );
+        expect(text).eq("[＿] [＿]");
+        expect([...errors, ...infos]).eqls([]);
+        expect(
+            warnings.map((w) => [w.code, w.args.reference, w.args.count]),
+        ).eqls([
+            ["doenet-w0188", "$g[1]", 2],
+            ["doenet-w0188", "$h[1]", 3],
+        ]);
+        expect(warnings[0].message).contains("holds 2 components");
+    });
+
+    it("passes an index after an extend, a copy or a collected group holding one component", async () => {
+        const { text, warnings } = await textAndWarnings(`
+    <group name="g"><math>(1,2)</math></group>
+    <group name="g2" extend="$g"/>
+    <group name="g3" copy="$g"/>
+    <section name="a"><group><math>(3,4)</math></group><group><point>(5,6)</point></group></section>
+    <collect name="c" from="$a" componentType="group"/>
+    <p name="p">[$g2[2]] [$g3[1]] [$c[1][2]] [$c[2][1]]</p>
+    `);
+        expect(text).eq("[2] [1] [4] [5]");
+        expect(warnings).eqls([]);
+    });
+
+    it("gives #2166's rows by the rule: one component takes the index, two name nothing", async () => {
+        for (const { holds, text } of [
+            { holds: `<math>(4,5,6)</math>`, text: `[4] [5] [6] [6]` },
+            {
+                holds: `<numberList>4 5 6</numberList>`,
+                text: `[4] [5] [6] [6]`,
+            },
+            { holds: `<point>(4,5)</point>`, text: `[4] [5] [＿] [＿]` },
+        ]) {
+            const result = await textAndWarnings(
+                `<group name="g">${holds}</group><number name="i">3</number><p name="p">[$g[1]] [$g[2]] [$g[3]] [$g[$i]]</p>`,
+            );
+            expect(result.text, holds).eq(text);
+            expect(result.warnings, holds).eqls([]);
+        }
+        for (const holds of [
+            `<math>(4,5,6)</math><number>9</number>`,
+            `<number>9</number><math>(4,5,6)</math>`,
+            `<math>(4,5,6)</math><math>(7,8)</math>`,
+            `<point>(4,5)</point><point>(7,8)</point>`,
+        ]) {
+            const { text, warnings } = await shownAndReported(
+                `<group name="g">${holds}</group><number name="i">3</number><p name="p">[$g[1]] [$g[2]] [$g[3]] [$g[$i]]</p>`,
+            );
+            expect(text, holds).eq("[＿] [＿] [＿] [＿]");
+            expect(
+                warnings.map((w) => w.code),
+                holds,
+            ).eqls(Array(4).fill("doenet-w0188"));
+        }
+    });
+
+    it("writes through an index passed to a group's one math", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <group name="g"><math name="m">(1,2,3)</math></group>
+    <mathInput name="mi" bindValueTo="$g[2]" />
+    <p name="p">$m</p>
+    `,
+        });
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("(1, 7, 3)");
     });
 });

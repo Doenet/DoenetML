@@ -2984,6 +2984,7 @@ describe("Select tag tests @group2", async () => {
                     child: "named",
                     container: "pick",
                     component: "select",
+                    count: 2,
                 },
                 {
                     reference: "$s[1][2]",
@@ -2991,6 +2992,7 @@ describe("Select tag tests @group2", async () => {
                     child: "unnamed",
                     container: "pick",
                     component: "select",
+                    count: 2,
                 },
             ]),
         );

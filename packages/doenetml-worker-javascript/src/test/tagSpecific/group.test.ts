@@ -937,9 +937,10 @@ describe("Group tag tests @group2", async () => {
             ).eq(text);
         }
 
-        // An index never selects what a `<group>` holds, even through a
-        // reference to another group (D27): each names nothing, with a
-        // warning that says so, however many items the sequence makes.
+        // `h` holds one reference, to a group holding four components, which
+        // the reference stands for (NAME-2), so an index after `h` names
+        // nothing (D27), with a warning that says so, however many items the
+        // sequence makes.
         await check("＿ ＿ ＿ ＿ ＿ ＿");
         const warnings = getDiagnosticsByType(core).warnings;
         expect(warnings.map((w) => w.code)).eqls(Array(6).fill("doenet-w0188"));
@@ -976,7 +977,8 @@ describe("Group tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("＿ ＿ ＿");
-        // An index never selects a child of a `<group>` (D27)
+        // `h` stands for the three components of `g`, and an index never
+        // selects one of them (D27)
         expect(getDiagnosticsByType(core).warnings.map((w) => w.code)).eqls([
             "doenet-w0188",
             "doenet-w0188",

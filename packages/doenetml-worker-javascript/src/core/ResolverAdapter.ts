@@ -6,12 +6,7 @@ import {
     calcStartEndIdx,
     getEffectiveComponentIdx,
 } from "../utils/resolver";
-import {
-    instanceGroupAttributes,
-    instanceKindOf,
-    referenceContent,
-    referencedIndexable,
-} from "../utils/indexInstances";
+import { holderReference, referenceContentOf } from "../utils/indexInstances";
 
 /**
  * Adapter to the external (Rust) name resolver. Translates Core's
@@ -103,11 +98,18 @@ export async function addReplacementsToResolver({
             : placedIndexResolution;
     const fragmentChildren: any[] = [];
     let parentSourceSequence: any = null;
-    let parentIndexPassThrough: number | undefined;
-    let parentIndexReference: number | undefined;
+    // How many of the fragment's children are the whole content of its parent,
+    // when that is a `<group>` a copy or an extend made
+    // (`FlatFragment.parentContent`): the resolver decides from them whether an
+    // index after the group passes to its one component (NAME-2), as for any
+    // group. Its attribute components follow them.
+    let parentContent: number | undefined;
     if (fragmentParent) {
         if (fragmentParent.children) {
             fragmentChildren.push(...fragmentParent.children);
+        }
+        if (fragmentParent.componentType === "group") {
+            parentContent = fragmentChildren.length;
         }
         for (const attrName in fragmentParent.attributes) {
             const attribute = fragmentParent.attributes[attrName];
@@ -134,19 +136,28 @@ export async function addReplacementsToResolver({
                 sourceDoc: sourceSequence.sourceDoc,
             };
         }
-        ({
-            passThrough: parentIndexPassThrough,
-            reference: parentIndexReference,
-        } = indexPassThroughOfCopiedInstance(fragmentParent, core));
     } else {
         fragmentChildren.push(...serializedReplacements);
+        // The replacements of a `<group extend="…"/>` that made other than
+        // one group are the group's content, when they are all of it
+        if (
+            component.attributes._createComponentOfType?.primitive?.value ===
+                "group" &&
+            parentIdx ===
+                component.attributes._createComponentIdx?.primitive?.value &&
+            indexResolution.ReplaceAll
+        ) {
+            parentContent = fragmentChildren.length;
+        }
     }
 
-    const indexParentInstances = await indexParentInstancesOf(
+    const indexParentReference = await indexParentReferenceOf({
         core,
         component,
         indexResolution,
-    );
+        serializedReplacements,
+        updateOldReplacementsStart,
+    });
 
     // We add all the parent's descendants to the resolver.
     // What a copy or an extend made is reached only through the name of the
@@ -161,9 +172,8 @@ export async function addReplacementsToResolver({
         nodes: [],
         parentIdx,
         parentSourceSequence,
-        parentIndexPassThrough,
-        parentIndexReference,
-        indexParentInstances,
+        parentContent,
+        indexParentReference,
         copiedContent: component.componentType === "_copy",
         idxMap: {},
     };
@@ -200,87 +210,52 @@ export async function addReplacementsToResolver({
 }
 
 /**
- * What an index after `fragmentParent`, the one replacement of a copy or an
- * extend, passes to (`FlatFragment.parentIndexPassThrough`), when that
- * replacement is a `<group>` made from an iteration or a pick
- * (`<group extend="$r[1]"/>`, REF-7): the position of the one indexable
- * component that is its whole content (`instanceGroupAttributes`), as it is
- * for the iteration or pick itself, or `0` when its content is not that,
- * as when the author added to it. When that content is instead one reference
- * (`<option>$l</option>`), how many children follow it
- * (`FlatFragment.parentIndexReference`, `_indexReference`), as for the
- * iteration or pick. `0` too for a `<group>` made from anything else, so a
- * group that was made from an iteration and is made again from an ordinary
- * group (a name in cases of a `<conditionalContent>`) names nothing after an
- * index again. `undefined` for a replacement that is not a `<group>`, whose
- * index kind the resolver does not change.
- */
-function indexPassThroughOfCopiedInstance(
-    fragmentParent: any,
-    core: Core,
-): { passThrough: number | undefined; reference: number | undefined } {
-    if (fragmentParent.componentType !== "group") {
-        return { passThrough: undefined, reference: undefined };
-    }
-    const instanceKind = instanceKindOf(
-        fragmentParent.attributes?._instanceOf?.primitive?.value,
-    );
-    if (instanceKind !== "iteration" && instanceKind !== "pick") {
-        return { passThrough: 0, reference: undefined };
-    }
-    const attributes = instanceGroupAttributes({
-        children: fragmentParent.children ?? [],
-        instanceOf: fragmentParent.attributes._instanceOf.primitive.value,
-        componentInfoObjects: core.componentInfoObjects,
-    });
-    return {
-        passThrough: attributes._indexPassThrough?.primitive.value ?? 0,
-        reference: attributes._indexReference?.primitive.value,
-    };
-}
-
-/**
  * For the replacements of `component` that take their place among the index
- * resolutions of an iteration or a pick whose whole content is one reference
- * (`_indexReference`), whether that reference names a list or a composite of
- * instances, which an index into the iteration or pick then selects among
- * (`FlatFragment.indexParentInstances`, `referencedIndexable`). `undefined`
- * when the replacements go anywhere else.
+ * resolutions of a `<group>` whose whole content is one reference
+ * (`holderReference`) -- that reference's, or those of a reference among what
+ * it made -- when `component` first expands: what an index after the group
+ * does with what the reference made (`FlatFragment.indexParentReference`,
+ * `referenceContentOf`). `undefined` when the replacements go anywhere else,
+ * or they replace some of `component`'s (an update), which
+ * `giveReferenceContentToIndexParent` follows once they are made.
+ *
+ * It is sent with the replacements, before they are made into components, so
+ * that no index is resolved against them in between.
  */
-async function indexParentInstancesOf(
-    core: Core,
-    component: any,
-    indexResolution: any,
-): Promise<boolean | undefined> {
+async function indexParentReferenceOf({
+    core,
+    component,
+    indexResolution,
+    serializedReplacements,
+    updateOldReplacementsStart,
+}: {
+    core: Core;
+    component: any;
+    indexResolution: any;
+    serializedReplacements: any[];
+    updateOldReplacementsStart?: number;
+}): Promise<any> {
     const indexParent =
         indexResolution?.ReplaceAll?.parent ??
         indexResolution?.ReplaceRange?.parent;
-    if (indexParent === undefined || indexParent === component.componentIdx) {
+    if (
+        indexParent === undefined ||
+        indexParent === component.componentIdx ||
+        updateOldReplacementsStart !== undefined
+    ) {
         return undefined;
     }
-    // When `component` is that reference, what it names as the worker
-    // resolved it, which the resolution made with the reference stops short
-    // of when it names a component through a composite
-    // (`<option>$cc.x</option>` of a list in a case of a
-    // `<conditionalContent>`)
-    const content = referenceContent(
-        core._components[indexParent]?.serializedChildren ?? [],
-    );
-    const resolvedReference =
-        content?.reference.componentIdx === component.componentIdx
-            ? {
-                  componentIdx: component.componentIdx,
-                  nodeIdx: await component.stateValues.extendIdx,
-                  unresolvedPath: await component.stateValues.unresolvedPath,
-              }
-            : undefined;
-    const referent = referencedIndexable(
-        core._components,
-        indexParent,
-        core.componentInfoObjects,
-        resolvedReference,
-    );
-    return referent === undefined ? undefined : referent !== null;
+    const reference = holderReference(core._components[indexParent]);
+    if (!reference) {
+        return undefined;
+    }
+    return await referenceContentOf({
+        reference,
+        component,
+        made: serializedReplacements,
+        components: core._components,
+        componentInfoObjects: core.componentInfoObjects,
+    });
 }
 
 /**

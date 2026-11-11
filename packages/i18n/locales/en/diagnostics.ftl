@@ -437,16 +437,19 @@ reference-index-unavailable = Cannot reference index `{ $reference }`
 
 reference-index-selects-nothing = `{ $reference }`: an index cannot select anything in this `<{ $component }>`. An index selects among what a component makes, such as the entries of a list or the iterations of a repeat, not among the children of a component. To refer to a child, give it a name and write that name after a `.`.
 
-# An index after a `<group>`, which never selects one of its children: `$g[2]`
-# on a `<group name="g">`, or `$r[1][2]`, an index after an iteration of a
-# repeat that holds more than one component. The reference names nothing.
+# An index after a `<group>` that holds several components, or none: `$g[2]`
+# on a `<group name="g">` holding two, or `$r[1][2]`, an index after an
+# iteration of a repeat that holds two. A group holding one component passes
+# the index to it (NAME-2); otherwise the reference names nothing, as an index
+# never selects one of a group's children.
 # $reference is the reference as the author wrote it, up to and including that
 # index, with its `$` (and, when the index ends it, the arguments of a function
 # reference: `$$f[2](2)`). $container is what the author wrote the group as:
 # `iteration` for an iteration of a repeat, `pick` for what a select picked,
 # `case` for what a `<conditionalContent>` shows, and `group` for a `<group>`;
 # $component is the tag name of that repeat, select or `<conditionalContent>`,
-# and `group` for a `<group>`.
+# and `group` for a `<group>`. $count is how many components the group holds,
+# not counting blank text and `<setup>`s (any other text is one).
 # $child is `named` when the index is at a child with a name, `unnamed` when it
 # is at one with none, and `none` when the group has no child there;
 # $suggestion is the reference with that index replaced by `.` and the child's
@@ -455,11 +458,27 @@ reference-index-selects-nothing = `{ $reference }`: an index cannot select anyth
 
 reference-index-selects-child =
     { $container ->
-        [iteration] `{ $reference }` names nothing: an index does not select a child of an iteration of a `<{ $component }>`.
-        [pick] `{ $reference }` names nothing: an index does not select a child of what a `<{ $component }>` picked.
-        [case] `{ $reference }` names nothing: an index does not select a child of what a `<{ $component }>` shows.
-       *[group] `{ $reference }` names nothing: an index does not select a child of a `<group>`.
-    } An index selects among what a component makes, such as the entries of a list or the iterations of a repeat. { $child ->
+        [iteration] `{ $reference }` names nothing: this iteration of a `<{ $component }>` holds { $count ->
+            [0] no components
+            [one] one component
+           *[other] { $count } components
+        }, and an index passes into an iteration only when it holds one.
+        [pick] `{ $reference }` names nothing: what the `<{ $component }>` picked holds { $count ->
+            [0] no components
+            [one] one component
+           *[other] { $count } components
+        }, and an index passes into a pick only when it holds one.
+        [case] `{ $reference }` names nothing: what the `<{ $component }>` shows holds { $count ->
+            [0] no components
+            [one] one component
+           *[other] { $count } components
+        }, and an index passes into it only when it holds one.
+       *[group] `{ $reference }` names nothing: the `<group>` holds { $count ->
+            [0] no components
+            [one] one component
+           *[other] { $count } components
+        }, and an index passes into a group only when it holds one.
+    } An index never selects a child. { $child ->
         [named] To refer to the child, write `{ $suggestion }`.
         [unnamed] To refer to the child, give it a name, such as `name="x"`, and write `{ $suggestion }`.
        *[none] To refer to a child, give it a name and write that name after a `.`.

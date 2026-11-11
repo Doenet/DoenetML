@@ -826,6 +826,46 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
+        // A value reference (`_ref`) a reference made in place of a value,
+        // reached with an index left over, as an index after a group holding
+        // only `$m` passes to what `$m` made (`$g[2]` of `<group
+        // name="g">$m</group>`, NAME-2): the index goes to the value it
+        // reads, as for `$m[2]`.
+        const valueReference =
+            refResolution.unresolvedPath?.[0]?.name === ""
+                ? this.dependencyHandler._components[refResolution.nodeIdx]
+                : undefined;
+        // A value with no entries (`$P.x`) takes no index, which the copy
+        // reports as for any value reference (`diagnosticForUnusedIndex`).
+        const fixedReferent =
+            valueReference?.componentType === "_ref"
+                ? valueReference.doenetAttributes?.fixedReferent
+                : undefined;
+        if (
+            fixedReferent &&
+            (fixedReferent.referencedPrimaryValue ||
+                this.dependencyHandler._components[fixedReferent.componentIdx]
+                    ?.state?.[fixedReferent.referencedVariable]?.isArray)
+        ) {
+            refResolution = {
+                ...refResolution,
+                nodeIdx: fixedReferent.componentIdx,
+                nodesInResolvedPath: [
+                    ...refResolution.nodesInResolvedPath,
+                    fixedReferent.componentIdx,
+                ],
+                unresolvedPath: fixedReferent.referencedPrimaryValue
+                    ? refResolution.unresolvedPath
+                    : [
+                          {
+                              name: fixedReferent.referencedVariable,
+                              index: [],
+                          },
+                          ...refResolution.unresolvedPath,
+                      ],
+            };
+        }
+
         // The name was resolved to a list made inside a copy (`$E.e.h` for
         // an `extend` `E` of a component holding `<mathList name="e"
         // extend="$l"/>`), whose children are again made by a `_copy` child
@@ -905,8 +945,8 @@ export class RefResolutionDependency extends Dependency {
             // then there is no replacement at that index, and we obtained no referent for the reference.
             const reference = getReferenceAsWritten();
 
-            // An iteration or pick holding only a reference to a list or to a
-            // composite with instances is indexed as that list or composite
+            // A group holding only a reference to a list or to a composite
+            // with instances is indexed as that list or composite
             // (`referencedIndexable`): past a list's entries is silent
             // (#1499), and past a composite's instances says how many it made.
             const referenced = referencedIndexable(
@@ -1038,11 +1078,13 @@ export class RefResolutionDependency extends Dependency {
 
     /**
      * Warn that the reference names nothing because an index came after a
-     * `<group>` (`childIndex` of the resolution): an index selects among the
-     * instances a component produces, never among the children of a
-     * container (D27). The warning quotes the reference up to that index and
-     * shows the form to write instead, which names the child the index would
-     * have selected (`childIdx`), if there is one.
+     * `<group>` holding several components or none (`childIndex` of the
+     * resolution): such a group does not pass the index on to one component
+     * (NAME-2), and an index never selects a child of a container (D27). The
+     * warning quotes the reference up to that index, says how many components
+     * the group holds (`count`), and shows the form to write instead, which
+     * names the child the index would have selected (`childIdx`), if there is
+     * one.
      *
      * A reference resolved again, or in a copy of the component holding it,
      * raises the same warning at the same place, which is kept only once.
@@ -1117,6 +1159,7 @@ export class RefResolutionDependency extends Dependency {
                     child: childArg,
                     container: containerKind(instanceOf),
                     component: instanceOf ?? "group",
+                    count: childIndex.count ?? 0,
                 },
                 position: composite.position,
                 sourceDoc: composite.sourceDoc,

@@ -725,15 +725,16 @@ describe("Unlinked Copying Tests @group4", async () => {
     `,
         });
 
-        // An index never selects a child of a group (D27), so each of these
-        // names nothing, the same for the copy as for the original group.
+        // Each group holds one component, a reference to the sequence, so an
+        // index after it selects among the sequence's numbers (NAME-2), the
+        // same for the copy as for the original group.
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("g11: ＿, g12: ＿");
+        ).eq("g11: 1, g12: 2");
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
-        ).eq("g21: ＿, g22: ＿");
+        ).eq("g21: 1, g22: 2");
         expect(
             stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
         ).eq("g1: 1, 2, g2: 1, 2");
@@ -742,12 +743,7 @@ describe("Unlinked Copying Tests @group4", async () => {
                 w.code,
                 w.args?.reference,
             ]),
-        ).eqls([
-            ["doenet-w0188", "$g1[1]"],
-            ["doenet-w0188", "$g1[2]"],
-            ["doenet-w0188", "$g2[1]"],
-            ["doenet-w0188", "$g2[2]"],
-        ]);
+        ).eqls([]);
     });
 
     async function test_copy_group_copies_no_link(

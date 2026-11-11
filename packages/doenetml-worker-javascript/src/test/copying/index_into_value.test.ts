@@ -401,17 +401,17 @@ describe("An index into a value with entries @group4", async () => {
         expect(await textOf("pP")).eq("(3, 4)");
     });
 
-    it("reports an index past a composite's items once, not again as an index into a scalar", async () => {
-        // `$g[2]` is an index after a group, which names nothing (D27); it is
-        // not tried on the `<math>5</math>` the group holds (#2166), so it is
-        // not reported again as an index into a scalar.
+    it("reports an index after a group holding one scalar once, as an index into a scalar", async () => {
+        // The group holds one component, so `$g[2]` passes to the
+        // `<math>5</math>` (NAME-2), and is reported once, as an index into a
+        // scalar. The index is not tried on several items (#2166).
         const { text, warnings, errors, infos } = await shownAndReported(
             "$g[2]",
             `<group name="g"><math>5</math></group>`,
         );
         expect(text).eq("[＿]");
         expect([...errors, ...infos]).eqls([]);
-        expect(warnings.map((w) => w.code)).eqls(["doenet-w0188"]);
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0100"]);
     });
 
     it("does not read the entries by a name of their own", async () => {
