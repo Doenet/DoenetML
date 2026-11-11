@@ -419,27 +419,29 @@ describe("coded diagnostics reach the record @group4", () => {
 
     it("codes a reference resolved too late for the first pass", async () => {
         // Extending with an index defers resolution until core knows the
-        // group's replacements, so this warning is the worker's own rather
-        // than the one the Rust resolver raises for a plainly absent name.
-        // The resolver hands back `g` with the index still unresolved, so this
-        // is `RefResolutionDependency`'s *later* warning — the one for an
-        // expanded composite with no replacement at that index — and not the
-        // one the test below reaches. The reference is bare: written as a tag,
-        // `<text extend="$g[1]"/>`, it is `<text/>` with an info instead
-        // (`doenet-i0054`, D36).
+        // composite's replacements, so this warning is the worker's own
+        // rather than the one the Rust resolver raises for a plainly absent
+        // name. The resolver hands back `c` with the index still unresolved,
+        // so this is `RefResolutionDependency`'s *later* warning — the one for
+        // an expanded composite with no replacement at that index — and not
+        // the one the test below reaches. The composite is a
+        // `<conditionalContent>` showing no case: an index after a `<group>`
+        // is `doenet-w0188` instead (D27). The reference is bare: written as
+        // a tag, `<text extend="$c[1]"/>`, it is `<text/>` with an info
+        // instead (`doenet-i0054`, D36).
         const { core } = await createTestCore({
             doenetML: `
-<group name="g"></group>
-<p>$g[1]</p>
+<conditionalContent name="c" condition="false"><p>a</p></conditionalContent>
+<p>$c[1]</p>
 `,
         });
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0104");
-        expect(warnings[0].args).eqls({ reference: "$g[1]" });
+        expect(warnings[0].args).eqls({ reference: "$c[1]" });
         expect(warnings[0].message).eq(
-            "No referent found for reference: `$g[1]`",
+            "No referent found for reference: `$c[1]`",
         );
     });
 

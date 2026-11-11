@@ -3709,9 +3709,9 @@ Enter any letter:
         async function submitAndGetResponses(index: string) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <p name="inputs"><mathInput name="mi1" /> <mathInput name="mi2" /></p>
         <setup>
-          <group name="mis">$mi1 $mi2</group>
+          <collect name="mis" componentType="mathInput" from="$inputs" />
           <number name="k">1</number>
           <number name="j">2</number>
         </setup>
@@ -3776,9 +3776,9 @@ Enter any letter:
     it("referencesAreResponses recognizes an index reference written two ways", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <p name="inputs"><mathInput name="mi1" /> <mathInput name="mi2" /></p>
         <setup>
-          <group name="mis">$mi1 $mi2</group>
+          <collect name="mis" componentType="mathInput" from="$inputs" />
           <group name="holder"><number name="k">1</number></group>
         </setup>
         <answer name="ans">
@@ -3812,9 +3812,9 @@ Enter any letter:
         ) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <p name="inputs"><mathInput name="mi1" /> <mathInput name="mi2" /></p>
         <setup>
-          <group name="mis">$mi1 $mi2</group>
+          <collect name="mis" componentType="mathInput" from="$inputs" />
           <number name="k">1</number>
           <number name="j">2</number>
         </setup>
@@ -3878,7 +3878,7 @@ Enter any letter:
     it("referencesAreResponses recognizes a repeat's iteration value as an index", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <setup><group name="inputs"><mathInput name="a" /><mathInput name="b" /></group></setup>
+        <setup><group name="ig"><mathInput name="a" /><mathInput name="b" /></group><collect name="inputs" componentType="mathInput" from="$ig" /></setup>
         <repeat name="r" for="1 2" valueName="i">
           <answer name="ans">
             <award referencesAreResponses="$inputs[$i]"><when>$inputs[$i] = 1</when></award>
@@ -5329,7 +5329,7 @@ Enter any letter:
     <mathInput name="mi" />
     <award>1</award>
   </answer>
-  <conditionalContent condition="$ans.justSubmitted" name="cond"><p>The answer was just submitted.</p></conditionalContent>
+  <conditionalContent condition="$ans.justSubmitted" name="cond"><p name="note">The answer was just submitted.</p></conditionalContent>
    `,
         });
 
@@ -5368,7 +5368,7 @@ Enter any letter:
         ).eq(0);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("cond[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("cond.note")].stateValues
                 .text,
         ).eq("The answer was just submitted.");
         expect(
@@ -5433,7 +5433,7 @@ Enter any letter:
                 .replacementsToWithhold,
         ).eq(0);
         expect(
-            stateVariables[await resolvePathToNodeIdx("cond[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("cond.note")].stateValues
                 .text,
         ).eq("The answer was just submitted.");
         expect(

@@ -408,6 +408,7 @@ export type MessageKey =
     | "collect-invalid-component-type"
     | "reference-index-unavailable"
     | "reference-index-selects-nothing"
+    | "reference-index-selects-child"
     | "reference-index-use-property"
     | "reference-index-past-instances"
     | "reference-name-missing-in-branch"
@@ -1089,6 +1090,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "collect-invalid-component-type",
     "reference-index-unavailable",
     "reference-index-selects-nothing",
+    "reference-index-selects-child",
     "reference-index-use-property",
     "reference-index-past-instances",
     "reference-name-missing-in-branch",

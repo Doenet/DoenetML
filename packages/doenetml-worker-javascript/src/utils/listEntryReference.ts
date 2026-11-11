@@ -329,6 +329,23 @@ export function listEntryPropertyPath({
                 isEntry: true,
             };
         }
+        // An entry whose value has no entries (a number, a text) names
+        // nothing at a second index, and is reported as `$n[1]` is, and as
+        // `$l[2][1]` of a `<mathList>` holding a scalar is (D27, NAME-2,
+        // #2478): the list's array of values is given an index too many
+        // (`arrayEntryNamesFromPropIndex`). It used to be resolved as it
+        // is, which named nothing silently.
+        const entryClass =
+            componentInfoObjects.allComponentClasses[
+                listClass.listEntryComponentType
+            ];
+        if (
+            indices.every(Number.isFinite) &&
+            entryClass &&
+            !(entryClass as any).variableForIndexAsProp
+        ) {
+            return indexNamingNothing(listClass, first, componentInfoObjects);
+        }
     }
 
     // A property of an entry with an index into it (`$l[2].xs[1]`) reads
@@ -369,15 +386,29 @@ export function listEntryPropertyPath({
         if (asIndex) {
             return asIndex;
         }
-        // Only an index into the entry's value goes deeper than one level
-        // here; `$l[1].xs[1][1]` is resolved as it is.
-        if (second.index.length > 1) {
+        // An index into the entry's value that is not a number written out
+        // (`$l[1].value[$i]`, read before `$i` is) is an index into the
+        // entry too, which is decided once the index is known, as for
+        // `$l[1][$i]`. It is not the entry's value with an index too many,
+        // which a value reference planned from it would read as a value of
+        // the wrong type, naming nothing silently where `$l[1].value[1]`
+        // names the coordinate (#2478).
+        if (
+            (property === "value" || second.name.toLowerCase() === "value") &&
+            second.index.some(
+                (index: any) => !Number.isFinite(Number(index.value?.[0])),
+            )
+        ) {
             return undefined;
         }
         if (property !== undefined) {
             // An index below 1 into a property of the entry names nothing,
             // and is reported as `$P.xs[0]` is.
-            if (Math.round(Number(second.index[0].value?.[0])) < 1) {
+            if (
+                second.index.some(
+                    (index: any) => Math.round(Number(index.value?.[0])) < 1,
+                )
+            ) {
                 return indexNamingNothing(
                     listClass,
                     { ...second, index: [...first.index, ...second.index] },
@@ -406,9 +437,14 @@ export function listEntryPropertyPath({
                 };
             }
         }
+        // The first index names the entry of the property's array (`x1`
+        // for `xs[1]`); further indices are left on the path, an index too
+        // many for the entry's array (`arrayEntryNamesFromPropIndex`), so
+        // `$l[2].xs[1][1]` names nothing and is reported as `$P.xs[1][1]`
+        // is (D27, NAME-2, #2478), where it was resolved as it is.
         const entryProperty = indexedEntryProperty(
             listClass,
-            second,
+            { ...second, index: second.index.slice(0, 1) },
             componentInfoObjects,
         );
         if (entryProperty === undefined) {
@@ -423,7 +459,7 @@ export function listEntryPropertyPath({
                         entryProperty,
                         componentInfoObjects,
                     ),
-                    index: first.index,
+                    index: [...first.index, ...second.index.slice(1)],
                 },
             ],
             entryProperty,
@@ -573,9 +609,10 @@ export function listEntryPropertyPath({
 
 /**
  * The path for an index into an entry that names nothing because part of it
- * is below 1 (`$l[1][0]`, `$l[1].xs[0]`): the list's array of values with
- * every index of `part`, which `arrayEntryNamesFromPropIndex` reports as it
- * reports `$m[0]` (`doenet-w0104`).
+ * is below 1 (`$l[1][0]`, `$l[1].xs[0]`), or because the entry's value has
+ * no entries (`$l[1][1]` of a `<numberList>`): the list's array of values
+ * with every index of `part`, which `arrayEntryNamesFromPropIndex` reports
+ * as it reports `$m[0]` (`doenet-w0104`) or `$n[1]` (`doenet-w0100`).
  */
 function indexNamingNothing(
     listClass: any,

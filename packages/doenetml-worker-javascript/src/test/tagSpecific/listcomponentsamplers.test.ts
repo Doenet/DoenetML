@@ -566,37 +566,49 @@ describe("Samplers and sequences as list components @group4", async () => {
         ).eqls({ p1: "1.2", p2: "2.2", p3: "1.2", p4: "1.2" });
     });
 
-    it("a list written in a group takes one of its positions", async () => {
-        // as a composite written there did; a reference to a list in a group
-        // takes one position per entry, as a reference to a composite did
+    it("an index after a group or an iteration holding one list passes to the list", async () => {
+        // A `<group>` whose whole content is one component stands for it
+        // (NAME-2): a list written there, one in a group in it, or a
+        // reference to one, as an iteration whose whole content is a list,
+        // or a reference to one, does. Past the end of a list is silent.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <sequence name="s0" from="4" to="6" />
     <group name="g"><sequence from="1" to="3" /></group>
     <group name="h"><group><sampleRandomNumbers numSamples="3" /></group></group>
     <group name="k">$s0</group>
+    <repeatForSequence name="r" length="1"><sequence from="1" to="3" /></repeatForSequence>
+    <repeatForSequence name="rk" length="1">$s0</repeatForSequence>
     <p name="g1">$g[1]</p><p name="g2">$g[2]</p><p name="g3">$g[3]</p>
     <p name="h2">$h[2]</p>
     <p name="k2">$k[2]</p><p name="k4">$k[4]</p>
+    <p name="r2">$r[1][2]</p><p name="rk2">$rk[1][2]</p>
     `,
         });
-        expect(
-            await textsOf(core, resolvePathToNodeIdx, [
-                "g1",
-                "g2",
-                "g3",
-                "h2",
-                "k2",
-                "k4",
-            ]),
-        ).eqls({
-            g1: "1, 2, 3",
-            g2: "＿",
-            g3: "＿",
-            h2: "＿",
+        const texts = await textsOf(core, resolvePathToNodeIdx, [
+            "g1",
+            "g2",
+            "g3",
+            "h2",
+            "k2",
+            "k4",
+            "r2",
+            "rk2",
+        ]);
+        // a sample, at random
+        expect(Number(texts.h2)).toBeGreaterThanOrEqual(0);
+        expect(Number(texts.h2)).toBeLessThanOrEqual(1);
+        expect({ ...texts, h2: "" }).eqls({
+            g1: "1",
+            g2: "2",
+            g3: "3",
+            h2: "",
             k2: "5",
             k4: "＿",
+            r2: "2",
+            rk2: "5",
         });
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 
     it("letters and primes are drawn by the renderers of their types", async () => {

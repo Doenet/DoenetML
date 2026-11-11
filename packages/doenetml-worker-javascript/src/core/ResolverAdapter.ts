@@ -6,10 +6,7 @@ import {
     calcStartEndIdx,
     getEffectiveComponentIdx,
 } from "../utils/resolver";
-import {
-    instanceGroupAttributes,
-    instanceKindOf,
-} from "../utils/indexInstances";
+import { holderReference, referenceContentOf } from "../utils/indexInstances";
 
 /**
  * Adapter to the external (Rust) name resolver. Translates Core's
@@ -62,7 +59,7 @@ export async function addReplacementsToResolver({
         return;
     }
 
-    const { parentIdx, indexResolution } =
+    const { parentIdx, indexResolution: placedIndexResolution } =
         await determineParentAndIndexResolutionForResolver({
             core,
             component,
@@ -85,12 +82,34 @@ export async function addReplacementsToResolver({
         serializedReplacements,
         component,
     );
+    // The fragment's children are then all the children of that
+    // replacement, so they replace all of its index resolutions, not the
+    // range of the composite's old replacements that an update replaces
+    // (that range counts replacements, one level up). A `<group
+    // extend="$r[1]"/>` of an iteration missing at load had an empty group
+    // as its replacement, and the range (0..1) was past the end of that
+    // group's index resolutions, so none were added when the iteration
+    // appeared: an index passing through it named nothing until a reload
+    // (REF-7, SAVE-1, #2478).
+    const indexResolution =
+        fragmentParent &&
+        placedIndexResolution.ReplaceRange?.parent === parentIdx
+            ? { ReplaceAll: { parent: parentIdx } }
+            : placedIndexResolution;
     const fragmentChildren: any[] = [];
     let parentSourceSequence: any = null;
-    let parentIndexPassThrough: number | undefined;
+    // How many of the fragment's children are the whole content of its parent,
+    // when that is a `<group>` a copy or an extend made
+    // (`FlatFragment.parentContent`): the resolver decides from them whether an
+    // index after the group passes to its one component (NAME-2), as for any
+    // group. Its attribute components follow them.
+    let parentContent: number | undefined;
     if (fragmentParent) {
         if (fragmentParent.children) {
             fragmentChildren.push(...fragmentParent.children);
+        }
+        if (fragmentParent.componentType === "group") {
+            parentContent = fragmentChildren.length;
         }
         for (const attrName in fragmentParent.attributes) {
             const attribute = fragmentParent.attributes[attrName];
@@ -117,13 +136,28 @@ export async function addReplacementsToResolver({
                 sourceDoc: sourceSequence.sourceDoc,
             };
         }
-        parentIndexPassThrough = indexPassThroughOfCopiedInstance(
-            fragmentParent,
-            core,
-        );
     } else {
         fragmentChildren.push(...serializedReplacements);
+        // The replacements of a `<group extend="…"/>` that made other than
+        // one group are the group's content, when they are all of it
+        if (
+            component.attributes._createComponentOfType?.primitive?.value ===
+                "group" &&
+            parentIdx ===
+                component.attributes._createComponentIdx?.primitive?.value &&
+            indexResolution.ReplaceAll
+        ) {
+            parentContent = fragmentChildren.length;
+        }
     }
+
+    const indexParentReference = await indexParentReferenceOf({
+        core,
+        component,
+        indexResolution,
+        serializedReplacements,
+        updateOldReplacementsStart,
+    });
 
     // We add all the parent's descendants to the resolver.
     // What a copy or an extend made is reached only through the name of the
@@ -138,7 +172,8 @@ export async function addReplacementsToResolver({
         nodes: [],
         parentIdx,
         parentSourceSequence,
-        parentIndexPassThrough,
+        parentContent,
+        indexParentReference,
         copiedContent: component.componentType === "_copy",
         idxMap: {},
     };
@@ -175,38 +210,52 @@ export async function addReplacementsToResolver({
 }
 
 /**
- * What an index after `fragmentParent`, the one replacement of a copy or an
- * extend, passes to (`FlatFragment.parentIndexPassThrough`), when that
- * replacement is a `<group>` made from an iteration or a pick
- * (`<group extend="$r[1]"/>`, REF-7): the position of the one indexable
- * component that is its whole content (`instanceGroupAttributes`), as it is
- * for the iteration or pick itself, or `0` when its content is not that,
- * as when the author added to it. `0` too for a `<group>` made from anything
- * else, so a group that was made from an iteration and is made again from an
- * ordinary group (a name in cases of a `<conditionalContent>`) selects its
- * children again. `undefined` for a replacement that is not a `<group>`,
- * whose index kind the resolver does not change.
+ * For the replacements of `component` that take their place among the index
+ * resolutions of a `<group>` whose whole content is one reference
+ * (`holderReference`) -- that reference's, or those of a reference among what
+ * it made -- when `component` first expands: what an index after the group
+ * does with what the reference made (`FlatFragment.indexParentReference`,
+ * `referenceContentOf`). `undefined` when the replacements go anywhere else,
+ * or they replace some of `component`'s (an update), which
+ * `giveReferenceContentToIndexParent` follows once they are made.
+ *
+ * It is sent with the replacements, before they are made into components, so
+ * that no index is resolved against them in between.
  */
-function indexPassThroughOfCopiedInstance(
-    fragmentParent: any,
-    core: Core,
-): number | undefined {
-    if (fragmentParent.componentType !== "group") {
+async function indexParentReferenceOf({
+    core,
+    component,
+    indexResolution,
+    serializedReplacements,
+    updateOldReplacementsStart,
+}: {
+    core: Core;
+    component: any;
+    indexResolution: any;
+    serializedReplacements: any[];
+    updateOldReplacementsStart?: number;
+}): Promise<any> {
+    const indexParent =
+        indexResolution?.ReplaceAll?.parent ??
+        indexResolution?.ReplaceRange?.parent;
+    if (
+        indexParent === undefined ||
+        indexParent === component.componentIdx ||
+        updateOldReplacementsStart !== undefined
+    ) {
         return undefined;
     }
-    const instanceKind = instanceKindOf(
-        fragmentParent.attributes?._instanceOf?.primitive?.value,
-    );
-    if (instanceKind !== "iteration" && instanceKind !== "pick") {
-        return 0;
+    const reference = holderReference(core._components[indexParent]);
+    if (!reference) {
+        return undefined;
     }
-    return (
-        instanceGroupAttributes({
-            children: fragmentParent.children ?? [],
-            instanceOf: fragmentParent.attributes._instanceOf.primitive.value,
-            componentInfoObjects: core.componentInfoObjects,
-        })._indexPassThrough?.primitive.value ?? 0
-    );
+    return await referenceContentOf({
+        reference,
+        component,
+        made: serializedReplacements,
+        components: core._components,
+        componentInfoObjects: core.componentInfoObjects,
+    });
 }
 
 /**

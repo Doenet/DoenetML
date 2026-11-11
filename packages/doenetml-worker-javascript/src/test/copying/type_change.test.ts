@@ -577,8 +577,10 @@ describe("A reference written as a different tag is allowed only between related
     });
 
     it("a point or boolean made from a value reference follows its value both ways", async () => {
-        // `$g[1]` is the value reference `$m.value` (`_ref`), which presents
-        // a math: its value is depended on as a math's is.
+        // `$g[1]` is the shown case, which holds only the value reference
+        // `$m.value` (`_ref`), which presents a math: its value is depended
+        // on as a math's is. (An index never selects the reference itself in
+        // a group, D27.)
         for (const [start, point, boolean] of [
             ["x", "＿", "＿"],
             ["(1,2)", "(1, 2)", "＿"],
@@ -586,7 +588,7 @@ describe("A reference written as a different tag is allowed only between related
             const { core, resolvePathToNodeIdx, texts } = await setup(`
 <mathInput name="mi" prefill="${start}"/>
 <math name="m">$mi</math>
-<p><group name="g">$m.value</group></p>
+<p><conditionalContent name="g"><case condition="true">$m.value</case></conditionalContent></p>
 <p name="p1"><point extend="$g[1]"/></p>
 <p name="p2"><boolean extend="$g[1]"/></p>
 `);

@@ -19,8 +19,8 @@ import { listEntryAtResolverNode } from "../listEntryResolverNodes";
 import { listEntryTargetOfResolution } from "../listEntryTargets";
 import { refResolutionAt } from "../../utils/referenceSlot";
 import {
-    indexSelectsInstances,
     instanceKindOf,
+    referencedIndexable,
 } from "../../utils/indexInstances";
 
 /**
@@ -781,7 +781,25 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
-        this.reportChildIndexes(composite, refResolution.childIndexes);
+        if (refResolution.childIndex) {
+            // An index after a `<group>` holding several components, or none,
+            // or only text, does not select one of its children (D27,
+            // NAME-2): the reference names nothing, and is a blank (D37). The
+            // resolver stops at the group, giving the child the index would
+            // have selected, which the warning names.
+            this.addDependenciesOnCompositesInPath(
+                refResolution.nodesInResolvedPath,
+            );
+            this.reportChildIndex(composite, refResolution.childIndex);
+
+            this.extendIdx = -1;
+            this.unresolvedPath = this.originalPath;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
 
         // An entry of a list component that a composite is indexed by is a
         // node of the resolver with no component
@@ -792,20 +810,67 @@ export class RefResolutionDependency extends Dependency {
             refResolution.nodeIdx,
         );
         if (listEntry) {
+            const entryIndex = {
+                value: [String(listEntry.entryIndex + 1)],
+            };
+            // An index after the entry (`$g[2][1]` of `<group
+            // name="g">$ml</group>`) is left by the resolver as a path part
+            // with no name, which goes with the entry's index into one part,
+            // as for `$ml[2][1]`, rather than read as a property.
+            const [next, ...rest] = refResolution.unresolvedPath ?? [];
             refResolution = {
                 ...refResolution,
                 nodeIdx: listEntry.listIdx,
-                unresolvedPath: [
-                    {
-                        name: "",
-                        index: [
-                            {
-                                value: [String(listEntry.entryIndex + 1)],
-                            },
-                        ],
-                    },
-                    ...(refResolution.unresolvedPath ?? []),
+                unresolvedPath:
+                    next?.name === ""
+                        ? [
+                              { ...next, index: [entryIndex, ...next.index] },
+                              ...rest,
+                          ]
+                        : [
+                              { name: "", index: [entryIndex] },
+                              ...(refResolution.unresolvedPath ?? []),
+                          ],
+            };
+        }
+
+        // A value reference (`_ref`) a reference made in place of a value,
+        // reached with an index left over, as an index after a group holding
+        // only `$m` passes to what `$m` made (`$g[2]` of `<group
+        // name="g">$m</group>`, NAME-2): the index goes to the value it
+        // reads, as for `$m[2]`.
+        const valueReference =
+            refResolution.unresolvedPath?.[0]?.name === ""
+                ? this.dependencyHandler._components[refResolution.nodeIdx]
+                : undefined;
+        // A value with no entries (`$P.x`) takes no index, which the copy
+        // reports as for any value reference (`diagnosticForUnusedIndex`).
+        const fixedReferent =
+            valueReference?.componentType === "_ref"
+                ? valueReference.doenetAttributes?.fixedReferent
+                : undefined;
+        if (
+            fixedReferent &&
+            (fixedReferent.referencedPrimaryValue ||
+                this.dependencyHandler._components[fixedReferent.componentIdx]
+                    ?.state?.[fixedReferent.referencedVariable]?.isArray)
+        ) {
+            refResolution = {
+                ...refResolution,
+                nodeIdx: fixedReferent.componentIdx,
+                nodesInResolvedPath: [
+                    ...refResolution.nodesInResolvedPath,
+                    fixedReferent.componentIdx,
                 ],
+                unresolvedPath: fixedReferent.referencedPrimaryValue
+                    ? refResolution.unresolvedPath
+                    : [
+                          {
+                              name: fixedReferent.referencedVariable,
+                              index: [],
+                          },
+                          ...refResolution.unresolvedPath,
+                      ],
             };
         }
 
@@ -831,33 +896,9 @@ export class RefResolutionDependency extends Dependency {
 
         // console.log({ refResolution });
 
-        for (const idx of refResolution.nodesInResolvedPath) {
-            const componentInvolved = this.dependencyHandler._components[idx];
-            if (
-                idx !== this.compositeIdx &&
-                // Not the component the composite makes in its place
-                // (`<group extend="$cc.x"/>` makes the `<group>` its
-                // reference starts from): updating the composite's
-                // replacements makes that one again, which would update
-                // the composite again, without end (Doenet/DoenetML#2453).
-                this.dependencyHandler.core.createComponentIdxMapping[idx] !==
-                    this.compositeIdx &&
-                componentInvolved &&
-                this.dependencyHandler.componentInfoObjects.isCompositeComponent(
-                    {
-                        componentType: componentInvolved.componentType,
-                        includeNonStandard: true,
-                    },
-                )
-            ) {
-                this.compositeReplacementDependencies.push(
-                    componentInvolved.componentIdx,
-                );
-                this.addUpdateTriggersForCompositeReplacements([
-                    componentInvolved.componentIdx,
-                ]);
-            }
-        }
+        this.addDependenciesOnCompositesInPath(
+            refResolution.nodesInResolvedPath,
+        );
 
         if (refResolution.unresolvedPath === null) {
             // No unresolved path left, so we're done
@@ -912,12 +953,14 @@ export class RefResolutionDependency extends Dependency {
             // then there is no replacement at that index, and we obtained no referent for the reference.
             const reference = getReferenceAsWritten();
 
-            // An iteration or pick holding only a reference to a list or to a
-            // composite with instances is indexed as that list or composite
+            // A group holding only a reference to a list or to a composite
+            // with instances is indexed as that list or composite
             // (`referencedIndexable`): past a list's entries is silent
             // (#1499), and past a composite's instances says how many it made.
-            const referenced = this.referencedIndexable(
+            const referenced = referencedIndexable(
+                this.dependencyHandler._components,
                 newRefComponent.componentIdx,
+                this.dependencyHandler.componentInfoObjects,
             );
             const indexedComponent = referenced ?? newRefComponent;
             const instanceKind = instanceKindOf(indexedComponent.componentType);
@@ -1007,148 +1050,146 @@ export class RefResolutionDependency extends Dependency {
     }
 
     /**
-     * Warn of each index of the reference that selected a child of a
-     * `<group>` (`childIndexes` of the resolution), which still resolves but is
-     * deprecated (D27): an index selects among the instances a component
-     * produces, not among the children of a container. The warning quotes the
-     * reference up to that index and shows the form to write instead, which
-     * names the child.
-     *
-     * A reference resolved again, or in a copy of the component holding it,
-     * raises the same warning at the same place, which is kept only once.
+     * Depend on the replacements of each composite a resolution went through,
+     * `nodesInResolvedPath`, so that the reference is resolved again when
+     * they change.
      */
-    reportChildIndexes(composite: any, childIndexes: any[] | undefined) {
-        if (!childIndexes?.length) {
-            return;
-        }
-        const core = this.dependencyHandler.core;
-        const originalPath = this.refResolutionOf(composite).originalPath;
-        const start = originalPath?.[0]?.position?.start.offset;
-        const source = core.allDoenetMLs?.[originalPath?.[0]?.sourceDoc ?? 0];
-        if (start == undefined || source == undefined) {
-            return;
-        }
-        const dollars = doenetMLDollarsForReference(
-            originalPath,
-            core.allDoenetMLs,
-        );
-        // The arguments of a function reference (`(2)` of `$$g[1](2)`), quoted
-        // after an index that ends the path, and so ends what is quoted
-        // (#2434).
-        const pathEnd =
-            originalPath?.[originalPath.length - 1]?.position?.end.offset;
-        const args = doenetMLArgumentsForReference(
-            originalPath,
-            core.allDoenetMLs,
-        );
-
-        for (const { containerIdx, childIdx, position } of childIndexes) {
-            const indexStart = position?.start.offset;
-            const indexEnd = position?.end.offset;
-            if (indexStart == undefined || indexEnd == undefined) {
-                continue;
-            }
-            const child = this.dependencyHandler._components[childIdx];
+    addDependenciesOnCompositesInPath(nodesInResolvedPath: number[]) {
+        for (const idx of nodesInResolvedPath) {
+            const componentInvolved = this.dependencyHandler._components[idx];
             if (
-                child?.componentType !== "setup" &&
-                this.referencedIndexable(containerIdx)
-            ) {
-                // The whole content is a reference to a list or to a
-                // composite whose instances an index selects
-                // (`<option>$l</option>`), so the reference's replacements
-                // are what the index selects among, as in
-                // `<option><mathList extend="$l"/></option>`, where the
-                // index passes through (`_indexPassThrough`, D27): the form
-                // D27 recommends, not a child index (#2428). An index that
-                // selects a `<setup>` beside the reference selects that
-                // child, and is reported below like any other.
-                continue;
-            }
-            const before = `${dollars}${source.substring(start, indexStart)}`;
-            const after = indexEnd === pathEnd ? args : "";
-
-            const childName = authoredName(child);
-            const instanceOf =
-                this.dependencyHandler._components[containerIdx]?.attributes
-                    ?._instanceOf?.primitive?.value;
-
-            core.addDiagnostic(
-                codedDiagnostic({
-                    type: "warning",
-                    code: "doenet-w0179",
-                    args: {
-                        reference: `${dollars}${source.substring(start, indexEnd)}${after}`,
-                        suggestion: `${before}.${childName ?? "x"}${after}`,
-                        named: childName === undefined ? "no" : "yes",
-                        container: containerKind(instanceOf),
-                        component: instanceOf ?? "group",
+                idx !== this.compositeIdx &&
+                // Not the component the composite makes in its place
+                // (`<group extend="$cc.x"/>` makes the `<group>` its
+                // reference starts from): updating the composite's
+                // replacements makes that one again, which would update
+                // the composite again, without end (Doenet/DoenetML#2453).
+                this.dependencyHandler.core.createComponentIdxMapping[idx] !==
+                    this.compositeIdx &&
+                componentInvolved &&
+                this.dependencyHandler.componentInfoObjects.isCompositeComponent(
+                    {
+                        componentType: componentInvolved.componentType,
+                        includeNonStandard: true,
                     },
-                    position: composite.position,
-                    sourceDoc: composite.sourceDoc,
-                }),
-            );
+                )
+            ) {
+                this.compositeReplacementDependencies.push(
+                    componentInvolved.componentIdx,
+                );
+                this.addUpdateTriggersForCompositeReplacements([
+                    componentInvolved.componentIdx,
+                ]);
+            }
         }
     }
 
     /**
-     * The component that the whole content of the `<group>` `containerIdx`
-     * (an iteration or a pick) refers to, when that content is one reference
-     * (a `_copy`) to a whole component whose instances an index selects
-     * (`indexSelectsInstances`): a list, or a repeat, select or other
-     * composite of `INSTANCE_KINDS`; `undefined` otherwise. A `<setup>` is not
-     * content, as in `instanceGroupAttributes`, but one written before the
-     * reference shifts what an index counts, so it is not passed over.
+     * Warn that the reference names nothing because an index came after a
+     * `<group>` holding several components or none (`childIndex` of the
+     * resolution), or one that is text, which takes no index (`w0100`): such
+     * a group does not pass the index on to one component (NAME-2), and an
+     * index never selects a child of a container (D27). The
+     * warning quotes the reference up to that index, says how many components
+     * the group holds (`count`), and shows the form to write instead, which
+     * names the child the index would have selected (`childIdx`), if there is
+     * one.
      *
-     * Such a group is not marked to pass an index through
-     * (`_indexPassThrough`), since what the reference makes is not known when
-     * the group is made, but an index into the group selects among the
-     * reference's replacements, which are the referent's instances, all the
-     * same (#2428).
-     *
-     * Only an iteration or a pick, which would pass an index through to the
-     * list written in place: a `<group>` the author wrote, or what a
-     * `<conditionalContent>` shows, would not (`<group><mathList/></group>`
-     * still selects a child), so neither does it for a reference.
+     * A reference resolved again, or in a copy of the component holding it,
+     * raises the same warning at the same place, which is kept only once.
      */
-    referencedIndexable(containerIdx: number): any {
-        const components = this.dependencyHandler._components;
-        const instanceKind = instanceKindOf(
-            components[containerIdx]?.attributes?._instanceOf?.primitive?.value,
+    reportChildIndex(composite: any, childIndex: any) {
+        const core = this.dependencyHandler.core;
+        const originalPath = this.refResolutionOf(composite).originalPath;
+        const start = originalPath?.[0]?.position?.start.offset;
+        const source = core.allDoenetMLs?.[originalPath?.[0]?.sourceDoc ?? 0];
+        const indexStart = childIndex.position?.start.offset;
+        const indexEnd = childIndex.position?.end.offset;
+        const instanceOf =
+            this.dependencyHandler._components[childIndex.containerIdx]
+                ?.attributes?._instanceOf?.primitive?.value;
+        const child =
+            childIndex.childIdx == undefined
+                ? undefined
+                : this.dependencyHandler._components[childIndex.childIdx];
+        // What a reference written as the child (`<group>$x</group>`) made has
+        // the name of what it copies, which is not a name of the group's
+        // child: `$g.x` would not reach it.
+        const madeByBareReference =
+            child?.replacementOf?.componentType === "_copy" &&
+            !child.replacementOf.attributes?._createComponentIdx;
+        const childName = madeByBareReference ? undefined : authoredName(child);
+        const childArg =
+            childIndex.childIdx == undefined
+                ? "none"
+                : childName === undefined
+                  ? "unnamed"
+                  : "named";
+
+        let reference = doenetMLReferenceAsWritten(
+            originalPath,
+            core.allDoenetMLs,
         );
-        if (instanceKind !== "iteration" && instanceKind !== "pick") {
-            return undefined;
+        let suggestion = "";
+        if (
+            start != undefined &&
+            source != undefined &&
+            indexStart != undefined &&
+            indexEnd != undefined
+        ) {
+            const dollars = doenetMLDollarsForReference(
+                originalPath,
+                core.allDoenetMLs,
+            );
+            // The arguments of a function reference (`(2)` of `$$g[1](2)`),
+            // quoted after an index that ends the path, and so ends what is
+            // quoted (#2434).
+            const pathEnd =
+                originalPath?.[originalPath.length - 1]?.position?.end.offset;
+            const args =
+                indexEnd === pathEnd
+                    ? doenetMLArgumentsForReference(
+                          originalPath,
+                          core.allDoenetMLs,
+                      )
+                    : "";
+            const before = `${dollars}${source.substring(start, indexStart)}`;
+            reference = `${dollars}${source.substring(start, indexEnd)}${args}`;
+            suggestion = `${before}.${childName ?? "x"}${args}`;
         }
-        const children = (
-            components[containerIdx]?.serializedChildren ?? []
-        ).filter(
-            (child: any) => typeof child !== "string" || child.trim() !== "",
+
+        if (childIndex.count === 1) {
+            // The one component is text (the resolver counts text as a
+            // component but passes no index to it): it stands for the group,
+            // and takes no index, as a `<text>` does not.
+            core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0100",
+                    args: { reference },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+            return;
+        }
+
+        core.addDiagnostic(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0188",
+                args: {
+                    reference,
+                    suggestion,
+                    child: childArg,
+                    container: containerKind(instanceOf),
+                    component: instanceOf ?? "group",
+                    count: childIndex.count ?? 0,
+                },
+                position: composite.position,
+                sourceDoc: composite.sourceDoc,
+            }),
         );
-        const content = children.filter(
-            (child: any) =>
-                typeof child === "string" || child.componentType !== "setup",
-        );
-        if (content.length !== 1 || content[0].componentType !== "_copy") {
-            return undefined;
-        }
-        // A `<setup>` the author wrote before the reference takes the first
-        // position an index into the group counts, so the reference's
-        // replacements are not what `[1]`, `[2]`, … select: each index is
-        // then a child index, reported as one.
-        if (children.indexOf(content[0]) > 0) {
-            return undefined;
-        }
-        const resolution = refResolutionAt(components[content[0].componentIdx]);
-        if (!resolution || resolution.unresolvedPath !== null) {
-            return undefined;
-        }
-        const referent = components[resolution.nodeIdx];
-        return referent &&
-            indexSelectsInstances(
-                referent.componentType,
-                this.dependencyHandler.componentInfoObjects,
-            )
-            ? referent
-            : undefined;
     }
 
     /**

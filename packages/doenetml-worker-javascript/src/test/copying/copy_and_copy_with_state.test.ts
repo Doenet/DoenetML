@@ -1016,9 +1016,11 @@ ${repeat}
     });
 
     it("a copy of a value reference in a container holds the value it captured through a reload", async () => {
+        // The container is a list, as an index never selects a child of a
+        // group (D27).
         const doc = await loaded(`
 <math name="m">x</math>
-<group name="g">$m</group>
+<mathList name="g">$m</mathList>
 <math name="c" copy="$g[1]"/>
 <mathInput name="mi" bindValueTo="$m"/>
 `);
@@ -1038,9 +1040,11 @@ ${repeat}
     });
 
     it("a copy of a copyWithState of a value reference in a container holds the value captured, not a reader's write to it, through a reload", async () => {
+        // The container is a list, as an index never selects a child of a
+        // group (D27).
         const doc = await loaded(`
 <math name="m">x</math>
-<group name="g">$m</group>
+<mathList name="g">$m</mathList>
 <math name="w" copyWithState="$g[1]"/>
 <math name="c" copy="$w"/>
 <mathInput name="wi" bindValueTo="$w"/>

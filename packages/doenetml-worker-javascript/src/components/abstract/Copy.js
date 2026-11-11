@@ -2833,6 +2833,15 @@ export default class Copy extends CompositeComponent {
 
             let previousZeroSourceIndices =
                 workspace.sourceIndices.length === 0;
+            const previousWorkspace = {
+                numReplacementsBySource: workspace.numReplacementsBySource,
+                numNonStringReplacementsBySource:
+                    workspace.numNonStringReplacementsBySource,
+                propVariablesCopiedBySource:
+                    workspace.propVariablesCopiedBySource,
+                sourceContainsCopyBySource:
+                    workspace.sourceContainsCopyBySource,
+            };
 
             workspace.numReplacementsBySource = [];
             workspace.numNonStringReplacementsBySource = [];
@@ -2910,7 +2919,13 @@ export default class Copy extends CompositeComponent {
             if (previousZeroSourceIndices) {
                 // didn't have sources before and still don't have sources.
                 // we're just getting filler components being recreated.
-                // Don't actually make those changes
+                // Don't actually make those changes, so the workspace still
+                // describes the replacements kept. Reset, it would count none
+                // of them, and the next update would leave them beside what
+                // it makes: a reference past the end at load, then
+                // after a `<group>` (`childIndex`), then naming an entry,
+                // showed the entry and a blank.
+                Object.assign(workspace, previousWorkspace);
                 return { replacementChanges: [], diagnostics, nComponents };
             }
 
@@ -3919,7 +3934,12 @@ async function diagnosticForUnusedIndex({
         }
     }
 
-    if (sourceClass?.variableForImplicitProp) {
+    // A value reference (`_ref`) is a value, as `$P.x` reached through a
+    // group holding only it (`$g[1]` of `<group name="g">$P.x</group>`)
+    if (
+        sourceClass?.variableForImplicitProp ||
+        replacementSource.componentType === "_ref"
+    ) {
         return codedDiagnostic({
             type: "warning",
             code: "doenet-w0100",
@@ -7588,13 +7608,6 @@ async function indexNamesNothing({
     const originalPath = await component.stateValues.originalPath;
     const extendedType = (await component.stateValues.extendedComponent)
         ?.componentType;
-    if (
-        // a `<setup>`, reached by the index of a child (`doenet-w0179`),
-        // which shows nothing
-        extendedType === "setup"
-    ) {
-        return undefined;
-    }
     if (!originalPath?.some((part) => part.index.length > 0)) {
         // A composite named as a whole that holds nothing now, such as a
         // `<conditionalContent>` with no case true and no `<else>` (D37).
@@ -7912,8 +7925,7 @@ async function typeChangeStatus({
         sourceType === "_missing"
     ) {
         // An error is reported already, where it was made. A `<setup>`,
-        // reached by name or by the deprecated index of a child (`$g[1]`,
-        // `doenet-w0179`), is not content written to be shown.
+        // reached by name, is not content written to be shown.
         return undefined;
     }
     const sourceClass = componentInfoObjects.allComponentClasses[sourceType];

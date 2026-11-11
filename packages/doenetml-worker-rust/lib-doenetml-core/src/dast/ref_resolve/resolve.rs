@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::iter;
 use tsify_next::Tsify;
 
-use super::{IndexKind, NameMap, ResolutionError, root_names::RootNameCache};
+use super::{IndexKind, NameMap, ReferenceContent, ResolutionError, root_names::RootNameCache};
 use crate::dast::{
     Position,
     flat_dast::{
@@ -26,26 +26,39 @@ pub struct RefResolution {
     pub unresolved_path: Option<Vec<FlatPathPart>>,
     /// The original path that was resolved with origin `nodes_in_resolved_path[0]`
     pub original_path: Vec<FlatPathPart>,
-    /// Each index in the path that selected a child of a `<group>` (see [`IndexKind::Children`]),
-    /// a deprecated form that still resolves, so that it can be reported.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub child_indexes: Vec<ChildIndex>,
+    /// The index of the path that came after a `<group>` that does not hold one component
+    /// (several, none, or only text)
+    /// (see [`IndexKind::Children`]), if any. An index never selects a child of a
+    /// container (D27), so the path names nothing: the resolution stops at the group,
+    /// `node_idx`, with that index left in `unresolved_path`, and the reference is reported
+    /// with the child it would have selected, so that the warning can name it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "web", tsify(optional))]
+    pub child_index: Option<ChildIndex>,
 }
 
-/// An index of a path that selected a child of a `<group>`,
-/// rather than one of the instances a component produces (D27).
+/// An index of a path written after a `<group>` that does not hold one component
+/// (several, none, or only text),
+/// which names nothing (D27).
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 pub struct ChildIndex {
-    /// The `<group>` whose child was selected
+    /// The `<group>` the index came after
     pub container_idx: Index,
-    /// The child that was selected
-    pub child_idx: Index,
+    /// The child that the index would have selected, if it is literal and the group has a
+    /// component at that position
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "web", tsify(optional))]
+    pub child_idx: Option<Index>,
     /// Where the index was written
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "web", tsify(optional))]
     pub position: Option<Position>,
+    /// How many components the group holds, for the warning to say
+    /// (blank text and `<setup>`s are not components)
+    pub count: usize,
 }
 
 /// Status of a pointer referring to children of an element.
@@ -338,9 +351,6 @@ impl Resolver {
         // A list of all the nodes involved in resolving
         let mut nodes_in_resolved_path = vec![origin];
 
-        // The indices that selected a child of a `<group>`
-        let mut child_indexes: Vec<ChildIndex> = Vec::new();
-
         // Note: `remaining_path` is declared outside the following `if` statement
         // as it needs to live as long as the `path` iterator does.
         let remaining_path: Vec<FlatPathPart>;
@@ -457,7 +467,7 @@ impl Resolver {
                         unresolved_path: Some(remaining_path),
                         original_path,
                         nodes_in_resolved_path,
-                        child_indexes,
+                        child_index: None,
                     });
                 }
                 if let Some(referent) = referent {
@@ -528,121 +538,169 @@ impl Resolver {
                         unresolved_path: Some(remaining_path),
                         original_path,
                         nodes_in_resolved_path,
-                        child_indexes,
+                        child_index: None,
                     });
                 }
             }
 
             for (index_idx, index) in part.index.iter().enumerate() {
-                if index.value.len() == 1 {
-                    match &index.value[0] {
-                        UntaggedContent::Text(index_str) => match index_str.parse::<usize>() {
-                            Ok(index_num) => {
-                                if index_num == 0 {
-                                    // path indices begin at `1``, so we cannot match a `0`
-                                    return Err(ResolutionError::NoReferent);
-                                }
+                // The path from this index on, left unresolved when the index is not followed here
+                let unresolved_from_here = |name: &str| -> Vec<FlatPathPart> {
+                    iter::once(FlatPathPart {
+                        name: name.into(),
+                        index: part.index.iter().skip(index_idx).cloned().collect(),
+                        position: part.position.clone(),
+                        source_doc: part.source_doc,
+                    })
+                    .chain(path.clone().cloned())
+                    .collect()
+                };
 
-                                // An index after an iteration or a pick whose whole content
-                                // is one indexable component passes to that component.
-                                while let Some(child_idx) = self.pass_through_child(current_idx) {
-                                    current_idx = child_idx;
-                                    if !nodes_in_resolved_path.contains(&current_idx) {
-                                        nodes_in_resolved_path.push(current_idx);
-                                    }
-                                    node_data = &self.node_resolver_data[current_idx + 1];
-                                }
+                // The position the index gives, when it is written as a literal. An index that is
+                // a reference to another component (`$g[$i]`) needs information that is not in
+                // the resolver to continue.
+                let literal = match &index.value[..] {
+                    [UntaggedContent::Text(index_str)] => match index_str.parse::<usize>() {
+                        // path indices begin at `1`, so we cannot match a `0`
+                        Ok(0) => return Err(ResolutionError::NoReferent),
+                        Ok(index_num) => Some(index_num),
+                        // the string index did not correspond to non-negative integer
+                        Err(_) => return Err(ResolutionError::NoReferent),
+                    },
+                    _ => None,
+                };
 
-                                if let Some(node_match) =
-                                    node_data.index_resolutions.get(index_num - 1)
-                                {
-                                    match node_match {
-                                        // The setup a repeat adds is not reached by an index:
-                                        // the index is past the iteration's content (below).
-                                        Some(new_node_idx)
-                                            if self.node_resolver_data[*new_node_idx + 1]
-                                                .iteration_aliases => {}
-                                        Some(new_node_idx) => {
-                                            if !node_data.index_kind.is_instances() {
-                                                child_indexes.push(ChildIndex {
-                                                    container_idx: current_idx,
-                                                    child_idx: *new_node_idx,
-                                                    position: index.position.clone(),
-                                                });
-                                            }
-                                            current_idx = *new_node_idx;
-                                            if !nodes_in_resolved_path.contains(&current_idx) {
-                                                nodes_in_resolved_path.push(current_idx);
-                                            }
-                                            node_data = &self.node_resolver_data[current_idx + 1];
+                if literal.is_some() {
+                    // An index after a group whose whole content is one component passes to
+                    // that component, which decides what the index means (NAME-2). While that
+                    // component is a reference not yet expanded, the index passes to the
+                    // reference, and waits for it.
+                    while let Some(child_idx) = self.pass_through_child(current_idx, true) {
+                        current_idx = child_idx;
+                        if !nodes_in_resolved_path.contains(&current_idx) {
+                            nodes_in_resolved_path.push(current_idx);
+                        }
+                        node_data = &self.node_resolver_data[current_idx + 1];
+                    }
+                }
 
-                                            // since we found a match, we continue to the next index, if it exists
-                                            continue;
-                                        }
-                                        None => {
-                                            // A value of `None` corresponds to an index matching a text node, which we cannot reference
-                                            // We add the remaining path as an unresolved path
-                                            // with name `"__invalid_index"` to make sure it won't resolve to anything.
-                                            // Note: we don't return `NoReferent`, as it is possible the index resolutions
-                                            // will later change so that this reference will begin to have a referent
+                // The first of the node's `index_resolutions` an index selects among,
+                // and how many it selects among
+                let (first_selectable, num_selectable) = match node_data.index_kind {
+                    IndexKind::Instances | IndexKind::Pending => {
+                        (0, node_data.index_resolutions.len())
+                    }
+                    IndexKind::Reference {
+                        position,
+                        after,
+                        content: ReferenceContent::Instances,
+                    } => (
+                        position - 1,
+                        node_data
+                            .index_resolutions
+                            .len()
+                            .saturating_sub(after)
+                            .saturating_sub(position - 1),
+                    ),
+                    // The one component is text, or an index that is not literal:
+                    // the worker decides
+                    IndexKind::PassThrough { .. }
+                    | IndexKind::Reference {
+                        content: ReferenceContent::One { .. } | ReferenceContent::Pending,
+                        ..
+                    } => (0, 0),
+                    IndexKind::Children { count }
+                    | IndexKind::Reference {
+                        content: ReferenceContent::Several { count },
+                        ..
+                    } => {
+                        // An index does not select a child of a container (D27), whatever its
+                        // value: the path names nothing. It stops here, with the child the
+                        // index would have selected, for the warning to name.
+                        let (first, num) = match node_data.index_kind {
+                            IndexKind::Reference {
+                                position, after, ..
+                            } => (
+                                position - 1,
+                                node_data
+                                    .index_resolutions
+                                    .len()
+                                    .saturating_sub(after)
+                                    .saturating_sub(position - 1),
+                            ),
+                            _ => (0, node_data.index_resolutions.len()),
+                        };
+                        let child_idx = literal
+                            .filter(|index_num| *index_num <= num)
+                            .and_then(|index_num| {
+                                node_data
+                                    .index_resolutions
+                                    .get(first + index_num - 1)
+                                    .copied()
+                            })
+                            .flatten()
+                            .filter(|idx| !self.node_resolver_data[idx + 1].iteration_aliases);
+                        return Ok(RefResolution {
+                            node_idx: current_idx,
+                            unresolved_path: Some(unresolved_from_here("")),
+                            original_path,
+                            nodes_in_resolved_path,
+                            child_index: Some(ChildIndex {
+                                container_idx: current_idx,
+                                child_idx,
+                                position: index.position.clone(),
+                                count,
+                            }),
+                        });
+                    }
+                };
 
-                                            let remaining_path: Vec<FlatPathPart> =
-                                                iter::once(FlatPathPart {
-                                                    name: "__invalid_index".into(),
-                                                    index: part
-                                                        .index
-                                                        .iter()
-                                                        .skip(index_idx)
-                                                        .cloned()
-                                                        .collect(),
-                                                    position: part.position.clone(),
-                                                    source_doc: part.source_doc,
-                                                })
-                                                .chain(path.cloned())
-                                                .collect();
-
-                                            return Ok(RefResolution {
-                                                node_idx: current_idx,
-                                                unresolved_path: Some(remaining_path),
-                                                original_path,
-                                                nodes_in_resolved_path,
-                                                child_indexes,
-                                            });
-                                        }
-                                    }
-                                }
+                if let Some(index_num) = literal
+                    && index_num <= num_selectable
+                {
+                    match node_data.index_resolutions[first_selectable + index_num - 1] {
+                        // The setup a repeat adds is not reached by an index:
+                        // the index is past the iteration's content (below).
+                        Some(new_node_idx)
+                            if self.node_resolver_data[new_node_idx + 1].iteration_aliases => {}
+                        Some(new_node_idx) => {
+                            current_idx = new_node_idx;
+                            if !nodes_in_resolved_path.contains(&current_idx) {
+                                nodes_in_resolved_path.push(current_idx);
                             }
-                            Err(_) => {
-                                // the string index did not correspond to non-negative integer
-                                return Err(ResolutionError::NoReferent);
-                            }
-                        },
-                        UntaggedContent::Ref(_) => {
-                            // if the index is a reference to another component,
-                            // then we need information that is not in the resolver to continue,
+                            node_data = &self.node_resolver_data[current_idx + 1];
+
+                            // since we found a match, we continue to the next index, if it exists
+                            continue;
+                        }
+                        None => {
+                            // A value of `None` corresponds to an index matching a text node, which we cannot reference
+                            // We add the remaining path as an unresolved path
+                            // with name `"__invalid_index"` to make sure it won't resolve to anything.
+                            // Note: we don't return `NoReferent`, as it is possible the index resolutions
+                            // will later change so that this reference will begin to have a referent
+                            return Ok(RefResolution {
+                                node_idx: current_idx,
+                                unresolved_path: Some(unresolved_from_here("__invalid_index")),
+                                original_path,
+                                nodes_in_resolved_path,
+                                child_index: None,
+                            });
                         }
                     }
                 }
 
                 // If we make it here, then either
                 // - `index.value` was not a single text node, or
-                // - `index.value` did correspond to a valid index, but it wasn't in `self.index_resolutions` for the current node
+                // - `index.value` did correspond to a valid index, but it wasn't among what an index selects
+                //   in `self.index_resolutions` for the current node
                 // We need information that is not in the resolver to continue, so we return the remaining path as unresolved.
-                let remaining_path: Vec<FlatPathPart> = iter::once(FlatPathPart {
-                    name: "".into(),
-                    index: part.index.iter().skip(index_idx).cloned().collect(),
-                    position: part.position.clone(),
-                    source_doc: part.source_doc,
-                })
-                .chain(path.cloned())
-                .collect();
-
                 return Ok(RefResolution {
                     node_idx: current_idx,
-                    unresolved_path: Some(remaining_path),
+                    unresolved_path: Some(unresolved_from_here("")),
                     original_path,
                     nodes_in_resolved_path,
-                    child_indexes,
+                    child_index: None,
                 });
             }
         }
@@ -653,7 +711,7 @@ impl Resolver {
             unresolved_path: None,
             original_path,
             nodes_in_resolved_path,
-            child_indexes,
+            child_index: None,
         })
     }
 

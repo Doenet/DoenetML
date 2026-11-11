@@ -1,6 +1,7 @@
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { ResolvePathToNodeIdx } from "./test-core";
 import { coordinatesOf } from "../../components/abstract/GraphicalValueList";
+import { childOfInstance } from "./instance-children";
 
 /**
  * Reading the entries of a list component (`listEntryComponentType`;
@@ -92,7 +93,10 @@ export function listEntryRecord(
 
 /**
  * The record of the component `name` resolves to, or, when `name` ends with
- * an index into a list component (`s[2]`, `rep[1].s[3]`), of that entry.
+ * an index into a list component (`s[2]`, `rep[1].s[3]`), of that entry, or,
+ * when it ends with an index after an iteration, a pick or a `<group>`
+ * (`s[1][1]`), which names nothing (D27), of the component at that position
+ * of what it holds (`childOfInstance`).
  */
 export async function componentOrListEntry(
     core: PublicDoenetMLCore,
@@ -112,7 +116,17 @@ export async function componentOrListEntry(
     if (listIdx === -1) {
         return undefined;
     }
-    return listEntryRecord(core, stateVariables, listIdx, Number(match[2]) - 1);
+    return (
+        listEntryRecord(core, stateVariables, listIdx, Number(match[2]) - 1) ??
+        stateVariables[
+            await childOfInstance(
+                core,
+                resolvePathToNodeIdx,
+                match[1],
+                Number(match[2]),
+            )
+        ]
+    );
 }
 
 /**

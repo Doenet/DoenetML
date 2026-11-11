@@ -10,7 +10,10 @@ use tsify_next::{Tsify, declare};
 use crate::dast::{DastRoot, DiagnosticArgs};
 
 use super::{
-    super::{Position, ref_resolve::RefResolution},
+    super::{
+        Position,
+        ref_resolve::{RefResolution, ReferenceContent},
+    },
     normalized_flat_dast::{NormalizedNode, NormalizedRoot},
 };
 
@@ -243,11 +246,12 @@ pub struct FlatError {
     pub args: Option<DiagnosticArgs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub unresolved_path: Option<Vec<FlatPathPart>>,
-    /// The arguments of a function reference (`$$f($a)`) that names nothing
-    /// or more than one thing, as [`FlatFunctionRef::input`] held them. Not
-    /// shown: kept so that a reference in them is still resolved, and
-    /// reported when it fails, at the same time as the function reference
-    /// (#2434).
+    /// For a function reference (`$$f($a)`) that names nothing or more than
+    /// one thing, the `<setup>` holding its arguments, as the one input. Not
+    /// shown, but made, as if written in a `<setup>` at the reference's place
+    /// (D40): a component named in them is made, and that name names it, and a
+    /// reference in them is resolved, and reported when it fails, at the same
+    /// time as the function reference (#2434, #2489).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub input: Option<Vec<Vec<UntaggedContent>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -483,18 +487,21 @@ pub struct FlatFragment {
     #[serde(default)]
     #[cfg_attr(feature = "web", tsify(optional))]
     pub copied_content: bool,
-    /// What an index after the fragment's parent passes to, when the parent is a `<group>`
-    /// that a copy or an extend made of an iteration or a pick (`<group extend="$r[1]"/>`):
-    /// the position (from 1) among the parent's `index_resolutions` of the one indexable
-    /// component that is its whole content, as the [`INDEX_PASS_THROUGH_ATTRIBUTE`] of the
-    /// iteration or pick gives it, or `0` when the content is not one indexable component.
-    /// The parent then indexes as the iteration or pick it is made of
-    /// (see `IndexKind::PassThrough`). `None` leaves the parent's index kind as it is.
-    ///
-    /// [`INDEX_PASS_THROUGH_ATTRIBUTE`]: crate::dast::ref_resolve::INDEX_PASS_THROUGH_ATTRIBUTE
+    /// When the parent is a `<group>` that a copy or an extend made (`<group extend="$r[1]"/>`,
+    /// `<group copy="$g"/>`), how many of the fragment's children, from the first, are its whole
+    /// content (any after them are its attributes' components). The parent's index kind is then
+    /// decided from them, as for any group (`IndexKind::of_content`): an index after it passes to
+    /// its one component, or names nothing. `None` leaves the parent's index kind as it is.
     #[serde(default)]
     #[cfg_attr(feature = "web", tsify(optional))]
-    pub parent_index_pass_through: Option<usize>,
+    pub parent_content: Option<usize>,
+    /// For the fragment that a reference made, when that reference is the whole content of the
+    /// `<group>` that is the parent of the fragment's `IndexResolution`: what an index after the
+    /// group does with what the reference made (see `IndexKind::Reference`).
+    /// `None` leaves the index kind of that parent as it is.
+    #[serde(default)]
+    #[cfg_attr(feature = "web", tsify(optional))]
+    pub index_parent_reference: Option<ReferenceContent>,
     /// A map of the a node's index into its index in the array `nodes`
     idx_map: HashMap<usize, usize>,
 }
@@ -572,7 +579,8 @@ impl FlatFragment {
             parent_idx,
             parent_source_sequence: None,
             copied_content: false,
-            parent_index_pass_through: None,
+            parent_content: None,
+            index_parent_reference: None,
             idx_map,
         }
     }

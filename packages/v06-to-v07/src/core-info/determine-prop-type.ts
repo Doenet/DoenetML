@@ -280,6 +280,42 @@ export function isCompositeComponentType(componentType: string): boolean {
 }
 
 /**
+ * Whether `componentType` stood in v0.6 for the several components it made: a
+ * composite, or a list computed from attributes (`<sequence>`,
+ * `<sampleRandomNumbers>`, …), which v0.6 made as a composite and v0.7 makes as a
+ * list. A list written as its entries (`<mathList>`, `<pointList>`, …) was one
+ * component in v0.6 too.
+ */
+export function wasCompositeInV06(componentType: string): boolean {
+    if (isCompositeComponentType(componentType)) {
+        return true;
+    }
+    // The abstract list classes are not among the component classes by name, so
+    // the class's ancestors are read for them.
+    const ancestors: string[] = [];
+    for (
+        let componentClass: any =
+            componentInfoObjects.allComponentClasses[componentType];
+        componentClass;
+        componentClass = Object.getPrototypeOf(componentClass)
+    ) {
+        if (
+            Object.prototype.hasOwnProperty.call(
+                componentClass,
+                "componentType",
+            )
+        ) {
+            ancestors.push(componentClass.componentType);
+        }
+    }
+    return (
+        ancestors.includes("_valueList") &&
+        !ancestors.includes("_authoredValueList") &&
+        !ancestors.includes("_graphicalValueList")
+    );
+}
+
+/**
  * Whether `componentType` is a `<module>` or something derived from one.
  *
  * v0.6 used this to decide the default of `<copy>`'s `link`: with no `link` attribute it

@@ -11,6 +11,7 @@ import {
     componentOrListEntry,
     entriesOrReplacements,
 } from "../utils/list-entries";
+import { componentAtPath } from "../utils/instance-children";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -54,7 +55,9 @@ describe("Select tag tests @group2", async () => {
                     option_num < num_option_children;
                     option_num++
                 ) {
-                    const child_idx = await resolvePathToNodeIdx(
+                    const child_idx = await componentAtPath(
+                        core,
+                        resolvePathToNodeIdx,
                         `${select_name}[${select_num + 1}][${option_num + 1}]`,
                     );
                     const value = stateVariables[child_idx].stateValues.value;
@@ -168,7 +171,9 @@ describe("Select tag tests @group2", async () => {
                     option_num < num_option_children;
                     option_num++
                 ) {
-                    const child_idx = await resolvePathToNodeIdx(
+                    const child_idx = await componentAtPath(
+                        core,
+                        resolvePathToNodeIdx,
                         `${select_name}[${select_num + 1}][${option_num + 1}]`,
                     );
                     values.push(stateVariables[child_idx].stateValues.value);
@@ -1796,40 +1801,40 @@ describe("Select tag tests @group2", async () => {
         let qs = childrenAsPresented(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[1][1]"),
+            await componentAtPath(core, resolvePathToNodeIdx, "o[1][1]"),
         ).map((x) => x.stateValues.value);
         //console.log({ qs });
         let rs = childrenAsPresented(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[2][1]"),
+            await componentAtPath(core, resolvePathToNodeIdx, "o[2][1]"),
         ).map((x) => x.stateValues.value);
 
         //console.log({ rs });
         let ss = childrenAsPresented(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[3][1]"),
+            await componentAtPath(core, resolvePathToNodeIdx, "o[3][1]"),
         ).map((x) => x.stateValues.value);
         let ts = childrenAsPresented(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[4][1]"),
+            await componentAtPath(core, resolvePathToNodeIdx, "o[4][1]"),
         ).map((x) => x.stateValues.value);
         let us = childrenAsPresented(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[5][1]"),
+            await componentAtPath(core, resolvePathToNodeIdx, "o[5][1]"),
         ).map((x) => x.stateValues.value);
         let vs = childrenAsPresented(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[6][1]"),
+            await componentAtPath(core, resolvePathToNodeIdx, "o[6][1]"),
         ).map((x) => x.stateValues.value);
         let ws = childrenAsPresented(
             core,
             stateVariables,
-            await resolvePathToNodeIdx("o[7][1]"),
+            await componentAtPath(core, resolvePathToNodeIdx, "o[7][1]"),
         ).map((x) => x.stateValues.value);
 
         let q2s = childrenAsPresented(
@@ -2255,32 +2260,32 @@ describe("Select tag tests @group2", async () => {
             doenetML: `
     <select name="o">
     <option>
-      <math name="h1"><math name="w">x</math><math>y</math></math>
-      <math simplify><math name="q">z</math> + 2<math extend="$q" name="v"/></math>
-      $o.w
-      $o.q
+      <math name="a"><math name="w">x</math><math>y</math></math>
+      <math name="b" simplify><math name="q">z</math> + 2<math extend="$q" name="v"/></math>
+      <math extend="$o.w" name="c" />
+      <math extend="$o.q" name="d" />
     </option>
     <option>
-      <math name="h2"><math name="w">u</math><math>v</math></math>
-      <math simplify><math name="q">t</math> + 2<math extend="$q" name="v"/></math>
-      $o.w
-      $o.q
+      <math name="a"><math name="w">u</math><math>v</math></math>
+      <math name="b" simplify><math name="q">t</math> + 2<math extend="$q" name="v"/></math>
+      <math extend="$o.w" name="c" />
+      <math extend="$o.q" name="d" />
     </option>
     </select>
     
     <p>Copy grandchidren</p>
-    <p><math extend="$o[1][1]" name="a2" /></p>
-    <p><math extend="$o[1][2]" name="b2" /></p>
-    <p><math extend="$o[1][3]" name="c2" /></p>
-    <p><math extend="$o[1][4]" name="d2" /></p>
+    <p><math extend="$o[1].a" name="a2" /></p>
+    <p><math extend="$o[1].b" name="b2" /></p>
+    <p><math extend="$o[1].c" name="c2" /></p>
+    <p><math extend="$o[1].d" name="d2" /></p>
     
     <p>Copy named children of grandchild</p>
     <p><math extend="$o.w" name="w2" /></p>
     <p><math extend="$o.v" name="v2" /></p>
     <p><math extend="$o[1].w" name="w3" /></p>
     <p><math extend="$o[1].v" name="v3" /></p>
-    <p><math extend="$o[1][1].w" name="w4" /></p>
-    <p><math extend="$o[1][2].v" name="v4" /></p>
+    <p><math extend="$o[1].a.w" name="w4" /></p>
+    <p><math extend="$o[1].b.v" name="v4" /></p>
     
     `,
         });
@@ -2306,19 +2311,12 @@ describe("Select tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let chosenChildren = (
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "o[1]",
-            )
-        )
-            .replacements!.filter((x) => typeof x !== "string")
-            .map((x) => stateVariables[x.componentIdx])
-            .map((v, i) =>
-                i < 2 ? v : stateVariables[v.replacements![0].componentIdx],
+        let chosenChildren: any[] = [];
+        for (const name of ["a", "b", "c", "d"]) {
+            chosenChildren.push(
+                stateVariables[await resolvePathToNodeIdx(`o[1].${name}`)],
             );
+        }
 
         let option =
             options[
@@ -2538,30 +2536,30 @@ describe("Select tag tests @group2", async () => {
       <p>Selects and hide</p>
       <p name="p1"><asList><select name="s1">
         <option>
-          <text>a</text>
-          <text>b</text>
-          <text>c</text>
+          <text name="t1">a</text>
+          <text name="t2">b</text>
+          <text name="t3">c</text>
         </option>
         <option>
-          <text>d</text>
-          <text>e</text>
-          <text>f</text>
+          <text name="t1">d</text>
+          <text name="t2">e</text>
+          <text name="t3">f</text>
         </option>
       </select><select name="s2" hide>
         <option>
-          <text>a</text>
-          <text>b</text>
+          <text name="t1">a</text>
+          <text name="t2">b</text>
         </option>
         <option>
-          <text>c</text>
-          <text>d</text>
+          <text name="t1">c</text>
+          <text name="t2">d</text>
         </option>
         <option>
-          <text>e</text>
-          <text>f</text>
+          <text name="t1">e</text>
+          <text name="t2">f</text>
         </option>
       </select></asList></p>
-      <p name="p2">$s1[1][1], <text extend="$s1[1][2]" hide="true" />, $s1[1][3], <text extend="$s2[1][1]" hide="false" />, $s2[1][2]</p>
+      <p name="p2">$s1[1].t1, <text extend="$s1[1].t2" hide="true" />, $s1[1].t3, <text extend="$s2[1].t1" hide="false" />, $s2[1].t2</p>
     `,
         });
 
@@ -2629,30 +2627,30 @@ describe("Select tag tests @group2", async () => {
       <p>Selects and hide</p>
       <p name="p1"><asList><select name="s1">
         <option>
-          <text>a</text>
-          <text>b</text>
-          <text>c</text>
+          <text name="t1">a</text>
+          <text name="t2">b</text>
+          <text name="t3">c</text>
         </option>
         <option>
-          <text>d</text>
-          <text>e</text>
-          <text>f</text>
+          <text name="t1">d</text>
+          <text name="t2">e</text>
+          <text name="t3">f</text>
         </option>
       </select><select name="s2" hide>
         <option>
-          <text>a</text>
-          <text>b</text>
+          <text name="t1">a</text>
+          <text name="t2">b</text>
         </option>
         <option>
-          <text>c</text>
-          <text>d</text>
+          <text name="t1">c</text>
+          <text name="t2">d</text>
         </option>
         <option>
-          <text>e</text>
-          <text>f</text>
+          <text name="t1">e</text>
+          <text name="t2">f</text>
         </option>
       </select></asList></p>
-      <p name="p2">$s1[1][1], <text extend="$s1[1][2]" hide="true" />, $s1[1][3], <text extend="$s2[1][1]" hide="false" />, $s2[1][2]</p>
+      <p name="p2">$s1[1].t1, <text extend="$s1[1].t2" hide="true" />, $s1[1].t3, <text extend="$s2[1].t1" hide="false" />, $s2[1].t2</p>
     `,
         });
 
@@ -2862,10 +2860,10 @@ describe("Select tag tests @group2", async () => {
         ).eq(`b1: ＿`);
         expect(
             stateVariables[await resolvePathToNodeIdx("pc1")].stateValues.text,
-        ).eq(`c1: ${option.animal}`);
+        ).eq(`c1: ＿`);
         expect(
             stateVariables[await resolvePathToNodeIdx("pd1")].stateValues.text,
-        ).eq(`d1: ${option.verb}`);
+        ).eq(`d1: ＿`);
         expect(
             stateVariables[await resolvePathToNodeIdx("pe1")].stateValues.text,
         ).eq(`e1: ＿`);
@@ -2875,13 +2873,30 @@ describe("Select tag tests @group2", async () => {
         ).eq("");
         expect(
             stateVariables[await resolvePathToNodeIdx("c1")].stateValues.text,
-        ).eq(`${option.animal}`);
+        ).eq("");
         expect(
             stateVariables[await resolvePathToNodeIdx("d1")].stateValues.text,
-        ).eq(`${option.verb}`);
+        ).eq("");
         expect(
             stateVariables[await resolvePathToNodeIdx("e1")].stateValues.text,
         ).eq("");
+
+        // An index after the pick that `a1` extends names nothing (D27
+        // revised, #2517). The warning tells a component (the texts the
+        // macros make) from a string, and blank strings are not counted.
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0188",
+            "doenet-w0188",
+            "doenet-w0188",
+            "doenet-w0188",
+        ]);
+        expect(warnings.map((w) => [w.args.reference, w.args.child])).eqls([
+            ["$a1[1]", "none"],
+            ["$a1[2]", "unnamed"],
+            ["$a1[3]", "unnamed"],
+            ["$a1[4]", "none"],
+        ]);
     });
 
     it("correctly reference select inside another select", async () => {
@@ -2921,9 +2936,10 @@ describe("Select tag tests @group2", async () => {
         expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
 
-    it("an index into the option of a select inside another select is deprecated", async () => {
-        // The positional form of the test above still selects the children of
-        // the picked option, but warns that the index should be a name (D27).
+    it("an index into the option of a select inside another select names nothing", async () => {
+        // The positional form of the test above: an index after a pick does
+        // not select a child of the picked option (D27 revised, #2517), so it
+        // names nothing and warns how to name the child instead.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <select name="select1">
@@ -2948,15 +2964,15 @@ describe("Select tag tests @group2", async () => {
 
         expect(
             stateVariables[replacements[3].componentIdx].stateValues.text,
-        ).eq(`q2 = a`);
+        ).eq(`q2 = ＿`);
         expect(
             stateVariables[replacements[5].componentIdx].stateValues.text,
-        ).eq(`r2 = b`);
+        ).eq(`r2 = ＿`);
 
         const warnings = getDiagnosticsByType(core).warnings;
         expect(warnings.map((w) => w.code)).eqls([
-            "doenet-w0179",
-            "doenet-w0179",
+            "doenet-w0188",
+            "doenet-w0188",
         ]);
         // The named child is named in the form to write instead; the other
         // is to be given a name
@@ -2965,16 +2981,18 @@ describe("Select tag tests @group2", async () => {
                 {
                     reference: "$s[1][1]",
                     suggestion: "$s[1].q",
-                    named: "yes",
+                    child: "named",
                     container: "pick",
                     component: "select",
+                    count: 2,
                 },
                 {
                     reference: "$s[1][2]",
                     suggestion: "$s[1].x",
-                    named: "no",
+                    child: "unnamed",
                     container: "pick",
                     component: "select",
+                    count: 2,
                 },
             ]),
         );

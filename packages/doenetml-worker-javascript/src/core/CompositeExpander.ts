@@ -26,7 +26,10 @@ import {
     createComponentIndicesForShadowedReplacements,
 } from "../utils/componentIndices";
 import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
-import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
+import {
+    giveListEntriesToIndexParent,
+    giveReferenceContentToIndexParent,
+} from "./listEntryResolverNodes";
 
 /**
  * Expands composite components into their replacements: walks descendants
@@ -903,6 +906,9 @@ export async function createAndSetReplacements({
 
     // A list component among the items is indexed by its entries.
     await giveListEntriesToIndexParent({ core, composite: component });
+    // What an index after a group holding only a reference does with what
+    // the reference made, now that it is made
+    await giveReferenceContentToIndexParent({ core, composite: component });
 }
 
 /**

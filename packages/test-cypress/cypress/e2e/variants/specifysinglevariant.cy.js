@@ -31,7 +31,7 @@ describe(
     <variantControl numVariants="100" uniqueVariants="false"/>
 
     <select name="p">
-      <option><p>Favorite color:
+      <option><p name="par">Favorite color:
         <select name="item">
           <option><text>red</text></option>
           <option><text>orange</text></option>
@@ -40,15 +40,15 @@ describe(
           <option><text>chartreuse</text></option>
         </select>
       </p></option>
-      <option><p>Selected number: 
+      <option><p name="par">Selected number: 
         <select name="item">
           <option><selectFromSequence from="1000" to="2000" /></option>
           <option><selectFromSequence from="-1000" to="-900" /></option>
         </select>
       </p></option>
-      <!-- item is a select in every option, so $p.item names it -->
-      <option><p>Chosen letter: <select name="item"><option><selectFromSequence type="letters" to="g" /></option></select></p></option>
-      <option><p>Variable: <select type="text" name="item">u v w x z y</select></p></option>
+      <!-- item and par are in every option, so $p.item and $p.par name them -->
+      <option><p name="par">Chosen letter: <select name="item"><option><selectFromSequence type="letters" to="g" /></option></select></p></option>
+      <option><p name="par">Variable: <select type="text" name="item">u v w x z y</select></p></option>
     </select>
     <p>Enter item $item as text: <answer><textInput name="textInput1"/><award><text>$(p.item)</text></award></answer></p>
     `;
@@ -84,7 +84,7 @@ describe(
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
-                    let p = stateVariables[await win.resolvePath1("p[1][1]")];
+                    let p = stateVariables[await win.resolvePath1("p.par")];
 
                     let variantInd =
                         firstStringsToInd[p.activeChildren[0].trim()];
@@ -165,8 +165,7 @@ describe(
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
-                        let p =
-                            stateVariables[await win.resolvePath1("p[1][1]")];
+                        let p = stateVariables[await win.resolvePath1("p.par")];
 
                         let variantInd2 =
                             firstStringsToInd[p.activeChildren[0].trim()];

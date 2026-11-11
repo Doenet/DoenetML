@@ -478,14 +478,16 @@ describe("Missing values and missing tags (D37) @group2", () => {
         // info `doenet-i0054` while the index names nothing now, or the
         // warning that says why it never does; the bare reference reports
         // only those warnings (its info is left for the new core, #2281).
-        const before = `<mathInput name="mi" prefill="7"/><number name="i">$mi</number><mathList name="l">1 2 3</mathList><number name="n">5</number><repeatForSequence name="r" length="2"><math name="m">x</math></repeatForSequence><group name="g"><math>a</math></group><select name="s" numToSelect="1"><option><math name="q">q</math></option></select><booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>`;
+        const before = `<mathInput name="mi" prefill="7"/><number name="i">$mi</number><mathList name="l">1 2 3</mathList><number name="n">5</number><repeatForSequence name="r" length="2"><math name="m">x</math></repeatForSequence><group name="g"><math>a</math><math>b</math></group><select name="s" numToSelect="1"><option><math name="q">q</math></option></select><booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>`;
         const pairs: [string, string, string, string[]][] = [
             ["$l[$i]", "math", "＿", ["I doenet-i0054"]],
             ["$l[5]", "math", "＿", ["I doenet-i0054"]],
             ["$l[0]", "math", "＿", ["W doenet-w0104"]],
             ["$r[$i].m", "math", "＿", ["I doenet-i0054"]],
             ["$r[3].m", "math", "＿", ["I doenet-i0054"]],
-            ["$g[2]", "math", "＿", ["I doenet-i0054"]],
+            // an index after a group holding two components names nothing
+            // (D27)
+            ["$g[2]", "math", "＿", ["W doenet-w0188"]],
             ["$s[$i]", "math", "＿", ["I doenet-i0054"]],
             ["$s[3]", "math", "＿", ["W doenet-w0181"]],
             ["$n[1]", "number", "＿", ["W doenet-w0100"]],

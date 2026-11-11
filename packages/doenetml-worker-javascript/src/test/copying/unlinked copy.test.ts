@@ -11,6 +11,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { componentAtPath } from "../utils/instance-children";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -720,9 +721,13 @@ describe("Unlinked Copying Tests @group4", async () => {
 
         <p name="p1">g11: $g1[1], g12: $g1[2]</p>
         <p name="p2">g21: $g2[1], g22: $g2[2]</p>
+        <p name="p3">g1: $g1, g2: $g2</p>
     `,
         });
 
+        // Each group holds one component, a reference to the sequence, so an
+        // index after it selects among the sequence's numbers (NAME-2), the
+        // same for the copy as for the original group.
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
@@ -730,6 +735,15 @@ describe("Unlinked Copying Tests @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("g21: 1, g22: 2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("g1: 1, 2, g2: 1, 2");
+        expect(
+            getDiagnosticsByType(core).warnings.map((w) => [
+                w.code,
+                w.args?.reference,
+            ]),
+        ).eqls([]);
     });
 
     async function test_copy_group_copies_no_link(
@@ -1146,172 +1160,300 @@ describe("Unlinked Copying Tests @group4", async () => {
             if (n1 >= 1) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section1.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section1.r[1][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=1, v=11");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section2.r[1][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=1, v=11");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section4.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section4.r[1][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=1, v=11");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section5.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section5.r[1][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=1, v=11");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section1.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section1.r[1][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section2.r[1][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section4.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section4.r[1][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section5.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section5.r[1][1]",
+                        )
                     ],
                 );
             }
             if (n1 >= 2) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section1.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section1.r[2][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=2, v=12");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section2.r[2][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=2, v=12");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section4.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section4.r[2][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=2, v=12");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section5.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section5.r[2][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=2, v=12");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section1.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section1.r[2][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section2.r[2][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section4.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section4.r[2][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section5.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section5.r[2][1]",
+                        )
                     ],
                 );
             }
             if (n1 >= 3) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section1.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section1.r[3][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=3, v=13");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section2.r[3][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=3, v=13");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section4.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section4.r[3][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=3, v=13");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section5.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section5.r[3][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=3, v=13");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section1.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section1.r[3][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section2.r[3][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section4.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section4.r[3][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section5.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section5.r[3][1]",
+                        )
                     ],
                 );
             }
             if (n1 >= 4) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section1.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section1.r[4][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=4, v=14");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section2.r[4][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=4, v=14");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section4.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section4.r[4][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=4, v=14");
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section5.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section5.r[4][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=4, v=14");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section1.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section1.r[4][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section2.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section2.r[4][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section4.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section4.r[4][1]",
+                        )
                     ],
                 );
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section5.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section5.r[4][1]",
+                        )
                     ],
                 );
             }
@@ -1319,52 +1461,84 @@ describe("Unlinked Copying Tests @group4", async () => {
             if (n2 >= 1) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section3.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section3.r[1][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=1, v=11");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section3.r[1][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section3.r[1][1]",
+                        )
                     ],
                 );
             }
             if (n2 >= 2) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section3.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section3.r[2][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=2, v=12");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section3.r[2][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section3.r[2][1]",
+                        )
                     ],
                 );
             }
             if (n2 >= 3) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section3.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section3.r[3][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=3, v=13");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section3.r[3][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section3.r[3][1]",
+                        )
                     ],
                 );
             }
             if (n2 >= 4) {
                 expect(
                     stateVariables[
-                        await resolvePathToNodeIdx("section3.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section3.r[4][1]",
+                        )
                     ].stateValues.text,
                 ).eq("i=4, v=14");
             } else {
                 isUndefinedOrInactive(
                     stateVariables[
-                        await resolvePathToNodeIdx("section3.r[4][1]")
+                        await componentAtPath(
+                            core,
+                            resolvePathToNodeIdx,
+                            "section3.r[4][1]",
+                        )
                     ],
                 );
             }
@@ -2314,13 +2488,13 @@ describe("Unlinked Copying Tests @group4", async () => {
             doenetML: `
     <graph name="graph1">
         <repeatForSequence name="mp" length="2" valueName="i">
-            <group>
-                <point>(1, <number copy="$i" />)</point>
+            <group name="g">
+                <point name="pt">(1, <number copy="$i" />)</point>
             </group>
         </repeatForSequence>
         <setup>
-            <point extend="$mp[1][1][1]" name="P" />
-            <point extend="$mp[2][1][1]" name="Q" />
+            <point extend="$mp[1].g.pt" name="P" />
+            <point extend="$mp[2].g.pt" name="Q" />
         </setup>
     </graph>
 

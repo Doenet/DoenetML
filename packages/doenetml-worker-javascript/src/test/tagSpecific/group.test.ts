@@ -937,23 +937,30 @@ describe("Group tag tests @group2", async () => {
             ).eq(text);
         }
 
-        // an index past what the group holds is a blank (D37)
-        await check("7 8 1 2 9 ＿");
+        // `h` holds one reference, to a group holding four components, which
+        // the reference stands for (NAME-2), so an index after `h` names
+        // nothing (D27), with a warning that says so, however many items the
+        // sequence makes.
+        await check("＿ ＿ ＿ ＿ ＿ ＿");
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w) => w.code)).eqls(Array(6).fill("doenet-w0188"));
+        expect(warnings.map((w) => w.args?.container)).eqls(
+            Array(6).fill("group"),
+        );
 
-        // A longer sequence moves the items after it along.
         await updateMathInputValue({
             latex: "3",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        await check("7 8 1 2 3 9");
+        await check("＿ ＿ ＿ ＿ ＿ ＿");
 
         await updateMathInputValue({
             latex: "1",
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        await check("7 8 1 9 ＿ ＿");
+        await check("＿ ＿ ＿ ＿ ＿ ＿");
     });
 
     it("index into a group holding a reference to a group whose items contain references", async () => {
@@ -969,12 +976,13 @@ describe("Group tag tests @group2", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("3 1 5");
-        // Each index selects a child of the `<group>`, which is deprecated (D27)
+        ).eq("＿ ＿ ＿");
+        // `h` stands for the three components of `g`, and an index never
+        // selects one of them (D27)
         expect(getDiagnosticsByType(core).warnings.map((w) => w.code)).eqls([
-            "doenet-w0179",
-            "doenet-w0179",
-            "doenet-w0179",
+            "doenet-w0188",
+            "doenet-w0188",
+            "doenet-w0188",
         ]);
     });
 });

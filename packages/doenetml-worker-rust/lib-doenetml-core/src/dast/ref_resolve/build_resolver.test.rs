@@ -49,7 +49,7 @@ fn add_nodes() {
             unresolved_path: None,
             original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
@@ -60,7 +60,7 @@ fn add_nodes() {
             unresolved_path: None,
             original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, g_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -73,7 +73,7 @@ fn add_nodes() {
             unresolved_path: None,
             original_path: make_path(["y"], None),
             nodes_in_resolved_path: vec![c_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["q"], None), g_idx, false);
@@ -84,7 +84,7 @@ fn add_nodes() {
             unresolved_path: None,
             original_path: make_path(["q"], None),
             nodes_in_resolved_path: vec![g_idx, f_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -119,7 +119,7 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
             unresolved_path: None,
             original_path: make_path(["x", "y"], None),
             nodes_in_resolved_path: vec![d_idx, a_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -132,7 +132,7 @@ fn add_nodes_does_not_make_previous_resolution_ambiguous() {
             unresolved_path: None,
             original_path: make_path(["x", "z"], None),
             nodes_in_resolved_path: vec![d_idx, a_idx, e_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -172,7 +172,7 @@ fn copied_content_is_found_only_through_the_copy() {
             unresolved_path: None,
             original_path: make_path(["h"], None),
             nodes_in_resolved_path: vec![b_idx, d_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["z"], None), b_idx, false);
@@ -240,7 +240,7 @@ fn add_nodes_with_no_parent() {
             unresolved_path: None,
             original_path: make_path(["w"], None),
             nodes_in_resolved_path: vec![c_idx, g_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -292,7 +292,7 @@ fn name_table_of_a_fragment_is_the_size_of_the_fragment() {
             unresolved_path: None,
             original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, g_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -333,7 +333,7 @@ fn delete_nodes() {
             unresolved_path: None,
             original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -345,7 +345,7 @@ fn delete_nodes() {
             unresolved_path: None,
             original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, g_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -359,7 +359,7 @@ fn delete_nodes() {
             unresolved_path: None,
             original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, c_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -371,7 +371,7 @@ fn delete_nodes() {
             unresolved_path: Some(make_path(["w"], None)),
             original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -386,7 +386,7 @@ fn delete_nodes() {
             unresolved_path: Some(make_path(["z"], None)),
             original_path: make_path(["y", "z"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
     let referent = resolver.resolve(make_path(["y", "w"], None), a_idx, false);
@@ -397,7 +397,7 @@ fn delete_nodes() {
             unresolved_path: Some(make_path(["w"], None)),
             original_path: make_path(["y", "w"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -505,7 +505,7 @@ fn add_and_delete_a_large_number_of_nodes_multiple_times() {
             unresolved_path: None,
             original_path: make_path(["y", "v1"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx, h1_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 
@@ -520,7 +520,7 @@ fn add_and_delete_a_large_number_of_nodes_multiple_times() {
             unresolved_path: Some(make_path(["v1"], None)),
             original_path: make_path(["y", "v1"], None),
             nodes_in_resolved_path: vec![a_idx, b_idx],
-            child_indexes: vec![],
+            child_index: None,
         })
     );
 }
@@ -551,7 +551,7 @@ fn a_name_in_branches_is_the_active_branch_s_once_its_content_is_added() {
                 unresolved_path: None,
                 original_path: make_path(&path, None),
                 nodes_in_resolved_path: vec![p_idx, cc_idx, x_idx],
-                child_indexes: vec![],
+                child_index: None,
             }),
             "{path:?}"
         );

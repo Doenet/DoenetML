@@ -535,9 +535,11 @@ describe("Errors the DoenetML decides, beside ones a value decides @group4", asy
 
     it("a variant name with no option among options a random index copies is an info, never an error", async () => {
         // The copied option is for `a` when k is 1, and for no name when k
-        // is 2, so `a` has an option in some variants only
+        // is 2, so `a` has an option in some variants only. The options are
+        // collected so that an index selects among them (an index after a
+        // `<group>` names nothing, D27).
         const doenetML = `<variantControl numVariants="2" variantNames="a b"/>
-<setup><group name="g"><option selectForVariants="a">x</option><option>y</option></group></setup>
+<setup><group name="options"><option selectForVariants="a">x</option><option>y</option></group><collect name="g" componentType="option" from="$options"/></setup>
 <selectFromSequence name="k" from="1" to="2"/>
 <p name="p"><select name="s"><option copy="$g[$k]"/><option selectForVariants="b">z</option></select></p>`;
         let made = 0;

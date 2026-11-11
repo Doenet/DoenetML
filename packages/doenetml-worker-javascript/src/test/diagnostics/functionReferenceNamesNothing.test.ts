@@ -20,7 +20,8 @@ vi.mock("hyperformula");
  * The arguments are quoted after an index too (`$$f[2](2)`), whichever warning
  * the index gives, and a reference in the arguments of a function reference
  * that names nothing is resolved, and reported when it fails, at the same time
- * (#2434).
+ * (#2434). The arguments are made as if written in a `<setup>` where the
+ * function reference is, so a name in them names what is made (D40, #2489).
  */
 async function shownAndReported(doenetML: string) {
     const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -203,25 +204,27 @@ describe("A function reference that names nothing @group4", async () => {
                 marked: "$$(f[2])((x), 3)",
             },
             {
-                // an index past the one child of a group, reported as for
-                // `$f[2]` (#2424)
+                // an index after a group holding one function passes to it
+                // (NAME-2), which takes none
                 doenetML: `${groupF}<p name="p">[$$f[2](2)]</p>`,
                 text: "[＿]",
-                code: "doenet-w0104",
-                args: { reference: "$$f[2](2)" },
+                code: "doenet-w0180",
+                args: { reference: "$$f[2](2)", component: "function" },
                 marked: "$$f[2](2)",
             },
             {
-                // the child of a group, by its deprecated index
-                doenetML: `${groupF}<p name="p">[$$f[1](2)]</p>`,
-                text: "[4]",
-                code: "doenet-w0179",
+                // an index never selects the child of a group holding two
+                // (D27)
+                doenetML: `<group name="f"><function>x^2</function><function>x^3</function></group><p name="p">[$$f[1](2)]</p>`,
+                text: "[＿]",
+                code: "doenet-w0188",
                 args: {
                     reference: "$$f[1](2)",
                     suggestion: "$$f.x(2)",
-                    named: "no",
+                    child: "unnamed",
                     container: "group",
                     component: "group",
+                    count: 2,
                 },
                 marked: "$$f[1](2)",
             },
@@ -298,15 +301,16 @@ describe("A function reference that names nothing @group4", async () => {
                 references: ["$$f($a)", "$a"],
             },
             {
-                // nothing is made of the arguments, so a name in them is the
-                // function reference's, and a reference to it is a blank
+                // the arguments are made as if in a `<setup>` where the
+                // function reference is (D40, #2489), so a name in them names
+                // what is made
                 doenetML: `<p name="p">[$$f(<math name="m">2</math>)] [$m] [<math extend="$m"/>]</p>`,
-                text: "[＿] [＿] [＿]",
+                text: "[＿] [2] [2]",
                 references: [`$$f(<math name="m">2</math>)`],
             },
             {
                 doenetML: `<p name="p">[$$f(<group name="g"><math name="m">2</math></group>)] [$g] [$g.m]</p>`,
-                text: "[＿] [＿] [＿]",
+                text: "[＿] [2] [2]",
                 references: [
                     `$$f(<group name="g"><math name="m">2</math></group>)`,
                 ],
@@ -314,7 +318,7 @@ describe("A function reference that names nothing @group4", async () => {
             {
                 // a name in the branches of a container there too
                 doenetML: `<p name="p">[$$f(<conditionalContent><case condition="true"><math name="m">2</math></case></conditionalContent>)] [$m]</p>`,
-                text: "[＿] [＿]",
+                text: "[＿] [2]",
                 references: [
                     `$$f(<conditionalContent><case condition="true"><math name="m">2</math></case></conditionalContent>)`,
                 ],

@@ -282,6 +282,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0185": "copy-with-state-of-uri",
     "doenet-w0186": "copy-with-state-attribute-reaches-choice",
     "doenet-w0187": "copy-attribute-invalid-for-component",
+    "doenet-w0188": "reference-index-selects-child",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -415,6 +416,9 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         "doenet-e0052",
         "doenet-e0053",
         "doenet-i0057",
+        // An index never selects a child of a container, with no deprecation
+        // period (D27 revised): the reference names nothing, with `w0188`.
+        "doenet-w0179",
     ]);
 
 /**

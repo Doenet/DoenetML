@@ -922,13 +922,15 @@ describe("Warning Tests @group4", async () => {
 
     it("Correctly get reference text when extend with an index", async () => {
         // Note: since extending with an index, the reference cannot be resolved in the first pass before core is initialized.
-        // Instead, the diagnostic is generated after core can determine what replacements the group has.
+        // Instead, the diagnostic is generated after core can determine what replacements the composite has.
         // This tests that the correct text is used for the reference in that case, where the text has to be rebuilt from the source and position info.
         // A tag always makes that tag (D36): while its index names nothing,
-        // it is `<text/>`, with an info.
+        // it is `<text/>`, with an info. The composite is a
+        // `<conditionalContent>` showing no case: an index after a `<group>`
+        // names nothing by a warning of its own (D27).
         let { core } = await createTestCore({
             doenetML: `
-<group name="g"></group>
+<conditionalContent name="g" condition="false"><text>a</text></conditionalContent>
 <text extend="$g[1]" />
     `,
         });

@@ -585,7 +585,7 @@ describe("UpdateValue tag tests @group1", async () => {
         await test_update_component_index_points(core, resolvePathToNodeIdx);
     });
 
-    it("update sourceIndex of group", async () => {
+    it("update sourceIndex of group names nothing", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="grp">
@@ -602,10 +602,46 @@ describe("UpdateValue tag tests @group1", async () => {
     `,
         });
 
-        await test_update_component_index_points(core, resolvePathToNodeIdx);
+        // An index never selects a child of a `<group>` (D27): the targets
+        // name nothing, so updating changes no point. (A `<collect>` of the
+        // points is indexed in "update sourceIndex".)
+        async function points() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: string[] = [];
+            for (const name of ["p", "p2", "p3"]) {
+                result.push(
+                    cleanLatex(
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.latex,
+                    ),
+                );
+            }
+            return result;
+        }
+        expect(await points()).eqls(["(3,2)", "(1,5)", "(7,0)"]);
+        for (const uv of ["uv1", "uv2"]) {
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx(uv),
+                core,
+            });
+            expect(await points()).eqls(["(3,2)", "(1,5)", "(7,0)"]);
+        }
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors).eqls([]);
+        expect(
+            warnings
+                .filter((w) => w.code === "doenet-w0188")
+                .map((w) => w.args?.reference)
+                .sort(),
+        ).eqls(["$grp[1]", "$grp[1]", "$grp[3]", "$grp[5]"]);
     });
 
-    it("update sourceIndex of group with target subnames", async () => {
+    it("update target subnames of a group", async () => {
+        // An index never selects a child of a `<group>` (D27), so the
+        // paragraphs are reached by name
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="grp">
@@ -613,10 +649,10 @@ describe("UpdateValue tag tests @group1", async () => {
       <p name="p2">Text <text name="t">hello</text> and line <line name="l" through="(2,3) (1,2)" />.</p>
     </group>
     
-    <updateValue name="uv1" target="$grp[1].n" newValue="3" />
-    <updateValue name="uv2" target="$grp[1].p.y" newValue="5" />
-    <updateValue name="uv3" target="$grp[2].t.value" newValue="bye" type="text" />
-    <updateValue name="uv4" target="$grp[2].l.points[2].x" newValue="2" />
+    <updateValue name="uv1" target="$grp.p1.n" newValue="3" />
+    <updateValue name="uv2" target="$grp.p1.p.y" newValue="5" />
+    <updateValue name="uv3" target="$grp.p2.t.value" newValue="bye" type="text" />
+    <updateValue name="uv4" target="$grp.p2.l.points[2].x" newValue="2" />
     `,
         });
 

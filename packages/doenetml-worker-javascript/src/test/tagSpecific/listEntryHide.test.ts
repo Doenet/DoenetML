@@ -173,12 +173,8 @@ describe("A hidden entry of a list @group4", async () => {
             shown: "2",
             value: "1, 2",
         },
-        {
-            list: `<group name="l" asList><number hide>1</number><number>2</number></group>`,
-            drawnAs: "number",
-            shown: "2",
-            value: "1, 2",
-        },
+        // A `<group asList>` is not here: an index after a `<group>` names
+        // nothing (D27), so it has no entries `$l[k]`; it is tested below.
     ];
 
     for (const { list, setup, drawnAs, shown, value, graphical } of lists) {
@@ -225,6 +221,40 @@ describe("A hidden entry of a list @group4", async () => {
             }
         });
     }
+
+    it("a hidden child of a group shown as a list is not drawn, and an index after the group names nothing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="direct"><group name="l" asList><number hide>1</number><number>2</number></group></p>
+    <p name="ref">$l</p>
+    <p name="entry">$l[1] $l[2]</p>
+    <math name="value">$l</math>
+    `,
+        });
+
+        for (const name of ["direct", "ref"]) {
+            expect(await drawnIn(core, resolvePathToNodeIdx, name), name).eqls([
+                "number",
+            ]);
+        }
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "direct",
+                "ref",
+                "entry",
+                "value",
+            ]),
+        ).eqls({ direct: "2", ref: "2", entry: "＿ ＿", value: "1, 2" });
+        expect(
+            getDiagnosticsByType(core).warnings.map((w) => [
+                w.code,
+                w.args?.reference,
+            ]),
+        ).eqls([
+            ["doenet-w0188", "$l[1]"],
+            ["doenet-w0188", "$l[2]"],
+        ]);
+    });
 
     it("a hidden list hides its entries, but not a reference to an entry, whose `hide` is its source's", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
