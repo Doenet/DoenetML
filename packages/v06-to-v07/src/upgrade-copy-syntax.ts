@@ -256,7 +256,7 @@ async function resolveCopyTags(
         parent: DastElement | DastRoot;
         /**
          * With `standsForGroup` when a `componentIndex="1"` into a group holding one
-         * component was dropped (`holdsOneComponent`).
+         * component was dropped (`groupContent`).
          */
         referentType: Promise<ReferentInfo & { standsForGroup: boolean }>;
         referentName: string;
@@ -289,9 +289,22 @@ async function resolveCopyTags(
             node,
             parent: parents[0] ?? tree,
             referentType: (async () => {
-                const standsForGroup =
-                    componentIndex === "1" &&
-                    (await holdsOneComponent(core, source));
+                const content =
+                    componentIndex === undefined
+                        ? undefined
+                        : await groupContent(core, source);
+                const standsForGroup = componentIndex === "1" && content === 1;
+                if (content !== undefined && !standsForGroup) {
+                    // Any other `componentIndex` into a `<group>` has no v0.7
+                    // counterpart: an index after a group never selects a
+                    // child, and the lookup can't type what an index passed
+                    // on to the group's one component reaches (`$g[2]` of a
+                    // group holding a `<sequence>` is a number, which it
+                    // would type as a `<sequence>`).
+                    throw new Error(
+                        `"${source}" is a <group>, and an index after a group does not select one of its children`,
+                    );
+                }
                 return {
                     ...(await findReferentType(
                         core,
@@ -486,7 +499,7 @@ function copyReference(node: DastElement):
     // holding several components names nothing in v0.7, so a `componentIndex` into
     // one does not resolve and the `<copy>` is left as it was. A group holding one
     // component passes an index on to it, so `componentIndex="1"`, which meant that
-    // component, becomes the group itself, which stands for it (`holdsOneComponent`).
+    // component, becomes the group itself, which stands for it (`groupContent`).
     const componentIndexKey = findAttr("componentindex");
     const propIndexKey = findAttr("propindex");
     // These attributes are noted but not removed yet: if the referent cannot be
@@ -524,71 +537,72 @@ function copyReference(node: DastElement):
 }
 
 /**
- * Whether `source` names a `<group>` whose whole content is one component, blank
- * text and `<setup>`s aside, that is not a composite. v0.6's `componentIndex="1"`
- * into it meant that component, which v0.7 reaches as the group itself: an index
- * after the group passes on to the component (NAME-2), so `$g[1]` would index into
- * it instead.
+ * How many components the `<group>` that `source` names holds, counted as v0.6
+ * counted `componentIndex` among them, or `undefined` if `source` names no
+ * `<group>`. Blank text and `<setup>`s don't count.
  *
- * v0.6 counted `componentIndex` among the group's replacements with every composite
- * among them expanded (its copy's `replacement` dependency was `recursive`), so a
- * group holding a nested group or a copy holds one component only when what that
- * expands to is one component. A group holding a `<sequence>`, a repeat or any
- * other v0.6 composite (`wasCompositeInV06`) does not: `componentIndex="1"` meant
- * its first item, which `$g[1]` names in v0.7 too, as the index passes to it.
+ * v0.6 counted `componentIndex` among the group's replacements with the composites
+ * among them expanded (its copy's `replacement` dependency was `recursive`), except
+ * a `<group>`, which v0.6 treated as one component there
+ * (`treatAsComponentForRecursiveReplacements`), as it did a copy of one. So a
+ * group holding one nested group holds one component, whatever that group holds,
+ * and `$g` stands for it in v0.7 as well. A group holding a `<sequence>`, a repeat
+ * or any other v0.6 composite (`wasCompositeInV06`) holds the items it makes:
+ * `componentIndex="1"` meant the first of them, which the bare `$g` does not say.
+ * When the count can't be found (a copy not expanded), it is `NaN`.
+ *
+ * With one component, v0.6's `componentIndex="1"` meant that component, which v0.7
+ * reaches as the group itself: an index after the group passes on to the component
+ * (NAME-2), so `$g[1]` would index into it instead.
  */
-async function holdsOneComponent(
+async function groupContent(
     core: Awaited<ReturnType<typeof createCoreForLookup>>,
     source: string,
-): Promise<boolean> {
+): Promise<number | undefined> {
     let idx: number;
     try {
         idx = await core.resolvePathToNodeIdx(source.replace(/^\$/, ""));
     } catch (e) {
-        return false;
+        return undefined;
     }
     const components = core.core.core?.components;
     const group = components?.[idx] as any;
     if (group?.componentType !== "group") {
-        return false;
+        return undefined;
     }
-    // The components `items` expand to, through groups and copies, or
-    // `undefined` if another composite, or a copy not expanded, is among them
-    function expanded(items: any[]): any[] | undefined {
-        const result: any[] = [];
+    // How many components `items` count as, or `NaN` if a copy not expanded is
+    // among them
+    function count(items: any[]): number {
+        let result = 0;
         for (const item of items) {
             if (typeof item === "string") {
                 if (item.trim() !== "") {
-                    result.push(item);
+                    result++;
                 }
                 continue;
             }
             const component = components?.[item?.componentIdx] ?? item;
-            if (component?.componentType === "setup") {
+            const componentType = component?.componentType;
+            if (componentType === "setup") {
                 continue;
             }
-            if (
-                component?.componentType === "group" ||
-                component?.componentType === "_copy"
-            ) {
+            if (componentType === "_copy") {
                 if (!component.isExpanded) {
-                    return undefined;
+                    return NaN;
                 }
-                const inner = expanded(component.replacements ?? []);
-                if (inner === undefined) {
-                    return undefined;
-                }
-                result.push(...inner);
+                result += count(component.replacements ?? []);
                 continue;
             }
-            if (wasCompositeInV06(component?.componentType)) {
-                return undefined;
+            if (componentType !== "group" && wasCompositeInV06(componentType)) {
+                // the items it makes, at least two as far as `$g` is concerned
+                result += 2;
+                continue;
             }
-            result.push(component);
+            result++;
         }
         return result;
     }
-    return expanded(group.replacements ?? [])?.length === 1;
+    return count(group.replacements ?? []);
 }
 
 /**
