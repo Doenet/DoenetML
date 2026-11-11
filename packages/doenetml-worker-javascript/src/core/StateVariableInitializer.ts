@@ -2552,9 +2552,17 @@ export async function arrayEntryNamesFromPropIndex({
             // nothing, as `$line.points[1][2][1]` does, where each
             // `arrayVarNameFromPropIndex` dropped the extra index (D27,
             // NAME-2, #2478).
+            //
+            // Not for an entry that a property of its own name stands for
+            // (an alias, `numericalSolution` for `numericalSolution1`):
+            // the name arrives here as the entry's, and an index after the
+            // alias selects among the array's entries, as it always has
+            // (`$ode.numericalSolution[2]` is `numericalSolution2`).
+            const aliasTargets = Object.values(component.stateVarAliases ?? {});
             if (
                 !arrayStateVarObj.indexesAnyDepth &&
-                propIndex.length > stateVarObj.numDimensions
+                propIndex.length > stateVarObj.numDimensions &&
+                !aliasTargets.includes(varName)
             ) {
                 reportPropIndexFailure(varName, " as it has too many indices");
                 newVarNames.push(INDEX_NAMES_NOTHING);

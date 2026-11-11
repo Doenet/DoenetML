@@ -995,4 +995,36 @@ describe("odeSystem Tag Tests @group4", async () => {
         expect(ode2Latex).contain("0.000000000007");
         expect(ode2Latex).contain("2000000000000000000000");
     });
+    it("an index after numericalSolution selects a solution, as after numericalSolutions", async () => {
+        // `numericalSolution` stands for `numericalSolution1`, and an index
+        // after it selects among the solutions, as the docs use it
+        // (`$ode.numericalSolution[2]`), not an index into the first.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <odeSystem name="ode" initialconditions="1 3">
+    <rightHandSide>-0.2y</rightHandSide>
+    <rightHandSide>0.1x + 0.3y</rightHandSide>
+  </odeSystem>
+  <function extend="$ode.numericalSolution[1]" name="f1" />
+  <function extend="$ode.numericalSolution[2]" name="f2" />
+  <p><evaluate name="e1" function="$f1" input="2" /> <evaluate name="e2" function="$f2" input="2" /></p>
+`,
+        });
+
+        let expectedFx = (t) => 8 * Math.exp(0.1 * t) - 7 * Math.exp(0.2 * t);
+        let expectedFy = (t) => -4 * Math.exp(0.1 * t) + 7 * Math.exp(0.2 * t);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const e1 =
+            stateVariables[await resolvePathToNodeIdx("e1")].stateValues.value
+                .tree;
+        const e2 =
+            stateVariables[await resolvePathToNodeIdx("e2")].stateValues.value
+                .tree;
+        expect(e1).closeTo(expectedFx(2), 1e-6);
+        expect(e2).closeTo(expectedFy(2), 1e-6);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings).toEqual([]);
+        expect(diagnosticsByType.infos).toEqual([]);
+    });
 });

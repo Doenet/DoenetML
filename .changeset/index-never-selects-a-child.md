@@ -25,7 +25,7 @@ Also fixed:
 An index past the dimensions of a value, or into a value with no entries, names nothing with the warning `doenet-w0100` in more places (#2478):
 
 - an index into an entry of a `<numberList>`, `<textList>` or `<booleanList>`, and into the pick of a `<selectFromSequence>`, `<selectPrimeNumbers>`, `<selectRandomNumbers>` or a sampler (`$nl[2][1]`, `$s[1][1]`), where it named nothing silently, as `$n[1]` of a `<number>` does;
-- an extra index on an entry of an array property named directly (`$line.point1[2][1]`, `$f.maximumLocations[1][1]`), where the extra index was dropped, as `$line.points[1][2][1]` does;
+- an extra index on an entry of an array property named directly (`$line.point1[2][1]`, `$f.maximumLocations[1][1]`), where the extra index was dropped, as `$line.points[1][2][1]` does (a property that stands for an array's first entry still takes an index among the entries, so `$ode.numericalSolution[2]` is the second solution, as before);
 - an extra index on an array property of a list entry (`$pl[2].xs[1][1]`), where it gave `doenet-w0180`.
 
 A write through any of these is refused. Also, `$pl[2].value[$i]` of a `<pointList>` is the same as `$pl[2].value[1]` when `i` is 1, where it named nothing, and `<group extend="$r[1]"/>` of an iteration that does not exist when the document loads follows the iteration when it appears, as after a reload, where an index after it named nothing.
