@@ -784,9 +784,12 @@ export class RustResolverAdapter {
                     // resolved, read by the alias chase. Not when a name it
                     // resolved is written with an index it does not take
                     // (`$v[1].head.` for a plain vector `v`, runtime
-                    // `doenet-w0180`), or reaches a component that takes an
-                    // index without one (`$rep.x.value.`): the path names
-                    // nothing, so no property is offered (issue #2479).
+                    // `doenet-w0180`), or reaches into a repeat without one
+                    // (`$rep.v.head.`): the path names nothing, so no
+                    // property is offered (issue #2479). Other components
+                    // that take an index pass a name in them on without
+                    // one (`$vl.v.head.x` for a `v` in a `<vectorList>`,
+                    // or a `<shuffle>` or `<sort>`, is the coordinate).
                     const resolvedParts = lookupParts.slice(
                         0,
                         lookupParts.length - unresolvedPathParts.length,
@@ -798,6 +801,7 @@ export class RustResolverAdapter {
                             resolvedParts,
                             effectivePathPartHasIndex,
                             false,
+                            isRepeatLikeElement,
                         ) ??
                         (lastResolved >= 0 &&
                         effectivePathPartHasIndex[lastResolved] &&
@@ -1189,12 +1193,16 @@ export class RustResolverAdapter {
      * with `parts`. The last of `parts` is checked only with
      * `includeLast` — otherwise it is the node being completed, which the
      * caller checks itself.
+     *
+     * `blocksWithoutIndex` narrows which takesIndex components block when
+     * reached without an index (all of them by default).
      */
     _firstBlockedSegment(
         nodesInResolvedPath: number[],
         parts: string[],
         pathPartHasIndex: boolean[],
         includeLast: boolean,
+        blocksWithoutIndex: (pathNode: DastElement) => boolean = () => true,
     ): number | null {
         if (parts.length === 0) return null;
         if (!includeLast && nodesInResolvedPath.length <= 1) return null;
@@ -1219,7 +1227,11 @@ export class RustResolverAdapter {
             const segmentHasEffectiveIndex =
                 segmentHasIndex || hasImplicitSingleIndex(pathNode);
             const takesIndex = this._componentTakesIndex(pathNode.name);
-            if (takesIndex && !segmentHasEffectiveIndex) {
+            if (
+                takesIndex &&
+                !segmentHasEffectiveIndex &&
+                blocksWithoutIndex(pathNode)
+            ) {
                 return pathPartIndex;
             }
             if (!takesIndex && segmentHasIndex) {

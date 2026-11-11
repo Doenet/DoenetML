@@ -1127,9 +1127,17 @@ describe.skipIf(!wasmAvailable)(
             ]) {
                 expect(await refNameLabels(source)).toEqual([]);
             }
+            // Other components that take an index pass a name in them on
+            // without one: `$vl.v.head.x` is the coordinate in a
+            // `<vectorList>`, `<shuffle>` and `<sort>` (runtime `1`).
+            const vector = `<vector name="v" head="(1,2)"/>`;
             for (const source of [
                 `${sec}$sec.v.head.`,
                 `${rep}$rep[1].v.head.`,
+                `<vectorList name="vl">${vector}</vectorList>\n<p>$vl.v.head.`,
+                `<shuffle name="vl">${vector}</shuffle>\n<p>$vl.v.head.`,
+                `<sort name="vl">${vector}</sort>\n<p>$vl.v.head.`,
+                `<section name="sec"><vectorList name="vl">${vector}</vectorList></section>\n<p>$sec.vl.v.head.`,
             ]) {
                 expect(await refNameLabels(source)).toEqual(
                     expect.arrayContaining(["x", "y", "z"]),

@@ -8,8 +8,8 @@
 
 Editor: autocomplete follow-ups, and a hint for a reference joined to the text beside it in a list.
 
-- `$rep[1].` now offers a name declared in every branch of a `<conditionalContent>` or one-pick `<select>` inside the repeat, as `$cc.` and `$sec.` do, since `$rep[1].x` resolves to the active branch's `x`. A name declared both in the branches and beside the container is no longer offered there, nor is a name inside a nested repeat (`$outer[1].m` needs `$outer[1].inner[2].m`), as each names nothing.
-- `$v[1].head.` for a plain `<vector name="v">` no longer offers `x`, `y` and `z`: an index on a component that takes none names nothing (`doenet-w0180`), and so does the rest of the path. The same holds for any property after such an index.
+- `$rep[1].` now offers a name declared in every branch of a `<conditionalContent>` or one-pick `<select>` inside the repeat, as `$cc.` and `$sec.` do, since `$rep[1].x` resolves to the active branch's `x`. A name declared both in the branches and beside the container, or twice elsewhere in the repeat, is no longer offered there, nor is a name inside a nested repeat (`$outer[1].m` needs `$outer[1].inner[2].m`), as each names nothing.
+- `$v[1].head.` for a plain `<vector name="v">` no longer offers `x`, `y` and `z`: an index on a component that takes none names nothing (`doenet-w0180`), and so does the rest of the path. The same holds for any property after such an index, and for one after a repeat reached without an index (`$rep.v.head.`). A name in a list, `<shuffle>` or `<sort>` reached without an index still offers them (`$vl.v.head.`), as the runtime resolves it.
 - In a list separated by spaces (`<mathList>`, `<textList>` and the other list tags), the editor shows a hint (`doenet-i0059`) on an entry where a reference is written with no space beside text or another reference, such as `2$a`, saying that it is one entry. `2 $a` is two entries and gets no hint, nor does a list separated by commas or a reference joined inside brackets.
 
 The rule for lists is now also stated on the Essential Concepts page.
