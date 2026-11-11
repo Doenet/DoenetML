@@ -72,8 +72,9 @@ pub enum IndexKind {
     /// until the worker has made it. An index waits, as one after a component whose instances
     /// are not made yet does.
     Pending,
-    /// The node is a `<group>` holding `count` components, other than one, which an index
-    /// does not select: an index after it names nothing.
+    /// The node is a `<group>` that does not hold one component: it holds `count` components,
+    /// other than one, or only text (`count` 1). An index does not select among them, and an
+    /// index after it names nothing.
     Children { count: usize },
     /// The node is a `<group>` whose whole content is one component, at `position` (from 1)
     /// among its `index_resolutions`, which is not a reference. An index after the node passes
