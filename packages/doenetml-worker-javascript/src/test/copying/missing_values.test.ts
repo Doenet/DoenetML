@@ -953,3 +953,139 @@ describe("Missing content and missing values (D40) @group2", () => {
         }
     });
 });
+
+describe("A missing entry of a list is a blank entry (D40) @group2", () => {
+    /** The `text` of each of `names`. */
+    async function texts(
+        core: any,
+        resolvePathToNodeIdx: any,
+        names: string[],
+    ) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const result: Record<string, string> = {};
+        for (const name of names) {
+            result[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+        return result;
+    }
+
+    it("shows a reference that names nothing as a blank entry, in every list", async () => {
+        const { text, warnings } = await shownAndReported(`
+    <mathList name="l">1 2 3</mathList>
+    <numberList name="nl">1 2 3</numberList>
+    <textList name="tl">a b</textList>
+    <repeatForSequence name="r" length="2" valueName="v"><number>10$v</number></repeatForSequence>
+    <p name="p">[<mathList>$l[5] 2</mathList>][<numberList>$nl[5] 2</numberList>][<textList>$tl[5] x</textList>][<mathList>$nothing 2</mathList>][<numberList>0 $r.x 9</numberList>][<mathList><math extend="$nothing"/> 2</mathList>][<numberList><number>$nothing</number> 2</numberList>]</p>
+    `);
+        expect(text).eq("[＿, 2][＿, 2][＿, x][＿, 2][0, ＿, 9][＿, 2][＿, 2]");
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0104",
+            "doenet-w0104",
+            "doenet-w0104",
+            "doenet-w0104",
+        ]);
+    });
+
+    it("shows a list tag over an index that names nothing as one blank entry", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <mathList name="l">1 2 3</mathList>
+    <numberList name="nl">1 2 3</numberList>
+    <mathInput name="i" prefill="5"/>
+    <p name="p">[<numberList name="a" extend="$nl[$i]"/>][<mathList name="b" extend="$l[5]"/>]</p>
+    `);
+        expect(text).eq("[＿][＿]");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["a", "b"]) {
+            const sv = stateVariables[await resolvePathToNodeIdx(name)];
+            expect(sv.stateValues.entriesMissing, name).eqls([true]);
+        }
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect((await texts(core, resolvePathToNodeIdx, ["p"])).p).eq(
+            "[2][＿]",
+        );
+    });
+
+    it("is missing, as is what reads it, until the reference names something again", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="nl">1 2 3</numberList>
+    <textList name="tl">a b</textList>
+    <mathInput name="i" prefill="5"/>
+    <p name="p1"><numberList name="a">$nl[$i] 2</numberList> $a.numValues</p>
+    <p name="p2"><textList name="b">$tl[$i] x</textList></p>
+    <p name="p3"><number name="n1">$a[1]</number> <math name="m1" extend="$a[1]"/> [$a[1]] <number name="n2" extend="$a[1]"/></p>
+    <p name="p4"><numberList name="c" extend="$a"/> <numberList name="d" copy="$a"/></p>
+    <p name="p5"><boolean name="eq">$a = $a</boolean></p>
+    <mathInput name="w" bindValueTo="$a[1]"/>
+    `,
+        });
+        const names = ["p1", "p2", "p3", "p4", "p5"];
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["a", "b", "c", "d"]) {
+                expect((await sv(name)).entriesMissing, name).eqls([
+                    missing,
+                    false,
+                ]);
+            }
+            for (const name of ["n1", "m1", "n2"]) {
+                expect((await sv(name)).valueMissing, name).eq(missing);
+            }
+        }
+
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "＿, 2 2",
+            p2: "＿, x",
+            p3: "＿ ＿ [＿] ＿",
+            p4: "＿, 2 ＿, 2",
+            p5: "false",
+        });
+        await check(true);
+
+        // a blank entry has no source to take a write
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("w"),
+            core,
+        });
+        expect((await texts(core, resolvePathToNodeIdx, ["p1"])).p1).eq(
+            "＿, 2 2",
+        );
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "2, 2 2",
+            p2: "b, x",
+            p3: "2 2 [2] 2",
+            p4: "2, 2 2, 2",
+            p5: "true",
+        });
+        await check(false);
+
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect((await texts(core, resolvePathToNodeIdx, ["p3"])).p3).eq(
+            "＿ ＿ [＿] ＿",
+        );
+        await check(true);
+    });
+});

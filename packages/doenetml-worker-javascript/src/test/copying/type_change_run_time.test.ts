@@ -1650,3 +1650,47 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         });
     });
 });
+
+describe("A tag of a list entry follows the entry's value (#2521) @group4", () => {
+    it("a point made from an entry of a list is made again when the entry becomes a tuple", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="1"/>
+    <math name="m">$mi</math>
+    <mathList name="l">$mi</mathList>
+    <mathList name="l2">$m</mathList>
+    <point name="Q" extend="$l[1]"/>
+    <point name="Q2" extend="$l2[1]"/>
+    <point name="Q3" extend="$m"/>
+    `,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: string[] = [];
+            for (const name of ["Q", "Q2", "Q3"]) {
+                const sv =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                result.push(sv.valueMissing ? "＿" : sv.latex);
+            }
+            return result;
+        }
+        // a point can't be made from a number: missing, as of a math
+        expect(await shown()).eqls(["＿", "＿", "＿"]);
+        await updateMathInputValue({
+            latex: "(3,4)",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await shown()).eqls(Array(3).fill("\\left( 3, 4 \\right)"));
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await shown()).eqls(["＿", "＿", "＿"]);
+    });
+});

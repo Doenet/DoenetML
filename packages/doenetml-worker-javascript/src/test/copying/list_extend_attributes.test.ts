@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateBooleanInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
@@ -430,5 +433,57 @@ describe("Attributes of an extend or copy of a list @group4", () => {
             m: [true, true],
             cm: [false, true],
         });
+    });
+    it("an extend through a path resolved only at run time takes the attributes of the list it names, and follows it (#2244)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" prefill="true" />
+    <repeat for="1" name="r">
+      <mathList name="ml" unordered hide="$h" fixed displayDigits="2">1.2345 2</mathList>
+    </repeat>
+    <mathList extend="$r[1].ml" name="e" />
+    <mathList copy="$e" name="ce" />
+    <mathInput name="i" prefill="1"/>
+    <repeatForSequence length="2" name="r2" indexName="k">
+      <mathList name="ml" unordered="$k=1" hide="$k=1" fixed="$k=1" displayDigits="$k+1">1.2345 2</mathList>
+    </repeatForSequence>
+    <mathList extend="$r2[$i].ml" name="e2" />
+    `,
+        });
+        async function attributes(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return [sv.unordered, sv.hidden, sv.fixed, sv.displayDigits];
+        }
+        // as `<mathList extend="$ml"/>` of the list named directly, and a
+        // copy of the extend pastes that list
+        expect(await attributes("e")).eqls([true, true, true, 2]);
+        expect(await attributes("ce")).eqls([true, true, true, 2]);
+        expect(await attributes("e2")).eqls([true, true, true, 2]);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await attributes("e")).eqls([true, false, true, 2]);
+
+        // what the path names changes
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await attributes("e2")).eqls([false, false, false, 3]);
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await attributes("e2")).eqls([true, true, true, 2]);
     });
 });

@@ -613,6 +613,19 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                     value: true,
                 };
             }
+            // An entry of a list that is missing, a blank entry (D40).
+            if (referentInfo?.listEntryPosition !== undefined) {
+                dependencies.entriesMissing = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: "entriesMissing",
+                    variablesOptional: true,
+                };
+                dependencies.listEntryPosition = {
+                    dependencyType: "value",
+                    value: referentInfo.listEntryPosition,
+                };
+            }
             return dependencies;
         },
         definition({ dependencyValues }) {
@@ -620,6 +633,11 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                 setValue: {
                     [names.valueMissing]:
                         dependencyValues.target === undefined ||
+                        Boolean(
+                            dependencyValues.entriesMissing?.[
+                                dependencyValues.listEntryPosition - 1
+                            ],
+                        ) ||
                         (dependencyValues.nullIsMissing === true &&
                             dependencyValues.target === null) ||
                         Boolean(dependencyValues.targetInactive) ||

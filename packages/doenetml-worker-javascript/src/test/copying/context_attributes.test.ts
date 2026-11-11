@@ -648,4 +648,66 @@ describe("Fixed and fixLocation of references @group4", () => {
             stateVariables[await resolvePathToNodeIdx("Q")].stateValues.fixed,
         ).eq(true);
     });
+    it("a reference to one entry of a list is fixed as the entry's source is (#2239)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <math name="a" fixed fixLocation>1</math>
+      <math name="b">2</math>
+      <point name="P" fixed fixLocation>(1,2)</point>
+    </graph>
+    <collect name="c" componentType="math" from="$g" />
+    <collect name="cp" componentType="point" from="$g" />
+    <pointList name="pl"><point fixed fixLocation>(1,2)</point><point>(3,4)</point></pointList>
+    <mathList name="ml"><math fixed>1</math><math>2</math></mathList>
+    <math name="e1" extend="$c[1]"/><math name="e2" copy="$c[1]"/><math name="e3" extend="$c[2]"/>
+    <math name="e4" extend="$cp[1].x"/><math name="e5" extend="$pl[1].x"/><math name="e6" extend="$pl[2].x"/>
+    <math name="e7" extend="$ml[1]"/><math name="e8" extend="$ml[2]"/>
+    <point name="e9" extend="$cp[1]"/><point name="e10" extend="$pl[1]"/>
+    <graph name="g2">$c[1] $cp[1].x $pl[1].x $pl[2].x $ml[1] $ml[2]</graph>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixedOf = async (name: string) => {
+            const sv =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return [sv.fixed, sv.fixLocation];
+        };
+        const expected: Record<string, boolean[]> = {
+            e1: [true, true],
+            e2: [true, true],
+            e3: [false, false],
+            e4: [true, true],
+            e5: [true, true],
+            e6: [false, false],
+            e7: [true, false],
+            e8: [false, false],
+            e9: [true, true],
+            e10: [true, true],
+        };
+        for (const [name, value] of Object.entries(expected)) {
+            expect(await fixedOf(name), name).eqls(value);
+        }
+        // the references drawn in a graph, in order
+        const g2 = (core as any).core._components[
+            await resolvePathToNodeIdx("g2")
+        ];
+        const drawn = [];
+        for (const child of g2.activeChildren) {
+            if (typeof child === "object" && child.componentType === "math") {
+                drawn.push([
+                    await child.stateValues.fixed,
+                    await child.stateValues.fixLocation,
+                ]);
+            }
+        }
+        expect(drawn).eqls([
+            [true, true],
+            [true, true],
+            [true, true],
+            [false, false],
+            [true, false],
+            [false, false],
+        ]);
+    });
 });

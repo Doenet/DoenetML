@@ -1,4 +1,8 @@
-import { missingWhileSourceMissingDefinition } from "../utils/missing";
+import {
+    missingWhileListEntryMissingDefinition,
+    missingWhileSourceMissingDefinition,
+} from "../utils/missing";
+import { describeReferentVariable } from "../utils/referentDescription";
 import { expressionAttributeDefinitions } from "../utils/expressionAttribute";
 import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
@@ -869,6 +873,27 @@ export async function createChildrenThenComponent({
                     newComponent.doenetAttributes.missingWhileSourceMissing = true;
                     newComponent.state.valueMissing =
                         missingWhileSourceMissingDefinition(idx);
+                } else if (
+                    shadowInfo.propVariable !== undefined &&
+                    shadowedComponent.state.entriesMissing &&
+                    !newComponent.isMissing &&
+                    !newComponent.doenetAttributes.missingWhileEntryEmpty
+                ) {
+                    // An entry of a list that is a blank entry is missing
+                    // while it is (D40, #2461): `<number extend="$a[1]"/>`
+                    // of `<numberList name="a">$l[5] 2</numberList>`.
+                    const position = describeReferentVariable(
+                        shadowedComponent,
+                        shadowInfo.propVariable,
+                    )?.listEntryPosition;
+                    if (position !== undefined) {
+                        newComponent.doenetAttributes.missingWhileListEntryMissing = true;
+                        newComponent.state.valueMissing =
+                            missingWhileListEntryMissingDefinition(
+                                idx,
+                                position,
+                            );
+                    }
                 }
                 if (!shadowedComponent.shadowedBy) {
                     shadowedComponent.shadowedBy = [];

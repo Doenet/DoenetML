@@ -99,6 +99,11 @@ export default class GraphicalValueList extends AuthoredValueList {
      * parent's even where the source sets neither (`Copy.js` gives a linked
      * component no attribute for a variable it reads here).
      */
+    static get listEntryContextArrays() {
+        const { fixed, fixLocation } = this.listEntrySourceVariables;
+        return { fixed, fixLocation };
+    }
+
     static get listEntrySourceVariables() {
         return {
             label: entryVariableName("label"),
@@ -657,6 +662,12 @@ export default class GraphicalValueList extends AuthoredValueList {
                     },
                 }),
             };
+            if (name === "label") {
+                Object.assign(
+                    stateVariableDefinitions[entryName],
+                    entryLabelWrites(entryName),
+                );
+            }
         }
 
         // Each description of an entry's style, as a point or vector
@@ -944,6 +955,67 @@ export function graphicalEntryValuesDefinition({ listClass, baseValues }) {
 const rendererVariablesOfListClass = new WeakMap();
 
 /** The array of a list holding variable `name` of each entry's renderer. */
+/**
+ * What makes the list's `entryLabel` (`entryName`) take a write: a write to
+ * an entry's label (`<textInput bindValueTo="$c[1].label"/>`, of a
+ * `<collect>` or a `<pointList>`) goes to the label of the component the
+ * entry comes from (`entryChildren`), as one to `$P.label` does, or, for an
+ * entry of a list among the sources, to that list's entry (#2521). An entry
+ * from no component takes none.
+ */
+function entryLabelWrites(entryName) {
+    return {
+        stateVariablesDeterminingDependencies: ["entryChildren"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                entryChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryChildren",
+                },
+                listValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "label",
+                },
+            };
+            for (const [ind, child] of (
+                stateValues.entryChildren ?? []
+            ).entries()) {
+                if (typeof child?.componentIdx === "number") {
+                    dependencies[`source${ind}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: child.componentIdx,
+                        variableName: Number.isInteger(child.listEntryIndex)
+                            ? entryName
+                            : "label",
+                        variablesOptional: true,
+                    };
+                }
+            }
+            return dependencies;
+        },
+        inverseDefinition({ desiredStateVariableValues, dependencyValues }) {
+            const desired = desiredStateVariableValues[entryName];
+            const instructions = [];
+            for (const key in desired) {
+                const ind = Number(key);
+                const child = dependencyValues.entryChildren[ind];
+                if (!(`source${ind}` in dependencyValues) || !child) {
+                    continue;
+                }
+                instructions.push({
+                    setDependency: `source${ind}`,
+                    desiredValue: Number.isInteger(child.listEntryIndex)
+                        ? { [child.listEntryIndex]: desired[key] }
+                        : desired[key],
+                });
+            }
+            return instructions.length > 0
+                ? { success: true, instructions }
+                : { success: false };
+        },
+    };
+}
+
 export function entryVariableName(name) {
     return `entry${name[0].toUpperCase()}${name.slice(1)}`;
 }

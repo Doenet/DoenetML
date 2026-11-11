@@ -578,12 +578,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
             const expected = [
                 "2 x",
-                // "full" when the copy was of the reference in a group, which
-                // an index no longer reaches (D27). An item of a collect does
-                // not carry `simplify`, a limitation of `<collect>` that this
-                // test does not cover (see "an item of a collect carries
-                // `simplify`" below).
-                "none",
+                // an item of a collect carries `simplify` (#2521)
+                "full",
                 3,
                 "display",
                 true,
@@ -602,9 +598,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         // Found while moving the test above off an index into a group
-        // (#2517), and not fixed here: an extend of a collect's item does not
-        // carry `simplify`, though `styleNumber` and `renderMode` are carried.
-        it.fails("an item of a collect carries `simplify`", async () => {
+        // (#2517): an extend of a collect's item carries `simplify`, as it
+        // carries `styleNumber` and `renderMode` (#2521).
+        it("an item of a collect carries `simplify`", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="mi" prefill="x+x" />

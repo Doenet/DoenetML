@@ -248,3 +248,43 @@ export function missingWhileAdaptedMissingDefinition() {
         markStale: () => ({ updateParentRenderedChildren: true }),
     };
 }
+
+/**
+ * The definition of `valueMissing` of a component that shadows an entry of
+ * a list whose entries can be missing (`entriesMissing`,
+ * `doenetAttributes.missingWhileListEntryMissing`, set in `ComponentBuilder`):
+ * `<number extend="$a[1]"/>` of `<numberList name="a">$l[5] 2</numberList>`
+ * is missing while that entry is a blank entry (D40, #2461), and holds the
+ * entry's value once it is not.
+ */
+export function missingWhileListEntryMissingDefinition(
+    listIdx: number,
+    position: number,
+) {
+    return {
+        returnDependencies: () => ({
+            entriesMissing: {
+                dependencyType: "stateVariable",
+                componentIdx: listIdx,
+                variableName: "entriesMissing",
+                variablesOptional: true,
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: { entriesMissing: boolean[] | null };
+        }) {
+            return {
+                setValue: {
+                    valueMissing: Boolean(
+                        dependencyValues.entriesMissing?.[position - 1],
+                    ),
+                },
+            };
+        },
+        // drawn as a blank while it is missing
+        // (`RendererInstructionBuilder.updateDrawnMissing`)
+        markStale: () => ({ updateParentRenderedChildren: true }),
+    };
+}

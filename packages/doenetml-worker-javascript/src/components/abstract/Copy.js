@@ -25,6 +25,7 @@ import {
     stateIdSegmentForCopyOf,
 } from "../../utils/componentIndices";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
+import { describeReferentVariable } from "../../utils/referentDescription";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
 import { typeChangeAtLoadDiagnostic } from "../../utils/dast/typeChangeAtLoad";
@@ -6049,6 +6050,19 @@ function propOfTypeChange(stateValues) {
  * array, or that is not described.
  */
 function propComponentType({ source, propName }, componentInfoObjects) {
+    // An entry of a list (`math1` of a `<mathList>`, from `$l[1]`) is of the
+    // type of its entries, so that `<point extend="$l[1]"/>` is decided
+    // again as the entry's value changes (#2521).
+    const sourceClass =
+        componentInfoObjects.allComponentClasses[source.componentType];
+    if (
+        sourceClass?.listEntryComponentType !== undefined &&
+        new RegExp(`^${sourceClass.listValuesEntryPrefix}[1-9]\\d*$`).test(
+            propName,
+        )
+    ) {
+        return sourceClass.listEntryComponentType;
+    }
     const info =
         componentInfoObjects.publicStateVariableInfo[source.componentType];
     if (!info) {
@@ -6992,11 +7006,11 @@ async function isBareReferenceToOneThing(
     components,
     { withheld = false } = {},
 ) {
+    const forList = component.doenetAttributes?.forList !== undefined;
     if (
         component.componentType !== "_copy" ||
-        component.attributes._createComponentOfType?.primitive ||
-        component.sharedParameters.compositesMustHaveAReplacement ||
-        component.doenetAttributes?.forList !== undefined
+        (component.attributes._createComponentOfType?.primitive && !forList) ||
+        component.sharedParameters.compositesMustHaveAReplacement
     ) {
         return false;
     }
@@ -9347,9 +9361,23 @@ function listEntrySourceDoenetAttributes({
     arrayKey,
     target,
 }) {
-    const variables =
+    let variables =
         arrayStateVarObj.shadowingInstructions.listEntrySourceVariables;
-    const index = arrayStateVarObj.keyToIndex(arrayKey);
+    let index = arrayStateVarObj.keyToIndex(arrayKey);
+    if (!variables) {
+        // Otherwise, of an entry of a list or a property of one, `fixed` and
+        // `fixLocation` of the entry's source (`listEntryContextArrays`,
+        // #2239): `<math extend="$c[1]"/>` of a `<collect>`, and `<math
+        // extend="$pl[1].x"/>`, are fixed when the entry's source is.
+        variables = target.constructor.listEntryContextArrays;
+        const position = variables
+            ? describeReferentVariable(
+                  target,
+                  arrayStateVarObj.arrayVarNameFromArrayKey(arrayKey),
+              )?.listEntryPosition
+            : undefined;
+        index = position === undefined ? undefined : position - 1;
+    }
     if (!variables || !Number.isInteger(index)) {
         return {};
     }
@@ -9381,8 +9409,16 @@ async function listEntrySourceSnapshot({
 }) {
     const children = [];
     const state = {};
+    // Of another list, `fixed` and `fixLocation` of the entry's source
+    // (`listEntryContextArrays`, #2239), read from its values: `<math
+    // extend="$c[1]"/>` of a `<collect>` is fixed when the math it collected
+    // is.
     const variables =
-        arrayStateVarObj.shadowingInstructions.listEntrySourceVariables;
+        arrayStateVarObj.shadowingInstructions.listEntrySourceVariables ??
+        (target.state?.[target.constructor.listValuesArrayName] ===
+        arrayStateVarObj
+            ? target.constructor.listEntryContextArrays
+            : undefined);
     const index = arrayStateVarObj.keyToIndex(arrayKey);
     if (!variables || !Number.isInteger(index)) {
         return { children, state, nComponents };

@@ -729,6 +729,7 @@ export default class ValueRef extends BaseComponent {
                         ownAttribute: false,
                         sourceDependency:
                             referentContextDependency(stateVariable),
+                        listEntrySourceOf: referentListEntrySource,
                         stateVariablesDeterminingDependencies: this
                             .fixedReferent
                             ? undefined
@@ -925,6 +926,33 @@ function referentContextDependency(attributeName) {
                     : attributeName,
             variablesOptional: true,
         };
+    };
+}
+
+/**
+ * The entry of a list a reference to one entry reads `fixed` and
+ * `fixLocation` of the entry's source from, given its `referentInfo` (or the
+ * referent a copy fixed): the list's arrays holding them for each entry
+ * (`listEntryContextArrays`), so that `$c[1]` of a `<collect>` is fixed when
+ * the component it collected is (#2239). None for a reference to a list
+ * that holds no such arrays, or to something else.
+ */
+function referentListEntrySource(component, stateValues) {
+    const referentInfo = component.fixedReferent ?? stateValues.referentInfo;
+    if (referentInfo?.listEntryPosition === undefined) {
+        return undefined;
+    }
+    const variables =
+        component.componentInfoObjects.allComponentClasses[
+            referentInfo.componentType
+        ]?.listEntryContextArrays;
+    if (!variables) {
+        return undefined;
+    }
+    return {
+        componentIdx: referentInfo.componentIdx,
+        index: referentInfo.listEntryPosition - 1,
+        variables,
     };
 }
 

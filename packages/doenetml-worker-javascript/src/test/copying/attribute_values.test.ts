@@ -1020,8 +1020,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // `b` its `hide`, from what they reference. The copies of the
             // repeat, made at the start and later in a conditionalContent,
             // show what the source's iterations show, as the settings and
-            // `hide` change. (Their `fixed` is not pinned: a reference to a
-            // list entry does not take the entry source's, #2239.)
+            // `hide` change. (Their `fixed` is pinned in
+            // `context_attributes.test.ts`, #2239.)
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="k" prefill="4" />

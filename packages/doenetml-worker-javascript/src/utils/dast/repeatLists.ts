@@ -18,7 +18,7 @@ import { serializedAttributeComponent } from "../literalAttribute";
  *   (`templateNodeQualifies`), or one `<abs>`, `<round>` or `<evaluate>`
  *   (`$$f(…)`) of such content (`OPERATOR_TYPES`), which may also be nested
  *   in one, or one `<point>` whose content is its
- *   coordinates, each such a `<math>`, and constraints, which become the
+ *   coordinates, at least two, each such a `<math>`, and constraints, which become the
  *   list's, that read the same values in every iteration and hold no
  *   sampler (`pointQualifies`);
  *   with no attributes but those of `NODE_ATTRIBUTES`, each written as a
@@ -851,8 +851,10 @@ export function convertRepeatsToLists({
                 // A `<number>` that is only a reference with an index
                 // (`<number>$l[$i]</number>`, `<number>$x[3]</number>`) is
                 // missing in an iteration where the index names nothing (D40,
-                // `BaseComponent.missingWhenContentMissing`), which an entry
-                // of the list can't be yet, so the repeat stays a composite.
+                // `BaseComponent.missingWhenContentMissing`). An entry of
+                // `_repeatValueList`, computed from the template, can't be
+                // missing (an authored list's entry can, `entriesMissing`),
+                // so the repeat stays a composite.
                 return false;
             }
             return contentQualifies(children);
@@ -983,8 +985,11 @@ export function convertRepeatsToLists({
             const coordinates = xs.component.children.filter(
                 (child) => typeof child !== "string" || child.trim() !== "",
             );
+            // A point of one coordinate is sized by that coordinate's value
+            // (`<point>(<math>($v, 2)</math>)</point>` is `(1, 2)`), which
+            // an entry, sized by the coordinates written, is not (#2221).
             if (
-                coordinates.length === 0 ||
+                coordinates.length < 2 ||
                 !coordinates.every(
                     (coordinate) =>
                         typeof coordinate !== "string" &&

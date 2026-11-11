@@ -12,6 +12,10 @@ import {
 } from "../commonsugar/lists";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { returnUnorderedListStateVariableDefinitions } from "../../utils/unorderedLists";
+import {
+    CONTEXT_ATTRIBUTES,
+    contextAttributeDefinition,
+} from "../../utils/contextAttribute";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { copiedReferentVariableName } from "../../utils/valueReference";
 
@@ -137,6 +141,20 @@ export default class AuthoredValueList extends ValueListComponent {
         );
     }
 
+    /**
+     * The arrays of the list holding, for each entry, whether the entry's
+     * source is fixed (`fixed`) and fixed in place (`fixLocation`), with the
+     * list's own: what a reference to one entry (`$c[1]`, `$pl[1].x`, `<math
+     * extend="$c[1]"/>`) reads in place of the list-wide `entriesFixed`, so
+     * that it is fixed as the entry's source is (#2239). None for a list that
+     * holds no such arrays.
+     */
+    static get listEntryContextArrays() {
+        return this.listEntriesAnchoredBySources
+            ? { fixed: "entryFixed", fixLocation: "entryFixLocation" }
+            : undefined;
+    }
+
     static buildListEntryStateVariables() {
         const variables = super.buildListEntryStateVariables();
         if (this.listEntriesAnchoredBySources) {
@@ -157,6 +175,9 @@ export default class AuthoredValueList extends ValueListComponent {
         // list, not by the list itself, which a list made by a `copy=` or
         // `extend=` of this one reads in place of `hiddenIgnoreParent`.
         variables.hiddenWithinList = "entryHiddensWithinList";
+        // An entry for a reference with nothing to read, or for a missing
+        // child, is missing (D40).
+        variables.valueMissing = "entriesMissing";
         if (this.listEntriesShownAsSources) {
             // the component an entry stands for, which a list reading the
             // entry stands it for in turn
@@ -181,6 +202,7 @@ export default class AuthoredValueList extends ValueListComponent {
             variables.push(
                 "entryHiddenIgnoreParents",
                 "entryHiddensWithinList",
+                "entriesMissing",
             );
             if (this.listEntriesShownAsSources) {
                 variables.push("entrySourceComponents");
@@ -227,9 +249,22 @@ export default class AuthoredValueList extends ValueListComponent {
     // `styleNumber`, which a component made from one entry takes.
     static get listEntryPresentationVariables() {
         if (!Object.hasOwn(this, "builtListEntryPresentationVariables")) {
-            const { renderMode, ...arrays } = ENTRY_PRESENTATION_ARRAYS;
-            const { hide, hidden, selectedStyle, styleNumber } =
-                ENTRY_PRESENTATION_ARRAYS;
+            const {
+                renderMode,
+                simplify,
+                hide,
+                hidden,
+                selectedStyle,
+                styleNumber,
+            } = ENTRY_PRESENTATION_ARRAYS;
+            const arrays = { hide, hidden, selectedStyle, styleNumber };
+            if ("renderMode" in this.listEntryRendererDefaults) {
+                arrays.renderMode = renderMode;
+            }
+            // and, of an entry that is a math, its `simplify` (#2521)
+            if (entryKind(this.listEntryComponentType) === "math") {
+                arrays.simplify = simplify;
+            }
             // a `renderMode` for the entries that are drawn as maths
             this.builtListEntryPresentationVariables = !this
                 .listEntriesShownAsSources
@@ -243,9 +278,7 @@ export default class AuthoredValueList extends ValueListComponent {
                           selectedStyle,
                           styleNumber,
                       })
-                : "renderMode" in this.listEntryRendererDefaults
-                  ? ENTRY_PRESENTATION_ARRAYS
-                  : Object.freeze(arrays);
+                : Object.freeze(arrays);
         }
         return this.builtListEntryPresentationVariables;
     }
@@ -394,9 +427,21 @@ export default class AuthoredValueList extends ValueListComponent {
         return sugarInstructions;
     }
 
+    // A bare reference with no referent (`$nothing`, a `_missing`) is a
+    // blank entry (D40, #2461). It is in the first group, so that a child's
+    // place among the groups (`componentInd`) is where it is written.
     static returnChildGroups() {
+        const [first, ...rest] = this.listChildGroups;
         return [
-            ...this.listChildGroups,
+            ...(first
+                ? [
+                      {
+                          ...first,
+                          componentTypes: [...first.componentTypes, "_missing"],
+                      },
+                  ]
+                : []),
+            ...rest,
             {
                 group: "strings",
                 componentTypes: ["string"],
@@ -464,6 +509,23 @@ export default class AuthoredValueList extends ValueListComponent {
             stateVariableDefinitions,
             returnUnorderedListStateVariableDefinitions(),
         );
+
+        // A list made by an `extend` of a list through a path not resolved
+        // when the extend was planned (`$r[1].ml`, no `extendsList`) is
+        // fixed as the list it names once that is resolved
+        // (`extendListSourceIdx`), as one through a resolved path is (#2244).
+        for (const attributeName of CONTEXT_ATTRIBUTES) {
+            stateVariableDefinitions[attributeName] =
+                contextAttributeDefinition({
+                    attributeName,
+                    base: stateVariableDefinitions[attributeName],
+                    sourceDependency:
+                        extendedListContextDependency(attributeName),
+                    stateVariablesDeterminingDependencies: [
+                        "extendListSourceIdx",
+                    ],
+                });
+        }
 
         if (displayNames.length === 0) {
             for (const name in returnNumberDisplayAttributes()) {
@@ -904,12 +966,19 @@ export default class AuthoredValueList extends ValueListComponent {
                             pieceInd++;
                         }
                     } else {
-                        // A reference with nothing to read, or past the end
-                        // of a list, gives no entry.
+                        // A reference with nothing to read (`$nothing`, a
+                        // `_missing`), or past the end of a list, is a blank
+                        // entry (D40, #2461), whose value is not read.
                         if (
-                            child.stateValues?.referentInfo !== null &&
-                            !child.stateValues?.pastEndOfList
+                            child.componentType === "_missing" ||
+                            child.stateValues?.referentInfo === null ||
+                            child.stateValues?.pastEndOfList
                         ) {
+                            entryStructure.push({
+                                componentInd,
+                                missing: true,
+                            });
+                        } else {
                             addSources(child.stateValues?.value, {
                                 componentInd,
                             });
@@ -1030,7 +1099,10 @@ export default class AuthoredValueList extends ValueListComponent {
                                 variableName: `textPieceWrite${source.writeKey + 1}`,
                             };
                         }
-                    } else if (source?.componentInd !== undefined) {
+                    } else if (
+                        source?.componentInd !== undefined &&
+                        !source.missing
+                    ) {
                         dependenciesByKey[arrayKey] = {
                             child: {
                                 dependencyType: "child",
@@ -1061,12 +1133,13 @@ export default class AuthoredValueList extends ValueListComponent {
                             globalDependencyValues.compositeTextPieceWrites,
                         entryType,
                     });
-                    entries[arrayKey] =
-                        source?.component === undefined
-                            ? sourceValue
-                            : isMathList(sourceValue)
-                              ? sourceValue.get_component(source.component)
-                              : undefined;
+                    entries[arrayKey] = source?.missing
+                        ? undefined
+                        : source?.component === undefined
+                          ? sourceValue
+                          : isMathList(sourceValue)
+                            ? sourceValue.get_component(source.component)
+                            : undefined;
                     entries[arrayKey] =
                         entries[arrayKey] === undefined
                             ? blankValue(kind)
@@ -1192,6 +1265,44 @@ export default class AuthoredValueList extends ValueListComponent {
 
                 return { success: true, instructions };
             },
+        };
+
+        // Whether each entry is missing (D40, #2461): a reference among the
+        // children with nothing to read, or past the end of a list
+        // (`entryStructure`), and a child that is itself missing
+        // (`<math extend="$nothing"/>`, `<number>$nothing</number>`). Such an
+        // entry holds the blank value of its type, is shown as `＿`, and a
+        // reference to it is missing.
+        stateVariableDefinitions.entriesMissing = {
+            // A reference to the whole list reads the list's.
+            shadowVariable: true,
+            returnDependencies: () => ({
+                entryStructure: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryStructure",
+                },
+                children: {
+                    dependencyType: "child",
+                    childGroups: componentGroups,
+                    variableNames: ["valueMissing"],
+                    variablesOptional: true,
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entriesMissing: dependencyValues.entryStructure.map(
+                        (source) =>
+                            Boolean(source.missing) ||
+                            (source.componentInd !== undefined &&
+                                Boolean(
+                                    dependencyValues.children[
+                                        source.componentInd
+                                    ]?.stateValues.valueMissing,
+                                )),
+                    ),
+                },
+                checkForActualChange: { entriesMissing: true },
+            }),
         };
 
         addEntryOwnDisplayArrays({
@@ -1526,6 +1637,34 @@ export default class AuthoredValueList extends ValueListComponent {
             },
         });
     }
+}
+
+/**
+ * The dependency by which a list made by an `extend` of a list through a
+ * path not resolved when the extend was planned (`extendListViaComposite`
+ * with no `extendsList`) reads `attributeName` (`fixed` or `fixLocation`) of
+ * the list its `_copy` names (`extendListSourceIdx`); `undefined`, for the
+ * usual sources (`utils/contextAttribute.js`), for any other list.
+ */
+function extendedListContextDependency(attributeName) {
+    return (component, stateValues) => {
+        if (
+            component?.shadows ||
+            component?.doenetAttributes?.extendsList !== undefined ||
+            component?.doenetAttributes?.extendListViaComposite === undefined
+        ) {
+            return undefined;
+        }
+        const listIdx = stateValues.extendListSourceIdx;
+        return typeof listIdx === "number"
+            ? {
+                  dependencyType: "stateVariable",
+                  componentIdx: listIdx,
+                  variableName: attributeName,
+                  variablesOptional: true,
+              }
+            : null;
+    };
 }
 
 /**
@@ -2136,6 +2275,7 @@ export const ENTRY_PRESENTATION_ARRAYS = Object.freeze({
     selectedStyle: "entrySelectedStyles",
     styleNumber: "entryStyleNumbers",
     renderMode: "entryRenderModes",
+    simplify: "entrySimplifies",
 });
 
 /**
@@ -2148,10 +2288,12 @@ export const ENTRY_PRESENTATION_SOURCE_VARIABLES = [
     "selectedStyle",
     "styleNumber",
     "renderMode",
+    "simplify",
     copiedReferentVariableName("hide"),
     copiedReferentVariableName("selectedStyle"),
     copiedReferentVariableName("styleNumber"),
     copiedReferentVariableName("renderMode"),
+    copiedReferentVariableName("simplify"),
 ];
 
 /**
@@ -2180,6 +2322,7 @@ export function sourcePresentation(stateValues = {}, usedDefault) {
         selectedStyle: setsStyle ? read("selectedStyle") : undefined,
         styleNumber: setsStyle ? read("styleNumber") : undefined,
         renderMode: read("renderMode"),
+        simplify: read("simplify"),
     };
 }
 
@@ -2458,6 +2601,7 @@ export const ENTRY_ATTRIBUTE_TYPES = Object.freeze({
     hide: "boolean",
     styleNumber: "integer",
     renderMode: "text",
+    simplify: "text",
 });
 
 /**
@@ -2495,10 +2639,21 @@ function entryAttributeArrayDefinition(entryVariable, arrayName) {
                     dependencyType: "stateVariable",
                     variableName: "entryPresentation",
                 },
-                listValue: {
-                    dependencyType: "stateVariable",
-                    variableName: entryVariable,
-                },
+                // A list has no `simplify` of its own: an entry's is its
+                // source's, or `none`.
+                ...(entryVariable === "simplify"
+                    ? {
+                          listValue: {
+                              dependencyType: "value",
+                              value: "none",
+                          },
+                      }
+                    : {
+                          listValue: {
+                              dependencyType: "stateVariable",
+                              variableName: entryVariable,
+                          },
+                      }),
             },
         }),
         arrayDefinitionByKey({
@@ -2507,7 +2662,9 @@ function entryAttributeArrayDefinition(entryVariable, arrayName) {
             arrayKeys,
         }) {
             const listSets =
-                entryVariable !== "hide" && !globalUsedDefault.listValue;
+                entryVariable !== "hide" &&
+                entryVariable !== "simplify" &&
+                !globalUsedDefault.listValue;
             const values = {};
             const defaults = {};
             for (const arrayKey of arrayKeys) {

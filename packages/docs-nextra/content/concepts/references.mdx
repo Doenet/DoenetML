@@ -279,6 +279,14 @@ is an index of `l`, and a reference to it, or a tag of it, follows it. Where the
 is `x ＿ y`, and `<boolean>$nothing = 1</boolean>{:dn}` is false. A `<p>{:dn}`
 or other container shows the blank inline.
 
+In a list, a missing entry is a blank entry: where `l` has fewer than five
+entries, `<mathList>$l[5] 2</mathList>{:dn}` holds two entries, `＿, 2`, and so
+does `<mathList>$nothing 2</mathList>{:dn}`. A reference to that entry, or a tag
+of it, is missing, and a list tag of an index that names nothing, such as
+`<numberList extend="$l[$i]"/>{:dn}` past the end of `l`, holds one blank entry.
+A blank entry takes no write, and is made from its reference again once that
+names something.
+
 Other errors, each with the form to write instead:
 
 * to use the text of a `<p>` or another container that has one, write `$p.text`;
@@ -296,7 +304,7 @@ a while, shown as `＿`, with an info, and none changes its type:
   missing until the value converts. So is one made from an input's value, such
   as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`, or
   from a property, such as `<point extend="$P.x"/>{:dn}`, which is never a
-  tuple. The selected value of a `<choiceInput>` is checked only when the tag
+  tuple, or from an entry of a list, such as `<point extend="$l[1]"/>{:dn}`. The selected value of a `<choiceInput>` is checked only when the tag
   is made, not again as the selection changes.
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
   iterations of `r` is missing, and is made from the iteration again, with the
