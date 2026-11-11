@@ -263,23 +263,21 @@ export function missingWhileListEntryMissingDefinition(
 ) {
     return {
         returnDependencies: () => ({
-            entriesMissing: {
+            entryMissing: {
                 dependencyType: "stateVariable",
                 componentIdx: listIdx,
-                variableName: "entriesMissing",
+                variableName: `entryMissing${position}`,
                 variablesOptional: true,
             },
         }),
         definition({
             dependencyValues,
         }: {
-            dependencyValues: { entriesMissing: boolean[] | null };
+            dependencyValues: { entryMissing: boolean | null };
         }) {
             return {
                 setValue: {
-                    valueMissing: Boolean(
-                        dependencyValues.entriesMissing?.[position - 1],
-                    ),
+                    valueMissing: Boolean(dependencyValues.entryMissing),
                 },
             };
         },

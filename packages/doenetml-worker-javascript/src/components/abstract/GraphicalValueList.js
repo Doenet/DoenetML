@@ -34,6 +34,10 @@ import { parseMathText } from "../MathList";
  * as an attribute (`vertices`, `through`); a write to it goes to the entry.
  */
 export default class GraphicalValueList extends AuthoredValueList {
+    // A reference among the children that names nothing gives no entry, as
+    // a point or vector has no blank to draw (`listEntriesCanBeBlank`).
+    static listEntriesCanBeBlank = false;
+
     static componentType = "_graphicalValueList";
 
     // The values a parent reads are the coordinates, held as one math per

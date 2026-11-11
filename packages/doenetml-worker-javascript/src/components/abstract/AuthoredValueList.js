@@ -119,6 +119,13 @@ export default class AuthoredValueList extends ValueListComponent {
     // source's own `hide` (D29).
     static listEntriesShownAsSources = false;
 
+    // Whether a reference among the children that names nothing is a blank
+    // entry, shown as `＿` (D40, #2461), as in a list of values. A list of
+    // graphical objects (`GraphicalValueList`) gives no entry for it: a
+    // point or vector has no blank to draw, and one at the origin would
+    // move a shape made from the list.
+    static listEntriesCanBeBlank = true;
+
     // A list shown as its sources has the style of each source, which a
     // reference to every entry's (`$c.styleNumber`) reads entry by entry, as
     // it read them of each copy the composite made. `$l.hide` is the list's
@@ -968,16 +975,20 @@ export default class AuthoredValueList extends ValueListComponent {
                     } else {
                         // A reference with nothing to read (`$nothing`, a
                         // `_missing`), or past the end of a list, is a blank
-                        // entry (D40, #2461), whose value is not read.
+                        // entry (D40, #2461), whose value is not read. A list
+                        // of graphical objects, whose entry has no blank to
+                        // draw, gives none for it (`listEntriesCanBeBlank`).
                         if (
                             child.componentType === "_missing" ||
                             child.stateValues?.referentInfo === null ||
                             child.stateValues?.pastEndOfList
                         ) {
-                            entryStructure.push({
-                                componentInd,
-                                missing: true,
-                            });
+                            if (listClass.listEntriesCanBeBlank) {
+                                entryStructure.push({
+                                    componentInd,
+                                    missing: true,
+                                });
+                            }
                         } else {
                             addSources(child.stateValues?.value, {
                                 componentInd,
@@ -1273,36 +1284,65 @@ export default class AuthoredValueList extends ValueListComponent {
         // (`<math extend="$nothing"/>`, `<number>$nothing</number>`). Such an
         // entry holds the blank value of its type, is shown as `＿`, and a
         // reference to it is missing.
+        // An array, read entry by entry, so that a reference to one entry
+        // (`$l[1]` inside `l`'s second child) reads only that entry's child.
         stateVariableDefinitions.entriesMissing = {
+            isArray: true,
+            entryPrefixes: ["entryMissing"],
             // A reference to the whole list reads the list's.
             shadowVariable: true,
-            returnDependencies: () => ({
-                entryStructure: {
+            returnArraySizeDependencies: () => ({
+                numEntries: {
                     dependencyType: "stateVariable",
-                    variableName: "entryStructure",
-                },
-                children: {
-                    dependencyType: "child",
-                    childGroups: componentGroups,
-                    variableNames: ["valueMissing"],
-                    variablesOptional: true,
+                    variableName: "numEntries",
                 },
             }),
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    entriesMissing: dependencyValues.entryStructure.map(
-                        (source) =>
-                            Boolean(source.missing) ||
-                            (source.componentInd !== undefined &&
-                                Boolean(
-                                    dependencyValues.children[
-                                        source.componentInd
-                                    ]?.stateValues.valueMissing,
-                                )),
-                    ),
-                },
-                checkForActualChange: { entriesMissing: true },
-            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numEntries];
+            },
+            stateVariablesDeterminingDependencies: ["entryStructure"],
+            returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+                const globalDependencies = {
+                    entryStructure: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryStructure",
+                    },
+                };
+                const dependenciesByKey = {};
+                for (const arrayKey of arrayKeys) {
+                    const source = stateValues.entryStructure[arrayKey];
+                    if (source?.componentInd !== undefined && !source.missing) {
+                        dependenciesByKey[arrayKey] = {
+                            child: {
+                                dependencyType: "child",
+                                childGroups: componentGroups,
+                                variableNames: ["valueMissing"],
+                                variablesOptional: true,
+                                childIndices: [source.componentInd],
+                            },
+                        };
+                    }
+                }
+                return { globalDependencies, dependenciesByKey };
+            },
+            arrayDefinitionByKey({
+                globalDependencyValues,
+                dependencyValuesByKey,
+                arrayKeys,
+            }) {
+                const entriesMissing = {};
+                for (const arrayKey of arrayKeys) {
+                    const source =
+                        globalDependencyValues.entryStructure[arrayKey];
+                    entriesMissing[arrayKey] =
+                        Boolean(source?.missing) ||
+                        Boolean(
+                            dependencyValuesByKey[arrayKey]?.child?.[0]
+                                ?.stateValues.valueMissing,
+                        );
+                }
+                return { setValue: { entriesMissing } };
+            },
         };
 
         addEntryOwnDisplayArrays({

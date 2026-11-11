@@ -729,10 +729,15 @@ describe("NumberList tag tests @group4", async () => {
     });
 
     it("numberList does not force composite replacement, even in boolean", async () => {
+        // `$nothing` is a blank entry (D40), which equals nothing, so the
+        // lists differ; without it they are equal
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <boolean name="b">
       <numberList>$nothing 3</numberList> = <numberList>3</numberList>
+    </boolean>
+    <boolean name="b2">
+      <numberList>3</numberList> = <numberList>3</numberList>
     </boolean>
     `,
         });
@@ -740,6 +745,9 @@ describe("NumberList tag tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b2")].stateValues.value,
         ).eq(true);
     });
 

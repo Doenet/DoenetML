@@ -4581,22 +4581,16 @@ describe("Polygon tag tests @group2", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
 
         await updateMathInputValue({
             latex: "1",
@@ -4694,22 +4688,16 @@ describe("Polygon tag tests @group2", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
 
         await updateMathInputValue({
             latex: "4",
@@ -4727,22 +4715,16 @@ describe("Polygon tag tests @group2", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
     });
 
     it("polygon from vector operations", async () => {

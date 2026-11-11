@@ -989,6 +989,22 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         ]);
     });
 
+    it("skips such a reference in a list of points, which has no blank to draw", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <pointList name="pl">(1,2)</pointList>
+    <booleanList name="bl">true</booleanList>
+    <p name="p">[<pointList>$pl[3] (3,4)</pointList>][<booleanList>$bl[3] true</booleanList>]</p>
+    <graph><angle name="A" through="(1,0) (0,0) $pl[3]" /></graph>
+    `);
+        expect(text).eq("[(3, 4)][＿, true]");
+        // two points, so the angle's default, not one through a point made up
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("A")].stateValues.radians
+                .tree,
+        ).closeTo(Math.PI / 2, 1e-12);
+    });
+
     it("shows a list tag over an index that names nothing as one blank entry", async () => {
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <mathList name="l">1 2 3</mathList>

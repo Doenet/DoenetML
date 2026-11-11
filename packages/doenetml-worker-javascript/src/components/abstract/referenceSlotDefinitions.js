@@ -613,17 +613,14 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                     value: true,
                 };
             }
-            // An entry of a list that is missing, a blank entry (D40).
+            // An entry of a list that is missing, a blank entry (D40),
+            // read entry by entry (`entryMissing2`).
             if (referentInfo?.listEntryPosition !== undefined) {
-                dependencies.entriesMissing = {
+                dependencies.entryMissing = {
                     dependencyType: "stateVariable",
                     componentIdx: referentInfo.componentIdx,
-                    variableName: "entriesMissing",
+                    variableName: `entryMissing${referentInfo.listEntryPosition}`,
                     variablesOptional: true,
-                };
-                dependencies.listEntryPosition = {
-                    dependencyType: "value",
-                    value: referentInfo.listEntryPosition,
                 };
             }
             return dependencies;
@@ -633,11 +630,7 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                 setValue: {
                     [names.valueMissing]:
                         dependencyValues.target === undefined ||
-                        Boolean(
-                            dependencyValues.entriesMissing?.[
-                                dependencyValues.listEntryPosition - 1
-                            ],
-                        ) ||
+                        Boolean(dependencyValues.entryMissing) ||
                         (dependencyValues.nullIsMissing === true &&
                             dependencyValues.target === null) ||
                         Boolean(dependencyValues.targetInactive) ||

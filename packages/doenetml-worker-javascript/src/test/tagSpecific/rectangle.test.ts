@@ -1071,22 +1071,16 @@ describe("Rectangle tag tests @group3", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
 
         await updateMathInputValue({
             latex: "1",
@@ -1190,22 +1184,16 @@ describe("Rectangle tag tests @group3", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
 
         await updateMathInputValue({
             latex: "4",
@@ -1227,22 +1215,16 @@ describe("Rectangle tag tests @group3", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
 
         await updateMathInputValue({
             latex: "5",
@@ -1262,22 +1244,16 @@ describe("Rectangle tag tests @group3", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[4]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
     });
 
     it("draggable, vertices draggable", async () => {
