@@ -17,11 +17,12 @@
 //!
 //! The audit found one. `ref_expand.rs`'s "Expected an element" was reachable
 //! from ordinary markup: an index into a `<group>` resolved to the group's
-//! child, which could still be an unexpanded reference (#1942). An index no
-//! longer selects a child of a container (D27), so the resolver stops at the
-//! group and that site is an internal invariant again. The shapes that reached
-//! it are in the corpus below. #1921's instruction, to convert the reachable
-//! ones, then has nothing left to convert.
+//! child, which could still be an unexpanded reference (#1942). An index after
+//! a group whose whole content is one reference still passes to that reference
+//! (NAME-2), so the expander takes the tag of what such a reference names in
+//! turn (`referent_tag`), and the site is an internal invariant again. The
+//! shapes that reached it are in the corpus below. #1921's instruction, to
+//! convert the reachable ones, then has nothing left to convert.
 
 use std::panic;
 
@@ -88,8 +89,9 @@ fn the_probe_detects_a_panic() {
 /// - `ref_expand.rs` (x2) "Expected an element"
 /// - `flat_dast/untagged_flat_dast_merge.rs` (x3) `set_*` on the wrong node kind
 ///
-/// The shapes that reached the first of the two `ref_expand.rs` sites until an
-/// index into a `<group>` named nothing (#1942) are included.
+/// The shapes that reached the first of the two `ref_expand.rs` sites until
+/// the expander followed an unexpanded reference to its referent (#1942) are
+/// included.
 ///
 /// Every one is a shape the parser accepts, which is what makes running
 /// documents the right way to probe them rather than reasoning per site.
@@ -137,10 +139,10 @@ fn no_document_reaches_a_panic() {
         r#"<p>$a[<n/>][</p>"#,
         r#"<p>$$g($$f(<n/>)</p>"#,
         // An index into a group whose child the expander had not reached yet,
-        // which trapped in `ref_expand.rs` until an index stopped selecting a
-        // child of a group (#1942): written before the group, or reaching a
-        // child that is the index itself, or one in another group not yet
-        // expanded.
+        // which trapped in `ref_expand.rs` (#1942): written before the group,
+        // or reaching a child that is the index itself, or one in another
+        // group not yet expanded, or a chain of such groups that comes back
+        // to itself.
         r#"$g[1]<group name="g">$x</group><p name="x">hello</p>"#,
         r#"$g[1]<group name="g">$nothere</group>"#,
         r#"$g[1]<group name="g">$$f(1)</group>"#,
@@ -148,6 +150,9 @@ fn no_document_reaches_a_panic() {
         r#"<group name="g">$g[1]$g[2]</group>"#,
         r#"<group name="a">$b[1]</group><group name="b">$a[1]</group>"#,
         r#"<p name="x">hello</p><group name="g">$x</group>$g[1]"#,
+        r#"<group name="g">$g[1]</group>"#,
+        r#"$g[1]<group name="g">$h</group><group name="h">$g</group>"#,
+        r#"$g[1][1]<group name="g">$h[1]</group><group name="h">$g[1]</group>"#,
     ];
 
     let reached: Vec<String> = sources

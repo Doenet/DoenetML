@@ -10,14 +10,15 @@ use crate::{
     test_utils::*,
 };
 
-/// Assert that `resolution` stopped at the `<group>` `container_idx` on an index written
-/// with no position, which names nothing as it would select a child of the group
-/// (`child_idx`, if it has one there), with that index left unresolved.
+/// Assert that `resolution` stopped at the `<group>` `container_idx`, holding `count`
+/// components, on an index written with no position, which names nothing as it would select
+/// a child of the group (`child_idx`, if it has one there), with that index left unresolved.
 #[track_caller]
 pub fn assert_stops_at_child_index(
     resolution: &Result<RefResolution, ResolutionError>,
     container_idx: Index,
     child_idx: Option<Index>,
+    count: usize,
 ) {
     let resolution = resolution
         .as_ref()
@@ -29,6 +30,7 @@ pub fn assert_stops_at_child_index(
             container_idx,
             child_idx,
             position: None,
+            count,
         })
     );
     assert_eq!(
@@ -41,50 +43,6 @@ pub fn assert_stops_at_child_index(
         .expect("the index should be left unresolved");
     assert_eq!(unresolved_path[0].name, "");
     assert!(!unresolved_path[0].index.is_empty());
-}
-
-/// Mark the `<group>`s `groups` of `flat_fragment` as the worker marks an iteration whose content
-/// it found to be one indexable component, taking that component to be the group's first child.
-/// (The parser does not keep an attribute starting with `_`.)
-pub fn mark_index_pass_through(flat_fragment: &mut FlatFragment, groups: &[Index]) {
-    for node in flat_fragment.nodes.iter_mut() {
-        if let FlatNode::Element(element) = node
-            && element.name == "group"
-            && groups.contains(&element.idx)
-        {
-            element.attributes.push(FlatAttribute {
-                name: super::INDEX_PASS_THROUGH_ATTRIBUTE.into(),
-                parent: Some(element.idx),
-                children: vec![UntaggedContent::Text("1".into())],
-                position: None,
-                source_doc: None,
-            });
-        }
-    }
-}
-
-/// Mark the `<group>`s `groups` of `nodes` as the worker marks an iteration whose content is one
-/// reference, followed by `after` more children (see [`super::INDEX_REFERENCE_ATTRIBUTE`]).
-pub fn mark_index_reference_of_nodes(nodes: &mut [FlatNode], groups: &[Index], after: usize) {
-    for node in nodes.iter_mut() {
-        if let FlatNode::Element(element) = node
-            && element.name == "group"
-            && groups.contains(&element.idx)
-        {
-            element.attributes.push(FlatAttribute {
-                name: super::INDEX_REFERENCE_ATTRIBUTE.into(),
-                parent: Some(element.idx),
-                children: vec![UntaggedContent::Text(after.to_string())],
-                position: None,
-                source_doc: None,
-            });
-        }
-    }
-}
-
-/// [`mark_index_reference_of_nodes`] for the nodes of `flat_fragment`.
-pub fn mark_index_reference(flat_fragment: &mut FlatFragment, groups: &[Index], after: usize) {
-    mark_index_reference_of_nodes(&mut flat_fragment.nodes, groups, after);
 }
 
 /// Mark the `<setup>` elements of `flat_fragment` with indices in `setups` as the setup

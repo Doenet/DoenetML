@@ -54,24 +54,39 @@ impl Expander {
                             // Get the tag name of the referent.
                             //
                             // The resolver registers *names* only for elements
-                            // (`build_resolver` walks elements). It also
-                            // follows *index* resolutions, which are recorded
-                            // for whatever a composite's child is
-                            // (`ref_resolve/index_resolutions.rs`), but before
-                            // any component is made the only nodes holding
-                            // them are `<group>`s, after which an index names
-                            // nothing (D27), so that the resolution stops at
-                            // the group, and the `<_postponeRenderContainer>`s
-                            // the parser makes, which have no name to reach
-                            // them by. So an index no longer reaches a child
-                            // that is still a `FlatNode::Ref`, as
-                            // `$g[1]<group name="g">$x</group>` did until
-                            // #1942, and this is an internal invariant. Those
-                            // shapes are in `dast/panic_reachability.test.rs`.
-                            let name = match &flat_root.nodes[ref_resolution.node_idx] {
-                                FlatNode::Element(e) => e.name.clone(),
-                                _ => panic!("Expected an element"),
-                            };
+                            // (`build_resolver` walks elements), but an index
+                            // after a `<group>` whose whole content is one
+                            // reference passes to that reference
+                            // (`IndexKind::Reference`), which may not have been
+                            // expanded yet: `$g[1]<group name="g">$x</group>`
+                            // (#1942). Its tag is that of what it names in turn
+                            // (`referent_tag`). A reference that names itself
+                            // through such groups names nothing.
+                            let name =
+                                match referent_tag(flat_root, resolver, ref_resolution.node_idx) {
+                                    Some(name) => name,
+                                    None => {
+                                        flat_root.nodes[idx] = FlatNode::Error(FlatError {
+                                            idx: ref_.idx,
+                                            parent: ref_.parent,
+                                            message: format_error_message(
+                                                ResolutionError::NoReferent,
+                                                &ref_.path,
+                                            ),
+                                            error_type: ErrorType::Warning,
+                                            code: Some(
+                                                resolution_error_code(ResolutionError::NoReferent)
+                                                    .into(),
+                                            ),
+                                            args: None,
+                                            unresolved_path: Some(ref_.path.clone()),
+                                            input: None,
+                                            position: ref_.position.clone(),
+                                            source_doc: ref_.source_doc,
+                                        });
+                                        continue;
+                                    }
+                                };
                             FlatNode::Element(FlatElement {
                                 idx: ref_.idx,
                                 parent: ref_.parent,
@@ -457,6 +472,26 @@ impl Expander {
             flat_root.nodes[i] = node;
         }
     }
+}
+
+/// The tag name of the node `idx` that a reference resolved to: the element's name, or, for a
+/// reference not yet expanded (an index after a `<group>` holding only that reference passes
+/// to it), the tag of what that reference names in turn. `None` if it names nothing, or names
+/// itself through such groups.
+fn referent_tag(flat_root: &FlatRoot, resolver: &Resolver, idx: Index) -> Option<String> {
+    let mut idx = idx;
+    // a chain of references, each the whole content of a group the next names
+    for _ in 0..=flat_root.nodes.len() {
+        match &flat_root.nodes[idx] {
+            FlatNode::Element(element) => return Some(element.name.clone()),
+            FlatNode::FunctionRef(_) => return Some("evaluate".to_string()),
+            FlatNode::Ref(ref_) => {
+                idx = resolver.resolve(&ref_.path, ref_.idx, false).ok()?.node_idx;
+            }
+            FlatNode::Error(_) => return None,
+        }
+    }
+    None
 }
 
 /// Whether `name` is one of the attributes that make an element from a

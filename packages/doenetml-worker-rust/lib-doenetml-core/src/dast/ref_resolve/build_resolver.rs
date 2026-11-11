@@ -2,8 +2,8 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::{collections::hash_map::Entry, iter, mem, ops::Range};
 
 use crate::dast::flat_dast::{
-    FlatAttribute, FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, SourceDoc,
-    UntaggedContent,
+    FlatAttribute, FlatElement, FlatFragment, FlatNode, FlatRoot, FlatRootOrFragment, Index,
+    SourceDoc, UntaggedContent,
 };
 
 use super::{root_names::RootNameCache, *};
@@ -44,7 +44,7 @@ impl Resolver {
                         name_map: NameMap(name_map.remove(&idx_plus_1).unwrap_or_default()),
                         copied_names: FxHashSet::default(),
                         index_resolutions: Vec::new(),
-                        index_kind: IndexKind::of_node(node),
+                        index_kind: IndexKind::of_node(node, |idx| flat_root.nodes.get(idx)),
                         source_sequence: extract_source_sequence(node),
                         branch_kind: node_branch_kind(&FlatRootOrFragment::Root(flat_root), node),
                         iteration_aliases: holds_iteration_aliases(node),
@@ -97,12 +97,12 @@ impl Resolver {
                     self.node_resolver_data[idx + 1].source_sequence =
                         Some(extract_source_sequence_from_attribute(source_sequence));
                 }
-                if let Some(position) = flat_fragment.parent_index_pass_through {
-                    self.set_index_pass_through(
-                        idx,
-                        position,
-                        flat_fragment.parent_index_reference,
-                    );
+                if let Some(num_children) = flat_fragment.parent_content {
+                    let content =
+                        &flat_fragment.children[..num_children.min(flat_fragment.children.len())];
+                    self.set_index_kind_from_content(idx, content, |idx| {
+                        fragment_node(flat_fragment, idx)
+                    });
                 }
                 NodeParent::Node(idx)
             }
@@ -132,7 +132,8 @@ impl Resolver {
             self.node_resolver_data[node.idx() + 1].node_parent =
                 node.parent().map(NodeParent::Node).unwrap_or(parent_node);
             self.node_resolver_data[node.idx() + 1].source_sequence = extract_source_sequence(node);
-            self.node_resolver_data[node.idx() + 1].index_kind = IndexKind::of_node(node);
+            self.node_resolver_data[node.idx() + 1].index_kind =
+                IndexKind::of_node(node, |idx| fragment_node(flat_fragment, idx));
             self.node_resolver_data[node.idx() + 1].iteration_aliases =
                 holds_iteration_aliases(node);
             self.node_resolver_data[node.idx() + 1].branch_kind =
@@ -202,9 +203,9 @@ impl Resolver {
         };
         self.splice_index_resolutions(&flat_fragment.children, index_resolution);
         if let Some(index_parent) = index_parent
-            && let Some(instances) = flat_fragment.index_parent_instances
+            && let Some(content) = flat_fragment.index_parent_reference
         {
-            self.set_index_reference_instances(index_parent, instances);
+            self.set_index_reference_content(index_parent, content);
         }
 
         self.add_implicit_index_resolutions(
@@ -718,6 +719,13 @@ fn extract_source_sequence_from_attribute(attr: &FlatAttribute) -> Vec<SourceDoc
             }
         })
         .collect()
+}
+
+/// The node of `flat_fragment` with index `idx`, if it holds one.
+fn fragment_node(flat_fragment: &FlatFragment, idx: Index) -> Option<&FlatNode> {
+    flat_fragment
+        .contains_idx(idx)
+        .then(|| flat_fragment.get_node(idx))
 }
 
 #[cfg(test)]

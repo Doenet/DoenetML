@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::iter;
 use tsify_next::Tsify;
 
-use super::{IndexKind, NameMap, ResolutionError, root_names::RootNameCache};
+use super::{IndexKind, NameMap, ReferenceContent, ResolutionError, root_names::RootNameCache};
 use crate::dast::{
     Position,
     flat_dast::{
@@ -26,8 +26,8 @@ pub struct RefResolution {
     pub unresolved_path: Option<Vec<FlatPathPart>>,
     /// The original path that was resolved with origin `nodes_in_resolved_path[0]`
     pub original_path: Vec<FlatPathPart>,
-    /// The index of the path that came after a `<group>` whose children an index does not
-    /// select (see [`IndexKind::Children`]), if any. An index never selects a child of a
+    /// The index of the path that came after a `<group>` holding several components or none
+    /// (see [`IndexKind::Children`]), if any. An index never selects a child of a
     /// container (D27), so the path names nothing: the resolution stops at the group,
     /// `node_idx`, with that index left in `unresolved_path`, and the reference is reported
     /// with the child it would have selected, so that the warning can name it.
@@ -36,7 +36,7 @@ pub struct RefResolution {
     pub child_index: Option<ChildIndex>,
 }
 
-/// An index of a path written after a `<group>` whose children an index does not select,
+/// An index of a path written after a `<group>` holding several components or none,
 /// which names nothing (D27).
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq))]
@@ -54,6 +54,9 @@ pub struct ChildIndex {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[cfg_attr(feature = "web", tsify(optional))]
     pub position: Option<Position>,
+    /// How many components the group holds, for the warning to say
+    /// (blank text and `<setup>`s are not components)
+    pub count: usize,
 }
 
 /// Status of a pointer referring to children of an element.
@@ -566,9 +569,11 @@ impl Resolver {
                 };
 
                 if literal.is_some() {
-                    // An index after an iteration or a pick whose whole content
-                    // is one indexable component passes to that component.
-                    while let Some(child_idx) = self.pass_through_child(current_idx) {
+                    // An index after a group whose whole content is one component passes to
+                    // that component, which decides what the index means (NAME-2). While that
+                    // component is a reference not yet expanded, the index passes to the
+                    // reference, and waits for it.
+                    while let Some(child_idx) = self.pass_through_child(current_idx, true) {
                         current_idx = child_idx;
                         if !nodes_in_resolved_path.contains(&current_idx) {
                             nodes_in_resolved_path.push(current_idx);
@@ -577,25 +582,59 @@ impl Resolver {
                     }
                 }
 
-                // How many of the node's `index_resolutions` an index selects among
-                let num_selectable = match node_data.index_kind {
-                    IndexKind::Instances | IndexKind::PassThrough { .. } => {
-                        node_data.index_resolutions.len()
+                // The first of the node's `index_resolutions` an index selects among,
+                // and how many it selects among
+                let (first_selectable, num_selectable) = match node_data.index_kind {
+                    IndexKind::Instances | IndexKind::Pending => {
+                        (0, node_data.index_resolutions.len())
                     }
                     IndexKind::Reference {
+                        position,
                         after,
-                        instances: true,
-                    } => node_data.index_resolutions.len().saturating_sub(after),
-                    IndexKind::Children
+                        content: ReferenceContent::Instances,
+                    } => (
+                        position - 1,
+                        node_data
+                            .index_resolutions
+                            .len()
+                            .saturating_sub(after)
+                            .saturating_sub(position - 1),
+                    ),
+                    // The one component is text, or an index that is not literal:
+                    // the worker decides
+                    IndexKind::PassThrough { .. }
                     | IndexKind::Reference {
-                        instances: false, ..
+                        content: ReferenceContent::One { .. } | ReferenceContent::Pending,
+                        ..
+                    } => (0, 0),
+                    IndexKind::Children { count }
+                    | IndexKind::Reference {
+                        content: ReferenceContent::Several { count },
+                        ..
                     } => {
                         // An index does not select a child of a container (D27), whatever its
                         // value: the path names nothing. It stops here, with the child the
                         // index would have selected, for the warning to name.
+                        let (first, num) = match node_data.index_kind {
+                            IndexKind::Reference {
+                                position, after, ..
+                            } => (
+                                position - 1,
+                                node_data
+                                    .index_resolutions
+                                    .len()
+                                    .saturating_sub(after)
+                                    .saturating_sub(position - 1),
+                            ),
+                            _ => (0, node_data.index_resolutions.len()),
+                        };
                         let child_idx = literal
+                            .filter(|index_num| *index_num <= num)
                             .and_then(|index_num| {
-                                node_data.index_resolutions.get(index_num - 1).copied()
+                                node_data
+                                    .index_resolutions
+                                    .get(first + index_num - 1)
+                                    .copied()
                             })
                             .flatten()
                             .filter(|idx| !self.node_resolver_data[idx + 1].iteration_aliases);
@@ -608,6 +647,7 @@ impl Resolver {
                                 container_idx: current_idx,
                                 child_idx,
                                 position: index.position.clone(),
+                                count,
                             }),
                         });
                     }
@@ -616,7 +656,7 @@ impl Resolver {
                 if let Some(index_num) = literal
                     && index_num <= num_selectable
                 {
-                    match node_data.index_resolutions[index_num - 1] {
+                    match node_data.index_resolutions[first_selectable + index_num - 1] {
                         // The setup a repeat adds is not reached by an index:
                         // the index is past the iteration's content (below).
                         Some(new_node_idx)
