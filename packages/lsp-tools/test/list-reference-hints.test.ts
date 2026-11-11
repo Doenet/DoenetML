@@ -83,6 +83,12 @@ describe("list reference hints", () => {
         expect(await hints(`${A}<p>2$a</p>`)).toEqual([]);
         expect(await hints(`${A}<math>2$a</math>`)).toEqual([]);
         expect(await hints(`${A}<sum>2$a</sum>`)).toEqual([]);
+        // `<sort>` and a `for` attribute join `2$a` too (runtime `3, 10`
+        // for `<sort>2$a 3</sort>`), but only the list tags are hinted.
+        expect(await hints(`${A}<sort>2$a 3</sort>`)).toEqual([]);
+        expect(
+            await hints(`${A}<repeat for="2$a 3" valueName="v">$v</repeat>`),
+        ).toEqual([]);
     });
 
     it("gives no hint where a child component stands alone", async () => {
