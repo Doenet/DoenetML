@@ -76,7 +76,9 @@ import { sequenceEntryComponentType } from "../sequence";
  * When the award is built it gives each reference to `$val` among its
  * descendants an unresolved `isResponse` (`Award.js`), which a copy resolves
  * for its replacement and a `_ref` does not read; a `_ref` made from one is
- * given the mark here, as a primitive.
+ * given the mark here, as a primitive. (An award made by `extend` or `copy`
+ * copies the source award's references, made here without the mark, and
+ * `Award.js` gives a `_ref` among them the mark as a primitive.)
  */
 export function convertCopiesToValueReferences({
     serializedComponents,

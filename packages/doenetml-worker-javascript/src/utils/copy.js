@@ -2,6 +2,7 @@ import {
     convertUnresolvedAttributesForComponentType,
     unwrapSource,
 } from "./dast/convertNormalizedDast";
+import { preprocessAttributesObject } from "./attributes";
 
 /**
  * Whether the names inside what `composite` makes are reached through its
@@ -21,6 +22,64 @@ export function namesReachedThroughCopy(composite) {
         composite?.doenetAttributes.forList !== undefined ||
         composite?.attributes._createComponentIdx !== undefined
     );
+}
+
+/**
+ * Give each of `serializedReplacements`, the replacements a shadowing
+ * composite makes by copying those of the composite it shadows, the
+ * `isResponse` mark the shadowing composite holds, if it holds one. Returns
+ * the new `nComponents`.
+ *
+ * The mark is the one an `<award referencesAreResponses>` gives a reference
+ * it names (`Award.js`). In an award made by `extend`, that reference is the
+ * shadow of a reference in the source award, and its replacements are copies
+ * of that reference's replacements, which have no mark, so it is added here,
+ * both when the shadow first expands (`CompositeExpander.ts`) and when its
+ * replacements are remade (`CompositeReplacementUpdater.ts`). A copy that is
+ * not a shadow resolves its attributes for its replacements itself
+ * (`Copy.js`).
+ *
+ * A value reference (`_ref`) declares no attributes. It holds the mark as
+ * the type it presents as reads it, a primitive (`ValueRef.js`).
+ */
+export function addShadowingCompositeResponseMark({
+    shadowingComponent,
+    serializedReplacements,
+    componentInfoObjects,
+    nComponents,
+}) {
+    const isResponse = shadowingComponent.attributes.isResponse;
+    if (!isResponse) {
+        return nComponents;
+    }
+    const compositeAttributesObj = preprocessAttributesObject(
+        shadowingComponent.constructor.createAttributesObject(),
+    );
+    for (const repl of serializedReplacements) {
+        if (typeof repl !== "object") {
+            continue;
+        }
+        const componentType =
+            repl.componentType === "_ref"
+                ? repl.doenetAttributes?.presentedComponentType
+                : repl.componentType;
+        if (!componentInfoObjects.allComponentClasses[componentType]) {
+            continue;
+        }
+        const res = convertUnresolvedAttributesForComponentType({
+            attributes: { isResponse },
+            componentType,
+            componentInfoObjects,
+            compositeAttributesObj,
+            nComponents,
+        });
+        nComponents = res.nComponents;
+        if (!repl.attributes) {
+            repl.attributes = {};
+        }
+        Object.assign(repl.attributes, res.attributes);
+    }
+    return nComponents;
 }
 
 /**

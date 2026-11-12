@@ -16,6 +16,7 @@ import {
 } from "./ResolverAdapter";
 import {
     addAttributesToSingleReplacement,
+    addShadowingCompositeResponseMark,
     namesReachedThroughCopy,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
@@ -604,6 +605,15 @@ async function expandShadowingComposite({
         serializedComponents: serializedReplacements,
         componentIdx: nameOfCompositeMediatingTheShadow,
     });
+
+    // the mark an award's `referencesAreResponses` gave this shadow
+    newNComponents = addShadowingCompositeResponseMark({
+        shadowingComponent: component,
+        serializedReplacements,
+        componentInfoObjects: core.componentInfoObjects,
+        nComponents: newNComponents,
+    });
+    reserveComponentIndices(core, newNComponents);
 
     // If shadowed composite mediates the shadow of compositeMediatingTheShadow,
     // then we have a circular reference.
