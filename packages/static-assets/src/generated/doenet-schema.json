@@ -119174,7 +119174,7 @@
                 {
                     "name": "aspectRatio",
                     "description": "Aspect ratio (width / height) for the video player.",
-                    "defaultValue": "16 / 9",
+                    "defaultValue": 1.7777777777777777,
                     "type": "number"
                 },
                 {
