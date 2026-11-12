@@ -2107,6 +2107,32 @@ describe("Label tag tests @group2", async () => {
             expect(p2.children).eqls([]);
         });
 
+        it("a reference to a label for an input does not label the input again", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<textInput name="ti" />
+<label name="l" for="$ti">L <em>B</em></label>
+<p name="p1">$l</p>
+            `);
+
+            const p1 = await inParagraph("p1");
+            expect(p1.componentType).eq("label");
+            expect(p1.children).eqls(["L ", { em: ["B"] }]);
+            expect(p1.stateValues.forTargetInputComponentIdx).eq(null);
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const ti =
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues;
+            expect(
+                ti.externalLabelsReferencingInputByFor.map(
+                    (label: any) => label.componentIdx,
+                ),
+            ).eqls([await resolvePathToNodeIdx("l")]);
+            expect(ti.externalLabelRendererIds).eqls(["l"]);
+        });
+
         it("a label with math", async () => {
             const { inParagraph } = await setup(`
 <textInput name="ti"><label>x <m>\\frac{1}{2}</m></label></textInput>

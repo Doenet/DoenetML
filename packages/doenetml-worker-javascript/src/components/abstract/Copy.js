@@ -2175,6 +2175,15 @@ export default class Copy extends CompositeComponent {
             results.propVariablesCopiedByReplacement = (
                 results.serializedReplacements ?? []
             ).map(() => [...inPlaceOfProp.propVariablesCopied]);
+            // The reference stands for the label's value, as a label made
+            // from it did, so it does not label the input the label is
+            // `for` a second time (which would read the input's name
+            // twice).
+            for (const replacement of results.serializedReplacements ?? []) {
+                if (typeof replacement === "object") {
+                    delete replacement.attributes?.for;
+                }
+            }
         }
         if (args.component.doenetAttributes.forList !== undefined) {
             for (const replacement of results.serializedReplacements ?? []) {
