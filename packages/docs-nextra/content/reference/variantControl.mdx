@@ -153,7 +153,7 @@ instead of leaving the selection to chance.
 
 ```doenet-editor-horiz
 <variantControl numVariants="10"
-  variantsToInclude="1, 3, 5, 7, 9" />
+  variantsToInclude="a c e g i" />
 
 <problem>
   <p>Random odd-indexed variant:
@@ -164,5 +164,7 @@ instead of leaving the selection to chance.
 
 
 `variantsToInclude` restricts which of the generated variants are actually
-delivered; `variantsToExclude` does the opposite. Both accept either integer
-indices or variant names (when `variantNames` is set).
+delivered; `variantsToExclude` does the opposite. Both take variant names,
+not indices. Without `variantNames`, the variants are named `a`, `b`, `c`, …,
+so `a c e g i` are the first, third, fifth, seventh and ninth of the ten.
+A name that is not a variant's stops the document from loading.
