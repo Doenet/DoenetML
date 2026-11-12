@@ -1507,6 +1507,61 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         await check();
     });
 
+    it("keeps an unlinked copy made before its entry was blank as made, after a reload too", async () => {
+        // A copy holds the value it was made with. Made again on reload from
+        // the entry, now blank, it is made after fewer attribute components
+        // (the entry's `styleNumber` is not pasted), so it takes its held
+        // snapshot by its place among the copy's replacements.
+        const doenetML = `
+    <mathInput name="i" prefill="1"/>
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <vectorList name="vs">(5,6) (7,8)</vectorList>
+    <numberList name="l">1 2</numberList>
+    <pointList name="pl">(0,0) $pts[$i]</pointList>
+    <vectorList name="vl">(0,0) $vs[$i]</vectorList>
+    <numberList name="a">7 $l[$i]</numberList>
+    <graph name="g"><point name="gp" copy="$pl[2]"/><vector name="gv" copy="$vl[2]"/></graph>
+    <p name="p"><number name="n" copy="$a[2]"/> <math name="x" copy="$pl[2].x"/></p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("gp")).coords.tree).eqls(["vector", 1, 2]);
+            expect((await sv("gv")).displacement.map((x: any) => x.tree)).eqls([
+                5, 6,
+            ]);
+            for (const name of ["gp", "gv", "n", "x"]) {
+                expect((await sv(name)).valueMissing, name).not.eq(true);
+            }
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                ["point", "vector"],
+            );
+            expect((await sv("p")).text).eq("1 1");
+        }
+        await check();
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
+
     it("gives a property computed from each entry's value the blank for a blank entry", async () => {
         // `$pl.y` reads the `y` of every entry, which, for a blank point, is
         // a blank, not the `0` of the blank point's second coordinate.
