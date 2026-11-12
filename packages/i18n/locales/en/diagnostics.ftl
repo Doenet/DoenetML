@@ -1145,6 +1145,11 @@ component-name-invalid-start = Invalid component name "{ $name }". Names must st
 # is kept for the attributes DoenetML sets itself.
 attribute-name-invalid-start = Invalid attribute "{ $attribute }". Attribute names cannot start with an underscore.
 
+# A `<repeat>` or `<repeatForSequence>` ($componentType) whose `valueName` and
+# `indexName` are the same name, $name, so a reference to it finds both. The
+# tag and attribute names stay in English.
+repeat-value-name-is-index-name = `valueName` and `indexName` of `<{ $componentType }>` are both `{ $name }`. Give them different names.
+
 ## `<answer>` sugar
 
 answer-video-watched-missing-video = Answer with type videoWatched must have a video attribute

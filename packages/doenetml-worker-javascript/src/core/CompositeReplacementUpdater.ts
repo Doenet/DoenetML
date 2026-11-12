@@ -22,9 +22,11 @@ import {
     reportConditionDiagnostics,
     refreshRootNames,
 } from "./ResolverAdapter";
-import { namesReachedThroughCopy, postProcessCopy } from "../utils/copy";
-import { preprocessAttributesObject } from "../utils/attributes";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import {
+    addShadowingCompositeResponseMark,
+    namesReachedThroughCopy,
+    postProcessCopy,
+} from "../utils/copy";
 import { createComponentIndicesForShadowedReplacements } from "../utils/componentIndices";
 import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
 import {
@@ -1038,48 +1040,16 @@ export class CompositeReplacementUpdater {
                         componentIdx: shadowingComponent.shadows.compositeIdx,
                     });
 
-                    // TODO: is isResponse the only attribute to convert?
-                    if (shadowingComponent.attributes.isResponse) {
-                        let compositeAttributesObj = preprocessAttributesObject(
-                            shadowingComponent.constructor.createAttributesObject(),
-                        );
-
-                        for (let repl of newSerializedReplacements) {
-                            if (typeof repl !== "object") {
-                                continue;
-                            }
-
-                            // add attributes
-                            if (!repl.attributes) {
-                                repl.attributes = {};
-                            }
-                            let nComponents = this.core._components.length;
-                            const res =
-                                convertUnresolvedAttributesForComponentType({
-                                    attributes: {
-                                        isResponse:
-                                            shadowingComponent.attributes
-                                                .isResponse,
-                                    },
-                                    componentType: repl.componentType,
-                                    componentInfoObjects:
-                                        this.core.componentInfoObjects,
-                                    compositeAttributesObj,
-                                    nComponents,
-                                });
-
-                            const attributesFromComposite = res.attributes;
-                            nComponents = res.nComponents;
-                            if (nComponents > this.core._components.length) {
-                                this.core._components[nComponents - 1] =
-                                    undefined;
-                            }
-
-                            Object.assign(
-                                repl.attributes,
-                                attributesFromComposite,
-                            );
-                        }
+                    // the mark an award's `referencesAreResponses` gave
+                    // this shadow
+                    const nComponents = addShadowingCompositeResponseMark({
+                        shadowingComponent,
+                        serializedReplacements: newSerializedReplacements,
+                        componentInfoObjects: this.core.componentInfoObjects,
+                        nComponents: this.core._components.length,
+                    });
+                    if (nComponents > this.core._components.length) {
+                        this.core._components[nComponents - 1] = undefined;
                     }
                 } catch (e: any) {
                     rethrowIfCircular(e);

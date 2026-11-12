@@ -6677,4 +6677,59 @@ describe("Vector Tag Tests @group4", function () {
             [NaN, 1],
         ]);
     });
+
+    it("a vector in three dimensions dragged by two coordinates keeps its third (#2179)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <vector name="v1">(1,2,3)</vector>
+      <vector name="v2">(1,2,pi)</vector>
+      <vector name="v3" tail="(1,1,1)">(1,2,a)</vector>
+      <vector name="v4" tail="(1,1,pi)" />
+      <vectorList name="vl"><vector name="v5">(1,2,3)</vector></vectorList>
+    </graph>
+    <p name="h1">$v1.head</p><p name="h2">$v2.head</p><p name="h3">$v3.head</p>
+    <p name="h4">$v4.head</p><p name="h5">$v5.head</p>
+    `,
+        });
+        const expected: Record<string, string> = {
+            v1: "(5, 6, 3)",
+            v2: "(5, 6, π)",
+            v3: "(5, 6, a + 1)",
+            v4: "(5, 6, π)",
+            v5: "(5, 6, 3)",
+        };
+        for (const name of Object.keys(expected)) {
+            const componentIdx = await resolvePathToNodeIdx(
+                name === "v5" ? "vl" : name,
+            );
+            if (name === "v5") {
+                await core.requestAction({
+                    componentIdx,
+                    actionName: "moveVector",
+                    args: { headcoords: [5, 6], listEntryIndex: 0 },
+                });
+            } else {
+                await moveVector({ componentIdx, headcoords: [5, 6], core });
+            }
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const [name, head] of Object.entries(expected)) {
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx(name.replace("v", "h"))
+                ].stateValues.text,
+                name,
+            ).eq(head);
+        }
+        // the displacement's third coordinate is kept as written
+        expect(
+            stateVariables[await resolvePathToNodeIdx("v2")].stateValues
+                .displacement[2].tree,
+        ).eq("pi");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("v3")].stateValues
+                .displacement[2].tree,
+        ).eq("a");
+    });
 });

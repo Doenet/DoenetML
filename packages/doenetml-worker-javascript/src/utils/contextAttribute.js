@@ -405,9 +405,8 @@ async function writtenAttributeComponent(component, attributeName, components) {
  * fixed="$b">` in a `<pointList>` or found by a `<collect>`, or, for an entry
  * of a list among the list's children, `<pointList>$pl</pointList>`, that
  * list's entry). A list of points or vectors records its entries' sources
- * as `entryChildren`; another list whose entries are placed as the
- * components they come from, as a `<mathList>` or a `<collect>` of maths,
- * as `entryGraphSources` (#2239).
+ * as `entryChildren`; another list, as a `<mathList>`, a `<booleanList>` or
+ * a `<collect>` of maths, as `entryGraphSources` (#2239, #2526).
  */
 export async function writtenEntryAttributeComponent({
     list,
@@ -424,9 +423,9 @@ export async function writtenEntryAttributeComponent({
         return fromList;
     }
     if (!list?.state?.entryChildren) {
-        // a list whose entries are placed as the components they come from
-        // (`entryGraphSources`), a `<mathList>` or a `<collect>` of maths:
-        // the one entry `index` comes from (#2239)
+        // a list that records the component each entry comes from
+        // (`entryGraphSources`), a `<mathList>`, a `<booleanList>` or a
+        // `<collect>` of maths: the one entry `index` comes from (#2239)
         if (!list?.state?.entryGraphSources) {
             return fromList;
         }

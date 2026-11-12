@@ -650,7 +650,7 @@ function collectListClass(Base) {
             // (`graphSourceOf`): a component collected, or the referent of a
             // reference to a whole component; for an entry of a list, the
             // component that list places its entry as.
-            if (this.listEntriesAnchoredBySources) {
+            if (this.listEntriesHaveSources) {
                 stateVariableDefinitions.entryGraphSources = {
                     shadowVariable: true,
                     stateVariablesDeterminingDependencies: ["collectedSources"],

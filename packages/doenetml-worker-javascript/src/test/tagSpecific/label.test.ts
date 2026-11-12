@@ -4,6 +4,7 @@ import { cleanLatex } from "../utils/math";
 import {
     moveLabel,
     movePoint,
+    updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
     updateValue,
@@ -1963,5 +1964,491 @@ describe("Label tag tests @group2", async () => {
         expect(input.label).eq("H");
         expect(input.labelFromParent).eq(true);
         expect(input.labelChildInd).eq(-1);
+    });
+
+    describe("a reference to a label keeps its markup", () => {
+        type StateVariables = Awaited<
+            ReturnType<
+                Awaited<
+                    ReturnType<typeof createTestCore>
+                >["core"]["returnAllStateVariables"]
+            >
+        >;
+
+        /**
+         * The children of the one component in the paragraph `name`, as
+         * strings and component types (with their children), so a label's
+         * markup can be compared.
+         */
+        function describeChildren(
+            stateVariables: StateVariables,
+            componentIdx: number,
+        ): any[] {
+            return stateVariables[componentIdx].activeChildren.map(
+                (child: any) =>
+                    typeof child === "string"
+                        ? child
+                        : {
+                              [child.componentType]: describeChildren(
+                                  stateVariables,
+                                  child.componentIdx,
+                              ),
+                          },
+            );
+        }
+
+        async function setup(doenetML: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            /** The one component in the paragraph `name` */
+            async function inParagraph(name: string) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const children =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .activeChildren;
+                expect(children.length).eq(1);
+                const child = children[0] as any;
+                return {
+                    componentType: child.componentType,
+                    stateValues: stateVariables[child.componentIdx].stateValues,
+                    children: describeChildren(
+                        stateVariables,
+                        child.componentIdx,
+                    ),
+                };
+            }
+            return { core, resolvePathToNodeIdx, inParagraph };
+        }
+
+        it("the label of an input, a point, a button and a slider", async () => {
+            const { inParagraph } = await setup(`
+<textInput name="ti"><label>T <delete>A</delete></label></textInput>
+<p name="p1">$ti.label</p>
+<point name="pointA"><label>P <em>Q</em></label></point>
+<p name="p2">$pointA.label</p>
+<callAction name="button" actionName="recordVisibilityChange" target="$ti"><label>B <alert>C</alert></label></callAction>
+<p name="p3">$button.label</p>
+<slider name="slider"><label>S <q>D</q></label></slider>
+<p name="p4">$slider.label</p>
+<answer name="ans"><label>Y <delete>Z</delete></label>x</answer>
+<p name="p5">$ans.label</p>
+<p name="p6"><group>$ti.label</group></p>
+            `);
+
+            const p1 = await inParagraph("p1");
+            expect(p1.componentType).eq("label");
+            expect(p1.stateValues.value).eq("T A");
+            expect(p1.children).eqls(["T ", { delete: ["A"] }]);
+
+            const p2 = await inParagraph("p2");
+            expect(p2.componentType).eq("label");
+            expect(p2.stateValues.value).eq("P Q");
+            expect(p2.children).eqls(["P ", { em: ["Q"] }]);
+
+            const p3 = await inParagraph("p3");
+            expect(p3.componentType).eq("label");
+            expect(p3.stateValues.value).eq("B C");
+            expect(p3.children).eqls(["B ", { alert: ["C"] }]);
+
+            const p4 = await inParagraph("p4");
+            expect(p4.componentType).eq("label");
+            expect(p4.stateValues.value).eq('S "D"');
+            expect(p4.children).eqls(["S ", { q: ["D"] }]);
+
+            const p5 = await inParagraph("p5");
+            expect(p5.componentType).eq("label");
+            expect(p5.stateValues.value).eq("Y Z");
+            expect(p5.children).eqls(["Y ", { delete: ["Z"] }]);
+
+            // in a composite, which passes it on to the paragraph
+            const p6 = await inParagraph("p6");
+            expect(p6.componentType).eq("label");
+            expect(p6.children).eqls(["T ", { delete: ["A"] }]);
+        });
+
+        it("a label extending the label of an input", async () => {
+            const { core, resolvePathToNodeIdx } = await setup(`
+<textInput name="ti"><label>T <delete>A</delete></label></textInput>
+<p><label name="l2" extend="$ti.label" /></p>
+            `);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const l2 = await resolvePathToNodeIdx("l2");
+            expect(stateVariables[l2].stateValues.value).eq("T A");
+            expect(describeChildren(stateVariables, l2)).eqls([
+                "T ",
+                { delete: ["A"] },
+            ]);
+        });
+
+        it("a reference to a label component", async () => {
+            const { inParagraph } = await setup(`
+<label name="l">L <em>B</em></label>
+<p name="p1">$l</p>
+<p name="p2">$l.value</p>
+            `);
+
+            const p1 = await inParagraph("p1");
+            expect(p1.componentType).eq("label");
+            expect(p1.stateValues.value).eq("L B");
+            expect(p1.children).eqls(["L ", { em: ["B"] }]);
+
+            // `$l.value` is still a new label made from the string, which
+            // takes none of `l`'s style or anchor
+            const p2 = await inParagraph("p2");
+            expect(p2.componentType).eq("label");
+            expect(p2.stateValues.value).eq("L B");
+            expect(p2.children).eqls([]);
+        });
+
+        // `for` says what a label is, not what it shows, so, like `name`,
+        // no reference to a label takes it: `$l` and `<label extend="$l"/>`
+        // (which `$l` is shorthand for) and `<label copy="$l"/>` show the
+        // label again without labeling its input a second time, which would
+        // read the input's name twice. A `for` written on the extend itself
+        // applies, and a label copied inside a larger copy keeps its `for`,
+        // which then points to the input copied with it.
+        it("no reference to a label takes its for", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<textInput name="ti" />
+<textInput name="ti2" />
+<label name="l" for="$ti">L <em>B</em></label>
+<p name="p1">$l</p>
+<p name="p2"><label extend="$l" /></p>
+<p name="p3"><label copy="$l" /></p>
+<p name="p4"><label extend="$l" for="$ti2" /></p>
+<label name="m">M</label>
+<label name="em" extend="$m" for="$ti4" /><textInput name="ti4" />
+<group name="g"><textInput name="ti3" /><label name="l3" for="$ti3">M</label></group>
+<group name="g2" copy="$g" />
+<p name="pg">$g</p>
+<group name="g3" extend="$g" />
+<p name="pgl">$g.l3</p>
+<repeat name="r" for="1 2" valueName="v"><textInput name="tr" /><label name="lr" for="$tr">R</label></repeat>
+<p name="prl">$r[1].lr</p>
+            `);
+
+            for (const name of ["p1", "p2", "p3"]) {
+                const p = await inParagraph(name);
+                expect(p.componentType, name).eq("label");
+                expect(p.children, name).eqls(["L ", { em: ["B"] }]);
+                expect(p.stateValues.forTargetInputComponentIdx, name).eq(null);
+            }
+            const p4 = await inParagraph("p4");
+            expect(p4.children).eqls(["L ", { em: ["B"] }]);
+            expect(p4.stateValues.forTargetInputComponentIdx).eq(
+                await resolvePathToNodeIdx("ti2"),
+            );
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            async function labelsOf(input: string) {
+                const sv =
+                    stateVariables[await resolvePathToNodeIdx(input)]
+                        .stateValues;
+                return sv.externalLabelsReferencingInputByFor.map(
+                    (label: any) => label.componentIdx,
+                );
+            }
+            expect(await labelsOf("ti")).eqls([
+                await resolvePathToNodeIdx("l"),
+            ]);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                    .externalLabelRendererIds,
+            ).eqls(["l"]);
+            expect(await labelsOf("ti2")).eqls([
+                (
+                    stateVariables[await resolvePathToNodeIdx("p4")]
+                        .activeChildren[0] as any
+                ).componentIdx,
+            ]);
+
+            // a `for` written on an extend of a label with none applies
+            expect(
+                stateVariables[await resolvePathToNodeIdx("em")].stateValues
+                    .forTargetInputComponentIdx,
+            ).eq(await resolvePathToNodeIdx("ti4"));
+
+            // `$g` is `<group extend="$g"/>`: the label it holds keeps its
+            // `for` as the extend's does (REF-1), and only a reference that
+            // names the label itself drops it
+            const pgLabel = stateVariables[
+                await resolvePathToNodeIdx("pg")
+            ].activeChildren.find(
+                (child: any) =>
+                    stateVariables[child.componentIdx]?.componentType ===
+                    "label",
+            ) as any;
+            expect(
+                stateVariables[pgLabel.componentIdx].stateValues
+                    .forTargetInputComponentIdx,
+            ).eq(
+                stateVariables[await resolvePathToNodeIdx("g3.l3")].stateValues
+                    .forTargetInputComponentIdx,
+            );
+            expect(
+                stateVariables[pgLabel.componentIdx].stateValues
+                    .forTargetInputComponentIdx,
+            ).not.eq(null);
+            for (const name of ["pgl", "prl"]) {
+                const p = await inParagraph(name);
+                expect(p.componentType, name).eq("label");
+                expect(p.stateValues.forTargetInputComponentIdx, name).eq(null);
+            }
+
+            // the label inside a copied group labels the copied input
+            for (const group of ["g", "g2"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`${group}.l3`)]
+                        .stateValues.forTargetInputComponentIdx,
+                    group,
+                ).eq(await resolvePathToNodeIdx(`${group}.ti3`));
+            }
+            // (`g.ti3` also lists the labels in `$g` and `g3`, which point to
+            // it: a label in an extended group labels the original input, a
+            // known gap on `main`)
+            expect(await labelsOf("g2.ti3")).eqls([
+                await resolvePathToNodeIdx("g2.l3"),
+            ]);
+        });
+
+        // The label a reference names can change (`$r[$n].lr` with `n`
+        // changed): the label it is made from again does not take its `for`
+        // either, while `$r[$n]`, whose label is among what it names, keeps
+        // it.
+        it("a reference to a label made again from another label does not take its for", async () => {
+            const { core, resolvePathToNodeIdx } = await setup(`
+<mathInput name="n" prefill="1" />
+<textInput name="ti" />
+<repeat name="r" for="a b" type="text" valueName="v"><label name="lr" for="$ti">R <text extend="$v" /></label></repeat>
+<p name="p1">$r[$n].lr</p>
+<p name="p2"><label extend="$r[$n].lr" /></p>
+<p name="p3">$r[$n]</p>
+            `);
+            const ti = await resolvePathToNodeIdx("ti");
+
+            async function check(letter: string) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                for (const name of ["p1", "p2", "p3"]) {
+                    const label = stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].activeChildren
+                        .map((child: any) => stateVariables[child.componentIdx])
+                        .find((child: any) => child?.componentType === "label");
+                    expect(label.stateValues.value, name).eq(`R ${letter}`);
+                    expect(
+                        label.stateValues.forTargetInputComponentIdx,
+                        name,
+                    ).eq(name === "p3" ? ti : null);
+                }
+                // the two labels in the repeat and the one in `$r[$n]`
+                expect(
+                    stateVariables[ti].stateValues
+                        .externalLabelsReferencingInputByFor.length,
+                ).eq(3);
+            }
+
+            await check("a");
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+            await check("b");
+        });
+
+        // `<label copy="$ti.label"/>` is an unlinked copy of the `<label>`
+        // child, as `<label copy="$l"/>` is of `l`: it keeps the child's
+        // markup, and a reference inside it still follows its referent. (It
+        // was a label made from the string when copied, which kept that
+        // string.)
+        it("an unlinked copy of the label of an input", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<textInput name="ti" prefill="x"><label>T <em>$ti</em></label></textInput>
+<label name="l">L <em>$ti</em></label>
+<p name="p1"><label copy="$ti.label" /></p>
+<p name="p2"><label copy="$l" /></p>
+            `);
+
+            for (const [value, text] of [
+                ["x", undefined],
+                ["y", "y"],
+            ]) {
+                if (text) {
+                    await updateTextInputValue({
+                        text,
+                        componentIdx: await resolvePathToNodeIdx("ti"),
+                        core,
+                    });
+                }
+                const p1 = await inParagraph("p1");
+                expect(p1.componentType).eq("label");
+                expect(p1.stateValues.value).eq(`T ${value}`);
+                expect(p1.children).eqls(["T ", { em: [{ _ref: [] }] }]);
+
+                const p2 = await inParagraph("p2");
+                expect(p2.stateValues.value).eq(`L ${value}`);
+                expect(p2.children).eqls(["L ", { em: [{ _ref: [] }] }]);
+            }
+        });
+
+        it("a label with math", async () => {
+            const { inParagraph } = await setup(`
+<textInput name="ti"><label>x <m>\\frac{1}{2}</m></label></textInput>
+<p name="p1">$ti.label</p>
+<textInput name="ti2"><label><m></m></label></textInput>
+<p name="p2">$ti2.label</p>
+            `);
+
+            const p1 = await inParagraph("p1");
+            expect(p1.componentType).eq("label");
+            expect(p1.stateValues.value).eq("x \\(\\frac{1}{2}\\)");
+            expect(p1.stateValues.hasLatex).eq(true);
+            expect(p1.children).eqls(["x ", { m: ["\\frac{1}{2}"] }]);
+
+            // a label holding only an empty math is the empty label
+            const p2 = await inParagraph("p2");
+            expect(p2.componentType).eq("label");
+            expect(p2.stateValues.value).eq("");
+            expect(p2.stateValues.hasLatex).eq(false);
+            expect(p2.children).eqls([]);
+        });
+
+        it("a label not from a label child", async () => {
+            const { inParagraph } = await setup(`
+<textInput name="myInput" labelIsName />
+<p name="p1">$myInput.label</p>
+            `);
+
+            const p1 = await inParagraph("p1");
+            expect(p1.componentType).eq("label");
+            expect(p1.stateValues.value).eq("my input");
+            expect(p1.children).eqls([]);
+        });
+
+        it("a label where a string is wanted", async () => {
+            const { core, resolvePathToNodeIdx } = await setup(`
+<textInput name="ti"><label>T <delete>A</delete></label></textInput>
+<text name="t">$ti.label</text>
+<boolean name="b">$ti.label = T A</boolean>
+<textInput name="ti2" bindValueTo="$ti.label" />
+<graph name="g">$ti.label</graph>
+            `);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                    .value,
+            ).eq("T A");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("b")].stateValues
+                    .value,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ti2")].stateValues
+                    .value,
+            ).eq("T A");
+
+            // a graph draws a label as text, so it is made from the string
+            const graphChildren =
+                stateVariables[await resolvePathToNodeIdx("g")].activeChildren;
+            expect(graphChildren.length).eq(1);
+            const graphLabel = graphChildren[0] as any;
+            expect(graphLabel.componentType).eq("label");
+            expect(
+                stateVariables[graphLabel.componentIdx].stateValues.value,
+            ).eq("T A");
+            expect(
+                describeChildren(stateVariables, graphLabel.componentIdx),
+            ).eqls([]);
+        });
+
+        it("the reference follows the label as it changes", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<textInput name="name" prefill="A" />
+<booleanInput name="h" />
+<textInput name="ti" labelIsName><label hide="$h">T <delete>$name</delete></label></textInput>
+<p name="p1">$ti.label</p>
+<p><updateValue name="uv" target="$ti.label" newValue="new" type="text" /></p>
+            `);
+
+            let p1 = await inParagraph("p1");
+            expect(p1.stateValues.value).eq("T A");
+            expect(p1.children).eqls(["T ", { delete: [{ _ref: [] }] }]);
+
+            // the child's content changes
+            await updateTextInputValue({
+                text: "B",
+                componentIdx: await resolvePathToNodeIdx("name"),
+                core,
+            });
+            p1 = await inParagraph("p1");
+            expect(p1.stateValues.value).eq("T B");
+            expect(p1.children).eqls(["T ", { delete: [{ _ref: [] }] }]);
+
+            // the label child is hidden, so the label is empty
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("h"),
+                core,
+            });
+            p1 = await inParagraph("p1");
+            expect(p1.componentType).eq("label");
+            expect(p1.stateValues.value).eq("");
+            expect(p1.children).eqls([]);
+
+            // shown again
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: await resolvePathToNodeIdx("h"),
+                core,
+            });
+            p1 = await inParagraph("p1");
+            expect(p1.stateValues.value).eq("T B");
+            expect(p1.children).eqls(["T ", { delete: [{ _ref: [] }] }]);
+        });
+
+        it("setting the label through updateValue", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<textInput name="ti"><label><text>Hello</text></label></textInput>
+<p name="p1">$ti.label</p>
+<p><updateValue name="uv" target="$ti.label" newValue="Bye" type="text" /></p>
+            `);
+
+            let p1 = await inParagraph("p1");
+            expect(p1.stateValues.value).eq("Hello");
+            expect(p1.children).eqls([{ text: ["Hello"] }]);
+
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx("uv"),
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                    .label,
+            ).eq("Bye");
+            p1 = await inParagraph("p1");
+            expect(p1.stateValues.value).eq("Bye");
+            expect(p1.children).eqls([{ text: ["Bye"] }]);
+        });
     });
 });

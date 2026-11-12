@@ -135,6 +135,34 @@ export default class Label extends InlineComponent {
             },
         };
 
+        // The label itself, for a reference to the label (`$l`) to copy
+        // (`componentToCopyVariable`), so the reference keeps the markup of
+        // its children (`<em>`, `<delete>`, math), which the `value` string
+        // drops. `null` when the label has no children and takes its value
+        // from `valueShadow` (a label made from a string): a reference then
+        // makes a label from the string.
+        stateVariableDefinitions.valueComponentToCopy = {
+            returnDependencies: () => ({
+                inlineChildren: {
+                    dependencyType: "child",
+                    childGroups: ["inlines"],
+                },
+                valueShadow: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueShadow",
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                if (
+                    dependencyValues.inlineChildren.length === 0 &&
+                    dependencyValues.valueShadow !== null
+                ) {
+                    return { setValue: { valueComponentToCopy: null } };
+                }
+                return { setValue: { valueComponentToCopy: componentIdx } };
+            },
+        };
+
         stateVariableDefinitions.hasLatex = {
             description: "Whether the label contains LaTeX content.",
             public: true,
@@ -227,6 +255,14 @@ export default class Label extends InlineComponent {
                     forRenderer: true,
                     shadowingInstructions: {
                         createComponentOfType: this.componentType,
+                        // A reference to the label (`$l`, whose implicit
+                        // prop is `value`) copies the label itself when its
+                        // value comes from its children, keeping their
+                        // markup (`valueComponentToCopy`). `$l.value` is
+                        // still a new label made from the string, which
+                        // takes none of the label's style or anchor.
+                        componentToCopyVariable: "valueComponentToCopy",
+                        copyComponentOnlyForImplicitProp: true,
                         addStateVariablesShadowingStateVariables: {
                             hasLatex: {
                                 stateVariableToShadow: "hasLatex",

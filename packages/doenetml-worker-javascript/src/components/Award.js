@@ -1000,7 +1000,22 @@ function addResponsesToDescendantsWithReference(components, reference) {
                     let foundIsResponse = Object.keys(component.attributes)
                         .map((x) => x.toLowerCase())
                         .includes("isresponse");
-                    if (!foundIsResponse) {
+                    if (
+                        !foundIsResponse &&
+                        component.componentType === "_ref"
+                    ) {
+                        // A value reference resolves no attributes: it reads
+                        // its mark as a primitive (`ValueRef.js`). The
+                        // document makes one with the mark already
+                        // (`utils/dast/valueReferences.ts`), so this one is in
+                        // an award made by `extend` or `copy`, copied from the
+                        // source award's reference.
+                        component.attributes.isResponse = {
+                            type: "primitive",
+                            name: "isResponse",
+                            primitive: { type: "boolean", value: true },
+                        };
+                    } else if (!foundIsResponse) {
                         // Make it an unresolved attribute
                         // as the composite don't have the attribute isResponse
                         // but pass it on to their replacements

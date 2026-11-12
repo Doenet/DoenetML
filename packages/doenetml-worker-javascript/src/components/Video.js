@@ -316,7 +316,8 @@ export default class Video extends BlockComponent {
                 "The aspect ratio (width / height) of the video player.",
             public: true,
             forRenderer: true,
-            defaultValue: "16 / 9",
+            // a number, as it is shared as a `<number>` (`$v.aspectRatio`)
+            defaultValue: 16 / 9,
             hasEssential: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

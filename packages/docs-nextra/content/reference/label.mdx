@@ -33,8 +33,12 @@ A `<label>{:dn}` can contain math and text markup such as `<em>{:dn}`, `<c>{:dn}
 - **When printed**, the labels of inputs and answers, and a label written on its own in the text,
   keep their markup. The labels of sliders, buttons, and `<fractionInput>{:dn}`s are
   not printed, nor, for now, the label of a `<choiceInput>{:dn}` that is not inline.
-- **A copy of a component's label**, such as `$pointA.label`, has only the label's text
-  and math, wherever it is shown.
+- **A reference to a component's label**, such as `$pointA.label`, keeps the markup
+  of the `<label>{:dn}` child it comes from when it is placed where text with markup
+  is shown, such as in a `<p>{:dn}`. So does a reference to a `<label>{:dn}` itself
+  (`$l`). In a `<text>{:dn}`, an input, or a `<graph>{:dn}`, and when the label is not
+  a `<label>{:dn}` child (as with `labelIsName`), it has only the label's text and
+  math. A reference to a label's `value` (`$l.value`) also has only its text and math.
 
 A `<label>{:dn}` can be written as a child of the component it labels, or placed
 elsewhere in the document and linked to an input or answer with the `for` attribute.
@@ -261,6 +265,12 @@ appears. Set `for` to a reference to the input or answer it labels (here,
 `for="$response"`). The label is linked to that input for assistive technology in
 exactly the same way as a `<label>{:dn}` child would be. The `for` attribute is
 ignored on a `<label>{:dn}` placed inside a `<graph>{:dn}`.
+
+A reference to the label (`$l`, `<label extend="$l"/>` or `<label copy="$l"/>`)
+shows the label again but does not take its `for`, just as it does not take its
+`name`: an input has one label, and a second would make a screen reader read its
+name twice. To make the copy a label of an input too, write `for` on it
+(`<label extend="$l" for="$response"/>`).
 
 
 

@@ -97,6 +97,26 @@ describe("Video tag tests @group1", async () => {
         }
     });
 
+    it("aspectRatio is a number, by default 16/9 (#2521)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <video name="v1" youtube="B7UmUX68KtE"><shortDescription>A video</shortDescription></video>
+    <video name="v2" youtube="B7UmUX68KtE" aspectRatio="4/3"><shortDescription>A video</shortDescription></video>
+    <p name="p1">$v1.aspectRatio</p>
+    <p name="p2">$v2.aspectRatio</p>
+    <number name="n1" extend="$v1.aspectRatio" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("v1")).aspectRatio).closeTo(16 / 9, 1e-12);
+        expect((await sv("v2")).aspectRatio).closeTo(4 / 3, 1e-12);
+        expect((await sv("n1")).value).closeTo(16 / 9, 1e-12);
+        expect((await sv("p1")).text).eq("1.78");
+        expect((await sv("p2")).text).eq("1.33");
+    });
+
     it("horizontal align", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
