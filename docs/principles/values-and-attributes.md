@@ -241,6 +241,18 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   attribute. A `NaN` caused by a missing or blank input is missing too: `<median>` of a blank and
   `<clampNumber>` of nothing are `＿`. Only a computation on present inputs that has no value
   stays `NaN`.
+
+  **The type of the result decides, so a function is not a separate case.** A blank takes part
+  in a math, which can hold it, and makes missing a number, which can't:
+  - `<math>$nothing + 1</math>` is `＿ + 1`, and so is a symbolic function evaluated at a blank
+    (`f(＿)`, `1 + ＿` for `f` = `1+u`);
+  - `<number>$nothing + 1</number>` is `＿`, and so is a numeric function evaluated at a blank,
+    whether by `<evaluate>`, `$$f($nothing)` or an input not yet submitted;
+  - the same holds for a list operator over a blank entry: a math `<sum>` gives `1 + ＿ + 3`, a
+    number `<sum>` or `<mean>` gives `＿`.
+
+  **Known violation** (#2460): each number case gives `NaN`, and a numeric function at a blank
+  gives `1 + ＿`.
 - **`<angle/>` with no measure is blank (decided, D40; #2324).** An angle whose measure nothing
   gives or determines (bare, one or two `through` points, one line) has a blank measure and draws
   nothing, not a right angle. 0.7 documents are not converted. **Known violation:** today it is
