@@ -1459,6 +1459,15 @@ export default class BaseComponent {
                     stateVariableDescriptions[varName].description =
                         theStateDef.description;
                 }
+                // The variable naming the component a reference to this one
+                // copies in place of making one from its value
+                // (`componentToCopyVariable`, `Copy.js`).
+                if (
+                    theStateDef.shadowingInstructions?.componentToCopyVariable
+                ) {
+                    stateVariableDescriptions[varName].componentToCopyVariable =
+                        theStateDef.shadowingInstructions.componentToCopyVariable;
+                }
                 // The name its essential value is kept under, where it is not
                 // its own (`primaryEssentialStateVariableOf`).
                 if (theStateDef.essentialVarName !== undefined) {

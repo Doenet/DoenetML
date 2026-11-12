@@ -342,6 +342,10 @@ export function returnLabelStateVariableDefinitions({
         groupName: "labels",
         shadowingInstructions: {
             createComponentOfType: "label",
+            // A reference to `label` copies the `<label>` child it comes
+            // from, keeping its markup, rather than making a label from the
+            // string (`labelComponentToCopy`).
+            componentToCopyVariable: "labelComponentToCopy",
             addStateVariablesShadowingStateVariables: {
                 hasLatex: {
                     stateVariableToShadow: "labelHasLatex",
@@ -702,6 +706,48 @@ export function returnLabelStateVariableDefinitions({
                     ],
                 };
             }
+        },
+    };
+
+    /**
+     * The `<label>` child that `label` is taken from, for a reference to
+     * `label` to copy (`componentToCopyVariable`), so the reference keeps the
+     * child's markup (`<em>`, `<delete>`, math), which the `label` string
+     * drops. `null` when `label` is not the value of a `<label>` child: when
+     * it comes from `labelIsName`, an essential value, a shadow source or the
+     * parent, or when the child is hidden or holds only an empty `\(\)`
+     * (where `label` is `""`). A reference then makes a label from the
+     * string.
+     */
+    stateVariableDefinitions.labelComponentToCopy = {
+        returnDependencies: () => ({
+            labelChild: {
+                dependencyType: "child",
+                childGroups: ["labels"],
+                variableNames: ["value", "hasLatex", "hidden"],
+                dontRecurseToShadows: true,
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: Record<string, any>;
+        }) {
+            const labelChild =
+                dependencyValues.labelChild[
+                    dependencyValues.labelChild.length - 1
+                ];
+            if (
+                !labelChild ||
+                labelChild.stateValues.hidden ||
+                (labelChild.stateValues.hasLatex &&
+                    labelChild.stateValues.value === "\\(\\)")
+            ) {
+                return { setValue: { labelComponentToCopy: null } };
+            }
+            return {
+                setValue: { labelComponentToCopy: labelChild.componentIdx },
+            };
         },
     };
 

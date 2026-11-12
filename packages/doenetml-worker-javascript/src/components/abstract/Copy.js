@@ -70,6 +70,7 @@ import {
 import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
 import {
     copiesReferent,
+    parentDrawsValueReferences,
     planValueReference,
     separateResponseMarks,
     serializeValueReference,
@@ -1376,6 +1377,23 @@ export default class Copy extends CompositeComponent {
                                 variablesOptional: true,
                                 caseInsensitiveVariableMatch: true,
                             };
+
+                            // the component a reference to the prop copies
+                            // in place of making one from its value
+                            // (`componentInPlaceOfProp`), which can change
+                            const componentToCopyVariable =
+                                componentInfoObjects.publicStateVariableInfo[
+                                    source.componentType
+                                ]?.stateVariableDescriptions[propName]
+                                    ?.componentToCopyVariable;
+                            if (componentToCopyVariable) {
+                                dependencies["sourceComponentToCopy" + ind] = {
+                                    dependencyType: "stateVariable",
+                                    componentIdx: source.componentIdx,
+                                    variableName: componentToCopyVariable,
+                                    variablesOptional: true,
+                                };
+                            }
                         }
                     }
                 }
@@ -2143,7 +2161,21 @@ export default class Copy extends CompositeComponent {
      * rather than `l`'s, as it does not in a copy of a `<p>`.
      */
     static async createReplacementForSource(args) {
-        const results = await this.replacementForSource(args);
+        const inPlaceOfProp = args.heldCase
+            ? undefined
+            : await componentInPlaceOfProp(args);
+        const results = await this.replacementForSource({
+            ...args,
+            inPlaceOfProp,
+        });
+        if (inPlaceOfProp) {
+            // Compared with those made before (`calculateReplacementChanges`),
+            // so a reference made again from another component, or from the
+            // value again, is replaced.
+            results.propVariablesCopiedByReplacement = (
+                results.serializedReplacements ?? []
+            ).map(() => [...inPlaceOfProp.propVariablesCopied]);
+        }
         if (args.component.doenetAttributes.forList !== undefined) {
             for (const replacement of results.serializedReplacements ?? []) {
                 if (typeof replacement === "object") {
@@ -2169,6 +2201,7 @@ export default class Copy extends CompositeComponent {
         publicCaseInsensitiveAliasSubstitutions,
         copyInChildren,
         heldCase,
+        inPlaceOfProp,
     }) {
         // console.log(`create replacement for sourceNum ${sourceNum}`);
         // console.log(
@@ -2200,7 +2233,7 @@ export default class Copy extends CompositeComponent {
                 };
             }
         }
-        const replacementSourceComponent = heldCase
+        let replacementSourceComponent = heldCase
             ? undefined
             : components[replacementSource.componentIdx];
 
@@ -2255,6 +2288,14 @@ export default class Copy extends CompositeComponent {
                     componentType: listEntry.list.componentType,
                 };
             }
+        }
+
+        // A prop whose value is that of a component, as a `label` taken
+        // from a `<label>` child, is made as a copy of that component, which
+        // keeps its markup (`componentInPlaceOfProp`).
+        if (inPlaceOfProp) {
+            replacementSourceComponent = inPlaceOfProp.component;
+            propName = undefined;
         }
 
         // if creating copy from a prop
@@ -3956,6 +3997,109 @@ async function diagnosticForUnusedIndex({
             component: replacementSource.componentType,
         },
     });
+}
+
+/**
+ * The component a reference to a prop is made as a copy of, in place of a
+ * component made from the prop's value, with what to record as the variables
+ * the replacement copies (`propVariablesCopiedByReplacement`); or
+ * `undefined` to make it from the value.
+ *
+ * A state variable whose `shadowingInstructions` name a
+ * `componentToCopyVariable` gives there the index of a component whose
+ * value it is, as the `label` of an input or a point taken from its
+ * `<label>` child, or the `value` of a `<label>` from its children (for `$l`
+ * only, `copyComponentOnlyForImplicitProp`). The value is that component
+ * flattened to a string, so a component made from it would lose the markup
+ * (`<em>`, `<delete>`) the component holds; a copy of the component keeps
+ * it. When the variable gives `null`, as for a label from `labelIsName`, the
+ * reference is made from the value, as it is where the replacement is not
+ * drawn with its markup, or is given another type.
+ */
+async function componentInPlaceOfProp({
+    component,
+    sourceNum,
+    components,
+    componentInfoObjects,
+    publicCaseInsensitiveAliasSubstitutions,
+}) {
+    const propName = (await component.stateValues.effectivePropNameBySource)?.[
+        sourceNum
+    ];
+    if (!propName) {
+        return undefined;
+    }
+    const source = (await component.stateValues.replacementSourceIdentities)?.[
+        sourceNum
+    ];
+    const target =
+        typeof source === "object" ? components[source.componentIdx] : null;
+    if (!target) {
+        return undefined;
+    }
+    // Only where the replacement is drawn with its markup (in a `<p>`, not in
+    // a `<text>` or an input, which read its value, nor in a `<graph>`,
+    // which draws a label as text, Doenet/DoenetML#2106). A composite the
+    // copy is in (a `<group>`, a `<repeat>`) passes its replacements on to
+    // its own parent.
+    const parent = component.ancestors.find(
+        (ancestor) =>
+            !componentInfoObjects.isCompositeComponent({
+                componentType: ancestor.componentClass.componentType,
+                includeNonStandard: true,
+            }),
+    );
+    if (
+        !parent ||
+        !parentDrawsValueReferences(parent.componentClass, componentInfoObjects)
+    ) {
+        return undefined;
+    }
+    const varName = publicCaseInsensitiveAliasSubstitutions({
+        stateVariables: [propName],
+        componentClass: target.constructor,
+    })[0];
+    const componentToCopyVariable =
+        target.state[varName]?.shadowingInstructions?.componentToCopyVariable;
+    if (!componentToCopyVariable || !target.state[componentToCopyVariable]) {
+        return undefined;
+    }
+    // Only a reference to the implicit prop (`$l` of a `<label>`, not
+    // `$l.value`), where the shadowing instructions ask for that
+    if (
+        target.state[varName].shadowingInstructions
+            .copyComponentOnlyForImplicitProp &&
+        !(await component.stateValues.implicitProp)
+    ) {
+        return undefined;
+    }
+    const componentIdx = await target.state[componentToCopyVariable].value;
+    const componentToCopy =
+        componentIdx === null ? undefined : components[componentIdx];
+    if (!componentToCopy) {
+        return undefined;
+    }
+    // A reference given a type it is to be made as, other than that of the
+    // component (`bindValueTo="$P.label"`, which is made as a text), reads
+    // the value.
+    const writtenType =
+        component.attributes._createComponentOfType?.primitive?.value;
+    if (
+        writtenType &&
+        !componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentToCopy.componentType,
+            baseComponentType:
+                componentInfoObjects.componentTypeLowerCaseMapping[
+                    writtenType.toLowerCase()
+                ] ?? writtenType,
+        })
+    ) {
+        return undefined;
+    }
+    return {
+        component: componentToCopy,
+        propVariablesCopied: [varName, `__copyOf${componentIdx}`],
+    };
 }
 
 export async function replacementFromProp({
