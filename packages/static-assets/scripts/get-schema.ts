@@ -64,6 +64,12 @@ export function getExistingDocSlugs(): Set<string> {
  *   `{ objectType: "math-expression", tree: ... }`, which is opaque to a
  *   reader. Replace them with a `{ type: "math", latex }` sentinel so the
  *   docs UI can render the LaTeX with MathJax.
+ *
+ * - A finite number is shown to authors to at most four significant digits,
+ *   so a default computed as a fraction (a `<video>`'s `aspectRatio`, 16/9)
+ *   reads `1.778`, not `1.7777777777777777`. Integers and short decimals
+ *   (`0.1`, `1e-14`) are unchanged. The component keeps its exact default;
+ *   only what the schema shows is rounded.
  */
 function encodeDefaultValueForJson(val: unknown): unknown {
     if (isMathExpression(val)) {
@@ -73,7 +79,8 @@ function encodeDefaultValueForJson(val: unknown): unknown {
         };
         return sentinel;
     }
-    if (typeof val !== "number" || Number.isFinite(val)) return val;
+    if (typeof val !== "number") return val;
+    if (Number.isFinite(val)) return Number(val.toPrecision(4));
     if (Number.isNaN(val)) return "NaN";
     return val > 0 ? "Infinity" : "-Infinity";
 }
