@@ -244,6 +244,11 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   `<clampNumber>` of nothing are `＿`. Only a computation on present inputs that has no value
   stays `NaN`.
 
+  **Why missing propagates:** a blank is almost never what the author intended, or, when it is,
+  it is a temporary state until a reader enters something. So a result computed from a blank
+  shows that a blank was involved, rather than hiding it behind a value. That is why the rule
+  holds whatever the other operands are: `0 × ＿` and `＿ or true` are `＿`, not `0` and `true`.
+
   **The type of the result decides, so a function is not a separate case.** A blank takes part
   in a math, which can hold it, and makes missing a number, which can't:
   - `<math>$nothing + 1</math>` is `＿ + 1`, and so is a symbolic function evaluated at a blank
