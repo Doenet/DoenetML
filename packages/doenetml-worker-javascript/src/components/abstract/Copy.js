@@ -2177,26 +2177,30 @@ export default class Copy extends CompositeComponent {
             ).map(() => [...inPlaceOfProp.propVariablesCopied]);
         }
         // A reference to a `<label>` (`$l`, `<label extend="$l"/>`, `<label
-        // copy="$l"/>`, and `$ti.label` made from the input's `<label>`
-        // child) shows the label again; it is not another label of the
-        // input the label is `for`, which would read the input's name twice.
-        // Like `name`, `for` says what the label is, not what it shows, so a
-        // reference does not take it. A `for` written on the extend or copy
-        // itself is kept. A `<label>` inside a larger copy keeps its `for`,
-        // which points into the copy when the input is copied with it.
-        const forWrittenOnReference =
-            args.component.attributes?.for !== undefined;
-        for (const replacement of results.serializedReplacements ?? []) {
-            if (
-                !forWrittenOnReference &&
-                typeof replacement === "object" &&
-                replacement.attributes?.for !== undefined &&
-                args.componentInfoObjects.componentIsSpecifiedType(
-                    replacement,
-                    "label",
-                )
-            ) {
-                delete replacement.attributes.for;
+        // copy="$l"/>`, `$r[1].l`, and `$ti.label` made from the input's
+        // `<label>` child) shows the label again; it is not another label of
+        // the input the label is `for`, which would read the input's name
+        // twice. Like `name`, `for` says what the label is, not what it
+        // shows, so a reference to the label does not take it. A `for`
+        // written on the extend or copy itself is kept. A label that is
+        // copied because it is in what the reference names (`$g` of a
+        // `<group>` holding it, `$r[1]` of an iteration) keeps its `for`, as
+        // a label inside a larger copy does.
+        if (
+            args.component.attributes?.for === undefined &&
+            (inPlaceOfProp || (await referenceNamesItsSource(args)))
+        ) {
+            for (const replacement of results.serializedReplacements ?? []) {
+                if (
+                    typeof replacement === "object" &&
+                    replacement.attributes?.for !== undefined &&
+                    args.componentInfoObjects.componentIsSpecifiedType(
+                        replacement,
+                        "label",
+                    )
+                ) {
+                    delete replacement.attributes.for;
+                }
             }
         }
         if (args.component.doenetAttributes.forList !== undefined) {
@@ -9768,4 +9772,30 @@ function deleteReplacedAttributes({
 export function clearReplacementCountsFrom(workspace, sourceNum) {
     workspace.numReplacementsBySource.fill(0, sourceNum);
     workspace.numNonStringReplacementsBySource.fill(0, sourceNum);
+}
+
+/**
+ * Whether the reference `component` names the component its replacement
+ * `sourceNum` is made from (`$l`, `$g.l`, `$r[1].l`), rather than copying it
+ * because it is among what the named component holds (`$g` of a `<group>`,
+ * `$r[1]` of an iteration, whose replacements are their children): the
+ * source is the component the reference resolved to (`extendIdx`), or the
+ * rest of its path, resolved at run time, ends in a name.
+ */
+async function referenceNamesItsSource({ component, sourceNum, heldCase }) {
+    if (heldCase) {
+        return false;
+    }
+    const source = (await component.stateValues.replacementSourceIdentities)[
+        sourceNum
+    ];
+    if (typeof source !== "object" || source === null) {
+        return false;
+    }
+    if (source.componentIdx === (await component.stateValues.extendIdx)) {
+        return true;
+    }
+    const path = await component.stateValues.unresolvedPath;
+    const last = path?.[path.length - 1];
+    return Boolean(last?.name) && (last.index?.length ?? 0) === 0;
 }

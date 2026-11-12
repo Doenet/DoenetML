@@ -2127,6 +2127,11 @@ describe("Label tag tests @group2", async () => {
 <label name="em" extend="$m" for="$ti4" /><textInput name="ti4" />
 <group name="g"><textInput name="ti3" /><label name="l3" for="$ti3">M</label></group>
 <group name="g2" copy="$g" />
+<p name="pg">$g</p>
+<group name="g3" extend="$g" />
+<p name="pgl">$g.l3</p>
+<repeat name="r" for="1 2" valueName="v"><textInput name="tr" /><label name="lr" for="$tr">R</label></repeat>
+<p name="prl">$r[1].lr</p>
             `);
 
             for (const name of ["p1", "p2", "p3"]) {
@@ -2173,6 +2178,33 @@ describe("Label tag tests @group2", async () => {
                     .forTargetInputComponentIdx,
             ).eq(await resolvePathToNodeIdx("ti4"));
 
+            // `$g` is `<group extend="$g"/>`: the label it holds keeps its
+            // `for` as the extend's does (REF-1), and only a reference that
+            // names the label itself drops it
+            const pgLabel = stateVariables[
+                await resolvePathToNodeIdx("pg")
+            ].activeChildren.find(
+                (child: any) =>
+                    stateVariables[child.componentIdx]?.componentType ===
+                    "label",
+            ) as any;
+            expect(
+                stateVariables[pgLabel.componentIdx].stateValues
+                    .forTargetInputComponentIdx,
+            ).eq(
+                stateVariables[await resolvePathToNodeIdx("g3.l3")].stateValues
+                    .forTargetInputComponentIdx,
+            );
+            expect(
+                stateVariables[pgLabel.componentIdx].stateValues
+                    .forTargetInputComponentIdx,
+            ).not.eq(null);
+            for (const name of ["pgl", "prl"]) {
+                const p = await inParagraph(name);
+                expect(p.componentType, name).eq("label");
+                expect(p.stateValues.forTargetInputComponentIdx, name).eq(null);
+            }
+
             // the label inside a copied group labels the copied input
             for (const group of ["g", "g2"]) {
                 expect(
@@ -2180,10 +2212,13 @@ describe("Label tag tests @group2", async () => {
                         .stateValues.forTargetInputComponentIdx,
                     group,
                 ).eq(await resolvePathToNodeIdx(`${group}.ti3`));
-                expect(await labelsOf(`${group}.ti3`), group).eqls([
-                    await resolvePathToNodeIdx(`${group}.l3`),
-                ]);
             }
+            // (`g.ti3` also lists the labels in `$g` and `g3`, which point to
+            // it: a label in an extended group labels the original input, a
+            // known gap on `main`)
+            expect(await labelsOf("g2.ti3")).eqls([
+                await resolvePathToNodeIdx("g2.l3"),
+            ]);
         });
 
         // `<label copy="$ti.label"/>` is an unlinked copy of the `<label>`
