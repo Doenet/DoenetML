@@ -591,7 +591,7 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  *
  * A reference a copy made at run time (`fixedReferent`) has its own
  * `valueMissing`, which is only whether its referent is a missing component
- * (`ValueRef.js`). The copy makes no reference for an entry that is not
+ * or, of a list entry, a blank entry (`ValueRef.js`). The copy makes no reference for an entry that is not
  * there (`Copy.js`), and a reference it made stands for the component it
  * made before value references, which held the empty value of its type once
  * its variable held no value (`$c.selectedValue` after the selected choice
@@ -613,6 +613,16 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                     value: true,
                 };
             }
+            // An entry of a list that is missing, a blank entry (D40),
+            // read entry by entry (`entryMissing2`).
+            if (referentInfo?.listEntryPosition !== undefined) {
+                dependencies.entryMissing = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: `entryMissing${referentInfo.listEntryPosition}`,
+                    variablesOptional: true,
+                };
+            }
             return dependencies;
         },
         definition({ dependencyValues }) {
@@ -620,6 +630,7 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                 setValue: {
                     [names.valueMissing]:
                         dependencyValues.target === undefined ||
+                        Boolean(dependencyValues.entryMissing) ||
                         (dependencyValues.nullIsMissing === true &&
                             dependencyValues.target === null) ||
                         Boolean(dependencyValues.targetInactive) ||

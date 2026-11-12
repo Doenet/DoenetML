@@ -279,6 +279,20 @@ is an index of `l`, and a reference to it, or a tag of it, follows it. Where the
 is `x ＿ y`, and `<boolean>$nothing = 1</boolean>{:dn}` is false. A `<p>{:dn}`
 or other container shows the blank inline.
 
+In a list, a missing entry is a blank entry: where `l` has fewer than five
+entries, `<mathList>$l[5] 2</mathList>{:dn}` holds two entries, `＿, 2`, and so
+does `<mathList>$nothing 2</mathList>{:dn}`. A reference to that entry, or a tag
+of it, is missing, and a list tag of an index that names nothing, such as
+`<numberList extend="$l[$i]"/>{:dn}` past the end of `l`, holds one blank entry
+(none if it is written with `removeEmptyArrayEntries`). A `copy` of a blank
+entry is missing for good, and one made before the entry was blank keeps the
+value it was made with. A blank entry takes no write, and is made from its
+reference again once that names something. A blank point is missing, not the
+`(0, 0)` of `<point/>{:dn}`: it isn't drawn in a graph, and a shape made from
+it, such as `<polygon vertices="(1,0) (0,0) $pl[3]"/>{:dn}` while `pl` has two
+points, or a `<function>{:dn}` through it, is missing too, until the point is
+there.
+
 Other errors, each with the form to write instead:
 
 * to use the text of a `<p>` or another container that has one, write `$p.text`;
@@ -296,8 +310,9 @@ a while, shown as `＿`, with an info, and none changes its type:
   missing until the value converts. So is one made from an input's value, such
   as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`, or
   from a property, such as `<point extend="$P.x"/>{:dn}`, which is never a
-  tuple. The selected value of a `<choiceInput>` is checked only when the tag
-  is made, not again as the selection changes.
+  tuple, or from an entry of a list, such as `<point extend="$l[1]"/>{:dn}`.
+  The selected value of a `<choiceInput>` is checked only when the tag is
+  made, not again as the selection changes.
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
   iterations of `r` is missing, and is made from the iteration again, with the
   tag's own children, when the index names one. The bare reference `$r[$i]`

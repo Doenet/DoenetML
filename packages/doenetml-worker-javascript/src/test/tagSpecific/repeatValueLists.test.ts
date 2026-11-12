@@ -131,7 +131,8 @@ describe("Repeats whose template is one value @group4", () => {
             names: ["p", "pn"],
         });
         // A number that is only an entry past the end is missing (D40), which
-        // an entry of a list can't be yet, so the repeat stays a composite.
+        // an entry of `_repeatValueList` can't be, so the repeat stays a
+        // composite.
         const texts = await compare({
             doenetML: `
 <numberList name="l">10 20</numberList>

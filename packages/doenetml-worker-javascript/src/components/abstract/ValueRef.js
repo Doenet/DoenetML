@@ -729,6 +729,7 @@ export default class ValueRef extends BaseComponent {
                         ownAttribute: false,
                         sourceDependency:
                             referentContextDependency(stateVariable),
+                        listEntrySourceOf: referentListEntrySource,
                         stateVariablesDeterminingDependencies: this
                             .fixedReferent
                             ? undefined
@@ -929,6 +930,33 @@ function referentContextDependency(attributeName) {
 }
 
 /**
+ * The entry of a list a reference to one entry reads `fixed` and
+ * `fixLocation` of the entry's source from, given its `referentInfo` (or the
+ * referent a copy fixed): the list's arrays holding them for each entry
+ * (`listEntryContextArrays`), so that `$c[1]` of a `<collect>` is fixed when
+ * the component it collected is (#2239). None for a reference to a list
+ * that holds no such arrays, or to something else.
+ */
+function referentListEntrySource(component, stateValues) {
+    const referentInfo = component.fixedReferent ?? stateValues.referentInfo;
+    if (referentInfo?.listEntryPosition === undefined) {
+        return undefined;
+    }
+    const variables =
+        component.componentInfoObjects.allComponentClasses[
+            referentInfo.componentType
+        ]?.listEntryContextArrays;
+    if (!variables) {
+        return undefined;
+    }
+    return {
+        componentIdx: referentInfo.componentIdx,
+        index: referentInfo.listEntryPosition - 1,
+        variables,
+    };
+}
+
+/**
  * The actions by which the renderer of a type reports a click or a focus,
  * which a drawn reference that stands for a copy of its referent passes on
  * to the referent (`_performOnReferent`).
@@ -1092,8 +1120,9 @@ function componentTypeAsResponseDefinition(
  * The definition of `valueMissing` of a reference a copy made at run time
  * (`fixedReferent`): whether its referent is a missing component (D37,
  * `BaseComponent.isMissing`), as `$r[1].n.value` of an iteration whose `n`
- * is missing. Its other ways of having nothing to read are the copy's,
- * which makes no reference for an entry that is not there.
+ * is missing, or, of an entry of a list, whether the entry is a blank entry
+ * (D40). Its other ways of having nothing to read are the copy's, which
+ * makes no reference for an entry that is not there.
  */
 function fixedReferentMissingDefinition(fixedReferent) {
     return {
@@ -1104,11 +1133,26 @@ function fixedReferentMissingDefinition(fixedReferent) {
                 variableName: "valueMissing",
                 variablesOptional: true,
             },
+            // A blank entry of a list (D40), which the copy does make a
+            // reference for: `$r[1].a[1]` of `<numberList name="a">$l[5]
+            // 2</numberList>`.
+            ...(fixedReferent.listEntryPosition === undefined
+                ? {}
+                : {
+                      entryMissing: {
+                          dependencyType: "stateVariable",
+                          componentIdx: fixedReferent.componentIdx,
+                          variableName: `entryMissing${fixedReferent.listEntryPosition}`,
+                          variablesOptional: true,
+                      },
+                  }),
         }),
         definition({ dependencyValues }) {
             return {
                 setValue: {
-                    valueMissing: Boolean(dependencyValues.targetMissing),
+                    valueMissing:
+                        Boolean(dependencyValues.targetMissing) ||
+                        Boolean(dependencyValues.entryMissing),
                 },
             };
         },

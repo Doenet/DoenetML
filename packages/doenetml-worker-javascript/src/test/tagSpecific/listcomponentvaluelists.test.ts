@@ -1551,7 +1551,7 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
-    it("a reference past the end of a list adds no value", async () => {
+    it("a reference past the end of a list is a blank entry (D40)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <numberList name="l" maxNumber="$max">1 2 3</numberList>
@@ -1568,9 +1568,9 @@ describe("Value lists as list components @group4", async () => {
 
         const names = ["p1", "p2", "p3"];
         expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
-            p1: "7, 9 2",
-            p2: "x c",
-            p3: "5, 2",
+            p1: "7, ＿, 9 3",
+            p2: "＿, x, ＿ ＿, c",
+            p3: "＿, 5, 2",
         });
 
         await updateMathInputValue({
@@ -1588,7 +1588,7 @@ describe("Value lists as list components @group4", async () => {
             core,
         });
         expect(await textsOf(core, resolvePathToNodeIdx, ["p1"])).eqls({
-            p1: "7, 9 2",
+            p1: "7, ＿, 9 3",
         });
 
         await updateMathInputValue({
@@ -1601,7 +1601,7 @@ describe("Value lists as list components @group4", async () => {
         });
     });
 
-    it("a reference with nothing to read adds no value", async () => {
+    it("a reference with nothing to read is a blank entry, which takes no write (D40)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <repeatForSequence name="r" length="2" valueName="v"><number name="x">10$v</number></repeatForSequence>
@@ -1612,8 +1612,8 @@ describe("Value lists as list components @group4", async () => {
         });
 
         expect(await textsOf(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls({
-            p1: "0, 9 2",
-            p2: "0, y a, b",
+            p1: "0, ＿, 9 3",
+            p2: "0, ＿, y a, ＿, b",
         });
 
         await updateMathInputValue({
@@ -1622,7 +1622,7 @@ describe("Value lists as list components @group4", async () => {
             core,
         });
         expect(await textsOf(core, resolvePathToNodeIdx, ["p1"])).eqls({
-            p1: "0, 8 2",
+            p1: "0, ＿, 9 3",
         });
     });
 

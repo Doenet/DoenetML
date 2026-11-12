@@ -47,6 +47,7 @@ function contextAttributeDependencies({
     attributeName,
     source,
     ownAttribute,
+    listEntrySource,
 }) {
     const dependencies = {
         parent: {
@@ -61,7 +62,12 @@ function contextAttributeDependencies({
             dependencyType: "adapterSourceStateVariable",
             variableName: attributeName,
         },
-        ...listEntrySourceDependencies(component, attributeName),
+        ...listEntrySourceDependencies(
+            listEntrySource
+                ? { doenetAttributes: { listEntrySource } }
+                : component,
+            attributeName,
+        ),
     };
     if (ownAttribute) {
         dependencies.own = {
@@ -171,13 +177,17 @@ function contextAttributeValue({ dependencyValues, usedDefault }) {
  * `sourceDependency(component, stateValues)`, when given, returns the
  * dependency on what the component is a reference to (`null` for none), in
  * place of its shadow source, from the variables in
- * `stateVariablesDeterminingDependencies`. Without `ownAttribute`, the
- * component has no attribute for it.
+ * `stateVariablesDeterminingDependencies`. `listEntrySourceOf(component,
+ * stateValues)`, when given, returns the list entry the component reads the
+ * variable of the entry's source from (`listEntrySource`), in place of the
+ * one recorded on the component. Without `ownAttribute`, the component has
+ * no attribute for it.
  */
 export function contextAttributeDefinition({
     attributeName,
     base,
     sourceDependency,
+    listEntrySourceOf,
     stateVariablesDeterminingDependencies,
     ownAttribute = true,
 }) {
@@ -189,6 +199,10 @@ export function contextAttributeDefinition({
                 attributeName,
                 source: sourceDependency?.(this.svComponent, stateValues),
                 ownAttribute,
+                listEntrySource: listEntrySourceOf?.(
+                    this.svComponent,
+                    stateValues,
+                ),
             });
         },
         definition({ dependencyValues, usedDefault }) {
@@ -282,7 +296,8 @@ export function addContextAttributeDefinitions({
 /**
  * What `component` shadows, when it is a reference or a component inside one
  * (a shadow, not of a prop), or the list it names, when it is a list made by
- * an `extend` of a list (`extendsList`), or the unlinked copy of the list it
+ * an `extend` of a list (`extendsList`, or, through a path resolved only at
+ * run time, what its `_copy` names), or the unlinked copy of the list it
  * names, when it is a list made by a `copy` of a list (`copyListViaComposite`),
  * or the composite it names, when that copy copied the composite's
  * replacements, so that a copy of it, pasted as the DoenetML it is linked
@@ -298,6 +313,22 @@ export async function pastedShadowSource(component, components) {
         const listIdx = component?.doenetAttributes?.extendsList;
         if (listIdx !== undefined) {
             return components?.[listIdx];
+        }
+        // or, through a path not resolved when the extend was planned
+        // (`$r[1].ml`), the list its `_copy` names now (#2244)
+        const extendComposite =
+            components?.[component?.doenetAttributes?.extendListViaComposite];
+        if (extendComposite) {
+            const extendIdx = await extendComposite.stateValues.extendIdx;
+            const unresolvedPath =
+                await extendComposite.stateValues.unresolvedPath;
+            const named =
+                typeof extendIdx === "number" && !(unresolvedPath?.length > 0)
+                    ? components[extendIdx]
+                    : undefined;
+            return named?.constructor.listEntryComponentType === undefined
+                ? undefined
+                : named;
         }
         // a list made by a `copy` of a list stands for the unlinked copy of
         // that list its `_copy` makes, which has the list's attributes as
@@ -373,9 +404,10 @@ async function writtenAttributeComponent(component, attributeName, components) {
  * fixes its entries, or else the one written on the entry's source (`<point
  * fixed="$b">` in a `<pointList>` or found by a `<collect>`, or, for an entry
  * of a list among the list's children, `<pointList>$pl</pointList>`, that
- * list's entry). Only a list of points or vectors records its entries'
- * sources (`entryChildren`); for another list, as a `<mathList>`, it is only
- * the one written on the list, as for a reference to the entry.
+ * list's entry). A list of points or vectors records its entries' sources
+ * as `entryChildren`; another list whose entries are placed as the
+ * components they come from, as a `<mathList>` or a `<collect>` of maths,
+ * as `entryGraphSources` (#2239).
  */
 export async function writtenEntryAttributeComponent({
     list,
@@ -388,8 +420,24 @@ export async function writtenEntryAttributeComponent({
         attributeName,
         components,
     );
-    if (fromList || !list?.state?.entryChildren) {
+    if (fromList) {
         return fromList;
+    }
+    if (!list?.state?.entryChildren) {
+        // a list whose entries are placed as the components they come from
+        // (`entryGraphSources`), a `<mathList>` or a `<collect>` of maths:
+        // the one entry `index` comes from (#2239)
+        if (!list?.state?.entryGraphSources) {
+            return fromList;
+        }
+        const sourceIdx = (await list.stateValues.entryGraphSources)[index];
+        return typeof sourceIdx === "number"
+            ? writtenAttributeComponent(
+                  components?.[sourceIdx],
+                  attributeName,
+                  components,
+              )
+            : fromList;
     }
     const entrySource = (await list.stateValues.entryChildren)[index];
     const source = components?.[entrySource?.componentIdx];

@@ -14,6 +14,8 @@ export default class FunctionOperator extends Function {
     // (D37), so it is not missing for one
     // (`BaseComponent.missingWhenContentMissing`).
     static missingWhenContentMissing = false;
+    // It is not made through points.
+    static missingWhenEntriesMissing = [];
 
     static returnSugarInstructions() {
         let sugarInstructions = [];

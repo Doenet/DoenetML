@@ -25,6 +25,7 @@ import {
     stateIdSegmentForCopyOf,
 } from "../../utils/componentIndices";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
+import { describeReferentVariable } from "../../utils/referentDescription";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
 import { typeChangeAtLoadDiagnostic } from "../../utils/dast/typeChangeAtLoad";
@@ -4487,8 +4488,13 @@ export async function replacementFromProp({
                                 classOfComponentToCreate.createAttributesObject();
 
                             let additionalAttributes = {};
+                            // the value of each one not pasted, a default
+                            const defaultAttributeValues = {};
+                            // the attributes that may be pasted, in order
+                            const attributeSlots = [];
                             for (let attrName in attributeComponentsShadowingStateVariables) {
                                 if (attrObj[attrName]?.createComponentOfType) {
+                                    attributeSlots.push(attrName);
                                     let vName =
                                         attributeComponentsShadowingStateVariables[
                                             attrName
@@ -4538,20 +4544,59 @@ export async function replacementFromProp({
                                     if (!usedDefault || attrName === "hide") {
                                         additionalAttributes[attrName] =
                                             attributeValue;
+                                    } else {
+                                        defaultAttributeValues[attrName] =
+                                            attributeValue;
                                     }
                                 }
                             }
 
-                            const res = convertAttributeValuesForComponentType({
-                                attributeValues: additionalAttributes,
-                                componentType: createComponentOfType,
-                                componentInfoObjects,
-                                nComponents,
-                                stateIdInfo,
-                            });
-
-                            const attributesFromComponent = res.attributes;
-                            nComponents = res.nComponents;
+                            // Each attribute that may be pasted has its own
+                            // `stateId`, whether or not it is, so the copy's
+                            // `stateId`s are the same however many are: an
+                            // entry's `styleNumber` is not pasted while the
+                            // entry is blank (D40), and a copy made again on
+                            // reload must have the `stateId`s it was made
+                            // with for its snapshot to apply
+                            // (`applyCopySnapshot`). Each is one component.
+                            // One not pasted now that the copy was made with
+                            // (a held snapshot has its `stateId`) is pasted
+                            // anyway, to take the value it was made with.
+                            const heldStateIds =
+                                await heldCopyStateIds(component);
+                            const attributesFromComponent = {};
+                            for (const attrName of attributeSlots) {
+                                const slot = {
+                                    prefix: stateIdInfo.prefix,
+                                    num: stateIdInfo.num++,
+                                };
+                                const value =
+                                    attrName in additionalAttributes
+                                        ? additionalAttributes[attrName]
+                                        : heldStateIds.has(
+                                                `${slot.prefix}${slot.num}`,
+                                            )
+                                          ? defaultAttributeValues[attrName]
+                                          : undefined;
+                                if (value === undefined) {
+                                    continue;
+                                }
+                                const res =
+                                    convertAttributeValuesForComponentType({
+                                        attributeValues: {
+                                            [attrName]: value,
+                                        },
+                                        componentType: createComponentOfType,
+                                        componentInfoObjects,
+                                        nComponents,
+                                        stateIdInfo: slot,
+                                    });
+                                Object.assign(
+                                    attributesFromComponent,
+                                    res.attributes,
+                                );
+                                nComponents = res.nComponents;
+                            }
 
                             if (
                                 stateVarObj.shadowingInstructions
@@ -6049,6 +6094,19 @@ function propOfTypeChange(stateValues) {
  * array, or that is not described.
  */
 function propComponentType({ source, propName }, componentInfoObjects) {
+    // An entry of a list (`math1` of a `<mathList>`, from `$l[1]`) is of the
+    // type of its entries, so that `<point extend="$l[1]"/>` is decided
+    // again as the entry's value changes (#2521).
+    const sourceClass =
+        componentInfoObjects.allComponentClasses[source.componentType];
+    if (
+        sourceClass?.listEntryComponentType !== undefined &&
+        new RegExp(`^${sourceClass.listValuesEntryPrefix}[1-9]\\d*$`).test(
+            propName,
+        )
+    ) {
+        return sourceClass.listEntryComponentType;
+    }
     const info =
         componentInfoObjects.publicStateVariableInfo[source.componentType];
     if (!info) {
@@ -6979,25 +7037,49 @@ function inPlaceOfCopy({
 }
 
 /**
+ * The `stateId`s of the components a save holds a snapshot of for the
+ * unlinked copy `component` (`heldCopySnapshot`), or none for a linked one
+ * or one with no snapshot held.
+ */
+async function heldCopyStateIds(component) {
+    if ((await component.stateValues.link) !== false) {
+        return new Set();
+    }
+    const held = readHeldCopySnapshot(
+        component.coreFunctions.savedCopySnapshot?.(component.stateId),
+    );
+    return new Set((held?.snapshot ?? []).map((entry) => entry.stateId));
+}
+
+/**
  * Whether the copy `component` is a bare reference (not written as a tag,
  * with no type it must make) to one thing (D37, rule 1;
  * `referenceNamesOneThing`). Such a reference that makes nothing is a blank
  * (`missingReplacement`). A parent that needs every composite to make
  * something (`compositesMustHaveAReplacement`, a `<math>` or a `<text>`)
  * gets its missing blank of the type it needs instead
- * (`verifyReplacementsMatchSpecifiedType`).
+ * (`verifyReplacementsMatchSpecifiedType`). So does the copy that fills a
+ * list tag (`forList`), whose list then holds one blank entry, unless the
+ * tag asks to remove empty entries (`removeEmptyArrayEntries`).
  */
 async function isBareReferenceToOneThing(
     component,
     components,
     { withheld = false } = {},
 ) {
+    const forList = component.doenetAttributes?.forList !== undefined;
     if (
         component.componentType !== "_copy" ||
-        component.attributes._createComponentOfType?.primitive ||
-        component.sharedParameters.compositesMustHaveAReplacement ||
-        component.doenetAttributes?.forList !== undefined
+        (component.attributes._createComponentOfType?.primitive && !forList) ||
+        component.sharedParameters.compositesMustHaveAReplacement
     ) {
+        return false;
+    }
+    // A list tag written with `removeEmptyArrayEntries` holds no blank entry
+    // for what names nothing, as it holds none for an empty entry (D40):
+    // `<pointList extend="$s.pointsInCellB3" removeEmptyArrayEntries/>` of a
+    // cell that holds no point is empty.
+    if (forList && (await component.stateValues.removeEmptyArrayEntries)) {
         return false;
     }
     return await referenceNamesOneThing(component, components, { withheld });
@@ -7165,6 +7247,30 @@ function missingInPlaceOfReplacements({
 }
 
 /**
+ * The position of the entry of the list `source` that a copy made its one
+ * replacement from (`workspace.propVariablesCopiedBySource`), as
+ * `number1` for `copy="$a[1]"` or `__listEntry_x1_2` for
+ * `copy="$pl[2].x"`, when `source` is a list whose entries can be blank
+ * entries (`entriesMissing`, D40); otherwise `undefined`.
+ */
+function listEntryPositionCopied(source, workspace) {
+    if (!source?.state.entriesMissing) {
+        return undefined;
+    }
+    const copied = workspace.propVariablesCopiedBySource;
+    if (
+        workspace.sourceIndices?.length !== 1 ||
+        workspace.sourceIndices[0] !== source.componentIdx ||
+        copied?.length !== 1 ||
+        copied[0]?.length !== 1 ||
+        copied[0][0]?.length !== 1
+    ) {
+        return undefined;
+    }
+    return describeReferentVariable(source, copied[0][0][0])?.listEntryPosition;
+}
+
+/**
  * Make the replacements of the copy `component`, written as a tag, the
  * missing tag (`missingOfWrittenType`) when what it names is itself missing
  * (`BaseComponent.isMissing`): a property of a missing component is missing
@@ -7202,18 +7308,33 @@ async function missingSourceInPlace({
     // stays as it was made. A reload makes it as it was made
     // (`madeFrom.madeMissing`, `heldCopySnapshot`). A linked one is missing
     // while its source is (`missingWhileSourceMissing`, D40).
+    // So is one of an entry of a list made while the entry is a blank entry
+    // (D40): `<number copy="$a[1]"/>`, `<math copy="$pl[2].x"/>`
+    // (`listEntryPositionCopied`); a linked one is missing while the entry is
+    // (`missingWhileListEntryMissing`).
     let missingWhenCopied = false;
+    const unlinkedAtCreation =
+        atCreation && (await component.stateValues.link) === false;
+    const listEntryPosition =
+        unlinkedAtCreation && !source?.canBecomeMissing
+            ? listEntryPositionCopied(source, workspace)
+            : undefined;
     if (
-        atCreation &&
-        source?.canBecomeMissing &&
-        (await component.stateValues.link) === false
+        unlinkedAtCreation &&
+        (source?.canBecomeMissing || listEntryPosition !== undefined)
     ) {
         const held = readHeldCopySnapshot(
             component.coreFunctions.savedCopySnapshot?.(component.stateId),
         );
         missingWhenCopied = held
             ? Boolean(held.madeFrom.madeMissing)
-            : Boolean(await source.stateValues.valueMissing);
+            : listEntryPosition === undefined
+              ? Boolean(await source.stateValues.valueMissing)
+              : Boolean(
+                    (await source.stateValues.entriesMissing)[
+                        listEntryPosition - 1
+                    ],
+                );
         if (missingWhenCopied && workspace.madeFrom) {
             workspace.madeFrom.madeMissing = true;
         }
@@ -9347,9 +9468,23 @@ function listEntrySourceDoenetAttributes({
     arrayKey,
     target,
 }) {
-    const variables =
+    let variables =
         arrayStateVarObj.shadowingInstructions.listEntrySourceVariables;
-    const index = arrayStateVarObj.keyToIndex(arrayKey);
+    let index = arrayStateVarObj.keyToIndex(arrayKey);
+    if (!variables) {
+        // Otherwise, of an entry of a list or a property of one, `fixed` and
+        // `fixLocation` of the entry's source (`listEntryContextArrays`,
+        // #2239): `<math extend="$c[1]"/>` of a `<collect>`, and `<math
+        // extend="$pl[1].x"/>`, are fixed when the entry's source is.
+        variables = target.constructor.listEntryContextArrays;
+        const position = variables
+            ? describeReferentVariable(
+                  target,
+                  arrayStateVarObj.arrayVarNameFromArrayKey(arrayKey),
+              )?.listEntryPosition
+            : undefined;
+        index = position === undefined ? undefined : position - 1;
+    }
     if (!variables || !Number.isInteger(index)) {
         return {};
     }
@@ -9381,8 +9516,16 @@ async function listEntrySourceSnapshot({
 }) {
     const children = [];
     const state = {};
+    // Of another list, `fixed` and `fixLocation` of the entry's source
+    // (`listEntryContextArrays`, #2239), read from its values: `<math
+    // extend="$c[1]"/>` of a `<collect>` is fixed when the math it collected
+    // is.
     const variables =
-        arrayStateVarObj.shadowingInstructions.listEntrySourceVariables;
+        arrayStateVarObj.shadowingInstructions.listEntrySourceVariables ??
+        (target.state?.[target.constructor.listValuesArrayName] ===
+        arrayStateVarObj
+            ? target.constructor.listEntryContextArrays
+            : undefined);
     const index = arrayStateVarObj.keyToIndex(arrayKey);
     if (!variables || !Number.isInteger(index)) {
         return { children, state, nComponents };

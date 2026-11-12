@@ -2458,18 +2458,16 @@ describe("Curve Tag Bezier Tests @group3", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pV")].stateValues.text,
-        ).eq("");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pP")].stateValues.text,
-        ).eq("");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pVb")].stateValues.text,
-        ).eq("");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pPb")].stateValues.text,
-        ).eq("");
+        // A list tag of an index that names nothing (`m` and `n` are blank)
+        // holds one blank entry (D40), as an index names one thing or
+        // nothing, even where it would name a row.
+        for (const name of ["pV", "pP", "pVb", "pPb"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+                name,
+            ).eq("＿");
+        }
 
         for (let m = 1; m <= 5; m++) {
             await updateMathInputValue({

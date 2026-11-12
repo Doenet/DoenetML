@@ -154,7 +154,12 @@ export default class BaseComponent {
             this.state.valueMissing = missingDefinition();
         } else if (this.doenetAttributes.missingWhileEntryEmpty) {
             this.state.valueMissing = missingWhileEntryEmptyDefinition();
-        } else if (this.doenetAttributes.missingWhileSourceMissing) {
+        } else if (
+            this.doenetAttributes.missingWhileSourceMissing ||
+            this.doenetAttributes.missingWhileListEntryMissing
+        ) {
+            // A linked copy of one missing while what it shadows is missing
+            // shadows it instead, as a whole.
             this.state.valueMissing = missingWhileSourceMissingDefinition();
         } else if (this.doenetAttributes.missingWhileAdaptedMissing) {
             this.state.valueMissing = missingWhileAdaptedMissingDefinition();
@@ -322,7 +327,9 @@ export default class BaseComponent {
      * entry that is missing while the entry holds no value
      * (`doenetAttributes.missingWhileEntryEmpty`), and one that shadows a
      * property of a component that can be missing
-     * (`doenetAttributes.missingWhileSourceMissing`) or adapts one
+     * (`doenetAttributes.missingWhileSourceMissing`), or an entry of a list
+     * that can be a blank entry
+     * (`doenetAttributes.missingWhileListEntryMissing`), or adapts one
      * (`doenetAttributes.missingWhileAdaptedMissing`). A missing component
      * (`isMissing`) is missing for as long as it exists.
      */
@@ -330,10 +337,12 @@ export default class BaseComponent {
         return (
             !this.isMissing &&
             (this.constructor.missingWhenContentMissing ||
+                this.constructor.missingWhenEntriesMissing.length > 0 ||
                 Boolean(
                     this.doenetAttributes.missingWhenContentMissing ||
                     this.doenetAttributes.missingWhileEntryEmpty ||
                     this.doenetAttributes.missingWhileSourceMissing ||
+                    this.doenetAttributes.missingWhileListEntryMissing ||
                     this.doenetAttributes.missingWhileAdaptedMissing,
                 ))
         );
@@ -349,6 +358,16 @@ export default class BaseComponent {
      * `＿ + 1`), nor on a container (`<p>`), which shows the blank inline.
      */
     static missingWhenContentMissing = false;
+
+    /**
+     * The attributes giving a shape its points (`vertices`, `through`,
+     * `endpoints`, each a `pointList`) whose missing entry makes it missing
+     * (D40, VAL-5): `<polygon vertices="(1,0) (0,0) $pl[3]"/>` while `pl` has
+     * two points is a missing polygon, not drawn, rather than one with a
+     * vertex at the origin, and is made from its points again when the
+     * entry is there (`missingWhenContentMissingDefinitions`).
+     */
+    static missingWhenEntriesMissing = [];
 
     /**
      * Whether this component is missing (D37): a tag whose source is
@@ -1194,10 +1213,16 @@ export default class BaseComponent {
             },
         };
 
-        if (this.missingWhenContentMissing) {
+        if (
+            this.missingWhenContentMissing ||
+            this.missingWhenEntriesMissing.length > 0
+        ) {
             Object.assign(
                 stateVariableDefinitions,
-                missingWhenContentMissingDefinitions(),
+                missingWhenContentMissingDefinitions({
+                    contentMissing: this.missingWhenContentMissing,
+                    entriesAttributes: this.missingWhenEntriesMissing,
+                }),
             );
         }
 
@@ -2071,13 +2096,16 @@ export default class BaseComponent {
         if (
             parameters.copyAll &&
             (this.doenetAttributes.missingWhileEntryEmpty ||
-                this.doenetAttributes.missingWhileSourceMissing)
+                this.doenetAttributes.missingWhileSourceMissing ||
+                this.doenetAttributes.missingWhileListEntryMissing)
         ) {
             // An unlinked copy follows neither the entry nor the source, so
             // it is missing if this is now, and for good (D37).
             delete serializedComponent.doenetAttributes.missingWhileEntryEmpty;
             delete serializedComponent.doenetAttributes
                 .missingWhileSourceMissing;
+            delete serializedComponent.doenetAttributes
+                .missingWhileListEntryMissing;
             if (await this.stateValues.valueMissing) {
                 serializedComponent.doenetAttributes.missing = true;
             }

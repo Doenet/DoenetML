@@ -18,6 +18,7 @@ import { levelFromSource } from "../utils/decidedByDoenetML";
 
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
+    static missingWhenEntriesMissing = ["through"];
     static styleOverrideCategories = ["fill"];
 
     static componentDocs = {

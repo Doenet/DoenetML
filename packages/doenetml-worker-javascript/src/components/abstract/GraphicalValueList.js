@@ -108,6 +108,16 @@ export default class GraphicalValueList extends AuthoredValueList {
         };
     }
 
+    /**
+     * The arrays of the list holding `fixed` and `fixLocation` of each
+     * entry's source, which a reference to one entry or to a property of one
+     * (`$c[1]`, `$pl[1].x`) reads (#2239).
+     */
+    static get listEntryContextArrays() {
+        const { fixed, fixLocation } = this.listEntrySourceVariables;
+        return { fixed, fixLocation };
+    }
+
     // How an entry of a list of graphical objects is drawn when it is not
     // an authored child, as a point or vector with no attributes is.
     static get listEntryRendererDefaults() {
@@ -657,6 +667,12 @@ export default class GraphicalValueList extends AuthoredValueList {
                     },
                 }),
             };
+            if (name === "label") {
+                Object.assign(
+                    stateVariableDefinitions[entryName],
+                    entryLabelWrites(entryName),
+                );
+            }
         }
 
         // Each description of an entry's style, as a point or vector
@@ -942,6 +958,67 @@ export function graphicalEntryValuesDefinition({ listClass, baseValues }) {
 
 /** `rendererVariables` of each list class, made once per class. */
 const rendererVariablesOfListClass = new WeakMap();
+
+/**
+ * What makes the list's `entryLabel` (`entryName`) take a write: a write to
+ * an entry's label (`<textInput bindValueTo="$c[1].label"/>`, of a
+ * `<collect>` or a `<pointList>`) goes to the label of the component the
+ * entry comes from (`entryChildren`), as one to `$P.label` does, or, for an
+ * entry of a list among the sources, to that list's entry (#2521). An entry
+ * from no component takes none.
+ */
+function entryLabelWrites(entryName) {
+    return {
+        stateVariablesDeterminingDependencies: ["entryChildren"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                entryChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryChildren",
+                },
+                listValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "label",
+                },
+            };
+            for (const [ind, child] of (
+                stateValues.entryChildren ?? []
+            ).entries()) {
+                if (typeof child?.componentIdx === "number") {
+                    dependencies[`source${ind}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: child.componentIdx,
+                        variableName: Number.isInteger(child.listEntryIndex)
+                            ? entryName
+                            : "label",
+                        variablesOptional: true,
+                    };
+                }
+            }
+            return dependencies;
+        },
+        inverseDefinition({ desiredStateVariableValues, dependencyValues }) {
+            const desired = desiredStateVariableValues[entryName];
+            const instructions = [];
+            for (const key in desired) {
+                const ind = Number(key);
+                const child = dependencyValues.entryChildren[ind];
+                if (!(`source${ind}` in dependencyValues) || !child) {
+                    continue;
+                }
+                instructions.push({
+                    setDependency: `source${ind}`,
+                    desiredValue: Number.isInteger(child.listEntryIndex)
+                        ? { [child.listEntryIndex]: desired[key] }
+                        : desired[key],
+                });
+            }
+            return instructions.length > 0
+                ? { success: true, instructions }
+                : { success: false };
+        },
+    };
+}
 
 /** The array of a list holding variable `name` of each entry's renderer. */
 export function entryVariableName(name) {

@@ -1699,7 +1699,9 @@ describe("Angle tag tests @group4", async () => {
   `,
         });
 
-        async function check_items(ra: number, rb: number) {
+        // `rb` of `null`: `B`, `C` and `D` are missing, as `$pts[3]` names
+        // no point (D40), not an angle with a point at the origin
+        async function check_items(ra: number, rb: number | null) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -1711,11 +1713,18 @@ describe("Angle tag tests @group4", async () => {
                 ["C", rb],
                 ["D", rb],
             ] as const) {
-                expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx(name)
-                    ].stateValues.radians.evaluate_to_constant(),
-                ).closeTo(radians, 1e-12);
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect(Boolean(stateValues.valueMissing), name).eq(
+                    radians === null,
+                );
+                if (radians !== null) {
+                    expect(
+                        stateValues.radians.evaluate_to_constant(),
+                        name,
+                    ).closeTo(radians, 1e-12);
+                }
             }
         }
 
@@ -1728,7 +1737,7 @@ describe("Angle tag tests @group4", async () => {
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        await check_items(Math.PI / 2, Math.PI / 2);
+        await check_items(Math.PI / 2, null);
 
         await updateMathInputValue({
             latex: "3",

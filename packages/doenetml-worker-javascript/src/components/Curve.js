@@ -15,6 +15,7 @@ import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { evaluateToNumber, toNumberOrNaN } from "../utils/math";
 
 export default class Curve extends GraphicalComponent {
+    static missingWhenEntriesMissing = ["through"];
     constructor(args) {
         super(args);
 

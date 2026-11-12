@@ -167,6 +167,12 @@ export default class Function extends InlineComponent {
     // `BaseComponent.missingWhenContentMissing`)
     static missingWhenContentMissing = true;
 
+    // and while a point it is made through is missing, as a shape is
+    // (D40): `<function through="(1,2) $Q"/>` with no `Q` is missing,
+    // rather than interpolating through the origin
+    // (`BaseComponent.missingWhenEntriesMissing`)
+    static missingWhenEntriesMissing = ["through"];
+
     static componentDocs = {
         summary: "A mathematical function, defined by formula or interpolation",
     };
