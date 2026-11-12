@@ -928,6 +928,8 @@ The `v07-to-v08` converter, still to come, renames existing `copy` to `copyWithS
 copies of a URI, copies of a module, and copies that change what is chosen (#2457).
 
 **Known violations:**
+- a copied `<award>` in an `<answer>` gets an extra, visible `<mathInput>` from the answer's sugar,
+  which the written-out award doesn't, because the sugar sees an award with no children (#2531);
 - a `copyWithState` doesn't carry a sampler's draws, and they aren't kept through a reload; and
   a module attribute reaching a nested choice through a list other than `<numberList>` isn't
   kept, with no `w0186` (#2477);
