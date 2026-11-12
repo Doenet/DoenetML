@@ -307,8 +307,9 @@ a while, shown as `＿`, with an info, and none changes its type:
   missing until the value converts. So is one made from an input's value, such
   as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`, or
   from a property, such as `<point extend="$P.x"/>{:dn}`, which is never a
-  tuple, or from an entry of a list, such as `<point extend="$l[1]"/>{:dn}`. The selected value of a `<choiceInput>` is checked only when the tag
-  is made, not again as the selection changes.
+  tuple, or from an entry of a list, such as `<point extend="$l[1]"/>{:dn}`.
+  The selected value of a `<choiceInput>` is checked only when the tag is
+  made, not again as the selection changes.
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the
   iterations of `r` is missing, and is made from the iteration again, with the
   tag's own children, when the index names one. The bare reference `$r[$i]`

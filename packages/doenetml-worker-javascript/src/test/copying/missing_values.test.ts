@@ -1067,6 +1067,54 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         await check(true);
     });
 
+    it("makes a blank entry of a list of vectors missing and not drawn", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vectorList name="vs">(1,2) (3,4)</vectorList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g">
+      <vectorList name="vl">(1,2) $vs[$i]</vectorList>
+      <vector name="v" extend="$vl[2]"/>
+    </graph>
+    <p name="p">[$vl][$vl[2]][$v]</p>
+    `,
+        });
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("vl")).entriesMissing).eqls([false, missing]);
+            expect((await sv("v")).valueMissing).eq(missing);
+            expect((await sv("p")).text).eq(
+                missing
+                    ? "[(1, 2), ＿][＿][＿]"
+                    : "[(1, 2), (3, 4)][(3, 4)][(3, 4)]",
+            );
+            const blank = missing ? "_blank" : undefined;
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                ["vector", blank ?? "vector", blank ?? "vector"],
+            );
+        }
+        await check(true);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(false);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(true);
+    });
+
     it("makes a function through, or a best-fit line of, a missing point missing, not made through the origin", async () => {
         // A blank point among a function's `through` or a best-fit line's
         // `data` is missing, as it is among a shape's points (D40, VAL-5),
