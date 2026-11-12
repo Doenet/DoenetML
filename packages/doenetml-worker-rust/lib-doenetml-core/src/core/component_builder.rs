@@ -97,9 +97,9 @@ impl ComponentBuilder {
     fn init_from_normalized_root(&mut self, dast: &NormalizedRoot) {
         self.init_normalized_root_without_extending(dast);
 
-        for idx in 0..self.components.len() {
+        for (idx, node) in dast.nodes.iter().enumerate().take(self.components.len()) {
             let component_idx = ComponentIdx::new(idx);
-            let elm = match &dast.nodes[idx] {
+            let elm = match node {
                 NormalizedNode::Element(elm) => elm,
                 _ => continue,
             };
