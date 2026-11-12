@@ -2621,3 +2621,20 @@ answer or choice input gets **no** warning: defining one in a `<setup>` and copy
 several is a supported use, and nothing else is required to be in a `<setup>`. A bare `$aw` or
 `$c` stays the value (whether awarded or submitted, REF-1a). `<answer extend>` is unchanged: two
 answers sharing state is coherent (REF-9; `answer.test.ts:5685`).
+
+## D43. A reference inside an extend to something inside it means the extend's counterpart (decided, Tier 1; revises REF-6)
+
+**Decided** (November 2026). REF-6 states it.
+
+An extend kept every internal reference bound to the source, because the counterpart is the same
+component again, so the value read is the same. That stops holding where identity matters (a
+`<label for>` inside an extended group labelled the source's input, which was read twice, and left
+the extend's input unlabelled, #2537 item 2) and where the extend changes its own root (an extended
+section with a new `<title>` still showed the old one through `$s.title`). So a reference inside the
+extended subtree to something inside it means its counterpart, as in a copy (CPY-3); a reference to
+something outside means the same as in the source; a `for` pointing outside is dropped. Extend and
+copy then follow one rule for references, and differ only in sharing state.
+
+**Not implemented in the JavaScript core.** It builds an extend's internal references as shadows of
+the source's, and the change isn't worth making there. The cells core implements it; REF-6 lists
+the examples that are its tests. #2537 items 2 and 3 wait for it.
