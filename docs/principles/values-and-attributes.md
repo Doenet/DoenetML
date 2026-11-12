@@ -209,7 +209,8 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   - A shape made from a missing point is missing (`missingWhenEntriesMissing`: a polyline's,
     polygon's and their kin's `vertices`, a curve's and circle's `through`, a line's `through`,
     a line segment's `endpoints`, an angle's `through`), and so are a `<function>` through one
-    and a `<bestFitLine>` fit to one (before, the blank was skipped).
+    and a `<bestFitLine>` fit to one (before, the blank was skipped). Skipping it would hide that a
+    blank was involved, which is what the type rule's propagation avoids (below).
   - A property a list computes from each entry (`$pl.y`, `$pl.xs`) is `＿` for a blank entry.
   - A list tag over an index that names nothing holds one blank entry, even where a valid index
     would name a row (`<vectorList extend="$c.controlVectors[$m]"/>`), except with
