@@ -4488,6 +4488,8 @@ export async function replacementFromProp({
                                 classOfComponentToCreate.createAttributesObject();
 
                             let additionalAttributes = {};
+                            // the value of each one not pasted, a default
+                            const defaultAttributeValues = {};
                             // the attributes that may be pasted, in order
                             const attributeSlots = [];
                             for (let attrName in attributeComponentsShadowingStateVariables) {
@@ -4542,6 +4544,9 @@ export async function replacementFromProp({
                                     if (!usedDefault || attrName === "hide") {
                                         additionalAttributes[attrName] =
                                             attributeValue;
+                                    } else {
+                                        defaultAttributeValues[attrName] =
+                                            attributeValue;
                                     }
                                 }
                             }
@@ -4554,20 +4559,32 @@ export async function replacementFromProp({
                             // reload must have the `stateId`s it was made
                             // with for its snapshot to apply
                             // (`applyCopySnapshot`). Each is one component.
+                            // One not pasted now that the copy was made with
+                            // (a held snapshot has its `stateId`) is pasted
+                            // anyway, to take the value it was made with.
+                            const heldStateIds =
+                                await heldCopyStateIds(component);
                             const attributesFromComponent = {};
                             for (const attrName of attributeSlots) {
                                 const slot = {
                                     prefix: stateIdInfo.prefix,
                                     num: stateIdInfo.num++,
                                 };
-                                if (!(attrName in additionalAttributes)) {
+                                const value =
+                                    attrName in additionalAttributes
+                                        ? additionalAttributes[attrName]
+                                        : heldStateIds.has(
+                                                `${slot.prefix}${slot.num}`,
+                                            )
+                                          ? defaultAttributeValues[attrName]
+                                          : undefined;
+                                if (value === undefined) {
                                     continue;
                                 }
                                 const res =
                                     convertAttributeValuesForComponentType({
                                         attributeValues: {
-                                            [attrName]:
-                                                additionalAttributes[attrName],
+                                            [attrName]: value,
                                         },
                                         componentType: createComponentOfType,
                                         componentInfoObjects,
@@ -7017,6 +7034,21 @@ function inPlaceOfCopy({
         componentInfoObjects,
     );
     return missing;
+}
+
+/**
+ * The `stateId`s of the components a save holds a snapshot of for the
+ * unlinked copy `component` (`heldCopySnapshot`), or none for a linked one
+ * or one with no snapshot held.
+ */
+async function heldCopyStateIds(component) {
+    if ((await component.stateValues.link) !== false) {
+        return new Set();
+    }
+    const held = readHeldCopySnapshot(
+        component.coreFunctions.savedCopySnapshot?.(component.stateId),
+    );
+    return new Set((held?.snapshot ?? []).map((entry) => entry.stateId));
 }
 
 /**

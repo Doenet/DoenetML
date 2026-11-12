@@ -1511,12 +1511,13 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         // A copy holds the value it was made with. Made again on reload from
         // the entry, now blank, it pastes fewer attribute components (the
         // entry's `styleNumber` is not pasted), which must not change its
-        // `stateId`, or its held snapshot would not apply.
+        // `stateId`, or its held snapshot would not apply, and pastes them
+        // anyway where its snapshot holds them, to take what they held.
         const doenetML = `
     <mathInput name="i" prefill="1"/>
-    <pointList name="pts">(1,2) (3,4)</pointList>
+    <pointList name="pts"><point styleNumber="3">(1,2)</point> (3,4)</pointList>
     <vectorList name="vs">(5,6) (7,8)</vectorList>
-    <numberList name="l">1 2</numberList>
+    <numberList name="l" displayDigits="2">1.23456 2</numberList>
     <pointList name="pl">(0,0) $pts[$i]</pointList>
     <vectorList name="vl">(0,0) $vs[$i]</vectorList>
     <numberList name="a">7 $l[$i]</numberList>
@@ -1534,6 +1535,9 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
             const sv = async (name: string) =>
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             expect((await sv("gp")).coords.tree).eqls(["vector", 1, 2]);
+            // what it took from the entry's source and the list too
+            expect((await sv("gp")).styleNumber).eq(3);
+            expect((await sv("n")).displayDigits).eq(2);
             expect((await sv("gv")).displacement.map((x: any) => x.tree)).eqls([
                 5, 6,
             ]);
@@ -1543,7 +1547,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
             expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
                 ["point", "vector"],
             );
-            expect((await sv("p")).text).eq("1 1");
+            expect((await sv("p")).text).eq("1.2 1");
         }
         await check();
 
