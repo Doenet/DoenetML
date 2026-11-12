@@ -2783,10 +2783,13 @@ export default class Vector extends GraphicalComponent {
                 // if not based on head
                 // then update displacement instead of head
 
+                // Only the coordinates the drag gives: a drag in a graph of
+                // a vector in three dimensions gives two, and the rest of
+                // the displacement keeps what it is, symbolic or not (#2179).
                 if (tailcoords == undefined) {
                     tailcoords = (await this.stateValues.numericalEndpoints)[0];
                 }
-                let displacement = tailcoords.map((x, i) => headcoords[i] - x);
+                let displacement = headcoords.map((x, i) => x - tailcoords[i]);
                 updateInstructions.push({
                     updateType: "updateValue",
                     componentIdx: this.componentIdx,

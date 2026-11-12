@@ -710,4 +710,79 @@ describe("Fixed and fixLocation of references @group4", () => {
             [false, false],
         ]);
     });
+    it("a reference to one entry of a booleanList is fixed as the entry's source is (#2526)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanList name="bl"><boolean fixed>true</boolean><boolean>false</boolean></booleanList>
+    <group fixed><booleanList name="gl"><boolean>true</boolean></booleanList></group>
+    <group fixed><mathList name="gm"><math>1</math></mathList></group>
+    <math name="m5" extend="$gm[1]"/><math name="m6" copy="$gm[1]"/>
+    <group name="g0"><boolean name="b0" fixed>true</boolean><boolean>false</boolean></group>
+    <collect name="c" componentType="boolean" from="$bl" />
+    <collect name="c0" componentType="boolean" from="$g0" />
+    <sort name="s">$bl</sort>
+    <shuffle name="sh">$bl</shuffle>
+    <booleanList name="bl2">$bl</booleanList>
+    <p name="p">$bl[1].fixed $bl[2].fixed $gl[1].fixed</p>
+    <graph name="g">$bl[1] $bl[2] $gl[1]</graph>
+    <boolean name="e1" extend="$bl[1]"/><boolean name="e2" copy="$bl[1]"/>
+    <boolean name="e3" extend="$bl[2]"/><boolean name="e4" copy="$bl[2]"/>
+    <boolean name="e5" extend="$gl[1]"/><boolean name="e6" copy="$gl[1]"/>
+    <boolean name="e7" extend="$c[1]"/><boolean name="e8" extend="$c[2]"/>
+    <boolean name="e9" extend="$c0[1]"/><boolean name="e11" extend="$c0[2]"/>
+    <boolean name="e10" extend="$s[2]"/><boolean name="e12" extend="$bl2[1]"/>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixedOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.fixed;
+        const expected: Record<string, boolean> = {
+            e1: true,
+            e2: true,
+            e3: false,
+            e4: false,
+            e5: true,
+            // an unlinked copy takes only what is written on the list or
+            // the entry's source, not the group's, as of a `<mathList>`
+            e6: false,
+            m5: true,
+            m6: false,
+            e7: true,
+            e8: false,
+            e9: true,
+            e10: true,
+            e11: false,
+            e12: true,
+        };
+        for (const [name, value] of Object.entries(expected)) {
+            expect(await fixedOf(name), name).eq(value);
+        }
+        // a bare reference to an entry's `fixed`, and a bare reference to
+        // an entry drawn in a graph, in order
+        for (const [name, variable] of [
+            ["p", "value"],
+            ["g", "fixed"],
+        ]) {
+            const parent = (core as any).core._components[
+                await resolvePathToNodeIdx(name)
+            ];
+            const values = [];
+            for (const child of parent.activeChildren) {
+                if (typeof child === "object") {
+                    values.push(await child.stateValues[variable]);
+                }
+            }
+            expect(values, name).eqls([true, false, true]);
+        }
+        // a sort and a shuffle of the list keep each entry's own: the
+        // `true` entry is the fixed one
+        for (const name of ["s", "sh"]) {
+            const list = (core as any).core._components[
+                await resolvePathToNodeIdx(name)
+            ];
+            expect(await list.stateValues.entryFixed, name).eqls(
+                await list.stateValues.booleans,
+            );
+        }
+    });
 });

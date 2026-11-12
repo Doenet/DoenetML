@@ -119174,7 +119174,7 @@
                 {
                     "name": "aspectRatio",
                     "description": "Aspect ratio (width / height) for the video player.",
-                    "defaultValue": "16 / 9",
+                    "defaultValue": 1.778,
                     "type": "number"
                 },
                 {
@@ -137944,7 +137944,7 @@
                 {
                     "name": "angleThreshold",
                     "description": "Angular distance within which group members snap together.",
-                    "defaultValue": 0.09424777960769379,
+                    "defaultValue": 0.09425,
                     "type": "number"
                 }
             ],

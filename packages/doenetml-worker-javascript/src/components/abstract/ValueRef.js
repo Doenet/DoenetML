@@ -1054,7 +1054,10 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
                     variableName: "valueMissing",
                 },
             };
-            if (referentInfo) {
+            if (referentInfo?.referencedWholeComponent) {
+                dependencies.wholeReferent =
+                    wholeReferentResponseDependency(referentInfo);
+            } else if (referentInfo) {
                 dependencies.referenced = {
                     dependencyType: "stateVariable",
                     componentIdx: referentInfo.componentIdx,
@@ -1065,13 +1068,20 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
             return dependencies;
         },
         definition({ dependencyValues, componentInfoObjects }) {
-            let valueAsResponse = dependencyValues.referenced;
             if (dependencyValues.valueMissing) {
-                valueAsResponse = me.fromAst("\uff3f");
-            } else if (
-                valueAsResponse === undefined ||
-                valueAsResponse === null
-            ) {
+                return { setValue: { valueAsResponse: me.fromAst("\uff3f") } };
+            }
+            if (dependencyValues.wholeReferent) {
+                return {
+                    setValue: {
+                        valueAsResponse: wholeReferentResponse(
+                            dependencyValues.wholeReferent,
+                        ).value,
+                    },
+                };
+            }
+            let valueAsResponse = dependencyValues.referenced;
+            if (valueAsResponse === undefined || valueAsResponse === null) {
                 valueAsResponse = emptyValueOfType(
                     referencedComponentType,
                     componentInfoObjects,
@@ -1091,29 +1101,82 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
  * `valueAsResponse`. That is the type of the referenced variable
  * (`referencedComponentType`, `$P.x` a `math`), or `math` for the blank math
  * recorded when there is nothing to read (for a reference a copy made at
- * run time, only when its referent is a missing component).
+ * run time, only when its referent is a missing component). For a reference
+ * to a whole component, it is the type the referent is recorded as
+ * (`wholeReferentResponse`).
  */
 function componentTypeAsResponseDefinition(
     referencedComponentType,
     fixedReferent,
 ) {
-    return {
-        returnDependencies: () => ({
-            valueMissing: {
-                dependencyType: "stateVariable",
-                variableName: "valueMissing",
-            },
-        }),
-        definition({ dependencyValues }) {
-            return {
-                setValue: {
-                    componentTypeAsResponse: dependencyValues.valueMissing
-                        ? "math"
-                        : referencedComponentType,
+    const definition = {
+        returnDependencies({ stateValues = {} }) {
+            const referentInfo = fixedReferent ?? stateValues.referentInfo;
+            const dependencies = {
+                valueMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
                 },
             };
+            if (referentInfo?.referencedWholeComponent) {
+                dependencies.wholeReferent =
+                    wholeReferentResponseDependency(referentInfo);
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            let componentTypeAsResponse = referencedComponentType;
+            if (dependencyValues.valueMissing) {
+                componentTypeAsResponse = "math";
+            } else if (dependencyValues.wholeReferent) {
+                componentTypeAsResponse = wholeReferentResponse(
+                    dependencyValues.wholeReferent,
+                ).componentType;
+            }
+            return { setValue: { componentTypeAsResponse } };
         },
     };
+    if (!fixedReferent) {
+        definition.stateVariablesDeterminingDependencies = ["referentInfo"];
+    }
+    return definition;
+}
+
+/**
+ * The dependency on the variables of a whole referent from which it is
+ * recorded as a response (`wholeReferentResponse`).
+ */
+function wholeReferentResponseDependency(referentInfo) {
+    return {
+        dependencyType: "multipleStateVariables",
+        componentIdx: referentInfo.componentIdx,
+        variableNames: ["value", "formula", "componentType"],
+        variablesOptional: true,
+    };
+}
+
+/**
+ * What an `<answer>` records for a reference to a whole component read
+ * through the referent's adapter (`readsReferentAdapter`, `$P` in a
+ * comparison reads `P.coords`): the referent itself, as it records the copy
+ * of the referent that such a reference keeps when the answer's award names
+ * it in `referencesAreResponses` (`utils/dast/valueReferences.ts`), and as in
+ * `currentResponses` (`Answer.js`): its `value` as its type, else its
+ * `formula` as a math, else an empty text. A reference made in the source of
+ * an award that `extend` or `copy` copies is such a reference.
+ */
+function wholeReferentResponse(referent) {
+    const stateValues = referent.stateValues ?? {};
+    if (stateValues.value !== undefined) {
+        return {
+            value: stateValues.value,
+            componentType: stateValues.componentType ?? referent.componentType,
+        };
+    }
+    if (stateValues.formula instanceof me.class) {
+        return { value: stateValues.formula, componentType: "math" };
+    }
+    return { value: "", componentType: "text" };
 }
 
 /**

@@ -96,6 +96,44 @@ describe("RepeatForSequence tag tests @group3", async () => {
         ).eq("We have l. ");
     });
 
+    it("a letters sequence whose from stops being letters shows nothing, and comes back (#2173)", async () => {
+        // the template is one value, so the repeat is a list, and one that
+        // is not, so it stays a composite
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <textInput name="tIn" prefill="a"/>
+    <p name="p"><repeatForSequence type="letters" from="$tIn" length="3" valueName="v">
+      <text>$v</text>
+    </repeatForSequence></p>
+    <p name="p2"><repeatForSequence type="letters" from="$tIn" length="3" valueName="v">
+      <text>$v</text><text>!</text>
+    </repeatForSequence></p>
+    `,
+        });
+
+        async function check(p: string, p2: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(p);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                    .text,
+            ).eq(p2);
+        }
+
+        await check("a, b, c", "a!, b!, c!");
+        const tIn = await resolvePathToNodeIdx("tIn");
+        await updateTextInputValue({ text: "1", componentIdx: tIn, core });
+        await check("", "");
+        await updateTextInputValue({ text: "x", componentIdx: tIn, core });
+        await check("x, y, z", "x!, y!, z!");
+    });
+
     it("math sequence", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

@@ -136,9 +136,19 @@ export default class AuthoredValueList extends ValueListComponent {
     // numbers, texts and intervals, which are drawn at an anchor.
     static get listEntriesAnchoredBySources() {
         return (
-            this.listEntryChildRendererVariables === undefined &&
+            this.listEntriesHaveSources &&
             entryKind(this.listEntryComponentType) !== "boolean"
         );
+    }
+
+    // Whether the list records the component each entry comes from
+    // (`entryGraphSources`) and, from it, whether each entry's source is
+    // fixed (`entryFixed`, `entryFixLocation`): every list placed as its
+    // sources, and a `<booleanList>`, whose entries are not placed in a
+    // graph but are fixed as their sources are (#2526). A list of points or
+    // vectors records its entries' sources as `entryChildren` instead.
+    static get listEntriesHaveSources() {
+        return this.listEntryChildRendererVariables === undefined;
     }
 
     /**
@@ -150,15 +160,26 @@ export default class AuthoredValueList extends ValueListComponent {
      * holds no such arrays.
      */
     static get listEntryContextArrays() {
-        return this.listEntriesAnchoredBySources
+        return this.listEntriesHaveSources
             ? { fixed: "entryFixed", fixLocation: "entryFixLocation" }
             : undefined;
     }
 
+    // The arrays of a list that records its entries' sources
+    // (`listEntriesHaveSources`) holding a value per entry, by the entry
+    // variable they are named by: those that place an entry in a graph
+    // (`ENTRY_GRAPH_ARRAYS`) for a list placed as its sources, and otherwise
+    // only `fixed` and `fixLocation`.
+    static get listEntrySourceArrays() {
+        return this.listEntriesAnchoredBySources
+            ? ENTRY_GRAPH_ARRAYS
+            : ENTRY_CONTEXT_ARRAYS;
+    }
+
     static buildListEntryStateVariables() {
         const variables = super.buildListEntryStateVariables();
-        if (this.listEntriesAnchoredBySources) {
-            Object.assign(variables, ENTRY_GRAPH_ARRAYS);
+        if (this.listEntriesHaveSources) {
+            Object.assign(variables, this.listEntrySourceArrays);
             // the component an entry is placed as, which a list holding
             // this one places that entry as in turn
             variables.listEntryGraphSource = "entryGraphSources";
@@ -190,9 +211,9 @@ export default class AuthoredValueList extends ValueListComponent {
     static get listPerEntryVariables() {
         if (!Object.hasOwn(this, "builtListPerEntryVariables")) {
             const variables = [...super.listPerEntryVariables];
-            if (this.listEntriesAnchoredBySources) {
+            if (this.listEntriesHaveSources) {
                 variables.push(
-                    ...Object.values(ENTRY_GRAPH_ARRAYS),
+                    ...Object.values(this.listEntrySourceArrays),
                     "entryGraphSources",
                 );
             }
@@ -1493,7 +1514,7 @@ export default class AuthoredValueList extends ValueListComponent {
             },
         };
 
-        if (listClass.listEntriesAnchoredBySources) {
+        if (listClass.listEntriesHaveSources) {
             Object.assign(
                 stateVariableDefinitions,
                 returnEntryGraphDefinitions(listClass),
@@ -1716,6 +1737,16 @@ const ENTRY_GRAPH_ARRAYS = Object.freeze({
 });
 
 /**
+ * Those of `ENTRY_GRAPH_ARRAYS` that a list whose entries are not placed in
+ * a graph (a `<booleanList>`) holds too: whether each entry's source is
+ * fixed, and fixed in place (#2526).
+ */
+const ENTRY_CONTEXT_ARRAYS = Object.freeze({
+    fixed: "entryFixed",
+    fixLocation: "entryFixLocation",
+});
+
+/**
  * The variables of the component an entry is placed as that place it, each
  * with the value an entry placed as no component has, and whether the list's
  * own value of the variable also applies to every entry (`fixed`,
@@ -1758,10 +1789,12 @@ export function graphSourceOf(source) {
 }
 
 /**
- * The definitions of a list whose entries are placed as their sources
- * (`listEntriesAnchoredBySources`): the component each entry is placed as
+ * The definitions of a list that records its entries' sources
+ * (`listEntriesHaveSources`): the component each entry is placed as
  * (`entryGraphSources`), and from it an array of a value per entry for each
- * variable that places an entry in a graph (`ENTRY_GRAPH_ARRAYS`). An entry
+ * variable that places an entry in a graph (`ENTRY_GRAPH_ARRAYS`), or, for a
+ * list whose entries are not placed in a graph (a `<booleanList>`), for
+ * `fixed` and `fixLocation` only (`ENTRY_CONTEXT_ARRAYS`). An entry
  * placed as no component (one from text) is at the origin and cannot be
  * dragged. A value written to an entry's anchor (a drag, `moveEntry`) goes
  * to that component's anchor.
@@ -1769,6 +1802,16 @@ export function graphSourceOf(source) {
 function returnEntryGraphDefinitions(listClass) {
     const componentGroups = listClass.listChildGroups.map((x) => x.group);
     const definitions = {};
+    // A list whose entries are not placed in a graph (a `<booleanList>`)
+    // reads only whether each entry's source is fixed (#2526).
+    const anchored = listClass.listEntriesAnchoredBySources;
+    const sourceVariables = anchored
+        ? ENTRY_GRAPH_SOURCE_VARIABLES
+        : Object.fromEntries(
+              Object.entries(ENTRY_GRAPH_SOURCE_VARIABLES).filter(
+                  ([name]) => name in ENTRY_CONTEXT_ARRAYS,
+              ),
+          );
 
     // The component each entry comes from among the children, which, for a
     // child an adapter made (a `<number>` in a `<mathList>`), is that adapter.
@@ -1856,9 +1899,7 @@ function returnEntryGraphDefinitions(listClass) {
                     dependencies[`source${sourceIdx}`] = {
                         dependencyType: "multipleStateVariables",
                         componentIdx: sourceIdx,
-                        variableNames: Object.keys(
-                            ENTRY_GRAPH_SOURCE_VARIABLES,
-                        ),
+                        variableNames: Object.keys(sourceVariables),
                         variablesOptional: true,
                     };
                 }
@@ -1878,9 +1919,7 @@ function returnEntryGraphDefinitions(listClass) {
         }),
     };
 
-    for (const [name, { none, orList }] of Object.entries(
-        ENTRY_GRAPH_SOURCE_VARIABLES,
-    )) {
+    for (const [name, { none, orList }] of Object.entries(sourceVariables)) {
         const arrayName = ENTRY_GRAPH_ARRAYS[name];
         definitions[arrayName] = {
             forRenderer: true,
@@ -1911,6 +1950,10 @@ function returnEntryGraphDefinitions(listClass) {
                 },
             }),
         };
+    }
+
+    if (!anchored) {
+        return definitions;
     }
 
     // The anchor of each entry's component, read and written there.

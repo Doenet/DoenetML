@@ -309,5 +309,6 @@
     "doenet-w0185": "copy-with-state-of-uri",
     "doenet-w0186": "copy-with-state-attribute-reaches-choice",
     "doenet-w0187": "copy-attribute-invalid-for-component",
-    "doenet-w0188": "reference-index-selects-child"
+    "doenet-w0188": "reference-index-selects-child",
+    "doenet-w0189": "repeat-value-name-is-index-name"
 }

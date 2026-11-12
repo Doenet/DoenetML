@@ -8,6 +8,11 @@ import {
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import { codedDiagnostic } from "../utils/diagnostics";
 
+// `fractionWatched` is 1 once the unwatched part of the video is at most
+// this many seconds and at most this fraction of the video's duration.
+const FULLY_WATCHED_MAX_SECONDS_UNWATCHED = 2;
+const FULLY_WATCHED_MAX_FRACTION_UNWATCHED = 0.01;
+
 export default class Video extends BlockComponent {
     constructor(args) {
         super(args);
@@ -316,7 +321,8 @@ export default class Video extends BlockComponent {
                 "The aspect ratio (width / height) of the video player.",
             public: true,
             forRenderer: true,
-            defaultValue: "16 / 9",
+            // a number, as it is shared as a `<number>` (`$v.aspectRatio`)
+            defaultValue: 16 / 9,
             hasEssential: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -499,11 +505,34 @@ export default class Video extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                const { secondsWatched, duration } = dependencyValues;
+
+                // Until the player reports a duration, nothing can be a
+                // fraction of it.
+                if (!(duration > 0)) {
+                    return { setValue: { fractionWatched: 0 } };
+                }
+
+                // The watched segments come from the times the player reports
+                // when playback starts, pauses, seeks or ends, and those are
+                // never exact: a viewer who watched every second can still be
+                // left a fraction of a second short. Count the video as fully
+                // watched if what is left unwatched is within that margin, so
+                // credit based on `fractionWatched` reaches 1.
+                const tolerance = Math.min(
+                    FULLY_WATCHED_MAX_SECONDS_UNWATCHED,
+                    duration * FULLY_WATCHED_MAX_FRACTION_UNWATCHED,
+                );
+                if (duration - secondsWatched <= tolerance) {
+                    return { setValue: { fractionWatched: 1 } };
+                }
+
                 return {
                     setValue: {
-                        fractionWatched:
-                            dependencyValues.secondsWatched /
-                            dependencyValues.duration,
+                        fractionWatched: Math.max(
+                            0,
+                            Math.min(1, secondsWatched / duration),
+                        ),
                     },
                 };
             },
@@ -574,10 +603,14 @@ export default class Video extends BlockComponent {
         let previousSegments = await this.stateValues.segmentsWatched;
         let segmentsWatched;
 
+        // Get credit for the beginning and the end even though the player
+        // typically doesn't report exactly 0 or the full duration. Both checks
+        // apply to the same segment when the video is watched in one go.
         if (beginTime < 1) {
-            beginTime = 0; // get credit for the beginning even though it typically doesn't say 0
-        } else if (endTime > duration - 2) {
-            endTime = duration; // get credit for the end even though it typically doesn't get to duration
+            beginTime = 0;
+        }
+        if (duration > 0 && endTime > duration - 2) {
+            endTime = duration;
         }
 
         if (!previousSegments) {

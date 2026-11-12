@@ -1447,4 +1447,34 @@ describe("Warning Tests @group4", async () => {
             ),
         ).eq(true);
     });
+
+    it("warns when a repeat's valueName and indexName are the same (#2175)", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<p name="p1"><repeatForSequence from="5" to="7" valueName="i" indexName="i">
+  <number>$i</number>
+</repeatForSequence></p>
+<p name="p2"><repeat for="a b" valueName="v" indexName="v">
+  <text>$v</text>
+</repeat></p>
+<conditionalContent condition="false">
+  <repeatForSequence length="2" valueName="j" indexName="j"><number>$j</number></repeatForSequence>
+</conditionalContent>
+<repeat for="1 2" valueName="v" indexName="k"><number>$v</number></repeat>
+<repeat for="1 2" valueName="v"><number>$v</number></repeat>
+<repeatForSequence length="2" valueName="Q" indexName="q"><number>$q</number></repeatForSequence>
+            `,
+        });
+        const { warnings } = getDiagnosticsByType(core);
+        const sameName = warnings.filter((w) => w.code === "doenet-w0189");
+        expect(sameName.map((w) => w.args)).eqls([
+            { componentType: "repeatForSequence", name: "i" },
+            { componentType: "repeat", name: "v" },
+            { componentType: "repeatForSequence", name: "j" },
+        ]);
+        expect(sameName[0].message).eq(
+            "`valueName` and `indexName` of `<repeatForSequence>` are both `i`. Give them different names.",
+        );
+        expect(sameName.map((w) => w.position?.start.line)).eqls([2, 5, 9]);
+    });
 });
