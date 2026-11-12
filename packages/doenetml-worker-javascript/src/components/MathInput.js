@@ -491,6 +491,10 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "parseScientificNotation",
                 },
+                removeStrings: {
+                    dependencyType: "stateVariable",
+                    variableName: "removeStrings",
+                },
                 valueChanged: {
                     dependencyType: "stateVariable",
                     variableName: "valueChanged",
@@ -540,6 +544,8 @@ export default class MathInput extends Input {
                                                     dependencyValues.splitSymbols,
                                                 parseScientificNotation:
                                                     dependencyValues.parseScientificNotation,
+                                                removeStrings:
+                                                    dependencyValues.removeStrings,
                                             },
                                         ).expression;
                                     }
@@ -1416,7 +1422,10 @@ function calculateMathExpressionFromLatex({
     if (removeStrings) {
         for (let s of removeStrings) {
             if (["$", "%"].includes(s)) {
-                s = "\\" + s;
+                // remove the escaped form (e.g., `\$`), which is what the
+                // renderer produces, as well as any unescaped form,
+                // which can come from a `prefillLatex`
+                latex = latex.replaceAll("\\" + s, "");
             }
             latex = latex.replaceAll(s, "");
         }

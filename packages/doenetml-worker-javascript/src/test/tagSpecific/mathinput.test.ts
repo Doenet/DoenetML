@@ -10268,6 +10268,42 @@ describe("MathInput tag tests @group2", async () => {
         ).eqls(["+", ["*", 2, "x"], -300]);
     });
 
+    it("remove strings applied to prefillLatex", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi1" prefillLatex="\\$10,000" removeStrings="$ ," />
+    <mathInput name="mi2" prefillLatex="$10,000" removeStrings="$ ," />
+    <mathInput name="mi3" prefillLatex="12\\%" removeStrings="%" />
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // value has the strings removed
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(10000);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eq(10000);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi3")].stateValues.value
+                .tree,
+        ).eq(12);
+
+        // but the displayed prefill keeps them
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .rawRendererValue,
+        ).contain("$");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .rawRendererValue,
+        ).contain(",");
+    });
+
     it("remove strings", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
