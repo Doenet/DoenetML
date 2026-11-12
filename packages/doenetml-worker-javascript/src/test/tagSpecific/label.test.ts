@@ -2221,6 +2221,54 @@ describe("Label tag tests @group2", async () => {
             ]);
         });
 
+        // The label a reference names can change (`$r[$n].lr` with `n`
+        // changed): the label it is made from again does not take its `for`
+        // either, while `$r[$n]`, whose label is among what it names, keeps
+        // it.
+        it("a reference to a label made again from another label does not take its for", async () => {
+            const { core, resolvePathToNodeIdx } = await setup(`
+<mathInput name="n" prefill="1" />
+<textInput name="ti" />
+<repeat name="r" for="a b" type="text" valueName="v"><label name="lr" for="$ti">R <text extend="$v" /></label></repeat>
+<p name="p1">$r[$n].lr</p>
+<p name="p2"><label extend="$r[$n].lr" /></p>
+<p name="p3">$r[$n]</p>
+            `);
+            const ti = await resolvePathToNodeIdx("ti");
+
+            async function check(letter: string) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                for (const name of ["p1", "p2", "p3"]) {
+                    const label = stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].activeChildren
+                        .map((child: any) => stateVariables[child.componentIdx])
+                        .find((child: any) => child?.componentType === "label");
+                    expect(label.stateValues.value, name).eq(`R ${letter}`);
+                    expect(
+                        label.stateValues.forTargetInputComponentIdx,
+                        name,
+                    ).eq(name === "p3" ? ti : null);
+                }
+                // the two labels in the repeat and the one in `$r[$n]`
+                expect(
+                    stateVariables[ti].stateValues
+                        .externalLabelsReferencingInputByFor.length,
+                ).eq(3);
+            }
+
+            await check("a");
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+            await check("b");
+        });
+
         // `<label copy="$ti.label"/>` is an unlinked copy of the `<label>`
         // child, as `<label copy="$l"/>` is of `l`: it keeps the child's
         // markup, and a reference inside it still follows its referent. (It
