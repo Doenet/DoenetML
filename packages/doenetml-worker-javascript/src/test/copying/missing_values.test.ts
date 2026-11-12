@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
+    movePoint,
     submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
@@ -1065,6 +1067,99 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
             core,
         });
         await check(true);
+    });
+
+    it("gives a blank point entry no action, and moves the entry after it, through a `<collect>` too", async () => {
+        // A blank point can't be dragged (VAL-5); the entries after it keep
+        // their places, so a drag of one moves that point, and only it.
+        const { core, resolvePathToNodeIdx } = withListEntriesAsComponents(
+            await createTestCore({
+                doenetML: `
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g">
+      <pointList name="pl">(1,2) $pts[$i] (5,6) <point name="Q">(7,8)</point></pointList>
+    </graph>
+    <graph name="g2"><collect name="c" from="$pl" componentType="point"/></graph>
+    <p name="p">[$pl][$Q][$pts]</p>
+    `,
+            }),
+        );
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        for (const graph of ["g", "g2"]) {
+            expect(
+                rendererState[
+                    await resolvePathToNodeIdx(graph)
+                ].childrenInstructions.map(
+                    (child: any) => Object.keys(child.actions).length > 0,
+                ),
+                graph,
+            ).eqls([true, false, true, true]);
+        }
+        expect(await shown()).eq(
+            "[(1, 2), ＿, (5, 6), (7, 8)][(7, 8)][(1, 2), (3, 4)]",
+        );
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("pl[3]"),
+            x: -1,
+            y: -2,
+            core,
+        });
+        expect(await shown()).eq(
+            "[(1, 2), ＿, (-1, -2), (7, 8)][(7, 8)][(1, 2), (3, 4)]",
+        );
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("c[4]"),
+            x: -3,
+            y: -4,
+            core,
+        });
+        expect(await shown()).eq(
+            "[(1, 2), ＿, (-1, -2), (-3, -4)][(-3, -4)][(1, 2), (3, 4)]",
+        );
+        // a move sent to the blank is not taken
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("pl[2]"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        expect(await shown()).eq(
+            "[(1, 2), ＿, (-1, -2), (-3, -4)][(-3, -4)][(1, 2), (3, 4)]",
+        );
+
+        // once the entry names a point, it is dragged as the others
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(
+            rendererState[
+                await resolvePathToNodeIdx("g")
+            ].childrenInstructions.map(
+                (child: any) => Object.keys(child.actions).length > 0,
+            ),
+        ).eqls([true, true, true, true]);
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("pl[2]"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        expect(await shown()).eq(
+            "[(1, 2), (9, 9), (-1, -2), (-3, -4)][(-3, -4)][(1, 2), (9, 9)]",
+        );
     });
 
     it("makes a blank entry of a list of vectors missing and not drawn", async () => {
