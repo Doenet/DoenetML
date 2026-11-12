@@ -528,6 +528,7 @@ export type MessageKey =
     | "name-attribute-invalid"
     | "component-name-invalid-start"
     | "attribute-name-invalid-start"
+    | "repeat-value-name-is-index-name"
     | "answer-video-watched-missing-video"
     | "answer-video-watched-video-not-reference"
     | "answer-name-not-single-text"
@@ -1211,6 +1212,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "name-attribute-invalid",
     "component-name-invalid-start",
     "attribute-name-invalid-start",
+    "repeat-value-name-is-index-name",
     "answer-video-watched-missing-video",
     "answer-video-watched-video-not-reference",
     "answer-name-not-single-text",

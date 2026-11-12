@@ -47,6 +47,7 @@ import { convertExpressionAttributes } from "./expressionAttributes";
 import { breakReferenceCycles } from "./referenceCycles";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
+import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
 import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
@@ -775,6 +776,15 @@ export async function normalizedDastToSerializedComponents(
     // (DIAG-7).
     diagnostics.push(
         ...checkChoiceErrorsAtLoad({
+            serializedComponents: sugarResult.components,
+        }),
+    );
+
+    // A repeat whose value and index have the same name, which a reference
+    // to the name finds both of, is warned of at the repeat, wherever it is
+    // (#2175).
+    diagnostics.push(
+        ...checkRepeatNamesAtLoad({
             serializedComponents: sugarResult.components,
         }),
     );
