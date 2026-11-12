@@ -87,7 +87,7 @@ of the named `<video/>{:dn}` component. This "answer" is submitted automatically
 with a `<callAction>{:dn}` employing the `submitAnswer` action.
 
 The same result can be obtained with an `<answer>{:dn}` of type `videoWatched`,
-which creates the hidden award, the credit message and the `<callAction>{:dn}` for you:
+which creates the hidden answer with its award, the credit message and the `<callAction>{:dn}` for you:
 
 ```doenet-example
 <video name="v2" youtube="49qilPR8Qpc" size="small" aspectRatio="16/9">
@@ -335,7 +335,7 @@ The above listed `<video/>{:dn}` attributes are also accessible as properties.
 
 
 
-The `<video/>{:dn}` component has several properties related to viewing behavior as shown above. The `secondsWatched` and `fractionWatched` properties are only updated once the `<video/>{:dn}` has been paused once.
+The `<video/>{:dn}` component has several properties related to viewing behavior as shown above. The `secondsWatched` and `fractionWatched` properties are not updated continuously while the video plays: a stretch of viewing is recorded when the video is paused, jumps to a new time, or plays to the end.
 
 Because the times a video player reports are not exact, `fractionWatched` is 1 once the part of the video left unwatched is at most 2 seconds and at most 1% of its `duration`, so that a student who watched the whole video receives full credit. Until the `duration` is known, `fractionWatched` is 0.
 

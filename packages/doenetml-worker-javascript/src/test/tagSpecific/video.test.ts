@@ -222,8 +222,9 @@ describe("Video tag tests @group1", async () => {
 
     describe("fractionWatched", () => {
         // Record the given watched segments of a 600-second video, in order,
-        // and return the video's state and the credit of an answer that awards
-        // `fractionWatched` (submitted after each segment, as authors do).
+        // and return the video's state and the credit of an
+        // `<answer type="videoWatched">`, which submits itself each time a
+        // segment is recorded.
         async function watchSegments({
             segments,
             readyDuration = 600,
@@ -358,8 +359,9 @@ describe("Video tag tests @group1", async () => {
         });
 
         it("does not exceed 1 when the player reports a longer duration", async () => {
-            // The duration at ready time can be rounded, while later reports
-            // include the fractional second, so the end snaps past it.
+            // When the duration the player reports while playing is longer
+            // than the one at ready time, the end snaps to the longer one and
+            // secondsWatched exceeds the video's duration.
             const { video, credit } = await watchSegments({
                 readyDuration: 600,
                 playerDuration: 610,
@@ -379,6 +381,18 @@ describe("Video tag tests @group1", async () => {
                 segments: [[0, 5]],
             });
             expect(video.duration).eq(null);
+            expect(video.secondsWatched).eq(5);
+            expect(video.fractionWatched).eq(0);
+        });
+
+        it("does not snap the end while the player reports no duration", async () => {
+            // Before its metadata loads, the player reports a duration of 0.
+            const { video } = await watchSegments({
+                readyDuration: null,
+                playerDuration: 0,
+                segments: [[0, 5]],
+            });
+            expect(video.segmentsWatched).eqls([[0, 5]]);
             expect(video.secondsWatched).eq(5);
             expect(video.fractionWatched).eq(0);
         });
