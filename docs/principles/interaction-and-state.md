@@ -246,6 +246,11 @@ these ways:
 `disabled`, including an inherited one, stops all of these and stops anything chained to them
 (#2315).
 
+**An action withheld from what is shown does not act** (#2529, closing #2120): one in a case not
+shown, or in a repeat iteration that was removed, doesn't fire through `triggerWith`,
+`triggerWhenObjectsClicked` or `triggerWhenObjectsFocused`, and a reference to it is not a click
+target. It fires again once shown. This is SAVE-4's "withheld content acts as missing" (D40).
+
 Evidence:
 - `T/tagSpecific/updatevalue.test.ts:1223-3817`;
 - `callAction.test.ts:839-2694`;
@@ -297,6 +302,10 @@ Rules:
 - `<considerAsResponses>` and `referencesAreResponses` select references explicitly.
 - `forAnswer` on an input outside the answer makes it a response (#836).
 - A missing entry is an empty response that equals nothing (VAL-5).
+- `referencesAreResponses` holds on an award made by `copy`, and on one reached through an
+  `extend` of what holds it, from load and after an update (#2529, closing #2151). An award
+  can't itself be extended (D42, #2531). **Known violation** (#2538): a path through a
+  `<group>` (`$g.gp.x`) isn't marked, and for a `<select>` the group is marked but not its math.
 
 Evidence: `answer.test.ts:3583-3947`, `:8892-9232`; the responses section of
 `T/copying/value_references.test.ts`.

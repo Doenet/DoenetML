@@ -239,6 +239,9 @@ inside, which is circular; before #1838 that took the whole document down. The s
 an `$i` inside an item's attribute, such as `<updateValue target="$m[$i]">`: a copy changes the
 entry its original changes.
 
+A `valueName` that equals the `indexName` is warning `doenet-w0189`, decided at load (#2529,
+closing #2175).
+
 Evidence:
 - `T/tagSpecific/repeatIterationValues.test.ts:29`, `:64`, `:137`, `:169`, `:188`, `:263`, `:277`;
 - `repeat.test.ts:17-230`, `:2420`, `:2444`, `:2481`;
