@@ -1260,6 +1260,28 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         await check(true);
     });
 
+    it("holds no blank entry in a list tag that removes empty entries", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <numberList name="nl">1 2 3</numberList>
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <point name="P">(5,6)</point>
+    <mathInput name="i" prefill="5"/>
+    <p name="p">[<numberList name="a" extend="$nl[$i]" removeEmptyArrayEntries/>][<pointList name="b" extend="$pts[$i]" removeEmptyArrayEntries/>][<mathList name="c" extend="$P.xs[$i]" removeEmptyArrayEntries/>][<numberList name="d" extend="$nl[$i]"/>]</p>
+    `);
+        // an index that names nothing is a blank entry (D40), except where
+        // the tag asks to remove empty entries
+        expect(text).eq("[][][][＿]");
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[2][(3, 4)][6][2]");
+    });
+
     it("shows a list tag over an index that names nothing as one blank entry", async () => {
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <mathList name="l">1 2 3</mathList>

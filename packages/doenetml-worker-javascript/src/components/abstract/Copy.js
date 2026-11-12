@@ -6999,7 +6999,9 @@ function inPlaceOfCopy({
  * (`missingReplacement`). A parent that needs every composite to make
  * something (`compositesMustHaveAReplacement`, a `<math>` or a `<text>`)
  * gets its missing blank of the type it needs instead
- * (`verifyReplacementsMatchSpecifiedType`).
+ * (`verifyReplacementsMatchSpecifiedType`). So does the copy that fills a
+ * list tag (`forList`), whose list then holds one blank entry, unless the
+ * tag asks to remove empty entries (`removeEmptyArrayEntries`).
  */
 async function isBareReferenceToOneThing(
     component,
@@ -7012,6 +7014,13 @@ async function isBareReferenceToOneThing(
         (component.attributes._createComponentOfType?.primitive && !forList) ||
         component.sharedParameters.compositesMustHaveAReplacement
     ) {
+        return false;
+    }
+    // A list tag written with `removeEmptyArrayEntries` holds no blank entry
+    // for what names nothing, as it holds none for an empty entry (D40):
+    // `<pointList extend="$s.pointsInCellB3" removeEmptyArrayEntries/>` of a
+    // cell that holds no point is empty.
+    if (forList && (await component.stateValues.removeEmptyArrayEntries)) {
         return false;
     }
     return await referenceNamesOneThing(component, components, { withheld });
