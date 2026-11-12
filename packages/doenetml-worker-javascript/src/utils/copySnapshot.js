@@ -32,7 +32,7 @@ export function copySnapshotOf(
     { onlyHeldValues = false } = {},
 ) {
     const snapshot = [];
-    function visit(component, inHeldValue = false, topLevel = undefined) {
+    function visit(component, inHeldValue = false) {
         if (typeof component !== "object" || component === null) {
             return;
         }
@@ -66,9 +66,6 @@ export function copySnapshotOf(
             snapshot.push({
                 stateId: component.stateId,
                 componentType: component.componentType,
-                // its place among the replacements, for a copy made again
-                // whose replacement has another `stateId` (`applyCopySnapshot`)
-                ...(topLevel === undefined ? {} : { topLevel }),
                 state: deepClone(component.state ?? {}),
                 // what it was made with (`initialEssentialState`), which a
                 // `copy` of it starts from: of a `copyWithState`, it holds
@@ -98,8 +95,8 @@ export function copySnapshotOf(
             visit(attribute?.component, inHeldValue);
         }
     }
-    for (const [ind, component] of serializedComponents.entries()) {
-        visit(component, false, ind);
+    for (const component of serializedComponents) {
+        visit(component);
     }
     return snapshot;
 }
@@ -120,11 +117,7 @@ export function copySnapshotOf(
  * (an entry without one, from before it was held, applies to none), and
  * none applies within a replacement whose `stateId` has an entry only of
  * another type: that replacement and what it contains were made from other
- * DoenetML. The exception is a replacement among the copy's own, whose
- * `stateId` has an entry of another type and whose place among them
- * (`topLevel`) has one of its type: it was made after fewer attribute
- * components than before, which shifted its `stateId` (a copy of a list
- * entry that is blank now, D40), and takes the entry at its place. A copy made again with a different shape (one whose shape no
+ * DoenetML. A copy made again with a different shape (one whose shape no
  * held case decides, as of a `<collect>`, or one from a save that held the
  * snapshot alone, `heldCopySnapshot`) is thus made from its
  * source as restored, and keeps nothing it cannot apply: the copy then holds
@@ -132,31 +125,11 @@ export function copySnapshotOf(
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
     const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));
-    const byTopLevel = new Map(
-        snapshot
-            .filter((entry) => entry.topLevel !== undefined)
-            .map((entry) => [entry.topLevel, entry]),
-    );
-    function visit(component, topLevel = undefined) {
+    function visit(component) {
         if (typeof component !== "object" || component === null) {
             return;
         }
-        let entry = byStateId.get(component.stateId);
-        // A replacement whose `stateId` was not the one it was made with
-        // takes the entry of the replacement at its place, of its type:
-        // made from an entry of a list that is blank now (D40), the
-        // attribute components made before it are fewer (an entry's
-        // `styleNumber` is not pasted), which shifts its `stateId`.
-        // Only where its `stateId` has an entry of another type: one with
-        // none was made from other DoenetML (a case not held).
-        const atPlace = byTopLevel.get(topLevel);
-        if (
-            entry !== undefined &&
-            entry.componentType !== component.componentType &&
-            atPlace?.componentType === component.componentType
-        ) {
-            entry = atPlace;
-        }
+        const entry = byStateId.get(component.stateId);
         if (entry) {
             if (entry.componentType !== component.componentType) {
                 // made from other DoenetML than what was held
@@ -206,8 +179,8 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
             visit(attribute?.component);
         }
     }
-    for (const [ind, component] of serializedComponents.entries()) {
-        visit(component, ind);
+    for (const component of serializedComponents) {
+        visit(component);
     }
 }
 

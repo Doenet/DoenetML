@@ -4488,8 +4488,11 @@ export async function replacementFromProp({
                                 classOfComponentToCreate.createAttributesObject();
 
                             let additionalAttributes = {};
+                            // the attributes that may be pasted, in order
+                            const attributeSlots = [];
                             for (let attrName in attributeComponentsShadowingStateVariables) {
                                 if (attrObj[attrName]?.createComponentOfType) {
+                                    attributeSlots.push(attrName);
                                     let vName =
                                         attributeComponentsShadowingStateVariables[
                                             attrName
@@ -4543,16 +4546,40 @@ export async function replacementFromProp({
                                 }
                             }
 
-                            const res = convertAttributeValuesForComponentType({
-                                attributeValues: additionalAttributes,
-                                componentType: createComponentOfType,
-                                componentInfoObjects,
-                                nComponents,
-                                stateIdInfo,
-                            });
-
-                            const attributesFromComponent = res.attributes;
-                            nComponents = res.nComponents;
+                            // Each attribute that may be pasted has its own
+                            // `stateId`, whether or not it is, so the copy's
+                            // `stateId`s are the same however many are: an
+                            // entry's `styleNumber` is not pasted while the
+                            // entry is blank (D40), and a copy made again on
+                            // reload must have the `stateId`s it was made
+                            // with for its snapshot to apply
+                            // (`applyCopySnapshot`). Each is one component.
+                            const attributesFromComponent = {};
+                            for (const attrName of attributeSlots) {
+                                const slot = {
+                                    prefix: stateIdInfo.prefix,
+                                    num: stateIdInfo.num++,
+                                };
+                                if (!(attrName in additionalAttributes)) {
+                                    continue;
+                                }
+                                const res =
+                                    convertAttributeValuesForComponentType({
+                                        attributeValues: {
+                                            [attrName]:
+                                                additionalAttributes[attrName],
+                                        },
+                                        componentType: createComponentOfType,
+                                        componentInfoObjects,
+                                        nComponents,
+                                        stateIdInfo: slot,
+                                    });
+                                Object.assign(
+                                    attributesFromComponent,
+                                    res.attributes,
+                                );
+                                nComponents = res.nComponents;
+                            }
 
                             if (
                                 stateVarObj.shadowingInstructions

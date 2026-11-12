@@ -1509,9 +1509,9 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
 
     it("keeps an unlinked copy made before its entry was blank as made, after a reload too", async () => {
         // A copy holds the value it was made with. Made again on reload from
-        // the entry, now blank, it is made after fewer attribute components
-        // (the entry's `styleNumber` is not pasted), so it takes its held
-        // snapshot by its place among the copy's replacements.
+        // the entry, now blank, it pastes fewer attribute components (the
+        // entry's `styleNumber` is not pasted), which must not change its
+        // `stateId`, or its held snapshot would not apply.
         const doenetML = `
     <mathInput name="i" prefill="1"/>
     <pointList name="pts">(1,2) (3,4)</pointList>
