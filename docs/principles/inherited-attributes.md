@@ -274,12 +274,10 @@ reference has no label.
   Math stays math: in a `<p>` it is a new label whose value keeps the math as LaTeX
   (`Area \(x^2\) is big`, `hasLatex`), so it renders; other markup (`<em>`) is dropped. In a
   `<text>`, it is the text form (`Area x² is big`). This is what `main` does; nothing to change.
-- a `<label for>` inside an extended group labels the **source's** input, not the extend's
-  (`<group name="g3" extend="$g"/>`), so the source input's name is read twice and the extend's
-  input has none. A `copy` of the group is right. Open: whether `for` inside an extend points
-  into the extend (as in a copy) or is dropped (REF-6 keeps the source's bindings);
-- a label copied out of a repeat iteration whose `for` names an input in the same iteration
-  labels no input;
+- a `<label for>` inside an extended group labels the **source's** input, and a label copied out
+  of a repeat iteration labels no input. Decided by D43 (REF-6): `for` inside an extend points to
+  the extend's counterpart, and is dropped when it points outside. Postponed to the cells core;
+  REF-6 lists the tests;
 - `$ti2.label` of a copy of an input is made from the string; `<updateValue>` can't set a
   `label` whose `<label>` holds only an `<em>` or several children.
 
