@@ -31,6 +31,7 @@ import {
     resolveTextColor,
 } from "./utils/styleColors";
 import { UnlabeledGraphicalSVs } from "./utils/graphicalSVs";
+import { useRerenderOnBoundingBoxChange } from "./utils/useRerenderOnBoundingBoxChange";
 
 interface LegendLabel {
     hasLatex: boolean;
@@ -200,6 +201,21 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
     const box = useRef<JXGPolygon | null>(null);
 
     const previousDependencies = useRef<Record<string, any> | null>(null);
+
+    // The labels are measured in pixels and laid out in graph units, so a
+    // board that is resized while its limits stay put — the page or the
+    // graph's container changing width — leaves the legend sized for the old
+    // width: past the right edge when the board narrows, short of it when the
+    // board widens. The graph's limits are unchanged, so nothing reaches the
+    // legend through its state variables. JSXGraph keeps the bounding box on
+    // a resize and announces it as a bounding box change, so re-render when
+    // that change came with a new board width.
+    useRerenderOnBoundingBoxChange(
+        board,
+        () =>
+            board !== null &&
+            previousDependencies.current?.canvasWidth !== board.canvasWidth,
+    );
 
     // Stamps each layout of the legend, so the pass that runs once MathJax
     // has started can tell whether the legend it was scheduled for is still
@@ -732,6 +748,9 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             hidden: SVs.hidden,
             legendElements: [...SVs.legendElements],
             graphLimits: { ...SVs.graphLimits },
+            // Label widths are converted to graph units across the board's
+            // pixel width; see `unitsPerPixel`.
+            canvasWidth: board.canvasWidth,
             position: SVs.position,
             layer: SVs.layer,
             boxed: SVs.boxed,
