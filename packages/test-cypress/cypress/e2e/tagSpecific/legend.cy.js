@@ -48,8 +48,10 @@ function assertLabelInsideBox(labelText) {
  * edge and is sized for its label.
  *
  * The box's right edge is placed in graph units, 3% of the graph's width in
- * from its right edge, so it lands there whatever the label measured. What a
- * wrong measurement moves is the label: the legend's left edge is set from the
+ * from its right edge, so it lands there whatever the label measured, unless
+ * the label measured too wide for the legend to fit, when the legend is held
+ * at the left and the box runs past the edge. What a wrong measurement
+ * otherwise moves is the label: the legend's left edge is set from the
  * label's width, converted from pixels to graph units, and the label is drawn
  * from there at its true pixel width. Converted at the wrong scale, the label
  * either runs past the box's right edge or stops well short of it. So the
