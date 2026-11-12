@@ -162,7 +162,9 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
 
 **Done by #2458** (closing #2456). How the rules land:
 - **Operators:** `<sum>$l[5] 3</sum>` and `<sum>$nothing 3</sum>` are `＿ + 3`; a numeric operator
-  becomes symbolic. `<count>` counts a missing operand. A boolean operator takes it as not true.
+  becomes symbolic. `<count>` counts a missing operand. A boolean operator took it as not true;
+  under the type rule below (decided November 2026), an operator whose result is a number or a
+  boolean is missing instead.
 - **`<text>` and `<label>`** read a missing child as `＿`: `<text>x $tl[5] y</text>` is `x ＿ y`.
   A `<text>` reads its children's values and ignores their `hide`, so a hidden missing child is a
   blank in it too. A `<label>` honours its children's `hide`, as a `<p>` does.
@@ -249,10 +251,16 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   - `<number>$nothing + 1</number>` is `＿`, and so is a numeric function evaluated at a blank,
     whether by `<evaluate>`, `$$f($nothing)` or an input not yet submitted;
   - the same holds for a list operator over a blank entry: a math `<sum>` gives `1 + ＿ + 3`, a
-    number `<sum>` or `<mean>` gives `＿`.
+    number `<sum>` or `<mean>` gives `＿`;
+  - **a boolean can't hold a blank either,** so a boolean computed from a missing operand is
+    missing: `not ＿`, `＿ and true`, `＿ or false`, and a boolean function at a blank, all
+    `＿`, whatever the other operand. This replaces the earlier rule that a boolean operator takes
+    a missing operand as not true. A comparison is not a computation on the value: `＿ = 1` is
+    false, because a blank never equals anything (D37). A missing condition gives no credit
+    (D40).
 
-  **Known violation** (#2460): each number case gives `NaN`, and a numeric function at a blank
-  gives `1 + ＿`.
+  **Known violation** (#2460): each number case gives `NaN`, a numeric function at a blank gives
+  `1 + ＿`, and a boolean operator takes a missing operand as not true (`not ＿` is true).
 - **`<angle/>` with no measure is blank (decided, D40; #2324).** An angle whose measure nothing
   gives or determines (bare, one or two `through` points, one line) has a blank measure and draws
   nothing, not a right angle. 0.7 documents are not converted. **Known violation:** today it is

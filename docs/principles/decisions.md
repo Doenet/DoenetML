@@ -2469,6 +2469,12 @@ decided here; the rest are listed as still open.
 7. **A space beside a reference keeps deciding a list's entries** (#2168); the editor hints at
    it (`i0059`, done by #2522). VAL-12.
 
+**Decided after (November 2026): the result's type decides how a missing input acts** (#2460,
+VAL-5). A math holds the blank (`＿ + 1`, a symbolic function's `f(＿)`); a number or a boolean
+computed from a missing input is missing (`<number>$nothing + 1</number>`, a numeric function at a
+blank, `not ＿`, `＿ and true`). This replaces VAL-5's rule that a boolean operator takes a missing
+operand as not true. Comparisons stay false (`＿ = 1`), since a blank never equals anything.
+
 **Still open** (recommendations from the review, not decided):
 - #2235 (D7, D23): a write to `fixed` through a reference. Recommendation: to the source for a
   component reference with no `fixed` of its own; refused for a property or list entry; a
