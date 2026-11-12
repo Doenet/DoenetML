@@ -763,12 +763,40 @@ Inconsistency within the related pairs: across a type change, a list extend take
 same-named attributes (`hide`, `fixed`, display settings, #2231), but a scalar extend does not
 (D19).
 
-### REF-6: an extend keeps the source's bindings, however deep (Tier 1)
-An extend is the same component. Every reference inside the extended subtree means what it
-means in the source, through any number of chained extends. This includes references to names
-outside the subtree.
+### REF-6: a reference inside an extend means what it means in the source, or its counterpart in the extend (Tier 1; D43)
+An extend is the same component again. A reference inside the extended subtree:
+- **to something outside the subtree** means what it means in the source, through any number of
+  chained extends;
+- **to something inside the subtree** means its counterpart in the extend, as in a copy (CPY-3).
 
-**[probe]**
+So extend and copy follow one rule for references, and differ only in whether they share state.
+For values the two readings agree, since the counterpart is the same component again. They
+differ where identity matters, or where the extend changes its own root:
+- a `<label for>`, a legend label's `forObject`, an input's `forAnswer` inside the subtree point to
+  the extend's own input, object or answer. One that points outside the subtree is dropped, as
+  for a reference that names a label (REF-3, #2529);
+- a reference to the root's own part sees what the extend gives it: an attribute written on the
+  extend (REF-3), a replaced single child (REF-4a), an added child (REF-4).
+
+**Known violation, postponed to the cells core** (D43): the JavaScript core keeps every reference
+inside an extend bound to the source. It builds an extend's internal references as shadows of the
+source's resolved ones (below), and remapping them isn't worth the change there. Fixes that depend
+on remapping (#2537 items 2 and 3) wait for the cells core. These examples are its tests; each
+shows the current result and the one wanted:
+
+| Document | Today | Wanted |
+|---|---|---|
+| `<section name="s"><title>Old</title><p>This section: $s.title</p></section>` and `<section extend="$s"><title>New</title></section>` | the extend's paragraph says "Old" | "New" |
+| `<group name="g"><textInput name="ti3"/><label name="l3" for="$ti3">M</label></group>` and `<group name="g3" extend="$g"/>` | `g3.l3` labels `g.ti3`, which has two labels; `g3.ti3` has none | `g3.l3` labels `g3.ti3` |
+| `<textInput name="t"/><group name="g"><label for="$t">T</label></group>` and `<group extend="$g"/>` | `t` has two labels | the extend's label labels nothing |
+| `<repeat name="r" …><textInput name="tr"/><label for="$tr">…</label></repeat>` and `$r[1]` | the label labels no input (#2537 item 3) | the counterpart input, or nothing |
+| `<group name="g"><answer name="a">x</answer><mathInput forAnswer="$a"/></group>` and `<group extend="$g"/>` | the extend's input is for `g.a` | the extend's `a` (same state; the link follows the extend) |
+| `<graph name="gr"><point name="P"/><legend><label forObject="$P">P</label></legend></graph>` and `<graph extend="$gr"/>` | the extend's legend entry is for `gr.P` | the extend's `P` |
+
+The first is **[probe]**d; the others follow from the code and should be confirmed when the tests
+are written.
+
+**[probe]** (a reference to something outside the subtree)
 ```xml
 <section name="A"><number name="n">1</number><group name="g"><p name="p">$n</p></group></section>
 <section name="T"><number name="n">2</number><group extend="$A.g" name="ge"/></section>
