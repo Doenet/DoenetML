@@ -1166,4 +1166,73 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         );
         await check(true);
     });
+
+    it("keeps a blank entry of a list a `<collect>` collects missing", async () => {
+        // A `<collect>` of a list with a blank entry has that blank entry:
+        // a blank point is not drawn, a shape made from it is missing, and a
+        // reference to it is missing (D40, VAL-5), until it names a point.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g">
+      <pointList name="pl">(0,0) (1,0) $pts[$i]</pointList>
+      <collect name="c" from="$pl" componentType="point"/>
+      <polygon name="poly" vertices="$c"/>
+      <point name="P" extend="$c[3]"/>
+    </graph>
+    <mathList name="ml">$pts[$i] 2</mathList>
+    <collect name="cm" from="$ml" componentType="math"/>
+    <p name="p">[$c][$c[3]][<math name="m" extend="$cm[1]"/>]</p>
+    `,
+        });
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("c")).entriesMissing).eqls([
+                false,
+                false,
+                missing,
+            ]);
+            expect((await sv("cm")).entriesMissing).eqls([missing, false]);
+            for (const name of ["poly", "P", "m"]) {
+                expect((await sv(name)).valueMissing, name).eq(missing);
+            }
+            const blank = missing ? "_blank" : undefined;
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                [
+                    "point",
+                    "point",
+                    blank ?? "point",
+                    "point",
+                    "point",
+                    blank ?? "point",
+                    blank ?? "polygon",
+                    blank ?? "point",
+                ],
+            );
+            return (await sv("p")).text;
+        }
+        expect(await check(true)).eq("[(0, 0), (1, 0), ＿][＿][＿]");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await check(false)).eq(
+            "[(0, 0), (1, 0), (3, 4)][(3, 4)][(3, 4)]",
+        );
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(true);
+    });
 });

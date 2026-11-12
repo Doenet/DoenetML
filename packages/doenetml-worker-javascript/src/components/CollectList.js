@@ -345,6 +345,49 @@ function collectListClass(Base) {
                 },
             };
 
+            // Whether each entry is missing (D40): an entry of a list
+            // collected that is a blank entry (`entryMissing` of that list),
+            // which the list form keeps as a blank entry, drawn as a blank,
+            // and of which a reference (`$c[1]`) is missing. A component
+            // collected is not missing, as one that is is not collected.
+            stateVariableDefinitions.entriesMissing = {
+                ...stateVariableDefinitions.entriesMissing,
+                stateVariablesDeterminingDependencies: [
+                    "entryStructure",
+                    "collectedSources",
+                ],
+                returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+                    const dependenciesByKey = {};
+                    for (const arrayKey of arrayKeys) {
+                        const collected =
+                            stateValues.collectedSources[
+                                stateValues.entryStructure[arrayKey]
+                                    ?.collectedInd
+                            ];
+                        if (collected?.listInd !== undefined) {
+                            dependenciesByKey[arrayKey] = {
+                                entryMissing: {
+                                    dependencyType: "stateVariable",
+                                    componentIdx: collected.componentIdx,
+                                    variableName: `entryMissing${collected.listInd + 1}`,
+                                    variablesOptional: true,
+                                },
+                            };
+                        }
+                    }
+                    return { dependenciesByKey };
+                },
+                arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
+                    const entriesMissing = {};
+                    for (const arrayKey of arrayKeys) {
+                        entriesMissing[arrayKey] = Boolean(
+                            dependencyValuesByKey[arrayKey]?.entryMissing,
+                        );
+                    }
+                    return { setValue: { entriesMissing } };
+                },
+            };
+
             // The display settings each entry is shown with, `null` for the
             // list's: those of the component it comes from, or of the entry
             // of the list, where the `<collect>` does not set them, as the
