@@ -15,8 +15,8 @@ Small fixes: a boolean list entry's `fixed`, a letters repeat that hung, a 3D ve
 - **A reference to a component's label** (`$ti.label`, `$P.label`, `$ans.label`, a button's or slider's) in a `<p>` keeps the markup of the `<label>` child it comes from (`<delete>`, `<em>`, math), and so does a reference to a `<label>` (`$l`), which is now a linked copy of it, as `<label extend="$l"/>` is, except that it does not label the input the `<label>` is `for` a second time. In a `<text>`, an input, or a `<graph>`, it is the label's text, as before.
 - **An `<award extend="$aw">` or `<award copy="$aw">` with `referencesAreResponses`** records the references it names as responses, with their values and types, as the same award written out does, where it recorded none, all of the potential responses, or the ones named only after an update.
 - **A warning, `doenet-w0189`, when a `<repeat>` or `<repeatForSequence>` has the same `valueName` and `indexName`**, which made `$i` find two referents.
-- **A `<video>`'s `aspectRatio` with none given is the number 16/9**, so `$v.aspectRatio` shows `1.78`, where it stopped the document from loading.
+- **A `<video>`'s `aspectRatio` with none given is the number 16/9**, so `$v.aspectRatio` shows `1.78`, where it stopped the document from loading. The reference pages and the editor's help show that default as `1.778`, and every numeric default that is not an integer to four significant digits.
 
 Docs: the `<variantControl>` example names the variants to include (`a c e g i`), as `variantsToInclude` takes names, not indices.
 
-Closes #2526, #2175, #2173, #2179, #2115, #2120 and #2151, and item 6 of #2521.
+Closes #2526. Closes #2175. Closes #2173. Closes #2179. Closes #2115. Closes #2120. Closes #2151. Covers item 6 of #2521.

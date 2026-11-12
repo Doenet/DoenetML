@@ -2173,6 +2173,7 @@ describe("Label tag tests @group2", async () => {
 <text name="t">$ti.label</text>
 <boolean name="b">$ti.label = T A</boolean>
 <textInput name="ti2" bindValueTo="$ti.label" />
+<graph name="g">$ti.label</graph>
             `);
             const stateVariables = await core.returnAllStateVariables(
                 false,
@@ -2190,6 +2191,19 @@ describe("Label tag tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("ti2")].stateValues
                     .value,
             ).eq("T A");
+
+            // a graph draws a label as text, so it is made from the string
+            const graphChildren =
+                stateVariables[await resolvePathToNodeIdx("g")].activeChildren;
+            expect(graphChildren.length).eq(1);
+            const graphLabel = graphChildren[0] as any;
+            expect(graphLabel.componentType).eq("label");
+            expect(
+                stateVariables[graphLabel.componentIdx].stateValues.value,
+            ).eq("T A");
+            expect(
+                describeChildren(stateVariables, graphLabel.componentIdx),
+            ).eqls([]);
         });
 
         it("the reference follows the label as it changes", async () => {
