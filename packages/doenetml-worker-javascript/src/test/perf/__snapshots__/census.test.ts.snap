@@ -314,10 +314,10 @@ exports[`component census of the micro-documents > repeat for mathList $x[1] x2 
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 451,
+  "dependencies": 459,
   "shadows": 1,
-  "stateVariables": 410,
-  "stateVariablesResolved": 179,
+  "stateVariables": 412,
+  "stateVariablesResolved": 181,
 }
 `;
 

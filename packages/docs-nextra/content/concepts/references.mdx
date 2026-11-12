@@ -283,8 +283,9 @@ In a list, a missing entry is a blank entry: where `l` has fewer than five
 entries, `<mathList>$l[5] 2</mathList>{:dn}` holds two entries, `＿, 2`, and so
 does `<mathList>$nothing 2</mathList>{:dn}`. A reference to that entry, or a tag
 of it, is missing, and a list tag of an index that names nothing, such as
-`<numberList extend="$l[$i]"/>{:dn}` past the end of `l`, holds one blank entry.
-A blank entry takes no write, and is made from its reference again once that
+`<numberList extend="$l[$i]"/>{:dn}` past the end of `l`, holds one blank entry
+(none if it is written with `removeEmptyArrayEntries`). A `copy` of a blank
+entry is missing for good. A blank entry takes no write, and is made from its reference again once that
 names something. A blank point is missing, not the `(0, 0)` of
 `<point/>{:dn}`: it isn't drawn in a graph, and a shape made from it, such as
 `<polygon vertices="(1,0) (0,0) $pl[3]"/>{:dn}` while `pl` has two points, or a

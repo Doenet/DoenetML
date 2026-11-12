@@ -7188,6 +7188,30 @@ function missingInPlaceOfReplacements({
 }
 
 /**
+ * The position of the entry of the list `source` that a copy made its one
+ * replacement from (`workspace.propVariablesCopiedBySource`), as
+ * `number1` for `copy="$a[1]"` or `__listEntry_x1_2` for
+ * `copy="$pl[2].x"`, when `source` is a list whose entries can be blank
+ * entries (`entriesMissing`, D40); otherwise `undefined`.
+ */
+function listEntryPositionCopied(source, workspace) {
+    if (!source?.state.entriesMissing) {
+        return undefined;
+    }
+    const copied = workspace.propVariablesCopiedBySource;
+    if (
+        workspace.sourceIndices?.length !== 1 ||
+        workspace.sourceIndices[0] !== source.componentIdx ||
+        copied?.length !== 1 ||
+        copied[0]?.length !== 1 ||
+        copied[0][0]?.length !== 1
+    ) {
+        return undefined;
+    }
+    return describeReferentVariable(source, copied[0][0][0])?.listEntryPosition;
+}
+
+/**
  * Make the replacements of the copy `component`, written as a tag, the
  * missing tag (`missingOfWrittenType`) when what it names is itself missing
  * (`BaseComponent.isMissing`): a property of a missing component is missing
@@ -7225,18 +7249,33 @@ async function missingSourceInPlace({
     // stays as it was made. A reload makes it as it was made
     // (`madeFrom.madeMissing`, `heldCopySnapshot`). A linked one is missing
     // while its source is (`missingWhileSourceMissing`, D40).
+    // So is one of an entry of a list made while the entry is a blank entry
+    // (D40): `<number copy="$a[1]"/>`, `<math copy="$pl[2].x"/>`
+    // (`listEntryPositionCopied`); a linked one is missing while the entry is
+    // (`missingWhileListEntryMissing`).
     let missingWhenCopied = false;
+    const unlinkedAtCreation =
+        atCreation && (await component.stateValues.link) === false;
+    const listEntryPosition =
+        unlinkedAtCreation && !source?.canBecomeMissing
+            ? listEntryPositionCopied(source, workspace)
+            : undefined;
     if (
-        atCreation &&
-        source?.canBecomeMissing &&
-        (await component.stateValues.link) === false
+        unlinkedAtCreation &&
+        (source?.canBecomeMissing || listEntryPosition !== undefined)
     ) {
         const held = readHeldCopySnapshot(
             component.coreFunctions.savedCopySnapshot?.(component.stateId),
         );
         missingWhenCopied = held
             ? Boolean(held.madeFrom.madeMissing)
-            : Boolean(await source.stateValues.valueMissing);
+            : listEntryPosition === undefined
+              ? Boolean(await source.stateValues.valueMissing)
+              : Boolean(
+                    (await source.stateValues.entriesMissing)[
+                        listEntryPosition - 1
+                    ],
+                );
         if (missingWhenCopied && workspace.madeFrom) {
             workspace.madeFrom.madeMissing = true;
         }

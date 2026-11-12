@@ -1445,6 +1445,100 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         await check(true);
     });
 
+    it("keeps an unlinked copy of a blank entry missing, after a reload too", async () => {
+        // Made while the entry is a blank entry, a `copy` is missing for
+        // good, as an unlinked copy made while its source is missing is; made
+        // while it is not, it keeps the value it was made with.
+        const doenetML = `
+    <mathInput name="i" prefill="5"/>
+    <mathInput name="j" prefill="1"/>
+    <numberList name="l">1 2</numberList>
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <numberList name="a">$l[$i] 2</numberList>
+    <pointList name="pl">(0,0) $pts[$i]</pointList>
+    <numberList name="b">$l[$j] 2</numberList>
+    <repeat for="1" name="r"><numberList name="a">$l[$i] 2</numberList></repeat>
+    <p name="p">[<number name="c1" copy="$a[1]"/>][<math name="c2" copy="$pl[2].x"/>][<number name="c3" copy="$r[1].a[1]"/>][<number name="c4" copy="$a[2]"/>][<number name="c5" copy="$b[1]"/>]</p>
+    <boolean name="eq">$c1 = $c1</boolean>
+    <graph name="g"><point name="c6" copy="$pl[2]"/></graph>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["c1", "c2", "c3", "c6"]) {
+                expect((await sv(name)).valueMissing, name).eq(true);
+            }
+            for (const name of ["c4", "c5"]) {
+                expect((await sv(name)).valueMissing, name).not.eq(true);
+            }
+            expect((await sv("eq")).value).eq(false);
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                ["_blank"],
+            );
+            expect((await sv("p")).text).eq("[＿][＿][＿][2][1]");
+        }
+        await check();
+
+        // unlinked, so made neither again nor from the new entry
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("j"),
+            core,
+        });
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
+
+    it("gives a property computed from each entry's value the blank for a blank entry", async () => {
+        // `$pl.y` reads the `y` of every entry, which, for a blank point, is
+        // a blank, not the `0` of the blank point's second coordinate.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="i" prefill="5"/>
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <numberList name="l">1 2</numberList>
+    <pointList name="pl">(5,6) $pts[$i]</pointList>
+    <numberList name="nl">7 $l[$i]</numberList>
+    <collect name="c" from="$pl" componentType="point"/>
+    <p name="p1">$pl.y; $pl.xs; $c.y</p>
+    <p name="p2"><math>$pl.y</math>; <mathList copy="$pl.y"/>; $nl.math</p>
+    `,
+        });
+        expect(await texts(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls({
+            p1: "6, ＿; 5, 6, ＿; 6, ＿",
+            p2: "6, ＿; 6, ＿; 7, ＿",
+        });
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        // the unlinked copy keeps what it was made with
+        expect(await texts(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls({
+            p1: "6, 2; 5, 6, 1, 2; 6, 2",
+            p2: "6, 2; 6, ＿; 7, 1",
+        });
+    });
+
     it("keeps a blank entry of a list a `<collect>` collects missing", async () => {
         // A `<collect>` of a list with a blank entry has that blank entry:
         // a blank point is not drawn, a shape made from it is missing, and a
