@@ -43,6 +43,65 @@ function assertLabelInsideBox(labelText) {
     assertBoxContainsLabel(() => cy.contains(".jxgbox .JXGtext", labelText));
 }
 
+/**
+ * Assert that a right-aligned boxed legend sits against the graph's right
+ * edge and is sized for its label.
+ *
+ * The box's right edge is placed in graph units, 3% of the graph's width in
+ * from its right edge, so it lands there whatever the label measured, unless
+ * the label measured too wide for the legend to fit, when the legend is held
+ * at the left and the box runs past the edge. What a wrong measurement
+ * otherwise moves is the label: the legend's left edge is set from the
+ * label's width, converted from pixels to graph units, and the label is drawn
+ * from there at its true pixel width. Converted at the wrong scale, the label
+ * either runs past the box's right edge or stops well short of it. So the
+ * label is checked to end inside the box and within its padding of the box's
+ * right edge, about 1% of the graph's width.
+ */
+function assertBoxAgainstRightEdge(labelText) {
+    cy.get(".jxgbox").then(($board) => {
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").then(($box) => {
+            cy.contains(".jxgbox .JXGtext", labelText).should(($label) => {
+                const board = $board[0].getBoundingClientRect();
+                const box = $box[0].getBoundingClientRect();
+                const label = $label[0].getBoundingClientRect();
+                expect(
+                    (board.right - box.right) / board.width,
+                    "gap between the box and the graph's right edge",
+                ).to.be.closeTo(0.03, 0.01);
+                expect(
+                    (box.right - label.right) / board.width,
+                    "gap between the label and the box's right edge",
+                ).to.be.within(0, 0.025);
+            });
+        });
+    });
+    assertLabelInsideBox(labelText);
+}
+
+/**
+ * Assert that a boxed legend's box is sized for its label: the label ends
+ * inside the box, within the box's padding of its right edge. The box's width
+ * is the label's measured width converted from pixels to graph units, so a
+ * conversion at the wrong scale shows here whichever side the legend is on.
+ */
+function assertBoxFitsLabel(labelText) {
+    cy.get(".jxgbox").then(($board) => {
+        cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").then(($box) => {
+            cy.contains(".jxgbox .JXGtext", labelText).should(($label) => {
+                const board = $board[0].getBoundingClientRect();
+                const box = $box[0].getBoundingClientRect();
+                const label = $label[0].getBoundingClientRect();
+                expect(
+                    (box.right - label.right) / board.width,
+                    "gap between the label and the box's right edge",
+                ).to.be.within(0, 0.025);
+            });
+        });
+    });
+    assertLabelInsideBox(labelText);
+}
+
 describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -933,5 +992,134 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
             "have.length",
             1,
         );
+    });
+
+    it("a right-aligned legend stays against the right edge when the x range changes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="xMax" prefill="10" />
+    <graph xmin="0" xmax="$xMax" ymin="-10" ymax="10">
+        <function name="f">x</function>
+        <legend boxed position="upperRight"><label forObject="$f">a fairly long legend label</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.contains(".jxgbox .JXGtext", "a fairly long legend label").should(
+            "be.visible",
+        );
+        assertBoxAgainstRightEdge("a fairly long legend label");
+
+        cy.get("#xMax textarea").type("{end}{backspace}{backspace}360{enter}", {
+            force: true,
+        });
+        cy.get(".jxgbox").should("contain.text", "300");
+        assertBoxAgainstRightEdge("a fairly long legend label");
+
+        cy.get("#xMax textarea").type(
+            "{end}{backspace}{backspace}{backspace}10{enter}",
+            { force: true },
+        );
+        cy.get(".jxgbox").should("not.contain.text", "300");
+        assertBoxAgainstRightEdge("a fairly long legend label");
+    });
+
+    it("a right-aligned legend stays against the right edge when the graph is resized", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="w" prefill="450" />
+    <graph width="$w" xmin="0" xmax="10" ymin="-10" ymax="10">
+        <function name="f">x</function>
+        <legend boxed position="upperRight"><label forObject="$f">a fairly long legend label</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // The limits stay put while the board changes width, so nothing new
+        // reaches the legend through its state variables; it has to notice
+        // the resize itself, or it stays sized for the old width.
+        let startWidth;
+        cy.get(".jxgbox").then(($board) => {
+            startWidth = $board[0].getBoundingClientRect().width;
+        });
+        assertBoxAgainstRightEdge("a fairly long legend label");
+
+        cy.get("#w textarea").type(
+            "{end}{backspace}{backspace}{backspace}600{enter}",
+            { force: true },
+        );
+        cy.get(".jxgbox").should(($board) => {
+            expect(
+                $board[0].getBoundingClientRect().width,
+                "board width after widening",
+            ).to.be.greaterThan(1.2 * startWidth);
+        });
+        assertBoxAgainstRightEdge("a fairly long legend label");
+
+        cy.get("#w textarea").type(
+            "{end}{backspace}{backspace}{backspace}300{enter}",
+            { force: true },
+        );
+        cy.get(".jxgbox").should(($board) => {
+            expect(
+                $board[0].getBoundingClientRect().width,
+                "board width after narrowing",
+            ).to.be.lessThan(0.8 * startWidth);
+        });
+        assertBoxAgainstRightEdge("a fairly long legend label");
+    });
+    it("a left-aligned boxed legend stays sized to its label when the x range changes or the graph is resized", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="xMax" prefill="10" />
+    <mathInput name="w" prefill="450" />
+    <graph width="$w" xmin="0" xmax="$xMax" ymin="-10" ymax="10">
+        <function name="f">x</function>
+        <legend boxed position="upperLeft"><label forObject="$f">a fairly long legend label</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.contains(".jxgbox .JXGtext", "a fairly long legend label").should(
+            "be.visible",
+        );
+        assertBoxFitsLabel("a fairly long legend label");
+
+        cy.get("#xMax textarea").type("{end}{backspace}{backspace}360{enter}", {
+            force: true,
+        });
+        cy.get(".jxgbox").should("contain.text", "300");
+        assertBoxFitsLabel("a fairly long legend label");
+
+        let startWidth;
+        cy.get(".jxgbox").then(($board) => {
+            startWidth = $board[0].getBoundingClientRect().width;
+        });
+        cy.get("#w textarea").type(
+            "{end}{backspace}{backspace}{backspace}250{enter}",
+            { force: true },
+        );
+        cy.get(".jxgbox").should(($board) => {
+            expect(
+                $board[0].getBoundingClientRect().width,
+                "board width after narrowing",
+            ).to.be.lessThan(0.8 * startWidth);
+        });
+        assertBoxFitsLabel("a fairly long legend label");
     });
 });
