@@ -2451,7 +2451,7 @@ decided here; the rest are listed as still open.
 1. **A component whose content holds a missing child is missing** (#2461). Exceptions: `<math>`
    and `<text>`, where the blank takes part, and containers, which show it inline. A missing
    list entry is a blank entry. An award whose condition is missing gives no credit. VAL-5.
-   Done by #2514 except for lists (PR 7 of #2509) and the leftovers in #2516.
+   Done by #2514 and, for lists, #2524; the leftovers are #2516 and #2460.
 2. **`null` is never shown; where it means "no value" the value is missing, and a `NaN` caused by
    a missing input is missing** (#2460). Only a computation on present inputs that has no value
    stays `NaN`. VAL-5.
@@ -2467,7 +2467,7 @@ decided here; the rest are listed as still open.
    it does nothing with an info, reading it does not evaluate it, and its state is kept
    (#2152). SAVE-4, D18.
 7. **A space beside a reference keeps deciding a list's entries** (#2168); the editor hints at
-   it. VAL-12.
+   it (`i0059`, done by #2522). VAL-12.
 
 **Still open** (recommendations from the review, not decided):
 - #2235 (D7, D23): a write to `fixed` through a reference. Recommendation: to the source for a

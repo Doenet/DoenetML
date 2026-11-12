@@ -195,9 +195,38 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
     (`<number extend="$n.value"/>`), and its adapter. An unlinked `copy` made while it is missing
     is missing for good, and a reload keeps that (`madeFrom.madeMissing`).
 
+  **Done by #2524 for lists** (closing the list part of #2461): in an authored list, a child
+  reference that names nothing, one past the end of a list, or `$nothing` is a blank entry
+  (`entriesMissing` in `AuthoredValueList`), and so is a child that is itself missing.
+  - A reference to a blank entry is missing (`<number>$a[1]</number>`, `$a = $a`), also through a
+    run-time path (`$r[1].a[1]`); a tag of one is missing while it is; an unlinked copy made
+    while it is blank is missing for good, also after a reload, and one made before keeps the
+    value it was made with.
+  - A blank point or vector is missing, drawn as a blank, not `(0, 0)`. It takes no write and no
+    action.
+  - A shape made from a missing point is missing (`missingWhenEntriesMissing`: a polyline's,
+    polygon's and their kin's `vertices`, a curve's and circle's `through`, a line's `through`,
+    a line segment's `endpoints`, an angle's `through`), and so are a `<function>` through one
+    and a `<bestFitLine>` fit to one (before, the blank was skipped).
+  - A property a list computes from each entry (`$pl.y`, `$pl.xs`) is `＿` for a blank entry.
+  - A list tag over an index that names nothing holds one blank entry, even where a valid index
+    would name a row (`<vectorList extend="$c.controlVectors[$m]"/>`), except with
+    `removeEmptyArrayEntries`.
+  - A `<collect>`, `<sort>` or `<shuffle>` of a list keeps its blank entries.
+
   **Known violations:**
-  - lists and list entries (`<mathList>$l[5] 2</mathList>` holds only `2`), and an entry of
-    `_repeatValueList` (PR 7 of #2509);
+  - an entry of `_repeatValueList` isn't made missing; a `<number>$l[$i]</number>` repeat stays a
+    composite, which shows `＿`, so authors see the same;
+  - list operators count a blank entry: for `<numberList>1 $nothing 3</numberList>`, `<sum>` and
+    `<mean>` give `NaN`, `<count>` gives `3`, and a math `<sum>` gives `1 + ＿ + 3` (#2460);
+  - a numeric function at a blank is `1 + ＿`, not missing (`<evaluate input="$nothing"/>`,
+    `$$f($nothing)`, `input="$ans.submittedResponse"` before a submission), and `$$f(2)` of a
+    missing `<function>` is a number (#2460);
+  - `$ml.matrixSize` of a blank entry is `1, 1`, and `$nl.text` shows a blank entry as `NaN`
+    (#2460);
+  - a `<sort>` drops a child reference that names nothing (`<sort>$l[5] 3 1</sort>` is `1, 3`), and
+    `<ray through="(1,2) $nothing"/>` isn't missing (#2525);
+  - a tag of a reference past the end isn't missing: `<point>$pl[$i]</point>` is `(＿, 0)` (#2525);
   - `<mathInput>$nothing</mathInput>` and `<isNumber>` are unchanged;
   - a `<math>` whose child is missing for a while can still be `NaN`: with `n` =
     `<number>$l[$i]</number>` while `i` names nothing, `<math><math extend="$n"/></math>` and
@@ -415,8 +444,10 @@ grid, variant names) is split the same way:
   three).
 
 **Kept as is (D40; #2168):** whether a space separates a reference from text beside it changes
-the entries (`2$a` is one entry, `2 $a` two). The editor should hint at it, rather than the rule
-changing.
+the entries (`2$a` is one entry, `2 $a` two). The editor hints at it: `doenet-i0059`, a Hint in
+the language server for an entry of a space-separated list tag where a reference meets text or
+another reference outside brackets (#2522). It isn't given for `<sort>` or a `for` attribute,
+which join the same way.
 
 **The one exception:** `removeStrings` on a `<mathInput>` keeps spaces only, since a comma is
 its common entry (thousands separators).
