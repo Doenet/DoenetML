@@ -2133,6 +2133,41 @@ describe("Label tag tests @group2", async () => {
             expect(ti.externalLabelRendererIds).eqls(["l"]);
         });
 
+        // `<label copy="$ti.label"/>` is an unlinked copy of the `<label>`
+        // child, as `<label copy="$l"/>` is of `l`: it keeps the child's
+        // markup, and a reference inside it still follows its referent. (It
+        // was a label made from the string when copied, which kept that
+        // string.)
+        it("an unlinked copy of the label of an input", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<textInput name="ti" prefill="x"><label>T <em>$ti</em></label></textInput>
+<label name="l">L <em>$ti</em></label>
+<p name="p1"><label copy="$ti.label" /></p>
+<p name="p2"><label copy="$l" /></p>
+            `);
+
+            for (const [value, text] of [
+                ["x", undefined],
+                ["y", "y"],
+            ]) {
+                if (text) {
+                    await updateTextInputValue({
+                        text,
+                        componentIdx: await resolvePathToNodeIdx("ti"),
+                        core,
+                    });
+                }
+                const p1 = await inParagraph("p1");
+                expect(p1.componentType).eq("label");
+                expect(p1.stateValues.value).eq(`T ${value}`);
+                expect(p1.children).eqls(["T ", { em: [{ _ref: [] }] }]);
+
+                const p2 = await inParagraph("p2");
+                expect(p2.stateValues.value).eq(`L ${value}`);
+                expect(p2.children).eqls(["L ", { em: [{ _ref: [] }] }]);
+            }
+        });
+
         it("a label with math", async () => {
             const { inParagraph } = await setup(`
 <textInput name="ti"><label>x <m>\\frac{1}{2}</m></label></textInput>
