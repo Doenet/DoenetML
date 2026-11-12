@@ -202,9 +202,10 @@ Three problems in this area are listed in D7:
 
 **Done by #2524** (closing #2239): a reference to one list entry, its value, a property of it, a
 tag of it or an unlinked copy, reads `fixed` and `fixLocation` from the entry's source
-(`listEntryContextArrays`, `listEntrySource`). **Exception, chosen in review:** a `<booleanList>`
-holds no per-entry `fixed`, so `<boolean extend="$bl[1]"/>` of a fixed boolean reports `false`,
-though a write through it is still refused at the source.
+(`listEntryContextArrays`, `listEntrySource`). **Known violation (#2526):** a `<booleanList>` holds no
+per-entry `fixed`, so `<boolean extend="$bl[1]"/>` of a fixed boolean reports `false`, though a write
+through it is still refused at the source. The per-entry arrays were tied to placing entries in a
+graph, which booleans aren't; every list should hold them.
 
 ### CTX-8: other attributes follow where the reference sits, not the source's container (Tier 2)
 A reference takes its source's *own* `hide`, `disabled` and `styleNumber` attributes. It does
