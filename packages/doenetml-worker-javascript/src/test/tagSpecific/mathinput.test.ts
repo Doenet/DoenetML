@@ -10304,6 +10304,93 @@ describe("MathInput tag tests @group2", async () => {
         ).contain(",");
     });
 
+    it("remove strings applied to prefillLatex, in an answer and after echo", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">
+      <mathInput name="mi" prefillLatex="\\$10" removeStrings="$" />
+      <award>10</award>
+    </answer>
+  `,
+        });
+
+        // an untouched prefillLatex earns credit
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues.value
+                .tree,
+        ).eq(10);
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            actionName: "submitAnswer",
+            args: {},
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
+                .creditAchieved,
+        ).eq(1);
+
+        // the renderer sending back the prefill, escaped, gives the same value
+        for (let latex of ["\\$10", "\\ \\$10"]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                    .value.tree,
+            ).eq(10);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                    .valueChanged,
+            ).eq(false);
+        }
+    });
+
+    it("remove strings removes unescaped $ and % from typed latex", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi1" removeStrings="$" />
+    <mathInput name="mi2" removeStrings="%" />
+  `,
+        });
+
+        await updateMathInputValue({
+            latex: "$5",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "5%",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.value
+                .tree,
+        ).eq(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eq(5);
+
+        // the escaped form is removed first, so no stray backslash is left
+        await updateMathInputValue({
+            latex: "5\\%x",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.value
+                .tree,
+        ).eqls(["*", 5, "x"]);
+    });
+
     it("remove strings", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
