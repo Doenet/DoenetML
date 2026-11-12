@@ -266,6 +266,12 @@ appears. Set `for` to a reference to the input or answer it labels (here,
 exactly the same way as a `<label>{:dn}` child would be. The `for` attribute is
 ignored on a `<label>{:dn}` placed inside a `<graph>{:dn}`.
 
+A reference to the label (`$l`, `<label extend="$l"/>` or `<label copy="$l"/>`)
+shows the label again but does not take its `for`, just as it does not take its
+`name`: an input has one label, and a second would make a screen reader read its
+name twice. To make the copy a label of an input too, write `for` on it
+(`<label extend="$l" for="$response"/>`).
+
 
 
 ---

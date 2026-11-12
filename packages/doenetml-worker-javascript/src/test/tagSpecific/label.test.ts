@@ -2107,30 +2107,83 @@ describe("Label tag tests @group2", async () => {
             expect(p2.children).eqls([]);
         });
 
-        it("a reference to a label for an input does not label the input again", async () => {
+        // `for` says what a label is, not what it shows, so, like `name`,
+        // no reference to a label takes it: `$l` and `<label extend="$l"/>`
+        // (which `$l` is shorthand for) and `<label copy="$l"/>` show the
+        // label again without labeling its input a second time, which would
+        // read the input's name twice. A `for` written on the extend itself
+        // applies, and a label copied inside a larger copy keeps its `for`,
+        // which then points to the input copied with it.
+        it("no reference to a label takes its for", async () => {
             const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
 <textInput name="ti" />
+<textInput name="ti2" />
 <label name="l" for="$ti">L <em>B</em></label>
 <p name="p1">$l</p>
+<p name="p2"><label extend="$l" /></p>
+<p name="p3"><label copy="$l" /></p>
+<p name="p4"><label extend="$l" for="$ti2" /></p>
+<label name="m">M</label>
+<label name="em" extend="$m" for="$ti4" /><textInput name="ti4" />
+<group name="g"><textInput name="ti3" /><label name="l3" for="$ti3">M</label></group>
+<group name="g2" copy="$g" />
             `);
 
-            const p1 = await inParagraph("p1");
-            expect(p1.componentType).eq("label");
-            expect(p1.children).eqls(["L ", { em: ["B"] }]);
-            expect(p1.stateValues.forTargetInputComponentIdx).eq(null);
+            for (const name of ["p1", "p2", "p3"]) {
+                const p = await inParagraph(name);
+                expect(p.componentType, name).eq("label");
+                expect(p.children, name).eqls(["L ", { em: ["B"] }]);
+                expect(p.stateValues.forTargetInputComponentIdx, name).eq(null);
+            }
+            const p4 = await inParagraph("p4");
+            expect(p4.children).eqls(["L ", { em: ["B"] }]);
+            expect(p4.stateValues.forTargetInputComponentIdx).eq(
+                await resolvePathToNodeIdx("ti2"),
+            );
 
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            const ti =
-                stateVariables[await resolvePathToNodeIdx("ti")].stateValues;
-            expect(
-                ti.externalLabelsReferencingInputByFor.map(
+            async function labelsOf(input: string) {
+                const sv =
+                    stateVariables[await resolvePathToNodeIdx(input)]
+                        .stateValues;
+                return sv.externalLabelsReferencingInputByFor.map(
                     (label: any) => label.componentIdx,
-                ),
-            ).eqls([await resolvePathToNodeIdx("l")]);
-            expect(ti.externalLabelRendererIds).eqls(["l"]);
+                );
+            }
+            expect(await labelsOf("ti")).eqls([
+                await resolvePathToNodeIdx("l"),
+            ]);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                    .externalLabelRendererIds,
+            ).eqls(["l"]);
+            expect(await labelsOf("ti2")).eqls([
+                (
+                    stateVariables[await resolvePathToNodeIdx("p4")]
+                        .activeChildren[0] as any
+                ).componentIdx,
+            ]);
+
+            // a `for` written on an extend of a label with none applies
+            expect(
+                stateVariables[await resolvePathToNodeIdx("em")].stateValues
+                    .forTargetInputComponentIdx,
+            ).eq(await resolvePathToNodeIdx("ti4"));
+
+            // the label inside a copied group labels the copied input
+            for (const group of ["g", "g2"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`${group}.l3`)]
+                        .stateValues.forTargetInputComponentIdx,
+                    group,
+                ).eq(await resolvePathToNodeIdx(`${group}.ti3`));
+                expect(await labelsOf(`${group}.ti3`), group).eqls([
+                    await resolvePathToNodeIdx(`${group}.l3`),
+                ]);
+            }
         });
 
         // `<label copy="$ti.label"/>` is an unlinked copy of the `<label>`

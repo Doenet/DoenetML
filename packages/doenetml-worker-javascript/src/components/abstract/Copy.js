@@ -2175,14 +2175,28 @@ export default class Copy extends CompositeComponent {
             results.propVariablesCopiedByReplacement = (
                 results.serializedReplacements ?? []
             ).map(() => [...inPlaceOfProp.propVariablesCopied]);
-            // The reference stands for the label's value, as a label made
-            // from it did, so it does not label the input the label is
-            // `for` a second time (which would read the input's name
-            // twice).
-            for (const replacement of results.serializedReplacements ?? []) {
-                if (typeof replacement === "object") {
-                    delete replacement.attributes?.for;
-                }
+        }
+        // A reference to a `<label>` (`$l`, `<label extend="$l"/>`, `<label
+        // copy="$l"/>`, and `$ti.label` made from the input's `<label>`
+        // child) shows the label again; it is not another label of the
+        // input the label is `for`, which would read the input's name twice.
+        // Like `name`, `for` says what the label is, not what it shows, so a
+        // reference does not take it. A `for` written on the extend or copy
+        // itself is kept. A `<label>` inside a larger copy keeps its `for`,
+        // which points into the copy when the input is copied with it.
+        const forWrittenOnReference =
+            args.component.attributes?.for !== undefined;
+        for (const replacement of results.serializedReplacements ?? []) {
+            if (
+                !forWrittenOnReference &&
+                typeof replacement === "object" &&
+                replacement.attributes?.for !== undefined &&
+                args.componentInfoObjects.componentIsSpecifiedType(
+                    replacement,
+                    "label",
+                )
+            ) {
+                delete replacement.attributes.for;
             }
         }
         if (args.component.doenetAttributes.forList !== undefined) {
