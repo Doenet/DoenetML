@@ -2597,3 +2597,27 @@ names nothing (D27 revised, #2518).
 - The converter (#2457): `$g.x` over several components becomes `$g.P.x` when exactly one
   component has the property and can be named, and is reported otherwise; `$s[i]` of a
   `<solveEquations>` becomes `$s.solutions[i]`; a sort or shuffle of mixed types is reported.
+
+## D42. An award or a choice can only be copied (decided, Tier 1)
+
+**Decided** (November 2026). Implementation: #2531.
+
+An `<award>`'s state (`awarded`) and a `<choice>`'s (`submitted`) record the last submission of
+the answer or choice input that holds them (ANS-1), and a choice's `selected` comes from its place
+in its choice input. So:
+- an `extend`, the same component again sharing state (REF-9), has no coherent meaning: another
+  answer's credit would come from this one's submission. The code already doesn't share this
+  state (`doNotShadowEssential`), so today an extend behaves as a copy. **[probe]**: an
+  `<award extend="$aw"/>` in another answer is awarded only when its own answer is submitted;
+- a `copyWithState` would start a new award or choice from another submission's record, which is
+  just as meaningless;
+- a `copy`, written again here (D33), is what every existing use wants: a tolerance ladder in one
+  answer, an award or choice defined in a `<setup>` and reused, a choice reused with another
+  `credit`.
+
+So `extend` and `copyWithState` of an award or a choice are an error at load whose message
+suggests `copy`, and the converter (#2457) rewrites the extend. An award or a choice outside an
+answer or choice input gets **no** warning: defining one in a `<setup>` and copying it into
+several is a supported use, and nothing else is required to be in a `<setup>`. A bare `$aw` or
+`$c` stays the value (whether awarded or submitted, REF-1a). `<answer extend>` is unchanged: two
+answers sharing state is coherent (REF-9; `answer.test.ts:5685`).
