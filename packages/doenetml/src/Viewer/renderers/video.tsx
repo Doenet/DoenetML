@@ -381,7 +381,10 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
                 // if rates.current is empty, then never played
                 let begin = lastPlayedTime.current;
-                let end = player.current.getCurrentTime();
+                // The player reached the end, so the watched segment runs to
+                // the full duration, even though the current time it reports
+                // at this point is often a fraction of a second short of it.
+                let end = Math.max(player.current.getCurrentTime(), duration);
                 if (rates.current.length > 0 && begin !== null && end > begin) {
                     rates.current[rates.current.length - 1].endingPoint = end;
 
