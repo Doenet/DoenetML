@@ -9776,11 +9776,13 @@ export function clearReplacementCountsFrom(workspace, sourceNum) {
 
 /**
  * Whether the reference `component` names the component its replacement
- * `sourceNum` is made from (`$l`, `$g.l`, `$r[1].l`), rather than copying it
- * because it is among what the named component holds (`$g` of a `<group>`,
- * `$r[1]` of an iteration, whose replacements are their children): the
- * source is the component the reference resolved to (`extendIdx`), or the
- * rest of its path, resolved at run time, ends in a name.
+ * `sourceNum` is made from (`$l`, `$g.l`, `$r[1].l`, which the resolver
+ * resolves to the label itself), rather than copying it because it is among
+ * what the named component holds (`$g` of a `<group>`, `$r[1]` of an
+ * iteration, whose replacements are their children): the source is the
+ * component the reference resolved to (`extendIdx`). (A path left after
+ * resolving is a property, made from values or in place of the property,
+ * `inPlaceOfProp`.)
  */
 async function referenceNamesItsSource({ component, sourceNum, heldCase }) {
     if (heldCase) {
@@ -9789,13 +9791,9 @@ async function referenceNamesItsSource({ component, sourceNum, heldCase }) {
     const source = (await component.stateValues.replacementSourceIdentities)[
         sourceNum
     ];
-    if (typeof source !== "object" || source === null) {
-        return false;
-    }
-    if (source.componentIdx === (await component.stateValues.extendIdx)) {
-        return true;
-    }
-    const path = await component.stateValues.unresolvedPath;
-    const last = path?.[path.length - 1];
-    return Boolean(last?.name) && (last.index?.length ?? 0) === 0;
+    return (
+        typeof source === "object" &&
+        source !== null &&
+        source.componentIdx === (await component.stateValues.extendIdx)
+    );
 }
