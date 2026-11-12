@@ -603,6 +603,12 @@ No test pins the "last one wins" rule, for any component, either written directl
 (`extend_references.test.ts:86`). This rule should be one schema-driven sweep over every
 component with a single-child group ([testing-principles.md](testing-principles.md) §2.3).
 
+Not checked: whether an `<award>`'s `<when>` follows the rule. **[probe]**: an award that added a
+`<when>` to one it was made from gave no credit for the added condition (#2531). Enforcing the rule
+component by component leaves gaps like this one. In the cells core it should be one mechanism:
+each component declares which child groups take one child, and one shared rule picks the last.
+That is worth doing there, not retrofitting into the JavaScript core.
+
 ### REF-5: a different tag is allowed only between related types; any other pair is an error (Tier 2)
 `<T extend="$x"/>` with T different from x's type asks for a T made from x. The same table decides
 `copy` and `copyWithState` (D26). The allowed cases:
