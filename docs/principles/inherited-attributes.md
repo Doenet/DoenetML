@@ -265,6 +265,22 @@ An object's label is the first of these that exists:
 References and copies show their source's label unless they set their own. A property
 reference has no label.
 
+**A reference to a label keeps its markup** (#2529, closing #2115): `$l`, and `$ti.label` in a
+`<p>`, are a linked copy of the `<label>` child, so `<em>` and math stay. In a `<text>`, a
+`<boolean>`, an input or a `<graph>`, where a string is wanted, it is the label's text.
+
+**Known violations and open questions** (#2537):
+- `$l.value` of a `<label>` is a new label made from `l`'s string, so it loses the markup `$l`
+  keeps. Open: document `.value` as the text only, or make it a linked copy in a `<p>` too;
+- a `<label for>` inside an extended group labels the **source's** input, not the extend's
+  (`<group name="g3" extend="$g"/>`), so the source input's name is read twice and the extend's
+  input has none. A `copy` of the group is right. Open: whether `for` inside an extend points
+  into the extend (as in a copy) or is dropped (REF-6 keeps the source's bindings);
+- a label copied out of a repeat iteration whose `for` names an input in the same iteration
+  labels no input;
+- `$ti2.label` of a copy of an input is made from the string; `<updateValue>` can't set a
+  `label` whose `<label>` holds only an `<em>` or several children.
+
 Code: `W/utils/label.ts:369-520`.
 
 Tests: `T/graphical/labels.test.ts:295`, `:355`, `:610`, `:731`, `:1062-1074`.

@@ -147,6 +147,9 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 **Known violations:**
 - state-variable cycles throw, and the document fails to load (D14, NAME-7);
 - a loop where no composite can be singled out still stops the document (#2425);
+- an unknown name in `variantsToInclude` or `variantsToExclude` stops the document with an
+  uncoded message (#2536). Decided: the name is ignored with a coded error, and the document loads
+  with the other names;
 - fixed: `bindValueTo` of a `<subsetOfRealsInput>` (B24, #2484), `<text extend="$cc"/>` of
   bare-text cases (B23, #2447), and a reload restoring a value to a component of another type
   (B36, #2481).

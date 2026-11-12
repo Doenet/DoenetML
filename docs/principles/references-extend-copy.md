@@ -514,6 +514,14 @@ source through `W/core/EssentialValueWriter.ts`.
 
 ### REF-3: an attribute written on an extend replaces the source's; the rest are inherited (Tier 1)
 - The extend's `name` is never inherited.
+- **A reference that names a `<label>` never takes its `for`** (#2529, decided). `$l`, `<label
+  extend="$l"/>`, `<label copy="$l"/>`, `$g.l` and `$ti.label` show the label again without
+  becoming a second label of the input it is `for`. Like `name`, `for` says what the label is,
+  not what it shows. A `for` written on the reference itself applies. A label copied because it
+  is inside what a reference names keeps its `for` (`$g` of a group holding it, `$r[1]`), so
+  `$g` agrees with `<group extend="$g"/>` (REF-1). The list of attributes a reference never
+  takes from what it names: `name`, `for` (of a label named directly) and `labelIsName`
+  (CTX-9).
 - Along a chain of extends, each link's own attribute wins.
 
 **[probe]**
