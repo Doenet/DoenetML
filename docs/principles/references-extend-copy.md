@@ -574,8 +574,10 @@ tag written on its own: `<point copy="$P">(3,4)</point>` is at (3,4) (B13, #2395
 appended to the source's terms; on an input it is what the input is bound to, as `bindValueTo`.
 A child's sugar overrides an attribute written on the copy. **Known violations (#2486):** a
 child the copy ignores (`<function copy="$f">x^3</function>`, `<answer copy>`, `<curve copy>`, an
-extend of an input) gives no warning, where it gave `w0107` before #2483; and
-`<matrix copy="$M">[[5,6],[7,8]]</matrix>` is an empty matrix.
+extend of an input, a `<matrix>` copy with a child other than `<row>`) gives no warning, where it
+gave `w0107` before #2483. `<row>` children on a `<matrix>` copy or extend are appended to the
+source's rows, as this rule says. (`[[5,6],[7,8]]` is how a matrix's text is shown, not how one
+is written; `<math>` reads it as a list of lists.)
 
 ### REF-4a: of a child a component uses only one of, the last one written wins (Tier 1)
 A component uses only one `<label>`, `<title>` or `<shortDescription>`. When more than one is
