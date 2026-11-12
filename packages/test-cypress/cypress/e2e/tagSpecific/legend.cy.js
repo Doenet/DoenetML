@@ -934,4 +934,63 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
             1,
         );
     });
+
+    it("a right-aligned legend stays against the right edge when the x range changes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <mathInput name="xMax" prefill="10" />
+    <graph xmin="0" xmax="$xMax" ymin="-10" ymax="10">
+        <function name="f">x</function>
+        <legend boxed position="upperRight"><label forObject="$f">a fairly long legend label</label></legend>
+    </graph>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // The box's right edge sits 3% of the graph's width in from the
+        // graph's right edge, wherever the label's width puts its left edge.
+        // The label is measured in pixels and converted with the graph's
+        // scale, and the graph applies new limits only after the legend has
+        // laid itself out, so a conversion that read the board's scale got the
+        // old one: the legend ran past the right edge when the range grew and
+        // stopped short of it when the range shrank.
+        function assertBoxAgainstRightEdge() {
+            cy.get(".jxgbox").then(($board) => {
+                cy.get(".jxgbox svg [fill='white'][fill-opacity='1']").should(
+                    ($box) => {
+                        const board = $board[0].getBoundingClientRect();
+                        const box = $box[0].getBoundingClientRect();
+                        const gap = (board.right - box.right) / board.width;
+                        expect(gap, "gap at the right edge").to.be.closeTo(
+                            0.03,
+                            0.01,
+                        );
+                    },
+                );
+            });
+            assertLabelInsideBox("a fairly long legend label");
+        }
+
+        cy.contains(".jxgbox .JXGtext", "a fairly long legend label").should(
+            "be.visible",
+        );
+        assertBoxAgainstRightEdge();
+
+        cy.get("#xMax textarea").type("{end}{backspace}{backspace}360{enter}", {
+            force: true,
+        });
+        cy.get(".jxgbox").should("contain.text", "300");
+        assertBoxAgainstRightEdge();
+
+        cy.get("#xMax textarea").type(
+            "{end}{backspace}{backspace}{backspace}10{enter}",
+            { force: true },
+        );
+        cy.get(".jxgbox").should("not.contain.text", "300");
+        assertBoxAgainstRightEdge();
+    });
 });

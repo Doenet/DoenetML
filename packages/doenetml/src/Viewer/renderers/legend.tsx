@@ -174,6 +174,17 @@ interface Geometry {
     legendY: number;
     /** Whether the legend is pushed against the graph's right edge. */
     atRight: boolean;
+    /**
+     * Graph units per pixel across the board, for converting a label's
+     * measured width. Taken from the limits above rather than from
+     * `board.unitX`: when the limits change, the legend is laid out in the
+     * same render as the graph, but the graph applies the new bounding box
+     * from its own effect, which runs after its children have rendered. Until
+     * then `board.unitX` still describes the old limits, so pairing it with
+     * the new ones put a right-aligned legend too far left when the x range
+     * shrank and past the right edge when it grew.
+     */
+    unitsPerPixel: number;
 }
 
 export default React.memo(function Legend(props: UseDoenetRendererProps) {
@@ -244,7 +255,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
     }, []);
 
     /** The current {@link Geometry}, read off the graph limits and position. */
-    function baseGeometry(): Geometry {
+    function baseGeometry(board: JXGBoard): Geometry {
         const { xMin, xMax, yMin, yMax } = SVs.graphLimits;
 
         const legendDy = (yMax - yMin) * 0.06;
@@ -267,6 +278,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             baseLegendX,
             legendY,
             atRight: SVs.position.slice(-5) === "right",
+            unitsPerPixel: (xMax - xMin) / board.canvasWidth,
         };
     }
 
@@ -550,6 +562,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
             legendY,
             baseLegendX,
             atRight,
+            unitsPerPixel,
         } = geometry;
 
         let maxTextWidth = 0;
@@ -561,7 +574,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
                 );
             }
         }
-        maxTextWidth /= board.unitX;
+        maxTextWidth *= unitsPerPixel;
 
         const legendX = atRight
             ? Math.max(
@@ -623,7 +636,7 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         }
 
         const generation = ++layoutGeneration.current;
-        const geometry = baseGeometry();
+        const geometry = baseGeometry(board);
 
         const usedMathJax = syncEntries();
         syncBox();
