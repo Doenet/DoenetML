@@ -270,8 +270,10 @@ reference has no label.
 `<boolean>`, an input or a `<graph>`, where a string is wanted, it is the label's text.
 
 **Known violations and open questions** (#2537):
-- `$l.value` of a `<label>` is a new label made from `l`'s string, so it loses the markup `$l`
-  keeps. Open: document `.value` as the text only, or make it a linked copy in a `<p>` too;
+- `$l.value` of a `<label>` is the label's text, by decision (#2537, VAL-1: a property is a new value).
+  Math stays math: in a `<p>` it is a new label whose value keeps the math as LaTeX
+  (`Area \(x^2\) is big`, `hasLatex`), so it renders; other markup (`<em>`) is dropped. In a
+  `<text>`, it is the text form (`Area x² is big`). This is what `main` does; nothing to change.
 - a `<label for>` inside an extended group labels the **source's** input, not the extend's
   (`<group name="g3" extend="$g"/>`), so the source input's name is read twice and the extend's
   input has none. A `copy` of the group is right. Open: whether `for` inside an extend points
