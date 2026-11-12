@@ -99,11 +99,6 @@ export default class GraphicalValueList extends AuthoredValueList {
      * parent's even where the source sets neither (`Copy.js` gives a linked
      * component no attribute for a variable it reads here).
      */
-    static get listEntryContextArrays() {
-        const { fixed, fixLocation } = this.listEntrySourceVariables;
-        return { fixed, fixLocation };
-    }
-
     static get listEntrySourceVariables() {
         return {
             label: entryVariableName("label"),
@@ -111,6 +106,16 @@ export default class GraphicalValueList extends AuthoredValueList {
             fixed: "entryFixed",
             fixLocation: entryVariableName("fixLocation"),
         };
+    }
+
+    /**
+     * The arrays of the list holding `fixed` and `fixLocation` of each
+     * entry's source, which a reference to one entry or to a property of one
+     * (`$c[1]`, `$pl[1].x`) reads (#2239).
+     */
+    static get listEntryContextArrays() {
+        const { fixed, fixLocation } = this.listEntrySourceVariables;
+        return { fixed, fixLocation };
     }
 
     // How an entry of a list of graphical objects is drawn when it is not
@@ -954,7 +959,6 @@ export function graphicalEntryValuesDefinition({ listClass, baseValues }) {
 /** `rendererVariables` of each list class, made once per class. */
 const rendererVariablesOfListClass = new WeakMap();
 
-/** The array of a list holding variable `name` of each entry's renderer. */
 /**
  * What makes the list's `entryLabel` (`entryName`) take a write: a write to
  * an entry's label (`<textInput bindValueTo="$c[1].label"/>`, of a
@@ -1016,6 +1020,7 @@ function entryLabelWrites(entryName) {
     };
 }
 
+/** The array of a list holding variable `name` of each entry's renderer. */
 export function entryVariableName(name) {
     return `entry${name[0].toUpperCase()}${name.slice(1)}`;
 }

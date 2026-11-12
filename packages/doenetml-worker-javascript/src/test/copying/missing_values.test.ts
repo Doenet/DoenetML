@@ -1360,6 +1360,69 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         await check(true);
     });
 
+    it("makes a reference to a blank entry through a path resolved at run time missing", async () => {
+        // `$r[1].a[1]` is a reference a copy makes once it has resolved the
+        // path, which is missing while the entry is blank, as `$a[1]` is.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="i" prefill="5"/>
+    <numberList name="l">1 2</numberList>
+    <repeat for="1" name="r">
+      <numberList name="a">$l[$i] 2</numberList>
+      <textList name="t">$l[$i] x</textList>
+    </repeat>
+    <p name="p1">[$r[1].a[1]] [$r[1].t[1]] $r[1].a</p>
+    <p name="p2"><number name="n">$r[1].a[1]</number> <number name="n2" extend="$r[1].a[1]"/></p>
+    <p name="p3"><boolean name="eq">$r[1].a[1] = $r[1].a[1]</boolean></p>
+    `,
+        });
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["n", "n2"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                    name,
+                ).eq(missing);
+            }
+        }
+        const names = ["p1", "p2", "p3"];
+
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "[＿] [＿] ＿, 2",
+            p2: "＿ ＿",
+            p3: "false",
+        });
+        await check(true);
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "[1] [1] 1, 2",
+            p2: "1 1",
+            p3: "true",
+        });
+        await check(false);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "[＿] [＿] ＿, 2",
+            p2: "＿ ＿",
+            p3: "false",
+        });
+        await check(true);
+    });
+
     it("keeps a blank entry of a list a `<collect>` collects missing", async () => {
         // A `<collect>` of a list with a blank entry has that blank entry:
         // a blank point is not drawn, a shape made from it is missing, and a

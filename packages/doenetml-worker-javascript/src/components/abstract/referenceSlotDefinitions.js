@@ -591,7 +591,7 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  *
  * A reference a copy made at run time (`fixedReferent`) has its own
  * `valueMissing`, which is only whether its referent is a missing component
- * (`ValueRef.js`). The copy makes no reference for an entry that is not
+ * or, of a list entry, a blank entry (`ValueRef.js`). The copy makes no reference for an entry that is not
  * there (`Copy.js`), and a reference it made stands for the component it
  * made before value references, which held the empty value of its type once
  * its variable held no value (`$c.selectedValue` after the selected choice

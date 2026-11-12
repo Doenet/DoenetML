@@ -1120,8 +1120,9 @@ function componentTypeAsResponseDefinition(
  * The definition of `valueMissing` of a reference a copy made at run time
  * (`fixedReferent`): whether its referent is a missing component (D37,
  * `BaseComponent.isMissing`), as `$r[1].n.value` of an iteration whose `n`
- * is missing. Its other ways of having nothing to read are the copy's,
- * which makes no reference for an entry that is not there.
+ * is missing, or, of an entry of a list, whether the entry is a blank entry
+ * (D40). Its other ways of having nothing to read are the copy's, which
+ * makes no reference for an entry that is not there.
  */
 function fixedReferentMissingDefinition(fixedReferent) {
     return {
@@ -1132,11 +1133,26 @@ function fixedReferentMissingDefinition(fixedReferent) {
                 variableName: "valueMissing",
                 variablesOptional: true,
             },
+            // A blank entry of a list (D40), which the copy does make a
+            // reference for: `$r[1].a[1]` of `<numberList name="a">$l[5]
+            // 2</numberList>`.
+            ...(fixedReferent.listEntryPosition === undefined
+                ? {}
+                : {
+                      entryMissing: {
+                          dependencyType: "stateVariable",
+                          componentIdx: fixedReferent.componentIdx,
+                          variableName: `entryMissing${fixedReferent.listEntryPosition}`,
+                          variablesOptional: true,
+                      },
+                  }),
         }),
         definition({ dependencyValues }) {
             return {
                 setValue: {
-                    valueMissing: Boolean(dependencyValues.targetMissing),
+                    valueMissing:
+                        Boolean(dependencyValues.targetMissing) ||
+                        Boolean(dependencyValues.entryMissing),
                 },
             };
         },
