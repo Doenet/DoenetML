@@ -1,5 +1,17 @@
 # @doenet/vscode-extension
 
+## 0.7.30
+
+### Patch Changes
+
+- 710b9da: Viewer: a math input on a touch device keeps the device's own keyboard down only when the Doenet virtual keyboard is there to replace it.
+
+    A viewer embedded with `addVirtualKeyboard={false}` used to suppress the device's keyboard anyway, so on a tablet or phone a reader had no keyboard at all for math inputs. Without the virtual keyboard, tapping a math input now raises the device's keyboard.
+
+- 15bcfa1: A YouTube video watched all the way through now gives a `fractionWatched` of exactly 1, so credit awarded for watching it, including through `<answer type="videoWatched">`, reaches 100%. Watching without pausing used to leave it a fraction of a second short, such as 0.9993, because only the start of a segment was rounded to the beginning of the video, never also its end.
+
+    `fractionWatched` now also counts the video as fully watched when the part left unwatched is at most 2 seconds and at most 1% of the video, never exceeds 1, and is 0 rather than `NaN` or `Infinity` before the video's duration is known.
+
 ## 0.7.29
 
 ### Patch Changes
