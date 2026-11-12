@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { clickComponent } from "../utils/actions";
+import {
+    clickComponent,
+    clickPoint,
+    focusPoint,
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -266,5 +272,113 @@ describe("Click target tests @group1", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[nIdx].stateValues.value).eq(0);
+    });
+
+    it("an action whose component is withheld or removed does not fire, and is not a click target (#2120)", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph><point name="P">(1,2)</point></graph>
+    <p><text name="t">here</text></p>
+    <booleanInput name="on" />
+    <number name="n">0</number>
+    <number name="f">0</number>
+    <number name="w">0</number>
+    <updateValue name="go" target="$w" newValue="$w" />
+    <conditionalContent condition="$on">
+      <group>
+        <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$P $t" />
+        <updateValue target="$f" newValue="$f+1" triggerWhenObjectsFocused="$P" />
+        <updateValue target="$w" newValue="$w+1" triggerWith="$go" />
+      </group>
+    </conditionalContent>
+    <mathInput name="k" prefill="1" />
+    <number name="r">0</number>
+    <repeatForSequence length="$k">
+      <updateValue target="$r" newValue="$r+1" triggerWhenObjectsClicked="$P" />
+    </repeatForSequence>
+    `,
+        });
+
+        const P = await resolvePathToNodeIdx("P");
+        const t = await resolvePathToNodeIdx("t");
+        const on = await resolvePathToNodeIdx("on");
+        const go = await resolvePathToNodeIdx("go");
+
+        async function interact() {
+            await clickPoint({ componentIdx: P, core });
+            await clickComponent({
+                componentIdx: t,
+                actionName: "textClicked",
+                core,
+            });
+            await focusPoint({ componentIdx: P, core });
+            await core.requestAction({
+                componentIdx: go,
+                actionName: "updateValue",
+                args: {},
+            });
+        }
+        async function check(values: Record<string, number>, tTarget: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, value] of Object.entries(values)) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .value,
+                    name,
+                ).eq(value);
+            }
+            expect(stateVariables[t].stateValues.clickTarget).eq(tTarget);
+        }
+
+        await interact();
+        await check({ n: 0, f: 0, w: 0, r: 1 }, false);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: on,
+            core,
+        });
+        await check({ n: 0, f: 0, w: 0, r: 1 }, true);
+        await interact();
+        await check({ n: 2, f: 1, w: 1, r: 2 }, true);
+
+        // the content is withheld: nothing it holds fires
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: on,
+            core,
+        });
+        await check({ n: 2, f: 1, w: 1, r: 2 }, false);
+        await interact();
+        await check({ n: 2, f: 1, w: 1, r: 3 }, false);
+
+        // and is shown again: each fires once
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: on,
+            core,
+        });
+        await check({ n: 2, f: 1, w: 1, r: 3 }, true);
+        await interact();
+        await check({ n: 4, f: 2, w: 2, r: 4 }, true);
+
+        // the repeat's iteration is removed, then two are made
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("k"),
+            core,
+        });
+        await clickPoint({ componentIdx: P, core });
+        await check({ r: 4 }, true);
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("k"),
+            core,
+        });
+        await clickPoint({ componentIdx: P, core });
+        await check({ r: 6 }, true);
     });
 });

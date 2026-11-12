@@ -187,7 +187,7 @@ export function addStandardTriggeringStateVariableDefinitions(
  * Add the `clickTarget` state variable, which tells the renderer whether
  * clicking this component fires an action. It is true when another
  * component lists this one in `triggerWhenObjectsClicked` and that
- * component acts on clicks, or when this component is a bare reference
+ * component acts on clicks and is shown (not withheld by a composite), or when this component is a bare reference
  * (such as `$t`) to a component that is a click target, since clicking the
  * reference fires the same actions.
  */
@@ -241,6 +241,15 @@ export function addClickTargetStateVariableDefinition(
                     childIdx: comp.componentIdx,
                     parentComponentType: "triggerSet",
                 };
+                // withheld from what a composite shows, as in a
+                // `<conditionalContent>` that is not true, so its clicks
+                // fire nothing (#2120)
+                dependencies[`referencerInactive${ind}`] = {
+                    dependencyType: "stateVariable",
+                    componentIdx: comp.componentIdx,
+                    variableName: "isInactiveCompositeReplacement",
+                    variablesOptional: true,
+                };
             }
 
             return dependencies;
@@ -254,7 +263,8 @@ export function addClickTargetStateVariableDefinition(
             ) {
                 if (
                     !dependencyValues[`referencerTriggerWhen${ind}`] &&
-                    !dependencyValues[`referencerTriggerSet${ind}`]
+                    !dependencyValues[`referencerTriggerSet${ind}`] &&
+                    !dependencyValues[`referencerInactive${ind}`]
                 ) {
                     clickTarget = true;
                 }
