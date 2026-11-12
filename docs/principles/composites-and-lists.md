@@ -535,9 +535,11 @@ marked "just submitted" (#2325).
 
 **Known violations and gaps:**
 - a container reached by a name after an index into a repeat (`$r[1].s.x`) isn't checked at load;
-- autocomplete follows the rule since #2469 (closing #2455), and leaves out a name some branch
-  lacks or declares with another tag. Left: `$rep[n].` doesn't list the branch names of a
-  container in the repeat, and `$v[1].head.` of a plain vector offers properties (#2479);
+- autocomplete follows the rule since #2469 (closing #2455) and #2522 (closing #2479): it leaves
+  out a name some branch lacks or declares with another tag, lists the branch names after
+  `$rep[n].`, and offers nothing after an index on what takes none (`$v[1].head.`). Left:
+  `$ml[1].a`, `$sh[1].a` and `$vl[1].v.head.` offer a name after an index into a list, though
+  `[n]` picks the entry and the runtime gives `＿`;
 - `<group extend="$cc.x"/>` going empty after the case changes (B40) was fixed by #2471;
 - root names, and so HTML ids, of components in the branches are unchanged: one in an unnamed
   container has none.

@@ -415,10 +415,10 @@ So the bare form and the tag report the same diagnostics, at the same level (REF
   made, which can go stale. Deciding its info again after every update made a 1000-iteration
   repeat with 2000 bare indexed references about 30 ms slower per update, so it was taken out.
   The tag form has its `i0054`;
-- a list tag over an index that names nothing at run time (`<numberList extend="$l[$i]"/>` out of
-  range) is an empty list, not one blank, and a list leaves out a missing entry
-  (`<mathList>$l[5] 2</mathList>` holds only `2`). Decided with #2461 (D40: a blank entry); PR 7
-  of #2509;
+- **fixed by #2524:** a list tag over an index that names nothing at run time holds one blank
+  entry, and a list keeps a missing entry as a blank (`<mathList>$l[5] 2</mathList>` is `＿, 2`);
+- **fixed by #2524** (closing #2244): a list extend through a path resolved only at run time
+  (`<mathList extend="$r[1].ml"/>`) follows the list it names, and its `fixed`;
 - a `<group>` tag of an index that names nothing (`<group extend="$r[$i]"/>`) shows nothing with
   `w0181`/`w0104`. It is not a scalar tag, so it is not made missing;
 - a tag of an iteration has its `i0054` until the iteration is made, but not again once the
