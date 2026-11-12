@@ -119,13 +119,6 @@ export default class AuthoredValueList extends ValueListComponent {
     // source's own `hide` (D29).
     static listEntriesShownAsSources = false;
 
-    // Whether a reference among the children that names nothing is a blank
-    // entry, shown as `＿` (D40, #2461), as in a list of values. A list of
-    // graphical objects (`GraphicalValueList`) gives no entry for it: a
-    // point or vector has no blank to draw, and one at the origin would
-    // move a shape made from the list.
-    static listEntriesCanBeBlank = true;
-
     // A list shown as its sources has the style of each source, which a
     // reference to every entry's (`$c.styleNumber`) reads entry by entry, as
     // it read them of each copy the composite made. `$l.hide` is the list's
@@ -975,20 +968,18 @@ export default class AuthoredValueList extends ValueListComponent {
                     } else {
                         // A reference with nothing to read (`$nothing`, a
                         // `_missing`), or past the end of a list, is a blank
-                        // entry (D40, #2461), whose value is not read. A list
-                        // of graphical objects, whose entry has no blank to
-                        // draw, gives none for it (`listEntriesCanBeBlank`).
+                        // entry (D40, #2461), whose value is not read. In a
+                        // list of points or vectors it is a missing point,
+                        // drawn as a blank, not one at the origin (VAL-5).
                         if (
                             child.componentType === "_missing" ||
                             child.stateValues?.referentInfo === null ||
                             child.stateValues?.pastEndOfList
                         ) {
-                            if (listClass.listEntriesCanBeBlank) {
-                                entryStructure.push({
-                                    componentInd,
-                                    missing: true,
-                                });
-                            }
+                            entryStructure.push({
+                                componentInd,
+                                missing: true,
+                            });
                         } else {
                             addSources(child.stateValues?.value, {
                                 componentInd,

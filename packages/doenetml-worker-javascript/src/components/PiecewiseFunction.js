@@ -30,6 +30,8 @@ export default class PiecewiseFunction extends Function {
     // Its children are its pieces, each with its own domain, so it is not
     // missing for a missing one (`BaseComponent.missingWhenContentMissing`).
     static missingWhenContentMissing = false;
+    // It has no `through`.
+    static missingWhenEntriesMissing = [];
 
     static componentDocs = {
         summary: "A function defined piecewise from sub-functions on intervals",

@@ -1067,6 +1067,56 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         await check(true);
     });
 
+    it("makes a function through, or a best-fit line of, a missing point missing, not made through the origin", async () => {
+        // A blank point among a function's `through` or a best-fit line's
+        // `data` is missing, as it is among a shape's points (D40, VAL-5),
+        // rather than a point at (0, 0) it is made through.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <function name="f" through="(0,1) $pts[$i] (5,1)"/>
+    <graph name="g">
+      <curve name="c">$f</curve>
+      <bestFitLine name="b" data="(0,1) $pts[$i] (5,7)"/>
+    </graph>
+    <derivative name="d">$f</derivative>
+    `,
+        });
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["f", "c", "b"]) {
+                expect((await sv(name)).valueMissing, name).eq(missing);
+            }
+            const blank = missing ? "_blank" : undefined;
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                [blank ?? "curve", blank ?? "line"],
+            );
+            return (await sv("b")).slope.evaluate_to_constant();
+        }
+        await check(true);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        // the line fit to (0, 1), (3, 4), (5, 7)
+        expect(await check(false)).closeTo(45 / 38, 1e-12);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(true);
+    });
+
     it("shows a list tag over an index that names nothing as one blank entry", async () => {
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <mathList name="l">1 2 3</mathList>
