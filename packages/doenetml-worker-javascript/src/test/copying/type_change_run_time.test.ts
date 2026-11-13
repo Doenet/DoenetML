@@ -5,6 +5,7 @@ import {
     movePoint,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
 
@@ -1515,6 +1516,43 @@ describe("A related type made from a value follows it, and writes back (#2440, #
             p: "(-1, 5)",
         });
     });
+
+    for (const first of [1, 2]) {
+        it(`a point from a choiceInput is missing while the selected choice is no tuple, made while choice ${first} is selected`, async () => {
+            // #2488: it was checked only against the choice selected when it
+            // was made.
+            const d = await setup(`
+<choiceInput name="ci" preselectChoice="${first}"><label>c</label><choice><math>(1,2)</math></choice><choice><math>x</math></choice></choiceInput>
+<graph><point extend="$ci" name="Q"/></graph>
+`);
+            async function select(index: number) {
+                await updateSelectedIndices({
+                    componentIdx: await d.resolvePathToNodeIdx("ci"),
+                    selectedIndices: [index],
+                    core: await d.core(),
+                });
+            }
+            const tuple = { Q: "(1, 2)" };
+            const notTuple = { Q: "＿" };
+
+            expect(await shown(d, ["Q"])).eqls(first === 1 ? tuple : notTuple);
+            expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls(
+                first === 1 ? [] : [["doenet-i0053", 3]],
+            );
+
+            await select(3 - first);
+            expect(await shown(d, ["Q"])).eqls(first === 1 ? notTuple : tuple);
+            expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls(
+                first === 1 ? [["doenet-i0053", 3]] : [],
+            );
+
+            await select(first);
+            expect(await shown(d, ["Q"])).eqls(first === 1 ? tuple : notTuple);
+            expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls(
+                first === 1 ? [] : [["doenet-i0053", 3]],
+            );
+        });
+    }
 
     it("a boolean from a text input, and a number and a math from a boolean input, follow and write back", async () => {
         const d = await setup(`

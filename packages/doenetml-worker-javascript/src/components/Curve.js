@@ -31,6 +31,21 @@ export default class Curve extends GraphicalComponent {
     }
     static componentType = "curve";
 
+    /**
+     * Of the children written on a copy or extend (`added`), those a curve
+     * does not use beside its source's: a `<function>` defines it only when
+     * it has no `through` points, and a `<bezierControls>` is used only with
+     * them (`addChildrenFromComposite`, #2486).
+     */
+    static childrenIgnoredBeside({ added, attributes, groupOf }) {
+        const hasThrough = attributes.through !== undefined;
+        return added.filter(
+            (child) =>
+                (groupOf(child) === "functions" && hasThrough) ||
+                (groupOf(child) === "bezierControls" && !hasThrough),
+        );
+    }
+
     // missing while its content is only missing children (D40,
     // `BaseComponent.missingWhenContentMissing`)
     static missingWhenContentMissing = true;

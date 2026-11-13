@@ -78,6 +78,8 @@
     "doenet-e0068": "copy-with-state-changes-choice",
     "doenet-e0069": "copy-with-state-adds-options",
     "doenet-e0070": "choice-parameter-reader-changeable",
+    "doenet-e0071": "type-change-own-type-only",
+    "doenet-e0072": "attribute-empty",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",
@@ -310,5 +312,6 @@
     "doenet-w0186": "copy-with-state-attribute-reaches-choice",
     "doenet-w0187": "copy-attribute-invalid-for-component",
     "doenet-w0188": "reference-index-selects-child",
-    "doenet-w0189": "repeat-value-name-is-index-name"
+    "doenet-w0189": "repeat-value-name-is-index-name",
+    "doenet-w0190": "copy-children-ignored"
 }

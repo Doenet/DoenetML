@@ -25,6 +25,10 @@ import {
 } from "../utils/contentLocale";
 
 export default class PiecewiseFunction extends Function {
+    // Each `<function>` child is a piece, so a copy's are added to its
+    // source's (REF-4), not read once as a `<function>`'s are.
+    static childGroupsReadOnce = [];
+
     static componentType = "piecewiseFunction";
 
     // Its children are its pieces, each with its own domain, so it is not

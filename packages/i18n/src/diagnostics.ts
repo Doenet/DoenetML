@@ -285,6 +285,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0187": "copy-attribute-invalid-for-component",
     "doenet-w0188": "reference-index-selects-child",
     "doenet-w0189": "repeat-value-name-is-index-name",
+    "doenet-w0190": "copy-children-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -356,6 +357,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0068": "copy-with-state-changes-choice",
     "doenet-e0069": "copy-with-state-adds-options",
     "doenet-e0070": "choice-parameter-reader-changeable",
+    "doenet-e0071": "type-change-own-type-only",
+    "doenet-e0072": "attribute-empty",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

@@ -1323,6 +1323,30 @@ describe("A related type is made from the value of what is referenced, not from 
         expect(typeChangeDiagnostics()).eqls([]);
     });
 
+    it("a group holding a math beside a repeat with an empty `for` holds the math", async () => {
+        // #2488: the repeat in error is missing (#2482), so the point is
+        // made from the math, and the error has a code.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<group name="g"><math>(1,2)</math><repeat for=""><math>3</math></repeat></group>
+<p name="p1"><point extend="$g"/></p>`,
+        });
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
+        expect(
+            errors.map((e) => [e.code, e.message, e.position?.start.line]),
+        ).eqls([
+            [
+                "doenet-e0072",
+                'The `for` attribute is empty, and it needs a value. Write one, as `for="…"`, or remove the attribute.',
+                1,
+            ],
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("(1, 2)");
+    });
+
     it("the one component a composite stands for is found through references in it", async () => {
         // Each was the tag's default (`(0, 0)`, or `(1, 0)` for a vector)
         // before #2437.

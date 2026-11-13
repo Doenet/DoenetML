@@ -1,6 +1,6 @@
 import { DastAttribute, DastElement } from "../../types";
 import { isDastElement } from "../../types-util";
-import { isWrittenWithExtend } from "./utils/extend";
+import { isChildlessCopy, isWrittenWithExtend } from "./utils/extend";
 
 /**
  * Depending on the children, perform one of two transformations.
@@ -37,7 +37,10 @@ import { isWrittenWithExtend } from "./utils/extend";
  *
  * A `<conditionalContent extend>` is left as written, so that a `condition`
  * or children written on it are reported as what they are, and a bare one has
- * no generated `<case>` (`isWrittenWithExtend`).
+ * no generated `<case>` (`isWrittenWithExtend`). So is a `copy` or
+ * `copyWithState` with nothing written inside it (`isChildlessCopy`): it has
+ * its source's cases, and a `condition` written on it is the condition of
+ * its source's one case, which the copy applies (#2217).
  */
 export function conditionalContentSugar(node: DastElement) {
     if (node.name !== "conditionalContent") {
@@ -47,7 +50,7 @@ export function conditionalContentSugar(node: DastElement) {
         );
     }
 
-    if (isWrittenWithExtend(node)) {
+    if (isWrittenWithExtend(node) || isChildlessCopy(node)) {
         return;
     }
 

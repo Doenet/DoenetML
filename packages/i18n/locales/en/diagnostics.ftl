@@ -825,6 +825,13 @@ extend-attribute-ignored = The `{ $attribute }` attribute is ignored: a `<{ $com
 
 extend-children-ignored = Children written inside a `<{ $componentType }>` with `extend` are ignored: it shows the same content as the component it extends.
 
+# Children written inside a tag with `copy` (or `copyWithState`) are added to
+# those of what it copies, but some a $componentType doesn't use beside those:
+# a `<math>` beside the rows of a `<matrix>`, or a curve's functions beside its
+# `through` points. $componentType is DoenetML and stays in English, as does
+# `copy`.
+copy-children-ignored = A child written inside a `<{ $componentType }>` with `copy` is ignored: a `<{ $componentType }>` doesn't use it beside the children of what it copies.
+
 # An attribute the component does not have, written on a component with
 # `copy`, `copyWithState` or `extend` (#2332), including one that names
 # nothing. The component is still shown, as what it copies, or as a blank; the
@@ -950,6 +957,13 @@ type-change-composite-not-one =
         }
     }
 
+# $componentType is a tag that makes its list of values itself from its
+# attributes, such as `<sequence>` or `<sampleRandomNumbers>`. Written with
+# `extend` or `copy`, it can be made only from one component of its own type,
+# and `$source` isn't always one: it holds several, or another type, or a
+# property. The tags and `$source` are DoenetML and stay in English.
+type-change-own-type-only = A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
+
 # What `$source` holds can be of more than one type, $types, a list of tags
 # already joined (`<math>`, `<number>`). $isList is "true" when
 # $componentType is a list, such as `<mathList>`, which takes any number of
@@ -990,6 +1004,12 @@ type-change-value-not-convertible =
     }
 
 ## Children that do not match
+
+# An attribute written with no value, such as `for=""` on a `<repeat>`, where
+# the attribute needs one: it is not a true/false attribute, for which an
+# empty value means true. $attribute is its name, as written, which is
+# DoenetML and stays in English.
+attribute-empty = The `{ $attribute }` attribute is empty, and it needs a value. Write one, as `{ $attribute }="…"`, or remove the attribute.
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.
 

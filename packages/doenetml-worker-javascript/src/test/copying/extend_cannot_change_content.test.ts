@@ -717,4 +717,51 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
             });
         }
     });
+
+    /**
+     * A tag that makes its list of values itself (`<sequence>`,
+     * `<sampleRandomNumbers>`) is made only from one of its own type
+     * (#2501). An extend of anything else threw, or made a sequence of the
+     * default values.
+     */
+    describe("an extend of a sequence through an index or a property", () => {
+        const SOURCES = `<repeat name="rs" for="1 2"><sequence from="1" to="3"/></repeat>
+<repeat name="r" for="1 2"><sequence from="1" to="3"/><text>a</text></repeat>
+<sequence name="s" from="1" to="3"/>
+<number name="k">1</number><number name="n">5</number>`;
+
+        for (const [written, codes, text] of [
+            // an iteration holding one sequence, which `to` would change
+            [`<sequence extend="$rs[$k]" to="5"/>`, ["doenet-e0056"], ""],
+            // the same with nothing it would change
+            [`<sequence extend="$rs[$k]"/>`, [], "1, 2, 3"],
+            // the index names nothing: missing, as the bare reference's is
+            [`<sequence extend="$rs[$n]"/>`, ["doenet-w0181"], "＿"],
+            // an iteration holding a sequence and a text
+            [`<sequence extend="$r[1]" to="5"/>`, ["doenet-e0071"], ""],
+            // a property, a list of numbers
+            [`<sequence extend="$s.value" to="5"/>`, ["doenet-e0071"], ""],
+            [`<sequence copy="$s.value"/>`, ["doenet-e0071"], ""],
+            [`<sampleRandomNumbers extend="$rs[$k]"/>`, ["doenet-e0071"], ""],
+        ] as const) {
+            it(written, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${SOURCES}
+<p name="p">${written}</p>
+<p name="after">after</p>`,
+                });
+
+                const { errors, warnings } = getDiagnosticsByType(core);
+                expect(
+                    [...errors, ...warnings].map((d) => [
+                        d.code,
+                        d.position?.start.line,
+                    ]),
+                ).eqls(codes.map((code) => [code, 5]));
+                expect(
+                    await textsOf(core, resolvePathToNodeIdx, ["p", "after"]),
+                ).eqls([text, "after"]);
+            });
+        }
+    });
 });

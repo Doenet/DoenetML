@@ -218,6 +218,13 @@ type Holding = {
     /** what of it has a type the DoenetML does not give */
     unknown?: "property" | "reference";
     skip?: boolean;
+    /**
+     * When it is exactly one component of a tag that makes its list of
+     * values itself (`isSelfMadeList`, a `<sequence>`), that tag: a tag of
+     * the same type is made from it as one component, though any other tag
+     * reads it as the values it holds (#2501).
+     */
+    self?: string;
 };
 
 /** The composites that can hold any number of components. */
@@ -614,10 +621,19 @@ export function checkTypeChangesAtLoad({
                 continue;
             }
             // A `<setup>`, and the one a repeat makes for its `valueName`
-            // and `indexName`, show nothing.
+            // and `indexName`, show nothing. Nor does a component in error
+            // beside others: it is missing (#2482), so `<group><math>(1,2)
+            // </math><repeat for=""/></group>` holds one math (#2488). Alone,
+            // it is the error, about which nothing more is said (`skip`).
             if (
                 child.componentType === "setup" ||
-                child.componentType === "_repeatSetup"
+                child.componentType === "_repeatSetup" ||
+                (child.componentType === "_error" &&
+                    children.some(
+                        (other) =>
+                            other !== child &&
+                            (typeof other === "object" || other.trim() !== ""),
+                    ))
             ) {
                 continue;
             }
@@ -783,6 +799,16 @@ export function checkTypeChangesAtLoad({
             const written = canonicalType(
                 literalText(item.attributes._createComponentOfType),
             );
+            if (written && isSelfMadeList(written)) {
+                return {
+                    ...withAdded(
+                        referenceHolding(item, seen),
+                        [item.children ?? []],
+                        seen,
+                    ),
+                    self: written,
+                };
+            }
             if (
                 written &&
                 written !== "group" &&
@@ -797,16 +823,32 @@ export function checkTypeChangesAtLoad({
                 seen,
             );
         }
-        if (isHolder(componentType)) {
-            return holding(item, seen);
-        }
-        if (allClasses[componentType]?.listEntryComponentType !== undefined) {
-            // What a list stands for, its entries, can change without the
-            // composite holding it making anything new, so it is not
-            // decided here.
-            return { types: new Set(), skip: true };
-        }
-        return { types: new Set([componentType]) };
+        return asSelf(componentType, () => {
+            if (isHolder(componentType)) {
+                return holding(item, seen);
+            }
+            if (
+                allClasses[componentType]?.listEntryComponentType !== undefined
+            ) {
+                // What a list stands for, its entries, can change without
+                // the composite holding it making anything new, so it is
+                // not decided here.
+                return { types: new Set(), skip: true };
+            }
+            return { types: new Set([componentType]) };
+        });
+    }
+
+    /**
+     * What `compute` finds a component of `componentType` holds, marked as
+     * one component of its tag when that is a tag that makes its list of
+     * values itself (`self`).
+     */
+    function asSelf(componentType: string, compute: () => Holding): Holding {
+        const held = compute();
+        return isSelfMadeList(componentType)
+            ? { ...held, self: componentType }
+            : held;
     }
 
     /** What a bare reference `$y` holds: y's tag, or what y holds. */
@@ -877,22 +919,26 @@ export function checkTypeChangesAtLoad({
         }
         const node =
             referent ?? referents.copiesByCreatedIdx.get(ref.nodeIdx) ?? null;
-        if (
-            node &&
-            (node.componentType === "_copy" || isHolder(referentType))
-        ) {
-            return cachedHolding(heldByIdx, node, seen, (seenBelow) =>
-                node.componentType === "_copy"
-                    ? itemHolding(node, seenBelow)
-                    : holding(node, seenBelow),
-            );
-        }
-        if (allClasses[referentType]?.listEntryComponentType !== undefined) {
-            // a list, not decided here, as a list written there is not
-            // (`itemHolding`)
-            return { types: new Set(), skip: true };
-        }
-        return { types: new Set([referentType]) };
+        return asSelf(referentType, () => {
+            if (
+                node &&
+                (node.componentType === "_copy" || isHolder(referentType))
+            ) {
+                return cachedHolding(heldByIdx, node, seen, (seenBelow) =>
+                    node.componentType === "_copy"
+                        ? itemHolding(node, seenBelow)
+                        : holding(node, seenBelow),
+                );
+            }
+            if (
+                allClasses[referentType]?.listEntryComponentType !== undefined
+            ) {
+                // a list, not decided here, as a list written there is not
+                // (`itemHolding`)
+                return { types: new Set(), skip: true };
+            }
+            return { types: new Set([referentType]) };
+        });
     }
 
     /**
@@ -2657,6 +2703,12 @@ export function checkTypeChangesAtLoad({
     /**
      * Whether `copy` is a reference written as a tag that makes one
      * component, rather than a list or a `<group>` (see `decide`).
+     *
+     * A tag that makes its list of values itself (`<sequence>`,
+     * `<sampleRandomNumbers>`, `<sortIndices>`) is one component, made from
+     * one of its own type: a list tag (`<numberList>`) is made from the
+     * values it is given, but these are made from their attributes, and are
+     * not values a list can become (#2501).
      */
     function isScalarTag(copy: SerializedComponent) {
         if (copy.doenetAttributes?.forList !== undefined) {
@@ -2668,7 +2720,21 @@ export function checkTypeChangesAtLoad({
             literalText(copy.attributes._copyInChildren) === "true" &&
             writtenType !== "group" &&
             !isComposite(writtenType) &&
-            allClasses[writtenType]?.listEntryComponentType === undefined
+            (allClasses[writtenType]?.listEntryComponentType === undefined ||
+                isSelfMadeList(writtenType))
+        );
+    }
+
+    /**
+     * Whether a `componentType` is a tag that makes its list of values
+     * itself, from its attributes (`<sequence>`, `<sampleRandomNumbers>`,
+     * `<sortIndices>`), rather than holding the values it is given, as a
+     * `<numberList>` does.
+     */
+    function isSelfMadeList(componentType: string) {
+        return (
+            TAGS_MAKING_THEIR_CONTENT.has(componentType) &&
+            allClasses[componentType]?.listEntryComponentType !== undefined
         );
     }
 
@@ -2835,8 +2901,64 @@ export function checkTypeChangesAtLoad({
         return false;
     }
 
-    /** The decision for one reference written as a tag. */
+    /**
+     * The decision for one reference written as a tag. A tag that makes its
+     * list of values itself (`isSelfMadeList`, a `<sequence>`) is made only
+     * from one of its own type (`self`, `verdict`): what the rules for a
+     * scalar tag find wrong with anything else, and a property (`$s.value`),
+     * whose type the DoenetML does not give, is `doenet-e0071`, which says
+     * so rather than suggesting the tag read it as a value, which it can't
+     * (#2501). What names nothing is left as found.
+     */
     function decide(copy: SerializedComponent) {
+        const decision = decideTag(copy);
+        const writtenType = tagType(copy);
+        if (
+            writtenType === undefined ||
+            !isSelfMadeList(writtenType) ||
+            !isScalarTag(copy)
+        ) {
+            return decision;
+        }
+        if (decision === undefined) {
+            return namesAProperty(copy)
+                ? { code: "doenet-e0071", args: {} }
+                : undefined;
+        }
+        if (
+            decision === "allowed" ||
+            MISSING_AT_LOAD_CODES.has(decision.code) ||
+            decision.code === "doenet-w0184" ||
+            decision.code === "doenet-e0005"
+        ) {
+            return decision;
+        }
+        return { code: "doenet-e0071", args: {} };
+    }
+
+    /**
+     * Whether the reference `copy` is of is names alone, the last of which
+     * names no component, so is a property (`$s.value`).
+     */
+    function namesAProperty(copy: SerializedComponent) {
+        const ref = refOf(copy);
+        const path = ref?.unresolvedPath ?? [];
+        if (!ref || path.length === 0) {
+            return false;
+        }
+        if (
+            path.some(
+                (part: any) =>
+                    part.name === "" || (part.index ?? []).length > 0,
+            )
+        ) {
+            return false;
+        }
+        const named = descendantsNamed(ref.nodeIdx, path);
+        return named !== null && named.length === 0;
+    }
+
+    function decideTag(copy: SerializedComponent) {
         const ref = refOf(copy);
         if (!ref || ref.nodeIdx < 0) {
             return undefined;
@@ -2850,6 +2972,16 @@ export function checkTypeChangesAtLoad({
         const entryOfList = isList ? tagType(copy) : undefined;
         /** The decision for a tag made from `held`, of the composite `tag`. */
         function verdict(held: Holding, tag: string, direct: boolean) {
+            if (
+                !isList &&
+                held.self !== undefined &&
+                typesAs(new Set([held.self]), writtenType).includes(
+                    writtenType!,
+                )
+            ) {
+                // one component of the tag's own type (`self`)
+                return "allowed";
+            }
             if (held.skip) {
                 return undefined;
             }
@@ -2912,7 +3044,11 @@ export function checkTypeChangesAtLoad({
                 return fixedTypeError(itemHolding(node, seen), writtenType!);
             }
             const decision = verdict(
-                withAdded(holding(holder, seen), added, seen),
+                withAdded(
+                    asSelf(holder.componentType, () => holding(holder, seen)),
+                    added,
+                    seen,
+                ),
                 holder.componentType,
                 true,
             );
@@ -3059,7 +3195,15 @@ export function checkTypeChangesAtLoad({
             }
             if (holder) {
                 tag ??= holder.componentType;
-                helds.push(withAdded(holding(holder, seen), added, seen));
+                helds.push(
+                    withAdded(
+                        asSelf(holder.componentType, () =>
+                            holding(holder, seen),
+                        ),
+                        added,
+                        seen,
+                    ),
+                );
                 continue;
             }
             const node =

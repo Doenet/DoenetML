@@ -484,6 +484,7 @@ export type MessageKey =
     | "reference-index-not-a-number"
     | "extend-attribute-ignored"
     | "extend-children-ignored"
+    | "copy-children-ignored"
     | "copy-attribute-invalid-for-component"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
@@ -497,11 +498,13 @@ export type MessageKey =
     | "type-change-input-from-value"
     | "type-change-from-container"
     | "type-change-composite-not-one"
+    | "type-change-own-type-only"
     | "type-change-composite-types-differ"
     | "type-change-composite-type-unknown"
     | "type-change-index-names-nothing"
     | "type-change-composite-holds-nothing"
     | "type-change-value-not-convertible"
+    | "attribute-empty"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -1168,6 +1171,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-index-not-a-number",
     "extend-attribute-ignored",
     "extend-children-ignored",
+    "copy-children-ignored",
     "copy-attribute-invalid-for-component",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
@@ -1181,11 +1185,13 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "type-change-input-from-value",
     "type-change-from-container",
     "type-change-composite-not-one",
+    "type-change-own-type-only",
     "type-change-composite-types-differ",
     "type-change-composite-type-unknown",
     "type-change-index-names-nothing",
     "type-change-composite-holds-nothing",
     "type-change-value-not-convertible",
+    "attribute-empty",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",

@@ -1,4 +1,5 @@
 import {
+    addDefaultPrimitiveAttributes,
     convertUnresolvedAttributesForComponentType,
     unwrapSource,
 } from "./dast/convertNormalizedDast";
@@ -496,6 +497,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     let replacementsToWithhold = component.replacementsToWithhold;
     let replacementTypes;
     const originalReplacements = replacements;
+    let droppedErrors = false;
 
     if (!replacementChanges) {
         // if have a group, filter out blank strings
@@ -503,6 +505,22 @@ export async function verifyReplacementsMatchSpecifiedType({
             replacements = replacements.filter(
                 (x) => x.componentType || x.trim().length > 0,
             );
+        }
+
+        // A component in error is missing (#2482), so beside others it is
+        // not one of what the tag is made from: `<point extend="$g"/>` of a
+        // group holding a math and a `<repeat for="">` is made from the
+        // math (#2488).
+        const withoutErrors = replacements.filter(
+            (x) => typeof x !== "object" || x.componentType !== "_error",
+        );
+        if (
+            withoutErrors.length > 0 &&
+            withoutErrors.length < replacements.length &&
+            !(replacementsToWithhold > 0)
+        ) {
+            replacements = withoutErrors;
+            droppedErrors = true;
         }
 
         replacementTypes = replacements.map((x) => x.componentType);
@@ -677,7 +695,8 @@ export async function verifyReplacementsMatchSpecifiedType({
         let wrapExistingReplacements =
             replacementTypes.length === requiredLength &&
             !(replacementsToWithhold > 0) &&
-            (workspace.sourceIndices?.length === requiredLength ||
+            (droppedErrors ||
+                workspace.sourceIndices?.length === requiredLength ||
                 (!replacementChanges &&
                     workspace.sourceIndices?.length > requiredLength &&
                     workspace.numReplacementsBySource?.filter((n) => n > 0)
@@ -735,6 +754,26 @@ export async function verifyReplacementsMatchSpecifiedType({
 
         replacements = [];
         for (let i = 0; i < requiredLength; i++) {
+            if (
+                madeNothing &&
+                componentInfoObjects.allComponentClasses[requiredComponentType]
+                    ?.listEntryComponentType !== undefined
+            ) {
+                // A list made from nothing, such as a `<sequence>` extending
+                // an iteration an index names none of, is missing as one
+                // blank, as a `<numberList>` is (REF-0, #2501).
+                replacements.push({
+                    type: "serialized",
+                    componentType: "_missing",
+                    componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                    children: [],
+                });
+                continue;
+            }
             const res = convertUnresolvedAttributesForComponentType({
                 attributes: component.attributes,
                 componentType: requiredComponentType,
@@ -744,8 +783,24 @@ export async function verifyReplacementsMatchSpecifiedType({
                 stateIdInfo,
             });
 
-            const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
+
+            // A component made here, rather than from DoenetML, is not given
+            // the defaults of its primitive attributes when the DoenetML is
+            // converted, so it is given them here: a `<sequence>` has no
+            // `type` without one, and throws when it is read (#2501).
+            const withDefaults = addDefaultPrimitiveAttributes({
+                currentAttributes: res.attributes,
+                componentClass:
+                    componentInfoObjects.allComponentClasses[
+                        requiredComponentType
+                    ],
+                componentInfoObjects,
+                nComponents,
+                stateIdInfo,
+            });
+            const attributesFromComposite = withDefaults.attributes;
+            nComponents = withDefaults.nComponents;
 
             replacements.push({
                 componentType: requiredComponentType,

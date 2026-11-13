@@ -680,7 +680,7 @@ describe("Normalize dast", async () => {
         );
     });
 
-    it("Leaves a conditionalContent or repeat written with extend as written", () => {
+    it("Leaves a conditionalContent or repeat written with extend, or a childless copy, as written", () => {
         // An extend takes no content of its own, so the sugar is skipped,
         // so that what is written on it is reported as written, and a bare
         // one has no generated child (#2404).
@@ -705,10 +705,21 @@ describe("Normalize dast", async () => {
                 "<repeatForSequence extend='$r' valueName='v' />",
                 '<document><repeatForSequence extend="$r" valueName="v" /></document>',
             ],
-            // a copy is sugared as before
+            // a copy with content of its own is sugared as before
             [
                 '<conditionalContent copy="$c" condition="a">b</conditionalContent>',
                 '<document><conditionalContent copy="$c"><case condition="a"><group>b</group></case></conditionalContent></document>',
+            ],
+            // A copy with none keeps its `condition`, which is the condition
+            // of its source's one case, rather than adding an empty case of
+            // its own (#2217).
+            [
+                '<conditionalContent copy="$c" condition="a" />',
+                '<document><conditionalContent copy="$c" condition="a" /></document>',
+            ],
+            [
+                '<conditionalContent copyWithState="$c" condition="a"> </conditionalContent>',
+                '<document><conditionalContent copyWithState="$c" condition="a"> </conditionalContent></document>',
             ],
         ]) {
             const dast = lezerToDast(source);

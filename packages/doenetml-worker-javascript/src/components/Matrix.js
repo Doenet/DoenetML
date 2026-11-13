@@ -6,6 +6,26 @@ import { convertValueToMathExpression } from "@doenet/utils";
 export default class Matrix extends MathComponent {
     static componentType = "matrix";
 
+    /**
+     * Of the children written on a copy or extend (`added`), those a matrix
+     * does not use beside those from its source (`fromSource`): a `<math>`
+     * is its value only when it has no rows or columns, and only the first
+     * one. Rows and columns are added to the source's (REF-4).
+     * (`addChildrenFromComposite`, #2486)
+     */
+    static childrenIgnoredBeside({ fromSource, added, groupOf }) {
+        const hasValue = fromSource.some((child) =>
+            ["rows", "columns", "maths"].includes(groupOf(child)),
+        );
+        const addsRowsOrColumns = added.some((child) =>
+            ["rows", "columns"].includes(groupOf(child)),
+        );
+        return added.filter(
+            (child) =>
+                groupOf(child) === "maths" && (hasValue || addsRowsOrColumns),
+        );
+    }
+
     static componentDocs = {
         summary: "A matrix of math values",
         // `<row>` and `<column>` children are sugared to `<matrixRow>` and
