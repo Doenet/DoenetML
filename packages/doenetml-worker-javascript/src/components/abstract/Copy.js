@@ -4332,10 +4332,26 @@ export async function replacementFromProp({
             // the copy is missing as that type, as when a property names
             // nothing (`doenet-w0104`): a `_missing` there would be dropped
             // from a `<math>`, and an invalid child of an attribute
-            // (`doenet-w0106`).
+            // (`doenet-w0106`). In a `<text>`, a pick of a select keeps its
+            // blank, which a text shows beside the other picks' values (`$s.x`
+            // of picks one of which lacks `x` is `1, ＿`, D40 decision 5), as
+            // the picks of a select do not change as a reader works. (The
+            // iterations of a repeat do, and their blanks are not kept as
+            // the count changes.)
             if (
                 component.sharedParameters?.compositesMustHaveAReplacement &&
-                !component.attributes._createComponentOfType?.primitive
+                !component.attributes._createComponentOfType?.primitive &&
+                !(
+                    component.sharedParameters
+                        .compositesDefaultReplacementType === "text" &&
+                    ((component.doenetAttributes?.blankWhereNoProperty &&
+                        !isWrapperOfSeveral(target)) ||
+                        (isWrapperOfSeveral(target) &&
+                            instanceKindOf(
+                                target.attributes?._instanceOf?.primitive
+                                    ?.value,
+                            ) === "pick"))
+                )
             ) {
                 return {
                     serializedReplacements: [],
@@ -7325,24 +7341,52 @@ async function wrapperOfSeveralDiagnostics({
         workspace.referenceAsWritten ??
         referenceAsWritten(originalPath, components[wrapper.componentIdx]);
 
-    // The child to suggest: the first that has the property, else the first.
+    // The child to suggest: the first that has the property, else the first;
+    // of those, one written as a tag, which can be given a name.
     const children = componentsOfWrapper(wrapper).filter(
         (child) => typeof child === "object",
     );
+    // A reference written alone as a child (`<group>$Q</group>`) cannot be
+    // given a name, and what it made has the name of what it copies, which
+    // is not a name of the wrapper's child.
+    const isBareReference = (child) =>
+        (child?.componentType === "_copy" &&
+            !child.attributes?._createComponentOfType?.primitive) ||
+        (child?.replacementOf?.componentType === "_copy" &&
+            !child.replacementOf.attributes?._createComponentIdx);
+    // The type of what a child stands for: what a reference made, when it
+    // made one component.
+    const typeOf = (child) => {
+        if (child.componentType !== "_copy") {
+            return child.componentType;
+        }
+        const made = componentsOfWrapper(child).filter(
+            (replacement) => typeof replacement === "object",
+        );
+        return made.length === 1 ? made[0].componentType : undefined;
+    };
+    const having = children.filter((child) => {
+        const componentType = typeOf(child);
+        return (
+            componentType !== undefined &&
+            typeHasProperty({ componentType, propName, componentInfoObjects })
+        );
+    });
+    const candidates = having.length > 0 ? having : children;
     const child =
-        children.find((child) =>
-            typeHasProperty({
-                componentType: child.componentType,
-                propName,
-                componentInfoObjects,
-            }),
-        ) ?? children[0];
-    // What a reference written as the child (`<group>$x</group>`) made has
-    // the name of what it copies, which is not a name of the wrapper's child.
-    const madeByBareReference =
-        child?.replacementOf?.componentType === "_copy" &&
-        !child.replacementOf.attributes?._createComponentIdx;
+        candidates.find((child) => !isBareReference(child)) ?? candidates[0];
+    const madeByBareReference = isBareReference(child);
     const childName = madeByBareReference ? undefined : authoredNameOf(child);
+    // A reference written alone is named by writing it as a tag
+    // (`<point extend="$Q" name="P"/>`).
+    let tag;
+    const tagType = madeByBareReference ? typeOf(child) : undefined;
+    if (tagType !== undefined && child.componentType === "_copy") {
+        tag = `<${tagType} extend="${referenceAsWritten(
+            await child.stateValues.originalPath,
+            child,
+        )}" name="P"/>`;
+    }
 
     // The reference with the child's name put before the property:
     // `$g.x` becomes `$g.P.x`.
@@ -7417,7 +7461,13 @@ async function wrapperOfSeveralDiagnostics({
             args: {
                 reference,
                 suggestion,
-                child: childName === undefined ? "unnamed" : "named",
+                child:
+                    tag !== undefined
+                        ? "reference"
+                        : childName === undefined
+                          ? "unnamed"
+                          : "named",
+                tag: tag ?? "",
                 container: wrapperKind(instanceOf),
                 component: instanceOf ?? "group",
                 count: componentsOfWrapper(wrapper).length,

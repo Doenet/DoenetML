@@ -119,15 +119,24 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
     it("the picks of a select: each pick lacking it gives a blank", async () => {
         const d =
             await setup(`<select name="s" numToSelect="2"><option><math>x</math></option><option><text>hi</text></option></select>
-<p name="p">[$s.x] [$s.value]</p>`);
-        expect(d.codes()).eqls(["warning doenet-w0192"]);
+<p name="p">[$s.x] [$s.value]</p><text name="t">$s.x</text>`);
+        expect(d.codes()).eqls([
+            "warning doenet-w0192",
+            "warning doenet-w0192",
+        ]);
         expect(d.diagnostics()[0].message).eq(
             "`$s.x`: a `<text>` in `s` has no property `x`, so it gives a blank there. For a value from each, give every option a component that has `x`.",
         );
         // was `[x]`, the text skipped
         expect(await d.text()).eq("[x, ＿] [x, hi]");
+        // in a `<text>` too: not the blank dropped (`x`)
+        expect(await d.text("t")).eq("x, ＿");
         await d.reload();
-        expect(d.codes()).eqls(["warning doenet-w0192"]);
+        expect(d.codes()).eqls([
+            "warning doenet-w0192",
+            "warning doenet-w0192",
+        ]);
+        expect(await d.text("t")).eq("x, ＿");
     });
 
     it("a one-pick select, and a property after an index into the picks", async () => {
@@ -308,6 +317,37 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
         ]);
         expect(await d.text("m")).eq("＿ + 1");
         expect(await d.text()).eq("(＿, 3)");
+    });
+
+    it("in a text, a blank for each pick of several", async () => {
+        const d =
+            await setup(`<select name="s" numToSelect="2"><option><point>(1,2)</point><point>(3,4)</point></option><option><point>(5,6)</point><point>(7,8)</point></option></select>
+<text name="t">$s.x</text><math name="m">$s.x+1</math>`);
+        expect(d.codes()).eqls([
+            "warning doenet-w0191",
+            "warning doenet-w0191",
+        ]);
+        // as a `<p>` shows them, not one blank for all
+        expect(await d.text("t")).eq("＿, ＿");
+        // a math is missing as a math
+        expect(await d.text("m")).eq("＿ + 1");
+    });
+
+    it("a child written as a reference alone: suggest writing it as a tag with a name", async () => {
+        const d =
+            await setup(`<text name="T">hi</text><point name="Q">(1,2)</point>
+<group name="g">$T$Q</group><group name="g2">$T<point extend="$Q" name="P"/></group>
+<group name="g3">$Q<point>(3,4)</point></group>
+<p name="p">[$g.x] [$g2.P.x] [$g3.x]</p>`);
+        const messages = d.diagnostics().map((x) => x.message);
+        expect(messages).eqls([
+            // `$Q` cannot be given a name
+            '`$g.x` names nothing: the `<group>` holds 2 components, and a property passes into a group only when it holds one. To read the property of a child, write it as a tag with a name, such as `<point extend="$Q" name="P"/>`, and write `$g.P.x`.',
+            // the point written as a tag can
+            '`$g3.x` names nothing: the `<group>` holds 2 components, and a property passes into a group only when it holds one. To read the property of a child, give it a name, such as `name="P"`, and write `$g3.P.x`.',
+        ]);
+        // the suggestion, followed, gives the value
+        expect(await d.text()).eq("[＿] [1] [＿]");
     });
 
     it("a group holding a reference to a group of several, or a group of several", async () => {

@@ -628,9 +628,11 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
 # select or `<conditionalContent>` (`group` for a `<group>`). $count is how
 # many components the group holds, not counting blank text and `<setup>`s.
 # $child is `named` when the first child that has the property has a name,
-# else `unnamed`; $suggestion is the reference with that child's name (or
-# `P`) put before the property. Tags, references and attributes stay as
-# written.
+# `reference` when it is a reference written alone (`$Q`), which cannot take
+# a name, else `unnamed`; $tag is, for `reference`, that reference written as
+# a tag with a name (`<point extend="$Q" name="P"/>`); $suggestion is the
+# reference with that child's name (or `P`) put before the property. Tags,
+# references and attributes stay as written.
 reference-property-after-several =
     { $container ->
         [iteration] `{ $reference }` names nothing: this iteration of a `<{ $component }>` holds { $count } components, and a property passes into an iteration only when it holds one.
@@ -639,6 +641,7 @@ reference-property-after-several =
        *[group] `{ $reference }` names nothing: the `<group>` holds { $count } components, and a property passes into a group only when it holds one.
     } { $child ->
         [named] To read the property of a child, write `{ $suggestion }`.
+        [reference] To read the property of a child, write it as a tag with a name, such as `{ $tag }`, and write `{ $suggestion }`.
        *[unnamed] To read the property of a child, give it a name, such as `name="P"`, and write `{ $suggestion }`.
     }
 
