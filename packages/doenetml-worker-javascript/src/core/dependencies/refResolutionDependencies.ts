@@ -7,7 +7,9 @@
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
+    branchCanChange,
     changeContext,
+    numReplacementsCanChange,
     pathHasIndexThatCanChange,
 } from "../../utils/decidedByDoenetML";
 import {
@@ -426,6 +428,31 @@ export class RefResolutionDependency extends Dependency {
                     sourceDoc: composite.sourceDoc,
                 }),
             ],
+        );
+    }
+
+    /**
+     * Report `diagnostic`, a warning that the reference on `composite`
+     * names nothing: as it is, and kept, when it is decided by the DoenetML
+     * (`decidedByDoenetML`); otherwise, as an info, as the condition of
+     * `composite` that {@link reportIndexNamesNothing} reports, which the
+     * reference decides again when what it goes through changes, so it
+     * lasts while the reference names nothing (DIAG-2, B33). A reload, which
+     * resolves the reference once, then reports the same (DIAG-6, #2506).
+     */
+    reportNamesNothing(
+        composite: any,
+        diagnostic: ReturnType<typeof codedDiagnostic>,
+        decidedByDoenetML: boolean,
+    ) {
+        if (decidedByDoenetML) {
+            this.dependencyHandler.core.addDiagnostic(diagnostic);
+            return;
+        }
+        this.dependencyHandler.core.diagnosticsManager.setConditionDiagnostics(
+            composite.componentIdx,
+            this.indexNamesNothingCondition(),
+            [{ ...diagnostic, type: "info" }],
         );
     }
 
@@ -973,7 +1000,12 @@ export class RefResolutionDependency extends Dependency {
                 // index past what a selector picks, as an error when the
                 // document loaded (D36, `typeChangeAtLoad.ts`).
             } else if (instanceKind) {
-                this.dependencyHandler.core.addDiagnostic(
+                // Past what the author wrote (`for="1 2"`) a warning; past
+                // what a value gives (an index from an input, a repeat in a
+                // case shown by one) an info while it lasts (DIAG-2, #2506)
+                const ctx = changeContext(this.dependencyHandler.core);
+                this.reportNamesNothing(
+                    composite,
                     codedDiagnostic({
                         type: "warning",
                         code: "doenet-w0181",
@@ -986,6 +1018,8 @@ export class RefResolutionDependency extends Dependency {
                         position: composite.position,
                         sourceDoc: composite.sourceDoc,
                     }),
+                    !this.indexFromValue(composite) &&
+                        !numReplacementsCanChange(indexedComponent, ctx),
                 );
             } else if (!referenced && this.indexFromValue(composite)) {
                 // past the end of what a composite made, by an index from a
@@ -1158,11 +1192,21 @@ export class RefResolutionDependency extends Dependency {
             suggestion = `${before}.${childName ?? "x"}${args}`;
         }
 
+        // How the group is written decides it, a warning, unless the
+        // reference can come to reach a group written otherwise, as one in
+        // a case shown by an input, an info while it lasts (DIAG-2, #2506)
+        const container =
+            this.dependencyHandler._components[childIndex.containerIdx];
+        const decidedByDoenetML =
+            !this.indexFromValue(composite) &&
+            !(container && branchCanChange(container, changeContext(core)));
+
         if (childIndex.count === 1) {
             // The one component is text (the resolver counts text as a
             // component but passes no index to it): it stands for the group,
             // and takes no index, as a `<text>` does not.
-            core.addDiagnostic(
+            this.reportNamesNothing(
+                composite,
                 codedDiagnostic({
                     type: "warning",
                     code: "doenet-w0100",
@@ -1170,11 +1214,13 @@ export class RefResolutionDependency extends Dependency {
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
                 }),
+                decidedByDoenetML,
             );
             return;
         }
 
-        core.addDiagnostic(
+        this.reportNamesNothing(
+            composite,
             codedDiagnostic({
                 type: "warning",
                 code: "doenet-w0188",
@@ -1189,6 +1235,7 @@ export class RefResolutionDependency extends Dependency {
                 position: composite.position,
                 sourceDoc: composite.sourceDoc,
             }),
+            decidedByDoenetML,
         );
     }
 

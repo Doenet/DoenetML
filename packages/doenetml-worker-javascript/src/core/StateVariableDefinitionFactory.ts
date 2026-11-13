@@ -1654,6 +1654,7 @@ function _buildAttributeDerivedDefinitions({
         essentialValues,
     }: any) {
         let attributeValue;
+        let readsPrimitive = false;
         if (readsAttributeComponent(dependencyValues, usedDefault)) {
             // The `attributeComponent` dependency is wired only when
             // `createComponentOfType` is set (see the call sites'
@@ -1666,6 +1667,7 @@ function _buildAttributeDerivedDefinitions({
                 ];
         } else if (dependencyValues.attributePrimitive != null) {
             attributeValue = dependencyValues.attributePrimitive;
+            readsPrimitive = true;
         } else if (
             dependencyValues.attributeRefResolutions != null &&
             !usedDefault.attributeRefResolutions
@@ -1724,10 +1726,27 @@ function _buildAttributeDerivedDefinitions({
             attribute: attrName,
         });
 
+        // A primitive attribute is written as text in the DoenetML and can't
+        // be a reference or be written to, so a value it can't take, which is
+        // replaced by the default (`doenet-i0048`), is the author's: a
+        // warning (DIAG-2, #2506), as `type="banana"` on a `<slider>`. One
+        // read from an attribute component can come from a value that changes
+        // (`format="$t"`, or `$m.format` bound to an input), so it stays an
+        // info. (A value dropped for a default of `null`, `doenet-i0051`, is
+        // left an info: where it is reached, as `<answer type="bad">`, the
+        // component warns of it itself.)
+        const diagnostics = readsPrimitive
+            ? res.diagnostics.map((diagnostic: any) =>
+                  diagnostic.code === "doenet-i0048"
+                      ? { ...diagnostic, type: "warning" }
+                      : diagnostic,
+              )
+            : res.diagnostics;
+
         return {
             setValue: { [varName]: res.value },
             checkForActualChange: { [varName]: true },
-            sendDiagnostics: res.diagnostics,
+            sendDiagnostics: diagnostics,
         };
     };
 

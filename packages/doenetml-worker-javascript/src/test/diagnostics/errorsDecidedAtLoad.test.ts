@@ -580,3 +580,65 @@ describe("A select whose literals keep it from selecting (DIAG-7) @group4", () =
         ).eqls([1]);
     });
 });
+
+/**
+ * SEL-8 (#2508 part 5, #2506): a warning about what the author wrote is
+ * reported at load in every case, option and iteration template, picked or
+ * not, at its line, as an error is. What a reference written there names,
+ * and an attribute a copy can't take, are decided when the document loads.
+ */
+describe("Warnings decided at load, in content made later (SEL-8) @group4", () => {
+    const warningsIn: [string, string, string, string][] = [
+        [
+            "a literal index that names nothing",
+            `<mathList name="l">1 2</mathList>`,
+            `<p>$l[0]</p>`,
+            "doenet-w0104",
+        ],
+        ["a name that names nothing", "", `<p>$nothing</p>`, "doenet-w0104"],
+        [
+            "an attribute an extend can't take",
+            `<math name="m1">1</math>`,
+            `<text extend="$m1" bar="1"/>`,
+            "doenet-w0187",
+        ],
+    ];
+    for (const [label, outside, content, code] of warningsIn) {
+        it(label, async () => {
+            for (const [where, doenetML] of [
+                ["a case", `${before}${outside}${inCase(content)}`],
+                ["a repeat", `${before}${outside}${inRepeat(content)}`],
+                ["an option", `${outside}${inOption(content, true)}`],
+                ["an option", `${outside}${inOption(content, false)}`],
+            ]) {
+                const { core } = await createTestCore({ doenetML });
+                await core.returnAllStateVariables(false, true);
+                expect(
+                    getDiagnosticsByType(core).warnings.map((w) => w.code),
+                    where,
+                ).eqls([code]);
+            }
+        });
+    }
+
+    it("a warning a component decides when it is made is not reported before (known gap)", async () => {
+        // `w0027` is decided by the `<circle>` it is about, which is made
+        // only when the case is shown; once shown it stays (#2506).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `${before}${inCase(`<graph><circle through="(x,1) (2,3) (4,1)"/></graph>`)}`,
+        });
+        const warnings = () =>
+            getDiagnosticsByType(core).warnings.map((w) => w.code);
+        await core.returnAllStateVariables(false, true);
+        expect(warnings()).eqls([]);
+        for (const boolean of [true, false]) {
+            await updateBooleanInputValue({
+                boolean,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            await core.returnAllStateVariables(false, true);
+            expect(warnings(), `shown: ${boolean}`).eqls(["doenet-w0027"]);
+        }
+    });
+});

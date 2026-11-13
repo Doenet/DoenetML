@@ -283,7 +283,21 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 "numToSelect",
             ]);
             if (kept) {
-                return kept;
+                // Still check the parameters it was made from, as when it
+                // was first made, so a reload reports the same (DIAG-6,
+                // #2506). Asking for none draws nothing.
+                const { diagnostics } = sampleFromRandomNumbers({
+                    ...dependencyValues,
+                    numSamples: 0,
+                });
+                return {
+                    ...kept,
+                    sendDiagnostics: withSamplingLevels(
+                        diagnostics,
+                        dependencyValues.type,
+                        dependencyValues,
+                    ),
+                };
             }
             // The values the requested variant gives are taken as given,
             // whatever the select would choose now: a select keeps the

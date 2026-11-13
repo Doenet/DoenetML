@@ -1416,11 +1416,14 @@ describe("Conditional content tag tests @group2", async () => {
         await check_items("elephant", "trumpets");
 
         // An index never selects a child of what the conditionalContent
-        // shows (D27): each of these names nothing, with a warning that says
-        // so. The pieces that are strings are nothing to select.
-        const warnings = getDiagnosticsByType(core).warnings;
+        // shows (D27): each of these names nothing, and says so. The pieces
+        // that are strings are nothing to select. Which case is shown
+        // follows `n`, so what the index comes after is decided by a value:
+        // an info (DIAG-2, #2506).
+        const { warnings, infos } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
         expect(
-            warnings
+            infos
                 .map((w) => [
                     w.code,
                     w.args?.reference,
