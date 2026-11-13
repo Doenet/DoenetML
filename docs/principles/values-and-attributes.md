@@ -328,8 +328,9 @@ an error on a tag, which D37 reversed (#2458). Examples: `$n.nonexistent`,
    property, COLL-3). `$cc.value` is fine when every case holds one math.
    **It warns, decided at load, if any component the composite can hold lacks the property**,
    and each component that lacks it contributes a blank `＿` (decided, D40; #2452). A property
-   none has is `w0104`, as before. **Known violation:** #2451 decides from what the composite
-   holds now, and warns only when none has the property; a component that lacks it is skipped.
+   none has is `w0104`, as before. **Done by #2547** for a select and a conditional whose options
+   or cases each hold one component (`doenet-w0192`); repeats, lists, collect, sort and shuffle
+   are #2523.
 
 Decided with D22 (#2434 item 1). **Done by #2451** (closing #2450), including after names
 (`$x.nonexistent`) and after an index (`$s[1].nonexistent`, `$r[1].nonexistent`). On a tag it

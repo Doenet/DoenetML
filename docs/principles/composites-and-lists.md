@@ -180,8 +180,15 @@ Whether a tag is built as a composite or a list component never changes which ki
   (`$cp.numComponents` is `2`; `$cpp`, `$sq`, `$rp`, `$sel`, `$cc` give `w0104`);
 - a collect or sort built as a list inherits that list's aliases, which then fail
   (`$cp.numPoints`, #2271);
-- a name after a collection names nothing (`$rmix.P`) or is ambiguous (`$s.P.x`, `w0105`);
-- an item lacking a property is dropped silently (`$rmix.x` over a point and a text is `1, 2`).
+- a name after a collection names nothing (`$rmix.P`) or is ambiguous (`$s.P.x`, `w0105`), so
+  #2547's suggestions name the first item (`$r[1].P.x`) until it does;
+- an item lacking a property is dropped silently for a repeat, list, collect, sort or shuffle
+  (`$rmix.x` over a point and a text is `1, 2`); for a select or conditional, **done by #2547**:
+  each item lacking it gives its own blank, with **`doenet-w0192`** at load (`$s.x` of a math and a
+  text pick is `x, ＿`), in every parent (`(1, ＿) + 1` in a `<math>`);
+- a collection's own settings (`$s.fixed`, `$r.fixed`) still pass into each item;
+- `<point extend="$s.x"/>` of a property of several items is `(0, 0)` with no diagnostic, and
+  differs between live and a reload after a repeat goes to 0 (#2548).
 
 ### COLL-3: a wrapper stands for its one component; with several, it is only a container (Tier 2; D41)
 A wrapper is a `<group>`, or an item a repeat, select or conditional makes: an iteration, a pick
@@ -195,9 +202,19 @@ or a shown case. Authors see a `<group>` (COLL-1's last bullet); the others they
 - **None:** the wrapper is missing (D37).
 - **Its own settings** are its own either way: `$g.hide` is the group's.
 
-**Known violations** (#2523): a property after a wrapper of several is given to each child:
-`$g.x` of a group of two points is `57`, run together; `$gmix.x` of a point and a number is `1`,
-the number dropped; `$cc.x` of a case holding two points is `1, 3`.
+**Done by #2547** (`W/utils/wrappers.ts`): a property after a wrapper of several names nothing,
+with **`doenet-w0193`**, which names a child that has the property (`$g.A.x`), or suggests
+`name="P"`, or writing a lone reference as a tag with a name. Its level follows DIAG-2: a `<group>`
+the author wrote is a warning; when every option or case holds several, it is `w0191` at load. A
+wrapper's own settings are its own: `$g.fixed` of a group of several is the group's (it was each
+child's run together).
+
+**Known violations** (#2548): `<group name="g">$r</group>` then `$g.x` shows its items with
+no separator (`＿＿`, where `$r.x` is `＿, ＿`); a repeat template holding several is reported only
+once an iteration is made; `$s.x` of options holding references (`<option>$m</option>`) names
+nothing with `w0104`; a property some iterations lack through a `<conditionalContent>` in the
+template leaves them out silently; a reference whose one item goes away keeps its value in a
+`<text>`, a `<math>`, an attribute or `bindValueTo` (a `<p>` and a reload show nothing).
 
 ### COLL-4: `<sort>` and `<shuffle>` take one type, decided at load (Tier 2; D41)
 - A child that is a list or a collection is flattened into its items, so several lists sort
@@ -450,9 +467,10 @@ which aren't choices.
   with a random `a`, `e0032` at info level. Since #2495 a parameter that references only what
   can't change (`numToSelect="$n"` of `<number name="n">3</number>`) is decided by the DoenetML,
   so an infeasible selection is an error at load (`choicesDecidedByDoenetML`);
-- an authored warning in an option or case is reported only while it is shown, not at load
-  (SEL-8, #2506);
-- warnings in unpicked options and cases are not reported;
+- SEL-8 since #2547: reference and conversion warnings (`w0104`, `w0187`, `e0004`) are reported at
+  load in a case not shown, an iteration not made and an option not picked, and an authored
+  warning is a warning there, not an info. **Left** (#2506): a warning a component decides is
+  reported only once its content is made;
 - a `copyWithState` of a sampler doesn't keep its draws through a reload (#2477, SAVE-4).
 
 ### COMP-9: `conditionalContent` shows the first case whose condition is true, else the `<else>` (Tier 1)

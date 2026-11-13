@@ -85,12 +85,25 @@ that isn't fixed is writable. New ways a reader can write must be added to the i
 - `doenet-w0181`, past the end of a repeat whose count is a value, on a bare reference
   (postponed to the new core; #1499, #2281); `w0125` and the per-descendant PreFigure codes
   (`w0085`, `w0099`, `w0170`, `w0172`) keep their level;
-- infos lost or not coming back: a restored `<selectRandomNumbers>`, `resample()`, `w0072` once
-  a case goes inactive again, and a tag of an iteration that isn't there (#2506);
-- an authored warning given as a condition is reported only while its component is shown, and
-  not before (#2506);
-- `doenet-i0048` (an invalid primitive `type`) is authored but an info (#2506);
-- every attribute of a value child decides the level, including a style attribute (#2506).
+- **fixed by #2547** (#2506 items 1, 4, and 2–3 in part):
+  - a restored `<selectRandomNumbers>` reports what its parameters give; `w0072` comes back when a
+    case goes inactive again (an inactive source collects nothing, as on a reload); `resample()`
+    and a tag of an iteration that isn't there were already right;
+  - an authored warning in a case, option or iteration is a warning, not an info: `canChange`
+    passes through the composites that hold written content (`writtenInPlaceCanChange`), and a
+    value in a template stays an info;
+  - an authored warning given as a condition stays once its component has been shown;
+  - `i0048` for an invalid **primitive** attribute is a warning (`<slider type="banana"/>`);
+  - only attributes of the value decide the level (`ATTRIBUTES_NOT_OF_THE_VALUE`: style, display
+    and rounding attributes, `hide`, `fixed`, …), so `<number displayDigits="$n">` is a warning;
+  - `w0181`/`w0188` follow the value when the index or the case shown comes from one (infos), and
+    stay warnings when the DoenetML decides them;
+- **left** (#2506): a warning a component decides (`w0027`, `w0144`, sampling, geometry and chart
+  codes) in content never made isn't reported until shown (SEL-8; it needs content built without
+  showing it, as the cells core does); `i0048` for an attribute **component** written as a literal
+  (`<sampleRandomNumbers type="banana">`) stays an info, since a reader can write to it;
+  `ATTRIBUTES_NOT_OF_THE_VALUE` is a denylist, so an attribute it doesn't list still decides the
+  level, leaning to info.
 
 **A value-driven diagnostic tracks the value.** It follows from DIAG-1 and DIAG-2: an info
 explains why nothing shows now, so it appears when the condition starts and goes away when it
@@ -159,6 +172,8 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 A reload restores what the reader saw (SAVE-1), and that includes the diagnostics.
 
 **Known violations:**
+- an authored warning that a component decides, once shown and then hidden, is kept, but a reload
+  with it hidden doesn't report it (#2506; it goes with SEL-8 at load);
 - an index past the end of a repeat that shrank adds a diagnostic only after a reload (#1499).
   Under DIAG-2 it is an info, reported the same way before and after. On a tag it is info
   `doenet-i0054` since #2447, which follows the index. A bare reference still has the late
