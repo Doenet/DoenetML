@@ -2963,8 +2963,8 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * Whether the reference `copy` is of is names alone, the last of which
-     * names no component, so is a property (`$s.value`).
+     * Whether the reference `copy` is made from is a path of names alone,
+     * the last of which names no component, so is a property (`$s.value`).
      */
     function namesAProperty(copy: SerializedComponent) {
         const ref = refOf(copy);
@@ -2985,9 +2985,9 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * Whether the reference `copy` is of is one index into a list (`$s[1]`,
-     * `$nl[$k]`) or into a property (`$s.value[1]`), so names an entry, a
-     * value, whichever entry the index picks.
+     * Whether the reference `copy` is made from is one index into a list
+     * (`$s[1]`, `$nl[$k]`) or into a property (`$s.value[1]`), so names an
+     * entry, a value, whichever entry the index picks.
      */
     function namesAnEntry(copy: SerializedComponent) {
         const ref = refOf(copy);

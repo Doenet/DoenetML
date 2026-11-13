@@ -1347,6 +1347,26 @@ describe("A related type is made from the value of what is referenced, not from 
         ).eq("(1, 2)");
     });
 
+    it("a group holding a text beside a repeat with an empty `for` is checked at load as the text", async () => {
+        // The repeat in error is not one of what the group holds, so the
+        // point can't be made from the text, which is said when the
+        // document loads (#2488).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<group name="g"><text>hi</text><repeat for=""/></group>
+<p name="p1"><point extend="$g"/></p>`,
+        });
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
+        expect(errors.map((e) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0072", 1],
+            ["doenet-e0065", 2],
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("");
+    });
+
     it("the one component a composite stands for is found through references in it", async () => {
         // Each was the tag's default (`(0, 0)`, or `(1, 0)` for a vector)
         // before #2437.

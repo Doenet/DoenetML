@@ -72,7 +72,18 @@ export function conditionalContentSugar(node: DastElement) {
         // If there are no `<case>` children (and no `<else>` children that were converted)
         // then wrap all children in a `<case>` child and move the `condition` attribute
         // from the `<conditionalContent>` to the `<case>`.
-        const attributes: Record<string, DastAttribute> = {};
+        // The case is marked as made here, not written: a `condition`
+        // written on a childless `copy` of this `<conditionalContent>` is
+        // that of this case, as a `condition` written on the
+        // `<conditionalContent>` is, but not that of a `<case>` the author
+        // wrote, beside which it is ignored (`doenet-w0079`, #2217).
+        const attributes: Record<string, DastAttribute> = {
+            _madeBySugar: {
+                type: "attribute",
+                name: "_madeBySugar",
+                children: [{ type: "text", value: "true" }],
+            },
+        };
         node.children = [
             {
                 type: "element",

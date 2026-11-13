@@ -5,9 +5,8 @@
  * each with its index and its name.
  *
  * There can be more than one `_repeatSetup`: a `copy` of a repeat with a
- * `valueName` or `indexName` of its own, or with children, has its own
- * setup after its source's (#2211), and the children written in it read the
- * copy's names.
+ * `valueName` or `indexName` of its own has its own setup after its
+ * source's (#2211), and the children written in it read the copy's names.
  */
 export function iterationDummies(serializedChildren) {
     const valueDummies = [];

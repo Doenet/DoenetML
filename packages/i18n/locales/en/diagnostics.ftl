@@ -960,8 +960,9 @@ type-change-composite-not-one =
 # $componentType is a tag that makes its list of values itself from its
 # attributes, such as `<sequence>` or `<sampleRandomNumbers>`. Written with
 # `extend` or `copy`, it can be made only from one component of its own type,
-# and `$source` isn't always one: it holds several, or another type, or a
-# property. The tags and `$source` are DoenetML and stay in English.
+# and `$source` isn't always one: it holds several, or another type, or it
+# is a property or an entry of a list. The tags and `$source` are DoenetML
+# and stay in English.
 type-change-own-type-only = A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
 
 # What `$source` holds can be of more than one type, $types, a list of tags

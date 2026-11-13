@@ -676,7 +676,7 @@ describe("Normalize dast", async () => {
         source = '<conditionalContent condition="a">b</conditionalContent>';
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><conditionalContent><case condition="a"><group>b</group></case></conditionalContent></document>',
+            '<document><conditionalContent><case _madeBySugar="true" condition="a"><group>b</group></case></conditionalContent></document>',
         );
     });
 
@@ -708,7 +708,7 @@ describe("Normalize dast", async () => {
             // a copy with content of its own is sugared as before
             [
                 '<conditionalContent copy="$c" condition="a">b</conditionalContent>',
-                '<document><conditionalContent copy="$c"><case condition="a"><group>b</group></case></conditionalContent></document>',
+                '<document><conditionalContent copy="$c"><case _madeBySugar="true" condition="a"><group>b</group></case></conditionalContent></document>',
             ],
             // A copy with none keeps its `condition`, which is the condition
             // of its source's one case, rather than adding an empty case of

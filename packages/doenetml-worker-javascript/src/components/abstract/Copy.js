@@ -9615,8 +9615,9 @@ function childGroupOf(componentClass, child, componentInfoObjects) {
  *   source's, so the added ones are ignored;
  * - those its class says it ignores beside the source's
  *   (`childrenIgnoredBeside`, a `<math>` beside a `<matrix>`'s rows);
- * - on an extend of an input, all of them: it is bound to its source, which
- *   a child would otherwise give it a value of its own from (`bindValueTo`).
+ * - on an extend of an input, all of them but what describes it (a
+ *   `<label>`): it shares its source's value, which a child would otherwise
+ *   set.
  */
 function ignoredBesideSource({
     replacement,
@@ -10039,13 +10040,14 @@ async function referenceNamesItsSource({ component, sourceNum, heldCase }) {
 }
 
 /**
- * A `condition` written on a `copy` of a `<conditionalContent>` with one
- * `<case>` -- the form written with `condition` on the `<conditionalContent>`
- * itself, which the parser's sugar moves to a `<case>` -- is that case's
- * condition, as it is when the tag is written whole: a copy is its source's
- * DoenetML with the attributes written on it applied (#2217). With more than
- * one case, there is no one condition for it to be, so it is left on the
- * `<conditionalContent>`, which warns that it is ignored (`doenet-w0079`).
+ * A `condition` written on a `copy` of a `<conditionalContent>` written with
+ * no `<case>` -- whose one case the parser's sugar made, and moved the
+ * `<conditionalContent>`'s own `condition` to (`_madeBySugar`) -- is that
+ * case's condition, as it is when the tag is written whole: a copy is its
+ * source's DoenetML with the attributes written on it applied (#2217).
+ * Otherwise it is left on the `<conditionalContent>`, which ignores it beside
+ * the cases written in it, with a warning (`doenet-w0079`), as it does
+ * written whole.
  *
  * Only a `condition` written on the copy (in `attributesFromComposite`) is
  * moved: one the source has, which it ignores beside its own `<case>`, is
@@ -10061,11 +10063,11 @@ function applyConditionToOnlyCase(replacement, attributesFromComposite) {
     const cases = replacement.children.filter(
         (child) => typeof child === "object" && child.componentType === "case",
     );
-    if (cases.length !== 1) {
+    if (
+        cases.length !== 1 ||
+        !cases[0].attributes?._madeBySugar?.primitive?.value
+    ) {
         return;
-    }
-    if (!cases[0].attributes) {
-        cases[0].attributes = {};
     }
     cases[0].attributes.condition = replacement.attributes.condition;
     delete replacement.attributes.condition;

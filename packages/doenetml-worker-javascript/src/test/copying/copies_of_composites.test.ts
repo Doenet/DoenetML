@@ -105,6 +105,29 @@ describe("Copies of composites @group3", () => {
         expect(await texts()).eqls({ p0: "yes", p1: "yes" });
     });
 
+    it("`condition` on a copy of a conditionalContent whose one case is written out is ignored, as written whole", async () => {
+        // Written whole, `<conditionalContent condition="false"><case
+        // condition="true">yes</case></conditionalContent>` ignores its
+        // `condition` (`doenet-w0079`) and shows `yes`, and so does an
+        // `<else>`. Only the case the parser makes for content written with
+        // no `<case>` takes the copy's `condition`.
+        const { texts, errors, warnings } = await load(
+            `<conditionalContent name="c1"><case condition="true"><text>yes</text></case></conditionalContent>
+<conditionalContent name="c2"><else><text>yes</text></else></conditionalContent>
+<p name="p1"><conditionalContent copy="$c1" condition="false"/></p>
+<p name="p2"><conditionalContent copy="$c2" condition="false"/></p>
+<p name="p3"><conditionalContent condition="false"><case condition="true"><text>yes</text></case></conditionalContent></p>`,
+            ["p1", "p2", "p3"],
+        );
+        expect(errors).eqls([]);
+        expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
+            ["doenet-w0079", 3],
+            ["doenet-w0079", 4],
+            ["doenet-w0079", 5],
+        ]);
+        expect(await texts()).eqls({ p1: "yes", p2: "yes", p3: "yes" });
+    });
+
     it("`valueName` and `indexName` on a copy of a repeat name its own values, in what it copies and in its children", async () => {
         // #2211: the copy's names read the wrong placeholder, `NaN`, or
         // nothing at all.
@@ -260,16 +283,20 @@ describe("Children a copy or extend does not use @group3", () => {
         expect((await sv("Mr")).matrixSize).eqls([3, 2]);
     });
 
-    it("a curve copy ignores functions beside its through points", async () => {
+    it("a curve copy ignores functions beside its through points, and bezier controls without them", async () => {
         const { sv, errors, warnings } = await load(
             `<graph><curve name="c" through="(1,2) (3,4)"/>
-<curve name="cc" copy="$c">(1,2)</curve></graph>`,
+<curve name="cc" copy="$c">(1,2)</curve>
+<curve name="f"><function>x^2</function></curve>
+<curve name="fc" copy="$f"><bezierControls/></curve></graph>`,
         );
         expect(errors).eqls([]);
         expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
             ["doenet-w0190", 2],
+            ["doenet-w0190", 4],
         ]);
         expect((await sv("cc")).curveType).eq("bezier");
+        expect((await sv("fc")).curveType).eq("function");
     });
 
     it("an orbital diagram copy's diagram applies", async () => {
