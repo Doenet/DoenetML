@@ -1101,6 +1101,18 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
         ],
         [
             "2",
+            "an index and a name into a repeat, in what the name names in a case, written first",
+            '<repeat name="r" for="1 2 3" indexName="i"><conditionalContent><case condition="$i>1"><math name="m">$r[1].m+1</math></case><else><math name="m">1</math></else></conditionalContent></repeat>',
+            ["doenet-e0005 1:102-109"],
+        ],
+        [
+            "2",
+            "an index and a name into a repeat, in what the name names in the else, written second",
+            '<repeat name="r" for="1 2 3" indexName="i"><conditionalContent><case condition="$i=1"><math name="m">1</math></case><else><math name="m">$r[1].m+1</math></else></conditionalContent></repeat>',
+            ["doenet-e0005 1:138-145"],
+        ],
+        [
+            "2",
             "an index and a name into a repeat, in its for",
             '<repeat name="r" for="$r[1].v" valueName="v"><math>$v</math></repeat>',
             ["doenet-e0005 1:23-30"],

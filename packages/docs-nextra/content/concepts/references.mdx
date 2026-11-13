@@ -661,7 +661,11 @@ as that one component: with `<group name="g">$nl</group>{:dn}`, `$g[2]` is the
 second entry of `nl`. Blank text and a `<setup>{:dn}` don't count, but any
 other text does. When an iteration or a group holds several components, or text
 beside one, a further index names nothing, and DoenetML gives a warning that
-says how many it holds and shows the name to use.
+says how many it holds and shows the name to use. A property after it names
+nothing too: with two points in `<group name="g">{:dn}`, `$g.x` is `＿`, with a
+warning. Name the point you mean, such as `<point name="P">{:dn}`, and write
+`$g.P.x` (or `$rep[1].P.x`, `$s[1].P.x`, `$cc.P.x`). The group's own settings, such
+as `$g.hide`, are still its own.
 
 A `<group>` that extends or copies an iteration, such as
 `<group name="g" extend="$table[2]"/>{:dn}`, is the iteration again and takes

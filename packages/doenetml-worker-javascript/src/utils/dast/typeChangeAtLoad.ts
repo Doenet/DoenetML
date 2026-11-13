@@ -3569,7 +3569,12 @@ export function checkTypeChangesAtLoad({
      *   property after it (`$s[1][2]`, `$s.x`, `$s[1].x`) passes into the
      *   ones holding one, and is read from each component of the others,
      *   so what it means depends on the pick or the case (#2520 item 1):
-     *   `doenet-w0191`, naming those holding several;
+     *   `doenet-w0191`, naming those holding several. For a property, also
+     *   when every one holds several: a property after a wrapper of several
+     *   names nothing (D41 decision 3), which the DoenetML decides here, so
+     *   it is a warning, whether or not one is picked or shown
+     *   (`severalAtLoad`, read by `wrapperOfSeveralDiagnostics` in
+     *   `Copy.js`);
      * - when each holds one component, and some of their types have a
      *   property and others lack it (`$cc.x` of a `<math>` case and a
      *   `<text>` `<else>`), it is a warning, and each component lacking it
@@ -3578,8 +3583,8 @@ export function checkTypeChangesAtLoad({
      *
      * Not decided when a part holds a component whose type, or count, the
      * DoenetML does not give (a reference to a composite, a nested
-     * `<select>`). A part holding several is a wrapper (D41): a property
-     * after it is read from each child, which is not checked here.
+     * `<select>`). A property the container has itself (`$s.hide`), or the
+     * pick has (`$s[1].hide`), is its own, and not checked.
      */
     function checkCollectionItems(copy: SerializedComponent) {
         const ref = refOf(copy);
@@ -3622,9 +3627,21 @@ export function checkTypeChangesAtLoad({
         if (!container) {
             return;
         }
+        if (
+            kind === "property" &&
+            typeHasProperty({
+                componentType:
+                    first.name === "" ? "group" : container.componentType,
+                propName: property!,
+                componentInfoObjects,
+            })
+        ) {
+            // the container's own (`$s.hide`), or the pick's (`$s[1].hide`)
+            return;
+        }
         const branch = branchKind(container, true)!;
         const parts = partsOf(container, branch);
-        if (!parts || parts.length < 2) {
+        if (!parts || parts.length === 0) {
             return;
         }
         const containerName = literalText(container.attributes?.name);
@@ -3658,9 +3675,21 @@ export function checkTypeChangesAtLoad({
             }
         }
         if (several.length > 0) {
-            if (!anyOne) {
-                // each a wrapper of several: not decided here (D41)
+            if (!anyOne && kind !== "property") {
+                // each a wrapper of several: an index after it names
+                // nothing, with `doenet-w0188` at run time
                 return;
+            }
+            // A property after a wrapper of several names nothing (D41
+            // decision 3, `doenet-w0193` at run time). Decided here when
+            // every option or case holds several, so it is not reported
+            // again there; when only some do, what is reported there is
+            // which is picked or shown now, an info (DIAG-2).
+            if (kind === "property") {
+                copy.doenetAttributes = {
+                    ...copy.doenetAttributes,
+                    severalAtLoad: anyOne ? "some" : "every",
+                };
             }
             const withElse = several.some((s) => s.isElse);
             collectionItemWarnings.push({

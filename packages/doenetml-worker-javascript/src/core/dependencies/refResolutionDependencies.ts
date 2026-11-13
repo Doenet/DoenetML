@@ -436,9 +436,50 @@ export class RefResolutionDependency extends Dependency {
      * is an info rather than a warning (DIAG-2).
      */
     indexFromValue(composite: any): boolean {
-        return pathHasIndexThatCanChange(
-            this.refResolutionOf(composite)?.originalPath,
-            changeContext(this.dependencyHandler.core),
+        const originalPath = this.refResolutionOf(composite)?.originalPath;
+        const ctx = changeContext(this.dependencyHandler.core);
+        return (
+            pathHasIndexThatCanChange(originalPath, ctx) ||
+            this.indexFromIterationThatCanGo(originalPath, ctx)
+        );
+    }
+
+    /**
+     * Whether an index in `path` is read from an index or value name of a
+     * repeat whose number of iterations can change (`$s[$i]` in
+     * `<repeatForSequence to="$mi" indexName="i">`). Within an iteration
+     * `i` is fixed, but whether the iteration is there follows the value,
+     * so what the index names in it is value-driven too (DIAG-2): an info
+     * that goes with the iteration, as a reload without it shows none
+     * (DIAG-6).
+     */
+    indexFromIterationThatCanGo(path: any, ctx: any): boolean {
+        const components = this.dependencyHandler._components;
+        return (path ?? []).some((part: any) =>
+            (part?.index ?? []).some((indexPart: any) =>
+                (indexPart?.value ?? []).some((value: any) => {
+                    if (typeof value === "string") {
+                        return false;
+                    }
+                    const seen = new Set<number>();
+                    let current: any = components[value?.componentIdx];
+                    while (current && !seen.has(current.componentIdx)) {
+                        seen.add(current.componentIdx);
+                        if (
+                            current.componentType === "repeat" ||
+                            current.componentType === "repeatForSequence"
+                        ) {
+                            return numReplacementsCanChange(current, ctx);
+                        }
+                        current =
+                            current.replacementOf ??
+                            (current.parentIdx == undefined
+                                ? undefined
+                                : components[current.parentIdx]);
+                    }
+                    return false;
+                }),
+            ),
         );
     }
 

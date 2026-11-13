@@ -415,6 +415,7 @@ export type MessageKey =
     | "reference-name-types-differ-in-branches"
     | "reference-branches-hold-several"
     | "reference-property-partly-held"
+    | "reference-property-after-several"
     | "component-action-unavailable"
     | "data-frame-inconsistent-row-lengths"
     | "data-frame-duplicate-column-names"
@@ -1104,6 +1105,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-name-types-differ-in-branches",
     "reference-branches-hold-several",
     "reference-property-partly-held",
+    "reference-property-after-several",
     "component-action-unavailable",
     "data-frame-inconsistent-row-lengths",
     "data-frame-duplicate-column-names",

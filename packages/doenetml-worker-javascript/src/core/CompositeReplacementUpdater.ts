@@ -184,6 +184,7 @@ export class CompositeReplacementUpdater {
                     nComponents: this.core._components.length,
                     workspace: component.replacementsWorkspace,
                     componentInfoObjects: this.core.componentInfoObjects,
+                    allDoenetMLs: this.core.allDoenetMLs,
                     flags: this.core.flags,
                     resolveItem: this.core.dependencies.resolveItem.bind(
                         this.core.dependencies,

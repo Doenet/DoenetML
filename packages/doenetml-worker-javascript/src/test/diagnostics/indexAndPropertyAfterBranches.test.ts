@@ -170,9 +170,12 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
 <math name="m">z</math><text name="t">a</text>
 <select name="s" numToSelect="2"><option>$m</option><option>$t</option></select>
 <p name="p">[$cc1.x]</p>`);
-        // each case a wrapper of several (D41, #2523), and the options'
-        // types are not read from what their references name
-        expect(d.codes()).eqls([]);
+        // Each case is a wrapper of several, so a property after it names
+        // nothing (D41 decision 3, `w0191` at load) rather than being
+        // partly held; the options' types are not read from what their
+        // references name.
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        expect(await d.text()).eq("[＿]");
     });
 });
 
@@ -216,13 +219,162 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
         ]);
     });
 
-    it("nothing when every option holds several, or every one holds one", async () => {
+    it("for a property also when every option holds several; nothing when every one holds one", async () => {
         const d =
             await setup(`<select name="s" numToSelect="2"><option><point>(3,4)</point><point>(5,6)</point></option><option><point>(3,4)</point><point>(5,6)</point></option></select>
 <select name="t" numToSelect="2"><option><point>(3,4)</point></option><option><point>(5,6)</point></option></select>
 <p name="p">[$s.x] [$t[1][2]] [$t.x]</p>`);
+        // A property after a pick of several names nothing (D41 decision 3):
+        // decided at load from every option, one warning, nothing more
+        // when the document runs. (Was `3, 5, 3, 5`.)
+        expect(d.diagnostics().map((x: any) => x.message)).eqls([
+            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s.P.x`.',
+        ]);
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        expect(await d.text()).eq("[＿, ＿] [4] [3, 5]");
+        await d.reload();
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        expect(await d.text()).eq("[＿, ＿] [4] [3, 5]");
+    });
+});
+
+describe("A property after a wrapper of several names nothing (D41 decision 3)", () => {
+    it("a group: a warning naming a child that has it, the group's own settings stay its own", async () => {
+        const d =
+            await setup(`<group name="g"><point name="A">(1,2)</point><point>(3,4)</point></group>
+<group name="h"><point>(5,6)</point></group>
+<group name="k">Point: <point>(7,8)</point></group>
+<p name="p">[$g.x] [$g.hide] [$g.rendered] [$g.A.x] [$h.x] [$k.x]</p>
+<math name="m" extend="$g.x"/>`);
+        expect(await d.text()).eq("[＿] [false] [true] [1] [5] [＿]");
+        expect(await d.text("m")).eq("＿");
+        expect(d.diagnostics().map((x: any) => [x.type, x.message])).eqls([
+            [
+                "warning",
+                "`$g.x` names nothing: the `<group>` holds 2 components, and a property passes into a group only when it holds one. To read the property of a child, write `$g.A.x`.",
+            ],
+            [
+                "warning",
+                '`$k.x` names nothing: the `<group>` holds 2 components, and a property passes into a group only when it holds one. To read the property of a child, give it a name, such as `name="P"`, and write `$k.P.x`.',
+            ],
+            [
+                "warning",
+                "`$g.x` names nothing: the `<group>` holds 2 components, and a property passes into a group only when it holds one. To read the property of a child, write `$g.A.x`.",
+            ],
+        ]);
+        await d.reload();
+        expect(await d.text()).eq("[＿] [false] [true] [1] [5] [＿]");
+        expect(d.codes()).eqls([
+            "warning doenet-w0193",
+            "warning doenet-w0193",
+            "warning doenet-w0193",
+        ]);
+    });
+
+    it("a group holding a reference to a group of several, or a group of several", async () => {
+        const d =
+            await setup(`<group name="g0"><point>(1,2)</point><point>(3,4)</point></group>
+<group name="g1">$g0</group>
+<group name="g2"><group><point>(1,2)</point><point>(3,4)</point></group></group>
+<group name="g3"><mathList>1 2</mathList></group>
+<p name="p">[$g1.x] [$g2.x] [$g3.value]</p>`);
+        expect(await d.text()).eq("[＿] [＿] [12]");
+        expect(d.codes()).eqls([
+            "warning doenet-w0193",
+            "warning doenet-w0193",
+        ]);
+    });
+
+    it("a repeat's iterations, and an extend of one", async () => {
+        const d =
+            await setup(`<repeat name="r" for="1 2" valueName="v"><point>($v,1)</point><point>($v,2)</point></repeat>
+<repeat name="r1" for="1 2" valueName="v"><point>($v,1)</point></repeat>
+<group name="e" extend="$r[1]"/>
+<p name="p">[$r[1].x] [$r.x] [$e.x] [$r[1].hide] [$r1[1].x] [$r1.x]</p>`);
+        expect(await d.text()).eq("[＿] [＿, ＿] [＿] [false] [1] [1, 2]");
+        const messages = d.diagnostics().map((x: any) => x.message);
+        expect(messages).toContain(
+            '`$r[1].x` names nothing: this iteration of a `<repeat>` holds 2 components, and a property passes into an iteration only when it holds one. To read the property of a child, give it a name, such as `name="P"`, and write `$r[1].P.x`.',
+        );
+        expect(d.codes()).eqls([
+            "warning doenet-w0193",
+            "warning doenet-w0193",
+            "warning doenet-w0193",
+        ]);
+    });
+
+    it("an iteration reached by an index from an input is an info that follows it", async () => {
+        const d = await setup(`<mathInput name="mi" prefill="1"/>
+<repeatForSequence name="r" to="2" indexName="i"><point>($i,1)</point><point>($i,2)</point></repeatForSequence>
+<p name="p">$r[$mi].x</p>`);
+        expect(await d.text()).eq("＿");
+        expect(d.codes()).eqls(["info doenet-w0193"]);
+        await d.setMath("mi", "5");
+        expect(d.codes()).eqls(["info doenet-w0181"]);
+    });
+
+    it("a case: every case holding several is a warning at load, also with none shown", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b"><point>(1,2)</point><point>(3,4)</point></case></conditionalContent>
+<p name="p">[$cc.x] [$cc.hide]</p>`);
+        expect(await d.text()).eq("[] [false]");
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        await d.setBoolean("b", true);
+        expect(await d.text()).eq("[＿] [false]");
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        await d.reload();
+        expect(await d.text()).eq("[＿] [false]");
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+    });
+
+    it("a case: when only some hold several, the one shown now is an info", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b"><point>(1,2)</point><point>(3,4)</point></case><else><point>(5,6)</point></else></conditionalContent>
+<p name="p">$cc.x</p>`);
+        expect(await d.text()).eq("5");
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        await d.setBoolean("b", true);
+        expect(await d.text()).eq("＿");
+        expect(d.codes()).eqls(["info doenet-w0193", "warning doenet-w0191"]);
+        await d.reload();
+        expect(d.codes()).eqls(["info doenet-w0193", "warning doenet-w0191"]);
+        await d.setBoolean("b", false);
+        expect(await d.text()).eq("5");
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+    });
+
+    it("a group in a case shown by an input is a warning: how it is written decides it", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent><case condition="$b"><group name="g"><point>(1,2)</point><point>(3,4)</point></group></case></conditionalContent>
+<p name="p">$g.x</p>`);
+        await d.setBoolean("b", true);
+        expect(await d.text()).eq("＿");
+        expect(d.codes()).eqls(["warning doenet-w0193"]);
+    });
+});
+
+describe("An index read from an iteration whose count follows an input (DIAG-2, DIAG-6)", () => {
+    it("is an info that goes with the iteration, as a reload shows", async () => {
+        const d = await setup(`<mathInput name="mi" prefill="2"/>
+<select name="s"><option><point>(1,2)</point></option></select>
+<repeatForSequence from="1" to="$mi" indexName="i"><math>$s[$i].x</math></repeatForSequence>
+<p name="p">done</p>`);
+        expect(d.codes()).eqls(["info doenet-w0181"]);
+        // Was: the w0181 warning stayed, and a w0104 warning came from the
+        // iteration going away.
+        await d.setMath("mi", "1");
         expect(d.codes()).eqls([]);
-        expect(await d.text()).eq("[3, 5, 3, 5] [4] [3, 5]");
+        await d.reload();
+        expect(d.codes()).eqls([]);
+        await d.setMath("mi", "2");
+        expect(d.codes()).eqls(["info doenet-w0181"]);
+    });
+
+    it("with a fixed number of iterations it stays a warning", async () => {
+        const d =
+            await setup(`<select name="s"><option><point>(1,2)</point></option></select>
+<repeatForSequence from="1" to="2" indexName="i"><math>$s[$i].x</math></repeatForSequence>`);
+        expect(d.codes()).eqls(["warning doenet-w0181"]);
     });
 });
 

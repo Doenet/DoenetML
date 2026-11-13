@@ -1,3 +1,4 @@
+import { isWrapperOfSeveral } from "../utils/wrappers";
 import type Core from "../Core";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { errorComponentState } from "../utils/dast/errors";
@@ -1348,6 +1349,10 @@ export async function changeInactiveComponentAndDescendants({
  * recursed into. `stopAtListComposites` does the same for a composite
  * that can be shown as a list (its state has `asList`), so that a copy
  * of the replacements keeps the list, commas and all.
+ * `stopAtWrappersOfSeveral` does the same for a wrapper holding several
+ * components ({@link isWrapperOfSeveral}), which a property is not passed
+ * into (D41 decision 3, COLL-3); it is still recorded among
+ * `compositesFound`, so a change of what it holds is followed.
  */
 export function recursivelyReplaceCompositesWithReplacements({
     core,
@@ -1356,6 +1361,7 @@ export function recursivelyReplaceCompositesWithReplacements({
     includeWithheldReplacements = false,
     stopIfHaveProp,
     stopAtListComposites = false,
+    stopAtWrappersOfSeveral = false,
 }: {
     core: Core;
     replacements: any[];
@@ -1363,6 +1369,7 @@ export function recursivelyReplaceCompositesWithReplacements({
     includeWithheldReplacements?: boolean;
     stopIfHaveProp?: string;
     stopAtListComposites?: boolean;
+    stopAtWrappersOfSeveral?: boolean;
 }): {
     compositesFound: number[];
     newReplacements: any[];
@@ -1406,6 +1413,11 @@ export function recursivelyReplaceCompositesWithReplacements({
 
         compositesFound.push(replacement.componentIdx);
 
+        if (stopAtWrappersOfSeveral && isWrapperOfSeveral(replacement)) {
+            newReplacements.push(replacement);
+            continue;
+        }
+
         if (!replacement.isExpanded) {
             if (replacement.state.readyToExpandWhenResolved.isResolved) {
                 unexpandedCompositesReady.push(replacement.componentIdx);
@@ -1433,6 +1445,7 @@ export function recursivelyReplaceCompositesWithReplacements({
             includeWithheldReplacements,
             stopIfHaveProp,
             stopAtListComposites,
+            stopAtWrappersOfSeveral,
         });
         compositesFound.push(...recursionResult.compositesFound);
         newReplacements.push(...recursionResult.newReplacements);

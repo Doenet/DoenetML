@@ -912,12 +912,16 @@ export function breakReferenceCycles({
     }
 
     /**
-     * The component named `name` written in `root`, at any depth: what a
-     * name after an index into `root` (`$r[1].m`) names in the item the
-     * index names, which is made from it.
+     * The components named `name` written in `root`, at any depth: what a
+     * name after an index into `root` (`$r[1].m`) can name in the item the
+     * index names, which is made from it. Every one, not the first: in
+     * branches (a case and the `<else>` each naming `m`) which one the item
+     * holds is decided when the document runs, and a cycle through any
+     * branch is reported, whichever branch is written first (NAME-7).
      */
     function namedIn(root: SerializedComponent, name: string) {
         const lower = name.toLowerCase();
+        const found: SerializedComponent[] = [];
         const toSearch = [...(root.children ?? [])];
         while (toSearch.length > 0) {
             const component = toSearch.shift()!;
@@ -925,11 +929,19 @@ export function breakReferenceCycles({
                 continue;
             }
             if (nameOf(component)?.toLowerCase() === lower) {
-                return component;
+                found.push(component);
+            }
+            if (
+                component.componentType === "repeat" ||
+                component.componentType === "repeatForSequence"
+            ) {
+                // the names in a nested template are its iterations', not
+                // the item's
+                continue;
             }
             toSearch.push(...(component.children ?? []));
         }
-        return undefined;
+        return found;
     }
 
     /** Whether each part of `parts` is an index written as a number. */
@@ -1263,12 +1275,12 @@ export function breakReferenceCycles({
                 const named =
                     literal && typeof namePart?.name === "string"
                         ? namedIn(target, namePart.name)
-                        : undefined;
-                if (named) {
+                        : [];
+                for (const component of named) {
                     edges.push(
                         ...readEdges(
                             from,
-                            named,
+                            component,
                             namePart.index?.length > 0
                                 ? [{ name: "", index: namePart.index }, ...rest]
                                 : rest,

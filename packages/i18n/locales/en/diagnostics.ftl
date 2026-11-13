@@ -614,6 +614,33 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
        *[other] Read the property from the component you mean, by its name.
     }
 
+# A property after a `<group>` that holds several components: `$g.x` on a
+# `<group name="g">` holding two points, `$r[1].x` after an iteration of a
+# repeat that holds two, `$s.x` after a pick that holds two, or `$cc.x` after
+# the case a `<conditionalContent>` shows, holding two (D41). A group holding
+# one component stands for it, and the property is that component's; with
+# several, the group is only a container, and the reference names nothing
+# there. The group's own settings (`$g.hide`) are not this.
+# $reference is the reference as the author wrote it, with its `$`.
+# $container and $component are as for `reference-index-selects-child`:
+# `iteration`, `pick`, `case` or `group`, and the tag name of the repeat,
+# select or `<conditionalContent>` (`group` for a `<group>`). $count is how
+# many components the group holds, not counting blank text and `<setup>`s.
+# $child is `named` when the first child that has the property has a name,
+# else `unnamed`; $suggestion is the reference with that child's name (or
+# `P`) put before the property. Tags, references and attributes stay as
+# written.
+reference-property-after-several =
+    { $container ->
+        [iteration] `{ $reference }` names nothing: this iteration of a `<{ $component }>` holds { $count } components, and a property passes into an iteration only when it holds one.
+        [pick] `{ $reference }` names nothing: what the `<{ $component }>` picked holds { $count } components, and a property passes into a pick only when it holds one.
+        [case] `{ $reference }` names nothing: what the `<{ $component }>` shows holds { $count } components, and a property passes into it only when it holds one.
+       *[group] `{ $reference }` names nothing: the `<group>` holds { $count } components, and a property passes into a group only when it holds one.
+    } { $child ->
+        [named] To read the property of a child, write `{ $suggestion }`.
+       *[unnamed] To read the property of a child, give it a name, such as `name="P"`, and write `{ $suggestion }`.
+    }
+
 ## `<callAction>`
 
 # $action is the `actionName` the author asked for, part of the DoenetML

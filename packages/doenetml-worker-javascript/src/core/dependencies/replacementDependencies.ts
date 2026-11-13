@@ -6,6 +6,7 @@
 
 import { Dependency } from "./Dependency";
 import { recursivelyReplaceCompositesWithReplacements } from "../CompositeExpander";
+import { isWrapperOfSeveral } from "../../utils/wrappers";
 
 export class ReplacementDependency extends Dependency {
     static dependencyType = "replacement";
@@ -51,6 +52,11 @@ export class ReplacementDependency extends Dependency {
         this.stopIfHaveProp = this.definition.stopIfHaveProp;
 
         this.stopAtListComposites = this.definition.stopAtListComposites;
+
+        // A wrapper holding several components (`isWrapperOfSeveral`) is
+        // returned itself, rather than its replacements, for a property is
+        // not passed into it (D41 decision 3).
+        this.stopAtWrappersOfSeveral = this.definition.stopAtWrappersOfSeveral;
 
         this.includeWithheldReplacements =
             this.definition.includeWithheldReplacements;
@@ -188,7 +194,9 @@ export class ReplacementDependency extends Dependency {
             );
         }
 
-        if (this.recursive) {
+        if (this.stopAtWrappersOfSeveral && isWrapperOfSeveral(composite)) {
+            replacements = [composite];
+        } else if (this.recursive) {
             let result = recursivelyReplaceCompositesWithReplacements({
                 core: this.dependencyHandler.core,
                 replacements,
@@ -196,6 +204,7 @@ export class ReplacementDependency extends Dependency {
                 stopAtListComposites: this.stopAtListComposites,
                 includeWithheldReplacements: this.includeWithheldReplacements,
                 stopIfHaveProp: this.stopIfHaveProp,
+                stopAtWrappersOfSeveral: this.stopAtWrappersOfSeveral,
             });
 
             if (

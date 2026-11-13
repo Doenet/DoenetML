@@ -288,6 +288,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0190": "copy-children-ignored",
     "doenet-w0191": "reference-branches-hold-several",
     "doenet-w0192": "reference-property-partly-held",
+    "doenet-w0193": "reference-property-after-several",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

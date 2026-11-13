@@ -75,6 +75,12 @@ import {
     valueAsWritten,
 } from "../../utils/heldChoiceAttribute";
 import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
+import { componentsOfWrapper, isWrapperOfSeveral } from "../../utils/wrappers";
+import { instanceKindOf } from "../../utils/indexInstances";
+import {
+    branchCanChange,
+    pathHasIndexThatCanChange,
+} from "../../utils/decidedByDoenetML";
 import {
     copiesReferent,
     parentDrawsValueReferences,
@@ -419,6 +425,13 @@ export default class Copy extends CompositeComponent {
                                 stateValues.unresolvedPath == null,
                             includeWithheldReplacements: true,
                             stopIfHaveProp: firstPropNameFromPath,
+                            // A property is not passed into a wrapper
+                            // holding several components: the wrapper is
+                            // kept, and the property names nothing there
+                            // (D41 decision 3, `wrapperOfSeveralBlank`).
+                            stopAtWrappersOfSeveral: Boolean(
+                                firstPropNameFromPath,
+                            ),
                         };
                     }
 
@@ -4291,8 +4304,13 @@ export async function replacementFromProp({
             );
         } else if (
             propName === "__prop_name_not_found" &&
-            component.doenetAttributes?.blankWhereNoProperty
+            (component.doenetAttributes?.blankWhereNoProperty ||
+                isWrapperOfSeveral(target))
         ) {
+            // A wrapper holding several components is only a container: a
+            // property after it names nothing, a blank for that item, with
+            // the warning `wrapperOfSeveralDiagnostics` reports (D41
+            // decision 3, COLL-3).
             // A property some of the options or cases of a `<select>` or
             // `<conditionalContent>` have and this one lacks gives a blank,
             // with the warning decided at load (D40 decision 5, #2452;
@@ -7164,7 +7182,10 @@ async function missingPropertyError({
         !propNames.every((name) => name === "__prop_name_not_found") ||
         // decided at load from every option or case, with a blank for each
         // lacking it (`blankWhereNoProperty`, #2452)
-        component.doenetAttributes?.blankWhereNoProperty
+        component.doenetAttributes?.blankWhereNoProperty ||
+        // a wrapper of several, with its own warning
+        // (`wrapperOfSeveralDiagnostics`)
+        (await wrapperSourcesOfSeveral(component, components)).length > 0
     ) {
         return undefined;
     }
@@ -7211,6 +7232,184 @@ async function missingPropertyError({
 }
 
 /**
+ * The wrappers holding several components among the sources of the copy
+ * `component` that a property was not found on ({@link isWrapperOfSeveral}):
+ * a property is not passed into them (D41 decision 3).
+ */
+async function wrapperSourcesOfSeveral(component, components) {
+    const propNames =
+        (await component.stateValues.effectivePropNameBySource) ?? [];
+    const sources =
+        (await component.stateValues.replacementSourceIdentities) ?? [];
+    return sources
+        .filter(
+            (source, ind) =>
+                typeof source === "object" &&
+                source !== null &&
+                propNames[ind] === "__prop_name_not_found",
+        )
+        .map((source) => components[source.componentIdx])
+        .filter((wrapper) => isWrapperOfSeveral(wrapper));
+}
+
+/**
+ * What the copy `component` reports, as its `"wrapperOfSeveral"` condition,
+ * when a property after it reached a wrapper holding several components
+ * (`$g.x` of a `<group>` of two points, `$r[1].x` of an iteration holding
+ * two, `$s.x` of a pick holding two, `$cc.x` of the case shown holding two):
+ * the property names nothing there (a blank, `replacementFromProp`), with
+ * `doenet-w0193`, which says to name the component and reach it by its name
+ * (D41 decision 3, COLL-3). One for the reference, of the first such
+ * wrapper.
+ *
+ * The level is decided as for `doenet-w0188` (DIAG-2): a warning when how
+ * the wrapper is written decides it, an info, while it lasts, when the
+ * reference can come to reach other content, as through an index from a
+ * value or in a case shown by an input. When every option or case holds
+ * several, it was reported at load (`doenet-w0191`, `severalAtLoad` is
+ * `"every"`), so nothing more is; when only some do, the load warning
+ * covered what the author wrote, and which is shown now is a value, so it is
+ * an info (`"some"`).
+ */
+async function wrapperOfSeveralDiagnostics({
+    component,
+    components,
+    componentInfoObjects,
+    workspace,
+    allDoenetMLs,
+}) {
+    const severalAtLoad = component.doenetAttributes?.severalAtLoad;
+    if (severalAtLoad === "every") {
+        return [];
+    }
+    const [wrapper] = await wrapperSourcesOfSeveral(component, components);
+    if (!wrapper) {
+        return [];
+    }
+    const unresolvedPath = await component.stateValues.unresolvedPath;
+    const propName = unresolvedPath?.[0]?.name;
+    if (!propName) {
+        return [];
+    }
+    const originalPath = await component.stateValues.originalPath;
+    const reference =
+        workspace.referenceAsWritten ??
+        referenceAsWritten(originalPath, components[wrapper.componentIdx]);
+
+    // The child to suggest: the first that has the property, else the first.
+    const children = componentsOfWrapper(wrapper).filter(
+        (child) => typeof child === "object",
+    );
+    const child =
+        children.find((child) =>
+            typeHasProperty({
+                componentType: child.componentType,
+                propName,
+                componentInfoObjects,
+            }),
+        ) ?? children[0];
+    // What a reference written as the child (`<group>$x</group>`) made has
+    // the name of what it copies, which is not a name of the wrapper's child.
+    const madeByBareReference =
+        child?.replacementOf?.componentType === "_copy" &&
+        !child.replacementOf.attributes?._createComponentIdx;
+    const childName = madeByBareReference ? undefined : authoredNameOf(child);
+
+    // The reference with the child's name put before the property:
+    // `$g.x` becomes `$g.P.x`.
+    const propStart = unresolvedPath[0].position?.start.offset;
+    const pathStart = originalPath?.[0]?.position?.start.offset;
+    const pathEnd =
+        originalPath?.[originalPath.length - 1]?.position?.end.offset;
+    const source = allDoenetMLs?.[originalPath?.[0]?.sourceDoc ?? 0];
+    let suggestion;
+    if (
+        source !== undefined &&
+        propStart != undefined &&
+        pathStart != undefined &&
+        pathEnd != undefined &&
+        propStart > pathStart
+    ) {
+        suggestion = `${doenetMLDollarsForReference(
+            originalPath,
+            allDoenetMLs,
+        )}${source.substring(pathStart, propStart)}${
+            childName ?? "P"
+        }.${source.substring(propStart, pathEnd)}${doenetMLArgumentsForReference(
+            originalPath,
+            allDoenetMLs,
+        )}`;
+    } else {
+        const at = reference.lastIndexOf(`.${propName}`);
+        suggestion =
+            at === -1
+                ? reference
+                : `${reference.substring(0, at)}.${childName ?? "P"}${reference.substring(at)}`;
+    }
+
+    const instanceOf = wrapper.attributes?._instanceOf?.primitive?.value;
+    // A `<group>` the author wrote holds what is written in it whenever it
+    // is there, also in a case or a template, so how it is written decides
+    // it: not one a reference made, or made as a copy.
+    const writtenInPlace =
+        wrapper.componentType === "group" &&
+        instanceOf === undefined &&
+        !wrapper.shadows &&
+        wrapper.replacementOf?.componentType !== "_copy";
+    const ctx = component.coreFunctions?.changeContext?.();
+    const decidedByDoenetML =
+        severalAtLoad !== "some" &&
+        (writtenInPlace ||
+            !(
+                ctx &&
+                (pathHasIndexThatCanChange(
+                    components[component.componentIdx]?.refResolution
+                        ?.originalPath,
+                    ctx,
+                ) ||
+                    branchCanChange(wrapper, ctx))
+            ));
+    return [
+        codedDiagnostic({
+            type: decidedByDoenetML ? "warning" : "info",
+            code: "doenet-w0193",
+            args: {
+                reference,
+                suggestion,
+                child: childName === undefined ? "unnamed" : "named",
+                container: wrapperKind(instanceOf),
+                component: instanceOf ?? "group",
+                count: componentsOfWrapper(wrapper).length,
+            },
+        }),
+    ];
+}
+
+/**
+ * The name an author gave `component`, or `undefined` if it has none. The
+ * names the parser makes up for compatibility start with `_`.
+ */
+function authoredNameOf(component) {
+    const name = component?.attributes?.name?.primitive?.value;
+    return typeof name === "string" && name !== "" && !name.startsWith("_")
+        ? name
+        : undefined;
+}
+
+/**
+ * What a wrapper was written as, given the type of the component that made
+ * it (`_instanceOf`): an `iteration` of a repeat, a `pick` of a select, the
+ * `case` a `<conditionalContent>` shows, or a `group` written as one.
+ */
+function wrapperKind(instanceOf) {
+    if (instanceOf === "conditionalContent") {
+        return "case";
+    }
+    const kind = instanceKindOf(instanceOf);
+    return kind === "iteration" || kind === "pick" ? kind : "group";
+}
+
+/**
  * Report, as the `"missingProperty"` condition of the copy `component`
  * (`reportConditionDiagnostics`), a reference not written as a tag to a
  * property that what it names does not have (`$n.nonexistent`, `$$f.x(2)`):
@@ -7230,10 +7429,21 @@ async function reportMissingProperty({
     components,
     componentInfoObjects,
     workspace,
+    allDoenetMLs,
 }) {
     if (!workspace) {
         return;
     }
+    workspace.conditionDiagnostics = {
+        ...workspace.conditionDiagnostics,
+        wrapperOfSeveral: await wrapperOfSeveralDiagnostics({
+            component,
+            components,
+            componentInfoObjects,
+            workspace,
+            allDoenetMLs,
+        }),
+    };
     let diagnostics = [];
     const isTag =
         component.attributes._createComponentOfType?.primitive?.value !==
@@ -7256,6 +7466,13 @@ async function reportMissingProperty({
             // a name of the document is looked up as a name first, so it is
             // not a property (`$sec.t` of a `t` written elsewhere)
             component.doenetAttributes?.pathStartsWithProperty &&
+            // a wrapper of several has its own warning
+            // (`wrapperOfSeveralDiagnostics`)
+            !sources.some(
+                (source) =>
+                    typeof source === "object" &&
+                    isWrapperOfSeveral(components[source.componentIdx]),
+            ) &&
             // the property, not an index after it (`$n.value[1]`,
             // `doenet-w0100`), is what is missing
             !sources.some(
