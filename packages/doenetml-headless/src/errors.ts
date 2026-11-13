@@ -12,8 +12,8 @@
  * - `noStableKey`: the target names a component, but not uniquely from the
  *   document root, so it has no stable key and cannot be driven.
  * - `unsupportedInput`: the target is not an input `setInput` knows.
- * - `inputDisabled`: the input or the choice is disabled, or the point cannot
- *   be moved, so it would ignore the value.
+ * - `inputDisabled`: the input or the choice is disabled, the input is fixed,
+ *   or the point cannot be moved, so it would ignore the value.
  * - `invalidValue`: the value does not fit the input.
  */
 export type HeadlessErrorCode =

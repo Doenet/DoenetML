@@ -178,7 +178,7 @@ a path at all (names joined by `.`, literal indices) throws a plain `Error`.
 | `<point>` | its coordinates, `[x, y]` or `[x, y, z]` as the point has, moved as a drag moves it |
 
 Each value is turned into the actions the input's renderer sends. Any other
-type is refused (`unsupportedInput`), as are a disabled input, a disabled choice, or a point that
+type is refused (`unsupportedInput`), as are a disabled or fixed input, a disabled choice, or a point that
 cannot be moved (`inputDisabled`, since it would ignore the value) and a value
 of the wrong shape (`invalidValue`).
 

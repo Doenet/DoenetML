@@ -56,8 +56,8 @@ export const SUPPORTED_INPUT_TYPES = [
  *
  * Refuses, with a `HeadlessError`, a target with no stable key (`noStableKey`)
  * or that names nothing (`notFound`), a component of a type it does not know
- * (`unsupportedInput`, never a guess), a disabled input or a point that cannot
- * be moved, or a disabled choice (`inputDisabled`), and a value of the wrong
+ * (`unsupportedInput`, never a guess), a disabled or fixed input, a point that
+ * cannot be moved, or a disabled choice (`inputDisabled`), and a value of the wrong
  * shape (`invalidValue`).
  */
 export async function setInput(
@@ -226,22 +226,31 @@ async function refuseIfDisabled(
     where: string,
 ) {
     // An input or point that cannot change ignores the actions sent to it, so
-    // a value set on one would silently not be there.
-    const { disabled, fixed, draggable } = await core.readProperties(
-        input.componentIdx,
-        ["disabled", "fixed", "draggable"],
-    );
+    // a value set on one would silently not be there. A fixed input (`fixed`
+    // on it or on a container) is one, though it is not disabled.
+    const { disabled, fixed, fixLocation, draggable } =
+        await core.readProperties(input.componentIdx, [
+            "disabled",
+            "fixed",
+            "fixLocation",
+            "draggable",
+        ]);
     if (input.componentType === "point") {
-        if (fixed === true || draggable === false) {
+        if (fixed === true || fixLocation === true || draggable === false) {
             throw new HeadlessError(
                 "inputDisabled",
-                `${where} is a point that cannot be moved (fixed, or not draggable).`,
+                `${where} is a point that cannot be moved (fixed, its location fixed, or not draggable).`,
             );
         }
     } else if (disabled === true) {
         throw new HeadlessError(
             "inputDisabled",
             `${where} is disabled (for example, its answer has no attempts left), so it does not take a value.`,
+        );
+    } else if (fixed === true) {
+        throw new HeadlessError(
+            "inputDisabled",
+            `${where} is fixed, so it does not take a value.`,
         );
     }
 }
@@ -309,10 +318,13 @@ async function selectChoices(
             `${where}: choice ${disabledIndex} is disabled, so it cannot be selected.`,
         );
     }
+    // The renderer sends the selected positions in increasing order, so the
+    // input's value lists the selected choices in the order the reader sees
+    // them, whatever order they were given in here.
     await core.dispatchAction({
         componentIdx: input.componentIdx,
         actionName: "updateSelectedIndices",
-        args: { selectedIndices },
+        args: { selectedIndices: [...indices].sort((a, b) => a - b) },
     });
 }
 

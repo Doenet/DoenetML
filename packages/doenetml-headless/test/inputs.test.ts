@@ -208,7 +208,10 @@ describe("setInput and submit", () => {
             <choiceInput name="c"><choice>a</choice><choice>b</choice></choiceInput>
             <text name="t">x</text>
             <answer name="ans">x</answer>
-            <graph><point name="Q" draggable="false">(1,2)</point></graph>`,
+            <graph><point name="Q" draggable="false">(1,2)</point></graph>
+            <graph><point name="R" fixLocation>(1,2)</point></graph>
+            <textInput name="tf" fixed />
+            <section fixed><booleanInput name="bf" /></section>`,
             async (core) => {
                 let error = await refusal(setInput(core, "s", "x"));
                 expect(error.code).toBe("unsupportedInput");
@@ -245,6 +248,16 @@ describe("setInput and submit", () => {
                 }
 
                 error = await refusal(setInput(core, "Q", [3, 4]));
+                expect(error.code).toBe("inputDisabled");
+
+                // Fixed, on itself or a container, an input or point ignores
+                // the value though it is not disabled
+                error = await refusal(setInput(core, "R", [3, 4]));
+                expect(error.code).toBe("inputDisabled");
+                error = await refusal(setInput(core, "tf", "x"));
+                expect(error.code).toBe("inputDisabled");
+                expect(error.message).toContain("fixed");
+                error = await refusal(setInput(core, "bf", true));
                 expect(error.code).toBe("inputDisabled");
 
                 // Not written as a path at all: a caller's mistake, not a refusal
@@ -309,7 +322,8 @@ describe("setInput and submit", () => {
                         ])
                     ).selectedIndices;
                 };
-                expect(await read("many")).toEqual([3, 1]);
+                // In increasing order, as the renderer sends them
+                expect(await read("many")).toEqual([1, 3]);
                 expect(await read("cd")).toEqual([2]);
             },
         );
