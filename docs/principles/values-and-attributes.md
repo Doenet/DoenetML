@@ -161,10 +161,12 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
 - and the responses section at `:2764`.
 
 **Done by #2458** (closing #2456). How the rules land:
-- **Operators:** `<sum>$l[5] 3</sum>` and `<sum>$nothing 3</sum>` are `＿ + 3`; a numeric operator
-  becomes symbolic. `<count>` counts a missing operand. A boolean operator took it as not true;
-  under the type rule below (decided November 2026), an operator whose result is a number or a
-  boolean is missing instead.
+- **Operators** (as revised by the type rule below, done by #2543): a numeric operator with a
+  missing number operand among numbers is `＿` (`<sum>$l[5] 3</sum>` of a `<numberList>`, a
+  `<mean>` of a list with a blank entry); with a math operand, or a missing operand of no type,
+  the blank takes part (`<sum>$nothing 3</sum>` is `＿ + 3`, a `<sum>` of a `<mathList>` is
+  `1 + ＿ + 3`). `<count>` counts a missing operand. A boolean operator with a missing operand is
+  missing.
 - **`<text>` and `<label>`** read a missing child as `＿`: `<text>x $tl[5] y</text>` is `x ＿ y`.
   A `<text>` reads its children's values and ignores their `hide`, so a hidden missing child is a
   blank in it too. A `<label>` honours its children's `hide`, as a `<p>` does.
@@ -189,8 +191,9 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   `missingWhenContentMissing` (`BaseComponent`; `contentMissing` and `valueMissing` in
   `W/utils/missing.ts`). Such a component is missing when it has a missing child and nothing else
   but blank text, labels and descriptions. `<math>` gets `contentMissing` only, so a `<number>`
-  or `<function>` of such a math is missing. Operators and `<piecewiseFunction>` opt out, and an
-  expression is unchanged: `<number>$nothing + 1</number>` is still `NaN` (#2460).
+  or `<function>` of such a math is missing. Operators and `<piecewiseFunction>` opt out. An
+  expression is decided by the type rule below: `<number>$nothing + 1</number>` is `＿` since
+  #2543.
   - It can be missing for a while: `<number>$l[$i]</number>` comes back once `i` names an entry,
     and the renderer switches to the blank and back (`canBecomeMissing`, `drawnMissing`).
   - What is made from it follows it (D37): a tag of another type around it, a property tag of it
@@ -217,27 +220,22 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
     `removeEmptyArrayEntries`.
   - A `<collect>`, `<sort>` or `<shuffle>` of a list keeps its blank entries.
 
+  **Done by #2543** (closing #2516 and the list items of #2460; #2525 items 1, 5 and the list part
+  of 4): a list's `text` and `latex` show a blank entry as `＿` (`$nl.text` is `1, ＿, 3`),
+  `matrixSize` of a blank entry is `＿`, a `<math>` list child whose content is only missing
+  references is a blank entry, a list of a property of every entry (`$pl.y`) marks its blank
+  entries, and a `<math>` reading a child missing for a while is `＿`, not `NaN`. `valueMissing`
+  no longer marks the parent's rendered children on every keystroke.
+
   **Known violations:**
-  - an entry of `_repeatValueList` isn't made missing; a `<number>$l[$i]</number>` repeat stays a
-    composite, which shows `＿`, so authors see the same;
-  - list operators count a blank entry: for `<numberList>1 $nothing 3</numberList>`, `<sum>` and
-    `<mean>` give `NaN`, `<count>` gives `3`, and a math `<sum>` gives `1 + ＿ + 3` (#2460);
-  - a numeric function at a blank is `1 + ＿`, not missing (`<evaluate input="$nothing"/>`,
-    `$$f($nothing)`, `input="$ans.submittedResponse"` before a submission), and `$$f(2)` of a
-    missing `<function>` is a number (#2460);
-  - `$ml.matrixSize` of a blank entry is `1, 1`, and `$nl.text` shows a blank entry as `NaN`
-    (#2460);
+  - an entry of `_repeatValueList` isn't made missing: `<repeatForSequence …><number>$l[$i] +
+    1</number></repeatForSequence>` shows `NaN` past the end in its list form and `＿` as a
+    composite (#2544);
   - a `<sort>` drops a child reference that names nothing (`<sort>$l[5] 3 1</sort>` is `1, 3`), and
-    `<ray through="(1,2) $nothing"/>` isn't missing (#2525);
-  - a tag of a reference past the end isn't missing: `<point>$pl[$i]</point>` is `(＿, 0)` (#2525);
-  - `<mathInput>$nothing</mathInput>` and `<isNumber>` are unchanged;
-  - a `<math>` whose child is missing for a while can still be `NaN`: with `n` =
-    `<number>$l[$i]</number>` while `i` names nothing, `<math><math extend="$n"/></math>` and
-    `<math><number>$nothing</number></math>` are `NaN`, though `<math>$n</math>` is `＿`. The
-    child's `valueMissing` is true but its `value` isn't the blank (#2516);
-  - `valueMissing`'s `markStale` fires on every change of the content it reads, so a parent
-    re-checks its rendered children on each keystroke. Nothing is re-sent and no cost was
-    measured (#2516).
+    `<ray through="(1,2) $nothing"/>` isn't missing (#2525, PR 14);
+  - a tag of a reference past the end isn't missing: `<point>$pl[$i]</point>` is `(＿, 0)`. Making
+    a point missing from its `coords` content creates a real cycle for a point and a vector
+    defined from each other (#2544).
 - **`null` is never shown, and a `NaN` from a missing input is missing (decided, D40; #2460).**
   `null` or `undefined` never reaches what an author sees. Where `null` means "no value", the
   value is missing (`＿`); #2483's opt-in for `maxNumber` becomes the rule for every such
@@ -265,12 +263,26 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
     false, because a blank never equals anything (D37). A missing condition gives no credit
     (D40).
 
-  **Known violation** (#2460): each number case gives `NaN`, a numeric function at a blank gives
-  `1 + ＿`, and a boolean operator takes a missing operand as not true (`not ＿` is true).
+  **Done by #2543** (closing #2460): a `<number>` is missing while its value is a `NaN` and a child
+  is a missing input; numeric operators, `<median>`, `<clampNumber>` and `<wrapNumberPeriodic>`
+  follow; `<evaluate>` and `$$f` follow how the function is evaluated (`symbolic="false"` or
+  `forceNumeric` gives `＿`; symbolic gives `1 + ＿`); `not`, `and`, `or` and the boolean operators
+  are missing for a missing operand; tests (`<isNumber>`, `<matchesPattern>`,
+  `<hasSameFactoring>`) stay false, as comparisons do. `null` is never shown: #2483's
+  `nullIsMissing` is the rule for every variable, and a regression test references every public
+  property of every type and checks that no text or renderer value holds `null`, `undefined` or
+  `[object`.
+
+  **Known violations:**
+  - a tag made while a property had a value doesn't follow it back to `null`: with `<image
+    aspectRatio="2">` and its bound input cleared, `<math extend="$im.aspectRatio"/>` and `<text>`
+    of it read `NaN` (a bare reference and a `<number>` tag read `＿`) (#2544);
+  - `$P.scales`, `$slider.items` and `$sort.sortByComponent` are declared as numbers but hold an
+    array or a string, so they show `NaN` (#2545).
 - **`<angle/>` with no measure is blank (decided, D40; #2324).** An angle whose measure nothing
   gives or determines (bare, one or two `through` points, one line) has a blank measure and draws
-  nothing, not a right angle. 0.7 documents are not converted. **Known violation:** today it is
-  π/2.
+  nothing, not a right angle. 0.7 documents are not converted (the changeset says to add
+  `radians="pi/2"`). **Done by #2543.**
 - a bare reference to a name in a branch that isn't active is a blank whatever it names, so
   `<indexOf target="$cc.shown">` of a `<numberList>` in that case has one blank target.
 - a bare text child of `<considerAsResponses>` beside a component throws (as before #2458).
@@ -292,8 +304,8 @@ How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
 `$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` name nothing; since #2458 they are missing and
 show `＿`. An index into a scalar entry of a
 list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
-limit, is missing (`＿`) since #2483 (closing #2416), through an opt-in `nullIsMissing` that only
-`maxNumber` uses; other attributes whose `null` means unset wait on #2460. **Fixed by #2514
+limit, is missing (`＿`) since #2483 (closing #2416); since #2543 that holds for every variable
+holding `null`. **Fixed by #2514
 (closing #2487):** a tag of a property entry with no value is missing while it has none
 (`<number extend="$P.z"/>` of a point in the plane, `$f.minimumValue1`, `$ci.selectedValue`
 before a choice, `$ans.submittedResponse` before a submission, a spreadsheet cell it doesn't
@@ -476,7 +488,9 @@ another reference outside brackets (#2522). It isn't given for `<sort>` or a `fo
 which join the same way.
 
 **The one exception:** `removeStrings` on a `<mathInput>` keeps spaces only, since a comma is
-its common entry (thousands separators).
+its common entry (thousands separators). Since #2534 it applies to `prefillLatex` too, so
+`prefillLatex="\$10,000" removeStrings="$ ,"` is `10000` while the field still shows `$10,000`;
+it doesn't apply to `prefill`.
 
 The rule is `splitListItems` in `packages/parser/src/list-separation.ts`, shared by the parser
 and the worker. A list records how it split its text (`_listSplitting`), so it splits it again

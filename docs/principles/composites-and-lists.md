@@ -600,7 +600,7 @@ ADR 0009 also bans several forms that main's tests use (D13):
 | | `extend` | `copy` |
 |---|---|---|
 | Content | the same as the source (REF-7) | the source's DoenetML pasted (CPY-1) |
-| Content attributes (`for`, `to`, `numToSelect`, `condition`) | ignored, with warning w0168 | `to` on a repeat applies; **`condition` on a conditionalContent is ignored** (#2217, **[probe]**); `valueName` misreads (#2211) |
+| Content attributes (`for`, `to`, `numToSelect`, `condition`) | ignored, with warning w0168 | `to` on a repeat applies; `condition` on a conditionalContent applies to the case its sugar made, and `valueName`/`indexName` apply (#2542) |
 | Children written inside | dropped, with warning w0169, except group and module, which append | **added to every iteration** of a repeat (#2212) |
 | `hide` on the source | an `extend` of a hidden list or collect is hidden | a bare `$x` of a hidden list, group, repeat, select or conditionalContent is **shown**; of a hidden collect, hidden (D9) |
 

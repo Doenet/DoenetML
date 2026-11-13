@@ -125,7 +125,8 @@ Decided in D35.
 
 **Known violations:**
 - `<p name="p" copy="$p"/>` reports an internal `<_copy>` (NAME-7);
-- `<repeat for="">` gives an uncoded "Invalid empty attribute for" (#2488).
+- fixed by #2542: `<repeat for="">` gave an uncoded "Invalid empty attribute for"; an empty attribute
+  that needs a value is now `doenet-e0072`.
 
 Since #2482 a function reference is quoted whole after an index (`$$f[2](2)`), and a missing
 function's arguments are resolved for their own diagnostics: `$$f($a)` reports both (#2434).
@@ -227,7 +228,8 @@ reaches it takes its error explicitly:
 - the choice errors of `<selectFromSequence>` and `<selectPrimeNumbers>` that a value decides,
   for SEL-5 (D39, #2508 part 3). A parameter reaching what can change, or a sampler, is `e0070`
   at load since #2511;
-- a sequence extend through an index or a property throws, or gives a spurious `e0005` (#2501);
+- fixed by #2542: a sequence extend through an index or a property threw, or gave a spurious
+  `e0005`; it is `doenet-e0071` at load (REF-5);
 - **fixed by #2471 and #2513:** reference cycles are `e0005` at load over every branch and
   variant (B32, B40, #2430, #2473), including through a property, an input's starting value, an
   attribute a composite is made from, an index, a name every branch declares, a `<p>` and a

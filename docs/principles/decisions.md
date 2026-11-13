@@ -23,7 +23,7 @@ The first section lists defects that need no decision. Paths: `T/` is
 | B2 | **Symptom gone** (**[probe]** at `894d3ea`): setting `$Q2.fixed` false leaves the source fixed and a drag is refused; the write is now refused outright, and what such a write should do is #2235's question. Was: A write to `$Q.fixed`, where Q extends a point inside `<graph fixed>`, unfixes the source, which can then be dragged (#2197, open) | reproduces | `W/utils/contextAttribute.js:206-258` forwards the write |
 | B3 | One-input math operators report `canBeModified` from the wrong variable. `<sign>$n</sign>` claims it can be changed, but a bound input snaps back | yes | `W/components/abstract/MathBaseOperatorOneInput.js:94-97` reads `mathOperator` rather than `inverseMathOperator` |
 | B4 | `copy="$r[2].p"` of repeat content that shows `$i`, or a copy landing in a repeat whose `valueName` matches an outside name, shows `＿` **with no warning**. The `extend` form works. **Fixed by #2397** (D1): it shows the iteration's value | yes | `resolvesIntoOwnAncestry` (`W/core/dependencies/refResolutionDependencies.ts:320`). An unlinked copy has no shadows chain to fall back on |
-| B5 | **Partly fixed** (**[probe]** at `894d3ea`): `maxNumber` on a copy of a collect (#2215) and `valueName` on a copy of a repeat with no children (#2211 row 1) now work; `condition` on a copy (#2217), `valueName`/`indexName` with children (#2211) and `replacement` on a copy of a substitute (#2216) remain. Was: Attributes on a copy or extend of a composite are mishandled: `condition` on a copy of a conditionalContent is ignored (#2217), `valueName` on a copy of a repeat misreads (#2211), and `maxNumber` on an extend of a collect blanks it (#2215) | #2217 confirmed | `W/components/abstract/Copy.js` |
+| B5 | **Fixed by #2542** (#2217, #2211, #2216); #2215 by earlier PRs. Before (**[probe]** at `894d3ea`): `maxNumber` on a copy of a collect (#2215) and `valueName` on a copy of a repeat with no children (#2211 row 1) now work; `condition` on a copy (#2217), `valueName`/`indexName` with children (#2211) and `replacement` on a copy of a substitute (#2216) remain. Was: Attributes on a copy or extend of a composite are mishandled: `condition` on a copy of a conditionalContent is ignored (#2217), `valueName` on a copy of a repeat misreads (#2211), and `maxNumber` on an extend of a collect blanks it (#2215) | #2217 confirmed | `W/components/abstract/Copy.js` |
 | B6 | **Fixed by #2518.** An index into a composite of references (`$g[1]` with `<group name="g">$x</group>`) can panic the resolver (#1942). Under D27 (revised) this form names nothing, with a warning; #2517 checks the panic goes with it | — | `ref_expand.rs` |
 | B7 | `doNotExpandAsShadowed` is read in four places but set by no component | — | `W/core/CompositeExpander.ts:338`, `CompositeReplacementUpdater.ts:125`, `:1650`, `ComponentLifecycle.ts:177` |
 | B8 | **Fixed by #2344.** A `<group copy>` drew new random values for nested content, and a random child added to it repeated the source's first draw (#2342). Both broke CPY-8 | fixed on main, variants 1–3 | `copyVariants` in `W/components/abstract/Copy.js`; the group was serialized before its inner content expanded |
@@ -2451,12 +2451,12 @@ decided here; the rest are listed as still open.
 1. **A component whose content holds a missing child is missing** (#2461). Exceptions: `<math>`
    and `<text>`, where the blank takes part, and containers, which show it inline. A missing
    list entry is a blank entry. An award whose condition is missing gives no credit. VAL-5.
-   Done by #2514 and, for lists, #2524; the leftovers are #2516 and #2460.
+   Done by #2514, #2524 (lists) and #2543 (#2516); the leftovers are #2544.
 2. **`null` is never shown; where it means "no value" the value is missing, and a `NaN` caused by
    a missing input is missing** (#2460). Only a computation on present inputs that has no value
-   stays `NaN`. VAL-5.
+   stays `NaN`. VAL-5. Done by #2543, with the type rule below; the leftovers are #2544.
 3. **An `<angle>` whose measure isn't determined is blank** (#2324), for a bare `<angle/>`, one or
-   two `through` points, and one line. 0.7 documents are not converted. VAL-5, D10.
+   two `through` points, and one line. 0.7 documents are not converted. VAL-5, D10. Done by #2543.
 4. **Names in the arguments of a function reference that names nothing are made, as if in a
    `<setup>`** (#2489; done by #2518). Feasible in the Rust expansion: keep the argument nodes in an unrendered
    `<setup>`-like wrapper instead of dropping them and pointing their names at the failed
