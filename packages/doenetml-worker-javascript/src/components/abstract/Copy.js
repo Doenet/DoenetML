@@ -1205,14 +1205,18 @@ export default class Copy extends CompositeComponent {
                             componentInfoObjects,
                         ),
                     },
-                    propTypeVaries: {
-                        dependencyType: "value",
-                        value: propTypeVaries(
-                            propOfTypeChange(stateValues),
-                            componentInfoObjects,
-                        ),
-                    },
                 }),
+                // only where it does, so that no other copy depends on more
+                ...(propOfTypeChange(stateValues) &&
+                    propTypeVaries(
+                        propOfTypeChange(stateValues),
+                        componentInfoObjects,
+                    ) && {
+                        propTypeVaries: {
+                            dependencyType: "value",
+                            value: true,
+                        },
+                    }),
                 extendedComponent: {
                     dependencyType: "stateVariable",
                     variableName: "extendedComponent",
