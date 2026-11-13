@@ -126,10 +126,23 @@ describe("Repeats whose template is one value @group4", () => {
             doenetML: `
 <numberList name="l">10 20</numberList>
 <p name="p"><repeatForSequence name="r" from="1" to="3" indexName="i"><math>$l[$i] + 1</math></repeatForSequence></p>
+`,
+            names: ["p"],
+        });
+        // A number computed from an entry past the end is missing as a
+        // composite's iteration (`<number>$l[3] + 1</number>`, D40, #2460),
+        // but an entry of `_repeatValueList` can't be missing yet, so the
+        // list shows `NaN` there. A known violation, not compared here.
+        const known = await load(
+            `
+<numberList name="l">10 20</numberList>
 <p name="pn"><repeatForSequence name="rn" from="1" to="3" indexName="i"><number>$l[$i] + 1</number></repeatForSequence></p>
 `,
-            names: ["p", "pn"],
-        });
+            true,
+        );
+        expect(
+            await textsOf(known.core, known.resolvePathToNodeIdx, ["pn"]),
+        ).toEqual({ pn: "11, 21, NaN" });
         // A number that is only an entry past the end is missing (D40), which
         // an entry of `_repeatValueList` can't be, so the repeat stays a
         // composite.

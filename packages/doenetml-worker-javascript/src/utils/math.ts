@@ -641,12 +641,20 @@ export function mathStateVariableFromNumberStateVariable({
 }
 
 export function numberToMathExpression(
-    number: number | { re: number; im: number } | null,
+    number: number | { re: number; im: number } | null | undefined,
 ) {
     let mathTree: Tree;
     if (typeof number === "number") {
         mathTree = number;
-    } else if (number === null) {
+    } else if (
+        number === null ||
+        typeof number !== "object" ||
+        typeof number.re !== "number" ||
+        typeof number.im !== "number"
+    ) {
+        // No number (`null`, `undefined`), or a value a number entry should
+        // not hold, is a blank, never a crash or a `null` shown (D40,
+        // #2460): `$P.scales` of a point outside a graph.
         mathTree = "\uff3f";
     } else {
         if (number.im === 0) {

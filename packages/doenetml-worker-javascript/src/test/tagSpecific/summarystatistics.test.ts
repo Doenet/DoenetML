@@ -606,9 +606,10 @@ describe("summaryStatistics tag tests @group4", async () => {
             ).eq("123");
         });
 
-        it("read as NaN where there is no value", async () => {
-            // A blank cell in the table is a `null` statistic, but a reference
-            // is a number component, and a number with no value reads as NaN.
+        it("read as missing where there is no value", async () => {
+            // A blank cell in the table is a `null` statistic, which has no
+            // value, so a reference to it is missing and shows a blank (D40,
+            // #2460), where it read as `NaN`.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <numberList name="none" />
@@ -625,7 +626,7 @@ describe("summaryStatistics tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pMean")].stateValues
                     .text,
-            ).eq("NaN");
+            ).eq("＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("pCount")].stateValues
                     .text,

@@ -6,6 +6,7 @@ import {
     returnBreakStringsIntoMathsBySpacesSugarInstruction,
 } from "../../utils/mathOperatorChildren";
 import { isNumericConstant } from "../../utils/math";
+import { holdsNaN, isMissingInput } from "../../utils/missing";
 
 /**
  * The children an operator takes as operands, each with its index among
@@ -48,6 +49,13 @@ export default class MathOperator extends MathComponent {
     // composites with no replacement should be ignored.
     // turn off this flag set in math
     static descendantCompositesMustHaveAReplacement = false;
+
+    /**
+     * Whether the operator counts its operands rather than computing from
+     * their values (`<count>`), so a missing operand is counted (VAL-5)
+     * rather than making the result missing (D40).
+     */
+    static countsMissingOperands = false;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -103,6 +111,7 @@ export default class MathOperator extends MathComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+        const countsMissingOperands = this.countsMissingOperands;
 
         let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["maths", "numbers"],
@@ -180,14 +189,6 @@ export default class MathOperator extends MathComponent {
                     isNumericOperator = true;
                 } else if (dependencyValues.forceSymbolic) {
                     isNumericOperator = false;
-                } else if (
-                    dependencyValues.numberChildren.some(
-                        (x) => x.stateValues.valueMissing,
-                    )
-                ) {
-                    // a missing number is a blank math (`blankOperand`), so
-                    // the result is symbolic: `＿ + 5`, not `NaN`
-                    isNumericOperator = false;
                 } else if (mathChildren.length === 0) {
                     isNumericOperator =
                         dependencyValues.shadowSource?.stateValues
@@ -242,7 +243,12 @@ export default class MathOperator extends MathComponent {
                 mathNumberChildren: {
                     dependencyType: "child",
                     childGroups: ["maths", "numbers"],
-                    variableNames: ["value", "canBeModified", "valueMissing"],
+                    variableNames: [
+                        "value",
+                        "canBeModified",
+                        "valueMissing",
+                        "isNumber",
+                    ],
                     variablesOptional: true,
                 },
                 isNumericOperator: {
@@ -276,28 +282,72 @@ export default class MathOperator extends MathComponent {
                     };
                 }
 
+                const blank = {
+                    setValue: { unnormalizedValue: me.fromAst("\uff3f") },
+                };
+                const isNumberChild = (child) =>
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "number",
+                    });
+                const children = dependencyValues.mathNumberChildren;
+
+                // A numeric operator computes a number, which can't hold a
+                // blank, so a missing number operand makes it missing (D40,
+                // VAL-5, #2460): `<sum>` or `<mean>` of `<numberList>1
+                // $nothing 3</numberList>` is `＿`, not `NaN`, while every
+                // other operand is a number too. An operator forced symbolic,
+                // or one with a symbolic operand, holds the blank (`<sum>$nothing
+                // x</sum>` is `＿ + x`), as a `<math>` does, and so does one
+                // whose missing operand has no type (`<sum>$nothing 3</sum>` is
+                // `＿ + 3`).
+                if (
+                    dependencyValues.isNumericOperator &&
+                    !countsMissingOperands &&
+                    children.some(
+                        (child) =>
+                            child.stateValues.valueMissing &&
+                            isNumberChild(child),
+                    ) &&
+                    children.every(
+                        (child) =>
+                            isNumberChild(child) ||
+                            (!child.stateValues.valueMissing &&
+                                child.stateValues.isNumber),
+                    )
+                ) {
+                    return blank;
+                }
+
                 let inputs = mathOperatorInputsFromChildren({
                     children: operands.map(({ child }) => child),
                     isNumeric: dependencyValues.isNumericOperator,
                     componentInfoObjects,
                 });
 
+                let unnormalizedValue;
                 if (dependencyValues.isNumericOperator) {
-                    return {
-                        setValue: {
-                            unnormalizedValue: me.fromAst(
-                                dependencyValues.numericOperator(inputs),
-                            ),
-                        },
-                    };
+                    unnormalizedValue = me.fromAst(
+                        dependencyValues.numericOperator(inputs),
+                    );
+                } else {
+                    unnormalizedValue = dependencyValues.mathOperator(inputs);
                 }
 
-                return {
-                    setValue: {
-                        unnormalizedValue:
-                            dependencyValues.mathOperator(inputs),
-                    },
-                };
+                // A `NaN` caused by a missing or blank operand is missing
+                // (D40, #2460): `<median><math>＿</math></median>`. A `NaN`
+                // from present operands (`<median>1 2 x</median>`) stays. An
+                // operator of one input does the same
+                // (`MathBaseOperatorOneInput`).
+                if (
+                    !countsMissingOperands &&
+                    children.some(isMissingInput) &&
+                    holdsNaN(unnormalizedValue)
+                ) {
+                    return blank;
+                }
+
+                return { setValue: { unnormalizedValue } };
             },
             inverseDefinition: function ({
                 desiredStateVariableValues,

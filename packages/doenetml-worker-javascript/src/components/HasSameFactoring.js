@@ -5,6 +5,9 @@ import me from "math-expressions";
 export default class HasSameFactoring extends BooleanComponent {
     static componentType = "hasSameFactoring";
 
+    // not missing for a missing operand: a comparison of factorings is a test, not a computation on the value (D40, VAL-5)
+    static missingWhenComputedFromMissing = false;
+
     static componentDocs = {
         summary: "Boolean condition that tests for equivalent factoring",
     };

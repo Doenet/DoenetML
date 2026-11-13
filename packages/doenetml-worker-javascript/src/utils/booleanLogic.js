@@ -8,6 +8,7 @@ import {
     isNumericConstant,
 } from "./math";
 import { createInputStringFromChildren } from "./parseMath";
+import { MISSING_TEXT } from "./missing";
 
 const appliedFunctionSymbolsWithBooleanOperators = [
     ...appliedFunctionSymbolsDefault,
@@ -209,6 +210,47 @@ export function returnChildrenByCodeStateVariableDefinitions() {
     };
 
     return stateVariableDefinitions;
+}
+
+/**
+ * Whether the boolean that `logicTree` computes is missing because an operand
+ * of its logic is (D40, VAL-5, #2460): a boolean can't hold a blank, so
+ * `not ＿`, `＿ and true` and `＿ or false` are missing, whatever the other
+ * operand. An operand is missing when it is a child for which
+ * `isMissingCode(code)` is true. A comparison is not a computation on the
+ * value, so `＿ = 1` is false, not missing, since a blank never equals
+ * anything (D37), and so is any other operator but `not`, `and` and `or`.
+ * An empty `<boolean/>` has no operand, so it is `false`, not missing.
+ */
+export function logicTreeMissing({ logicTree, isMissingCode }) {
+    if (Array.isArray(logicTree)) {
+        const [operator, ...operands] = logicTree;
+        if (operator === "not" || operator === "and" || operator === "or") {
+            return operands.some((operand) =>
+                logicTreeMissing({ logicTree: operand, isMissingCode }),
+            );
+        }
+        return false;
+    }
+    return typeof logicTree === "string" && isMissingCode(logicTree);
+}
+
+/**
+ * Whether the child of code `code` among the children a boolean's logic
+ * reads by code (`returnChildrenByCodeStateVariableDefinitions`) is missing:
+ * a missing child, which those definitions make a blank math, or a math that
+ * is the blank. A math that holds a blank among other terms (`x + ＿`) is a
+ * value, as an answer with `matchBlanks` compares it.
+ */
+export function childByCodeMissing(dependencyValues, code) {
+    const child =
+        dependencyValues.mathChildrenByCode?.[code] ??
+        dependencyValues.numberChildrenByCode?.[code] ??
+        dependencyValues.booleanChildrenByCode?.[code];
+    return (
+        Boolean(child?.stateValues.valueMissing) ||
+        child?.stateValues.value?.tree === MISSING_TEXT
+    );
 }
 
 export function evaluateLogic({

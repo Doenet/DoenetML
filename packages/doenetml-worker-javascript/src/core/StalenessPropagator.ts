@@ -743,22 +743,19 @@ export class StalenessPropagator {
             }
 
             if (result.updateParentRenderedChildren) {
-                // find ancestor that isn't a composite and mark it to update children to render
-                for (const ancestorObj of component.ancestors) {
-                    if (
-                        !this.core.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
-                            ancestorObj.componentClass,
-                        )
-                    ) {
-                        // found non-composite ancestor
-                        if (ancestorObj.componentClass.renderChildren) {
-                            this.core.componentsWithChangedChildrenToRender.add(
-                                ancestorObj.componentIdx,
-                            );
-                        }
-                        break;
-                    }
-                }
+                this.core.rendererInstructionBuilder.markParentRenderedChildrenChanged(
+                    component,
+                );
+            }
+
+            if (result.checkDrawnMissing) {
+                // Whether it is drawn as a blank is checked once the update
+                // is done, against its value then, so its parent redraws its
+                // children only when that changes
+                // (`RendererInstructionBuilder.checkDrawnMissing`, #2516).
+                this.core.rendererInstructionBuilder.componentsToCheckDrawnMissing.add(
+                    component.componentIdx,
+                );
             }
 
             if (result.updateRenderedChildren) {

@@ -538,11 +538,11 @@ describe("chart box prefigure tests @group4", async () => {
 
             // The positions on a box plot's horizontal axis are its series, so
             // there is no measured extent to report there; the vertical axis is
-            // the data's and is reported. `NaN` is how a null number reads in
-            // prose.
+            // the data's and is reported. A null number has no value, so it
+            // reads as a blank (D40).
             expect(
                 sv[await resolvePathToNodeIdx("bounds")].stateValues.text,
-            ).eq("NaN, NaN, 0, 8");
+            ).eq("＿, ＿, 0, 8");
         });
     });
 
@@ -755,11 +755,11 @@ describe("chart box prefigure tests @group4", async () => {
             const sv = await core.returnAllStateVariables(false, true);
 
             // There is no smallest value in no values, and reporting 0 would be
-            // a number the data does not contain. `NaN` is how a null number
-            // reads in prose.
+            // a number the data does not contain. A null number has no value,
+            // so it reads as a blank (D40).
             expect(
                 sv[await resolvePathToNodeIdx("summary")].stateValues.text,
-            ).eq("NaN, NaN, NaN");
+            ).eq("＿, ＿, ＿");
         });
 
         it("summarizes a series whatever the chart drew it as", async () => {

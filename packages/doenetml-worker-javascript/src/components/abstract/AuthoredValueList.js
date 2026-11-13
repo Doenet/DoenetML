@@ -1322,6 +1322,28 @@ export default class AuthoredValueList extends ValueListComponent {
                         dependencyType: "stateVariable",
                         variableName: "entryStructure",
                     },
+                    // A list made of a property of every entry of a list
+                    // (`$pl.y`) has a blank entry where that list does
+                    // (`doenetAttributes.entriesMissingFromSource`, set in
+                    // `ComponentBuilder`, D40, #2525).
+                    entriesMissingFromSource: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "entriesMissingFromSource",
+                    },
+                    // A list that is itself missing, as the `matrixSize` of a
+                    // blank entry (`$ml[2].matrixSize`) is, has only blank
+                    // entries (D40, #2460).
+                    listMissing: {
+                        dependencyType: "stateVariable",
+                        variableName: "valueMissing",
+                        variablesOptional: true,
+                    },
+                    sourceEntriesMissing: {
+                        dependencyType: "shadowSource",
+                        variableNames: ["entriesMissing"],
+                        // the list it shadows a property of
+                        givePropVariableValue: true,
+                    },
                 };
                 const dependenciesByKey = {};
                 for (const arrayKey of arrayKeys) {
@@ -1331,7 +1353,10 @@ export default class AuthoredValueList extends ValueListComponent {
                             child: {
                                 dependencyType: "child",
                                 childGroups: componentGroups,
-                                variableNames: ["valueMissing"],
+                                variableNames: [
+                                    "valueMissing",
+                                    "contentMissing",
+                                ],
                                 variablesOptional: true,
                                 childIndices: [source.componentInd],
                             },
@@ -1346,14 +1371,29 @@ export default class AuthoredValueList extends ValueListComponent {
                 arrayKeys,
             }) {
                 const entriesMissing = {};
+                const sourceEntriesMissing =
+                    globalDependencyValues.entriesMissingFromSource
+                        ? globalDependencyValues.sourceEntriesMissing
+                              ?.stateValues?.entriesMissing
+                        : undefined;
                 for (const arrayKey of arrayKeys) {
                     const source =
                         globalDependencyValues.entryStructure[arrayKey];
                     entriesMissing[arrayKey] =
+                        Boolean(globalDependencyValues.listMissing) ||
+                        Boolean(sourceEntriesMissing?.[arrayKey]) ||
                         Boolean(source?.missing) ||
                         Boolean(
                             dependencyValuesByKey[arrayKey]?.child?.[0]
                                 ?.stateValues.valueMissing,
+                        ) ||
+                        // a `<math>` whose content is only missing children,
+                        // which holds the blank rather than being missing
+                        // (`<mathList><math>$l[$i]</math> 3</mathList>`, D40,
+                        // #2525)
+                        Boolean(
+                            dependencyValuesByKey[arrayKey]?.child?.[0]
+                                ?.stateValues.contentMissing,
                         );
                 }
                 return { setValue: { entriesMissing } };

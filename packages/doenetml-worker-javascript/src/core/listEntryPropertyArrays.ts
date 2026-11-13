@@ -69,9 +69,15 @@ export function ensureListEntryPropertyArray({
     // computes from the blank value: `$pl.y` of a `<pointList>` whose second
     // entry is blank is `6, ＿`, not `6, 0`. A reference to one entry's
     // property is missing then too (`valueMissingDefinition`).
+    // So is the text or LaTeX of a blank entry: `$nl.text` of
+    // `<numberList>1 $nothing 3</numberList>` is `1, ＿, 3`, not `1, NaN, 3`,
+    // and of a `<booleanList>`, `＿`, not `false` (D40, #2460).
     const blankOfProperty =
-        derived && "entriesMissing" in component.state
-            ? blankPropertyValue(propertyType)
+        "entriesMissing" in component.state &&
+        (derived || entryProperty === "text" || entryProperty === "latex")
+            ? blankPropertyValue(
+                  entryProperty === "latex" ? "latex" : propertyType,
+              )
             : undefined;
 
     const definition = {
@@ -288,12 +294,19 @@ function blankPropertyValue(componentType: string | undefined) {
         case "integer":
             return NaN;
         case "text":
-            return "";
+            // a missing text shows as a blank (D37)
+            return "＿";
+        case "latex":
+            return "＿";
         case "boolean":
             return false;
         case "mathList":
             // one blank, as a list tag of an index that names nothing holds
             return [me.fromAst("＿")];
+        case "numberList":
+            // one blank, as for a `mathList`: `matrixSize` of a blank entry
+            // is `＿`, not the `1, 1` of the blank value (D40, #2460)
+            return [NaN];
         default:
             return undefined;
     }

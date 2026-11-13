@@ -200,6 +200,11 @@ radians are the default units for angles in DoenetML.
 
 The `through` attribute accepts three points through which to construct the angle. Type = <em>pointList</em>.
 
+With fewer than three points, the angle needs its measure from `radians` or `degrees`: the first
+point defaults to $(1,0)$ and the vertex to $(0,0)$. Without a measure, an angle whose points
+don't determine it, such as `<angle/>` or `<angle through="$A $B"/>`, is blank: its `radians`
+and `degrees` are `＿`, and nothing is drawn. Add `radians="pi/2"` for a right angle.
+
 
 
 ---
@@ -221,6 +226,7 @@ The `through` attribute accepts three points through which to construct the angl
 
 
 The `betweenLines` attribute accepts two lines to construct the angle between. Type = <em>lineList</em>.
+With one line, the angle needs its measure from `radians` or `degrees`; without one it is blank.
 
 
 

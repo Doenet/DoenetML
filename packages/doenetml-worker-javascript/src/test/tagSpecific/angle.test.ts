@@ -590,17 +590,85 @@ describe("Angle tag tests @group4", async () => {
         await check_rightangle(core, resolvePathToNodeIdx);
     });
 
-    it("empty angle", async () => {
+    it("empty angle is blank, not a right angle (D40)", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<angle name="angle1" />
+<graph name="g"><angle name="angle1" /></graph>
+<p name="p">$angle1.radians, $angle1.degrees</p>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const angle1 =
+            stateVariables[await resolvePathToNodeIdx("angle1")].stateValues;
+        expect(angle1.radians.tree).eq("\uff3f");
+        expect(angle1.degrees.tree).eq("\uff3f");
+        expect(angle1.points[0].map((x) => x.tree)).eqls([1, 0]);
+        expect(angle1.points[1].map((x) => x.tree)).eqls([0, 0]);
+        expect(angle1.points[2].map((x) => x.tree)).eqls(["\uff3f", "\uff3f"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("＿, ＿");
+    });
+
+    it("a right angle is written with its measure", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<angle name="angle1" radians="pi/2" />
 <math name="m1" simplify>2$angle1</math>
 <math name="m2" simplify>2$angle1.angle</math>
 <math name="m3" simplify>2$angle1.degrees</math>
 `,
         });
 
-        await check_rightangle(core, resolvePathToNodeIdx, true);
+        await check_rightangle(core, resolvePathToNodeIdx);
+    });
+
+    it("an angle between one line whose measure is missing is blank, and comes back", async () => {
+        // A `radians` with no value left the angle with only its third point,
+        // which stopped the document from loading.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<numberList name="l">1</numberList>
+<mathInput name="i" prefill="5"/>
+<graph>
+  <line name="ln" through="(0,0) (1,0)"/>
+  <angle name="a" betweenLines="$ln" radians="$l[$i]"/>
+  <angle name="b" betweenLines="$ln" radians="$nothing"/>
+</graph>
+<p name="p">$a.radians, $b.radians</p>
+`,
+        });
+
+        async function check(radians: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(`${radians}, ＿`);
+            const a =
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues;
+            expect(a.numericalPoints[1]).eqls([0, 0]);
+        }
+
+        await check("＿");
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check("1");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check("＿");
     });
 
     async function check_alphaangle(
@@ -1053,7 +1121,7 @@ describe("Angle tag tests @group4", async () => {
         await test_angle_through_points({
             core,
             resolvePathToNodeIdx,
-            initialRadians: Math.PI / 2,
+            initialRadians: "\uff3f",
             numPoints: 1,
         });
     });
@@ -1112,7 +1180,7 @@ describe("Angle tag tests @group4", async () => {
         await test_angle_through_points({
             core,
             resolvePathToNodeIdx,
-            initialRadians: Math.PI / 2,
+            initialRadians: "\uff3f",
             numPoints: 2,
         });
     });
@@ -1310,7 +1378,7 @@ describe("Angle tag tests @group4", async () => {
         await test_angle_with_one_line({
             core,
             resolvePathToNodeIdx,
-            initialRadians: Math.PI / 2,
+            initialRadians: "\uff3f",
         });
     });
 
@@ -1580,14 +1648,14 @@ describe("Angle tag tests @group4", async () => {
     });
 
     it("a symbolic through point leaves the derived point NaN", async () => {
-        // With two points given, the third is placed at the default right
-        // angle from them. A symbolic coordinate has no numeric value, and the
+        // With two points and a measure given, the third is placed at that
+        // measure from them. A symbolic coordinate has no numeric value, and the
         // engine briefly reported that as `null`: subtracted as `0` it made
         // `Math.atan2(0, 0)` answer `0`, so the derived point landed on the
         // unit circle at a real position instead of nowhere.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <angle name="a" through="(q,b) (0,0)" />
+  <angle name="a" through="(q,b) (0,0)" radians="pi/2" />
   `,
         });
 
@@ -1682,7 +1750,7 @@ describe("Angle tag tests @group4", async () => {
         ]);
     });
 
-    it("a copy's angle through points drops to its default when its points drop below three", async () => {
+    it("a copy's angle through points is blank when its points drop below three", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <mathInput name="n" prefill="3" />
@@ -1701,6 +1769,8 @@ describe("Angle tag tests @group4", async () => {
 
         // `rb` of `null`: `B`, `C` and `D` are missing, as `$pts[3]` names
         // no point (D40), not an angle with a point at the origin
+        // `ra` of `NaN`: with fewer than three points and no measure, the
+        // angle is blank (D40)
         async function check_items(ra: number, rb: number | null) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
@@ -1719,7 +1789,9 @@ describe("Angle tag tests @group4", async () => {
                 expect(Boolean(stateValues.valueMissing), name).eq(
                     radians === null,
                 );
-                if (radians !== null) {
+                if (Number.isNaN(radians)) {
+                    expect(stateValues.radians.tree, name).eq("\uff3f");
+                } else if (radians !== null) {
                     expect(
                         stateValues.radians.evaluate_to_constant(),
                         name,
@@ -1737,7 +1809,7 @@ describe("Angle tag tests @group4", async () => {
             componentIdx: await resolvePathToNodeIdx("n"),
             core,
         });
-        await check_items(Math.PI / 2, null);
+        await check_items(NaN, null);
 
         await updateMathInputValue({
             latex: "3",

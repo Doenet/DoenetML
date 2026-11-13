@@ -1,6 +1,7 @@
 import InlineComponent from "./abstract/InlineComponent";
 import {
     buildParsedExpression,
+    logicTreeMissing,
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
 import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
@@ -17,6 +18,11 @@ export default class BooleanComponent extends InlineComponent {
     // missing while its content is only missing children (D40,
     // `BaseComponent.missingWhenContentMissing`)
     static missingWhenContentMissing = true;
+
+    // missing while its logic is computed from a missing operand, as a
+    // boolean can't hold a blank (D40,
+    // `BaseComponent.missingWhenComputedFromMissing`)
+    static missingWhenComputedFromMissing = true;
 
     static componentDocs = {
         summary: "A boolean value",
@@ -242,6 +248,60 @@ export default class BooleanComponent extends InlineComponent {
             stateVariableDefinitions,
             returnChildrenByCodeStateVariableDefinitions(),
         );
+
+        if (this.missingWhenComputedFromMissing) {
+            // Whether an operand of its logic is missing (`logicTreeMissing`,
+            // D40, VAL-5, #2460): `<boolean>not $nothing</boolean>` and
+            // `<boolean>$nothing and true</boolean>` are missing, shown as
+            // `＿`, while `<boolean>$nothing = 1</boolean>` is false.
+            stateVariableDefinitions.computedFromMissing = {
+                // Read from the children's `valueMissing` and the structure
+                // of the logic alone, not the children's values: an
+                // `<answer>` reads the `valueMissing` of every component in
+                // its awards, which must not make it read their values.
+                returnDependencies: () => ({
+                    parsedExpression: {
+                        dependencyType: "stateVariable",
+                        variableName: "parsedExpression",
+                    },
+                    codePre: {
+                        dependencyType: "stateVariable",
+                        variableName: "codePre",
+                    },
+                    children: {
+                        dependencyType: "child",
+                        childGroups: ["comparableTypes"],
+                        variableNames: ["valueMissing"],
+                        variablesOptional: true,
+                    },
+                }),
+                definition({ dependencyValues }) {
+                    const { parsedExpression, codePre, children } =
+                        dependencyValues;
+                    // the codes are those `mathChildrenByCode` gives the
+                    // children, in order
+                    const missingCodes = new Set(
+                        children.flatMap((child, ind) =>
+                            child.stateValues?.valueMissing
+                                ? [codePre + ind]
+                                : [],
+                        ),
+                    );
+                    return {
+                        setValue: {
+                            computedFromMissing:
+                                parsedExpression !== null &&
+                                missingCodes.size > 0 &&
+                                logicTreeMissing({
+                                    logicTree: parsedExpression.tree,
+                                    isMissingCode: (code) =>
+                                        missingCodes.has(code),
+                                }),
+                        },
+                    };
+                },
+            };
+        }
 
         stateVariableDefinitions.value = {
             description: "The boolean value (true or false).",

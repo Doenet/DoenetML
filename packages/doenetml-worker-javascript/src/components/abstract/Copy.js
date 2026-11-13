@@ -26,7 +26,10 @@ import {
     stateIdSegmentForCopyOf,
 } from "../../utils/componentIndices";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
-import { describeReferentVariable } from "../../utils/referentDescription";
+import {
+    describeReferentVariable,
+    nullMeansMissing,
+} from "../../utils/referentDescription";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
 import { typeChangeAtLoadDiagnostic } from "../../utils/dast/typeChangeAtLoad";
@@ -2020,6 +2023,8 @@ export default class Copy extends CompositeComponent {
                     Number(sourceNum) === 0 &&
                     component.attributes._copyInChildren?.primitive.value,
                 heldCase,
+                heldMadeFrom,
+                madeFrom: workspace.madeFrom,
             });
 
             diagnostics.push(...results.diagnostics);
@@ -2264,6 +2269,8 @@ export default class Copy extends CompositeComponent {
         copyInChildren,
         heldCase,
         inPlaceOfProp,
+        heldMadeFrom,
+        madeFrom,
     }) {
         // console.log(`create replacement for sourceNum ${sourceNum}`);
         // console.log(
@@ -2377,6 +2384,9 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
                 numComponentsForSource,
                 publicCaseInsensitiveAliasSubstitutions,
+                sourceNum,
+                heldMadeFrom,
+                madeFrom,
             });
             diagnostics.push(...results.diagnostics);
             nComponents = results.nComponents;
@@ -4184,6 +4194,9 @@ export async function replacementFromProp({
     componentInfoObjects,
     numComponentsForSource,
     publicCaseInsensitiveAliasSubstitutions,
+    sourceNum,
+    heldMadeFrom,
+    madeFrom,
 }) {
     // console.log(`replacement from prop for ${component.componentIdx}`)
     // console.log(replacementSource)
@@ -5704,13 +5717,33 @@ export async function replacementFromProp({
             await stateVarObj.value;
         }
 
+        // A variable that holds `null` for having no value
+        // (`nullMeansMissing`), as `maxNumber` of a `<collect>` with no
+        // limit or an `<award>`'s `feedbackText` with none, has nothing to
+        // read, so the reference is missing (D37, D40, #2416, #2460). A
+        // linked one is missing only while the variable holds `null`
+        // (`missingWhileEntryEmpty`, as for an array entry with no value):
+        // it holds the value once there is one, and a write through it
+        // reaches the variable, as `<mathInput
+        // bindValueTo="$image.aspectRatio"/>` of an image with no aspect
+        // ratio sets it. An unlinked one is missing for good, through a
+        // reload too, and so is a value reference here, which is not made.
+        // A reload decides it by the source it was made from
+        // (`madeFrom.nullSources`, `heldCopySnapshot`), as a copy of a
+        // property of several components (`$c.aspectRatio` of a
+        // `<collect>`) holds a value of some and not others.
+        const sourceKey = String(sourceNum);
+        const holdsNoValue =
+            nullMeansMissing(stateVarObj) &&
+            (!link && heldMadeFrom
+                ? Boolean(heldMadeFrom.nullSources?.includes(sourceKey))
+                : (await stateVarObj.value) === null);
+        if (holdsNoValue && !link && madeFrom) {
+            madeFrom.nullSources = [...(madeFrom.nullSources ?? []), sourceKey];
+        }
         if (
             !stateVarObj.shadowingInstructions?.createComponentOfType ||
-            // A variable that holds `null` for having no value
-            // (`nullIsMissing`), as `maxNumber` of a `<collect>` with no
-            // limit, has nothing to read, so the reference is missing (D37,
-            // #2416).
-            (stateVarObj.nullIsMissing && (await stateVarObj.value) === null)
+            (holdsNoValue && !link)
         ) {
             return {
                 serializedReplacements: [],
@@ -5763,7 +5796,17 @@ export async function replacementFromProp({
                   })
                 : undefined;
 
-            if (valueReference) {
+            if (valueReference && holdsNoValue) {
+                // a reference made here is missing only when its referent
+                // is (`fixedReferentMissingDefinition` in `ValueRef.js`), not
+                // while the variable holds `null`, so it is not made
+                return {
+                    serializedReplacements: [],
+                    propVariablesCopiedByReplacement: [],
+                    diagnostics,
+                    nComponents,
+                };
+            } else if (valueReference) {
                 serializedReplacements.push(
                     serializeValueReference({
                         ...valueReference,
@@ -5866,7 +5909,9 @@ export async function replacementFromProp({
                     componentIdx: nComponents++,
                     stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: attributesForReplacement,
-                    doenetAttributes: {},
+                    doenetAttributes: holdsNoValue
+                        ? { missingWhileEntryEmpty: true }
+                        : {},
                     state: {},
                     children: [],
                     downstreamDependencies: {

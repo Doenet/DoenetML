@@ -83,6 +83,16 @@ export class RendererInstructionBuilder {
     core: Core;
     componentsToRender: Record<number, { children: any[] }>;
     componentsWithChangedChildrenToRender: Set<number>;
+    /**
+     * The components that can be drawn as a blank for a while
+     * (`BaseComponent.canBecomeMissing`) whose `valueMissing` was marked
+     * stale since the last batch (`markStale` returning `checkDrawnMissing`).
+     * Each one whose `valueMissing` no longer matches how it is drawn
+     * (`drawnMissing`) has its parent redraw its children
+     * (`checkDrawnMissing`), and no other does: typing in `x` with
+     * `<number>$x</number>` drawn redraws nothing (#2516).
+     */
+    componentsToCheckDrawnMissing: Set<number>;
     rendererState: Record<number, any>;
     /** Pending timer for `scheduleDeferredRendererUpdate`, if any. */
     _deferredRendererTimeout: ReturnType<typeof setTimeout> | null;
@@ -136,6 +146,7 @@ export class RendererInstructionBuilder {
         this.core = core;
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set();
+        this.componentsToCheckDrawnMissing = new Set();
         this.rendererState = {};
         this._deferredRendererTimeout = null;
         this._deferredRendererArgs = { sourceInformation: {} };
@@ -236,6 +247,8 @@ export class RendererInstructionBuilder {
         // update that changed the value is done, so the batch carries it
         // (`DiagnosticsManager.refreshWatchedConditions`).
         await this.core.diagnosticsManager.refreshWatchedConditions();
+
+        await this.checkDrawnMissing();
 
         let deletedRenderers: any[] = [];
 
@@ -787,6 +800,51 @@ export class RendererInstructionBuilder {
     }
 
     /**
+     * Mark the nearest ancestor of `component` that is not a composite to
+     * redraw its children, if it renders them.
+     */
+    markParentRenderedChildrenChanged(component: any): void {
+        for (const ancestorObj of component.ancestors) {
+            if (
+                !this.core.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
+                    ancestorObj.componentClass,
+                )
+            ) {
+                if (ancestorObj.componentClass.renderChildren) {
+                    this.componentsWithChangedChildrenToRender.add(
+                        ancestorObj.componentIdx,
+                    );
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * For each component in `componentsToCheckDrawnMissing`, have its parent
+     * redraw its children when whether it is missing (`valueMissing`) no
+     * longer matches how it was drawn (`drawnMissing`, `updateDrawnMissing`).
+     * One not drawn yet, or no longer there, is skipped: its parent decides
+     * when it draws it.
+     */
+    async checkDrawnMissing(): Promise<void> {
+        const toCheck = this.componentsToCheckDrawnMissing;
+        this.componentsToCheckDrawnMissing = new Set();
+        for (const componentIdx of toCheck) {
+            const component = this.core._components[componentIdx];
+            if (!component || component.drawnMissing === undefined) {
+                continue;
+            }
+            if (
+                Boolean(await component.stateValues.valueMissing) !==
+                component.drawnMissing
+            ) {
+                this.markParentRenderedChildrenChanged(component);
+            }
+        }
+    }
+
+    /**
      * Record on `child`, when it is a drawn value reference, whether it has
      * nothing to read now (`valueMissing`), so it is
      * drawn as a blank while it has nothing (D37, `ValueRef.rendererType`).
@@ -794,9 +852,9 @@ export class RendererInstructionBuilder {
      * children its parent renders, which calls this again. So too for a
      * component that can be missing for a while
      * (`BaseComponent.canBecomeMissing`, D40): `<number>$l[$i]</number>` while
-     * `i` is past the end of `l`. Its `valueMissing` updates the children its
-     * parent renders each time it is marked stale (`markStale`), so on each
-     * change of the content it reads, whether or not it changes.
+     * `i` is past the end of `l`. Once its `valueMissing` is marked stale,
+     * its parent redraws its children only if it changed
+     * (`checkDrawnMissing`).
      */
     async updateDrawnMissing(child: any): Promise<void> {
         if (typeof child !== "object" || child === null) {

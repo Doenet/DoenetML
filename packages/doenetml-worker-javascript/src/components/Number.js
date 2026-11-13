@@ -21,6 +21,7 @@ import {
     numberToMathExpression,
     plainComplex,
 } from "../utils/math";
+import { isMissingInput } from "../utils/missing";
 import { addClickTargetStateVariableDefinition } from "../utils/triggering";
 import {
     numberDisplayString,
@@ -46,6 +47,10 @@ export default class NumberComponent extends InlineComponent {
     // missing while its content is only missing children (D40,
     // `BaseComponent.missingWhenContentMissing`)
     static missingWhenContentMissing = true;
+
+    // missing while it is computed from a missing input, as a number can't
+    // hold a blank (D40, `BaseComponent.missingWhenComputedFromMissing`)
+    static missingWhenComputedFromMissing = true;
 
     static componentDocs = {
         summary: "A numeric floating point value",
@@ -409,6 +414,42 @@ export default class NumberComponent extends InlineComponent {
                         numberChildrenByCode,
                         textChildrenByCode,
                         booleanChildrenByCode,
+                    },
+                };
+            },
+        };
+
+        // Whether the value is a `NaN` that comes from a missing input
+        // (D40, VAL-5, #2460): `<number>$nothing + 1</number>`,
+        // `<number>$l[5] + 1</number>`, or `<number><math>＿</math>+1</number>`.
+        // A number can't hold a blank, so it is missing (`valueMissing`),
+        // shown as `＿`, rather than `NaN`. A `NaN` from present inputs
+        // (`<number>x</number>`, `<number>0/0</number>`) stays `NaN`.
+        stateVariableDefinitions.computedFromMissing = {
+            returnDependencies: () => ({
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+                children: {
+                    dependencyType: "child",
+                    childGroups: [
+                        "strings",
+                        "numbers",
+                        "maths",
+                        "texts",
+                        "booleans",
+                    ],
+                    variableNames: ["value", "valueMissing"],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        computedFromMissing:
+                            Number.isNaN(dependencyValues.value) &&
+                            dependencyValues.children.some(isMissingInput),
                     },
                 };
             },
