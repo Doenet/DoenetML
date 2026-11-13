@@ -4326,38 +4326,37 @@ export async function replacementFromProp({
             // `<conditionalContent>` have and this one lacks gives a blank,
             // with the warning decided at load (D40 decision 5, #2452;
             // `checkCollectionItems` in `typeChangeAtLoad.ts`).
-            // In a parent that needs a component of a type made from it
-            // (`compositesMustHaveAReplacement`: a `<math>`, or an
-            // attribute such as `x="$g.x"`), nothing is made here, so that
-            // the copy is missing as that type, as when a property names
-            // nothing (`doenet-w0104`): a `_missing` there would be dropped
-            // from a `<math>`, and an invalid child of an attribute
-            // (`doenet-w0106`). In a `<text>`, a pick of a select keeps its
-            // blank, which a text shows beside the other picks' values (`$s.x`
-            // of picks one of which lacks `x` is `1, ＿`, D40 decision 5), as
-            // the picks of a select do not change as a reader works. (The
-            // iterations of a repeat do, and their blanks are not kept as
-            // the count changes.)
-            if (
-                component.sharedParameters?.compositesMustHaveAReplacement &&
+            // Each item gives its own blank, in every parent (D40 decision
+            // 5, VAL-5): `$s.x` of picks one of which lacks `x` is `1, ＿`
+            // in a `<p>` and a `<text>`, and `(1, ＿) + 1` in a `<math>`. In
+            // a parent that needs a component of a type made from it
+            // (`compositesMustHaveAReplacement`: a `<math>`, or an attribute
+            // such as `x="$g.x"`), the blank is missing as that type
+            // (`missingOfWrittenType`), as when a property names nothing
+            // (`doenet-w0104`): a `_missing` there would be an invalid
+            // child of the parent (`doenet-w0106`).
+            const neededType =
                 !component.attributes._createComponentOfType?.primitive &&
-                !(
-                    component.sharedParameters
-                        .compositesDefaultReplacementType === "text" &&
-                    ((component.doenetAttributes?.blankWhereNoProperty &&
-                        !isWrapperOfSeveral(target)) ||
-                        (isWrapperOfSeveral(target) &&
-                            instanceKindOf(
-                                target.attributes?._instanceOf?.primitive
-                                    ?.value,
-                            ) === "pick"))
-                )
-            ) {
-                return {
-                    serializedReplacements: [],
-                    propVariablesCopiedByReplacement: [],
-                    diagnostics,
+                component.sharedParameters?.compositesMustHaveAReplacement
+                    ? component.sharedParameters
+                          .compositesDefaultReplacementType
+                    : undefined;
+            if (neededType) {
+                const res = missingOfWrittenType({
+                    component,
+                    componentInfoObjects,
+                    compositeAttributesObj,
                     nComponents,
+                    stateIdInfo,
+                    componentType: neededType,
+                });
+                return {
+                    serializedReplacements: res.replacements,
+                    propVariablesCopiedByReplacement: res.replacements.map(
+                        () => [],
+                    ),
+                    diagnostics,
+                    nComponents: res.nComponents,
                 };
             }
             return {
@@ -7281,12 +7280,16 @@ async function missingPropertyError({
  * `component` that a property was not found on ({@link isWrapperOfSeveral}):
  * a property is not passed into them (D41 decision 3).
  */
-async function wrapperSourcesOfSeveral(component, components) {
+async function wrapperSourcesOfSeveral(
+    component,
+    components,
+    { shownOnly = false } = {},
+) {
     const propNames =
         (await component.stateValues.effectivePropNameBySource) ?? [];
     const sources =
         (await component.stateValues.replacementSourceIdentities) ?? [];
-    return sources
+    const wrappers = sources
         .filter(
             (source, ind) =>
                 typeof source === "object" &&
@@ -7295,6 +7298,17 @@ async function wrapperSourcesOfSeveral(component, components) {
         )
         .map((source) => components[source.componentIdx])
         .filter((wrapper) => isWrapperOfSeveral(wrapper));
+    if (!shownOnly) {
+        return wrappers;
+    }
+    // Not an iteration a `<repeat>` withholds while it has fewer
+    const shown = [];
+    for (const wrapper of wrappers) {
+        if (!(await wrapper.stateValues.isInactiveCompositeReplacement)) {
+            shown.push(wrapper);
+        }
+    }
+    return shown;
 }
 
 /**
@@ -7327,7 +7341,11 @@ async function wrapperOfSeveralDiagnostics({
     if (severalAtLoad === "every") {
         return [];
     }
-    const [wrapper] = await wrapperSourcesOfSeveral(component, components);
+    // Only what it shows: once a `<repeat>` has no iterations, `$r.x` shows
+    // nothing and reports nothing, as after a reload (DIAG-6).
+    const [wrapper] = await wrapperSourcesOfSeveral(component, components, {
+        shownOnly: true,
+    });
     if (!wrapper) {
         return [];
     }
@@ -7774,9 +7792,18 @@ async function blankInPlaceOfNothing({
             change.changeTopLevelReplacements &&
             (change.changeType === "add" || change.changeType === "delete"),
     );
+    // A change that only withholds some of what it shows (a `<repeat>` with
+    // fewer iterations) keeps the blanks of the items still shown (`$r.x`
+    // of iterations of several is `＿` after 2 → 1, D40 decision 5).
+    const onlyWithholds =
+        (result.replacementChanges ?? []).length > 0 &&
+        result.replacementChanges.every(
+            (change) => change.changeType === "changeReplacementsToWithhold",
+        );
     if (
         !oneThing &&
         !changesTopLevel &&
+        !onlyWithholds &&
         component.replacements.length > 0 &&
         component.replacements.every((x) => x.componentType === "_missing")
     ) {

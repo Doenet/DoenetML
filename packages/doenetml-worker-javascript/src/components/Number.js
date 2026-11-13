@@ -157,7 +157,11 @@ export default class NumberComponent extends InlineComponent {
             },
             {
                 group: "maths",
-                componentTypes: ["math"],
+                // `_missing`: a blank for an item lacking a property
+                // (`$s.x` of picks one of which lacks `x`, D40 decision 5)
+                // or a reference to one thing that names nothing, which
+                // makes the number missing (D40 decision 1)
+                componentTypes: ["math", "_missing"],
             },
             {
                 group: "texts",

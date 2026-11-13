@@ -329,8 +329,9 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
         ]);
         // as a `<p>` shows them, not one blank for all
         expect(await d.text("t")).eq("＿, ＿");
-        // a math is missing as a math
-        expect(await d.text("m")).eq("＿ + 1");
+        // a math holds a blank for each, as it holds two picks' values
+        // (`(1, 5) + 1`, D40 decision 1)
+        expect(await d.text("m")).eq("(＿, ＿) + 1");
     });
 
     it("a child written as a reference alone: suggest writing it as a tag with a name", async () => {
