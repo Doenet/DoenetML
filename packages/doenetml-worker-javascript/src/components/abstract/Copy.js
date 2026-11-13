@@ -5664,14 +5664,22 @@ export async function replacementFromProp({
             await stateVarObj.value;
         }
 
+        // A variable that holds `null` for having no value
+        // (`nullMeansMissing`), as `maxNumber` of a `<collect>` with no
+        // limit or an `<award>`'s `feedbackText` with none, has nothing to
+        // read, so the reference is missing (D37, D40, #2416, #2460). A
+        // linked one is missing only while the variable holds `null`
+        // (`missingWhileEntryEmpty`, as for an array entry with no value):
+        // it holds the value once there is one, and a write through it
+        // reaches the variable, as `<mathInput
+        // bindValueTo="$image.aspectRatio"/>` of an image with no aspect
+        // ratio sets it. An unlinked one is missing for good, and so is a
+        // value reference here, which is not made.
+        const holdsNoValue =
+            nullMeansMissing(stateVarObj) && (await stateVarObj.value) === null;
         if (
             !stateVarObj.shadowingInstructions?.createComponentOfType ||
-            // A variable that holds `null` for having no value
-            // (`nullMeansMissing`), as `maxNumber` of a `<collect>` with no
-            // limit or an `<award>`'s `feedbackText` with none, has nothing
-            // to read, so the reference is missing (D37, D40, #2416, #2460).
-            (nullMeansMissing(stateVarObj) &&
-                (await stateVarObj.value) === null)
+            (holdsNoValue && !link)
         ) {
             return {
                 serializedReplacements: [],
@@ -5724,7 +5732,17 @@ export async function replacementFromProp({
                   })
                 : undefined;
 
-            if (valueReference) {
+            if (valueReference && holdsNoValue) {
+                // a reference made here is missing only when its referent
+                // is (`fixedReferentMissingDefinition` in `ValueRef.js`), not
+                // while the variable holds `null`, so it is not made
+                return {
+                    serializedReplacements: [],
+                    propVariablesCopiedByReplacement: [],
+                    diagnostics,
+                    nComponents,
+                };
+            } else if (valueReference) {
                 serializedReplacements.push(
                     serializeValueReference({
                         ...valueReference,
@@ -5827,7 +5845,9 @@ export async function replacementFromProp({
                     componentIdx: nComponents++,
                     stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     attributes: attributesForReplacement,
-                    doenetAttributes: {},
+                    doenetAttributes: holdsNoValue
+                        ? { missingWhileEntryEmpty: true }
+                        : {},
                     state: {},
                     children: [],
                     downstreamDependencies: {

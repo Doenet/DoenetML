@@ -1882,6 +1882,48 @@ describe("A value computed from a missing input (D40) @group2", () => {
         );
         expect(texts.p).eq("[＿][＿][＿][＿]");
     });
+
+    it("writes through an input bound to a property that holds null, which then has a value", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph><image source="./a.png" name="im"/></graph>
+    <mathInput name="mi" bindValueTo="$im.aspectRatio"/>
+    <p name="p">[$im.aspectRatio][<number extend="$im.aspectRatio"/>][<number copy="$im.aspectRatio"/>]</p>
+    `,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                aspectRatio:
+                    stateVariables[await resolvePathToNodeIdx("im")].stateValues
+                        .aspectRatio,
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+            };
+        }
+        expect(await shown()).eqls({ aspectRatio: null, text: "[＿][＿][＿]" });
+
+        await updateMathInputValue({
+            latex: "1/2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        // the unlinked copy, made while it held null, stays missing
+        expect(await shown()).eqls({
+            aspectRatio: 0.5,
+            text: "[0.5][0.5][＿]",
+        });
+
+        await updateMathInputValue({
+            latex: "",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await shown()).eqls({ aspectRatio: null, text: "[＿][＿][＿]" });
+    });
 });
 
 describe("Missing content read by a math and a list (#2516, #2525) @group2", () => {

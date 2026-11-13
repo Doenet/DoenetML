@@ -65,7 +65,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#pWidth1").should("have.text", "Width 1: 40%");
         cy.get("#pWidth2").should("have.text", "Width 2: 50%");
         cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: 1");
-        cy.get("#pAspectRatio2").should("have.text", "Aspect Ratio 2: NaN");
+        cy.get("#pAspectRatio2").should("have.text", "Aspect Ratio 2: ＿");
         cy.get("#image1a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
@@ -187,8 +187,8 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             { force: true },
         );
 
-        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: NaN");
-        cy.get("#pAspectRatio2").should("have.text", "Aspect Ratio 2: NaN");
+        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: ＿");
+        cy.get("#pAspectRatio2").should("have.text", "Aspect Ratio 2: ＿");
         cy.get("#image1a").invoke("css", "aspectRatio").should("equal", "auto");
         cy.get("#image2a").invoke("css", "aspectRatio").should("equal", "auto");
     });
@@ -303,7 +303,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             force: true,
         });
 
-        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: NaN");
+        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: ＿");
         cy.get("#image1a").invoke("css", "aspectRatio").should("equal", "auto");
     });
 
