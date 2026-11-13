@@ -19,12 +19,12 @@ function childEnv() {
     return env;
 }
 
-async function runCli(args: string[]) {
+async function runCli(args: string[], env: Record<string, string> = {}) {
     try {
         const { stdout, stderr } = await promisify(execFile)(
             process.execPath,
             [CLI, ...args],
-            { env: childEnv(), timeout: 60000 },
+            { env: { ...childEnv(), ...env }, timeout: 60000 },
         );
         return { code: 0, stdout, stderr };
     } catch (e: any) {
@@ -94,6 +94,23 @@ describe("doenet-headless CLI", () => {
             true,
         );
         expect(result.numVariants).toBe(1);
+
+        // and grading a state of such a document exits 1 too
+        const badStateFile = path.join(dir, "bad-state.json");
+        fs.writeFileSync(
+            badStateFile,
+            JSON.stringify(await stateAfter("<bogus/>", async () => {})),
+        );
+        const graded = await runCli([
+            "grade",
+            badFile,
+            "--variant",
+            "1",
+            "--state",
+            badStateFile,
+        ]);
+        expect(graded.code).toBe(1);
+        expect(graded.stdout).toContain("Diagnostics: 1 error");
     });
 
     it("grades a saved state, as text and as JSON", async () => {
@@ -211,6 +228,15 @@ describe("doenet-headless CLI", () => {
         const help = await runCli(["--help"]);
         expect(help.code).toBe(0);
         expect(help.stdout).toContain("Usage:");
+
+        // Any other failure: here, no resolver WASM where it is said to be
+        const missingWasm = path.join(dir, "missing.wasm");
+        const failed = await runCli(["check", docFile], {
+            DOENET_HEADLESS_RESOLVER_WASM: missingWasm,
+        });
+        expect(failed.code).toBe(2);
+        expect(failed.stdout).toBe("");
+        expect(failed.stderr).toContain(missingWasm);
     });
 
     it("keeps what the core logs off standard output", async () => {

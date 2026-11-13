@@ -46,7 +46,7 @@ type Output = { out: (text: string) => void; err: (text: string) => void };
  * (`console.log` on a text-format `<math>` whose content does not parse, for
  * one), so a line of that would come before the report and break `--json`.
  * `warn` already writes to standard error; it is redirected too, so that a
- * caller's `output.err` receives everything the core logs.
+ * caller's `output.err` receives the core's warnings as well.
  */
 const STDOUT_CONSOLE_METHODS = ["log", "info", "debug", "warn"] as const;
 

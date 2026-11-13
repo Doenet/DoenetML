@@ -44,9 +44,11 @@ export interface HeadlessCore {
     getChildren(componentIdx: number): Promise<HeadlessComponent[]>;
 
     /**
-     * The current values of the named properties of a component, as an author
-     * would read them with `$name.property`. A property the component does
-     * not have is absent from the result.
+     * The current values of the named state variables of a component, public
+     * or not. A name the component does not have is absent from the result.
+     * `setInput` reads `disabled`, `fixed`, `fixLocation`, `draggable`,
+     * `numChoices`, `selectMultiple`, `choicesDisabled`, `numRows`,
+     * `numColumns` and `numDimensions`.
      */
     readProperties(
         componentIdx: number,

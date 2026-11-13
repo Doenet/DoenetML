@@ -371,4 +371,39 @@ describe("setInput and submit", () => {
             },
         );
     });
+
+    it("submits a pretzel, and everything in the document", async () => {
+        await withCore(
+            `<document name="d">
+                <answer name="a">x</answer><answer name="b">y</answer>
+                <pretzel name="p">
+                    <problem><statement><p>1+1?</p></statement><answer>2</answer></problem>
+                    <problem><statement><p>1+2?</p></statement><answer>3</answer></problem>
+                </pretzel>
+            </document>`,
+            async (core) => {
+                const p = await core.resolvePath("p");
+                if (p.status !== "resolved") throw Error("p");
+                const pretzelSubmissions = async () =>
+                    (
+                        await core.readProperties(p.component.componentIdx, [
+                            "numSubmissions",
+                        ])
+                    ).numSubmissions;
+
+                await submit(core, "p");
+                expect(await pretzelSubmissions()).toBe(1);
+
+                await setInput(core, { answer: "a", position: 1 }, "x");
+                await submit(core, "d");
+                const answers = await core.getAnswers();
+                expect(answers.map((a) => a.stored.numSubmissions)).toEqual([
+                    1, 1,
+                ]);
+                expect(answers.map((a) => a.stored.creditAchieved)).toEqual([
+                    1, 0,
+                ]);
+            },
+        );
+    });
 });

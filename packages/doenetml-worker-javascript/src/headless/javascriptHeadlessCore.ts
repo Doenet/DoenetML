@@ -214,8 +214,10 @@ export async function createJavascriptHeadlessCore({
             },
             () => {},
             (report) => {
-                // A `pending` report mirrors what the save throttle is holding
-                // back; a host never stores one, so neither does this.
+                // A `pending` report mirrors a payload the save throttle is
+                // holding back; the core reports it again, not pending, when
+                // the throttle lets it go. `serializeState` lets it go
+                // (`saveImmediately`), so only those reports are kept.
                 if (
                     !report.pending &&
                     typeof report.state === "object" &&
