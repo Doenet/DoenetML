@@ -89,6 +89,22 @@ describe("Copies of composites @group3", () => {
         expect(await texts()).eqls({ p1: "no" });
     });
 
+    it("a `condition` its source ignores is not given to the case of a copy", async () => {
+        // Written beside a `<case>`, the source's `condition` is ignored
+        // (`doenet-w0079`), so its case shows. A copy that writes no
+        // `condition` shows it too.
+        const { texts, errors, warnings } = await load(
+            `<p name="p0"><conditionalContent name="c" condition="false"><case><text>yes</text></case></conditionalContent></p>
+<p name="p1"><conditionalContent copy="$c"/></p>`,
+            ["p0", "p1"],
+        );
+        expect(errors).eqls([]);
+        expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
+            ["doenet-w0079", 1],
+        ]);
+        expect(await texts()).eqls({ p0: "yes", p1: "yes" });
+    });
+
     it("`valueName` and `indexName` on a copy of a repeat name its own values, in what it copies and in its children", async () => {
         // #2211: the copy's names read the wrong placeholder, `NaN`, or
         // nothing at all.

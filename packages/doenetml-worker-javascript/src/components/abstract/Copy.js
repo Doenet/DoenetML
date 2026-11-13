@@ -2776,7 +2776,7 @@ export default class Copy extends CompositeComponent {
             Object.assign(repl.attributes, attributesFromComposite);
 
             if (!link) {
-                applyConditionToOnlyCase(repl);
+                applyConditionToOnlyCase(repl, attributesFromComposite);
             }
 
             // The choice error a `<select>` was marked with when the document
@@ -10046,11 +10046,15 @@ async function referenceNamesItsSource({ component, sourceNum, heldCase }) {
  * DoenetML with the attributes written on it applied (#2217). With more than
  * one case, there is no one condition for it to be, so it is left on the
  * `<conditionalContent>`, which warns that it is ignored (`doenet-w0079`).
+ *
+ * Only a `condition` written on the copy (in `attributesFromComposite`) is
+ * moved: one the source has, which it ignores beside its own `<case>`, is
+ * left, so the copy shows what its source does.
  */
-function applyConditionToOnlyCase(replacement) {
+function applyConditionToOnlyCase(replacement, attributesFromComposite) {
     if (
         replacement.componentType !== "conditionalContent" ||
-        !replacement.attributes.condition
+        !attributesFromComposite.condition
     ) {
         return;
     }
