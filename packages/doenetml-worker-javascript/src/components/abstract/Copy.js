@@ -71,6 +71,7 @@ import {
 import { gatherVariantComponents } from "../../utils/variants";
 import {
     holdAttributeComponentAt,
+    listTypeAsWritten,
     holdUnresolvedAttributeAt,
     valueAsWritten,
 } from "../../utils/heldChoiceAttribute";
@@ -9380,6 +9381,7 @@ async function keepChoicesReachedByModuleAttributes({
                     attribute,
                     text,
                     componentInfoObjects,
+                    listType: await listTypeAsWritten(sourceAttribute),
                 });
             }
             for (const name of names) {
