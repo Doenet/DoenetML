@@ -139,16 +139,21 @@ keeps `r:1:2`. Some renderer ids changed: the iterations of a repeat that is a g
 content can be `g:1` (was `r:1`). The id is also the `rootName` an answer's `submitted` event
 reports (Tier 3).
 
-Known violations (#2520):
-- options or cases that differ, some holding one component and some several, aren't warned of at
-  load, so what `$s[1][2]` means depends on the branch shown;
-- an index past the end of a `<conditionalContent>`'s shown cases is applied as a property to what
-  the case holds (`$cc[2]` is `7, 9` for a case holding `(6,7)` and `(8,9)`), as #2166 was for a
-  group;
-- through a reference to a group holding a repeat, an index past the iterations is silent, not
-  `w0181`; `$s[1][1]` of `<option>$g</option>` (`g` holding one scalar) is `w0100` at info level,
-  where `<option>$m</option>` warns; an extend of an iteration holding `$cc.x` doesn't follow the
-  case switching; `w0188`'s suggestion can name a `<setup>`.
+**Done by #2547** (#2520 items 1–4, 6, 7):
+- options or cases that differ, some holding one component and some several, are **`doenet-w0191`**
+  at load, naming the branches that hold several and suggesting a name (`$s.P.x`, `$s[1].P[2]`);
+- an index past a `<conditionalContent>`'s shown case names nothing (`$cc[2]` is `＿`, `w0104`), and
+  isn't passed to what the case holds;
+- an index past the iterations of a repeat reached through a group is `w0181` with the count;
+- `<option>$g</option>` and `<option>$m</option>` give the same level;
+- `w0188`'s suggestion skips a `<setup>`; a `ReplaceRange` past the end panics in tests.
+
+Known violations (#2520 item 5):
+- an extend of an iteration holding `$cc.x` follows the case for a `<group>` extend, but a `<math>`
+  extend (`<math name="e2" extend="$r[1]"/>`) is `＿` from the second switch on;
+- an index after a select or conditional whose every branch holds several is the run-time
+  `w0188`, not decided at load; a `<select>` with options of different shapes gives `w0188` only
+  in the variants that pick a group of several (DIAG-7).
 
 Done by #2424 (instances) and #2431 (values). Diagnostics, each quoting what was written:
 - **`doenet-w0188`:** an index after a group or instance that doesn't hold one component (#2518;
@@ -345,14 +350,27 @@ A section whose title is on a cycle shows its default title. A v0.6 document hol
 cycles in a case not shown keeps its `<copy>` tags in the converter.
 
 Known violations:
-- not found at load, still reported or stopping the document when reached (#2515): a property or
-  attribute not in the tables, an attribute of a tag that is neither a composite nor an input
-  (`<math simplify="$m=1">`), `$$f($n)` through an `<evaluate>`; an index into a `<repeat>` in
-  its own template, or an index followed by a name (`to="$r[1].v"`); a reference in a point's or
-  input's `<label>`; `<textList name="l">a $l[1]</textList>`; `$a.currentResponse` inside answer
-  `a`'s `<when>`; a cycle through both an input's `prefill` and an index into a list holding it;
-  a `<case>`'s `condition` reading a name its own `<conditionalContent>` declares; and an index
-  into a `<shuffle>` or `<sort>` in its own children;
+- **fixed by #2547** (#2515's eight items, #2521 item 4), each `e0005` at load, with the attributes
+  and properties that count found by running every one: an attribute a value is made from
+  (`ATTRIBUTES_READ`: `<math simplify="$m=1">`, `$$f($n)` through `<evaluate>`); a literal index
+  into a composite in its own content, also followed by a name (`$r[1].m`, `for="$r[1].v"`); a
+  graphical component read as content in its own `<label>` (`<label><p>$P</p></label>`; a bare
+  `$P` in the label stays valid); a text or boolean list holding an index into itself; an
+  answer's response in its own award (`ANSWER_PROPERTIES_READ`; `$a.submittedResponse` stays
+  valid); an input prefilled from the list entry it makes; a branch condition reading a name its
+  container declares; an index into a `<shuffle>`/`<sort>` in its own children; a list-form
+  `<collect>` inside its own source;
+- **still not found at load** (#2515): a shape whose points read the shape (`$p.vertex1` in a
+  polygon's `vertices`, `$l.slope`, `$a.radians`, `<point name="P">($P.x+1, 2)</point>`, a point
+  constrained to a line through it), which needs edges per coordinate, since points reading each
+  other's *other* coordinate are valid; a number or boolean reading a non-value property of itself
+  (`$n.hide`), kept on purpose as the test suite's route to the run-time safety net; a non-literal
+  index into a composite in its own content (`$r[$n]`); a composite-form `<collect>` in its own
+  source, an error only after load when it is in a case shown later;
+- `<point name="a"><label>$b</label></point><point name="b" extend="$a"/>` hangs the worker
+  (#2515);
+- `<group name="s">$ls[$i]</group>` shown by `$s` reports `e0005` after load once `i` passes the end
+  of `ls`, though no cycle is written (#2521 item 5);
 - a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
