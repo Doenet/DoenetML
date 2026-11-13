@@ -38,10 +38,10 @@ describe("the built package", () => {
 
     it("loads the WASM and grades in plain Node", async () => {
         const script = `
-            const { createHeadlessCore, gradeState, setInput, submit } = await import(${JSON.stringify(path.join(DIST, "index.js"))});
+            const { createHeadlessCore, gradeState, setValue, submit } = await import(${JSON.stringify(path.join(DIST, "index.js"))});
             const doenetML = '<answer name="a">x</answer>';
             const core = await createHeadlessCore({ doenetML });
-            await setInput(core, { answer: "a", position: 1 }, "x");
+            await setValue(core, { answer: "a", position: 1 }, "x");
             await submit(core, "a");
             const state = await core.serializeState();
             await core.terminate();

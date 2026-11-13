@@ -15,12 +15,12 @@ export {
     type CheckedAnswer,
 } from "./check";
 export {
-    setInput,
+    setValue,
     submit,
-    SUPPORTED_INPUT_TYPES,
-    type InputTarget,
-    type InputValue,
-} from "./inputs";
+    SETTABLE_COMPONENT_TYPES,
+    type ValueTarget,
+    type ValueToSet,
+} from "./setValue";
 export { HeadlessError, type HeadlessErrorCode } from "./errors";
 export { defaultCoreFactory } from "./defaultCore";
 export { RESOLVER_WASM_ENV } from "./resolverWasm";

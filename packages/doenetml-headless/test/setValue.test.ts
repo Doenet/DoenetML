@@ -4,7 +4,7 @@ import {
     createHeadlessCore,
     gradeState,
     HeadlessError,
-    setInput,
+    setValue,
     submit,
 } from "../src";
 
@@ -42,8 +42,8 @@ async function refusal(promise: Promise<unknown>) {
     throw Error("expected a refusal");
 }
 
-describe("setInput and submit", () => {
-    it("drives every supported input type, and the answers grade it", async () => {
+describe("setValue and submit", () => {
+    it("sets every supported component type, and the answers grade it", async () => {
         const doenetML = `
     <answer name="m"><mathInput name="mi" /><award><when>$mi = 2x</when></award></answer>
     <answer name="t"><textInput name="ti" /><award><when>$ti = hello</when></award></answer>
@@ -58,16 +58,16 @@ describe("setInput and submit", () => {
     <answer name="pt"><award><when>$P = (3,4)</when></award></answer>
     `;
         await withCore(doenetML, async (core) => {
-            await setInput(core, "mi", "2x");
-            await setInput(core, "ti", "hello");
-            await setInput(core, "bi", true);
-            await setInput(core, "ci", [2]);
-            await setInput(core, "fi", { numerator: "3", denominator: "4" });
-            await setInput(core, "mxi", [
+            await setValue(core, "mi", "2x");
+            await setValue(core, "ti", "hello");
+            await setValue(core, "bi", true);
+            await setValue(core, "ci", [2]);
+            await setValue(core, "fi", { numerator: "3", denominator: "4" });
+            await setValue(core, "mxi", [
                 ["1", "2"],
                 ["3", "4"],
             ]);
-            await setInput(core, "P", [3, 4]);
+            await setValue(core, "P", [3, 4]);
 
             const before = await credits(core);
             for (const key of ["m", "t", "b", "c", "f", "mx", "pt"]) {
@@ -111,7 +111,7 @@ describe("setInput and submit", () => {
                     ["choiceTexts"],
                 )) as { choiceTexts: string[] };
                 positions.add(choiceTexts.indexOf("green") + 1);
-                await setInput(core, "ci", choiceTexts.indexOf("green") + 1);
+                await setValue(core, "ci", choiceTexts.indexOf("green") + 1);
                 expect((await credits(core)).c.ifSubmit).toBe(1);
             } finally {
                 await core.terminate();
@@ -127,8 +127,8 @@ describe("setInput and submit", () => {
                 <award><when>$x + $y = 5</when></award>
             </answer>`,
             async (core) => {
-                await setInput(core, "x", "2");
-                await setInput(core, { answer: "ans", position: 2 }, "3");
+                await setValue(core, "x", "2");
+                await setValue(core, { answer: "ans", position: 2 }, "3");
                 await submit(core, "ans");
                 expect((await credits(core)).ans).toEqual({
                     ifSubmit: 1,
@@ -143,14 +143,14 @@ describe("setInput and submit", () => {
             `<answer name="sugar">x</answer>
             <answer name="unnamed"><mathInput /><award>y</award></answer>`,
             async (core) => {
-                await setInput(core, { answer: "sugar", position: 1 }, "x");
-                await setInput(core, { answer: "unnamed", position: 1 }, "y");
+                await setValue(core, { answer: "sugar", position: 1 }, "x");
+                await setValue(core, { answer: "unnamed", position: 1 }, "y");
                 const result = await credits(core);
                 expect(result.sugar.ifSubmit).toBe(1);
                 expect(result.unnamed.ifSubmit).toBe(1);
 
                 const error = await refusal(
-                    setInput(core, { answer: "sugar", position: 2 }, "x"),
+                    setValue(core, { answer: "sugar", position: 2 }, "x"),
                 );
                 expect(error.code).toBe("notFound");
                 expect(error.message).toContain("has 1 input of its own");
@@ -164,7 +164,7 @@ describe("setInput and submit", () => {
                 <group name="g"><answer name="a"><mathInput name="mi" /><award><when>$mi = $v</when></award></answer></group>
             </repeatForSequence>`,
             async (core) => {
-                await setInput(core, "$r[3].g.mi", "3");
+                await setValue(core, "$r[3].g.mi", "3");
                 await submit(core, "r[3].g.a");
                 const answers = await core.getAnswers();
                 expect(
@@ -184,17 +184,17 @@ describe("setInput and submit", () => {
             <p name="p1"><answer name="same">x</answer></p>
             <p name="p2"><answer name="same">x</answer></p>`,
             async (core) => {
-                let error = await refusal(setInput(core, "dup", "1"));
+                let error = await refusal(setValue(core, "dup", "1"));
                 expect(error.code).toBe("noStableKey");
                 expect(error.message).toContain("not a stable key");
 
                 error = await refusal(
-                    setInput(core, { answer: "same", position: 1 }, "x"),
+                    setValue(core, { answer: "same", position: 1 }, "x"),
                 );
                 expect(error.code).toBe("noStableKey");
 
                 // A unique path reaches them
-                await setInput(core, { answer: "p2.same", position: 1 }, "x");
+                await setValue(core, { answer: "p2.same", position: 1 }, "x");
                 expect((await credits(core))["p2.same"].ifSubmit).toBe(1);
             },
         );
@@ -213,55 +213,55 @@ describe("setInput and submit", () => {
             <textInput name="tf" fixed />
             <section fixed><booleanInput name="bf" /></section>`,
             async (core) => {
-                let error = await refusal(setInput(core, "s", "x"));
-                expect(error.code).toBe("unsupportedInput");
+                let error = await refusal(setValue(core, "s", "x"));
+                expect(error.code).toBe("unsupportedTarget");
                 expect(error.message).toContain("<subsetOfRealsInput>");
 
-                error = await refusal(setInput(core, "t", "x"));
-                expect(error.code).toBe("unsupportedInput");
+                error = await refusal(setValue(core, "t", "x"));
+                expect(error.code).toBe("unsupportedTarget");
 
-                error = await refusal(setInput(core, "m", "1"));
-                expect(error.code).toBe("inputDisabled");
+                error = await refusal(setValue(core, "m", "1"));
+                expect(error.code).toBe("targetDisabled");
 
-                error = await refusal(setInput(core, "P", [3, 4]));
-                expect(error.code).toBe("inputDisabled");
+                error = await refusal(setValue(core, "P", [3, 4]));
+                expect(error.code).toBe("targetDisabled");
 
                 for (const bad of [[3], [0], [1.5], "a"]) {
-                    error = await refusal(setInput(core, "c", bad as any));
+                    error = await refusal(setValue(core, "c", bad as any));
                     expect(error.code).toBe("invalidValue");
                 }
 
-                error = await refusal(setInput(core, "nothing", "x"));
+                error = await refusal(setValue(core, "nothing", "x"));
                 expect(error.code).toBe("notFound");
 
                 // An answer target that is no answer, or has no such input
                 error = await refusal(
-                    setInput(core, { answer: "c", position: 1 }, [1]),
+                    setValue(core, { answer: "c", position: 1 }, [1]),
                 );
                 expect(error.code).toBe("notFound");
                 expect(error.message).toContain("not an <answer>");
                 for (const position of [0, 2, 1.5]) {
                     error = await refusal(
-                        setInput(core, { answer: "ans", position }, "x"),
+                        setValue(core, { answer: "ans", position }, "x"),
                     );
                     expect(error.code, String(position)).toBe("notFound");
                 }
 
-                error = await refusal(setInput(core, "Q", [3, 4]));
-                expect(error.code).toBe("inputDisabled");
+                error = await refusal(setValue(core, "Q", [3, 4]));
+                expect(error.code).toBe("targetDisabled");
 
                 // Fixed, on itself or a container, an input or point ignores
                 // the value though it is not disabled
-                error = await refusal(setInput(core, "R", [3, 4]));
-                expect(error.code).toBe("inputDisabled");
-                error = await refusal(setInput(core, "tf", "x"));
-                expect(error.code).toBe("inputDisabled");
+                error = await refusal(setValue(core, "R", [3, 4]));
+                expect(error.code).toBe("targetDisabled");
+                error = await refusal(setValue(core, "tf", "x"));
+                expect(error.code).toBe("targetDisabled");
                 expect(error.message).toContain("fixed");
-                error = await refusal(setInput(core, "bf", true));
-                expect(error.code).toBe("inputDisabled");
+                error = await refusal(setValue(core, "bf", true));
+                expect(error.code).toBe("targetDisabled");
 
                 // Not written as a path at all: a caller's mistake, not a refusal
-                await expect(setInput(core, "a b", "x")).rejects.toThrow(
+                await expect(setValue(core, "a b", "x")).rejects.toThrow(
                     "is not a path",
                 );
 
@@ -277,10 +277,10 @@ describe("setInput and submit", () => {
         await withCore(
             `<matrixInput name="m" numRows="1" numColumns="2" /><graph><point name="P" /></graph>`,
             async (core) => {
-                let error = await refusal(setInput(core, "m", [["1"]]));
+                let error = await refusal(setValue(core, "m", [["1"]]));
                 expect(error.code).toBe("invalidValue");
                 expect(error.message).toContain("1 rows of 2 strings");
-                error = await refusal(setInput(core, "P", [1, NaN]));
+                error = await refusal(setValue(core, "P", [1, NaN]));
                 expect(error.code).toBe("invalidValue");
             },
         );
@@ -296,23 +296,23 @@ describe("setInput and submit", () => {
             </choiceInput>
             <choiceInput name="cd"><choice disabled>a</choice><choice>b</choice></choiceInput>`,
             async (core) => {
-                let error = await refusal(setInput(core, "ci", [1, 2]));
+                let error = await refusal(setValue(core, "ci", [1, 2]));
                 expect(error.code).toBe("invalidValue");
                 expect(error.message).toContain("one position");
-                error = await refusal(setInput(core, "many", [2, 2]));
+                error = await refusal(setValue(core, "many", [2, 2]));
                 expect(error.code).toBe("invalidValue");
                 expect(error.message).toContain("at most once");
                 for (const bad of [0, 4]) {
-                    error = await refusal(setInput(core, "ci", bad));
+                    error = await refusal(setValue(core, "ci", bad));
                     expect(error.code).toBe("invalidValue");
                 }
-                error = await refusal(setInput(core, "cd", 1));
-                expect(error.code).toBe("inputDisabled");
+                error = await refusal(setValue(core, "cd", 1));
+                expect(error.code).toBe("targetDisabled");
                 expect(error.message).toContain("choice 1");
                 expect((await credits(core)).c.ifSubmit).toBe(0);
 
-                await setInput(core, "many", [3, 1]);
-                await setInput(core, "cd", 2);
+                await setValue(core, "many", [3, 1]);
+                await setValue(core, "cd", 2);
                 const read = async (name: string) => {
                     const r = await core.resolvePath(name);
                     if (r.status !== "resolved") throw Error(name);
@@ -333,13 +333,13 @@ describe("setInput and submit", () => {
         await withCore(
             `<graph><point name="P">(0,0)</point></graph><point name="Q">(0,0,0)</point>`,
             async (core) => {
-                let error = await refusal(setInput(core, "P", [1, 2, 3]));
+                let error = await refusal(setValue(core, "P", [1, 2, 3]));
                 expect(error.code).toBe("invalidValue");
                 expect(error.message).toContain("2 coordinates");
-                error = await refusal(setInput(core, "Q", [1, 2]));
+                error = await refusal(setValue(core, "Q", [1, 2]));
                 expect(error.code).toBe("invalidValue");
                 expect(error.message).toContain("3 coordinates");
-                await setInput(core, "Q", [1, 2, 3]);
+                await setValue(core, "Q", [1, 2, 3]);
                 const r = await core.resolvePath("Q");
                 if (r.status !== "resolved") throw Error("Q");
                 expect(
@@ -359,7 +359,7 @@ describe("setInput and submit", () => {
                 <answer name="a">x</answer><answer name="b">y</answer>
             </section>`,
             async (core) => {
-                await setInput(core, { answer: "a", position: 1 }, "x");
+                await setValue(core, { answer: "a", position: 1 }, "x");
                 await submit(core, "sec");
                 const answers = await core.getAnswers();
                 expect(answers.map((a) => a.stored.numSubmissions)).toEqual([
@@ -394,7 +394,7 @@ describe("setInput and submit", () => {
                 await submit(core, "p");
                 expect(await pretzelSubmissions()).toBe(1);
 
-                await setInput(core, { answer: "a", position: 1 }, "x");
+                await setValue(core, { answer: "a", position: 1 }, "x");
                 await submit(core, "d");
                 const answers = await core.getAnswers();
                 expect(answers.map((a) => a.stored.numSubmissions)).toEqual([

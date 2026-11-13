@@ -2,7 +2,7 @@ import type { HeadlessComponent, HeadlessCore } from "@doenet/utils";
 import { HeadlessError } from "./errors";
 
 /**
- * What `setInput` drives: either a path from the document root (`"x"`,
+ * What `setValue` drives: either a path from the document root (`"x"`,
  * `"$r[3].g.mi"`), or an answer's path and the position of one of the
  * answer's own inputs, numbered from 1. The second form reaches an input that
  * has no name of its own, such as the one `<answer name="ans">x</answer>`
@@ -13,11 +13,11 @@ import { HeadlessError } from "./errors";
  * key. A name that is not unique from the root is no key, so its component
  * cannot be driven, and neither can an input of an answer that has none.
  */
-export type InputTarget = string | { answer: string; position: number };
+export type ValueTarget = string | { answer: string; position: number };
 
 /**
- * The raw value an input takes, by input type: what a student enters, not
- * the response an answer makes of it.
+ * The raw value `setValue` gives a component, by its type: what a student
+ * enters or drags to, not the response an answer makes of it.
  *
  * - `mathInput`: the LaTeX typed, a string.
  * - `textInput`: the text, a string.
@@ -31,7 +31,7 @@ export type InputTarget = string | { answer: string; position: number };
  * - `point`: its coordinates, `[x, y]` or `[x, y, z]` as the point has,
  *   moved as a drag does.
  */
-export type InputValue =
+export type ValueToSet =
     | string
     | boolean
     | number
@@ -39,8 +39,8 @@ export type InputValue =
     | string[][]
     | { numerator: string; denominator: string };
 
-/** The input types `setInput` knows, and nothing else. */
-export const SUPPORTED_INPUT_TYPES = [
+/** The component types `setValue` sets: the inputs it knows, and `<point>`. */
+export const SETTABLE_COMPONENT_TYPES = [
     "mathInput",
     "textInput",
     "booleanInput",
@@ -51,53 +51,53 @@ export const SUPPORTED_INPUT_TYPES = [
 ] as const;
 
 /**
- * Give an input a raw value, with the actions its renderer would send, and
- * wait for the document to settle.
+ * Give an input or a point a raw value, with the actions its renderer would
+ * send, and wait for the document to settle.
  *
  * Refuses, with a `HeadlessError`, a target with no stable key (`noStableKey`)
  * or that names nothing (`notFound`), a component of a type it does not know
- * (`unsupportedInput`, never a guess), a disabled or fixed input, a point that
- * cannot be moved, or a disabled choice (`inputDisabled`), and a value of the wrong
+ * (`unsupportedTarget`, never a guess), a disabled or fixed input, a point that
+ * cannot be moved, or a disabled choice (`targetDisabled`), and a value of the wrong
  * shape (`invalidValue`).
  */
-export async function setInput(
+export async function setValue(
     core: HeadlessCore,
-    target: InputTarget,
-    value: InputValue,
+    target: ValueTarget,
+    value: ValueToSet,
 ): Promise<void> {
-    const input = await resolveInputTarget(core, target);
+    const component = await resolveValueTarget(core, target);
     const where = describeTarget(target);
 
     if (
-        !(SUPPORTED_INPUT_TYPES as readonly string[]).includes(
-            input.componentType,
+        !(SETTABLE_COMPONENT_TYPES as readonly string[]).includes(
+            component.componentType,
         )
     ) {
         throw new HeadlessError(
-            "unsupportedInput",
-            `${where} is a <${input.componentType}>, which setInput does not drive. It drives ${SUPPORTED_INPUT_TYPES.map((t) => `<${t}>`).join(", ")}.`,
+            "unsupportedTarget",
+            `${where} is a <${component.componentType}>, which setValue does not set. It sets ${SETTABLE_COMPONENT_TYPES.map((t) => `<${t}>`).join(", ")}.`,
         );
     }
 
-    await refuseIfDisabled(core, input, where);
+    await refuseIfDisabled(core, component, where);
 
-    switch (input.componentType) {
+    switch (component.componentType) {
         case "mathInput":
             await typeMath(
                 core,
-                input.componentIdx,
+                component.componentIdx,
                 expectString(value, where),
             );
             return;
         case "textInput": {
             const text = expectString(value, where);
             await core.dispatchAction({
-                componentIdx: input.componentIdx,
+                componentIdx: component.componentIdx,
                 actionName: "updateImmediateValue",
                 args: { text },
             });
             await core.dispatchAction({
-                componentIdx: input.componentIdx,
+                componentIdx: component.componentIdx,
                 actionName: "updateValue",
             });
             return;
@@ -107,22 +107,22 @@ export async function setInput(
                 throw invalid(where, "a <booleanInput> takes true or false");
             }
             await core.dispatchAction({
-                componentIdx: input.componentIdx,
+                componentIdx: component.componentIdx,
                 actionName: "updateBoolean",
                 args: { boolean: value },
             });
             return;
         case "choiceInput":
-            await selectChoices(core, input, value, where);
+            await selectChoices(core, component, value, where);
             return;
         case "fractionInput":
-            await typeFraction(core, input, value, where);
+            await typeFraction(core, component, value, where);
             return;
         case "matrixInput":
-            await typeMatrix(core, input, value, where);
+            await typeMatrix(core, component, value, where);
             return;
         case "point":
-            await movePoint(core, input, value, where);
+            await movePoint(core, component, value, where);
             return;
     }
 }
@@ -132,7 +132,7 @@ export async function setInput(
  * work (any component with a check-work button for what is inside it: a
  * `<section>`, the `<document>`, and so on), as its check-work button does.
  * `target` is a path from the root, with the same stable-key rule as
- * `setInput`.
+ * `setValue`.
  */
 export async function submit(
     core: HeadlessCore,
@@ -171,9 +171,9 @@ async function resolveStable(
     }
 }
 
-async function resolveInputTarget(
+async function resolveValueTarget(
     core: HeadlessCore,
-    target: InputTarget,
+    target: ValueTarget,
 ): Promise<HeadlessComponent> {
     if (typeof target === "string") {
         return resolveStable(core, target);
@@ -203,7 +203,7 @@ async function resolveInputTarget(
     return inputs[position - 1];
 }
 
-function describeTarget(target: InputTarget) {
+function describeTarget(target: ValueTarget) {
     return typeof target === "string"
         ? `"${target}"`
         : `Input ${target.position} of the answer "${target.answer}"`;
@@ -213,7 +213,7 @@ function invalid(where: string, rule: string) {
     return new HeadlessError("invalidValue", `${where}: ${rule}.`);
 }
 
-function expectString(value: InputValue, where: string): string {
+function expectString(value: ValueToSet, where: string): string {
     if (typeof value !== "string") {
         throw invalid(where, "this input takes a string");
     }
@@ -222,34 +222,34 @@ function expectString(value: InputValue, where: string): string {
 
 async function refuseIfDisabled(
     core: HeadlessCore,
-    input: HeadlessComponent,
+    component: HeadlessComponent,
     where: string,
 ) {
-    // An input or point that cannot change ignores the actions sent to it, so
-    // a value set on one would silently not be there. A fixed input (`fixed`
+    // An component or point that cannot change ignores the actions sent to it, so
+    // a value set on one would silently not be there. A fixed component (`fixed`
     // on it or on a container) is one, though it is not disabled.
     const { disabled, fixed, fixLocation, draggable } =
-        await core.readProperties(input.componentIdx, [
+        await core.readProperties(component.componentIdx, [
             "disabled",
             "fixed",
             "fixLocation",
             "draggable",
         ]);
-    if (input.componentType === "point") {
+    if (component.componentType === "point") {
         if (fixed === true || fixLocation === true || draggable === false) {
             throw new HeadlessError(
-                "inputDisabled",
+                "targetDisabled",
                 `${where} is a point that cannot be moved (fixed, its location fixed, or not draggable).`,
             );
         }
     } else if (disabled === true) {
         throw new HeadlessError(
-            "inputDisabled",
+            "targetDisabled",
             `${where} is disabled (for example, its answer has no attempts left), so it does not take a value.`,
         );
     } else if (fixed === true) {
         throw new HeadlessError(
-            "inputDisabled",
+            "targetDisabled",
             `${where} is fixed, so it does not take a value.`,
         );
     }
@@ -271,7 +271,7 @@ async function typeMath(
 async function selectChoices(
     core: HeadlessCore,
     input: HeadlessComponent,
-    value: InputValue,
+    value: ValueToSet,
     where: string,
 ) {
     const selectedIndices = typeof value === "number" ? [value] : value;
@@ -314,7 +314,7 @@ async function selectChoices(
     );
     if (disabledIndex !== undefined) {
         throw new HeadlessError(
-            "inputDisabled",
+            "targetDisabled",
             `${where}: choice ${disabledIndex} is disabled, so it cannot be selected.`,
         );
     }
@@ -331,7 +331,7 @@ async function selectChoices(
 async function typeFraction(
     core: HeadlessCore,
     input: HeadlessComponent,
-    value: InputValue,
+    value: ValueToSet,
     where: string,
 ) {
     if (
@@ -362,7 +362,7 @@ async function typeFraction(
 async function typeMatrix(
     core: HeadlessCore,
     input: HeadlessComponent,
-    value: InputValue,
+    value: ValueToSet,
     where: string,
 ) {
     const { numRows, numColumns } = await core.readProperties(
@@ -401,8 +401,8 @@ async function typeMatrix(
 
 async function movePoint(
     core: HeadlessCore,
-    input: HeadlessComponent,
-    value: InputValue,
+    component: HeadlessComponent,
+    value: ValueToSet,
     where: string,
 ) {
     if (
@@ -416,9 +416,10 @@ async function movePoint(
             "a <point> takes [x, y] or [x, y, z], finite numbers",
         );
     }
-    const { numDimensions } = await core.readProperties(input.componentIdx, [
-        "numDimensions",
-    ]);
+    const { numDimensions } = await core.readProperties(
+        component.componentIdx,
+        ["numDimensions"],
+    );
     if (typeof numDimensions === "number" && value.length !== numDimensions) {
         // A drag moves every coordinate: a coordinate left out would keep its
         // value, and one past the point's dimensions would be dropped.
@@ -429,7 +430,7 @@ async function movePoint(
     }
     const [x, y, z] = value as number[];
     await core.dispatchAction({
-        componentIdx: input.componentIdx,
+        componentIdx: component.componentIdx,
         actionName: "movePoint",
         args: z === undefined ? { x, y } : { x, y, z },
     });

@@ -1,8 +1,8 @@
 # @doenet/doenetml-headless
 
 Run DoenetML without a browser, in plain Node: grade a saved state of a
-document, check a document for problems, and drive a document's inputs from a
-script or a test.
+document, check a document for problems, and set a document's inputs and
+points from a script or a test.
 
 ```bash
 npm install @doenet/doenetml-headless math-expressions
@@ -136,22 +136,22 @@ an index that stays the same only while the document does not change, so it
 is not a key a file of expected answers can use; `componentIdx` in a result is
 that index, for correlating within one run, never to store.
 
-## Driving inputs
+## Setting values
 
 For tests and content checks: give inputs the raw values a student enters,
-submit, and read the credit.
+move points as a student drags them, submit, and read the credit.
 
 ```js
 import {
     createHeadlessCore,
-    setInput,
+    setValue,
     submit,
 } from "@doenet/doenetml-headless";
 
 const core = await createHeadlessCore({ doenetML, variantIndex: 1 });
 try {
-    await setInput(core, "x", "2x+1"); // by path
-    await setInput(core, { answer: "ans", position: 1 }, "3"); // an answer's own input
+    await setValue(core, "x", "2x+1"); // by path
+    await setValue(core, { answer: "ans", position: 1 }, "3"); // an answer's own input
     await submit(core, "ans");
     const answers = await core.getAnswers();
     const state = await core.serializeState(); // the state a viewer would report
@@ -171,7 +171,7 @@ that names nothing, an `answer` that names something other than an
 `<answer>`, or a position the answer has no input at is refused as `notFound`. A string that is not written as
 a path at all (names joined by `.`, literal indices) throws a plain `Error`.
 
-| input             | value                                                                                                                                                                                                                                         |
+| component         | value                                                                                                                                                                                                                                         |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `<mathInput>`     | the LaTeX typed, a string                                                                                                                                                                                                                     |
 | `<textInput>`     | the text, a string                                                                                                                                                                                                                            |
@@ -181,9 +181,9 @@ a path at all (names joined by `.`, literal indices) throws a plain `Error`.
 | `<matrixInput>`   | the LaTeX of every cell, as an array of rows of the matrix's current size                                                                                                                                                                     |
 | `<point>`         | its coordinates, `[x, y]` or `[x, y, z]` as the point has, moved as a drag moves it                                                                                                                                                           |
 
-Each value is turned into the actions the input's renderer sends. Any other
-type is refused (`unsupportedInput`), as are a disabled or fixed input, a disabled choice, or a point that
-cannot be moved (`inputDisabled`, since it would ignore the value) and a value
+Each value is turned into the actions the component's renderer sends. Any other
+type is refused (`unsupportedTarget`), as are a disabled or fixed input, a disabled choice, or a point that
+cannot be moved (`targetDisabled`, since it would ignore the value) and a value
 of the wrong shape (`invalidValue`).
 
 `submit(core, path)` submits an `<answer>` or a `<pretzel>`, or, for any other

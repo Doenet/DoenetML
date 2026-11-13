@@ -46,7 +46,7 @@ export interface HeadlessCore {
     /**
      * The current values of the named state variables of a component, public
      * or not. A name the component does not have is absent from the result.
-     * `setInput` reads `disabled`, `fixed`, `fixLocation`, `draggable`,
+     * `setValue` reads `disabled`, `fixed`, `fixLocation`, `draggable`,
      * `numChoices`, `selectMultiple`, `choicesDisabled`, `numRows`,
      * `numColumns` and `numDimensions`.
      */

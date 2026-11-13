@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { data_format_version } from "@doenet/utils";
-import { setInput, submit } from "../src";
+import { setValue, submit } from "../src";
 import { stateAfter } from "./helpers";
 
 // These run the built CLI (`npm run test` builds the package first) in a
@@ -57,7 +57,7 @@ beforeAll(async () => {
                 n.component.componentIdx,
                 ["value"],
             );
-            await setInput(core, { answer: "a", position: 1 }, String(value));
+            await setValue(core, { answer: "a", position: 1 }, String(value));
             await submit(core, "a");
         },
         { variantIndex: 2 },
