@@ -45,6 +45,15 @@ export class StateVariableDependency extends Dependency {
             this.onlyToSetInInverseDefinition = true;
         }
 
+        // Bookkeeping a definition reads that is not part of what the
+        // component's value depends on, so it is left out of
+        // `recursiveDependencyValues` (an answer's hash of its responses).
+        if (this.definition.notInRecursiveDependencyValues) {
+            this.notInRecursiveDependencyValues = true;
+        }
+
+        this.withheldValuesNotRead = this.definition.withheldValuesNotRead;
+
         if (this.definition.returnAsComponentObject) {
             this.returnSingleComponent = true;
         } else {
@@ -118,6 +127,8 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         }
 
         this.originalDownstreamVariableNames = [];
+
+        this.withheldValuesNotRead = this.definition.withheldValuesNotRead;
 
         if (this.definition.returnAsComponentObject) {
             this.returnSingleComponent = true;
@@ -692,6 +703,7 @@ export class RecursiveDependencyValuesDependency extends Dependency {
             this.definition.includeRawValueWithImmediateValue;
         this.includeOnlyEssentialValues =
             this.definition.includeOnlyEssentialValues;
+        this.includeStateIds = this.definition.includeStateIds;
 
         this.variablesOptional = true;
     }
@@ -922,7 +934,10 @@ export class RecursiveDependencyValuesDependency extends Dependency {
 
                     for (let dependencyName in downDeps) {
                         let dep = downDeps[dependencyName];
-                        if (dep.onlyToSetInInverseDefinition) {
+                        if (
+                            dep.onlyToSetInInverseDefinition ||
+                            dep.notInRecursiveDependencyValues
+                        ) {
                             continue;
                         }
                         for (let [

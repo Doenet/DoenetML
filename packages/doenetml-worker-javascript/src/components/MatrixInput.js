@@ -24,6 +24,9 @@ import {
 } from "../utils/mathComponentInput";
 import {
     defineSubmitAnswerExternalAction,
+    immediateValueFollowsValue,
+    returnValueUnderEditDefinition,
+    valueUnderEditRecord,
     returnInputValueChangedStateVariableDefinitions,
 } from "../utils/input";
 
@@ -322,7 +325,14 @@ export class MatrixInput extends Input {
         stateVariableDefinitions.immediateValueChanged =
             inputValueChangedStateVariableDefinitions.immediateValueChanged;
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnValueUnderEditDefinition("valueUnderEdit"),
+        );
+
         stateVariableDefinitions.immediateValueOriginal = {
+            // the saved edit, kept only if still the last (`valueUnderEdit`)
+            provideEssentialValuesInDefinition: true,
             hasEssential: true,
             shadowVariable: true,
             returnDependencies: () => ({
@@ -335,12 +345,20 @@ export class MatrixInput extends Input {
                     variableName: "immediateValueChanged",
                     onlyToSetInInverseDefinition: true,
                 },
+                valueUnderEdit: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueUnderEdit",
+                    // bookkeeping, not part of the value (`valueUnderEdit`)
+                    notInRecursiveDependencyValues: true,
+                },
             }),
             set: convertValueToMathExpression,
             definition: function ({
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                justRestoredAtLoad,
+                essentialValues,
                 usedDefault,
             }) {
                 // console.log(`definition of immediateValueOriginal`)
@@ -349,9 +367,16 @@ export class MatrixInput extends Input {
                 // console.log(dependencyValues.valueOriginal.toString())
 
                 if (
-                    changes.valueOriginal &&
-                    !justUpdatedForNewComponent &&
-                    !usedDefault.valueOriginal
+                    immediateValueFollowsValue({
+                        valueChanged: changes.valueOriginal,
+                        valueUsedDefault: usedDefault.valueOriginal,
+                        justUpdatedForNewComponent,
+                        justRestoredAtLoad,
+                        value: dependencyValues.valueOriginal,
+                        valueUnderEdit: dependencyValues.valueUnderEdit,
+                        savedImmediateValue:
+                            essentialValues.immediateValueOriginal,
+                    })
                 ) {
                     // only update to valueOriginal when it changes
                     // (otherwise, let its essential value change)
@@ -377,6 +402,7 @@ export class MatrixInput extends Input {
             },
             inverseDefinition: function ({
                 desiredStateVariableValues,
+                dependencyValues,
                 initialChange,
                 shadowedVariable,
             }) {
@@ -389,6 +415,13 @@ export class MatrixInput extends Input {
                     {
                         setDependency: "immediateValueChanged",
                         desiredValue: true,
+                    },
+                    {
+                        setDependency: "valueUnderEdit",
+                        desiredValue: valueUnderEditRecord({
+                            value: dependencyValues.valueOriginal,
+                            edit: desiredStateVariableValues.immediateValueOriginal,
+                        }),
                     },
                 ];
 

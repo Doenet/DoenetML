@@ -1,3 +1,5 @@
+import { fingerprint } from "./fingerprint";
+
 /**
  * Building blocks shared by all input components (math inputs, text inputs,
  * code editors, boolean inputs, choice inputs, …), independent of the kind of
@@ -129,6 +131,92 @@ export async function buildInputResponseEvent({
 }
 
 /**
+ * The state variable, named `valueUnderEditName`, holding the reader's last
+ * edit of an input (its `immediateValue`): `{ value, edit }`, fingerprints of
+ * the value the edit was typed over and of the edit typed
+ * (`valueUnderEditRecord`). It is saved, so that an input made again from
+ * saved state after the document has loaded can tell whether its saved
+ * `immediateValue` is still that edit, and its value still the one the edit
+ * was typed over (`immediateValueFollowsValue`).
+ */
+export function returnValueUnderEditDefinition(valueUnderEditName) {
+    return {
+        [valueUnderEditName]: {
+            defaultValue: null,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { [valueUnderEditName]: true },
+            }),
+            inverseDefinition: ({ desiredStateVariableValues }) => ({
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: valueUnderEditName,
+                        value: desiredStateVariableValues[valueUnderEditName],
+                    },
+                ],
+            }),
+        },
+    };
+}
+
+/**
+ * Whether an input's `immediateValue`, the reader's in-progress edit, is set
+ * to its `value`, which it follows only when the value changes.
+ *
+ * A value restored from saved state is not a change, as the document loads:
+ * the saved `immediateValue` is what the reader saw. But a saved
+ * `immediateValue` is brought up to date only when it is computed, so one
+ * saved while the input was withheld (in a case not shown) can be older than
+ * its value, which can change meanwhile (`bindValueTo`). An input made from
+ * saved state after the document has loaded (when the case is shown again,
+ * or shown for the first time since a reload) therefore keeps the saved
+ * `immediateValue` (`savedImmediateValue`) only if it is still the reader's
+ * last edit and its value is still the one that edit was typed over
+ * (`valueUnderEdit`), and otherwise follows its value, as it would have had
+ * it been shown (#2325). An edit the value replaced while the input was
+ * shown is not kept, even when the value has come back to what it was typed
+ * over.
+ */
+export function immediateValueFollowsValue({
+    valueChanged,
+    valueUsedDefault,
+    justUpdatedForNewComponent,
+    justRestoredAtLoad,
+    value,
+    valueUnderEdit,
+    savedImmediateValue,
+}) {
+    if (!valueChanged || valueUsedDefault) {
+        return false;
+    }
+    if (!justUpdatedForNewComponent) {
+        return true;
+    }
+    if (justRestoredAtLoad) {
+        return false;
+    }
+    return !(
+        valueUnderEdit != null &&
+        valueUnderEdit.value !== undefined &&
+        valueUnderEdit.value === fingerprint(value) &&
+        valueUnderEdit.edit === fingerprint(savedImmediateValue)
+    );
+}
+
+/**
+ * What `valueUnderEdit` holds of an edit `edit` typed over the value
+ * `value`: a fingerprint of each, rather than the values, which the saved
+ * state holds already as the input's `immediateValue` and `value`. Held
+ * again, they would double what an input's edit costs the saved state
+ * (Doenet/DoenetML#1940). `edit` is the value saved as `immediateValue`.
+ */
+export function valueUnderEditRecord({ value, edit }) {
+    return { value: fingerprint(value), edit: fingerprint(edit) };
+}
+
+/**
  * The `immediateValue` state variable used by inputs whose value is committed
  * on blur/enter (`textInput`, `codeEditor`): it mirrors `value`, but only
  * follows `value` when `value` itself changes — otherwise it holds the user's
@@ -139,9 +227,12 @@ export function returnImmediateValueStateVariableDefinition({
     description,
     createComponentOfType = "text",
 } = {}) {
-    const stateVariableDefinitions = {};
+    const stateVariableDefinitions =
+        returnValueUnderEditDefinition("valueUnderEdit");
 
     stateVariableDefinitions.immediateValue = {
+        // the saved edit, kept only if still the last (`valueUnderEdit`)
+        provideEssentialValuesInDefinition: true,
         description,
         public: true,
         shadowingInstructions: {
@@ -160,17 +251,31 @@ export function returnImmediateValueStateVariableDefinition({
                 variableName: "immediateValueChanged",
                 onlyToSetInInverseDefinition: true,
             },
+            valueUnderEdit: {
+                dependencyType: "stateVariable",
+                variableName: "valueUnderEdit",
+                // bookkeeping, not part of the value (`valueUnderEdit`)
+                notInRecursiveDependencyValues: true,
+            },
         }),
         definition: function ({
             dependencyValues,
             changes,
             justUpdatedForNewComponent,
+            justRestoredAtLoad,
+            essentialValues,
             usedDefault,
         }) {
             if (
-                changes.value &&
-                !justUpdatedForNewComponent &&
-                !usedDefault.value
+                immediateValueFollowsValue({
+                    valueChanged: changes.value,
+                    valueUsedDefault: usedDefault.value,
+                    justUpdatedForNewComponent,
+                    justRestoredAtLoad,
+                    value: dependencyValues.value,
+                    valueUnderEdit: dependencyValues.valueUnderEdit,
+                    savedImmediateValue: essentialValues.immediateValue,
+                })
             ) {
                 // only update to value when it changes
                 // (otherwise, let its essential value change)
@@ -193,6 +298,7 @@ export function returnImmediateValueStateVariableDefinition({
         },
         inverseDefinition: function ({
             desiredStateVariableValues,
+            dependencyValues,
             initialChange,
             shadowedVariable,
         }) {
@@ -205,6 +311,13 @@ export function returnImmediateValueStateVariableDefinition({
                 {
                     setDependency: "immediateValueChanged",
                     desiredValue: true,
+                },
+                {
+                    setDependency: "valueUnderEdit",
+                    desiredValue: valueUnderEditRecord({
+                        value: dependencyValues.value,
+                        edit: desiredStateVariableValues.immediateValue,
+                    }),
                 },
             ];
 

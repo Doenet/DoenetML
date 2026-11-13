@@ -198,10 +198,9 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
             // while `cc` (and `e`) still hold the case's replacements: the
             // copy is a mathInput, though `cc` now selects its else. A
             // reload makes the copy of `$cc.p` again from the case it was
-            // made from (B35), with the reader's value. A copy of `$e.p`,
-            // through a conditionalContent that extends another, holds no
-            // case, and is made again from the else, taking nothing of the
-            // mathInput.
+            // made from (B35), with the reader's value. So does a copy of
+            // `$e.p`, through a conditionalContent that extends another,
+            // which shows the case `cc` shows (#2485 item 2).
             const h = await setup(`
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc2">
@@ -219,14 +218,8 @@ describe("Reader state in the cases of a conditionalContent @group2", async () =
             await h.typeMath("cc2.cp.a", "7");
             await h.reload();
             const t = await h.sv("cc2.cp.a");
-            if (source === "cc") {
-                expect(t.componentType).eq("mathInput");
-                expect(t.stateValues.value.tree).eq(7);
-                return;
-            }
-            expect(t.componentType).eq("textInput");
-            expect(t.stateValues.value).eq("hi");
-            expect(t.stateValues.numWords).eq(1);
+            expect(t.componentType).eq("mathInput");
+            expect(t.stateValues.value.tree).eq(7);
         });
     }
 

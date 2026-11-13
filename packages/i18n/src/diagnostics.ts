@@ -97,6 +97,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0057": "select-from-sequence-coprime-draws-exhausted",
     "doenet-i0058": "list-brackets-unmatched",
     "doenet-i0059": "list-reference-joins-entry",
+    "doenet-i0060": "action-target-not-shown",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",

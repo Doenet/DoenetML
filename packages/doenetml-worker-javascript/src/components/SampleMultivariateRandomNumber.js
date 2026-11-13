@@ -1,3 +1,4 @@
+import { drawsCarried, drawnFromParameters } from "../utils/randomNumbers";
 import {
     multivariateSamplingDiagnostics,
     sampleFromMultivariateDistribution,
@@ -60,6 +61,23 @@ function hasHypergeometricMoments(globalDependencyValues) {
  * sample is drawn again.
  */
 export default class SampleMultivariateRandomNumber extends ValueListComponent {
+    /**
+     * A `copyWithState` carries the draws (CPY-8), so they are made before
+     * this is copied, as a copy made before they were would have none to
+     * carry and would draw its own (`drawsCarried`). A `copy` draws its own
+     * (D33). A linked copy (an `extend`) shows this one's draws as they are
+     * (`shadowVariable`), and nothing else serialized carries them, so they
+     * are not made early for those: made before what they are drawn from is
+     * all there, they would be drawn again once it is, and so after each
+     * reload.
+     */
+    async serialize(parameters = {}) {
+        if (parameters.copyAll && !parameters.withoutReaderState) {
+            await this.stateValues.sampledValues;
+        }
+        return await super.serialize(parameters);
+    }
+
     constructor(args) {
         super(args);
 
@@ -308,8 +326,20 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
         };
 
         stateVariableDefinitions.sampledValues = {
+            // the draws a `copyWithState` carried (`drawsCarried`)
+            provideEssentialValuesInDefinition: true,
+            providePreviousValuesInDefinition: true,
             shadowVariable: true,
             hasEssential: true,
+            // what the draws were made from, carried with them
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "drawnFrom",
+                    hasEssential: true,
+                    shadowVariable: true,
+                    defaultValue: null,
+                },
+            ],
             stateVariablesDeterminingDependencies: ["variantDeterminesSeed"],
             returnDependencies({ stateValues, sharedParameters }) {
                 let dependencies = {
@@ -352,13 +382,21 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                essentialValues,
+                previousValues,
             }) {
+                const drawnFrom = drawnFromParameters(dependencyValues);
                 // if loaded in values from database (justUpdatedForNewComponent)
                 // or just resampled values from action (in which case there will be no changes)
                 // then don't resample the values but just use the current ones
                 if (
                     Object.keys(changes).length === 0 ||
-                    justUpdatedForNewComponent
+                    justUpdatedForNewComponent ||
+                    drawsCarried({
+                        essentialValues,
+                        previousValues,
+                        drawnFrom,
+                    })
                 ) {
                     // Keep the counts, but re-check the parameters: they have not
                     // changed, so whatever was wrong with them still is, and an
@@ -366,7 +404,10 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                     // for why its counts are NaN. This draws nothing, so a variant
                     // stays reproducible.
                     return {
-                        useEssentialOrDefaultValue: { sampledValues: true },
+                        useEssentialOrDefaultValue: {
+                            sampledValues: true,
+                            drawnFrom: true,
+                        },
                         conditionDiagnostics: withLevels(
                             multivariateSamplingDiagnostics(dependencyValues),
                         ),
@@ -377,8 +418,8 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                     sampleFromMultivariateDistribution(dependencyValues);
 
                 return {
-                    setEssentialValue: { sampledValues },
-                    setValue: { sampledValues },
+                    setEssentialValue: { sampledValues, drawnFrom },
+                    setValue: { sampledValues, drawnFrom },
                     // what these parameters give now, gone when they no longer
                     // give it (B33)
                     conditionDiagnostics: withLevels(diagnostics),

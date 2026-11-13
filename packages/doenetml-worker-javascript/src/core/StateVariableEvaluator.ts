@@ -106,6 +106,7 @@ export class StateVariableEvaluator {
         }
 
         let justUpdatedForNewComponent = false;
+        let justRestoredAtLoad = false;
 
         for (let varName of allStateVariablesAffected) {
             if (!component.state[varName].isResolved) {
@@ -123,9 +124,16 @@ export class StateVariableEvaluator {
                 }
             }
 
-            if (component.state[varName].justUpdatedForNewComponent) {
+            const restored =
+                component.state[varName].justUpdatedForNewComponent;
+            if (restored) {
                 delete component.state[varName].justUpdatedForNewComponent;
                 justUpdatedForNewComponent = true;
+                // restored as the document loaded, rather than into a
+                // component made later (`restoredFlag`, `ComponentBuilder`)
+                if (restored !== "afterLoad") {
+                    justRestoredAtLoad = true;
+                }
             }
         }
 
@@ -135,6 +143,7 @@ export class StateVariableEvaluator {
         });
         definitionArgs.componentInfoObjects = this.core.componentInfoObjects;
         definitionArgs.justUpdatedForNewComponent = justUpdatedForNewComponent;
+        definitionArgs.justRestoredAtLoad = justRestoredAtLoad;
         definitionArgs.initialAddPhase = this.core.initialAddPhase;
 
         definitionArgs.freshnessInfo = stateVarObj.freshnessInfo;

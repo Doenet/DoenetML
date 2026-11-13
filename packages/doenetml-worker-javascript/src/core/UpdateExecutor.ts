@@ -142,6 +142,65 @@ export class UpdateExecutor {
     }
 
     /**
+     * Merge the essential values definitions set since the last update
+     * (`essentialValuesSavedInDefinition`) into what is saved
+     * (`cumulativeStateVariableChanges`). Done at the start of each update,
+     * and before each save (`StatePersistence.saveState`), so that values a
+     * definition drew at random, such as a sampler's, are saved even when no
+     * update has come since they were drawn, as when a reader reloads a
+     * document they have only looked at (COMP-8, #2477).
+     */
+    mergeEssentialValuesSavedInDefinition() {
+        if (
+            Object.keys(this.core.essentialValuesSavedInDefinition).length > 0
+        ) {
+            for (const stateId in this.core.essentialValuesSavedInDefinition) {
+                const componentIdx = this.core.componentIdxByStateId[stateId];
+                const component = this.core._components[componentIdx];
+                let essentialState = component?.essentialState;
+                // A definition that draws from a seed the variant does not
+                // determine -- `<sampleRandomNumbers>` and the other two
+                // date-seeded samplers -- produces values a fresh build does
+                // not reproduce. They exist nowhere but in the saved state, so
+                // they are persisted like the reader's own work rather than
+                // dropped as a definition's (see
+                // `BaseComponent.definitionEssentialValuesAreReproducible`).
+                // A component can also decide it for itself
+                // (`definitionEssentialValuesReproducible`): a select whose
+                // choices a value decides, such as an input, would choose
+                // again on a fresh load once that value changed.
+                const reproducible =
+                    (component?.constructor as any)
+                        ?.definitionEssentialValuesAreReproducible !== false &&
+                    (component as any)
+                        ?.definitionEssentialValuesReproducible !== false;
+                if (essentialState) {
+                    for (let varName in this.core
+                        .essentialValuesSavedInDefinition[stateId]) {
+                        if (essentialState[varName] !== undefined) {
+                            // Recorded, not withheld: a later partial write to
+                            // an array merges into this entry, and this is what
+                            // puts the `mergeObject` base there. What it is not
+                            // is the reader's work, so unless they also write
+                            // to this component it does not get persisted
+                            // (Doenet/DoenetML#1940).
+                            if (reproducible) {
+                                this.core.definitionSetStateIds.add(stateId);
+                            }
+                            this.core.essentialValueWriter.mergeIntoCumulative(
+                                stateId,
+                                varName,
+                                essentialState[varName],
+                            );
+                        }
+                    }
+                }
+            }
+            this.core.essentialValuesSavedInDefinition = {};
+        }
+    }
+
+    /**
      * Run a component-defined action method (e.g. `submitAnswer`,
      * `revealSection`).
      *
@@ -599,53 +658,7 @@ export class UpdateExecutor {
         }
 
         // start with any essential values saved when calculating definitions
-        if (
-            Object.keys(this.core.essentialValuesSavedInDefinition).length > 0
-        ) {
-            for (const stateId in this.core.essentialValuesSavedInDefinition) {
-                const componentIdx = this.core.componentIdxByStateId[stateId];
-                const component = this.core._components[componentIdx];
-                let essentialState = component?.essentialState;
-                // A definition that draws from a seed the variant does not
-                // determine -- `<sampleRandomNumbers>` and the other two
-                // date-seeded samplers -- produces values a fresh build does
-                // not reproduce. They exist nowhere but in the saved state, so
-                // they are persisted like the reader's own work rather than
-                // dropped as a definition's (see
-                // `BaseComponent.definitionEssentialValuesAreReproducible`).
-                // A component can also decide it for itself
-                // (`definitionEssentialValuesReproducible`): a select whose
-                // choices a value decides, such as an input, would choose
-                // again on a fresh load once that value changed.
-                const reproducible =
-                    (component?.constructor as any)
-                        ?.definitionEssentialValuesAreReproducible !== false &&
-                    (component as any)
-                        ?.definitionEssentialValuesReproducible !== false;
-                if (essentialState) {
-                    for (let varName in this.core
-                        .essentialValuesSavedInDefinition[stateId]) {
-                        if (essentialState[varName] !== undefined) {
-                            // Recorded, not withheld: a later partial write to
-                            // an array merges into this entry, and this is what
-                            // puts the `mergeObject` base there. What it is not
-                            // is the reader's work, so unless they also write
-                            // to this component it does not get persisted
-                            // (Doenet/DoenetML#1940).
-                            if (reproducible) {
-                                this.core.definitionSetStateIds.add(stateId);
-                            }
-                            this.core.essentialValueWriter.mergeIntoCumulative(
-                                stateId,
-                                varName,
-                                essentialState[varName],
-                            );
-                        }
-                    }
-                }
-            }
-            this.core.essentialValuesSavedInDefinition = {};
-        }
+        this.mergeEssentialValuesSavedInDefinition();
 
         if (!doNotSave) {
             // merge in new state variables set in update

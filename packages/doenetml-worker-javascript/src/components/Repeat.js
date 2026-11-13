@@ -16,6 +16,7 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 import { authoredOfLiteral, literalWithValue } from "../utils/literalAttribute";
 import {
     holdAttributeComponentAt,
+    listTypeAsWritten,
     holdUnresolvedAttributeAt,
     valueAsWritten,
 } from "../utils/heldChoiceAttribute";
@@ -1019,9 +1020,15 @@ async function holdAtSourceIterationValue({
         const sourceAttribute = Object.entries(src.attributes ?? {}).find(
             ([name]) => name.toLowerCase() === lowerName,
         )?.[1]?.component;
-        text = await valueAsWritten(components[sourceAttribute?.originalIdx]);
+        const source = components[sourceAttribute?.originalIdx];
+        text = await valueAsWritten(source);
         if (text !== undefined) {
-            holdAttributeComponentAt({ attribute, text, componentInfoObjects });
+            holdAttributeComponentAt({
+                attribute,
+                text,
+                componentInfoObjects,
+                listType: await listTypeAsWritten(source),
+            });
         }
     }
 }

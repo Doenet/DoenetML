@@ -12,6 +12,7 @@ import { normalizeMathExpression } from "@doenet/utils";
 import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
+    targetsNotWithheld,
 } from "../utils/triggering";
 import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
@@ -491,7 +492,18 @@ export default class UpdateValue extends InlineComponent {
                             };
                         }
 
+                        // Only which property is changed is needed here,
+                        // so a target withheld from what is shown is not
+                        // evaluated (#2152), and is read once it is shown
+                        // again (`withheld`).
+                        thisTarget.withheldValuesNotRead = true;
                         dependencies["target" + ind] = thisTarget;
+                        dependencies["withheld" + ind] = {
+                            dependencyType: "stateVariable",
+                            componentIdx: target.componentIdx,
+                            variableName: "isInactiveCompositeReplacement",
+                            variablesOptional: true,
+                        };
                     }
                 }
 
@@ -641,9 +653,21 @@ export default class UpdateValue extends InlineComponent {
             return;
         }
 
+        // A target withheld from what is shown is not acted on (#2152).
+        const shownTargets = await targetsNotWithheld({
+            component: this,
+            targetIndices: targets.map((target) => target.componentIdx),
+        });
+        if (shownTargets.length === 0) {
+            return;
+        }
+
         let updateInstructions = [];
 
         for (let target of targets) {
+            if (!shownTargets.includes(target.componentIdx)) {
+                continue;
+            }
             let stateVariable = Object.keys(target.stateValues)[0];
             if (stateVariable === undefined) {
                 continue;

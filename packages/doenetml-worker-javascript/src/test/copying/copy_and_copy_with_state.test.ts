@@ -410,6 +410,51 @@ describe("copy and copyWithState @group3", () => {
         expect(doc.diagnostics().errors).eqls([]);
     });
 
+    for (const { list, type, written, given } of [
+        {
+            list: "mathList",
+            type: 'to="30"',
+            written: "2 3",
+            given: "5 7 11 13 17",
+        },
+        {
+            list: "textList",
+            type: 'type="letters" from="a" to="z"',
+            written: "b c",
+            given: "d e f g h",
+        },
+    ]) {
+        it(`copyWithState of a module: a module attribute reaching a nested choice through a ${list} keeps the carried choices`, async () => {
+            // the `exclude` of a `<selectFromSequence>`, a list of the
+            // sequence's type, held at the value the source chose with
+            // (#2477 item 2)
+            const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><${list} name="ex">${written}</${list}></moduleAttributes>
+    <p name="picks"><selectFromSequence name="s" ${type} numToSelect="4" exclude="$ex"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" ex="${given}"/>
+`);
+            expect((await doc.sv("mw.picks")).text).eq(
+                (await doc.sv("m1.picks")).text,
+            );
+            // what it excludes is held at what the source chose with
+            expect((await doc.sv("mw.s")).exclude).eqls(
+                (await doc.sv("m1.s")).exclude,
+            );
+            expect(
+                doc
+                    .diagnostics()
+                    .warnings.filter((w: any) => w.code === "doenet-w0186")
+                    .map((w: any) => w.args.attribute),
+            ).eqls(["ex"]);
+            expect(doc.diagnostics().errors).eqls([]);
+        });
+    }
+
     it("copyWithState of a container keeps the draws of a copy inside it of a source inside it", async () => {
         for (const variant of [1, 2, 3]) {
             const doc = await loaded(

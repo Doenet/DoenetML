@@ -448,6 +448,15 @@ export default class Core {
             // reach core through `svComponent.coreFunctions`.
             getStateVariableValue: this.getStateVariableValue, // bound above
             addDiagnostic: this.addDiagnostic.bind(this),
+            // Whether the component at `componentIdx` is withheld from what
+            // is shown (a case not shown, an iteration a repeat no longer
+            // has), for an action not to act on it (SAVE-4, #2152). An index
+            // with no component, as one reserved for a list entry, is not.
+            componentIsWithheld: async (componentIdx: number) =>
+                Boolean(
+                    await this._components[componentIdx]?.stateValues
+                        .isInactiveCompositeReplacement,
+                ),
             // What a save holds of an unlinked copy, by the copy's stateId:
             // its snapshot, with what decided what it made
             // (`heldCopySnapshot`, `readHeldCopySnapshot`).

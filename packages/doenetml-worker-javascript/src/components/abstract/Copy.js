@@ -71,6 +71,7 @@ import {
 import { gatherVariantComponents } from "../../utils/variants";
 import {
     holdAttributeComponentAt,
+    listTypeAsWritten,
     holdUnresolvedAttributeAt,
     valueAsWritten,
 } from "../../utils/heldChoiceAttribute";
@@ -770,6 +771,17 @@ export default class Copy extends CompositeComponent {
                                 // so it is not reported again as an index
                                 // into each replacement's value.
                                 indexPastComposite,
+                                // Only which property is read is needed
+                                // here, so a source withheld from what is
+                                // shown is not evaluated (#2152). Once it is
+                                // shown again (`withheld`), it is read.
+                                withheldValuesNotRead: true,
+                            };
+                            dependencies["withheld" + ind] = {
+                                dependencyType: "stateVariable",
+                                componentIdx: source.componentIdx,
+                                variableName: "isInactiveCompositeReplacement",
+                                variablesOptional: true,
                             };
                         } else {
                             if (typeof source === "string") {
@@ -2548,6 +2560,7 @@ export default class Copy extends CompositeComponent {
                     component,
                     source: replacementSourceComponent,
                     segment,
+                    components,
                 });
             }
             // An unlinked copy is its source's DoenetML pasted, whose
@@ -6982,17 +6995,21 @@ async function heldCaseSource({ caseSource, components, heldMadeFrom }) {
  * (`ConditionalContent.getReplacements`); the `stateId` and case of each
  * `<conditionalContent>` it is in, outermost first; and the segment of the
  * `stateId`s of what the copy made (`stateIdSegmentForCopyOf`), which names
- * those cases. `undefined` when `source` is in no case, or a case of one
- * that shadows another, whose replacements' ids name the case of what it
- * shadows (`stateIdSegmentForCopiesOfReplacements`).
+ * those cases. A component made by a `<conditionalContent>` that extends
+ * another stands for the one it shadows (`shadowedInDoenetML`). `undefined`
+ * when `source` is in no case.
  */
-async function sourceCaseOf({ component, source, segment }) {
+async function sourceCaseOf({ component, source, segment, components }) {
     if (
         typeof source?.stateId !== "string" ||
         (await component.stateValues.replacementSourceIdentities)?.length !==
             1 ||
         (await component.stateValues.effectivePropNameBySource)?.[0]
     ) {
+        return undefined;
+    }
+    source = shadowedInDoenetML(source, components);
+    if (typeof source?.stateId !== "string") {
         return undefined;
     }
     const cases = [];
@@ -7020,6 +7037,36 @@ async function sourceCaseOf({ component, source, segment }) {
         return undefined;
     }
     return { stateId: source.stateId, cases, segment };
+}
+
+/**
+ * The component `source` stands for in the DoenetML of a case: itself, or,
+ * when it is made by a `<conditionalContent>` that extends another (`$e.p` of
+ * `<conditionalContent extend="$cc" name="e"/>`), the component it shadows,
+ * made by the one it extends. The ids of what the extend makes name the case
+ * of what it shadows (`stateIdSegmentForCopiesOfReplacements`), not the
+ * DoenetML, but it shows the case that one shows, so a copy of `$e.p` is
+ * held to that case as one of `$cc.p` is (#2485 item 2). `undefined` when
+ * the component it shadows is not found.
+ */
+function shadowedInDoenetML(source, components) {
+    for (
+        let composite = source.replacementOf;
+        composite;
+        composite = composite.replacementOf
+    ) {
+        if (
+            composite.componentType === "conditionalContent" &&
+            composite.replacementsWorkspace?.stateIdSegmentOfShadowed !==
+                undefined
+        ) {
+            const shadowed = components[source.shadows?.componentIdx];
+            return shadowed
+                ? shadowedInDoenetML(shadowed, components)
+                : undefined;
+        }
+    }
+    return source;
 }
 
 /**
@@ -9334,6 +9381,7 @@ async function keepChoicesReachedByModuleAttributes({
                     attribute,
                     text,
                     componentInfoObjects,
+                    listType: await listTypeAsWritten(sourceAttribute),
                 });
             }
             for (const name of names) {

@@ -1,5 +1,6 @@
 import { codedDiagnostic } from "./diagnostics";
 import { levelFromSource } from "./decidedByDoenetML";
+import { fingerprint } from "./fingerprint";
 
 /**
  * The attributes that set the parameters of each distribution whose
@@ -1137,4 +1138,52 @@ export function sampleFromNumberList({
     let sampledValues = shuffledValues.slice(0, numSamples);
 
     return sampledValues;
+}
+
+/**
+ * Whether a sampler (`<sampleRandomNumbers>`, `<samplePrimeNumbers>`,
+ * `<sampleMultivariateRandomNumber>`) evaluating its draws for the first time
+ * already has them: carried by a `copyWithState` from its source, which
+ * shows the same draws (CPY-8). It keeps them rather than drawing again.
+ * Draws restored from saved state are kept the same way
+ * (`justUpdatedForNewComponent`), so they are made once and never again
+ * (COMP-8); a `copy` carries none and draws its own (D33).
+ *
+ * Carried draws are kept only if they were made from the parameters the
+ * sampler has now (`drawnFrom`, which the source records with its draws and
+ * a `copyWithState` carries with them). The source can have made them
+ * before what it draws from was all there, as when a parameter comes from a
+ * composite written after both, and then they were drawn from something
+ * else (too few, NaN, or ignoring an `exclude` or `type` not yet there): the
+ * copy draws its own, as the source does again once that composite is
+ * there.
+ */
+export function drawsCarried({ essentialValues, previousValues, drawnFrom }) {
+    return (
+        previousValues?.sampledValues === undefined &&
+        Array.isArray(essentialValues?.sampledValues) &&
+        essentialValues?.drawnFrom === drawnFrom
+    );
+}
+
+/**
+ * What a sampler's draws are made from, as `drawsCarried` compares it: a
+ * fingerprint of its `sampledValues` dependencies, without the random
+ * number generator, whether each parameter is written in the DoenetML, and
+ * what core adds for itself (`__determine_dependencies`, which names the
+ * component), none of which decide which values can be drawn or how many.
+ */
+export function drawnFromParameters(dependencyValues) {
+    const parameters = {};
+    for (const [name, value] of Object.entries(dependencyValues)) {
+        if (
+            name === "rng" ||
+            name.startsWith("__") ||
+            name.toLowerCase().endsWith("parametersdecidedbydoenetml")
+        ) {
+            continue;
+        }
+        parameters[name] = value;
+    }
+    return fingerprint(parameters);
 }
