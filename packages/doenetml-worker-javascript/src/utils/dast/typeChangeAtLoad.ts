@@ -105,6 +105,8 @@ export type BranchNameWarning = {
 export type BranchRead = {
     named: number[];
     rest: any[];
+    /** the `<conditionalContent>` or `<select>` whose branches declare it */
+    container: number;
 };
 
 /**
@@ -2850,6 +2852,7 @@ export function checkTypeChangesAtLoad({
         }
         return {
             named: named.map((component) => component.componentIdx),
+            container: container.componentIdx,
             rest: trailingIndex
                 ? [{ name: "", index: trailingIndex }, ...rest]
                 : rest,

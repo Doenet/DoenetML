@@ -1626,7 +1626,10 @@ describe("Answer tag tests @group4", async () => {
         );
     });
 
-    it("award depending on current response throws error", async () => {
+    // The answer reads every value written in its awards to find its
+    // responses, so an award reading them is a cycle, found at load
+    // (Doenet/DoenetML#2515): an error at the reference, and the rest renders.
+    it("award depending on current response is an error at load", async () => {
         const doenetMLs = [
             `<answer name="ans"><mathInput /><award><when>$ans.currentResponse=5</when></award></answer>`,
             `<answer name="ans"><mathInput /><award><when>$ans.currentResponse1=5</when></award></answer>`,
@@ -1635,9 +1638,9 @@ describe("Answer tag tests @group4", async () => {
         ];
 
         for (let doenetML of doenetMLs) {
-            await expect(createTestCore({ doenetML })).rejects.toThrow(
-                "Circular dependency",
-            );
+            const { core } = await createTestCore({ doenetML });
+            const errors = getDiagnosticsByType(core).errors;
+            expect(errors.map((error) => error.code)).eqls(["doenet-e0005"]);
         }
     });
 

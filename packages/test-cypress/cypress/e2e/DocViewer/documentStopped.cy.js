@@ -9,11 +9,13 @@
 //
 // Unlike `documentBuildFailure.cy.js`, this uses a real document: a number that
 // reads its own value is an authoring error, not a bug we intend to fix, so it
-// will go on creating a cycle when it is switched on. It reads it through a
-// function (`$$f($n)`, the `input` of an `<evaluate>`), which the check at load
-// does not follow: a cycle through what is written, a property (`$n.value`) or
-// an input's `prefill` is found when the document loads, in every case, and is
-// an error in place of the reference rather than a stopped document.
+// will go on creating a cycle when it is switched on. It reads a property of
+// itself that the check at load does not list (`$n.hide`): a cycle through
+// what is written, a property such as `$n.value`, an input's `prefill` or a
+// function evaluated at it (`$$f($n)`) is found when the document loads, in
+// every case, and is an error in place of the reference rather than a stopped
+// document (Doenet/DoenetML#2515). If that check comes to find this one too,
+// this needs another, as `circularReferences.test.ts` does.
 
 const FAIL_TIMEOUT = 20_000;
 
@@ -36,8 +38,7 @@ describe(
             renderDoenetML(`
 <p><booleanInput name="b"/></p>
 <p name="p">before</p>
-<function name="f">x+1</function>
-<conditionalContent condition="$b"><number name="n">$$f($n)</number></conditionalContent>
+<conditionalContent condition="$b"><number name="n">$n.hide</number></conditionalContent>
 `);
 
             cy.get("#p").should("have.text", "before");
