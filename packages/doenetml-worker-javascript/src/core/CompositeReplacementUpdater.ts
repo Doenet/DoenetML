@@ -184,6 +184,7 @@ export class CompositeReplacementUpdater {
                     nComponents: this.core._components.length,
                     workspace: component.replacementsWorkspace,
                     componentInfoObjects: this.core.componentInfoObjects,
+                    allDoenetMLs: this.core.allDoenetMLs,
                     flags: this.core.flags,
                     resolveItem: this.core.dependencies.resolveItem.bind(
                         this.core.dependencies,
@@ -630,6 +631,20 @@ export class CompositeReplacementUpdater {
             core: this.core,
             composite: component,
         });
+        // The shadows of the composite got their new replacements with it
+        // (`createShadowedReplacements`), so their index parents, such as a
+        // `<group extend="$r[1]">` of an iteration holding `$cc.x`, are told
+        // the same (#2520 item 5).
+        for (const shadow of allExpandableShadows(component)) {
+            await giveListEntriesToIndexParent({
+                core: this.core,
+                composite: shadow,
+            });
+            await giveReferenceContentToIndexParent({
+                core: this.core,
+                composite: shadow,
+            });
+        }
 
         const results = {
             success: true,
@@ -1647,6 +1662,22 @@ function findExpandableShadowByCompositeIdx(
         }
     }
     return undefined;
+}
+
+/**
+ * The components that shadow `component`, and those that shadow them, in
+ * turn (`iterateExpandableShadows`), each once.
+ */
+function allExpandableShadows(component: any, seen = new Set<any>()): any[] {
+    const found: any[] = [];
+    for (const shadow of iterateExpandableShadows(component)) {
+        if (seen.has(shadow)) {
+            continue;
+        }
+        seen.add(shadow);
+        found.push(shadow, ...allExpandableShadows(shadow, seen));
+    }
+    return found;
 }
 
 function calculateAllComponentsShadowing(component: any): ComponentIdx[] {

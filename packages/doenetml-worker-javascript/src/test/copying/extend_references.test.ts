@@ -5965,13 +5965,20 @@ describe("Extend and references tests @group2", async () => {
                 w.code,
                 w.args?.suggestion,
             ]),
-        ).eqls([["doenet-w0188", "$grp.ma"]]);
+        ).eqls([
+            ["doenet-w0188", "$grp.ma"],
+            // A property after a group of several names nothing, and the
+            // warning names a child that has it (D41 decision 3).
+            ["doenet-w0193", "$grp.ma.x"],
+        ]);
+        // `fixed` is a setting of the group itself (D41 decision 3, COLL-2):
+        // was each child's, `falsetruefalsefalsefalse`.
         expect(
             stateVariables[await resolvePathToNodeIdx("p13")].stateValues.text,
-        ).eq("Prop fixed from group: falsetruefalsefalsefalse");
+        ).eq("Prop fixed from group: false");
         expect(
             stateVariables[await resolvePathToNodeIdx("p14")].stateValues.text,
-        ).eq("Prop x from group: x4");
+        ).eq("Prop x from group: ＿");
     });
 
     it("implicitProp from an input", async () => {

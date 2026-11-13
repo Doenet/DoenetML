@@ -1639,9 +1639,10 @@ export default class SampleRandomNumbers extends ValueListComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        // Any diagnostic these parameters raise was already sent when `sampledValues`
-        // was first computed, and resampling cannot change them, so there is nothing
-        // new to report here — and an action has no `sendDiagnostics` in any case.
+        // The diagnostics these parameters give are not reported here: the
+        // update below runs `sampledValues`' definition again, which keeps
+        // the values and reports them as its conditions, as for the first
+        // draw, so they follow the parameters after a resample too (#2506).
         const { sampledValues } = sampleFromRandomNumbers({
             type: await this.stateValues.type,
             numSamples: await this.stateValues.numSamples,

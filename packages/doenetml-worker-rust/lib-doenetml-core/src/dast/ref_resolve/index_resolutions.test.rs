@@ -489,6 +489,38 @@ fn add_nodes_with_index_resolutions() {
     );
 }
 
+/// A `ReplaceRange` past the end of the parent's index resolutions is a
+/// caller's miscount (#2478's row 4 was hidden by it being skipped), so it
+/// fails loudly in tests (#2520 item 7).
+#[test]
+#[should_panic(expected = "past the end")]
+fn a_replace_range_past_the_end_fails_loudly() {
+    let dast_root = dast_root_no_position(
+        r#"<a name="x">
+            <select name="s" />
+        </a>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let s_idx = find(&flat_root, "select").unwrap();
+
+    let flat_fragment = flat_fragment_from_str(
+        r#"
+    <group><b name="z" /></group>"#,
+        s_idx + 1,
+        Some(s_idx),
+    );
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    // `s` has no index resolutions yet, so replacing its second does not fit.
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: flat_fragment.parent_idx.unwrap(),
+            range: Range { start: 1, end: 2 },
+        },
+    );
+}
+
 #[test]
 fn replace_nodes_with_index_resolutions() {
     let dast_root = dast_root_no_position(
@@ -1522,9 +1554,9 @@ fn an_index_does_not_reach_the_setup_a_repeat_adds() {
         IndexResolution::ReplaceAll { parent: r_idx },
     );
 
-    // `$r[1][1]` and `$r[1][3]` would select the children before and after the setup,
-    // which an index does not do
-    for (index, child_idx) in [("1", c_idx), ("3", e_idx)] {
+    // `$r[1][1]` and `$r[1][2]` would select the two components, before and after the
+    // setup, which is not counted among them (#2520 item 6), and which an index does not do
+    for (index, child_idx) in [("1", c_idx), ("2", e_idx)] {
         assert_stops_at_child_index(
             &resolver.resolve(index_path("r", vec!["1", index]), a_idx, false),
             g_idx,
@@ -1533,8 +1565,8 @@ fn an_index_does_not_reach_the_setup_a_repeat_adds() {
         );
     }
 
-    // `$r[1][2]` would select the setup, which is not reported as a child
-    let path = index_path("r", vec!["1", "2"]);
+    // `$r[1][3]` is past the two components, so no child is reported
+    let path = index_path("r", vec!["1", "3"]);
     assert_stops_at_child_index(
         &resolver.resolve(path.clone(), a_idx, false),
         g_idx,
@@ -1695,6 +1727,33 @@ fn an_index_after_a_group_holding_one_reference_follows_what_it_made() {
 /// whatever that component is, ignoring blank text and a `<setup>`; any other text, or a second
 /// component, makes an index name nothing, and a reference not yet expanded takes the index to
 /// wait on. A group that extends something waits for its content.
+/// The child an index after a group of several would have selected is counted among its
+/// components, as the count is: a `<setup>` is not one, so `$g[1]` of a group whose
+/// `<setup>` comes first is at the first `<m>`, and `$g[2]` at the `<n>` (#2520 item 6).
+#[test]
+fn the_child_an_index_would_select_skips_a_setup() {
+    let dast_root = dast_root_no_position(
+        r#"<a>
+            <group name="g"><setup><s name="v"/></setup><m name="m1"/><n name="n1"/></group>
+        </a>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let g_idx = find(&flat_root, "group").unwrap();
+    let m_idx = find(&flat_root, "m").unwrap();
+    let n_idx = find(&flat_root, "n").unwrap();
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    for (index, child) in [("1", Some(m_idx)), ("2", Some(n_idx)), ("3", None)] {
+        assert_stops_at_child_index(
+            &resolver.resolve(index_path("g", vec![index]), a_idx, false),
+            g_idx,
+            child,
+            2,
+        );
+    }
+}
+
 #[test]
 fn an_authored_group_passes_an_index_to_its_one_component() {
     let dast_root = dast_root_no_position(

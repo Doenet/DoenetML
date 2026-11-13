@@ -23,11 +23,24 @@
  *     (`PROPERTIES_READ`: the `value` of a `<number>`, the `text` of a `<p>`),
  *     or, for an input, from the attribute it starts from (`INPUTS`: the
  *     `value` of a `<mathInput>`, from its `prefill`);
+ *   - of an `<answer>`, its responses
+ *     (`ANSWER_PROPERTIES_READ`), which are made from its awards and inputs
+ *     (`<when>$a.currentResponse=5</when>` in an award of `a`);
  *   - an index into a composite or a list of values made from its
  *     attributes (`MADE_FROM_ATTRIBUTES`: `$s[1]`, of a `<sequence>`, a
  *     `<select>`, a `<repeat>`, …), which reads those attributes (below),
- *     though not what is written in it: it names one of what it makes,
- *     decided only when it runs;
+ *     and, for an index written as a number, what is written in it too
+ *     (`$r[1]` in the template of `<repeat name="r">`, which its first
+ *     iteration holds), or, with a name after it (`$r[1].m`), what the name
+ *     names in what is written in it. An index that is not a number names
+ *     one of what it makes decided only when it runs (`$r[$i-1].m` in the
+ *     template reads the iteration before), so reads only the attributes;
+ *   - an index into a `<textList>` or a `<booleanList>` written as one of its
+ *     own entries (`<booleanList name="l">true $l[5]</booleanList>`), as how
+ *     many entries the list has is made from what it holds;
+ *   - a `<collect>` made a list of values (`collectIsListFormAsWritten`), as
+ *     a whole or by an index, which reads the values of what it collects
+ *     from (below);
  *
  *   unless the index was taken through what a reference makes (`$h[1]` in
  *   `<group extend="$g" name="h">`, which names one of what the copy makes
@@ -38,13 +51,19 @@
  *   `<number>` or a `<boolean>` names nothing (`doenet-w0100`), so none of
  *   these is an edge, but for a reference written as a tag that names the
  *   tag itself, whatever its path (`<group name="g" extend="$g.x"/>`);
+ * - a whole reference to a graphical component (a `<point>`, a `<line>`, …)
+ *   written as content (in a `<p>`, a `<span>`, an `<em>`), which copies the
+ *   component, label and all, to its `<label>`, and those of what it extends
+ *   (`$P` in a `<p>` in the label of `P` holds itself; as the label's value,
+ *   `<label>$P</label>`, it does not, #1384);
  * - a reference to the components in its index (`$i` in `$l[$i]`), which it
  *   reads to know what it names;
  * - a reference to a name the branches of a `<conditionalContent>` or a
  *   one-pick `<select>` declare (`$x`, `$cc.x`, D22), which the resolver
  *   leaves for the container to resolve, to what the name names in each
  *   branch (`branchReads`, from the type check), read as above, as any of
- *   them may be shown;
+ *   them may be shown, and to what decides which is shown (the `condition`
+ *   of each case reading `$cc.x` is a cycle);
  * - a composite (`<conditionalContent>`, `<group>`, `<repeat>`, …), a
  *   `<case>` or an `<option>`, or a reference written as a composite that
  *   holds what is written in it too (`<group extend="$s">`, a `<module
@@ -58,7 +77,8 @@
  *   that only display or style it (`ATTRIBUTES_NOT_READ`), and in the
  *   `condition` of each `<case>` of a `<conditionalContent>` and the
  *   `selectWeight` of each `<option>` of a `<select>`. Not any composite: a
- *   `<collect>`'s `from` names what it collects from, which may hold it;
+ *   `<collect>`'s `from` names what it collects from, which may hold it, but
+ *   for a `<collect>` made a list of values, which reads them all;
  * - a tag whose value is made from its children (`VALUE_FROM_CHILDREN`: a
  *   `<math>`, a `<text>`, a `<label>`, an `<em>`, …, which takes children, so
  *   not an `<evaluate>`), a tag whose content is its children
@@ -66,13 +86,18 @@
  *   …, a copy of which copies them, so that a reference to it in it holds
  *   itself), or a reference written as one, to each child;
  * - an input, to the components in the attributes its value starts from
- *   (`INPUTS`: `prefill`, `bindValueTo`, …), but not to its children.
+ *   (`INPUTS`: `prefill`, `bindValueTo`, …), but not to its children;
+ * - a tag that is neither a composite nor an input, to the components in
+ *   the attributes it is made from (`ATTRIBUTES_READ`: the `simplify` of a
+ *   `<math>`, the `input` of an `<evaluate>`, so `$$f($n)` in `n`), and
+ *   through what each attribute is made as;
+ * - an `<award>` or a `<considerAsResponses>`, to each child.
  *
  * A component that takes a `<label>` as its label (a `<point>`, an input)
- * is none of these, so it has no edges to its children, and its label may
- * read it (`<point name="P"><label>$P</label></point>` means P's value,
- * #1384). A label that is content (`<label><label>$l</label></label>`,
- * `<m>`) is followed.
+ * has no edge to its label, and its label may read it (`<point
+ * name="P"><label>$P</label></point>` means P's value, #1384), but for a
+ * copy of the component in it as content (above). A label that is content
+ * (`<label><label>$l</label></label>`, `<m>`) is followed.
  *
  * Each table here lists what was found, tag by tag, to be a circular
  * dependency when the document ran before the cycle was decided at load: a
@@ -85,15 +110,18 @@
  * (`typeChangeAtLoad`, such as a tag extending the `<conditionalContent>`
  * holding it) has no edges, as it reads nothing.
  *
- * A cycle through a property or an attribute not listed, an index into a
- * composite in what that composite makes (`$r[1]` in the template of a
- * `<repeat name="r">`), a reference in the `<label>` of a component whose
- * value reads it, a component in the attributes of a component that is
- * not a composite or an input (`<math simplify="$m">`), or both the
- * `prefill` of a `<mathInput>` (or a few other attributes an input starts
- * from) and an index into a `<mathList>` or a `<numberList>`
- * (`INPUTS_READING_ONE_ENTRY`) is not found here; it is still reported,
- * or stops the document, when it is reached.
+ * A cycle through a property or an attribute not listed (`$n.hide` in
+ * `<number name="n">`), through the coordinates of points, lines and
+ * polygons (`<polygon name="p" vertices="(1,2) (3,4) $p.vertex1"/>`, a
+ * point constrained to a line through it), which are read coordinate by
+ * coordinate, so that points reading each other's other coordinate are
+ * valid (`<point name="P1">($P2.y, 2)</point><point name="P2">($P1.y,
+ * 1)</point>`) and are not decided by a graph of whole components, an index into a composite in what it makes that is
+ * not written as a number (`$r[$n]`), or both the `prefill` of a
+ * `<mathInput>` (or a few other attributes an input starts from) and an
+ * index into a `<mathList>` or a `<numberList>` whose entry the list does
+ * not say (`INPUTS_READING_ONE_ENTRY`) is not found here; it is still
+ * reported, or stops the document, when it is reached (Doenet/DoenetML#2515).
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
@@ -101,6 +129,11 @@ import type { BranchRead } from "./typeChangeAtLoad";
 import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
 import type { DiagnosticRecord } from "@doenet/utils";
+import { collectIsListFormAsWritten } from "./listForms";
+import {
+    listSplittingFromAttribute,
+    splitListEntries,
+} from "../../components/commonsugar/lists";
 
 /**
  * Tags whose value is made from their children, and the tags that inherit
@@ -360,8 +393,10 @@ export const INPUTS: [
  * prefill="$l[1]"/>` is valid, as is the same through a `<math>` that reads
  * the index (`<math name="y">$l[1]</math>`, `prefill="$y"`). A cycle that
  * goes through both one of these attributes and an index into one of those
- * lists is not found here; it is still reported, or stops the document, when
- * it is reached (`prefill="$l[2]"`, which reads the input itself). Each
+ * lists is found here only for an index written as a number into a list
+ * whose entry it names is a child the list says (`entryChild`:
+ * `prefill="$l[2]"`, which reads the input itself); otherwise it is still
+ * reported, or stops the document, when it is reached. Each
  * found when the document runs; read the same way, a `<choiceInput>`'s
  * `bindValueTo`, a `<slider>`'s `initialValue` and a `<textInput>`'s
  * `prefill` are each a cycle, so are found. Lower case.
@@ -371,6 +406,116 @@ const INPUTS_READING_ONE_ENTRY: Record<string, string[]> = {
     matrixinput: ["prefill", "bindvalueto"],
     choiceinput: ["preselectchoice"],
 };
+
+/**
+ * The tags, neither a composite nor an input, made from some of their
+ * attributes, by the tag they are of: those attributes, each found to be
+ * read when the document runs (`<math name="m" simplify="$m=1">`), and the
+ * properties made from them, beyond those of `PROPERTIES_READ`, each found
+ * the same way (none yet: those of a shape are read coordinate by
+ * coordinate, see the top). A tag is looked up as the first it inherits
+ * from, in this order. Any other
+ * attribute (`hide`, `displayDigits`, `draggable`, `styleNumber`) is not
+ * read to make the value. Matched without regard to case.
+ */
+export const ATTRIBUTES_READ: [
+    string,
+    { attributes: string[]; properties: string[] },
+][] = [
+    [
+        // a `<math>` made from its attributes alone
+        "evaluate",
+        {
+            attributes: [
+                "function",
+                "input",
+                "forceSymbolic",
+                "forceNumeric",
+                "simplify",
+                "expand",
+                "unordered",
+                "createVectors",
+                "createIntervals",
+                "assumptions",
+            ],
+            properties: [],
+        },
+    ],
+    [
+        "math",
+        {
+            attributes: [
+                "format",
+                "simplify",
+                "expand",
+                "unordered",
+                "createVectors",
+                "createIntervals",
+                "functionSymbols",
+                "splitSymbols",
+                "parseScientificNotation",
+                "assumptions",
+            ],
+            properties: [],
+        },
+    ],
+    [
+        "boolean",
+        {
+            attributes: [
+                "symbolicEquality",
+                "expandOnCompare",
+                "simplifyOnCompare",
+                "unorderedCompare",
+                "matchByExactPositions",
+                "allowedErrorInNumbers",
+                "includeErrorInNumberExponents",
+                "allowedErrorIsAbsolute",
+                "numSignErrorsMatched",
+                "numPeriodicSetMatchesRequired",
+                "caseInsensitiveMatch",
+                "matchBlanks",
+            ],
+            properties: [],
+        },
+    ],
+    [
+        "mathList",
+        {
+            attributes: [
+                "maxNumber",
+                "unordered",
+                "mergeMathLists",
+                "functionSymbols",
+                "splitSymbols",
+                "parseScientificNotation",
+            ],
+            properties: [],
+        },
+    ],
+    ["numberList", { attributes: ["maxNumber", "unordered"], properties: [] }],
+    ["textList", { attributes: ["maxNumber", "unordered"], properties: [] }],
+    ["booleanList", { attributes: ["maxNumber", "unordered"], properties: [] }],
+].map(([tag, read]: any) => [
+    tag,
+    {
+        attributes: read.attributes.map((name: string) => name.toLowerCase()),
+        properties: read.properties.map((name: string) => name.toLowerCase()),
+    },
+]);
+
+/**
+ * The properties of an `<answer>` made from its responses, which are made
+ * from what is written in its `<award>`s and inputs, each found to be read
+ * when the document runs: `<when>$a.currentResponse=5</when>` in an award of
+ * `a` is a cycle, as the answer reads every value written in its awards to
+ * find which are responses. Lower case.
+ */
+const ANSWER_PROPERTIES_READ = [
+    "currentresponses",
+    "numresponses",
+    "justsubmitted",
+];
 
 /**
  * The composites, and the lists of values not written as their entries,
@@ -507,6 +652,13 @@ export function breakReferenceCycles({
     // through one of each is not one (`INPUTS_READING_ONE_ENTRY`).
     const inputStartEdges = new Set<string>();
     const listIndexEdges = new Set<string>();
+    // For an edge of `listIndexEdges` from a literal index to the one child
+    // of the list its entry is made from, that child: through an input of
+    // `INPUTS_READING_ONE_ENTRY`, the index reads that entry alone
+    // (`entryChild`).
+    const listEntryEdges = new Map<string, number>();
+    // The component each component is written in, as a child.
+    const parentOf = new Map<number, SerializedComponent>();
 
     function gather(components: (SerializedComponent | string)[]) {
         for (const component of components) {
@@ -540,6 +692,11 @@ export function breakReferenceCycles({
             const reference = referenceOf(component);
             gather(indexComponents(reference?.unresolvedPath));
             gather(indexComponents(reference?.originalPath));
+            for (const child of component.children ?? []) {
+                if (typeof child === "object" && child !== null) {
+                    parentOf.set(child.componentIdx, component);
+                }
+            }
             gather(component.children ?? []);
         }
     }
@@ -659,9 +816,20 @@ export function breakReferenceCycles({
     /** The edges to the children of `component`, but a `<setup>`. */
     function childEdges(component: SerializedComponent) {
         const edges: number[] = [];
+        // what sugar leaves in the `coords` of a point that its value is not
+        // made from (`<point><shortDescription>$P</shortDescription>(1,2)`)
+        const coords = inherits(component.componentType, "coords");
         for (const child of component.children ?? []) {
             if (typeof child === "string" || child.componentType === "setup") {
                 // a `<setup>` is not part of what its parent holds or shows
+                continue;
+            }
+            if (
+                coords &&
+                ["_textOrInline", "label"].some((base) =>
+                    inherits(child.componentType, base),
+                )
+            ) {
                 continue;
             }
             edges.push(child.componentIdx);
@@ -677,6 +845,198 @@ export function breakReferenceCycles({
      */
     function madeFromNode(idx: number) {
         return -idx - 1;
+    }
+
+    /**
+     * The node for the responses of the `<answer>` `idx`
+     * (`ANSWER_PROPERTIES_READ`), apart from the answer, which a reference
+     * to the answer as a whole reads without its awards (`<when>$a=5</when>`
+     * in an award of `a` is valid). Negative, apart from `madeFromNode`.
+     */
+    const RESPONSES = 2 ** 40;
+    function responsesNode(idx: number) {
+        return -RESPONSES - idx;
+    }
+
+    /**
+     * The edges from the responses of the `<answer>` `answer`: to its
+     * awards, which it reads every value written in to find its responses,
+     * to what it takes as responses, and to its inputs.
+     */
+    function responsesEdges(answer: SerializedComponent) {
+        const edges: number[] = [];
+        for (const child of answer.children ?? []) {
+            if (
+                typeof child === "object" &&
+                (inherits(child.componentType, "award") ||
+                    inherits(child.componentType, "considerAsResponses") ||
+                    inherits(child.componentType, "_input"))
+            ) {
+                edges.push(child.componentIdx);
+            }
+        }
+        return edges;
+    }
+
+    /** The edges to the components in the attribute `name` of `component`. */
+    function attributeEdges(component: SerializedComponent, names: string[]) {
+        const edges: number[] = [];
+        for (const [name, attribute] of Object.entries(
+            component.attributes ?? {},
+        )) {
+            if (names.includes(name.toLowerCase())) {
+                edges.push(
+                    ...componentsOfAttribute(attribute).map(
+                        (read) => read.componentIdx,
+                    ),
+                );
+            }
+        }
+        return edges;
+    }
+
+    /** The name written on `component`, if a literal. */
+    function nameOf(component: SerializedComponent) {
+        const attribute: any = component.attributes?.name;
+        if (attribute?.type === "primitive") {
+            return String(attribute.primitive.value);
+        }
+        const children = attribute?.component?.children ?? attribute?.children;
+        if (
+            Array.isArray(children) &&
+            children.every((child: unknown) => typeof child === "string")
+        ) {
+            return children.join("").trim();
+        }
+        return undefined;
+    }
+
+    /**
+     * The components named `name` written in `root`, at any depth: what a
+     * name after an index into `root` (`$r[1].m`) can name in the item the
+     * index names, which is made from it. Every one, not the first: in
+     * branches (a case and the `<else>` each naming `m`) which one the item
+     * holds is decided when the document runs, and a cycle through any
+     * branch is reported, whichever branch is written first (NAME-7).
+     */
+    function namedIn(root: SerializedComponent, name: string) {
+        const lower = name.toLowerCase();
+        const found: SerializedComponent[] = [];
+        const toSearch = [...(root.children ?? [])];
+        while (toSearch.length > 0) {
+            const component = toSearch.shift()!;
+            if (typeof component !== "object") {
+                continue;
+            }
+            if (nameOf(component)?.toLowerCase() === lower) {
+                found.push(component);
+            }
+            if (
+                component.componentType === "repeat" ||
+                component.componentType === "repeatForSequence"
+            ) {
+                // the names in a nested template are its iterations', not
+                // the item's
+                continue;
+            }
+            toSearch.push(...(component.children ?? []));
+        }
+        return found;
+    }
+
+    /** Whether each part of `parts` is an index written as a number. */
+    function literalIndices(parts: any[]) {
+        return parts.every(
+            (part: any) =>
+                part.index?.length > 0 &&
+                part.index.every(
+                    (piece: any) =>
+                        Array.isArray(piece?.value) &&
+                        piece.value.every(
+                            (value: unknown) => typeof value === "string",
+                        ) &&
+                        /^\s*[0-9]+\s*$/.test(piece.value.join("")),
+                ),
+        );
+    }
+
+    /**
+     * The child of the `<mathList>` or `<numberList>` `list` that its entry
+     * `entry` (from 1) is made from, when it is a component (`$mi` in
+     * `<mathList>1 $mi</mathList>`): the text is split into entries as
+     * sugar split it (`_listSplitting`), and each component that is a
+     * `<math>`, a `<number>`, or a whole reference to one or to an input,
+     * is one entry, unless it is the only child or the list merges math
+     * lists, when its value may be several (`mergesMathChild`).
+     */
+    function entryChild(list: SerializedComponent, entry: number) {
+        const children = list.children ?? [];
+        if (
+            list.componentType === "_copy" ||
+            children.length < 2 ||
+            Object.keys(list.attributes ?? {}).some(
+                (name) => name.toLowerCase() === "mergemathlists",
+            )
+        ) {
+            return undefined;
+        }
+        const splittingAttribute: any = list.attributes?._listSplitting;
+        const splitting = listSplittingFromAttribute(
+            splittingAttribute?.type === "primitive"
+                ? String(splittingAttribute.primitive.value)
+                : undefined,
+        );
+        const entries: (number | null)[] = [];
+        for (const child of children) {
+            if (typeof child === "string") {
+                entries.push(
+                    ...splitListEntries(child, splitting).map(() => null),
+                );
+                continue;
+            }
+            let entryType: string | undefined = child.componentType;
+            if (child.componentType === "_copy") {
+                const target = targetOf(child);
+                entryType =
+                    !writtenType(child) &&
+                    target &&
+                    !referenceOf(child)?.unresolvedPath?.length
+                        ? typeOf(target)
+                        : undefined;
+            }
+            if (
+                entryType === undefined ||
+                !(
+                    ["math", "number"].some((base) =>
+                        inherits(entryType!, base),
+                    ) || entryFor(INPUTS, entryType)
+                ) ||
+                ["mathList", "numberList"].some((base) =>
+                    inherits(entryType!, base),
+                )
+            ) {
+                return undefined;
+            }
+            entries.push(child.componentIdx);
+        }
+        return entries[entry - 1] ?? undefined;
+    }
+
+    /**
+     * Whether `copy` is written in what holds it as content, in a `<p>`, a
+     * `<span>` or an `<em>`, where a reference to a component is a copy of
+     * it, label and all, not its value, as in a `<text>`, a `<math>` or a
+     * `<label>`.
+     */
+    function writtenAsContent(copy: SerializedComponent) {
+        const parent = parentOf.get(copy.componentIdx);
+        const parentType = parent ? typeOf(parent) : undefined;
+        return (
+            parentType !== undefined &&
+            [...CONTENT_FROM_CHILDREN, "_inlineRenderInlineChildren"].some(
+                (base) => inherits(parentType, base),
+            )
+        );
     }
 
     /**
@@ -817,7 +1177,7 @@ export function breakReferenceCycles({
         from: SerializedComponent,
         target: SerializedComponent,
         path: any[] | null,
-    ) {
+    ): number[] {
         if (path === null || path.length === 0) {
             return [target.componentIdx];
         }
@@ -825,11 +1185,20 @@ export function breakReferenceCycles({
         if (targetType === undefined) {
             return [];
         }
-        if (
-            path.every(
-                (part: any) => part.name === "" && part.index?.length > 0,
-            )
+        let numIndices = 0;
+        while (
+            numIndices < path.length &&
+            path[numIndices].name === "" &&
+            path[numIndices].index?.length > 0
         ) {
+            numIndices++;
+        }
+        const indices = path.slice(0, numIndices);
+        const literal = literalIndices(indices);
+        const listForm =
+            target.componentType === "collect" &&
+            collectIsListFormAsWritten(target, componentInfoObjects);
+        if (numIndices === path.length) {
             if (
                 ["math", "mathList", "numberList"].some((base) =>
                     inherits(targetType, base),
@@ -841,18 +1210,84 @@ export function breakReferenceCycles({
                         inherits(targetType, base),
                     )
                 ) {
-                    listIndexEdges.add(
-                        `${from.componentIdx}>${target.componentIdx}`,
-                    );
+                    const key = `${from.componentIdx}>${target.componentIdx}`;
+                    listIndexEdges.add(key);
+                    const child =
+                        literal && path.length === 1
+                            ? entryChild(
+                                  target,
+                                  Number(path[0].index[0].value.join("")),
+                              )
+                            : undefined;
+                    if (child !== undefined) {
+                        listEntryEdges.set(key, child);
+                    }
                 }
+                return [target.componentIdx];
+            }
+            if (
+                ["textList", "booleanList"].some((base) =>
+                    inherits(targetType, base),
+                ) &&
+                parentOf.get(from.componentIdx) === target
+            ) {
+                // an entry of its own: how many entries the list has is made
+                // from what it makes (`<booleanList name="l">true
+                // $l[5]</booleanList>`), though an entry in an entry of its
+                // own reads that entry (`<text>$l[1]</text>`)
+                return [target.componentIdx];
+            }
+            if (listForm) {
+                // its values, as one list, made from what it collects from
                 return [target.componentIdx];
             }
             if (
                 target.componentType !== "_copy" &&
                 madeFromAttributes(targetType)
             ) {
-                // one of what it makes, made from its attributes
-                return [madeFromNode(target.componentIdx)];
+                // One of what it makes, made from its attributes, and, for
+                // an index written as a number, from what is written in it
+                // (`$r[1]` in the template of `<repeat name="r">`, which
+                // holds itself in its first iteration). An index that is not
+                // a number names one decided when the document runs: in a
+                // template, `$r[$i - 1]` names the one before.
+                return literal
+                    ? [target.componentIdx]
+                    : [madeFromNode(target.componentIdx)];
+            }
+            return [];
+        }
+        if (numIndices > 0) {
+            if (listForm) {
+                return [target.componentIdx];
+            }
+            if (
+                target.componentType !== "_copy" &&
+                madeFromAttributes(targetType)
+            ) {
+                // A name in one of what it makes (`$r[1].v`), which it makes
+                // from its attributes, and, for an index written as a number,
+                // what the name names in what is written in it, the item
+                // being made from it (`$r[1].m` in `m` in the template of
+                // `<repeat name="r">`).
+                const edges = [madeFromNode(target.componentIdx)];
+                const [namePart, ...rest] = path.slice(numIndices);
+                const named =
+                    literal && typeof namePart?.name === "string"
+                        ? namedIn(target, namePart.name)
+                        : [];
+                for (const component of named) {
+                    edges.push(
+                        ...readEdges(
+                            from,
+                            component,
+                            namePart.index?.length > 0
+                                ? [{ name: "", index: namePart.index }, ...rest]
+                                : rest,
+                        ),
+                    );
+                }
+                return edges;
             }
             return [];
         }
@@ -867,10 +1302,20 @@ export function breakReferenceCycles({
         const property = propertyNamed(targetType, first.name);
         if (
             entryFor(PROPERTIES_READ, targetType)?.includes(property) ||
+            entryFor(ATTRIBUTES_READ, targetType)?.properties.includes(
+                property,
+            ) ||
             (target.componentType !== "_copy" &&
                 entryFor(INPUTS, targetType)?.properties.includes(property))
         ) {
             return [target.componentIdx];
+        }
+        if (
+            target.componentType !== "_copy" &&
+            inherits(targetType, "answer") &&
+            ANSWER_PROPERTIES_READ.includes(property)
+        ) {
+            return [responsesNode(target.componentIdx)];
         }
         return [];
     }
@@ -895,7 +1340,14 @@ export function breakReferenceCycles({
             const branchRead = branchReads.get(component);
             const target = targetOf(component);
             if (branchRead) {
-                // a name the branches declare: what it names in each
+                // a name the branches declare: which branch is shown, decided
+                // by the attributes of the container and its branches (a
+                // case's `condition` reading `$cc.x` is a cycle), and what it
+                // names in each
+                const container = componentsByIdx.get(branchRead.container);
+                if (container && madeFromAttributes(container.componentType)) {
+                    edges.push(madeFromNode(branchRead.container));
+                }
                 for (const idx of branchRead.named) {
                     const named = nodeFor(idx);
                     if (named) {
@@ -919,6 +1371,37 @@ export function breakReferenceCycles({
                 edges.push(
                     ...readEdges(component, target, reference!.unresolvedPath),
                 );
+                const targetType = typeOf(target);
+                if (
+                    !reference!.unresolvedPath?.length &&
+                    targetType !== undefined &&
+                    inherits(targetType, "_graphical") &&
+                    writtenAsContent(component)
+                ) {
+                    // A copy of the component, its label too, as content:
+                    // `$P` in a `<p>` in the `<label>` of `P` holds itself,
+                    // though as the value of the label it does not (#1384).
+                    // An extend of a component holds its label too
+                    // (`<point name="b" extend="$a"/>`, `$b` in a's label).
+                    const seen = new Set<SerializedComponent>();
+                    let labelled: SerializedComponent | undefined = target;
+                    while (labelled && !seen.has(labelled)) {
+                        seen.add(labelled);
+                        for (const child of labelled.children ?? []) {
+                            if (
+                                typeof child === "object" &&
+                                inherits(child.componentType, "label")
+                            ) {
+                                edges.push(child.componentIdx);
+                            }
+                        }
+                        labelled =
+                            labelled.componentType === "_copy" &&
+                            !referenceOf(labelled)?.unresolvedPath?.length
+                                ? targetOf(labelled)
+                                : undefined;
+                    }
+                }
             }
             const written = writtenType(component);
             if (
@@ -949,15 +1432,49 @@ export function breakReferenceCycles({
             ];
         }
         if (isComposite(type)) {
-            return childEdges(component);
-        }
-        if (type === "case" || type === "option" || readsChildren(type)) {
+            if (collectIsListFormAsWritten(component, componentInfoObjects)) {
+                // A list of the values of what it collects from, which reads
+                // them all: in what it collects from, it reads itself.
+                return [
+                    ...childEdges(component),
+                    ...attributeEdges(component, ["from"]),
+                ];
+            }
             return childEdges(component);
         }
         if (entryFor(INPUTS, type)) {
             return inputEdges(component);
         }
-        return [];
+        const edges: number[] = [];
+        if (
+            type === "case" ||
+            type === "option" ||
+            ["award", "considerAsResponses"].some((base) =>
+                inherits(type, base),
+            ) ||
+            readsChildren(type)
+        ) {
+            edges.push(...childEdges(component));
+        }
+        const attributesRead = entryFor(ATTRIBUTES_READ, type)?.attributes;
+        if (attributesRead) {
+            for (const idx of attributeEdges(component, attributesRead)) {
+                edges.push(idx);
+                // through what an attribute is made as from what is written
+                // in it (the `<function>` of `function="$f"`), which is made
+                // from that
+                const made = componentsByIdx.get(idx);
+                if (
+                    made &&
+                    made.componentType !== "_copy" &&
+                    !readsChildren(made.componentType) &&
+                    !isComposite(made.componentType)
+                ) {
+                    edges.push(...childEdges(made));
+                }
+            }
+        }
+        return edges;
     }
 
     const edgesByIdx = new Map<number, number[]>();
@@ -966,7 +1483,10 @@ export function breakReferenceCycles({
     function edges(idx: number) {
         let result = edgesByIdx.get(idx);
         if (result === undefined) {
-            if (idx < 0) {
+            if (idx <= -RESPONSES) {
+                const answer = componentsByIdx.get(-idx - RESPONSES);
+                result = answer ? responsesEdges(answer) : [];
+            } else if (idx < 0) {
                 const composite = componentsByIdx.get(-idx - 1);
                 result = composite ? madeFromEdges(composite) : [];
             } else {
@@ -983,14 +1503,26 @@ export function breakReferenceCycles({
      * in `left`. Strongly connected parts (Tarjan), iteratively, as a
      * document can be deeper than the stack.
      */
-    function findCycles(left: Set<string>) {
+    function findCycles(
+        left: Set<string>,
+        substitutes = new Map<string, number>(),
+    ) {
         const index = new Map<number, number>();
         const lowLink = new Map<number, number>();
         const onStack = new Set<number>();
         const stack: number[] = [];
         let nextIndex = 0;
         function outOf(idx: number) {
-            return edges(idx).filter((next) => !left.has(`${idx}>${next}`));
+            const out: number[] = [];
+            for (const next of edges(idx)) {
+                const key = `${idx}>${next}`;
+                if (!left.has(key)) {
+                    out.push(next);
+                } else if (substitutes.has(key)) {
+                    out.push(substitutes.get(key)!);
+                }
+            }
+            return out;
         }
 
         for (const start of componentsByIdx.keys()) {
@@ -1058,7 +1590,10 @@ export function breakReferenceCycles({
     // the first search, which reaches every node.
     findCycles(inputStartEdges);
     if (inputStartEdges.size > 0) {
-        findCycles(listIndexEdges);
+        // through an input, an index written as a number into such a list
+        // reads the one entry it names, when the list says which child that
+        // is (`prefill="$l[2]"` of `<mathList name="l">1 $mi</mathList>`)
+        findCycles(listIndexEdges, listEntryEdges);
     }
 
     // In document order, so the errors are reported in the order written.

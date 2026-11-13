@@ -83,6 +83,17 @@ async function setup(doenetML: string) {
                 core,
             });
         },
+        async resample(name: string) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName: "resample",
+                args: {},
+            });
+        },
+        /** Ask for every state variable, so each condition is decided. */
+        async refresh() {
+            await core.returnAllStateVariables(false, true);
+        },
     };
 }
 
@@ -419,6 +430,238 @@ describe("A value-driven diagnostic follows its condition (B33) @group4", () => 
     });
 });
 
+describe("Infos that follow their value, after a reload too (#2506) @group4", () => {
+    it("a selectRandomNumbers whose selection a reload keeps reports its info again", async () => {
+        // Its parameter is a reference, so a save holds its selection, and
+        // a reload keeps it rather than selecting again (#2468).
+        const d = await setup(`<selectFromSequence name="sd" from="-1" to="-1"/>
+<selectRandomNumbers type="gaussian" standardDeviation="$sd"/>
+<selectRandomNumbers type="gaussian" standardDeviation="-1"/>
+<booleanInput name="b"/>`);
+        const expected = [
+            { code: "doenet-w0126", type: "info", line: 2 },
+            { code: "doenet-w0126", type: "warning", line: 3 },
+        ];
+        await d.refresh();
+        expect(
+            d.diagnostics(["doenet-w0126"]).map(({ message, ...d }) => d),
+        ).eqls(expected);
+        // an interaction, so there is a save to load from
+        await d.setBoolean("b", true);
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0126"])).map(
+                ({ message, ...d }) => d,
+            ),
+        ).eqls(expected);
+    });
+
+    it("a resample reports what its parameters give, as the first draw did", async () => {
+        const d = await setup(`<mathInput name="sd" prefill="-1"/>
+<sampleRandomNumbers name="s" type="gaussian" standardDeviation="$sd"/>
+<sampleRandomNumbers name="s2" type="gaussian" standardDeviation="-1"/>`);
+        const levels = async () => {
+            await d.refresh();
+            return d
+                .diagnostics(["doenet-w0126"])
+                .map(({ type, line }: any) => [type, line]);
+        };
+        const both = [
+            ["info", 2],
+            ["warning", 3],
+        ];
+        expect(await levels()).eqls(both);
+        await d.resample("s");
+        await d.resample("s2");
+        expect(await levels()).eqls(both);
+
+        await d.setMath("sd", "1");
+        await d.resample("s");
+        expect(await levels()).eqls([["warning", 3]]);
+
+        await d.setMath("sd", "-2");
+        expect(await levels()).eqls(both);
+        await d.resample("s");
+        expect(await levels()).eqls(both);
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0126"])).map(
+                ({ type, line }: any) => [type, line],
+            ),
+        ).eqls(both);
+    });
+
+    it("w0072 comes back each time the case holding the source is no longer active", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent name="cc">
+  <case condition="$b"><section name="S"><math>x</math></section></case>
+</conditionalContent>
+<p name="p"><collect componentType="math" from="$cc.S"/></p>`);
+        const info = [
+            {
+                code: "doenet-w0072",
+                type: "info",
+                line: 5,
+                message: "No source found for collect.",
+            },
+        ];
+        const check = async (shown: boolean) => {
+            // collects what a reload would: nothing while the case isn't active
+            expect(await d.text("p")).eq(shown ? "x" : "");
+            expect(d.diagnostics(["doenet-w0072"])).eqls(shown ? [] : info);
+        };
+        await check(false);
+        for (let i = 0; i < 3; i++) {
+            await d.setBoolean("b", true);
+            await check(true);
+            await d.setBoolean("b", false);
+            await check(false);
+        }
+        expect(await d.diagnosticsSurvivingReload(["doenet-w0072"])).eqls(info);
+        await d.setBoolean("b", true);
+        await check(true);
+        expect(await d.diagnosticsSurvivingReload(["doenet-w0072"])).eqls([]);
+    });
+
+    it("a tag of an iteration that isn't there has an info while it isn't", async () => {
+        const d = await setup(`<mathInput name="i" prefill="0"/>
+<repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat>
+<p name="p"><math extend="$r[$i]"/></p>
+<p>$r[$i]</p>`);
+        const levels = async () => {
+            await d.refresh();
+            return d
+                .diagnostics(["doenet-i0054", "doenet-w0104", "doenet-w0181"])
+                .map(({ code, type, line }: any) => [code, type, line]);
+        };
+        // below 1
+        expect(await levels()).eqls([
+            ["doenet-i0054", "info", 3],
+            ["doenet-w0104", "info", 4],
+        ]);
+        await d.setMath("i", "2");
+        expect(await levels()).eqls([]);
+        expect(await d.text("p")).eq("2");
+        // past the iterations: the bare reference says how many there are
+        await d.setMath("i", "3");
+        const past = [
+            ["doenet-i0054", "info", 3],
+            ["doenet-w0181", "info", 4],
+        ];
+        expect(await levels()).eqls(past);
+        expect(
+            (
+                await d.diagnosticsSurvivingReload([
+                    "doenet-i0054",
+                    "doenet-w0104",
+                    "doenet-w0181",
+                ])
+            ).map(({ code, type, line }: any) => [code, type, line]),
+        ).eqls(past);
+    });
+});
+
+describe("An index that names nothing in what a value shows follows it (#2506) @group4", () => {
+    it("w0181 past a repeat in the case shown is an info while it is past", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent name="cc">
+  <case condition="$b"><repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat></case>
+  <else><repeat name="r" for="1" valueName="v"><math>$v</math></repeat></else>
+</conditionalContent>
+<p name="p">[$cc.r[2]]</p>
+<repeat name="r2" for="1" valueName="v"><math>$v</math></repeat>
+<p>$r2[2]</p>`);
+        const past = (lines: number[]) =>
+            lines.map((line) => [line === 6 ? "info" : "warning", line]);
+        const levels = async () => {
+            await d.refresh();
+            return d
+                .diagnostics(["doenet-w0181"])
+                .map(({ type, line }: any) => [type, line]);
+        };
+        // past one written as `for="1"` is a warning, as written
+        expect(await levels()).eqls(past([6, 8]));
+        for (let i = 0; i < 2; i++) {
+            await d.setBoolean("b", true);
+            expect(await d.text("p")).eq("[2]");
+            expect(await levels()).eqls(past([8]));
+            await d.setBoolean("b", false);
+            expect(await d.text("p")).eq("[＿]");
+            expect(await levels()).eqls(past([6, 8]));
+        }
+        await d.setBoolean("b", true);
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0181"])).map(
+                ({ type, line }: any) => [type, line],
+            ),
+        ).eqls(past([8]));
+    });
+
+    it("w0188 after a group in the case shown is an info while it holds several", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent name="cc">
+  <case condition="$b"><group name="x"><math>a</math></group></case>
+  <else><group name="x"><math>a</math><math>b</math></group></else>
+</conditionalContent>
+<p name="p">[$cc.x[1]]</p>
+<conditionalContent name="cc2">
+  <case condition="false"><group name="x"><math>a</math></group></case>
+  <else><group name="x"><math>a</math><math>b</math></group></else>
+</conditionalContent>
+<p>[$cc2.x[1]]</p>`);
+        const codes = ["doenet-w0188", "doenet-w0100"];
+        const levels = async () => {
+            await d.refresh();
+            return d
+                .diagnostics(codes)
+                .map(({ code, type, line }: any) => [code, type, line]);
+        };
+        // a case whose condition is written `false` is never shown: the
+        // group is decided by the DoenetML, a warning
+        const several = [
+            ["doenet-w0188", "info", 6],
+            ["doenet-w0188", "warning", 11],
+        ];
+        // one math, which takes no index, while the case is shown
+        const one = [
+            ["doenet-w0100", "info", 6],
+            ["doenet-w0188", "warning", 11],
+        ];
+        expect(await levels()).eqls(several);
+        for (let i = 0; i < 2; i++) {
+            await d.setBoolean("b", true);
+            expect(await levels()).eqls(one);
+            await d.setBoolean("b", false);
+            expect(await levels()).eqls(several);
+        }
+        await d.setBoolean("b", true);
+        expect(
+            (await d.diagnosticsSurvivingReload(codes)).map(
+                ({ code, type, line }: any) => [code, type, line],
+            ),
+        ).eqls(one);
+    });
+
+    it("w0188 after an iteration holding several stays a warning as iterations come and go", async () => {
+        // Every iteration is made from the same template
+        const d = await setup(`<mathInput name="n" prefill="2"/>
+<repeatForSequence name="r" length="$n" valueName="v"><math>$v</math><math>2$v</math></repeatForSequence>
+<p>[$r[1][3]]</p>`);
+        const levels = async () => {
+            await d.refresh();
+            return d
+                .diagnostics(["doenet-w0188"])
+                .map(({ type, line }: any) => [type, line]);
+        };
+        expect(await levels()).eqls([["warning", 3]]);
+        await d.setMath("n", "1");
+        expect(await levels()).eqls([["warning", 3]]);
+        expect(
+            (await d.diagnosticsSurvivingReload(["doenet-w0188"])).map(
+                ({ type, line }: any) => [type, line],
+            ),
+        ).eqls([["warning", 3]]);
+    });
+});
+
 describe("DiagnosticsManager conditions (B33) @group4", () => {
     function info(message: string, line = 1) {
         return {
@@ -459,6 +702,27 @@ describe("DiagnosticsManager conditions (B33) @group4", () => {
 
         manager.withdrawConditionDiagnostics(2);
         expect(manager.diagnostics).eqls([]);
+    });
+
+    it("reports a warning a condition gives while its component isn't shown, and keeps it once deleted (#2506)", () => {
+        const manager = new DiagnosticsManager({ preliminaryDiagnostics: [] });
+        const shown = new Set([1, 2]);
+        manager.isShown = (idx) => shown.has(idx);
+        const warning = { ...info("w", 2), type: "warning" as const };
+        manager.setConditionDiagnostics(1, "c", [info("i"), warning]);
+        expect(manager.diagnostics.map((d) => d.message)).eqls(["i", "w"]);
+
+        // withheld: the info explains nothing shown, the warning stays
+        shown.delete(1);
+        expect(manager.diagnostics.map((d) => d.message)).eqls(["w"]);
+
+        // deleted: the warning stays, and is kept once if made again
+        manager.withdrawConditionDiagnostics(1);
+        expect(manager.diagnostics.map((d) => d.message)).eqls(["w"]);
+        manager.setConditionDiagnostics(2, "c", [info("i"), warning]);
+        expect(manager.diagnostics.map((d) => d.message)).eqls(["w", "i"]);
+        manager.withdrawConditionDiagnostics(2);
+        expect(manager.diagnostics.map((d) => d.message)).eqls(["w"]);
     });
 
     it("keeps a diagnostic also added for good", () => {

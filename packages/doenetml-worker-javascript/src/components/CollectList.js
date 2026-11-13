@@ -137,6 +137,7 @@ function collectListClass(Base) {
             for (const name of [
                 "sourceComponentIdx",
                 "sourceComponent",
+                "sourceInactive",
                 "sourceName",
             ]) {
                 stateVariableDefinitions[name] = collectDefinitions[name];

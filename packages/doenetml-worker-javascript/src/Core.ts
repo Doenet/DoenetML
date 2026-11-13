@@ -52,6 +52,7 @@ import { VisibilityTracker } from "./core/VisibilityTracker";
 import * as nameResolver from "./StateVariableNameResolver";
 import { numberAnswers } from "./utils/answer";
 import { buildReaderWritableIndex } from "./utils/readerWritable";
+import { changeContext } from "./utils/decidedByDoenetML";
 
 /** A coded diagnostic `ChildMatcher` recorded for `Core` to raise later. */
 type UnmatchedChildren = { code: DiagnosticCode; args: DiagnosticArgs };
@@ -455,6 +456,11 @@ export default class Core {
             // The component with `stateId`, if one is made, for an unlinked
             // copy to find the `<conditionalContent>` a save held it was
             // made through (`heldSourceInCase` in `Copy.js`).
+            // What can change as a reader works, for a component to decide
+            // the level of a diagnostic it reports (DIAG-2,
+            // `utils/decidedByDoenetML.ts`). Good only while the components
+            // stay as they are.
+            changeContext: () => changeContext(this),
             componentOfStateId: (stateId: string) => {
                 const component =
                     this._components[this.componentIdxByStateId[stateId]];

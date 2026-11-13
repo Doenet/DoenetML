@@ -321,7 +321,64 @@ export function referencedIndexable(
         return null;
     }
     const referent = components[resolution.nodeIdx];
-    return namesInstances(referent, null, componentInfoObjects)
-        ? referent
-        : null;
+    if (namesInstances(referent, null, componentInfoObjects)) {
+        return referent;
+    }
+    // A reference to a group whose whole content is one component stands for
+    // it (NAME-2 pass-through), so through it an index is past the instances
+    // of a composite it holds as it is past them on the composite itself
+    // (`$g[3]` of `<group name="g">$g2</group>`, `g2` holding one repeat,
+    // #2520 item 3).
+    return groupContentIndexable(
+        components,
+        referent,
+        componentInfoObjects,
+        new Set([containerIdx]),
+    );
+}
+
+/**
+ * The component whose instances an index after the `<group>` `group`
+ * selects among, when its whole content (blank strings and `<setup>`s aside)
+ * is one such component (`namesInstances`), or one reference to one, or a
+ * group whose content is, in turn; `null` otherwise.
+ */
+function groupContentIndexable(
+    components: Record<number, any>,
+    group: any,
+    componentInfoObjects: ComponentInfoObjects,
+    seen: Set<number>,
+): any {
+    if (group?.componentType !== "group" || seen.has(group.componentIdx)) {
+        return null;
+    }
+    seen.add(group.componentIdx);
+    const content = (group.replacements ?? []).filter((child: any) =>
+        typeof child === "string"
+            ? child.trim() !== ""
+            : child?.componentType !== "setup",
+    );
+    if (content.length !== 1 || typeof content[0] !== "object") {
+        return null;
+    }
+    const [one] = content;
+    if (isBareReference(one)) {
+        const resolution = refResolutionAt(components[one.componentIdx]);
+        if (!resolution || resolution.unresolvedPath !== null) {
+            return null;
+        }
+        const named = components[resolution.nodeIdx];
+        return namesInstances(named, null, componentInfoObjects)
+            ? named
+            : groupContentIndexable(
+                  components,
+                  named,
+                  componentInfoObjects,
+                  seen,
+              );
+    }
+    if (namesInstances(one, null, componentInfoObjects)) {
+        return one;
+    }
+    return groupContentIndexable(components, one, componentInfoObjects, seen);
 }

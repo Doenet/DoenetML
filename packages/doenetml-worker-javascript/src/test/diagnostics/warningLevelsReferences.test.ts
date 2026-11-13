@@ -946,12 +946,12 @@ describe("The children a check reads (childGroups)", () => {
             `<number name="n">2</number>
 <chart type="bar"><series styleNumber="$n">4 x</series></chart>`,
         ],
-        // A known gap: a style attribute of a value child counts as part of
-        // the value
+        // A style attribute of a value child is not part of the value
+        // (#2506)
         [
             "a series' style from an input",
             "doenet-w0144",
-            "info",
+            "warning",
             `<mathInput name="n" prefill="2"/>
 <chart type="bar"><series styleNumber="$n">4 x</series></chart>`,
         ],

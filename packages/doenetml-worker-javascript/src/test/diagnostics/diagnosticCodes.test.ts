@@ -384,10 +384,12 @@ describe("coded diagnostics reach the record @group4", () => {
     // the record is made, which is where a code is easiest to drop.
     it("codes a circular dependency a composite reports", async () => {
         const { core } = await createTestCore({
+            // A reference holding itself only for the value of an index, which
+            // the check at load leaves to the composite (#2473); a point whose
+            // label holds it as content is an error at load (#2515).
             doenetML: `
-<point name="a">(2,3)
-  <label><section>$a</section></label>
-</point>
+<mathInput name="n" prefill="2"/>
+<repeatForSequence name="r" length="2" valueName="v"><conditionalContent><case condition="$v=1"><text>one</text></case><else><p>hi [$r[$n]]</p></else></conditionalContent></repeatForSequence>
 `,
         });
 

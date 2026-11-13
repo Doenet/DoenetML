@@ -183,6 +183,10 @@ export default class Collect extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "sourceComponent",
                 },
+                sourceInactive: {
+                    dependencyType: "stateVariable",
+                    variableName: "sourceInactive",
+                },
                 ...(stateValues.partlyResolvedSourceIdx != null
                     ? {
                           partlyResolvedSource: {
@@ -200,6 +204,22 @@ export default class Collect extends CompositeComponent {
                     : {}),
             }),
             definition: function ({ dependencyValues, componentInfoObjects }) {
+                if (dependencyValues.sourceInactive) {
+                    // The source was made, and is now withheld, as the
+                    // content of a case no longer active: what the composite
+                    // makes changed, so it is missing by a value, an info,
+                    // and collects nothing, as on a reload, which doesn't
+                    // make it (DIAG-2, DIAG-6, #2506).
+                    return {
+                        setValue: { sourceName: "" },
+                        conditionDiagnostics: [
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-w0072",
+                            }),
+                        ],
+                    };
+                }
                 if (dependencyValues.sourceComponent === null) {
                     // No source, or one `from` names nothing in, is what the
                     // DoenetML says, a warning. A source `from` names inside

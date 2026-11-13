@@ -206,7 +206,7 @@ impl IndexKind {
 }
 
 /// Whether `node` is a `<setup>`, which is not content.
-fn is_setup(node: &FlatNode) -> bool {
+pub(super) fn is_setup(node: &FlatNode) -> bool {
     matches!(node, FlatNode::Element(element) if element.name == "setup")
 }
 
@@ -413,7 +413,28 @@ impl Resolver {
             IndexResolution::ReplaceRange { parent, range } => {
                 let parent_index_resolutions =
                     &mut self.node_resolver_data[parent + 1].index_resolutions;
-                if range.start <= range.end && range.end <= parent_index_resolutions.len() {
+                // A range past the end means the caller counted something other than the
+                // parent's index resolutions (as #2478's row 4 did, counting a copy's
+                // replacements), and skipping it silently keeps stale resolutions (#2520
+                // item 7). It fails in Rust tests. The worker ships a `--dev` WASM build, so
+                // a `debug_assert!` would also stop a reader's document; there it is
+                // reported on the console instead, and the splice is skipped, as there is
+                // nothing sound to replace.
+                let in_bounds =
+                    range.start <= range.end && range.end <= parent_index_resolutions.len();
+                if !in_bounds {
+                    let report = format!(
+                        "ReplaceRange {:?} past the end of the {} index resolutions of node {}",
+                        range,
+                        parent_index_resolutions.len(),
+                        parent
+                    );
+                    #[cfg(any(test, feature = "testing"))]
+                    panic!("{report}");
+                    #[cfg(not(any(test, feature = "testing")))]
+                    crate::utils::log!("{report}");
+                }
+                if in_bounds {
                     parent_index_resolutions.splice(range, new_resolutions);
                 }
             }

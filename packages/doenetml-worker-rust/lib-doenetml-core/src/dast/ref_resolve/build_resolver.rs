@@ -33,6 +33,7 @@ impl Resolver {
                         source_sequence: None,
                         branch_kind: None,
                         iteration_aliases: false,
+                        setup: false,
                     }
                 } else {
                     let node = &flat_root.nodes[idx_plus_1 - 1];
@@ -48,6 +49,7 @@ impl Resolver {
                         source_sequence: extract_source_sequence(node),
                         branch_kind: node_branch_kind(&FlatRootOrFragment::Root(flat_root), node),
                         iteration_aliases: holds_iteration_aliases(node),
+                        setup: is_setup(node),
                     }
                 }
             })
@@ -122,6 +124,7 @@ impl Resolver {
                     source_sequence: None,
                     branch_kind: None,
                     iteration_aliases: false,
+                    setup: false,
                 },
                 padding,
             ));
@@ -136,6 +139,7 @@ impl Resolver {
                 IndexKind::of_node(node, |idx| fragment_node(flat_fragment, idx));
             self.node_resolver_data[node.idx() + 1].iteration_aliases =
                 holds_iteration_aliases(node);
+            self.node_resolver_data[node.idx() + 1].setup = is_setup(node);
             self.node_resolver_data[node.idx() + 1].branch_kind =
                 node_branch_kind(&FlatRootOrFragment::Fragment(flat_fragment), node);
         }

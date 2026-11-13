@@ -4,6 +4,7 @@ import {
     unwrapSource,
 } from "./dast/convertNormalizedDast";
 import { preprocessAttributesObject } from "./attributes";
+import { isWrapperOfSeveral } from "./wrappers";
 
 /**
  * Whether the names inside what `composite` makes are reached through its
@@ -350,9 +351,16 @@ export async function referenceNamesOneThing(
         return false;
     }
     const unresolvedPath = await component.stateValues.unresolvedPath;
-    if (withheld && originalPath?.length > 1) {
-        // A name in a branch that is not active (`$cc.x`), whatever it
-        // names, as it is decided before the branch is made
+    if (
+        withheld &&
+        originalPath?.length > 1 &&
+        !component.doenetAttributes?.pathStartsWithProperty
+    ) {
+        // A name in a branch that is not active (`$cc.x` of a name in a
+        // case), whatever it names, as it is decided before the branch is
+        // made. A property after a collection whose items are all withheld
+        // (`$r.x` of a `<repeat>` with no iterations, `$cc.x` with no case
+        // shown) is one of each item: none, as at load (VAL-5).
         return true;
     }
     // A name, or a property of what it names: one thing, unless it names a
@@ -389,7 +397,20 @@ export async function referenceNamesOneThing(
         propNames?.length > 0 &&
         propNames.every((name) => name === "__prop_name_not_found")
     ) {
-        return true;
+        // Unless each of its items is a wrapper of several (an iteration of
+        // a `<repeat>` holding several), which gives a blank of its own
+        // (`replacementFromProp`, D41 decision 3): a property after a
+        // collection gives one blank per item, and nothing when it has none
+        // (`$r.x` of a `<repeat>` with no iterations, VAL-5).
+        const sources = await component.stateValues.replacementSources;
+        if (!(
+            sources?.length > 0 &&
+            sources.every((source) =>
+                isWrapperOfSeveral(components[source.componentIdx]),
+            )
+        )) {
+            return true;
+        }
     }
     if (
         !ownProperty &&

@@ -44,7 +44,10 @@ export function defaultErrorsAfterLoad(): ErrorsAfterLoad {
  * {@link addDiagnostic} stays. One a component gives on a condition
  * ({@link setConditionDiagnostics}) is there while the condition holds and
  * the component is shown ({@link isShown}), so a diagnostic caused by values
- * that can change appears and goes away with its cause (B33).
+ * that can change appears and goes away with its cause (B33). A warning or
+ * error a condition gives, which comes from what the author wrote (DIAG-2),
+ * is reported whether or not the component is shown, and stays once the
+ * component is deleted (#2506).
  */
 export class DiagnosticsManager {
     /** The diagnostics added with {@link addDiagnostic}, in order. */
@@ -69,6 +72,14 @@ export class DiagnosticsManager {
      * condition. A condition that gives nothing has no entry.
      */
     _conditionDiagnostics: Map<number, Map<string, ConditionEntry[]>>;
+    /**
+     * The authored diagnostics (warnings and errors) that conditions of
+     * components since deleted gave, by dedup key. An authored diagnostic
+     * says the DoenetML should change, so it stays once reported, whether
+     * or not its content is still shown (DIAG-1, SEL-8, #2506), as when a
+     * case that held it is no longer chosen.
+     */
+    _keptAuthored: Map<string, ConditionEntry>;
     /**
      * How to decide again each condition that is not decided again on its
      * own ({@link watchCondition}), by component and then by condition.
@@ -133,6 +144,7 @@ export class DiagnosticsManager {
         // student.
         this._diagnosticKeys = new Set<string>();
         this._conditionDiagnostics = new Map();
+        this._keptAuthored = new Map();
         this._watchedConditions = new Map();
         this._refreshing = false;
         this.isShown = () => true;
@@ -157,7 +169,10 @@ export class DiagnosticsManager {
      * components give, each once.
      */
     get diagnostics(): DiagnosticRecord[] {
-        if (this._conditionDiagnostics.size === 0) {
+        if (
+            this._conditionDiagnostics.size === 0 &&
+            this._keptAuthored.size === 0
+        ) {
             return this._queue;
         }
         const keys = new Set(this._diagnosticKeys);
@@ -166,13 +181,24 @@ export class DiagnosticsManager {
                 diagnostic,
                 seq: this._queueSeq[ind],
             }));
-        for (const [componentIdx, byCondition] of this._conditionDiagnostics) {
-            if (!this.isShown(componentIdx)) {
-                continue;
+        // first, so each keeps the place it was first reported at
+        for (const entry of this._keptAuthored.values()) {
+            if (!keys.has(entry.key)) {
+                keys.add(entry.key);
+                merged.push(entry);
             }
+        }
+        for (const [componentIdx, byCondition] of this._conditionDiagnostics) {
+            // A component not shown explains nothing about what is shown,
+            // so its infos are not reported; what the author wrote is still
+            // to change, so its warnings are (#2506).
+            const shown = this.isShown(componentIdx);
             for (const entries of byCondition.values()) {
                 for (const entry of entries) {
-                    if (!keys.has(entry.key)) {
+                    if (
+                        (shown || isAuthored(entry.diagnostic)) &&
+                        !keys.has(entry.key)
+                    ) {
                         keys.add(entry.key);
                         merged.push(entry);
                     }
@@ -355,9 +381,11 @@ export class DiagnosticsManager {
      * scoped to the component. A diagnostic two components give — two
      * iterations of a repeat made from the same markup point at the same
      * place — is reported once, while either gives it; one also added with
-     * {@link addDiagnostic} stays. It is reported only while the component is
-     * shown ({@link isShown}), and is withdrawn when the component is deleted
-     * ({@link withdrawConditionDiagnostics}).
+     * {@link addDiagnostic} stays. An info is reported only while the
+     * component is shown ({@link isShown}), and is withdrawn when the
+     * component is deleted ({@link withdrawConditionDiagnostics}); a warning
+     * or error is reported while the condition gives it, shown or not, and
+     * stays once the component is deleted.
      */
     setConditionDiagnostics(
         componentIdx: number,
@@ -429,11 +457,27 @@ export class DiagnosticsManager {
      * Withdraw every diagnostic component `componentIdx` gives on a
      * condition ({@link setConditionDiagnostics}), and stop deciding its
      * watched conditions ({@link watchCondition}), as when it is deleted: a
-     * component no longer in the document explains nothing about it.
+     * component no longer in the document explains nothing about it. A
+     * warning or error it gave stays ({@link _keptAuthored}).
      */
     withdrawConditionDiagnostics(componentIdx: number): void {
         this._watchedConditions.delete(componentIdx);
-        if (this._conditionDiagnostics.delete(componentIdx)) {
+        const byCondition = this._conditionDiagnostics.get(componentIdx);
+        if (byCondition) {
+            // What the author wrote is still to change once the component
+            // made from it is gone, as when a case holding it is no longer
+            // chosen or an iteration is removed: it stays (#2506).
+            for (const entries of byCondition.values()) {
+                for (const entry of entries) {
+                    if (
+                        isAuthored(entry.diagnostic) &&
+                        !this._keptAuthored.has(entry.key)
+                    ) {
+                        this._keptAuthored.set(entry.key, entry);
+                    }
+                }
+            }
+            this._conditionDiagnostics.delete(componentIdx);
             this.hasPendingDiagnostics = true;
         }
     }
@@ -520,6 +564,16 @@ export class DiagnosticsManager {
 }
 
 /**
+ * Whether `diagnostic` is authored: a warning or an error, which says the
+ * DoenetML should change, rather than an info, which explains what values
+ * give now (DIAG-1, DIAG-2), or an accessibility diagnostic, which is about
+ * what is shown.
+ */
+function isAuthored(diagnostic: DiagnosticRecord): boolean {
+    return diagnostic.type === "warning" || diagnostic.type === "error";
+}
+
+/**
  * `diagnostics` without each info that the index of a reference written as
  * a tag names nothing now (`doenet-i0054`) where a warning or error at the
  * reference already says why: a property the referent does not have
@@ -585,6 +639,10 @@ function withoutExplainedIndexInfos(
 const EXPLAINS_AT_ANY_LEVEL: ReadonlySet<string> = new Set([
     "doenet-w0100",
     "doenet-w0104",
+    // past what a composite made, or after a group of several, an info
+    // when a value decides what the reference reaches (#2506)
+    "doenet-w0181",
+    "doenet-w0188",
 ]);
 
 /**

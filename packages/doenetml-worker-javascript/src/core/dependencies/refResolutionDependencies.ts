@@ -7,7 +7,11 @@
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
+    branchCanChange,
+    canChange,
+    caseShownCanChange,
     changeContext,
+    numReplacementsCanChange,
     pathHasIndexThatCanChange,
 } from "../../utils/decidedByDoenetML";
 import {
@@ -19,6 +23,7 @@ import { listEntryAtResolverNode } from "../listEntryResolverNodes";
 import { listEntryTargetOfResolution } from "../listEntryTargets";
 import { refResolutionAt } from "../../utils/referenceSlot";
 import {
+    holderReference,
     instanceKindOf,
     referencedIndexable,
 } from "../../utils/indexInstances";
@@ -239,6 +244,45 @@ function numInstances(composite: any): number {
 }
 
 /**
+ * Whether `replacement` is one of the replacements `composite` withholds
+ * now (`replacementsToWithhold`, the last ones).
+ */
+function isWithheldReplacement(composite: any, replacement: any): boolean {
+    const replacements: any[] = composite.replacements ?? [];
+    const position = replacements.indexOf(replacement);
+    return (
+        position >= 0 &&
+        position >=
+            replacements.length - (composite.replacementsToWithhold ?? 0)
+    );
+}
+
+/**
+ * The component `component` is a copy of, through the copies on the way
+ * (`shadows`), or `component` itself: a repeat reached through a reference
+ * to the group holding it (`<group name="g">$g2</group>`) is a copy, whose
+ * attributes shadow the original's, so whether its number of iterations can
+ * change is asked of the original (#2520 item 3).
+ */
+function shadowedOriginal(component: any, components: Record<number, any>) {
+    const seen = new Set<number>();
+    let current = component;
+    while (
+        current?.shadows &&
+        current.shadows.propVariable === undefined &&
+        !seen.has(current.componentIdx)
+    ) {
+        seen.add(current.componentIdx);
+        const next = components[current.shadows.componentIdx];
+        if (!next) {
+            break;
+        }
+        current = next;
+    }
+    return current;
+}
+
+/**
  * The name an author gave `component`, or `undefined` if it has none. The
  * names the parser makes up for compatibility start with `_`.
  */
@@ -392,9 +436,50 @@ export class RefResolutionDependency extends Dependency {
      * is an info rather than a warning (DIAG-2).
      */
     indexFromValue(composite: any): boolean {
-        return pathHasIndexThatCanChange(
-            this.refResolutionOf(composite)?.originalPath,
-            changeContext(this.dependencyHandler.core),
+        const originalPath = this.refResolutionOf(composite)?.originalPath;
+        const ctx = changeContext(this.dependencyHandler.core);
+        return (
+            pathHasIndexThatCanChange(originalPath, ctx) ||
+            this.indexFromIterationThatCanGo(originalPath, ctx)
+        );
+    }
+
+    /**
+     * Whether an index in `path` is read from an index or value name of a
+     * repeat whose number of iterations can change (`$s[$i]` in
+     * `<repeatForSequence to="$mi" indexName="i">`). Within an iteration
+     * `i` is fixed, but whether the iteration is there follows the value,
+     * so what the index names in it is value-driven too (DIAG-2): an info
+     * that goes with the iteration, as a reload without it shows none
+     * (DIAG-6).
+     */
+    indexFromIterationThatCanGo(path: any, ctx: any): boolean {
+        const components = this.dependencyHandler._components;
+        return (path ?? []).some((part: any) =>
+            (part?.index ?? []).some((indexPart: any) =>
+                (indexPart?.value ?? []).some((value: any) => {
+                    if (typeof value === "string") {
+                        return false;
+                    }
+                    const seen = new Set<number>();
+                    let current: any = components[value?.componentIdx];
+                    while (current && !seen.has(current.componentIdx)) {
+                        seen.add(current.componentIdx);
+                        if (
+                            current.componentType === "repeat" ||
+                            current.componentType === "repeatForSequence"
+                        ) {
+                            return numReplacementsCanChange(current, ctx);
+                        }
+                        current =
+                            current.replacementOf ??
+                            (current.parentIdx == undefined
+                                ? undefined
+                                : components[current.parentIdx]);
+                    }
+                    return false;
+                }),
+            ),
         );
     }
 
@@ -426,6 +511,31 @@ export class RefResolutionDependency extends Dependency {
                     sourceDoc: composite.sourceDoc,
                 }),
             ],
+        );
+    }
+
+    /**
+     * Report `diagnostic`, a warning that the reference on `composite`
+     * names nothing: as it is, and kept, when it is decided by the DoenetML
+     * (`decidedByDoenetML`); otherwise, as an info, as the condition of
+     * `composite` that {@link reportIndexNamesNothing} reports, which the
+     * reference decides again when what it goes through changes, so it
+     * lasts while the reference names nothing (DIAG-2, B33). A reload, which
+     * resolves the reference once, then reports the same (DIAG-6, #2506).
+     */
+    reportNamesNothing(
+        composite: any,
+        diagnostic: ReturnType<typeof codedDiagnostic>,
+        decidedByDoenetML: boolean,
+    ) {
+        if (decidedByDoenetML) {
+            this.dependencyHandler.core.addDiagnostic(diagnostic);
+            return;
+        }
+        this.dependencyHandler.core.diagnosticsManager.setConditionDiagnostics(
+            composite.componentIdx,
+            this.indexNamesNothingCondition(),
+            [{ ...diagnostic, type: "info" }],
         );
     }
 
@@ -901,7 +1011,36 @@ export class RefResolutionDependency extends Dependency {
         );
 
         if (refResolution.unresolvedPath === null) {
-            // No unresolved path left, so we're done
+            // No unresolved path left, so we're done. An index that reached
+            // a replacement its composite now withholds (an iteration past
+            // a repeat's count after it shrank, the content of a case no
+            // longer shown) names nothing as one past the end does, and is
+            // reported as that (#2520 items 2 and 3, DIAG-6): the resolver
+            // keeps withheld replacements' places.
+            const lastPart =
+                refResolution.originalPath?.[
+                    refResolution.originalPath.length - 1
+                ];
+            const target =
+                this.dependencyHandler._components[refResolution.nodeIdx];
+            const holder = target?.replacementOf;
+            if (
+                lastPart?.index?.length > 0 &&
+                holder &&
+                isWithheldReplacement(holder, target)
+            ) {
+                this.reportIndexPastComposite(
+                    composite,
+                    holder,
+                    getReferenceAsWritten(),
+                    [
+                        {
+                            name: "",
+                            index: [lastPart.index[lastPart.index.length - 1]],
+                        },
+                    ],
+                );
+            }
 
             return this.foundExtend();
         }
@@ -951,57 +1090,12 @@ export class RefResolutionDependency extends Dependency {
 
             // If the composite is expanded and yet the index did not match one of the composite's replacements,
             // then there is no replacement at that index, and we obtained no referent for the reference.
-            const reference = getReferenceAsWritten();
-
-            // A group holding only a reference to a list or to a composite
-            // with instances is indexed as that list or composite
-            // (`referencedIndexable`): past a list's entries is silent
-            // (#1499), and past a composite's instances says how many it made.
-            const referenced = referencedIndexable(
-                this.dependencyHandler._components,
-                newRefComponent.componentIdx,
-                this.dependencyHandler.componentInfoObjects,
+            this.reportIndexPastComposite(
+                composite,
+                newRefComponent,
+                getReferenceAsWritten(),
+                refResolution.unresolvedPath,
             );
-            const indexedComponent = referenced ?? newRefComponent;
-            const instanceKind = instanceKindOf(indexedComponent.componentType);
-
-            // A composite that produces instances says how many it made
-            // (`doenet-w0181`), naming what the author wrote (D27).
-            if (this.isScalarTag(composite)) {
-                // Reported by the copy as an info that lasts while the
-                // index names nothing (`doenet-i0054`), or, for a literal
-                // index past what a selector picks, as an error when the
-                // document loaded (D36, `typeChangeAtLoad.ts`).
-            } else if (instanceKind) {
-                this.dependencyHandler.core.addDiagnostic(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0181",
-                        args: {
-                            reference,
-                            component: indexedComponent.componentType,
-                            kind: instanceKind,
-                            count: numInstances(indexedComponent),
-                        },
-                        position: composite.position,
-                        sourceDoc: composite.sourceDoc,
-                    }),
-                );
-            } else if (!referenced && this.indexFromValue(composite)) {
-                // past the end of what a composite made, by an index from a
-                // value: an info while it lasts (DIAG-2)
-                this.reportIndexNamesNothing(composite, reference);
-            } else if (!referenced) {
-                this.dependencyHandler.core.addDiagnostic(
-                    codedDiagnostic({
-                        type: "warning",
-                        code: "doenet-w0104",
-                        args: { reference },
-                        position: composite.position,
-                        sourceDoc: composite.sourceDoc,
-                    }),
-                );
-            }
 
             this.compositeReplacementDependencies.push(
                 newRefComponent.componentIdx,
@@ -1012,6 +1106,128 @@ export class RefResolutionDependency extends Dependency {
         }
 
         return this.foundExtend();
+    }
+
+    /**
+     * Report that the index left on the reference of `composite`, which
+     * stopped at the expanded composite `newRefComponent`, names nothing:
+     * past the instances it made (`doenet-w0181`), or past what a group
+     * holding one reference made, or past the case a `<conditionalContent>`
+     * shows (`doenet-w0104`), at the level of what decides it (DIAG-2).
+     * `unresolvedPath` is what is left of the reference, starting with the
+     * index.
+     */
+    reportIndexPastComposite(
+        composite: any,
+        newRefComponent: any,
+        reference: string,
+        unresolvedPath: any[],
+    ) {
+        // A group holding only a reference to a list or to a composite
+        // with instances is indexed as that list or composite
+        // (`referencedIndexable`): past a list's entries is silent
+        // (#1499), and past a composite's instances says how many it made.
+        const referenced = referencedIndexable(
+            this.dependencyHandler._components,
+            newRefComponent.componentIdx,
+            this.dependencyHandler.componentInfoObjects,
+        );
+        const indexedComponent = referenced ?? newRefComponent;
+        const instanceKind = instanceKindOf(indexedComponent.componentType);
+
+        // A composite that produces instances says how many it made
+        // (`doenet-w0181`), naming what the author wrote (D27).
+        if (this.isScalarTag(composite)) {
+            // Reported by the copy as an info that lasts while the
+            // index names nothing (`doenet-i0054`), or, for a literal
+            // index past what a selector picks, as an error when the
+            // document loaded (D36, `typeChangeAtLoad.ts`).
+        } else if (instanceKind) {
+            // Past what the author wrote (`for="1 2"`) a warning; past
+            // what a value gives (an index from an input, a repeat in a
+            // case shown by one) an info while it lasts (DIAG-2, #2506)
+            const ctx = changeContext(this.dependencyHandler.core);
+            this.reportNamesNothing(
+                composite,
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0181",
+                    args: {
+                        reference,
+                        component: indexedComponent.componentType,
+                        kind: instanceKind,
+                        count: numInstances(indexedComponent),
+                    },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+                !this.indexFromValue(composite) &&
+                    !numReplacementsCanChange(
+                        shadowedOriginal(
+                            indexedComponent,
+                            this.dependencyHandler._components,
+                        ),
+                        ctx,
+                    ),
+            );
+        } else if (
+            !referenced &&
+            newRefComponent.componentType === "conditionalContent" &&
+            !this.indexFromValue(composite)
+        ) {
+            // A `<conditionalContent>` holds at most one item, the case
+            // it shows (D41). An index past it (`$cc[2]`) names nothing
+            // whatever is shown: a warning. `$cc[1]` names nothing only
+            // while no case is shown, which a value can decide (an
+            // input in a condition): then an info while it lasts
+            // (DIAG-2), so a reload agrees (DIAG-6).
+            const written = unresolvedPath[0].index?.[0]?.value;
+            const literal =
+                Array.isArray(written) &&
+                written.length === 1 &&
+                typeof written[0] === "string"
+                    ? Number(written[0].trim())
+                    : NaN;
+            this.reportNamesNothing(
+                composite,
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0104",
+                    args: { reference },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+                literal !== 1 ||
+                    !caseShownCanChange(
+                        newRefComponent,
+                        changeContext(this.dependencyHandler.core),
+                    ),
+            );
+        } else if (!referenced && this.indexFromValue(composite)) {
+            // past the end of what a composite made, by an index from a
+            // value: an info while it lasts (DIAG-2)
+            this.reportIndexNamesNothing(composite, reference);
+        } else if (!referenced) {
+            // Past what a group holding one reference made: decided by
+            // the DoenetML unless what that reference names can change
+            // (`$cc.x`, a list in each case, held by an iteration or an
+            // extend of one), when it is an info while it lasts (DIAG-2,
+            // #2520 item 5)
+            const ctx = changeContext(this.dependencyHandler.core);
+            const held = holderReference(newRefComponent);
+            this.reportNamesNothing(
+                composite,
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0104",
+                    args: { reference },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+                !(held && canChange(held, ctx, true)) &&
+                    !numReplacementsCanChange(newRefComponent, ctx),
+            );
+        }
     }
 
     /**
@@ -1158,11 +1374,21 @@ export class RefResolutionDependency extends Dependency {
             suggestion = `${before}.${childName ?? "x"}${args}`;
         }
 
+        // How the group is written decides it, a warning, unless the
+        // reference can come to reach a group written otherwise, as one in
+        // a case shown by an input, an info while it lasts (DIAG-2, #2506)
+        const container =
+            this.dependencyHandler._components[childIndex.containerIdx];
+        const decidedByDoenetML =
+            !this.indexFromValue(composite) &&
+            !(container && branchCanChange(container, changeContext(core)));
+
         if (childIndex.count === 1) {
             // The one component is text (the resolver counts text as a
             // component but passes no index to it): it stands for the group,
             // and takes no index, as a `<text>` does not.
-            core.addDiagnostic(
+            this.reportNamesNothing(
+                composite,
                 codedDiagnostic({
                     type: "warning",
                     code: "doenet-w0100",
@@ -1170,11 +1396,13 @@ export class RefResolutionDependency extends Dependency {
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
                 }),
+                decidedByDoenetML,
             );
             return;
         }
 
-        core.addDiagnostic(
+        this.reportNamesNothing(
+            composite,
             codedDiagnostic({
                 type: "warning",
                 code: "doenet-w0188",
@@ -1189,6 +1417,7 @@ export class RefResolutionDependency extends Dependency {
                 position: composite.position,
                 sourceDoc: composite.sourceDoc,
             }),
+            decidedByDoenetML,
         );
     }
 

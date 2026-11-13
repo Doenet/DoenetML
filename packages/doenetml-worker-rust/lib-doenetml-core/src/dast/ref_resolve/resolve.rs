@@ -279,6 +279,11 @@ pub struct NodeResolverData {
     /// made through it.
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub(super) iteration_aliases: bool,
+    /// Whether the node is a `<setup>` (the author's, or the one a repeat adds), which is not
+    /// content: it is not counted among a group's components, so the child an index after a
+    /// group of several would have selected (`ChildIndex::child_idx`) skips it (#2520 item 6).
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub(super) setup: bool,
 }
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
@@ -630,16 +635,24 @@ impl Resolver {
                             ),
                             _ => (0, node_data.index_resolutions.len()),
                         };
+                        // Counted among the components, as `count` is: a `<setup>` is not one
                         let child_idx = literal
-                            .filter(|index_num| *index_num <= num)
+                            .filter(|index_num| *index_num >= 1)
                             .and_then(|index_num| {
                                 node_data
                                     .index_resolutions
-                                    .get(first + index_num - 1)
+                                    .iter()
+                                    .skip(first)
+                                    .take(num)
+                                    .filter(|resolution| {
+                                        !matches!(resolution, Some(idx)
+                                            if self.node_resolver_data[idx + 1].setup
+                                                || self.node_resolver_data[idx + 1].iteration_aliases)
+                                    })
+                                    .nth(index_num - 1)
                                     .copied()
                             })
-                            .flatten()
-                            .filter(|idx| !self.node_resolver_data[idx + 1].iteration_aliases);
+                            .flatten();
                         return Ok(RefResolution {
                             node_idx: current_idx,
                             unresolved_path: Some(unresolved_from_here("")),

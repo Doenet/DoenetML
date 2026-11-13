@@ -519,10 +519,12 @@ describe("Missing values and missing tags (D37) @group2", () => {
                 bare.filter((d) => d === "E"),
                 reference,
             ).eqls(onTag.filter((d) => d === "E"));
+            // An index from a value past what a select picked is an info on
+            // the bare reference too, which follows the index (#2506)
             expect(
                 bare.filter((d) => d.startsWith("I")),
                 reference,
-            ).eqls([]);
+            ).eqls(reference === "$s[$i]" ? ["I doenet-w0181"] : []);
         }
 
         // once the index names something, nothing is reported

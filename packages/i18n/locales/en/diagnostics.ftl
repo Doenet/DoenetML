@@ -555,6 +555,96 @@ reference-name-types-differ-in-branches = `{ $reference }` names nothing: `{ $na
        *[other] the `<{ $container }>`
     } and a `<{ $secondType }>` in another. Use the same type, or different names.
 
+# A property or an index after a `<select>` or `<conditionalContent>` whose
+# options or cases differ: some hold one component, to which it passes, and
+# others several, a container it does not pass into (#2520, D41). Decided at
+# load from every option or case. $reference is the reference as written,
+# with its `$`. $what is `index` or `property`. $branch is `option` or
+# `case`; $ordinals lists the options, or the cases (not the `<else>`), that
+# hold several, and $withElse is `true` when the `<else>` does too.
+# $container is the container's name when $hasName is `true`, else its tag
+# name. $suggestion (when $hasSuggestion is `true`) is the reference with
+# `.P` after the container and its first index. Tags, names and references
+# stay as written.
+
+reference-branches-hold-several = `{ $reference }`: { $what ->
+        [index] an index
+       *[property] a property
+    } after { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } passes into what { $branch ->
+        [option] each pick
+       *[case] the case shown
+    } holds only when it holds one component, and { $branch ->
+        [option] { $ordinalsCount ->
+            [one] option { $ordinals } holds
+           *[other] options { $ordinals } hold
+        }
+       *[case] { $withElse ->
+            [true] { $ordinalsCount ->
+                [0] the `<else>` holds
+                [one] case { $ordinals } and the `<else>` hold
+               *[other] cases { $ordinals } and the `<else>` hold
+            }
+           *[other] { $ordinalsCount ->
+                [one] case { $ordinals } holds
+               *[other] cases { $ordinals } hold
+            }
+        }
+    } several. { $hasSuggestion ->
+        [true] Give the component you mean a name in each, such as `name="P"`, and write `{ $suggestion }`.
+       *[other] Give the component you mean a name in each, and write that name after a `.`.
+    }
+
+# A property after a `<select>` or `<conditionalContent>` whose options or
+# cases each hold one component, where some of those components have the
+# property and others don't (D40, #2452): each that lacks it gives a blank.
+# Decided at load from every option or case. $reference is the reference as
+# written, with its `$`; $property the property and $lackingType the tag of a
+# component that lacks it, both as written. $container is the container's
+# name when $hasName is `true`, else its tag name. $branch is `option` or
+# `case`. A name in only some options or cases names nothing from outside
+# (`doenet-w0183`), so the message does not suggest reading one by name.
+
+reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } has no property `{ $property }`, so it gives a blank there. For a value from each, give every { $branch ->
+        [option] option
+       *[case] case
+    } a component that has `{ $property }`.
+
+# A property after a `<group>` that holds several components: `$g.x` on a
+# `<group name="g">` holding two points, `$r[1].x` after an iteration of a
+# repeat that holds two, `$s.x` after a pick that holds two, or `$cc.x` after
+# the case a `<conditionalContent>` shows, holding two (D41). A group holding
+# one component stands for it, and the property is that component's; with
+# several, the group is only a container, and the reference names nothing
+# there. The group's own settings (`$g.hide`) are not this.
+# $reference is the reference as the author wrote it, with its `$`.
+# $container and $component are as for `reference-index-selects-child`:
+# `iteration`, `pick`, `case` or `group`, and the tag name of the repeat,
+# select or `<conditionalContent>` (`group` for a `<group>`). $count is how
+# many components the group holds, not counting blank text and `<setup>`s.
+# $child is `named` when the first child that has the property has a name,
+# `reference` when it is a reference written alone (`$Q`), which cannot take
+# a name, else `unnamed`; $tag is, for `reference`, that reference written as
+# a tag with a name (`<point extend="$Q" name="P"/>`); $suggestion is the
+# reference with that child's name (or `P`) put before the property. Tags,
+# references and attributes stay as written.
+reference-property-after-several =
+    { $container ->
+        [iteration] `{ $reference }` names nothing: this iteration of a `<{ $component }>` holds { $count } components, and a property passes into an iteration only when it holds one.
+        [pick] `{ $reference }` names nothing: what the `<{ $component }>` picked holds { $count } components, and a property passes into a pick only when it holds one.
+        [case] `{ $reference }` names nothing: what the `<{ $component }>` shows holds { $count } components, and a property passes into it only when it holds one.
+       *[group] `{ $reference }` names nothing: the `<group>` holds { $count } components, and a property passes into a group only when it holds one.
+    } { $child ->
+        [named] To read the property of a child, write `{ $suggestion }`.
+        [reference] To read the property of a child, write it as a tag with a name, such as `{ $tag }`, and write `{ $suggestion }`.
+       *[unnamed] To read the property of a child, give it a name, such as `name="P"`, and write `{ $suggestion }`.
+    }
+
 ## `<callAction>`
 
 # $action is the `actionName` the author asked for, part of the DoenetML

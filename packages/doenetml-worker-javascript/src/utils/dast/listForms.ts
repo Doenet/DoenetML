@@ -125,6 +125,48 @@ const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {
     shuffle: new Set([...COPY_MECHANICS, "aslist"]),
 };
 
+/**
+ * Whether the `<collect>` `collect` is made a `_collectList` as written: it
+ * is no `extend` or `copy`, takes only the attributes the list does, and
+ * names, as `componentType`, one of the types of `COLLECT_LIST_BASES`. An
+ * `extend` or `copy` of it that sets more keeps it a composite, which this
+ * does not look at (`convertToListForms` does). A list collects the values of
+ * what it collects from as one array, so a reference to it, or to one of
+ * its entries, in what it collects from, reads itself
+ * (`referenceCycles.ts`).
+ */
+export function collectIsListFormAsWritten(
+    collect: SerializedComponent,
+    componentInfoObjects: ComponentInfoObjects,
+) {
+    if (collect.componentType !== "collect" || collect.extending) {
+        return false;
+    }
+    const allowed = LIST_FORM_ATTRIBUTES.collect;
+    if (
+        !Object.keys(collect.attributes ?? {}).every((name) =>
+            allowed.has(name.toLowerCase()),
+        )
+    ) {
+        return false;
+    }
+    const component = serializedAttributeComponent(
+        collect.attributes?.componentType,
+    );
+    if (
+        !component ||
+        !component.children.every((child) => typeof child === "string")
+    ) {
+        return false;
+    }
+    const written = (component.children as string[])
+        .join("")
+        .trim()
+        .toLowerCase();
+    const type = componentInfoObjects.componentTypeLowerCaseMapping[written];
+    return type in COLLECT_LIST_BASES;
+}
+
 export function convertToListForms({
     serializedComponents,
     componentInfoObjects,

@@ -313,5 +313,8 @@
     "doenet-w0187": "copy-attribute-invalid-for-component",
     "doenet-w0188": "reference-index-selects-child",
     "doenet-w0189": "repeat-value-name-is-index-name",
-    "doenet-w0190": "copy-children-ignored"
+    "doenet-w0190": "copy-children-ignored",
+    "doenet-w0191": "reference-branches-hold-several",
+    "doenet-w0192": "reference-property-partly-held",
+    "doenet-w0193": "reference-property-after-several"
 }

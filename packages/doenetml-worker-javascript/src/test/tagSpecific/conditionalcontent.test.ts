@@ -657,14 +657,16 @@ describe("Conditional content tag tests @group2", async () => {
         // reference, whether bare or written as a tag, which is then
         // missing (#2450, D37)
         const { warnings, errors } = getDiagnosticsByType(core);
-        // `d` is no name of the document, so it is a property, which no
-        // case has (`doenet-w0104`).
+        // `d` is no name of the document, so it is a property. Every case
+        // holds several components, so a property after `cc` names nothing
+        // whichever is shown, a warning at load (D41 decision 3,
+        // `doenet-w0191`).
         expect(warnings.map((w) => w.message)).eqls([
             "`$cc2.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
             "`$cc3.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
+            '`$cc.d`: a property after `cc` passes into what the case shown holds only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.d`.',
+            '`$cc2.d`: a property after `cc` passes into what the case shown holds only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc2.P.d`.',
             "`$cc.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
-            "No referent found for reference: `$cc.d`",
-            "No referent found for reference: `$cc2.d`",
         ]);
         expect(errors.map((e) => e.message)).eqls([]);
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -1416,11 +1418,14 @@ describe("Conditional content tag tests @group2", async () => {
         await check_items("elephant", "trumpets");
 
         // An index never selects a child of what the conditionalContent
-        // shows (D27): each of these names nothing, with a warning that says
-        // so. The pieces that are strings are nothing to select.
-        const warnings = getDiagnosticsByType(core).warnings;
+        // shows (D27): each of these names nothing, and says so. The pieces
+        // that are strings are nothing to select. Which case is shown
+        // follows `n`, so what the index comes after is decided by a value:
+        // an info (DIAG-2, #2506).
+        const { warnings, infos } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
         expect(
-            warnings
+            infos
                 .map((w) => [
                     w.code,
                     w.args?.reference,
