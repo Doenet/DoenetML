@@ -220,8 +220,12 @@ plugs in by passing its factory as the `core` option of `createHeadlessCore`,
 `gradeState` or `check`; making it the default is a change to one file,
 `src/defaultCore.ts`.
 
-The JavaScript core computes in English, has no host to fetch external
-DoenetML from (a `copy="doenet:..."` reference is reported as an error, and
+The JavaScript core computes in English, even for a document that declares
+another language with `lang` or that a viewer shows with a non-English
+`documentLocale`, where the viewer computes the words the core writes into the
+content (a boolean's text, for one) in that language; an answer that compares a
+response with such words is graded here against the English ones. It has no
+host to fetch external DoenetML from (a `copy="doenet:..."` reference is reported as an error, and
 the document is graded without the content it names, where a viewer whose host
 fetches it shows that content and its answers), and
 runs with the viewer's default flags except that it sends no events (as the
