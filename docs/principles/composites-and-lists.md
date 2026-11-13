@@ -331,7 +331,7 @@ chooses for itself (D33). An `extend` and a `copyWithState` show the same select
 `<sampleMultivariateRandomNumber>` draw from the variant too, but they are meant to draw again:
 when what they read changes, and when they are resampled (`resample()`). So a sampler may read
 what a reader changes, and redrawing when a parameter changes is correct. A reload still brings
-back the draws it had (SAVE-4; #2477 for a `copyWithState`). Because a sampler can draw again,
+back the draws it had (SAVE-4), also for a `copyWithState` and for draws made at load (#2549). Because a sampler can draw again,
 a selection may not read one (SEL-1).
 
 Evidence:
@@ -471,7 +471,11 @@ which aren't choices.
   load in a case not shown, an iteration not made and an option not picked, and an authored
   warning is a warning there, not an info. **Left** (#2506): a warning a component decides is
   reported only once its content is made;
-- a `copyWithState` of a sampler doesn't keep its draws through a reload (#2477, SAVE-4).
+- **fixed by #2549** (closing #2477): a `copyWithState` of a sampler carries its draws, and draws
+  made as the document loads are saved even with no update before a reload. **Left**
+  (#2553): when a sampler's parameters come from a composite written after it, the source
+  draws again at each reload, and its `copyWithState` draws its own; a `copyWithState` of a
+  `<selectRandomNumbers>` whose range comes from a group written later selects `null`;
 
 ### COMP-9: `conditionalContent` shows the first case whose condition is true, else the `<else>` (Tier 1)
 The single-case form `<conditionalContent condition="…">` shows its children or nothing.
@@ -492,8 +496,8 @@ evaluation-order artifact: a copy is still a `mathInput` after its source switch
 `textInput` case. A core in which every branch is built cannot reproduce that, and should not.
 Both are Tier 3.
 
-A known limitation: kept state can go stale after an outside change, for example an answer still
-marked "just submitted" (#2325).
+Kept state no longer goes stale after an outside change: since #2549 a value restored when a case
+is shown again is compared again, not trusted (SAVE-1).
 
 ### COMP-11: a name inside a choice is visible when every branch declares it, with the same type (Tier 1; D13, D22)
 - **A name inside a `<conditionalContent>` is visible outside it**, as a `<group>`'s is. A plain
