@@ -27,7 +27,10 @@ import {
     createComponentIndicesFromSerializedChildren,
     createComponentIndicesForShadowedReplacements,
 } from "../utils/componentIndices";
-import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
+import {
+    CircularDependencyError,
+    rethrowIfCircular,
+} from "./dependencies/CircularDependencyError";
 import {
     giveListEntriesToIndexParent,
     giveReferenceContentToIndexParent,
@@ -321,6 +324,18 @@ export async function expandCompositeComponent({
     }
 
     core.updateInfo.compositesToExpand.delete(component.componentIdx);
+
+    if (
+        core.updateInfo.compositesBeingExpanded.includes(component.componentIdx)
+    ) {
+        // Making this composite's replacements reached the composite itself,
+        // as when a sampler in what a `copyWithState` copies is drawn from
+        // that copy, and makes its draws before it is copied. Expanding it
+        // again here would do so without end.
+        throw new CircularDependencyError(
+            core.dependencies.getCircularDependencyMessage([component]),
+        );
+    }
 
     core.updateInfo.compositesBeingExpanded.push(component.componentIdx);
 

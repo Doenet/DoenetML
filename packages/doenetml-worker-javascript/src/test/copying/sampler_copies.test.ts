@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -112,5 +113,58 @@ describe("Copies of a sampler @group4", () => {
             initialState: scoreState.state,
         }));
         expect(await draws()).eqls(before);
+    });
+
+    it("a copyWithState of a sampler drawing from what is written after both draws its own", async () => {
+        // The source's draws are made when it is copied, before the group
+        // is there, so they do not fit what the group gives and are not
+        // carried: the copy draws its own and keeps them through a reload.
+        // The source draws again once the group is there, as on a reload.
+        const doenetML = `
+    <sampleRandomNumbers name="s" numSamples="$g.n" />
+    <sampleRandomNumbers name="c" copyWithState="$s" />
+    <group name="g"><number name="n">2</number></group>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function draws() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const name of ["s", "c"]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .sampledValues,
+                );
+            }
+            return result;
+        }
+        const before = await draws();
+        expect(before[0].length).eq(2);
+        expect(before[1].length).eq(2);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect((await draws())[1]).eqls(before[1]);
+    });
+
+    it("a copyWithState of a group whose sampler draws from that copy reports the cycle", async () => {
+        // Making the sampler's draws before it is copied reaches the copy
+        // being made.
+        const { core } = await createTestCore({
+            doenetML: `
+    <group name="g"><sampleRandomNumbers name="s" numSamples="$g2.s.numSamples" /></group>
+    <group name="g2" copyWithState="$g" />
+    `,
+        });
+        expect(
+            getDiagnosticsByType(core).errors.map((e: any) => e.message),
+        ).eqls(["Circular dependency detected involving `<group>` component."]);
     });
 });

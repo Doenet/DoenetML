@@ -1537,7 +1537,11 @@ export default class SampleRandomNumbers extends ValueListComponent {
                 if (
                     Object.keys(changes).length === 0 ||
                     justUpdatedForNewComponent ||
-                    drawsCarried({ essentialValues, previousValues })
+                    drawsCarried({
+                        essentialValues,
+                        previousValues,
+                        numDraws: dependencyValues.numSamples,
+                    })
                 ) {
                     // Keep the values, but re-check the parameters: they have not
                     // changed, so whatever was wrong with them still is, and an

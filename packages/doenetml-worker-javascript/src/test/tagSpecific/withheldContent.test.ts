@@ -167,6 +167,26 @@ describe("Withheld content acts as missing from outside @group2", () => {
         expect((await h.sv("cc.mi")).stateValues.value.tree).eq(7);
     });
 
+    it("an updateValue on a withheld input triggers no chained action", async () => {
+        const h = await setup(`
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+      <case condition="$b"><mathInput name="mi" prefill="1" /></case>
+    </conditionalContent>
+    <number name="n">0</number>
+    <updateValue name="uv" target="$cc.mi" newValue="7" />
+    <updateValue name="count" target="$n" newValue="$n+1" triggerWith="$uv" />
+    `);
+        await h.setBoolean("b", false);
+        await updateValue({ componentIdx: await h.idx("uv"), core: h.core() });
+        expect((await h.sv("n")).stateValues.value).eq(0);
+
+        await h.setBoolean("b", true);
+        await updateValue({ componentIdx: await h.idx("uv"), core: h.core() });
+        expect((await h.sv("cc.mi")).stateValues.value.tree).eq(7);
+        expect((await h.sv("n")).stateValues.value).eq(1);
+    });
+
     it("an action on an iteration a repeat no longer has does nothing", async () => {
         const h = await setup(`
     <mathInput name="k" prefill="3" />

@@ -18,7 +18,8 @@ import { splitListText } from "@doenet/parser/list-separation";
  * brackets if there is one, at spaces otherwise. Its entries are written
  * separated by spaces, or else by commas, whichever that rule reads back as
  * the same entries. `undefined` when neither does (an entry holding a comma
- * outside brackets), and for any other value, which is then not held.
+ * outside brackets, or a single entry whose text holds a space, as `2x`
+ * written `2 x`), and for any other value, which is then not held.
  */
 export async function valueAsWritten(component) {
     const value = await component?.stateValues?.value;

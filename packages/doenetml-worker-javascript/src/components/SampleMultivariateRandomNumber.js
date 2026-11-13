@@ -382,7 +382,11 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                 if (
                     Object.keys(changes).length === 0 ||
                     justUpdatedForNewComponent ||
-                    drawsCarried({ essentialValues, previousValues })
+                    drawsCarried({
+                        essentialValues,
+                        previousValues,
+                        numDraws: dependencyValues.numInCategories?.length,
+                    })
                 ) {
                     // Keep the counts, but re-check the parameters: they have not
                     // changed, so whatever was wrong with them still is, and an

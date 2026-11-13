@@ -277,10 +277,10 @@ export function addClickTargetStateVariableDefinition(
 }
 
 /**
- * Whether each of the components an action (`<callAction>`, `<updateValue>`)
- * would act on, `targetIndices`, is withheld from what is shown: in a case
- * of a `<conditionalContent>` that is not true, or an iteration a repeat no
- * longer has. From outside, withheld content acts as missing (SAVE-4, D40,
+ * Which of the components an action (`<callAction>`, `<updateValue>`) would
+ * act on, `targetIndices`, are not withheld from what is shown. Content is
+ * withheld when it is in a case of a `<conditionalContent>` that is not
+ * true, or in an iteration a repeat no longer has. From outside, withheld content acts as missing (SAVE-4, D40,
  * #2152), so the action does nothing to it, and when it has nothing left to
  * act on, the author is told with an info (`doenet-i0060`) naming the
  * `target` as written. The withheld content keeps its state, and the action

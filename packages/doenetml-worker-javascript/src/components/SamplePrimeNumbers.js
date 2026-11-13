@@ -211,7 +211,11 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                 if (
                     Object.keys(changes).length === 0 ||
                     justUpdatedForNewComponent ||
-                    drawsCarried({ essentialValues, previousValues })
+                    drawsCarried({
+                        essentialValues,
+                        previousValues,
+                        numDraws: dependencyValues.numSamples,
+                    })
                 ) {
                     return {
                         useEssentialOrDefaultValue: { sampledValues: true },

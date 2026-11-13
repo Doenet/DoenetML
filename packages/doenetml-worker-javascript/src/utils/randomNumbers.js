@@ -1147,10 +1147,18 @@ export function sampleFromNumberList({
  * Draws restored from saved state are kept the same way
  * (`justUpdatedForNewComponent`), so they are made once and never again
  * (COMP-8); a `copy` carries none and draws its own (D33).
+ *
+ * Carried draws are kept only if there are as many as the sampler's
+ * parameters now give (`numDraws`). The source can have made them before
+ * what it draws from was all there, as when a parameter comes from a
+ * composite written after both, and then they do not fit: the copy draws
+ * its own, as the source does again once that composite is there.
  */
-export function drawsCarried({ essentialValues, previousValues }) {
+export function drawsCarried({ essentialValues, previousValues, numDraws }) {
+    const carried = essentialValues?.sampledValues;
     return (
         previousValues?.sampledValues === undefined &&
-        essentialValues?.sampledValues !== undefined
+        Array.isArray(carried) &&
+        carried.length === numDraws
     );
 }
