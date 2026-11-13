@@ -17,7 +17,7 @@ export type GradeStateOptions = {
      */
     attemptNumber?: number;
     /** The core to run. Defaults to the JavaScript core. */
-    core?: HeadlessCoreFactory;
+    coreFactory?: HeadlessCoreFactory;
 };
 
 export type GradedAnswer = {
@@ -93,7 +93,7 @@ export async function gradeState(
     {
         flags,
         attemptNumber,
-        core: factory = defaultCoreFactory,
+        coreFactory = defaultCoreFactory,
     }: GradeStateOptions = {},
 ): Promise<GradeStateResult> {
     const state = parseSavedState(savedState);
@@ -102,10 +102,10 @@ export async function gradeState(
         doenetML,
         variantIndex,
         attemptNumber,
-        dataFormatVersion: factory.dataFormatVersion,
+        dataFormatVersion: coreFactory.dataFormatVersion,
     });
 
-    const core = await factory.create({
+    const core = await coreFactory.create({
         doenetML,
         variantIndex,
         flags,

@@ -7,7 +7,7 @@ import { defaultCoreFactory } from "./defaultCore";
 
 export type CreateHeadlessCoreOptions = HeadlessCoreOptions & {
     /** The core to run. Defaults to the JavaScript core. */
-    core?: HeadlessCoreFactory;
+    coreFactory?: HeadlessCoreFactory;
 };
 
 /**
@@ -17,8 +17,8 @@ export type CreateHeadlessCoreOptions = HeadlessCoreOptions & {
  * use `gradeState` to grade one. Call `terminate()` on the core when done.
  */
 export function createHeadlessCore({
-    core = defaultCoreFactory,
+    coreFactory = defaultCoreFactory,
     ...options
 }: CreateHeadlessCoreOptions): Promise<HeadlessCore> {
-    return core.create(options);
+    return coreFactory.create(options);
 }

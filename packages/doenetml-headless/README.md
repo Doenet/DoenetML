@@ -90,13 +90,13 @@ when it is created.
 
 `gradeState` refuses, with a `HeadlessError` whose `code` says why:
 
-| `code` | when |
-| --- | --- |
-| `invalidState` | the state is not such a payload |
-| `dataFormatVersion` | its `data_format_version` is not the one the core reads; the error names both |
-| `documentMismatch` | it was written for a different document source (its `cid`, a hash of the source, differs) |
-| `variantMismatch` | it was written for a different variant than `variantIndex` |
-| `attemptMismatch` | with the `attemptNumber` option, it was written for a different attempt |
+| `code`              | when                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `invalidState`      | the state is not such a payload                                                           |
+| `dataFormatVersion` | its `data_format_version` is not the one the core reads; the error names both             |
+| `documentMismatch`  | it was written for a different document source (its `cid`, a hash of the source, differs) |
+| `variantMismatch`   | it was written for a different variant than `variantIndex`                                |
+| `attemptMismatch`   | with the `attemptNumber` option, it was written for a different attempt                   |
 
 `data_format_version` marks the format of the saved state. It changes only
 when an older state would no longer be read correctly, and states are never
@@ -108,7 +108,7 @@ grade each state with the release that wrote it is the host's decision.
 Options: `flags` (viewer flags, as `DoenetViewer` takes them; none of them
 changes the credit, and `allowLoadState` is not consulted, since the state is
 always applied), `attemptNumber` (a state that records no attempt is not
-checked), and `core` (see [Cores](#cores)).
+checked), and `coreFactory` (see [Cores](#cores)).
 
 ## Checking a document
 
@@ -142,11 +142,15 @@ For tests and content checks: give inputs the raw values a student enters,
 submit, and read the credit.
 
 ```js
-import { createHeadlessCore, setInput, submit } from "@doenet/doenetml-headless";
+import {
+    createHeadlessCore,
+    setInput,
+    submit,
+} from "@doenet/doenetml-headless";
 
 const core = await createHeadlessCore({ doenetML, variantIndex: 1 });
 try {
-    await setInput(core, "x", "2x+1");                         // by path
+    await setInput(core, "x", "2x+1"); // by path
     await setInput(core, { answer: "ans", position: 1 }, "3"); // an answer's own input
     await submit(core, "ans");
     const answers = await core.getAnswers();
@@ -167,15 +171,15 @@ that names nothing, an `answer` that names something other than an
 `<answer>`, or a position the answer has no input at is refused as `notFound`. A string that is not written as
 a path at all (names joined by `.`, literal indices) throws a plain `Error`.
 
-| input | value |
-| --- | --- |
-| `<mathInput>` | the LaTeX typed, a string |
-| `<textInput>` | the text, a string |
-| `<booleanInput>` | `true` or `false` |
-| `<choiceInput>` | the positions of the selected choices, numbered from 1 in the order the reader sees them (shuffled, if the choices are), as an array or one number; one position unless it has `selectMultiple`, each at most once, none of a disabled choice |
-| `<fractionInput>` | `{ numerator, denominator }`, each the LaTeX typed |
-| `<matrixInput>` | the LaTeX of every cell, as an array of rows of the matrix's current size |
-| `<point>` | its coordinates, `[x, y]` or `[x, y, z]` as the point has, moved as a drag moves it |
+| input             | value                                                                                                                                                                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<mathInput>`     | the LaTeX typed, a string                                                                                                                                                                                                                     |
+| `<textInput>`     | the text, a string                                                                                                                                                                                                                            |
+| `<booleanInput>`  | `true` or `false`                                                                                                                                                                                                                             |
+| `<choiceInput>`   | the positions of the selected choices, numbered from 1 in the order the reader sees them (shuffled, if the choices are), as an array or one number; one position unless it has `selectMultiple`, each at most once, none of a disabled choice |
+| `<fractionInput>` | `{ numerator, denominator }`, each the LaTeX typed                                                                                                                                                                                            |
+| `<matrixInput>`   | the LaTeX of every cell, as an array of rows of the matrix's current size                                                                                                                                                                     |
+| `<point>`         | its coordinates, `[x, y]` or `[x, y, z]` as the point has, moved as a drag moves it                                                                                                                                                           |
 
 Each value is turned into the actions the input's renderer sends. Any other
 type is refused (`unsupportedInput`), as are a disabled or fixed input, a disabled choice, or a point that
@@ -216,7 +220,7 @@ The default is the current JavaScript core, over the resolver WASM that ships
 in this package beside its code (`lib_doenetml_worker_bg.wasm`, read from disk
 when the first core is made). A host that keeps that file elsewhere names it
 with the `DOENET_HEADLESS_RESOLVER_WASM` environment variable. Another core
-plugs in by passing its factory as the `core` option of `createHeadlessCore`,
+plugs in by passing its factory as the `coreFactory` option of `createHeadlessCore`,
 `gradeState` or `check`; making it the default is a change to one file,
 `src/defaultCore.ts`.
 

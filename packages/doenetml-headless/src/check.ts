@@ -11,7 +11,7 @@ export type CheckOptions = {
     /** Viewer flags to run the document with. */
     flags?: Record<string, unknown>;
     /** The core to run. Defaults to the JavaScript core. */
-    core?: HeadlessCoreFactory;
+    coreFactory?: HeadlessCoreFactory;
 };
 
 export type CheckedAnswer = {
@@ -47,10 +47,10 @@ export async function check(
     {
         variantIndex = 1,
         flags,
-        core: factory = defaultCoreFactory,
+        coreFactory = defaultCoreFactory,
     }: CheckOptions = {},
 ): Promise<CheckResult> {
-    const core = await factory.create({ doenetML, variantIndex, flags });
+    const core = await coreFactory.create({ doenetML, variantIndex, flags });
     try {
         const answers: CheckedAnswer[] = (await core.getAnswers()).map(
             (answer) => ({
