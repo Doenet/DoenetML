@@ -5,6 +5,10 @@ import {
 } from "../utils/contentLocale";
 import { composeFigureName } from "../utils/containerWords";
 import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    numberingPrefixDependency,
+    withNumberingPrefix,
+} from "../utils/numberingPrefix";
 
 export default class Figure extends BlockComponent {
     constructor(args) {
@@ -115,6 +119,7 @@ export default class Figure extends BlockComponent {
                         dependencyType: "counter",
                         counterName: "sectioning",
                     };
+                    dependencies.numberingPrefix = numberingPrefixDependency();
                 }
                 return dependencies;
             },
@@ -122,7 +127,10 @@ export default class Figure extends BlockComponent {
                 const figureEnumeration =
                     dependencyValues.figureCounter === undefined
                         ? null
-                        : String(dependencyValues.figureCounter);
+                        : withNumberingPrefix(
+                              dependencyValues.numberingPrefix,
+                              dependencyValues.figureCounter,
+                          );
 
                 const { figureName, figureNamePrefix } = composeFigureName({
                     t: contentTranslator(dependencyValues),

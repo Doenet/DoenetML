@@ -77510,6 +77510,26 @@
                     ],
                     "suggestedValuesOnly": true,
                     "type": "text"
+                },
+                {
+                    "name": "blockNumbering",
+                    "description": "How examples, definitions, notes, theorems and problems are numbered: among the divisions beside them (the default), or through the whole document.",
+                    "defaultValue": "division",
+                    "values": [
+                        "division",
+                        "document"
+                    ],
+                    "autocompleteValues": [
+                        {
+                            "value": "division",
+                            "description": "Number blocks such as examples among the divisions beside them, starting again in each section."
+                        },
+                        {
+                            "value": "document",
+                            "description": "Number blocks (examples, definitions, notes, theorems, and problems that are not items of a list) through the whole document, on the same count as figures and tables, as PreTeXt does."
+                        }
+                    ],
+                    "type": "keyword"
                 }
             ],
             "properties": [
@@ -77528,6 +77548,13 @@
                     "description": "Number of significant digits to display for the credit achieved value.",
                     "fromAttribute": true,
                     "groupName": "scoring"
+                },
+                {
+                    "name": "blockNumbering",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "How examples, definitions, notes, theorems and problems are numbered: among the divisions beside them (the default), or through the whole document.",
+                    "fromAttribute": true
                 },
                 {
                     "name": "hidden",

@@ -28,6 +28,10 @@ import {
 } from "../../utils/sectionTitleColors";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
+    numberingPrefixDependency,
+    withNumberingPrefix,
+} from "../../utils/numberingPrefix";
+import {
     contentTranslator,
     returnContentLocaleDependencies,
 } from "../../utils/contentLocale";
@@ -1678,6 +1682,15 @@ export class SectioningComponent extends BlockComponent {
 }
 
 export class SectioningComponentNumberWithSiblings extends SectioningComponent {
+    /**
+     * Whether this type is a *block* (an example, definition, problem, …)
+     * rather than a section-like division. Under
+     * `<document blockNumbering="document">` a block that is not an item of
+     * a list is numbered through the whole document, on the count figures and
+     * tables use, instead of among the divisions beside it.
+     */
+    static numberedAsBlock = false;
+
     static componentType = "_sectioningComponentNumberWithSiblings";
 
     // A division names itself from the catalog in the document's language, so
@@ -1702,6 +1715,39 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        const numberedAsBlock = this.numberedAsBlock;
+
+        stateVariableDefinitions.numberedThroughDocument = {
+            description:
+                'Whether this division is numbered through the whole document, on the count figures and tables use, rather than among the divisions beside it: a block under `<document blockNumbering="document">` that is not an item of a list.',
+            returnDependencies: () => ({
+                isListItem: {
+                    dependencyType: "stateVariable",
+                    variableName: "isListItem",
+                },
+                ...(numberedAsBlock
+                    ? {
+                          documentAncestor: {
+                              dependencyType: "ancestor",
+                              componentType: "document",
+                              variableNames: ["blockNumbering"],
+                          },
+                      }
+                    : {}),
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        numberedThroughDocument:
+                            numberedAsBlock &&
+                            !dependencyValues.isListItem &&
+                            dependencyValues.documentAncestor?.stateValues
+                                .blockNumbering === "document",
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.enumeration = {
             additionalStateVariablesDefined: [
                 {
@@ -1714,30 +1760,63 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     forRenderer: true,
                 },
             ],
-            stateVariablesDeterminingDependencies: ["isListItem"],
-            returnDependencies: ({ stateValues }) => ({
-                sectionAncestor: {
-                    dependencyType: "ancestor",
-                    componentType: "_sectioningComponent",
-                    variableNames: ["enumeration"],
-                },
-                includeParentNumber: {
-                    dependencyType: "stateVariable",
-                    variableName: "includeParentNumber",
-                },
-                isListItem: {
-                    dependencyType: "stateVariable",
-                    variableName: "isListItem",
-                },
-                // A list item is numbered in the list and a division among
-                // the divisions, never both.
-                ...sequenceNumberDependencies(
-                    stateValues.isListItem
-                        ? LIST_ITEM_SEQUENCE
-                        : DIVISION_SEQUENCE,
-                ),
-            }),
+            stateVariablesDeterminingDependencies: [
+                "isListItem",
+                "numberedThroughDocument",
+            ],
+            // A block numbered through the document takes a place on the count
+            // figures and tables use; evaluate it even when nothing reads it
+            // (e.g. while hidden), so that every number on the count is right.
+            mustEvaluate: true,
+            returnDependencies: ({ stateValues }) =>
+                stateValues.numberedThroughDocument
+                    ? {
+                          numberedThroughDocument: {
+                              dependencyType: "stateVariable",
+                              variableName: "numberedThroughDocument",
+                          },
+                          documentCounter: {
+                              dependencyType: "counter",
+                              counterName: "sectioning",
+                          },
+                          numberingPrefix: numberingPrefixDependency(),
+                      }
+                    : {
+                          sectionAncestor: {
+                              dependencyType: "ancestor",
+                              componentType: "_sectioningComponent",
+                              variableNames: ["enumeration"],
+                          },
+                          includeParentNumber: {
+                              dependencyType: "stateVariable",
+                              variableName: "includeParentNumber",
+                          },
+                          isListItem: {
+                              dependencyType: "stateVariable",
+                              variableName: "isListItem",
+                          },
+                          // A list item is numbered in the list and a division among
+                          // the divisions, never both.
+                          ...sequenceNumberDependencies(
+                              stateValues.isListItem
+                                  ? LIST_ITEM_SEQUENCE
+                                  : DIVISION_SEQUENCE,
+                          ),
+                      },
             definition({ dependencyValues, componentIdx }) {
+                if (dependencyValues.numberedThroughDocument) {
+                    const number = dependencyValues.documentCounter;
+                    return {
+                        setValue: {
+                            enumeration: [number],
+                            sectionNumber: withNumberingPrefix(
+                                dependencyValues.numberingPrefix,
+                                number,
+                            ),
+                        },
+                    };
+                }
+
                 let enumeration = [];
                 if (dependencyValues.isListItem) {
                     enumeration.push(

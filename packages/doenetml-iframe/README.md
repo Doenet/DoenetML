@@ -336,6 +336,22 @@ in-document link target (unless you pass `requestScrollTo`), and
 `lti.frameResize` sizes the iframe to its content. A host does not need to
 handle them.
 
+**Numbering a page of a book (`flags.numberingPrefix`).** A host that shows
+a document as one page of a book can give the page's place in the book as a
+prefix for the numbers it shows, without editing the document:
+
+```tsx
+<DoenetViewer doenetML={doenetML} flags={{ numberingPrefix: "3.2" }} />
+```
+
+Figures and tables then read "Figure 3.2.1" and "Table 3.2.2", numbered
+equations "(3.2.1)", and refs to them say the same. Under
+`<document blockNumbering="document">`, examples, definitions, notes,
+theorems and problems that aren't list items take the prefix too
+("Example 3.2.3"). Section numbers and list items are not prefixed. `null`,
+the default, and a blank string mean no prefix. Like `maxNumAttempts`, the
+flag is read when the document's core starts.
+
 **Capping submissions (`flags.maxNumAttempts`).** A host can limit how many
 times each answer can be submitted without editing the document:
 

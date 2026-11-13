@@ -100499,6 +100499,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "blockNumbering": {
+                    "optional": true,
+                    "type": [
+                        "division",
+                        "document"
+                    ]
                 }
             },
             "children": [
@@ -101267,6 +101274,13 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "Number of significant digits to display for the credit achieved value.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "blockNumbering",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "How examples, definitions, notes, theorems and problems are numbered: among the divisions beside them (the default), or through the whole document.",
                     "fromAttribute": true
                 },
                 {

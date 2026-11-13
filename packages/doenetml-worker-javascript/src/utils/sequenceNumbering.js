@@ -175,7 +175,10 @@ function numberChildren({
                 child.componentType,
                 sequence.itemComponentType,
                 componentInfoObjects,
-            )
+            ) &&
+            // A block numbered through the whole document (under
+            // `<document blockNumbering="document">`) takes no number here.
+            !child.stateValues.numberedThroughDocument
         ) {
             const counter = sequence.counterOf(child.componentType);
             counters[counter] = (counters[counter] ?? 0) + 1;
@@ -219,7 +222,7 @@ function childrenCountsDependency(sequence) {
     return {
         dependencyType: "child",
         includeAllChildren: true,
-        variableNames: [sequence.counts],
+        variableNames: [sequence.counts, "numberedThroughDocument"],
         variablesOptional: true,
     };
 }

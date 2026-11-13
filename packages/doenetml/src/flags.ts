@@ -21,6 +21,14 @@ export type DoenetMLFlags = {
      * sent to the iframe wrapper as JSON, which turns `Infinity` into `null`.
      */
     maxNumAttempts: number | null;
+    /**
+     * A prefix the host sets for the numbers the document shows, without
+     * editing it: with `"3.2"`, figures and tables read "Figure 3.2.1", numbered
+     * equations "(3.2.1)", and blocks numbered through the document (see
+     * `<document blockNumbering="document">`) "Example 3.2.1". For a page of a
+     * book whose place is section 3.2. `null` (the default) means no prefix.
+     */
+    numberingPrefix: string | null;
 };
 
 export const defaultFlags: DoenetMLFlags = {
@@ -37,4 +45,5 @@ export const defaultFlags: DoenetMLFlags = {
     messageParent: false,
     autoSubmit: false,
     maxNumAttempts: null,
+    numberingPrefix: null,
 };
