@@ -18,6 +18,7 @@ const manifests = [
     "packages/standalone/package.json",
     "packages/doenetml-iframe/package.json",
     "packages/v06-to-v07/package.json",
+    "packages/doenetml-headless/package.json",
     "packages/vscode-extension/package.json",
     "packages/vscode-extension/extension/package.json",
 ];

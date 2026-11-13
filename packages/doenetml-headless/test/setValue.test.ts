@@ -1,0 +1,409 @@
+import { describe, expect, it } from "vitest";
+import type { HeadlessCore } from "@doenet/utils";
+import {
+    createHeadlessCore,
+    gradeState,
+    HeadlessError,
+    setValue,
+    submit,
+} from "../src";
+
+async function withCore(
+    doenetML: string,
+    work: (core: HeadlessCore) => Promise<void>,
+) {
+    const core = await createHeadlessCore({ doenetML });
+    try {
+        await work(core);
+    } finally {
+        await core.terminate();
+    }
+}
+
+async function credits(core: HeadlessCore) {
+    return Object.fromEntries(
+        (await core.getAnswers()).map((a) => [
+            a.stableKey,
+            {
+                ifSubmit: a.creditAchievedIfSubmit,
+                stored: a.stored.creditAchieved,
+            },
+        ]),
+    );
+}
+
+async function refusal(promise: Promise<unknown>) {
+    try {
+        await promise;
+    } catch (e) {
+        expect(e).toBeInstanceOf(HeadlessError);
+        return e as HeadlessError;
+    }
+    throw Error("expected a refusal");
+}
+
+describe("setValue and submit", () => {
+    it("sets every supported component type, and the answers grade it", async () => {
+        const doenetML = `
+    <answer name="m"><mathInput name="mi" /><award><when>$mi = 2x</when></award></answer>
+    <answer name="t"><textInput name="ti" /><award><when>$ti = hello</when></award></answer>
+    <answer name="b"><booleanInput name="bi" /><award><when>$bi</when></award></answer>
+    <answer name="c"><choiceInput name="ci">
+        <choice>red</choice><choice credit="1">green</choice><choice>blue</choice>
+    </choiceInput></answer>
+    <answer name="f"><fractionInput name="fi" /><award><when>$fi = 3/4</when></award></answer>
+    <answer name="mx"><matrixInput name="mxi" numRows="2" numColumns="2" />
+        <award><when>$mxi = <matrix><row>1 2</row><row>3 4</row></matrix></when></award></answer>
+    <graph><point name="P">(0,0)</point></graph>
+    <answer name="pt"><award><when>$P = (3,4)</when></award></answer>
+    `;
+        await withCore(doenetML, async (core) => {
+            await setValue(core, "mi", "2x");
+            await setValue(core, "ti", "hello");
+            await setValue(core, "bi", true);
+            await setValue(core, "ci", [2]);
+            await setValue(core, "fi", { numerator: "3", denominator: "4" });
+            await setValue(core, "mxi", [
+                ["1", "2"],
+                ["3", "4"],
+            ]);
+            await setValue(core, "P", [3, 4]);
+
+            const before = await credits(core);
+            for (const key of ["m", "t", "b", "c", "f", "mx", "pt"]) {
+                expect(before[key], key).toEqual({ ifSubmit: 1, stored: 0 });
+            }
+
+            for (const key of ["m", "t", "b", "c", "f", "mx", "pt"]) {
+                await submit(core, key);
+            }
+            const after = await credits(core);
+            for (const key of ["m", "t", "b", "c", "f", "mx", "pt"]) {
+                expect(after[key], key).toEqual({ ifSubmit: 1, stored: 1 });
+            }
+
+            // and the state the core then reports grades the same way
+            const graded = await gradeState(
+                doenetML,
+                1,
+                await core.serializeState(),
+            );
+            expect(graded.answers.map((a) => a.credit)).toEqual([
+                1, 1, 1, 1, 1, 1, 1,
+            ]);
+        });
+    });
+
+    it("selects choices by their position as the reader sees them, when shuffled", async () => {
+        const positions = new Set<number>();
+        for (const variantIndex of [1, 2, 3, 4, 5]) {
+            const core = await createHeadlessCore({
+                doenetML: `<answer name="c"><choiceInput name="ci" shuffleOrder>
+                    <choice>red</choice><choice credit="1">green</choice><choice>blue</choice>
+                </choiceInput></answer>`,
+                variantIndex,
+            });
+            try {
+                const resolved = await core.resolvePath("ci");
+                if (resolved.status !== "resolved") throw Error("ci");
+                const { choiceTexts } = (await core.readProperties(
+                    resolved.component.componentIdx,
+                    ["choiceTexts"],
+                )) as { choiceTexts: string[] };
+                positions.add(choiceTexts.indexOf("green") + 1);
+                await setValue(core, "ci", choiceTexts.indexOf("green") + 1);
+                expect((await credits(core)).c.ifSubmit).toBe(1);
+            } finally {
+                await core.terminate();
+            }
+        }
+        // The shuffle moved it, so the positions were not the written order
+        expect(positions.size).toBeGreaterThan(1);
+    });
+
+    it("drives an answer with several inputs, by name and by position", async () => {
+        await withCore(
+            `<answer name="ans"><mathInput name="x" /><mathInput name="y" />
+                <award><when>$x + $y = 5</when></award>
+            </answer>`,
+            async (core) => {
+                await setValue(core, "x", "2");
+                await setValue(core, { answer: "ans", position: 2 }, "3");
+                await submit(core, "ans");
+                expect((await credits(core)).ans).toEqual({
+                    ifSubmit: 1,
+                    stored: 1,
+                });
+            },
+        );
+    });
+
+    it("reaches the input an answer makes from sugar, and an unnamed input in a named answer, by position", async () => {
+        await withCore(
+            `<answer name="sugar">x</answer>
+            <answer name="unnamed"><mathInput /><award>y</award></answer>`,
+            async (core) => {
+                await setValue(core, { answer: "sugar", position: 1 }, "x");
+                await setValue(core, { answer: "unnamed", position: 1 }, "y");
+                const result = await credits(core);
+                expect(result.sugar.ifSubmit).toBe(1);
+                expect(result.unnamed.ifSubmit).toBe(1);
+
+                const error = await refusal(
+                    setValue(core, { answer: "sugar", position: 2 }, "x"),
+                );
+                expect(error.code).toBe("notFound");
+                expect(error.message).toContain("has 1 input of its own");
+            },
+        );
+    });
+
+    it("reaches a component inside a repeat by its path", async () => {
+        await withCore(
+            `<repeatForSequence name="r" length="3" valueName="v">
+                <group name="g"><answer name="a"><mathInput name="mi" /><award><when>$mi = $v</when></award></answer></group>
+            </repeatForSequence>`,
+            async (core) => {
+                await setValue(core, "$r[3].g.mi", "3");
+                await submit(core, "r[3].g.a");
+                const answers = await core.getAnswers();
+                expect(
+                    answers.map((a) => [a.stableKey, a.stored.creditAchieved]),
+                ).toEqual([
+                    ["r[1].a", 0],
+                    ["r[2].a", 0],
+                    ["r[3].a", 1],
+                ]);
+            },
+        );
+    });
+
+    it("refuses a named component with no stable key, and the inputs of an answer with none", async () => {
+        await withCore(
+            `<p><mathInput name="dup" /></p><p><mathInput name="dup" /></p>
+            <p name="p1"><answer name="same">x</answer></p>
+            <p name="p2"><answer name="same">x</answer></p>`,
+            async (core) => {
+                let error = await refusal(setValue(core, "dup", "1"));
+                expect(error.code).toBe("noStableKey");
+                expect(error.message).toContain("not a stable key");
+
+                error = await refusal(
+                    setValue(core, { answer: "same", position: 1 }, "x"),
+                );
+                expect(error.code).toBe("noStableKey");
+
+                // A unique path reaches them
+                await setValue(core, { answer: "p2.same", position: 1 }, "x");
+                expect((await credits(core))["p2.same"].ifSubmit).toBe(1);
+            },
+        );
+    });
+
+    it("refuses what it does not know or cannot set", async () => {
+        await withCore(
+            `<subsetOfRealsInput name="s" />
+            <mathInput name="m" disabled />
+            <graph><point name="P" fixed>(1,2)</point></graph>
+            <choiceInput name="c"><choice>a</choice><choice>b</choice></choiceInput>
+            <text name="t">x</text>
+            <answer name="ans">x</answer>
+            <graph><point name="Q" draggable="false">(1,2)</point></graph>
+            <graph><point name="R" fixLocation>(1,2)</point></graph>
+            <textInput name="tf" fixed />
+            <section fixed><booleanInput name="bf" /></section>`,
+            async (core) => {
+                let error = await refusal(setValue(core, "s", "x"));
+                expect(error.code).toBe("unsupportedTarget");
+                expect(error.message).toContain("<subsetOfRealsInput>");
+
+                error = await refusal(setValue(core, "t", "x"));
+                expect(error.code).toBe("unsupportedTarget");
+
+                error = await refusal(setValue(core, "m", "1"));
+                expect(error.code).toBe("targetDisabled");
+
+                error = await refusal(setValue(core, "P", [3, 4]));
+                expect(error.code).toBe("targetDisabled");
+
+                for (const bad of [[3], [0], [1.5], "a"]) {
+                    error = await refusal(setValue(core, "c", bad as any));
+                    expect(error.code).toBe("invalidValue");
+                }
+
+                error = await refusal(setValue(core, "nothing", "x"));
+                expect(error.code).toBe("notFound");
+
+                // An answer target that is no answer, or has no such input
+                error = await refusal(
+                    setValue(core, { answer: "c", position: 1 }, [1]),
+                );
+                expect(error.code).toBe("notFound");
+                expect(error.message).toContain("not an <answer>");
+                for (const position of [0, 2, 1.5]) {
+                    error = await refusal(
+                        setValue(core, { answer: "ans", position }, "x"),
+                    );
+                    expect(error.code, String(position)).toBe("notFound");
+                }
+
+                error = await refusal(setValue(core, "Q", [3, 4]));
+                expect(error.code).toBe("targetDisabled");
+
+                // Fixed, on itself or a container, an input or point ignores
+                // the value though it is not disabled
+                error = await refusal(setValue(core, "R", [3, 4]));
+                expect(error.code).toBe("targetDisabled");
+                error = await refusal(setValue(core, "tf", "x"));
+                expect(error.code).toBe("targetDisabled");
+                expect(error.message).toContain("fixed");
+                error = await refusal(setValue(core, "bf", true));
+                expect(error.code).toBe("targetDisabled");
+
+                // Not written as a path at all: a caller's mistake, not a refusal
+                await expect(setValue(core, "a b", "x")).rejects.toThrow(
+                    "is not a path",
+                );
+
+                // Nothing to submit on a text: the core says so
+                await expect(submit(core, "t")).rejects.toThrow(
+                    'A <text> has no action "submitAllAnswers"',
+                );
+            },
+        );
+    });
+
+    it("refuses a matrix value of the wrong shape and a point of the wrong size", async () => {
+        await withCore(
+            `<matrixInput name="m" numRows="1" numColumns="2" /><graph><point name="P" /></graph>`,
+            async (core) => {
+                let error = await refusal(setValue(core, "m", [["1"]]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("1 rows of 2 strings");
+                error = await refusal(setValue(core, "P", [1, NaN]));
+                expect(error.code).toBe("invalidValue");
+            },
+        );
+    });
+
+    it("refuses a choice selection no reader could make", async () => {
+        await withCore(
+            `<answer name="c"><choiceInput name="ci">
+                <choice credit="1">red</choice><choice>green</choice><choice>blue</choice>
+            </choiceInput></answer>
+            <choiceInput name="many" selectMultiple>
+                <choice>a</choice><choice>b</choice><choice>c</choice>
+            </choiceInput>
+            <choiceInput name="cd"><choice disabled>a</choice><choice>b</choice></choiceInput>`,
+            async (core) => {
+                let error = await refusal(setValue(core, "ci", [1, 2]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("one position");
+                error = await refusal(setValue(core, "many", [2, 2]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("at most once");
+                for (const bad of [0, 4]) {
+                    error = await refusal(setValue(core, "ci", bad));
+                    expect(error.code).toBe("invalidValue");
+                }
+                error = await refusal(setValue(core, "cd", 1));
+                expect(error.code).toBe("targetDisabled");
+                expect(error.message).toContain("choice 1");
+                expect((await credits(core)).c.ifSubmit).toBe(0);
+
+                await setValue(core, "many", [3, 1]);
+                await setValue(core, "cd", 2);
+                const read = async (name: string) => {
+                    const r = await core.resolvePath(name);
+                    if (r.status !== "resolved") throw Error(name);
+                    return (
+                        await core.readProperties(r.component.componentIdx, [
+                            "selectedIndices",
+                        ])
+                    ).selectedIndices;
+                };
+                // In increasing order, as the renderer sends them
+                expect(await read("many")).toEqual([1, 3]);
+                expect(await read("cd")).toEqual([2]);
+            },
+        );
+    });
+
+    it("refuses a point value with more or fewer coordinates than the point", async () => {
+        await withCore(
+            `<graph><point name="P">(0,0)</point></graph><point name="Q">(0,0,0)</point>`,
+            async (core) => {
+                let error = await refusal(setValue(core, "P", [1, 2, 3]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("2 coordinates");
+                error = await refusal(setValue(core, "Q", [1, 2]));
+                expect(error.code).toBe("invalidValue");
+                expect(error.message).toContain("3 coordinates");
+                await setValue(core, "Q", [1, 2, 3]);
+                const r = await core.resolvePath("Q");
+                if (r.status !== "resolved") throw Error("Q");
+                expect(
+                    (
+                        await core.readProperties(r.component.componentIdx, [
+                            "xs",
+                        ])
+                    ).xs,
+                ).toEqual([1, 2, 3]);
+            },
+        );
+    });
+
+    it("submits everything under a section-wide check work", async () => {
+        await withCore(
+            `<section name="sec" sectionWideCheckWork>
+                <answer name="a">x</answer><answer name="b">y</answer>
+            </section>`,
+            async (core) => {
+                await setValue(core, { answer: "a", position: 1 }, "x");
+                await submit(core, "sec");
+                const answers = await core.getAnswers();
+                expect(answers.map((a) => a.stored.numSubmissions)).toEqual([
+                    1, 1,
+                ]);
+                expect((await core.getDocumentCredit()).stored).toEqual({
+                    creditAchieved: 0.5,
+                });
+            },
+        );
+    });
+
+    it("submits a pretzel, and everything in the document", async () => {
+        await withCore(
+            `<document name="d">
+                <answer name="a">x</answer><answer name="b">y</answer>
+                <pretzel name="p">
+                    <problem><statement><p>1+1?</p></statement><answer>2</answer></problem>
+                    <problem><statement><p>1+2?</p></statement><answer>3</answer></problem>
+                </pretzel>
+            </document>`,
+            async (core) => {
+                const p = await core.resolvePath("p");
+                if (p.status !== "resolved") throw Error("p");
+                const pretzelSubmissions = async () =>
+                    (
+                        await core.readProperties(p.component.componentIdx, [
+                            "numSubmissions",
+                        ])
+                    ).numSubmissions;
+
+                await submit(core, "p");
+                expect(await pretzelSubmissions()).toBe(1);
+
+                await setValue(core, { answer: "a", position: 1 }, "x");
+                await submit(core, "d");
+                const answers = await core.getAnswers();
+                expect(answers.map((a) => a.stored.numSubmissions)).toEqual([
+                    1, 1,
+                ]);
+                expect(answers.map((a) => a.stored.creditAchieved)).toEqual([
+                    1, 0,
+                ]);
+            },
+        );
+    });
+});

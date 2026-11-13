@@ -393,6 +393,10 @@ window.addEventListener("message", (e) => {
 });
 ```
 
+To recompute on a server the credit a stored state earns, rather than trust
+the reported `score`, see
+[`@doenet/doenetml-headless`](../doenetml-headless/README.md)'s `gradeState`.
+
 To restore, remount the viewer with the saved state:
 
 ```tsx

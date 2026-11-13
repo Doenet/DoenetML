@@ -1,0 +1,72 @@
+{
+    "name": "@doenet/doenetml-headless",
+    "type": "module",
+    "description": "Run DoenetML without a browser: grade a saved state, check a document, drive its inputs",
+    "version": "0.7.27",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Doenet/DoenetML.git"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "files": [
+        "/dist"
+    ],
+    "bin": {
+        "doenet-headless": "./dist/cli.js"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "wireit",
+        "test": "wireit",
+        "publish": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "README.md",
+                "tsconfig.json",
+                "vite.config.ts",
+                "../../scripts/transform-package-json.ts"
+            ],
+            "output": [
+                "dist/**"
+            ],
+            "dependencies": [
+                "build:deps"
+            ]
+        },
+        "build:deps": {
+            "dependencies": [
+                "../utils:build",
+                "../doenetml-worker-javascript:build",
+                "../doenetml-worker-rust:build:rust"
+            ]
+        },
+        "test": {
+            "//": "Bare `vitest`, not `vitest run`: the root `test` scripts pass `run` through (see packages/math).",
+            "command": "vitest",
+            "dependencies": [
+                "build"
+            ]
+        }
+    },
+    "dependencies": {
+        "math-expressions": "file:../math"
+    },
+    "devDependencies": {}
+}
