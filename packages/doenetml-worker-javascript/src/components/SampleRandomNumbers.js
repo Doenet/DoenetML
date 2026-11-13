@@ -25,10 +25,14 @@ export default class SampleRandomNumbers extends ValueListComponent {
      * A `copyWithState` carries the draws (CPY-8), so they are made before
      * this is copied, as a copy made before they were would have none to
      * carry and would draw its own (`drawsCarried`). A `copy` draws its own
-     * (D33).
+     * (D33). A linked copy (an `extend`) shows this one's draws as they are
+     * (`shadowVariable`), and nothing else serialized carries them, so they
+     * are not made early for those: made before what they are drawn from is
+     * all there, they would be drawn again once it is, and so after each
+     * reload.
      */
     async serialize(parameters = {}) {
-        if (!parameters.withoutReaderState) {
+        if (parameters.copyAll && !parameters.withoutReaderState) {
             await this.stateValues.sampledValues;
         }
         return await super.serialize(parameters);

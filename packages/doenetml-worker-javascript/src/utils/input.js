@@ -4,8 +4,6 @@
  * value the input holds.
  */
 
-import { deepCompare } from "@doenet/utils";
-
 /**
  * Define a `submitAnswer` external action on an input component that delegates
  * to its `answerAncestor`. Call from the component constructor.
@@ -132,11 +130,12 @@ export async function buildInputResponseEvent({
 
 /**
  * The state variable, named `valueUnderEditName`, holding the reader's last
- * edit of an input (its `immediateValue`): `{ value, edit }`, the value the
- * edit was typed over and the edit typed. It is saved, so that an input made
- * again from saved state after the document has loaded can tell whether its
- * saved `immediateValue` is still that edit, and its value still the one the
- * edit was typed over (`immediateValueFollowsValue`).
+ * edit of an input (its `immediateValue`): `{ value, edit }`, fingerprints of
+ * the value the edit was typed over and of the edit typed
+ * (`valueUnderEditRecord`). It is saved, so that an input made again from
+ * saved state after the document has loaded can tell whether its saved
+ * `immediateValue` is still that edit, and its value still the one the edit
+ * was typed over (`immediateValueFollowsValue`).
  */
 export function returnValueUnderEditDefinition(valueUnderEditName) {
     return {
@@ -198,13 +197,46 @@ export function immediateValueFollowsValue({
     }
     return !(
         valueUnderEdit != null &&
-        sameValue(valueUnderEdit.value, value) &&
-        sameValue(valueUnderEdit.edit, savedImmediateValue)
+        valueUnderEdit.value !== undefined &&
+        valueUnderEdit.value === fingerprint(value) &&
+        valueUnderEdit.edit === fingerprint(savedImmediateValue)
     );
 }
 
-function sameValue(a, b) {
-    return a !== undefined && deepCompare(a?.tree ?? a, b?.tree ?? b);
+/**
+ * What `valueUnderEdit` holds of an edit `edit` typed over the value
+ * `value`: a fingerprint of each, rather than the values, which the saved
+ * state holds already as the input's `immediateValue` and `value`. Held
+ * again, they would double what an input's edit costs the saved state
+ * (Doenet/DoenetML#1940). `edit` is the value saved as `immediateValue`.
+ */
+export function valueUnderEditRecord({ value, edit }) {
+    return { value: fingerprint(value), edit: fingerprint(edit) };
+}
+
+/**
+ * A short string standing for `x`, a math (by its tree) or a text: the same
+ * for equal values, and, but for a chance too small to matter (one in about
+ * 2^53), different for different ones (`cyrb53`). `undefined` for
+ * `undefined`.
+ */
+function fingerprint(x) {
+    if (x === undefined) {
+        return undefined;
+    }
+    const text = JSON.stringify(x?.tree ?? x) ?? "";
+    let h1 = 0xdeadbeef;
+    let h2 = 0x41c6ce57;
+    for (let i = 0; i < text.length; i++) {
+        const ch = text.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
 
 /**
@@ -305,10 +337,10 @@ export function returnImmediateValueStateVariableDefinition({
                 },
                 {
                     setDependency: "valueUnderEdit",
-                    desiredValue: {
+                    desiredValue: valueUnderEditRecord({
                         value: dependencyValues.value,
                         edit: desiredStateVariableValues.immediateValue,
-                    },
+                    }),
                 },
             ];
 

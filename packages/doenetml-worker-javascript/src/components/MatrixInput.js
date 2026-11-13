@@ -26,6 +26,7 @@ import {
     defineSubmitAnswerExternalAction,
     immediateValueFollowsValue,
     returnValueUnderEditDefinition,
+    valueUnderEditRecord,
     returnInputValueChangedStateVariableDefinitions,
 } from "../utils/input";
 
@@ -417,10 +418,10 @@ export class MatrixInput extends Input {
                     },
                     {
                         setDependency: "valueUnderEdit",
-                        desiredValue: {
+                        desiredValue: valueUnderEditRecord({
                             value: dependencyValues.valueOriginal,
                             edit: desiredStateVariableValues.immediateValueOriginal,
-                        },
+                        }),
                     },
                 ];
 

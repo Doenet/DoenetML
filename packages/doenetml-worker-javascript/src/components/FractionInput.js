@@ -21,6 +21,7 @@ import {
     defineSubmitAnswerExternalAction,
     immediateValueFollowsValue,
     returnValueUnderEditDefinition,
+    valueUnderEditRecord,
     returnInputValueChangedStateVariableDefinitions,
 } from "../utils/input";
 
@@ -419,10 +420,10 @@ export class FractionInput extends Input {
                     },
                     {
                         setDependency: "valueUnderEdit",
-                        desiredValue: {
+                        desiredValue: valueUnderEditRecord({
                             value: dependencyValues.value,
-                            edit: desiredStateVariableValues.immediateValue,
-                        },
+                            edit: desiredValue,
+                        }),
                     },
                 ];
 

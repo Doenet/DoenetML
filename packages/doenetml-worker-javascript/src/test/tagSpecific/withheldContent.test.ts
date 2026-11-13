@@ -328,6 +328,49 @@ describe("Restored state in withheld content follows changes outside it @group2"
         expect(t.immediateValue).eq("zz");
     });
 
+    it("an input's edit is saved once, not again in what tells whether it is still the last", async () => {
+        const edit = "an edit not yet entered ".repeat(10);
+        const doenetML = `
+    <booleanInput name="b" prefill="true"/>
+    <conditionalContent name="cc">
+      <case condition="$b"><textInput name="t" prefill="a"/></case>
+    </conditionalContent>`;
+        const first = await createTestCore({ doenetML });
+        await updateTextInputImmediateValue({
+            text: edit,
+            componentIdx: await first.resolvePathToNodeIdx("cc.t"),
+            core: first.core,
+        });
+        await first.core.saveImmediately();
+        const saved = first.scoreState.state as string;
+        expect(saved.split(edit.trim()).length - 1).eq(1);
+
+        // and it is still kept, shown again after a reload
+        const second = await createTestCore({
+            doenetML,
+            initialState: saved,
+        });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await second.resolvePathToNodeIdx("b"),
+            core: second.core,
+        });
+        await second.core.saveImmediately();
+        const third = await createTestCore({
+            doenetML,
+            initialState: second.scoreState.state as string,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await third.resolvePathToNodeIdx("b"),
+            core: third.core,
+        });
+        const t = (await third.core.returnAllStateVariables(false, true))[
+            await third.resolvePathToNodeIdx("cc.t")
+        ].stateValues;
+        expect(t.immediateValue).eq(edit);
+    });
+
     it("an input rewritten by a trigger as its case is withheld comes back rewritten", async () => {
         const h = await setup(`
     <booleanInput name="b" prefill="true"/>

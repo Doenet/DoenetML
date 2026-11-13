@@ -75,4 +75,42 @@ describe("Copies of a sampler @group4", () => {
             expect(await draws()).eqls(before);
         });
     }
+
+    it("an extend of a sampler drawing from what is written after it keeps the draws through a reload", async () => {
+        // An extend shows the sampler's draws as they are, so they are not
+        // made before what they are drawn from is all there, which would
+        // draw them again once it is, at each reload (COMP-8).
+        const doenetML = `
+    <sampleRandomNumbers name="s" numSamples="$g.n" />
+    <sampleRandomNumbers name="e" extend="$s" />
+    <group name="g"><number name="n">2</number></group>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function draws() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result = [];
+            for (const name of ["s", "e"]) {
+                result.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .sampledValues,
+                );
+            }
+            return result;
+        }
+        const before = await draws();
+        expect(before[0].length).eq(2);
+        expect(before[1]).eqls(before[0]);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await draws()).eqls(before);
+    });
 });

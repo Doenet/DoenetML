@@ -28,6 +28,7 @@ import {
     defineSubmitAnswerExternalAction,
     immediateValueFollowsValue,
     returnValueUnderEditDefinition,
+    valueUnderEditRecord,
 } from "../utils/input";
 import {
     moveGraphicalObjectWithAnchorAction,
@@ -725,10 +726,10 @@ export default class MathInput extends Input {
                     },
                     {
                         setDependency: "valueUnderEdit",
-                        desiredValue: {
+                        desiredValue: valueUnderEditRecord({
                             value: dependencyValues.value,
                             edit: desiredStateVariableValues.immediateValue,
-                        },
+                        }),
                     },
                 ];
 
