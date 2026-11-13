@@ -554,6 +554,10 @@ export class StatePersistence {
             await core.flushPendingRenderers();
         }
 
+        // what definitions set since the last update, such as a sampler's
+        // draws made as the document loaded
+        core.updateExecutor?.mergeEssentialValuesSavedInDefinition();
+
         const sequence = ++this._saveSequence;
 
         // Making the copies again evaluates their sources over many steps,

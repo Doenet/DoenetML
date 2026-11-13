@@ -1138,3 +1138,19 @@ export function sampleFromNumberList({
 
     return sampledValues;
 }
+
+/**
+ * Whether a sampler (`<sampleRandomNumbers>`, `<samplePrimeNumbers>`,
+ * `<sampleMultivariateRandomNumber>`) evaluating its draws for the first time
+ * already has them: carried by a `copyWithState` from its source, which
+ * shows the same draws (CPY-8). It keeps them rather than drawing again.
+ * Draws restored from saved state are kept the same way
+ * (`justUpdatedForNewComponent`), so they are made once and never again
+ * (COMP-8); a `copy` carries none and draws its own (D33).
+ */
+export function drawsCarried({ essentialValues, previousValues }) {
+    return (
+        previousValues?.sampledValues === undefined &&
+        essentialValues?.sampledValues !== undefined
+    );
+}

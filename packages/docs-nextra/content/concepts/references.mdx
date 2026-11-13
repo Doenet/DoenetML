@@ -83,10 +83,9 @@ to `x`, and neither changes `x`.
 
 A copy of a name inside a case of a `<conditionalContent>{:dn}`, such as
 `<p copy="$cc.p"/>{:dn}`, keeps showing the case it was made from when another
-case is shown, and keeps it through a reload. Through a
+case is shown, and keeps it through a reload, as does a copy through a
 `<conditionalContent>{:dn}` that extends another, such as `$e.p` with
-`<conditionalContent extend="$cc" name="e"/>{:dn}`, a reload makes the copy
-again from the case shown then. A `<conditionalContent>{:dn}`
+`<conditionalContent extend="$cc" name="e"/>{:dn}`. A `<conditionalContent>{:dn}`
 written as a copy, `<conditionalContent copy="$cc"/>{:dn}`, is a new one: it
 shows the case its own conditions select, as `cc` does.
 

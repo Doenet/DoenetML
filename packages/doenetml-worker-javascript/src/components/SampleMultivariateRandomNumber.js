@@ -1,3 +1,4 @@
+import { drawsCarried } from "../utils/randomNumbers";
 import {
     multivariateSamplingDiagnostics,
     sampleFromMultivariateDistribution,
@@ -60,6 +61,19 @@ function hasHypergeometricMoments(globalDependencyValues) {
  * sample is drawn again.
  */
 export default class SampleMultivariateRandomNumber extends ValueListComponent {
+    /**
+     * A `copyWithState` carries the draws (CPY-8), so they are made before
+     * this is copied, as a copy made before they were would have none to
+     * carry and would draw its own (`drawsCarried`). A `copy` draws its own
+     * (D33).
+     */
+    async serialize(parameters = {}) {
+        if (!parameters.withoutReaderState) {
+            await this.stateValues.sampledValues;
+        }
+        return await super.serialize(parameters);
+    }
+
     constructor(args) {
         super(args);
 
@@ -308,6 +322,9 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
         };
 
         stateVariableDefinitions.sampledValues = {
+            // the draws a `copyWithState` carried (`drawsCarried`)
+            provideEssentialValuesInDefinition: true,
+            providePreviousValuesInDefinition: true,
             shadowVariable: true,
             hasEssential: true,
             stateVariablesDeterminingDependencies: ["variantDeterminesSeed"],
@@ -352,13 +369,16 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                essentialValues,
+                previousValues,
             }) {
                 // if loaded in values from database (justUpdatedForNewComponent)
                 // or just resampled values from action (in which case there will be no changes)
                 // then don't resample the values but just use the current ones
                 if (
                     Object.keys(changes).length === 0 ||
-                    justUpdatedForNewComponent
+                    justUpdatedForNewComponent ||
+                    drawsCarried({ essentialValues, previousValues })
                 ) {
                     // Keep the counts, but re-check the parameters: they have not
                     // changed, so whatever was wrong with them still is, and an

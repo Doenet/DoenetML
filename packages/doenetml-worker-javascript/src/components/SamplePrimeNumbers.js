@@ -1,3 +1,4 @@
+import { drawsCarried } from "../utils/randomNumbers";
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
 import { setUpVariantSeedAndRng } from "../utils/variants";
@@ -11,6 +12,19 @@ import ValueListComponent from "./abstract/ValueListComponent";
  * it is drawn again.
  */
 export default class SamplePrimeNumbers extends ValueListComponent {
+    /**
+     * A `copyWithState` carries the draws (CPY-8), so they are made before
+     * this is copied, as a copy made before they were would have none to
+     * carry and would draw its own (`drawsCarried`). A `copy` draws its own
+     * (D33).
+     */
+    async serialize(parameters = {}) {
+        if (!parameters.withoutReaderState) {
+            await this.stateValues.sampledValues;
+        }
+        return await super.serialize(parameters);
+    }
+
     constructor(args) {
         super(args);
 
@@ -141,6 +155,9 @@ export default class SamplePrimeNumbers extends ValueListComponent {
         };
 
         stateVariableDefinitions.sampledValues = {
+            // the draws a `copyWithState` carried (`drawsCarried`)
+            provideEssentialValuesInDefinition: true,
+            providePreviousValuesInDefinition: true,
             shadowVariable: true,
             hasEssential: true,
             stateVariablesDeterminingDependencies: ["variantDeterminesSeed"],
@@ -174,6 +191,8 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                essentialValues,
+                previousValues,
             }) {
                 if (dependencyValues.numSamples < 1) {
                     return {
@@ -187,7 +206,8 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                 // then don't resample the values but just use the current ones
                 if (
                     Object.keys(changes).length === 0 ||
-                    justUpdatedForNewComponent
+                    justUpdatedForNewComponent ||
+                    drawsCarried({ essentialValues, previousValues })
                 ) {
                     return {
                         useEssentialOrDefaultValue: { sampledValues: true },
