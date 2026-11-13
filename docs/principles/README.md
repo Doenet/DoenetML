@@ -1,0 +1,225 @@
+# DoenetML principles
+
+These documents distill the behavior of DoenetML into **principles**: short, consistent rules
+that let an author predict what a construction will do. They are written to guide a ground-up
+rewrite of the core (such as the cells core in Doenet/DoenetML#2281). The ~5,000-test Vitest
+suite is the parity oracle for any new core, but its tests are not equally important. A test that
+locks in one of these principles is critical. A test that locks in an accident of the current
+implementation is not, and should not force convoluted code into a new core.
+
+The survey behind these documents read the tests, the worker code, the Rust resolver, and the
+PR descriptions of the recent `extend`/`copy` work (#2213–#2263, #2318, #2322). Uncertain
+behavior was checked by running small probe documents against `main` (2026-10-24, at
+`c5eaefa`). Results from those probes are marked **[probe]**. File and line citations are to
+that commit. Line numbers drift, so each citation also gives the test's name.
+
+## The documents
+
+The principle files are the reference for reviewing a change: what a PR must keep or move
+toward. `decisions.md` is a working log. It records why each rule was chosen and the work in
+progress. Once a decision is settled, its rule is stated in a principle file, so a review never
+has to read the log.
+
+
+| Document | What it covers |
+|---|---|
+| [references-extend-copy.md](references-extend-copy.md) | `$x`, `extend`, `copy`, and what happens when they nest. Name resolution and scope. **Start here.** |
+| [values-and-attributes.md](values-and-attributes.md) | `$x.prop`, references read as values, attribute values, missing values, number formatting, how a list written as text is split |
+| [inherited-attributes.md](inherited-attributes.md) | `fixed`, `fixLocation`, `draggable`, `disabled`, `hide`, `styleNumber`, display settings, labels |
+| [composites-and-lists.md](composites-and-lists.md) | `group`, `repeat`, `select`, `conditionalContent`, `collect`, `module`, value lists, commas |
+| [interaction-and-state.md](interaction-and-state.md) | inverse updates and `bindValueTo`, saved state and reload, actions, answers, variants |
+| [diagnostics.md](diagnostics.md) | what errors, warnings and infos mean, what a diagnostic says, and where it is reported |
+| [decisions.md](decisions.md) | the inconsistencies found, each with a proposed rule and the tests it would change, in priority order |
+| [testing-principles.md](testing-principles.md) | how the suite is organized today, and how to tag, sweep and encode principles so they keep holding |
+
+## Tiers
+
+Every principle carries an id (`REF-2`, `CTX-4`, …) and a tier.
+
+- **Tier 1: author guarantees.** These can be explained to an author in a sentence or two, and
+  authors rely on them to predict behavior. Breaking one breaks documents. A new core must pass
+  every Tier 1 test before it ships.
+- **Tier 2: consistency invariants.** Authors would not be told these. They are what make the
+  experience uniform: every graphical component treats `fixed` the same way, a reload restores
+  what the reader saw, and a bare `$m` is indistinguishable from `<math extend="$m"/>`. A new core
+  should hold them. A deviation needs a recorded decision.
+- **Tier 3: incidental behavior.** Tests pin it, but it follows from an implementation choice, a
+  special case or an accident of history. A rewrite may change it, especially when keeping it
+  costs convoluted code. Each Tier 3 entry says why it is incidental.
+
+Two more labels appear:
+
+- **Inconsistency.** Current behavior does not follow a clean rule. Each one is listed in
+  [decisions.md](decisions.md) with a proposed rule.
+- **Changed.** A decision, for example in a cells-core ADR, deliberately replaces the current
+  behavior. The old tests then count as expected failures, not parity gaps.
+
+## The author model in one page (Tier 1)
+
+If an author learns only these rules, they can predict nearly every construction. Everything
+else in these documents either refines one of them or is an exception that should be
+removed.
+
+**Names**
+1. `$x` means the nearest `x` around where it is written. `$a.b` is the `b` inside `a`, and
+   `$r[2]` is the second item of `r`. If the nearest scope has two `x`s, the reference is
+   ambiguous: it reports a warning and shows a blank, `＿`. (NAME-1, NAME-2)
+
+   An index selects what a tag produces (entries, iterations, picks) or the entries of a value
+   (coordinates, matrix entries), never a container's children: name the child instead. Nested
+   repeats take one index per level, `$r[1][2]`. (D27)
+
+   A `<group>` shows what it holds and, when it holds one component, stands for it: a tag, a
+   property or an index after the group applies to that component (`$g[2]` of a group holding a
+   list is the list's second entry). A pick, a shown case and an iteration do the same. A
+   `<span>`, `<p>` or `<div>` is an element of its own, so none of these reach through it.
+   (NAME-2, REF-0)
+2. Names inside a copied or repeated piece are private to it. Reach them through the
+   container's name: `$copy.h`, `$r[2].h`. (NAME-3)
+
+   Since D6 (#2401) this holds wherever the reference is written, including in an attribute on the
+   copy and in a child added inside it. A reference's first name only finds components written in
+   the DoenetML, and an attribute sees what a child of its component would see.
+
+   Names inside a `<conditionalContent>`, or a `<select>` with one pick, are visible, as a
+   group's are: `$x` finds the `x` in the active case. But every case (and the `<else>`, if there
+   is one) must declare `x`, or `$x` is a blank with a warning; and they must declare it with the
+   same type, or `$x` is an error. Give the else its own `x`, or use different names.
+   (COMP-11; D13, D22)
+
+**References and `extend`**
+
+3. `$x` puts x itself there, again. It shows x's current state, and interacting with it
+   changes x. `<T extend="$x"/>` is the same reference, written out so that you can change it.
+   (REF-1, REF-2)
+
+   **Exception: inputs.** A bare reference to an input is the input's value, not a second
+   input: `$mi` is the math the reader entered. Write `<mathInput extend="$mi"/>` to get a
+   second input box tied to the first. A few other components also read as a value when
+   referenced bare: an `<answer>` gives its submitted responses, an `<award>` whether it was
+   awarded, and a `<choice>` whether it was submitted. These come from each class's
+   `variableForImplicitProp` (REF-1a; [decisions.md](decisions.md), D21).
+4. On an `extend`:
+   - an attribute you write replaces x's;
+   - an attribute you don't write comes from x;
+   - children you write are added after x's;
+   - a different tag `T` is allowed only between related types (math, number, text and
+     boolean among each other; point and vector), and gives x's value as a T; any other pair
+     is an error.
+   - a tag you write makes that tag: `<math extend="$x"/>` is always a math. If x can be
+     something that isn't a math (cases of different types, several components), it is an error.
+     Wrap it instead, `<math>$cc</math>`, or index it, `$x[1]`.
+   - something that isn't there shows as a blank, `＿`, written bare or as a tag: a typo, an index
+     past the end, `$ans.submittedResponse` before a submission. Only an empty collection (a list,
+     a repeat, a case not shown) shows nothing. A blank never equals anything, so it never earns
+     credit. (VAL-5, D37)
+
+   (REF-0, REF-3 to REF-5)
+
+**`copy`**
+
+5. `copy="$x"` behaves as if x's DoenetML were written again there: no reader state, and random
+   choices of its own, so two copies of a module draw different values. `copyWithState="$x"` is
+   the same, plus the reader's current state and x's random choices, for repeating a reader's
+   work. (Through 0.7, `copy` meant `copyWithState`.) Either way the copy is on its own after
+   that: changing x no longer changes it. References inside it stay live. Ones that pointed into
+   x now point into the copy. Ones that pointed outside x keep their referent, wherever the copy
+   is written (D1, #2397). A child you add inside a copy draws its own random values. On
+   `copyWithState`, an attribute that changes what is chosen is an error: use `copy`.
+   (CPY-1 to CPY-3, CPY-8; D33)
+6. A copy of a reference pastes what the reference points to. A copy of a property
+   (`copy="$P.x"`) has no DoenetML to paste, so it holds the value. (CPY-4, CPY-5)
+7. A copy is independent of what it copied, but not of what that refers to. To start
+   something new from another component's current value, copy its value:
+   `<number name="x" copy="$x0.value"/>`, not `copy="$x0"`. Without `.value`, a module
+   attribute passed as `x0="$initial"` pastes a live `$initial`. The copy then either cannot
+   be dragged, or writes back to the caller's `initial`. (CPY-7)
+
+**Values and attributes**
+
+8. `$x.prop` is a new value. It is not the component, so it has no label, no `hide` and no
+   style of its own. It is still two-way: typing into it changes x. (VAL-1, VAL-2)
+9. A reference written where a value is read (`<math>$n+1</math>`, `xMin="$n"`) acts like
+   the referent's current value written there. (VAL-3)
+10. An attribute is read in one of three ways:
+   - plain text is parsed as the attribute's type;
+   - exactly one reference *is* that reference, in both directions;
+   - an expression is recomputed from its references.
+
+   (VAL-6 to VAL-8)
+
+**Grouping, repeating and choosing**
+
+These rules are stated per tag, in terms of what the reader sees. "Composite" is an
+implementation term, and authors do not need it ([decisions.md](decisions.md), D24).
+
+11. What a `<repeat>`, `<select>`, `<conditionalContent>`, `<collect>` or `<group>` produces is
+    shown where the tag is written, as if written there. Content it repeats, picks or gathers
+    is separated by commas, as a list is. (COMP-1, COMP-2)
+
+    What an index, a name or a property after a tag reaches depends on what the tag is to you:
+    - **one thing** (a point, a vector, a matrix, a math holding a tuple) has its own properties,
+      and an index reaches an entry of its value;
+    - **many things** (a list, a collect, a sort or shuffle, a repeat, a select, a conditional):
+      an index picks an item, and a name or a property reaches into every item. A name always
+      works (`$r.P`). A property works when each item is one component: every list entry, or
+      what you write inside a repeat, in each option or in each case. When that holds several
+      components, name the one you mean: `$r.P.x`. `numItems` and settings such as `hide` are
+      the collection's own;
+    - **a `<group>`** holding one component stands for it; holding several, name the one you
+      mean.
+
+    A `<sort>` or `<shuffle>` takes one type; a shuffle of groups shuffles them as units. (COLL-1
+    to COLL-4, D41)
+12. Selections are made once, from the variant, and never made again: not when what they were
+    made from changes, not on a reload, not to recover from a problem. The same variant gives
+    the same selections. A sampler is different: it draws again when what it reads changes or
+    when it is resampled. (COMP-8, VAR-1)
+13. The reader can decide whether a random choice appears, but never what it chooses from: that
+    comes from what you wrote, and can't read a sampler. Every choice that can appear can be made
+    as written; if DoenetML can't show that, you get an error, the same in every variant. (SEL,
+    D39)
+
+**Inherited attributes**
+
+14. `hide`, `fixed`, `fixLocation`, `disabled` and `styleNumber` written on a container apply to
+    what is inside it. Something inside can opt out with its own attribute, except that nothing
+    inside a hidden container can unhide itself. (CTX-1 to CTX-6)
+15. What each one does:
+
+    | Attribute | Effect |
+    |---|---|
+    | `fixed` | the component still follows what defines it (its children and attributes), but nothing can push a change into it: not a drag, not an input bound to it, not an `<updateValue>`, and not a change passed back from something that depends on it |
+    | `fixLocation` | the same as `fixed`, but only for where it is; other properties, such as its label, can still be changed |
+    | `draggable="false"` | the reader cannot drag it; other changes still reach it |
+    | `disabled` | an input or button takes no input and does not act |
+
+    The word "fixed" suggests a constant value, which is not what it means
+    ([decisions.md](decisions.md), D23). (CTX-1 to CTX-4)
+
+**Interaction**
+
+16. An input shows the value it is bound to. Typing into it changes that value if a formula
+    can be run backward (`2$n+1`, `($a,$b)`). Otherwise it snaps back. (INT-1 to INT-3)
+17. A reader's work survives a reload, and survives content being hidden and shown again.
+    (SAVE-1, SAVE-4)
+
+## How to use these documents
+
+- **For a rewrite.** Port the Tier 1 and Tier 2 principles first. Use the test lists under
+  each principle as the acceptance set. Treat the Tier 3 lists as tests to rewrite against
+  observable behavior, or to retire. Settle the [decisions](decisions.md) before porting the
+  tests they touch.
+- **For reviewers.** When a PR changes behavior, ask which principle id it touches. A change
+  to a Tier 1 principle needs a maintainer decision and a changeset. A new special case
+  should be recorded as an exception on its principle, or as an inconsistency.
+- **For tests.** [testing-principles.md](testing-principles.md) proposes a `principles/` test
+  layer with native Vitest tags (`{ tags: principle("REF-3") }`), schema-driven sweeps that
+  test every component against the cross-cutting rules, and a black-box test API that any core
+  can implement.
+
+## Status
+
+This is a first survey, not a ratified contract. The tier given to each principle is a
+proposal. The decisions in [decisions.md](decisions.md) are open questions for the
+maintainers, though each one carries a recommendation.
