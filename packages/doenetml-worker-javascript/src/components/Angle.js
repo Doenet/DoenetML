@@ -468,7 +468,9 @@ export default class Angle extends GraphicalComponent {
                             radians =
                                 globalDependencyValues.radiansAttr.stateValues.value.evaluate_to_constant();
                             if (!Number.isFinite(radians)) {
-                                let points = {};
+                                // the points the line gives stay, as for
+                                // `degrees`: an angle with only its third
+                                // point set has no first two to draw from
                                 points["2,0"] = me.fromAst("\uff3f");
                                 points["2,1"] = me.fromAst("\uff3f");
                                 return { setValue: { points } };

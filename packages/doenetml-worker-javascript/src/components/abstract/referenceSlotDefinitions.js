@@ -563,12 +563,12 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  * `numSamples` drops). Its `value` is then the empty value of the type it
  * presents as (`NaN`, `""`, `false`, `＿`), and an empty value alone cannot
  * say so, since a referent can hold `NaN` or `""` too. A variable that holds
- * `null`, such as an attribute with no default (an `<award>`'s
- * `feedbackText`), is not missing: the copy made a component for it, holding
- * the empty value `value` also holds. One that declares `null` to be no
- * value (`nullIsMissing`, `maxNumber` of a `<collect>` with no limit) is
- * missing while it holds `null`, as the copy makes nothing for it then
- * (`replacementFromProp` in `Copy.js`, #2416). One case differs from the copy: an
+ * `null` has no value (`nullMeansMissing` in `referentDescription.ts`, D40),
+ * such as an attribute with no default (an `<award>`'s `feedbackText`) or
+ * `maxNumber` of a `<collect>` with no limit, so it is missing while it holds
+ * `null`, as the copy makes nothing for it then (`replacementFromProp` in
+ * `Copy.js`, #2416, #2460), unless its definition sets `nullIsMissing` to
+ * `false`. One case differs from the copy: an
  * array entry whose key is there but that holds no value is missing, where
  * the copy made a component holding the empty value. The known such entries
  * are those of a function's global minimum, maximum, infimum or supremum

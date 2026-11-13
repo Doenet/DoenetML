@@ -624,6 +624,53 @@ describe("Angle tag tests @group4", async () => {
         await check_rightangle(core, resolvePathToNodeIdx);
     });
 
+    it("an angle between one line whose measure is missing is blank, and comes back", async () => {
+        // A `radians` with no value left the angle with only its third point,
+        // which stopped the document from loading.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<numberList name="l">1</numberList>
+<mathInput name="i" prefill="5"/>
+<graph>
+  <line name="ln" through="(0,0) (1,0)"/>
+  <angle name="a" betweenLines="$ln" radians="$l[$i]"/>
+  <angle name="b" betweenLines="$ln" radians="$nothing"/>
+</graph>
+<p name="p">$a.radians, $b.radians</p>
+`,
+        });
+
+        async function check(radians: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(`${radians}, ＿`);
+            const a =
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues;
+            expect(a.numericalPoints[1]).eqls([0, 0]);
+        }
+
+        await check("＿");
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check("1");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check("＿");
+    });
+
     async function check_alphaangle(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,
