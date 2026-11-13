@@ -4326,6 +4326,24 @@ export async function replacementFromProp({
             // `<conditionalContent>` have and this one lacks gives a blank,
             // with the warning decided at load (D40 decision 5, #2452;
             // `checkCollectionItems` in `typeChangeAtLoad.ts`).
+            // In a parent that needs a component of a type made from it
+            // (`compositesMustHaveAReplacement`: a `<math>`, or an
+            // attribute such as `x="$g.x"`), nothing is made here, so that
+            // the copy is missing as that type, as when a property names
+            // nothing (`doenet-w0104`): a `_missing` there would be dropped
+            // from a `<math>`, and an invalid child of an attribute
+            // (`doenet-w0106`).
+            if (
+                component.sharedParameters?.compositesMustHaveAReplacement &&
+                !component.attributes._createComponentOfType?.primitive
+            ) {
+                return {
+                    serializedReplacements: [],
+                    propVariablesCopiedByReplacement: [],
+                    diagnostics,
+                    nComponents,
+                };
+            }
             return {
                 serializedReplacements: [
                     missingReplacement({

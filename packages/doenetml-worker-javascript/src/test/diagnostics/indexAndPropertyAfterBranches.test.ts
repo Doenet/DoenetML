@@ -89,14 +89,14 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
                 type: "warning",
                 line: 3,
                 message:
-                    "`$cc.latex`: a `<text>` in `cc` has no property `latex`, so it gives a blank there. Read the property from the component you mean, such as `$m.latex`.",
+                    "`$cc.latex`: a `<text>` in `cc` has no property `latex`, so it gives a blank there. For a value from each, give every case a component that has `latex`.",
             },
             {
                 code: "doenet-w0192",
                 type: "warning",
                 line: 3,
                 message:
-                    "`$cc.x`: a `<text>` in `cc` has no property `x`, so it gives a blank there. Read the property from the component you mean, such as `$m.x`.",
+                    "`$cc.x`: a `<text>` in `cc` has no property `x`, so it gives a blank there. For a value from each, give every case a component that has `x`.",
             },
         ];
         // `value`, which both have, is silent
@@ -122,7 +122,7 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
 <p name="p">[$s.x] [$s.value]</p>`);
         expect(d.codes()).eqls(["warning doenet-w0192"]);
         expect(d.diagnostics()[0].message).eq(
-            "`$s.x`: a `<text>` in `s` has no property `x`, so it gives a blank there. Read the property from the component you mean, by its name.",
+            "`$s.x`: a `<text>` in `s` has no property `x`, so it gives a blank there. For a value from each, give every option a component that has `x`.",
         );
         // was `[x]`, the text skipped
         expect(await d.text()).eq("[x, ＿] [x, hi]");
@@ -153,6 +153,29 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
         await d.setBoolean("b", false);
         expect(await d.text()).eq("[＿]");
         expect(d.codes()).eqls(["warning doenet-w0192"]);
+    });
+
+    it("in a math or an attribute: missing as a math, as a property that names nothing is", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b"><math>x</math></case><else><text>hi</text></else></conditionalContent>
+<math name="m">$cc.x+1</math><point name="Q" x="$cc.x" y="3"/><mathInput name="mi" bindValueTo="$cc.x"/>
+<p name="p">$Q</p>`);
+        // not a `_missing` dropped from the math (`+1`), nor an invalid child
+        // of the attribute (`doenet-w0106`)
+        const expected = [
+            "warning doenet-w0192",
+            "warning doenet-w0192",
+            "warning doenet-w0192",
+        ];
+        expect(d.codes()).eqls(expected);
+        expect(await d.text("m")).eq("＿ + 1");
+        expect(await d.text()).eq("(＿, 3)");
+        await d.setBoolean("b", true);
+        expect(await d.text("m")).eq("x + 1");
+        expect(await d.text()).eq("(x, 3)");
+        await d.setBoolean("b", false);
+        expect(await d.text("m")).eq("＿ + 1");
+        expect(d.codes()).eqls(expected);
     });
 
     it("stays silent when every item has it, and a property none has stays w0104", async () => {
@@ -269,6 +292,22 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
             "warning doenet-w0193",
             "warning doenet-w0193",
         ]);
+    });
+
+    it("in a math or an attribute: missing as a math, with the warning alone", async () => {
+        const d =
+            await setup(`<group name="g"><point>(1,2)</point><point>(3,4)</point></group>
+<math name="m">$g.x+1</math><point name="Q" x="$g.x" y="3"/><mathInput name="mi" bindValueTo="$g.x"/>
+<p name="p">$Q</p>`);
+        // not a `_missing` dropped from the math (`+1`), nor an invalid child
+        // of the attribute (`doenet-w0106`)
+        expect(d.codes()).eqls([
+            "warning doenet-w0193",
+            "warning doenet-w0193",
+            "warning doenet-w0193",
+        ]);
+        expect(await d.text("m")).eq("＿ + 1");
+        expect(await d.text()).eq("(＿, 3)");
     });
 
     it("a group holding a reference to a group of several, or a group of several", async () => {

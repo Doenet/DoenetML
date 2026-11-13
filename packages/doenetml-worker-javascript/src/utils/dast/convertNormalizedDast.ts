@@ -754,9 +754,6 @@ export async function normalizedDastToSerializedComponents(
             );
             extra.suggestion = suggestion ?? "";
             extra.hasSuggestion = suggestion === undefined ? "false" : "true";
-        } else {
-            extra.hasSuggestion = args.named === undefined ? "false" : "true";
-            extra.named = args.named ?? "";
         }
         diagnostics.push(
             codedDiagnostic({

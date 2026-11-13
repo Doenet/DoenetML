@@ -3561,7 +3561,6 @@ export function checkTypeChangesAtLoad({
         return {
             kind: "one",
             type: type === undefined || isHolder(type) ? undefined : type,
-            component: item,
         };
     }
 
@@ -3736,8 +3735,7 @@ export function checkTypeChangesAtLoad({
             return;
         }
         const ones = held.filter(
-            (h): h is { kind: "one"; type: string; component?: any } =>
-                h!.kind === "one",
+            (h): h is { kind: "one"; type: string } => h!.kind === "one",
         );
         const lacking = ones.find(
             (h) =>
@@ -3758,16 +3756,6 @@ export function checkTypeChangesAtLoad({
             // every one has it, or none has it (`doenet-w0104`, at run time)
             return;
         }
-        const namedHaving = having
-            .map((h) =>
-                h.component
-                    ? literalText(h.component.attributes?.name)
-                    : undefined,
-            )
-            .find(
-                (name) =>
-                    name !== undefined && name !== "" && !name.startsWith("_"),
-            );
         collectionItemWarnings.push({
             copy,
             kind,
@@ -3777,7 +3765,7 @@ export function checkTypeChangesAtLoad({
                 lackingType: lacking.type,
                 container: containerText,
                 hasName: hasName ? "true" : "false",
-                ...(namedHaving !== undefined ? { named: namedHaving } : {}),
+                branch,
             },
         });
         copy.doenetAttributes = {

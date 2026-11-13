@@ -603,16 +603,17 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
 # Decided at load from every option or case. $reference is the reference as
 # written, with its `$`; $property the property and $lackingType the tag of a
 # component that lacks it, both as written. $container is the container's
-# name when $hasName is `true`, else its tag name. $named (when $hasSuggestion
-# is `true`) is the name of a component that has the property.
+# name when $hasName is `true`, else its tag name. $branch is `option` or
+# `case`. A name in only some options or cases names nothing from outside
+# (`doenet-w0183`), so the message does not suggest reading one by name.
 
 reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $hasName ->
         [true] `{ $container }`
        *[other] the `<{ $container }>`
-    } has no property `{ $property }`, so it gives a blank there. { $hasSuggestion ->
-        [true] Read the property from the component you mean, such as `${ $named }.{ $property }`.
-       *[other] Read the property from the component you mean, by its name.
-    }
+    } has no property `{ $property }`, so it gives a blank there. For a value from each, give every { $branch ->
+        [option] option
+       *[case] case
+    } a component that has `{ $property }`.
 
 # A property after a `<group>` that holds several components: `$g.x` on a
 # `<group name="g">` holding two points, `$r[1].x` after an iteration of a
