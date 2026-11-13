@@ -98,6 +98,13 @@ export function contentMissingDefinition() {
  * (`BaseComponent.isMissing`) is instead missing for as long as it exists,
  * and a new one is made once the source is there.
  *
+ * A component whose value is computed from a missing input is missing too
+ * (`computedMissing`, `BaseComponent.missingWhenComputedFromMissing`, D40,
+ * #2460): a number or a boolean can't hold a blank, so `<number>$nothing +
+ * 1</number>` and `<boolean>not $nothing</boolean>` are missing, where a
+ * `<math>` holds the blank (`＿ + 1`). The component's own
+ * `computedFromMissing` says when.
+ *
  * A shape is also missing while a point among those an attribute gives it
  * (`entriesAttributes`, `BaseComponent.missingWhenEntriesMissing`) is
  * missing, and a shape that is not made from its children
@@ -107,9 +114,11 @@ export function contentMissingDefinition() {
 export function missingWhenContentMissingDefinitions({
     contentMissing = true,
     entriesAttributes = [],
+    computedMissing = false,
 }: {
     contentMissing?: boolean;
     entriesAttributes?: string[];
+    computedMissing?: boolean;
 } = {}) {
     return {
         ...(contentMissing
@@ -122,6 +131,18 @@ export function missingWhenContentMissingDefinitions({
                           contentMissing: {
                               dependencyType: "stateVariable",
                               variableName: "contentMissing",
+                          },
+                      }
+                    : {}),
+                // A value computed from a missing input
+                // (`BaseComponent.missingWhenComputedFromMissing`,
+                // `computedFromMissing`): `<number>$nothing + 1</number>`,
+                // `<boolean>not $nothing</boolean>` (D40, #2460).
+                ...(computedMissing
+                    ? {
+                          computedFromMissing: {
+                              dependencyType: "stateVariable",
+                              variableName: "computedFromMissing",
                           },
                       }
                     : {}),
@@ -153,13 +174,15 @@ export function missingWhenContentMissingDefinitions({
                     setValue: {
                         valueMissing:
                             Boolean(dependencyValues.contentMissing) ||
+                            Boolean(dependencyValues.computedFromMissing) ||
                             entryMissing,
                     },
                 };
             },
-            // drawn as a blank while it is missing
-            // (`RendererInstructionBuilder.updateDrawnMissing`)
-            markStale: () => ({ updateParentRenderedChildren: true }),
+            // drawn as a blank while it is missing; whether that changed is
+            // checked once the update is done
+            // (`RendererInstructionBuilder.checkDrawnMissing`)
+            markStale: () => ({ checkDrawnMissing: true }),
         },
     };
 }
@@ -202,9 +225,10 @@ export function missingWhileEntryEmptyDefinition() {
             }
             return { setValue: { valueMissing } };
         },
-        // drawn as a blank while it is missing
-        // (`RendererInstructionBuilder.updateDrawnMissing`)
-        markStale: () => ({ updateParentRenderedChildren: true }),
+        // drawn as a blank while it is missing; whether that changed is
+        // checked once the update is done
+        // (`RendererInstructionBuilder.checkDrawnMissing`)
+        markStale: () => ({ checkDrawnMissing: true }),
     };
 }
 
@@ -249,9 +273,10 @@ export function missingWhileSourceMissingDefinition(sourceIdx?: number) {
                 },
             };
         },
-        // drawn as a blank while it is missing
-        // (`RendererInstructionBuilder.updateDrawnMissing`)
-        markStale: () => ({ updateParentRenderedChildren: true }),
+        // drawn as a blank while it is missing; whether that changed is
+        // checked once the update is done
+        // (`RendererInstructionBuilder.checkDrawnMissing`)
+        markStale: () => ({ checkDrawnMissing: true }),
     };
 }
 
@@ -281,9 +306,10 @@ export function missingWhileAdaptedMissingDefinition() {
                 },
             };
         },
-        // drawn as a blank while it is missing
-        // (`RendererInstructionBuilder.updateDrawnMissing`)
-        markStale: () => ({ updateParentRenderedChildren: true }),
+        // drawn as a blank while it is missing; whether that changed is
+        // checked once the update is done
+        // (`RendererInstructionBuilder.checkDrawnMissing`)
+        markStale: () => ({ checkDrawnMissing: true }),
     };
 }
 
@@ -319,8 +345,50 @@ export function missingWhileListEntryMissingDefinition(
                 },
             };
         },
-        // drawn as a blank while it is missing
-        // (`RendererInstructionBuilder.updateDrawnMissing`)
-        markStale: () => ({ updateParentRenderedChildren: true }),
+        // drawn as a blank while it is missing; whether that changed is
+        // checked once the update is done
+        // (`RendererInstructionBuilder.checkDrawnMissing`)
+        markStale: () => ({ checkDrawnMissing: true }),
     };
+}
+
+/** Whether `value`, a math-expression or its tree, is or holds `NaN`. */
+export function holdsNaN(value: any): boolean {
+    if (typeof value === "number") {
+        return Number.isNaN(value);
+    }
+    if (Array.isArray(value)) {
+        return value.some(holdsNaN);
+    }
+    if (value && typeof value === "object" && "tree" in value) {
+        return holdsNaN(value.tree);
+    }
+    return false;
+}
+
+/** Whether `value`, a math-expression or its tree, or a string, holds a blank `＿`. */
+export function holdsBlank(value: any): boolean {
+    if (typeof value === "string") {
+        return value.includes(MISSING_TEXT);
+    }
+    if (Array.isArray(value)) {
+        return value.some(holdsBlank);
+    }
+    if (value && typeof value === "object" && "tree" in value) {
+        return holdsBlank(value.tree);
+    }
+    return false;
+}
+
+/**
+ * Whether `child`, a child a component computes its value from, is a missing
+ * input (D40, #2460): a missing component or reference (`valueMissing`), or
+ * a value holding a blank (`<math>＿</math>`, a string `＿`).
+ */
+export function isMissingInput(child: any): boolean {
+    if (typeof child !== "object" || child === null) {
+        return holdsBlank(child);
+    }
+    const stateValues = child.stateValues ?? {};
+    return Boolean(stateValues.valueMissing) || holdsBlank(stateValues.value);
 }

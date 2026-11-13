@@ -1,4 +1,5 @@
 import MathComponent from "./Math";
+import { holdsBlank, holdsNaN } from "../utils/missing";
 import me from "math-expressions";
 import {
     returnNumericFunctionForEvaluate,
@@ -159,7 +160,9 @@ export default class Evaluate extends MathComponent {
                                 ? "symbolicfs"
                                 : "numericalfs",
                             "numInputs",
+                            "valueMissing",
                         ],
+                        variablesOptional: true,
                     },
                     evaluateSymbolically: {
                         dependencyType: "stateVariable",
@@ -191,7 +194,32 @@ export default class Evaluate extends MathComponent {
                     });
                 }
 
+                // A missing function has no value anywhere, and a numeric
+                // function evaluated at a missing input computes a number,
+                // which can't hold a blank, so both are missing (D40, VAL-5,
+                // #2460): `$$f($nothing)`, `<evaluate function="$f"
+                // input="$ans.submittedResponse"/>` before a submission. A
+                // symbolic function holds the blank (`f(＿)`, `1 + ＿`), as a
+                // `<math>` does.
+                if (
+                    functionComp.stateValues.valueMissing ||
+                    (!dependencyValues.evaluateSymbolically &&
+                        dependencyValues.inputMaths.some(holdsBlank))
+                ) {
+                    return {
+                        setValue: { unnormalizedValue: me.fromAst("\uFF3F") },
+                    };
+                }
+
                 let unnormalizedValue = f(dependencyValues.inputMaths);
+
+                // a `NaN` caused by a blank input is missing too
+                if (
+                    holdsNaN(unnormalizedValue) &&
+                    dependencyValues.inputMaths.some(holdsBlank)
+                ) {
+                    unnormalizedValue = me.fromAst("\uFF3F");
+                }
 
                 return {
                     setValue: { unnormalizedValue },

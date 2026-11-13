@@ -1,3 +1,4 @@
+import { LIST_ENTRY_ARRAY_PREFIX } from "../utils/listEntryReference";
 import {
     missingWhileListEntryMissingDefinition,
     missingWhileSourceMissingDefinition,
@@ -894,6 +895,20 @@ export async function createChildrenThenComponent({
                                 position,
                             );
                     }
+                }
+                if (
+                    typeof shadowInfo.propVariable === "string" &&
+                    shadowInfo.propVariable.startsWith(
+                        LIST_ENTRY_ARRAY_PREFIX,
+                    ) &&
+                    shadowedComponent.state.entriesMissing &&
+                    newComponent.state.entriesMissing
+                ) {
+                    // A list of a property of every entry of a list whose
+                    // entries can be blank (`$pl.y`) has a blank entry where
+                    // that list does (D40, #2525; `entriesMissing` in
+                    // `AuthoredValueList`).
+                    newComponent.doenetAttributes.entriesMissingFromSource = true;
                 }
                 if (!shadowedComponent.shadowedBy) {
                     shadowedComponent.shadowedBy = [];

@@ -492,7 +492,12 @@ export default class Angle extends GraphicalComponent {
                                 return { setValue: { points } };
                             }
                         } else {
-                            radians = Math.PI / 2;
+                            // Nothing gives the measure and one line does
+                            // not determine it, so it is blank, not a right
+                            // angle (D40, #2324).
+                            points["2,0"] = me.fromAst("\uff3f");
+                            points["2,1"] = me.fromAst("\uff3f");
+                            return { setValue: { points } };
                         }
 
                         let desiredAngle = angleOfLine + radians;
@@ -662,7 +667,16 @@ export default class Angle extends GraphicalComponent {
                             };
                         }
                     } else {
-                        radians = Math.PI / 2;
+                        // Nothing gives the measure and fewer than three
+                        // points do not determine it, so it is blank, not a
+                        // right angle (D40, #2324): `<angle/>`, `<angle
+                        // through="$A"/>`, `<angle through="$A $B"/>`.
+                        points["2,0"] = me.fromAst("\uff3f");
+                        points["2,1"] = me.fromAst("\uff3f");
+                        return {
+                            setValue: { points },
+                            conditionDiagnosticsByKey: byKey(diagnostics),
+                        };
                     }
 
                     // `<angle through="(a,b) (0,0)" />`: the prescribed points

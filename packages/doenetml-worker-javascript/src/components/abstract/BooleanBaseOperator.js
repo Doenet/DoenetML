@@ -71,6 +71,30 @@ export default class BooleanOperator extends BooleanComponent {
 
         let constructor = this;
 
+        // Whether an operand is missing (D40, VAL-5, #2460): a boolean can't
+        // hold a blank, so `<and>$nothing true</and>` and `<or>$nothing
+        // true</or>` are missing, whatever the other operands.
+        stateVariableDefinitions.computedFromMissing = {
+            returnDependencies: () => ({
+                booleanChildren: {
+                    dependencyType: "child",
+                    childGroups: ["booleans"],
+                    variableNames: ["valueMissing"],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        computedFromMissing:
+                            dependencyValues.booleanChildren.some(
+                                (child) => child.stateValues.valueMissing,
+                            ),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.value = {
             description:
                 "The boolean result of applying this operator to its child boolean values.",
@@ -90,10 +114,9 @@ export default class BooleanOperator extends BooleanComponent {
             definition: function ({ dependencyValues }) {
                 // A missing operand (`valueMissing`: a value reference with
                 // nothing to read, such as `$bl[$i]` with `$i` past the end
-                // of the list, or a missing component) is a blank (D37),
-                // which is not true, as `<boolean>＿</boolean>` is not:
-                // `<and>$bl[$i] true</and>` is false while the entry is
-                // missing, and `<or>$bl[$i] true</or>` true.
+                // of the list, or a missing component) makes the operator
+                // missing (`computedFromMissing`, D40); the value it holds
+                // meanwhile takes the operand as not true.
                 return {
                     setValue: {
                         value: constructor.applyBooleanOperator(

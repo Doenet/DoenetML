@@ -279,6 +279,19 @@ is an index of `l`, and a reference to it, or a tag of it, follows it. Where the
 is `x ＿ y`, and `<boolean>$nothing = 1</boolean>{:dn}` is false. A `<p>{:dn}`
 or other container shows the blank inline.
 
+What is computed from a missing value depends on the type of the result. A math
+can hold a blank, so it holds it, as above. A number or a boolean can't, so one
+computed from a missing value is missing too, whatever else it is computed
+from: `<number>$nothing + 1</number>{:dn}`, `<sum>{:dn}` or `<mean>{:dn}` of a
+`<numberList>{:dn}` with a blank entry, a function with `symbolic="false"`
+evaluated at a blank, `<boolean>not $nothing</boolean>{:dn}` and
+`<boolean>$nothing or true</boolean>{:dn}` all show `＿`. A comparison is not
+such a computation: `<boolean>$nothing = 1</boolean>{:dn}` is false, since a
+blank never equals anything. Only a number computed from values that are all
+there and still has none, such as `<number>x</number>{:dn}`, is `NaN`. A
+property that has no value, such as an `<award>{:dn}`'s `feedbackText` when it
+has none, is missing too.
+
 In a list, a missing entry is a blank entry: where `l` has fewer than five
 entries, `<mathList>$l[5] 2</mathList>{:dn}` holds two entries, `＿, 2`, and so
 does `<mathList>$nothing 2</mathList>{:dn}`. A reference to that entry, or a tag

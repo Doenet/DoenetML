@@ -3,6 +3,9 @@ import BooleanComponent from "../Boolean";
 export default class BooleanBaseOperatorOfMath extends BooleanComponent {
     static componentType = "_booleanOperatorOfMath";
 
+    // not missing for a missing operand: a test of a math (`<isNumber>`, `<isInteger>`) is not a computation on the value, so a blank fails it (D40, VAL-5)
+    static missingWhenComputedFromMissing = false;
+
     // Its children are operands, among which a missing one is a blank
     // (D37), so it is not missing for one
     // (`BaseComponent.missingWhenContentMissing`).

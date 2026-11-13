@@ -25,7 +25,10 @@ import {
     stateIdSegmentForCopyOf,
 } from "../../utils/componentIndices";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
-import { describeReferentVariable } from "../../utils/referentDescription";
+import {
+    describeReferentVariable,
+    nullMeansMissing,
+} from "../../utils/referentDescription";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
 import { typeChangeAtLoadDiagnostic } from "../../utils/dast/typeChangeAtLoad";
@@ -5664,10 +5667,11 @@ export async function replacementFromProp({
         if (
             !stateVarObj.shadowingInstructions?.createComponentOfType ||
             // A variable that holds `null` for having no value
-            // (`nullIsMissing`), as `maxNumber` of a `<collect>` with no
-            // limit, has nothing to read, so the reference is missing (D37,
-            // #2416).
-            (stateVarObj.nullIsMissing && (await stateVarObj.value) === null)
+            // (`nullMeansMissing`), as `maxNumber` of a `<collect>` with no
+            // limit or an `<award>`'s `feedbackText` with none, has nothing
+            // to read, so the reference is missing (D37, D40, #2416, #2460).
+            (nullMeansMissing(stateVarObj) &&
+                (await stateVarObj.value) === null)
         ) {
             return {
                 serializedReplacements: [],

@@ -55,6 +55,9 @@ function replacePlaceholders(tree, placeholderFor) {
 export default class MatchesPattern extends BooleanComponent {
     static componentType = "matchesPattern";
 
+    // not missing for a missing operand: a pattern match is a test, not a computation on the value (D40, VAL-5)
+    static missingWhenComputedFromMissing = false;
+
     static componentDocs = {
         summary:
             "Boolean condition that tests whether input matches a math pattern",

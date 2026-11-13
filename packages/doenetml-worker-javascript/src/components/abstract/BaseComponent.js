@@ -337,6 +337,7 @@ export default class BaseComponent {
         return (
             !this.isMissing &&
             (this.constructor.missingWhenContentMissing ||
+                this.constructor.missingWhenComputedFromMissing ||
                 this.constructor.missingWhenEntriesMissing.length > 0 ||
                 Boolean(
                     this.doenetAttributes.missingWhenContentMissing ||
@@ -358,6 +359,16 @@ export default class BaseComponent {
      * `＿ + 1`), nor on a container (`<p>`), which shows the blank inline.
      */
     static missingWhenContentMissing = false;
+
+    /**
+     * Whether a component of this type is missing while its value is
+     * computed from a missing input (D40, VAL-5, #2460;
+     * `missingWhenContentMissingDefinitions`): a number or a boolean can't
+     * hold a blank, so `<number>$nothing + 1</number>` is missing, not `NaN`,
+     * and `<boolean>not $nothing</boolean>` is missing, not `true`. A type
+     * that sets it defines `computedFromMissing`.
+     */
+    static missingWhenComputedFromMissing = false;
 
     /**
      * The attributes giving a shape its points (`vertices`, `through`,
@@ -1215,6 +1226,7 @@ export default class BaseComponent {
 
         if (
             this.missingWhenContentMissing ||
+            this.missingWhenComputedFromMissing ||
             this.missingWhenEntriesMissing.length > 0
         ) {
             Object.assign(
@@ -1222,6 +1234,7 @@ export default class BaseComponent {
                 missingWhenContentMissingDefinitions({
                     contentMissing: this.missingWhenContentMissing,
                     entriesAttributes: this.missingWhenEntriesMissing,
+                    computedMissing: this.missingWhenComputedFromMissing,
                 }),
             );
         }

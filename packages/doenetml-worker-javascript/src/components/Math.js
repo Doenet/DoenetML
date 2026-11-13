@@ -1,4 +1,4 @@
-import { contentMissingDefinition } from "../utils/missing";
+import { contentMissingDefinition, holdsNaN } from "../utils/missing";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import {
@@ -598,7 +598,8 @@ export default class MathComponent extends InlineComponent {
                 mathChildren: {
                     dependencyType: "child",
                     childGroups: ["maths"],
-                    variableNames: ["value"],
+                    variableNames: ["value", "valueMissing"],
+                    variablesOptional: true,
                 },
                 // Note: need stringChildren for inverse definition
                 // (even though not in definition)
@@ -623,7 +624,37 @@ export default class MathComponent extends InlineComponent {
             set: convertValueToMathExpression,
             hasEssential: true,
             defaultValue: me.fromAst("\uff3f"), // long underscore
-            definition: calculateMathValue,
+            // A missing child holding `NaN` takes part as a blank (D37, D40,
+            // #2516): `<math><number>$nothing</number></math>` and
+            // `<math><math extend="$n"/></math>` of a missing `n` are `＿`,
+            // not the `NaN` the missing number holds. One holding a value
+            // keeps it: an input bound to nothing holds what was typed.
+            definition(args) {
+                const mathChildren = args.dependencyValues.mathChildren;
+                const blankInstead = (child) =>
+                    child.stateValues.valueMissing &&
+                    holdsNaN(child.stateValues.value);
+                if (!mathChildren.some(blankInstead)) {
+                    return calculateMathValue(args);
+                }
+                return calculateMathValue({
+                    ...args,
+                    dependencyValues: {
+                        ...args.dependencyValues,
+                        mathChildren: mathChildren.map((child) =>
+                            blankInstead(child)
+                                ? {
+                                      ...child,
+                                      stateValues: {
+                                          ...child.stateValues,
+                                          value: me.fromAst("\uff3f"),
+                                      },
+                                  }
+                                : child,
+                        ),
+                    },
+                });
+            },
             inverseDefinition: invertMath,
         };
 
