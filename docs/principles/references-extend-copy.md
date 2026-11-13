@@ -590,9 +590,8 @@ A copy made from a value (`<point copy="$pl[1]">(7,8)</point>`) takes the writte
 **Known violations** (#2546): `<substitute copy="$s">x+2</substitute>` keeps the source's
 child silently; a `<function>` whose formula is a reference (`<function name="f">$m</function>`)
 doesn't recognize it as its formula, so a formula written on its copy isn't applied, and on an
-extend is ignored with no warning; a `<math>` written on a copy of a `<matrix>` whose value is a
-`<math>` is ignored (`w0190`), while a `<function>`'s formula on a copy replaces the source's. Which
-rule a matrix should follow is open.
+extend is ignored with no warning; a `<math>` written on a copy of a `<matrix>` is ignored
+(`w0190`), where under REF-4a (decided, below) it replaces the source's.
 
 ### REF-4a: of a child a component uses only one of, the last one written wins (Tier 1)
 A component uses only one `<label>`, `<title>` or `<shortDescription>`. When more than one is
@@ -610,6 +609,7 @@ exception to REF-4; it is the same rule an author meets when writing two labels 
 | `<title>` | `<table>` | **the first** | **the source's** |
 | `<caption>` | `<figure>` | **the first** | **the source's** |
 | `<shortDescription>` | `graph`, `image` | the second | the added one |
+| `<math>` | `matrix` (decided, #2546) | **today: joined into one 1×1 product**; wanted: the second, with a warning | **today: ignored, `w0190`**; wanted: the added one |
 
 Code:
 - `<label>`: one shared definition in `W/utils/label.ts:454`, which takes the last label child.
@@ -622,6 +622,15 @@ Code:
   making them follow the rule.
 
 `<legend>` is different on purpose: it takes one `<label>` per item.
+
+**A `<matrix>` takes one `<math>` child** (decided, #2546). Today it joins its `<math>` children
+into one expression, as a `<math>` joins its children: `<matrix><math>$A</math><math>$B</math></matrix>`
+is a 1×1 matrix holding the unevaluated product `A B`, which is almost never meant. Under the
+decision, a second `<math>` is a warning and the last one is used, and so a `<math>` written on a
+copy of a matrix replaces the source's: `<matrix copy="$M"><math>$A - $B</math></matrix>` of
+`<matrix name="M"><math>$A + $B</math></matrix>` is `A − B`. Plain text in a matrix is one `<math>`
+child (`<matrix>1 2</matrix>` is the 1×1 matrix `1 * 2`), so it isn't affected. A `<math>` beside
+`<row>`s or `<column>`s is still dropped, with a warning (#2542).
 
 No test pins the "last one wins" rule, for any component, either written directly or through an
 `extend`. The only related test is a point's label being overridden on an extend
