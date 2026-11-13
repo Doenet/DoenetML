@@ -174,6 +174,13 @@ Evidence:
 ### SAVE-3: saved state is keyed by a document-derived id, not by build order (Tier 2)
 Keys look like `/~P@x` (a name path plus an attribute), `<composite>|n` and `|case<i>|`.
 
+**State saved before 0.8 is not carried over** (decided, November 2026). 0.8 can't reload state
+saved by 0.7, and 0.8 isn't released, so no saved state needs to survive the changes made on the
+way to it. A change that renames keys, renumbers `stateId`s or changes what is saved needs no
+migration, version marker or tolerance for older saves. What must hold is SAVE-1 within 0.8: a
+reload restores what the reader saw, with the ids 0.8 assigns. (The 0.7 line is separate: a fix
+backported to 0.7 still meets 0.7's saved state.)
+
 Evidence: `T/utils/statePersistenceKeying.test.ts:51-359`, including `:190` "survives an edit
 elsewhere in the document".
 

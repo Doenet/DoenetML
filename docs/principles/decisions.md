@@ -1359,7 +1359,9 @@ doenet.org, that answer's submissions are then split between two ids.
   most simply its `stateId`, which saved state already uses. Do this in `rootName` itself, so
   that DoenetApps needs no change, at least for answers.
 - Account for existing data: ids already recorded as `_id_<n>` stay as they are, so the change
-  causes a one-time split for any answer whose id changes (see #2365).
+  causes a one-time split for any answer whose id changes (see #2365). **Moot for saved state**
+  (SAVE-3, November 2026): state saved before 0.8 isn't carried over, so 0.8 can choose its ids
+  freely; a split at the 0.7 → 0.8 boundary happens anyway.
 - Keep `componentIdx` in event payloads for debugging, documented as unstable. No host reads it.
 - Keep root names that use child indices (`g:1`) in mind when deciding D27. Components reached
   only through such an index would lose their root name and fall back.
