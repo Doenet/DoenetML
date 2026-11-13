@@ -283,8 +283,8 @@ What is computed from a missing value depends on the type of the result. A math
 can hold a blank, so it holds it, as above. A number or a boolean can't, so one
 computed from a missing value is missing too, whatever else it is computed
 from: `<number>$nothing + 1</number>{:dn}`, `<sum>{:dn}` or `<mean>{:dn}` of a
-`<numberList>{:dn}` with a blank entry, a function with `symbolic="false"`
-evaluated at a blank, `<boolean>not $nothing</boolean>{:dn}` and
+`<numberList>{:dn}` with a blank entry, a function evaluated numerically at a
+blank (with `symbolic="false"` or `forceNumeric`), `<boolean>not $nothing</boolean>{:dn}` and
 `<boolean>$nothing or true</boolean>{:dn}` all show `＿`. A comparison is not
 such a computation: `<boolean>$nothing = 1</boolean>{:dn}` is false, since a
 blank never equals anything. Only a number computed from values that are all
