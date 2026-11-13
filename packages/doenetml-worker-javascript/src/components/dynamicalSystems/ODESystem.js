@@ -17,6 +17,10 @@ import {
     levelFromSource,
     withLevelsFromSource,
 } from "../../utils/decidedByDoenetML";
+import {
+    numberingPrefixDependency,
+    withNumberingPrefix,
+} from "../../utils/numberingPrefix";
 
 export default class ODESystem extends InlineComponent {
     static componentType = "odeSystem";
@@ -457,6 +461,7 @@ export default class ODESystem extends InlineComponent {
                             dependencyType: "counter",
                             counterName: "equation",
                         },
+                        numberingPrefix: numberingPrefixDependency(),
                     };
                 } else {
                     return {};
@@ -466,7 +471,8 @@ export default class ODESystem extends InlineComponent {
                 if (dependencyValues.equationCounter !== undefined) {
                     return {
                         setValue: {
-                            equationTag: String(
+                            equationTag: withNumberingPrefix(
+                                dependencyValues.numberingPrefix,
                                 dependencyValues.equationCounter,
                             ),
                         },

@@ -16,6 +16,10 @@ import {
     superSubscriptsToUnicode,
 } from "../utils/math";
 import { convertLatexWithBlanks } from "../utils/embeddedMathInputs";
+import {
+    numberingPrefixDependency,
+    withNumberingPrefix,
+} from "../utils/numberingPrefix";
 
 /**
  * The rows of an `<md>`, with the row variable `rowVariable` (`latex` or
@@ -526,6 +530,7 @@ export class Mrow extends M {
                             dependencyType: "counter",
                             counterName: "equation",
                         },
+                        numberingPrefix: numberingPrefixDependency(),
                     };
                 } else {
                     return {};
@@ -535,7 +540,8 @@ export class Mrow extends M {
                 if (dependencyValues.equationCounter !== undefined) {
                     return {
                         setValue: {
-                            equationTag: String(
+                            equationTag: withNumberingPrefix(
+                                dependencyValues.numberingPrefix,
                                 dependencyValues.equationCounter,
                             ),
                         },

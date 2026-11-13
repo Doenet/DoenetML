@@ -17,3 +17,43 @@ it is automatically added by the DoenetML compiler.
 
 
 
+## Attribute Examples
+
+### Attribute Example: blockNumbering
+
+
+```doenet-editor-horiz
+<document blockNumbering="document">
+<section><title>Velocity</title>
+  <subsection><title>Average velocity</title>
+    <example><p>A car travels 100 km in 2 hours.</p></example>
+    <figure>
+      <image size="small" source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg">
+        <shortDescription>A Doric column capital</shortDescription>
+      </image>
+      <caption>A figure between the examples</caption>
+    </figure>
+  </subsection>
+  <subsection><title>Instantaneous velocity</title>
+    <example><p>A ball is thrown upward.</p></example>
+  </subsection>
+</section>
+</document>
+```
+
+
+
+By default (`blockNumbering="division"`), an example, definition, note,
+theorem or problem is numbered among the divisions beside it, starting again in
+each section: both examples above would be *Example 1*. With
+`blockNumbering="document"`, these blocks are numbered through the whole
+document, on the same count as figures and tables, as PreTeXt numbers them:
+*Example 1*, *Figure 2*, *Example 3*.
+
+Sections keep their own numbers, and so do the items of a
+[`<problems>{:dn}`](problems) or [`<exercises>{:dn}`](exercises) list.
+
+A site that shows a document as a page of a book can also set a
+**`numberingPrefix`** for it, without editing the document: with the prefix
+`3.2`, the numbers above become *Example 3.2.1*, *Figure 3.2.2* and
+*Example 3.2.3*, and a numbered equation *(3.2.1)*.

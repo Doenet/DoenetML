@@ -4,6 +4,10 @@ import {
     returnContentLocaleDependencies,
 } from "../utils/contentLocale";
 import { composeTableName } from "../utils/containerWords";
+import {
+    numberingPrefixDependency,
+    withNumberingPrefix,
+} from "../utils/numberingPrefix";
 
 export default class Table extends BlockComponent {
     constructor(args) {
@@ -104,6 +108,7 @@ export default class Table extends BlockComponent {
                         dependencyType: "counter",
                         counterName: "sectioning",
                     };
+                    dependencies.numberingPrefix = numberingPrefixDependency();
                 }
                 return dependencies;
             },
@@ -111,7 +116,10 @@ export default class Table extends BlockComponent {
                 const tableEnumeration =
                     dependencyValues.tableCounter === undefined
                         ? null
-                        : String(dependencyValues.tableCounter);
+                        : withNumberingPrefix(
+                              dependencyValues.numberingPrefix,
+                              dependencyValues.tableCounter,
+                          );
 
                 const { tableName, tableNamePrefix } = composeTableName({
                     t: contentTranslator(dependencyValues),

@@ -19,6 +19,10 @@ import {
     slotToken,
 } from "../utils/embeddedMathInputs";
 import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    numberingPrefixDependency,
+    withNumberingPrefix,
+} from "../utils/numberingPrefix";
 
 export class M extends InlineComponent {
     constructor(args) {
@@ -598,11 +602,15 @@ export class Men extends M {
                     dependencyType: "counter",
                     counterName: "equation",
                 },
+                numberingPrefix: numberingPrefixDependency(),
             }),
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        equationTag: String(dependencyValues.equationCounter),
+                        equationTag: withNumberingPrefix(
+                            dependencyValues.numberingPrefix,
+                            dependencyValues.equationCounter,
+                        ),
                     },
                 };
             },

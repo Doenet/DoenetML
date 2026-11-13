@@ -156,6 +156,7 @@ export class Objectives extends SectioningComponentNumberWithSiblings {
 
 export class Problem extends SectioningComponentNumberWithSiblings {
     static componentType = "problem";
+    static numberedAsBlock = true;
 
     static componentDocs = {
         summary: "A sectional component that defines a scored problem",
@@ -214,6 +215,7 @@ export class Activity extends Problem {
 
 export class Example extends SectioningComponentNumberWithSiblings {
     static componentType = "example";
+    static numberedAsBlock = true;
 
     static componentDocs = {
         summary: "A sectional component that defines an example",

@@ -94,6 +94,28 @@ export default class Document extends BaseComponent {
             })),
         };
 
+        attributes.blockNumbering = {
+            createComponentOfType: "text",
+            createStateVariable: "blockNumbering",
+            defaultValue: "division",
+            public: true,
+            toLowerCase: true,
+            validValues: [
+                {
+                    value: "division",
+                    description:
+                        "Number blocks such as examples among the divisions beside them, starting again in each section.",
+                },
+                {
+                    value: "document",
+                    description:
+                        "Number blocks (examples, definitions, notes, theorems, and problems that are not items of a list) through the whole document, on the same count as figures and tables, as PreTeXt does.",
+                },
+            ],
+            description:
+                "How examples, definitions, notes, theorems and problems are numbered: among the divisions beside them (the default), or through the whole document.",
+        };
+
         return attributes;
     }
 

@@ -76,6 +76,11 @@ that cap and the author's own `maxNumAttempts`; inside a container with
 `sectionWideCheckWork`, the cap applies to the container's check-work
 button. Leaving the attribute out means no cap.
 
+A text flag is written as it is: `data-doenet-numbering-prefix="3.2"` sets the
+`numberingPrefix` flag, for a document shown as section 3.2 of a book. Its
+figures and tables then read "Figure 3.2.1", and its numbered equations
+"(3.2.1)". Leaving the attribute out means no prefix.
+
 ## MathJax
 
 The renderer uses MathJax to typeset math. It **coexists** with a MathJax that
