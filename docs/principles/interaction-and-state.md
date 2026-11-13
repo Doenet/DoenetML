@@ -136,8 +136,14 @@ Recent fixes show where the current representation is fragile:
   state variable whose default is a math-expression must restore it as one. The guard cannot
   see a variable whose default is `null` but which later holds a math-expression.
 - **A restore raced an array's size** (#2328).
-- **Restored values are trusted rather than recomputed**, so a restored "just submitted" can be
-  stale (#2325).
+- **Restored values were trusted rather than recomputed**, so a restored "just submitted" could be
+  stale. **Fixed by #2549** (closing #2325, #2174): a saved value is trusted only at load
+  (`justRestoredAtLoad`); one restored later, when a case is shown again, is compared again. An
+  answer's `justSubmitted` hashes its dependencies by `stateId`, so the hash is the same across
+  builds (old hashes needn't be kept, SAVE-3). An input keeps an edit not yet entered only while
+  `value` is still what the edit was typed over (`valueUnderEdit`, a fingerprint); otherwise its
+  `immediateValue` follows `value`. **Known violation** (#2554, not run): an edit can come back
+  when the value passed through it while the input was shown, then returned while withheld.
 - **A restored value is matched by `stateId`; since #2481 also by type** (B36). The save records
   each component's type (`__componentTypes`), and a value whose type differs from the component
   now at that `stateId` is dropped. The ids themselves can still collide across a copy's
@@ -147,8 +153,10 @@ Recent fixes show where the current representation is fragile:
   forms keep what decided their shape (the case, the type-change decision) through a reload.
 - **What decided a copy's shape was not saved** (B31). #2443 saves the type-change decision and
   the case of a `<conditionalContent>` the copy was made from. Since #2481 a copy of a component
-  named inside a case (`$cc.p`, `$cc.g.x`, `$cc[1]`) keeps that case too (B35). Not held: a source
-  a composite in the case makes, and `$e.p` through an extend of a `<conditionalContent>` (#2485).
+  named inside a case (`$cc.p`, `$cc.g.x`, `$cc[1]`) keeps that case too (B35), and since #2549 so
+  does `$e.p` through an extend of a `<conditionalContent>`. Not held: a source a composite in the
+  case makes (`$cc.r[2].p`, #2485 item 1), which needs the case kept built or iterations
+  serialized with stable references.
 
 A rewrite should save only true sources, and recompute everything else.
 
@@ -195,8 +203,12 @@ This covers a repeat that shrinks and grows, a case switched away and back, and 
 **From outside, withheld content acts as missing (decided, D40; #2152).** A value reference to
 it is missing (`＿`, VAL-5); an action that targets it does nothing, with an info; reading it
 does not make it evaluate. It keeps its state, and comes back with it. This reconciles #2149's
-"behaves as though deleted" with this rule (D18). **Known violation:** today actions, property
-reads and triggers from outside reach withheld content (#2152).
+"behaves as though deleted" with this rule (D18). **Done by #2549** (closing #2152): an
+`<updateValue>` or `<callAction>` whose target is withheld does nothing, however it is fired,
+with info **`doenet-i0060`** naming the target, and actions chained to it don't run; a reference
+reads which property it names but not its value (`withheldValuesNotRead`); a withheld answer's
+`justSubmitted` doesn't change until it is shown. An action inside withheld content doesn't fire
+(#2529, ACT-1).
 
 ### SAVE-5: a component's index is allocation order, and is not guaranteed to stay the same (not a guarantee)
 A component's index, and the DOM id `_id_<index>` the viewer builds from it, follow the order in
