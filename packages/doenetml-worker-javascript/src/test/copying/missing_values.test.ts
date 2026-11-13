@@ -1924,6 +1924,46 @@ describe("A value computed from a missing input (D40) @group2", () => {
         });
         expect(await shown()).eqls({ aspectRatio: null, text: "[＿][＿][＿]" });
     });
+
+    it("keeps an unlinked copy made while a property held null missing through a reload", async () => {
+        const doenetML = `
+    <graph><image source="./a.png" name="im"/></graph>
+    <mathInput name="mi" bindValueTo="$im.aspectRatio"/>
+    <p name="p">[<number extend="$im.aspectRatio"/>][<number copy="$im.aspectRatio"/>]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        await updateMathInputValue({
+            latex: "1/2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await text()).eq("[0.5][＿]");
+
+        // made again on a reload while the property has a value, it is made
+        // as it was: missing
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await text()).eq("[0.5][＿]");
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await text()).eq("[3][＿]");
+    });
 });
 
 describe("Missing content read by a math and a list (#2516, #2525) @group2", () => {
@@ -2035,6 +2075,49 @@ describe("Missing content read by a math and a list (#2516, #2525) @group2", () 
                     pIdx,
         );
         expect(list.stateValues.entriesMissing).eqls([false, true]);
+    });
+
+    it("marks a blank entry of a list of a property of every entry only while the entry is blank", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts">(3,4)</pointList>
+    <mathInput name="i" prefill="5"/>
+    <pointList name="pl">(1,2) $pts[$i]</pointList>
+    <p name="p">$pl.y</p>
+    `,
+        });
+        const pIdx = await resolvePathToNodeIdx("p");
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const list = Object.values<any>(stateVariables).find(
+                (c) =>
+                    c.componentType === "mathList" &&
+                    (core.core as any)._components[c.componentIdx]
+                        ?.parentIdx === pIdx,
+            );
+            return {
+                text: stateVariables[pIdx].stateValues.text,
+                entriesMissing: list.stateValues.entriesMissing,
+            };
+        }
+        expect(await shown()).eqls({
+            text: "2, ＿",
+            entriesMissing: [false, true],
+        });
+        for (const [latex, expected] of [
+            ["1", { text: "2, 4", entriesMissing: [false, false] }],
+            ["7", { text: "2, ＿", entriesMissing: [false, true] }],
+        ] as const) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("i"),
+                core,
+            });
+            expect(await shown()).eqls(expected);
+        }
     });
 
     it("reads a point with a label in a point list through an index", async () => {

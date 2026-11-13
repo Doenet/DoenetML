@@ -297,10 +297,10 @@ export default class MathOperator extends MathComponent {
                 // VAL-5, #2460): `<sum>` or `<mean>` of `<numberList>1
                 // $nothing 3</numberList>` is `＿`, not `NaN`, while every
                 // other operand is a number too. An operator forced symbolic,
-                // or one with a symbolic
-                // operand holds the blank (`<sum>$nothing x</sum>` is
-                // `＿ + x`), as a `<math>` does, and so does one whose missing
-                // operand has no type (`<sum>$nothing 3</sum>` is `＿ + 3`).
+                // or one with a symbolic operand, holds the blank (`<sum>$nothing
+                // x</sum>` is `＿ + x`), as a `<math>` does, and so does one
+                // whose missing operand has no type (`<sum>$nothing 3</sum>` is
+                // `＿ + 3`).
                 if (
                     dependencyValues.isNumericOperator &&
                     !countsMissingOperands &&
@@ -335,9 +335,10 @@ export default class MathOperator extends MathComponent {
                 }
 
                 // A `NaN` caused by a missing or blank operand is missing
-                // (D40, #2460): `<median><math>＿</math></median>`,
-                // `<clampNumber>$nothing</clampNumber>`. A `NaN` from present
-                // operands stays.
+                // (D40, #2460): `<median><math>＿</math></median>`. A `NaN`
+                // from present operands (`<median>1 2 x</median>`) stays. An
+                // operator of one input does the same
+                // (`MathBaseOperatorOneInput`).
                 if (
                     !countsMissingOperands &&
                     children.some(isMissingInput) &&

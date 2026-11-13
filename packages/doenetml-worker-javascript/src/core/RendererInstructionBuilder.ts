@@ -800,18 +800,6 @@ export class RendererInstructionBuilder {
     }
 
     /**
-     * Record on `child`, when it is a drawn value reference, whether it has
-     * nothing to read now (`valueMissing`), so it is
-     * drawn as a blank while it has nothing (D37, `ValueRef.rendererType`).
-     * Its `hidden` reads `valueMissing`, so a change to it updates the
-     * children its parent renders, which calls this again. So too for a
-     * component that can be missing for a while
-     * (`BaseComponent.canBecomeMissing`, D40): `<number>$l[$i]</number>` while
-     * `i` is past the end of `l`. Once its `valueMissing` is marked stale,
-     * its parent redraws its children only if it changed
-     * (`checkDrawnMissing`).
-     */
-    /**
      * Mark the nearest ancestor of `component` that is not a composite to
      * redraw its children, if it renders them.
      */
@@ -856,6 +844,18 @@ export class RendererInstructionBuilder {
         }
     }
 
+    /**
+     * Record on `child`, when it is a drawn value reference, whether it has
+     * nothing to read now (`valueMissing`), so it is
+     * drawn as a blank while it has nothing (D37, `ValueRef.rendererType`).
+     * Its `hidden` reads `valueMissing`, so a change to it updates the
+     * children its parent renders, which calls this again. So too for a
+     * component that can be missing for a while
+     * (`BaseComponent.canBecomeMissing`, D40): `<number>$l[$i]</number>` while
+     * `i` is past the end of `l`. Once its `valueMissing` is marked stale,
+     * its parent redraws its children only if it changed
+     * (`checkDrawnMissing`).
+     */
     async updateDrawnMissing(child: any): Promise<void> {
         if (typeof child !== "object" || child === null) {
             return;

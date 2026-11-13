@@ -566,9 +566,9 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  * `null` has no value (`nullMeansMissing` in `referentDescription.ts`, D40),
  * such as an attribute with no default (an `<award>`'s `feedbackText`) or
  * `maxNumber` of a `<collect>` with no limit, so it is missing while it holds
- * `null`, as the copy makes nothing for it then (`replacementFromProp` in
- * `Copy.js`, #2416, #2460), unless its definition sets `nullIsMissing` to
- * `false`. One case differs from the copy: an
+ * `null`, as the copy makes nothing for it then, or, linked, a component
+ * missing while it does (`replacementFromProp` in `Copy.js`, #2416, #2460),
+ * unless its definition sets `nullIsMissing` to `false`. One case differs from the copy: an
  * array entry whose key is there but that holds no value is missing, where
  * the copy made a component holding the empty value. The known such entries
  * are those of a function's global minimum, maximum, infimum or supremum

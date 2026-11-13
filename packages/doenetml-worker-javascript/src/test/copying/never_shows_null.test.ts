@@ -102,4 +102,21 @@ describe("Never shows null (D40) @group3", () => {
         expect(checked).greaterThan(types.length * 0.8);
         expect(found).eqls([]);
     }, 1_800_000);
+
+    it("loads a reference to a property declared a number that holds another value, and shows the sizes of a subsetOfRealsInput", async () => {
+        // `$P.scales` holds an array, which a number entry once crashed on;
+        // the width and height defaults of `<subsetOfRealsInput>` read
+        // `undefined%` (#2460)
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <point name="P"/>
+    <subsetOfRealsInput name="s"/>
+    <p name="p">[$P.scales][$s.width][$s.height]</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[NaN][800px][300px]");
+    });
 });

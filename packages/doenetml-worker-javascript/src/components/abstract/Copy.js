@@ -1988,6 +1988,8 @@ export default class Copy extends CompositeComponent {
                     Number(sourceNum) === 0 &&
                     component.attributes._copyInChildren?.primitive.value,
                 heldCase,
+                heldMadeFrom,
+                madeFrom: workspace.madeFrom,
             });
 
             diagnostics.push(...results.diagnostics);
@@ -2232,6 +2234,8 @@ export default class Copy extends CompositeComponent {
         copyInChildren,
         heldCase,
         inPlaceOfProp,
+        heldMadeFrom,
+        madeFrom,
     }) {
         // console.log(`create replacement for sourceNum ${sourceNum}`);
         // console.log(
@@ -2345,6 +2349,8 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
                 numComponentsForSource,
                 publicCaseInsensitiveAliasSubstitutions,
+                heldMadeFrom,
+                madeFrom,
             });
             diagnostics.push(...results.diagnostics);
             nComponents = results.nComponents;
@@ -4145,6 +4151,8 @@ export async function replacementFromProp({
     componentInfoObjects,
     numComponentsForSource,
     publicCaseInsensitiveAliasSubstitutions,
+    heldMadeFrom,
+    madeFrom,
 }) {
     // console.log(`replacement from prop for ${component.componentIdx}`)
     // console.log(replacementSource)
@@ -5673,10 +5681,17 @@ export async function replacementFromProp({
         // it holds the value once there is one, and a write through it
         // reaches the variable, as `<mathInput
         // bindValueTo="$image.aspectRatio"/>` of an image with no aspect
-        // ratio sets it. An unlinked one is missing for good, and so is a
-        // value reference here, which is not made.
+        // ratio sets it. An unlinked one is missing for good, through a
+        // reload too (`madeFrom.madeMissing`, `heldCopySnapshot`), and so is
+        // a value reference here, which is not made.
         const holdsNoValue =
-            nullMeansMissing(stateVarObj) && (await stateVarObj.value) === null;
+            nullMeansMissing(stateVarObj) &&
+            (!link && heldMadeFrom
+                ? Boolean(heldMadeFrom.madeMissing)
+                : (await stateVarObj.value) === null);
+        if (holdsNoValue && !link && madeFrom) {
+            madeFrom.madeMissing = true;
+        }
         if (
             !stateVarObj.shadowingInstructions?.createComponentOfType ||
             (holdsNoValue && !link)

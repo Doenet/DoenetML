@@ -274,7 +274,8 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
  *   as it was when the copy was made (`reportIndexIntoScalarAsMade`).
  * - `madeMissing`, whether it was made missing because what it copies, a
  *   component missing for a while (`BaseComponent.canBecomeMissing`), was
- *   missing then (`missingSourceInPlace` in `Copy.js`).
+ *   missing then (`missingSourceInPlace` in `Copy.js`), or a property that
+ *   held `null` (`replacementFromProp`).
  *
  * A copy with none of these is held as its snapshot alone, as saves made
  * before these were held are.
