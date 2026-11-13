@@ -51,6 +51,7 @@ impl Resolver {
                         source_sequence: node_data.source_sequence.clone(),
                         branch_kind: node_data.branch_kind,
                         iteration_aliases: node_data.iteration_aliases,
+                        setup: node_data.setup,
                     }
                 } else {
                     NodeResolverData {
@@ -65,6 +66,7 @@ impl Resolver {
                         source_sequence: node_data.source_sequence.clone(),
                         branch_kind: node_data.branch_kind,
                         iteration_aliases: node_data.iteration_aliases,
+                        setup: node_data.setup,
                     }
                 }
             })

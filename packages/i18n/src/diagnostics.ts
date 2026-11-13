@@ -286,6 +286,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0188": "reference-index-selects-child",
     "doenet-w0189": "repeat-value-name-is-index-name",
     "doenet-w0190": "copy-children-ignored",
+    "doenet-w0191": "reference-branches-hold-several",
+    "doenet-w0192": "reference-property-partly-held",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

@@ -555,6 +555,65 @@ reference-name-types-differ-in-branches = `{ $reference }` names nothing: `{ $na
        *[other] the `<{ $container }>`
     } and a `<{ $secondType }>` in another. Use the same type, or different names.
 
+# A property or an index after a `<select>` or `<conditionalContent>` whose
+# options or cases differ: some hold one component, to which it passes, and
+# others several, a container it does not pass into (#2520, D41). Decided at
+# load from every option or case. $reference is the reference as written,
+# with its `$`. $what is `index` or `property`. $branch is `option` or
+# `case`; $ordinals lists the options, or the cases (not the `<else>`), that
+# hold several, and $withElse is `true` when the `<else>` does too.
+# $container is the container's name when $hasName is `true`, else its tag
+# name. $suggestion (when $hasSuggestion is `true`) is the reference with
+# `.P` after the container and its first index. Tags, names and references
+# stay as written.
+
+reference-branches-hold-several = `{ $reference }`: { $what ->
+        [index] an index
+       *[property] a property
+    } after { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } passes into what { $branch ->
+        [option] each pick
+       *[case] the case shown
+    } holds only when it holds one component, and { $branch ->
+        [option] { $ordinalsCount ->
+            [one] option { $ordinals } holds
+           *[other] options { $ordinals } hold
+        }
+       *[case] { $withElse ->
+            [true] { $ordinalsCount ->
+                [0] the `<else>` holds
+                [one] case { $ordinals } and the `<else>` hold
+               *[other] cases { $ordinals } and the `<else>` hold
+            }
+           *[other] { $ordinalsCount ->
+                [one] case { $ordinals } holds
+               *[other] cases { $ordinals } hold
+            }
+        }
+    } several. { $hasSuggestion ->
+        [true] Give the component you mean a name in each, such as `name="P"`, and write `{ $suggestion }`.
+       *[other] Give the component you mean a name in each, and write that name after a `.`.
+    }
+
+# A property after a `<select>` or `<conditionalContent>` whose options or
+# cases each hold one component, where some of those components have the
+# property and others don't (D40, #2452): each that lacks it gives a blank.
+# Decided at load from every option or case. $reference is the reference as
+# written, with its `$`; $property the property and $lackingType the tag of a
+# component that lacks it, both as written. $container is the container's
+# name when $hasName is `true`, else its tag name. $named (when $hasSuggestion
+# is `true`) is the name of a component that has the property.
+
+reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } has no property `{ $property }`, so it gives a blank there. { $hasSuggestion ->
+        [true] Read the property from the component you mean, such as `${ $named }.{ $property }`.
+       *[other] Read the property from the component you mean, by its name.
+    }
+
 ## `<callAction>`
 
 # $action is the `actionName` the author asked for, part of the DoenetML

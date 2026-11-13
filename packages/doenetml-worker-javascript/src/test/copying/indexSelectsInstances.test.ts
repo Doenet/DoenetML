@@ -910,7 +910,14 @@ describe("An index selects instances, not children @group4", async () => {
 describe("An index after a group names nothing (#2517) @group4", async () => {
     it("names nothing after every form of a group", async () => {
         // The forms in #2517, other than those above
-        const cases: { body: string; references: string[] }[] = [
+        // `atLoad`: the references also warned of at load because the case
+        // holds one component and the `<else>` several (`doenet-w0191`,
+        // #2520 item 1)
+        const cases: {
+            body: string;
+            references: string[];
+            atLoad?: string[];
+        }[] = [
             {
                 // an extend and a `copy` of a group the author wrote
                 body: `<group name="g"><math>a</math><math>b</math></group><group name="g2" extend="$g"/><group name="g3" copy="$g"/><p name="p">[$g2[2]] [$g3[1]]</p>`,
@@ -926,6 +933,7 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
                 // with a single condition
                 body: `<conditionalContent name="cc"><case condition="false"><math>a</math></case><else><math>b</math><math>c</math></else></conditionalContent><conditionalContent name="cc2" condition="true"><math>d</math><math>e</math></conditionalContent><p name="p">[$cc[1][2]] [$cc2[1][1]]</p>`,
                 references: ["$cc[1][2]", "$cc2[1][1]"],
+                atLoad: ["$cc[1][2]"],
             },
             {
                 // an extend of an iteration holding more than one component
@@ -953,13 +961,21 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
             },
         ];
 
-        for (const { body, references } of cases) {
+        for (const { body, references, atLoad = [] } of cases) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(body);
             expect(text, body).eq(references.map(() => "[＿]").join(" "));
             expect([...errors, ...infos], body).eqls([]);
             expect(
-                warnings.map((w) => [w.code, w.args.reference]),
+                warnings
+                    .filter((w) => w.code === "doenet-w0191")
+                    .map((w) => w.args.reference),
+                body,
+            ).eqls(atLoad);
+            expect(
+                warnings
+                    .filter((w) => w.code !== "doenet-w0191")
+                    .map((w) => [w.code, w.args.reference]),
                 body,
             ).eqls(references.map((r) => ["doenet-w0188", r]));
         }

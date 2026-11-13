@@ -32,7 +32,10 @@ import {
 } from "../../utils/referentDescription";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { applySugar } from "../../utils/dast/sugar";
-import { typeChangeAtLoadDiagnostic } from "../../utils/dast/typeChangeAtLoad";
+import {
+    typeChangeAtLoadDiagnostic,
+    typeHasProperty,
+} from "../../utils/dast/typeChangeAtLoad";
 import AuthoredValueList from "./AuthoredValueList";
 import {
     madeFromInputValue,
@@ -687,6 +690,13 @@ export default class Copy extends CompositeComponent {
                     stateValues.extendedComponent?.componentType !== "_copy" &&
                     !stateValues.implicitProp &&
                     stateValues.unresolvedPath?.[0]?.name === "";
+                // A `<conditionalContent>` holds at most one item, the case it
+                // shows (D41): an index past it names nothing, rather than
+                // being passed to what that case holds (#2520 item 2, #2166).
+                const indexPastConditional =
+                    indexPastComposite &&
+                    stateValues.extendedComponent?.componentType ===
+                        "conditionalContent";
 
                 if (stateValues.replacementSourceIdentities !== null) {
                     for (let [
@@ -716,6 +726,7 @@ export default class Copy extends CompositeComponent {
 
                             if (
                                 typeof source === "string" ||
+                                indexPastConditional ||
                                 (indexPastComposite &&
                                     componentInfoObjects.allComponentClasses[
                                         source.componentType
@@ -4278,6 +4289,25 @@ export async function replacementFromProp({
                     },
                 }),
             );
+        } else if (
+            propName === "__prop_name_not_found" &&
+            component.doenetAttributes?.blankWhereNoProperty
+        ) {
+            // A property some of the options or cases of a `<select>` or
+            // `<conditionalContent>` have and this one lacks gives a blank,
+            // with the warning decided at load (D40 decision 5, #2452;
+            // `checkCollectionItems` in `typeChangeAtLoad.ts`).
+            return {
+                serializedReplacements: [
+                    missingReplacement({
+                        nComponents: nComponents++,
+                        stateIdInfo,
+                    }),
+                ],
+                propVariablesCopiedByReplacement: [[]],
+                diagnostics,
+                nComponents,
+            };
         } else if (propName !== "__prop_name_not_found") {
             diagnostics.push(
                 codedDiagnostic({
@@ -7131,7 +7161,10 @@ async function missingPropertyError({
     const propNames = await component.stateValues.effectivePropNameBySource;
     if (
         !(propNames?.length > 0) ||
-        !propNames.every((name) => name === "__prop_name_not_found")
+        !propNames.every((name) => name === "__prop_name_not_found") ||
+        // decided at load from every option or case, with a blank for each
+        // lacking it (`blankWhereNoProperty`, #2452)
+        component.doenetAttributes?.blankWhereNoProperty
     ) {
         return undefined;
     }
@@ -7215,6 +7248,9 @@ async function reportMissingProperty({
         const sources =
             (await component.stateValues.replacementSourceIdentities) ?? [];
         if (
+            // decided at load, from every option or case, with a blank for
+            // each lacking it (`blankWhereNoProperty`, #2452)
+            !component.doenetAttributes?.blankWhereNoProperty &&
             propNames?.length > 0 &&
             propNames.every((name) => name === "__prop_name_not_found") &&
             // a name of the document is looked up as a name first, so it is
@@ -7253,25 +7289,6 @@ async function reportMissingProperty({
         ...workspace.conditionDiagnostics,
         missingProperty: diagnostics,
     };
-}
-
-/**
- * Whether a component of type `componentType` has the public property
- * `propName`, matched as a reference matches it (without regard to case,
- * through aliases and array entries).
- */
-function typeHasProperty({ componentType, propName, componentInfoObjects }) {
-    const componentClass =
-        componentInfoObjects.allComponentClasses[componentType];
-    if (!componentClass) {
-        return false;
-    }
-    const [mapped] = publicCaseInsensitiveAliasSubstitutions({
-        stateVariables: [propName],
-        componentClass,
-        componentInfoObjects,
-    });
-    return mapped !== undefined && !mapped.startsWith("__not_public_");
 }
 
 /**

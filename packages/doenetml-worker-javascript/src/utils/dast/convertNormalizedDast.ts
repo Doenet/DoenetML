@@ -660,10 +660,11 @@ export async function normalizedDastToSerializedComponents(
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag
     // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
-    const { branchNameWarnings, branchReads } = checkTypeChangesAtLoad({
-        serializedComponents: sugarResult.components,
-        componentInfoObjects,
-    });
+    const { branchNameWarnings, collectionItemWarnings, branchReads } =
+        checkTypeChangesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        });
     // A reference to a name the branches of a `<conditionalContent>` or a
     // one-pick `<select>` do not all declare with one tag names nothing
     // (D13, D22), so that what it names never changes type with the active
@@ -722,6 +723,43 @@ export async function normalizedDastToSerializedComponents(
                 noReferent: true,
             };
         }
+    }
+
+    // What a property or an index after a `<select>` or `<conditionalContent>`
+    // reaches in its options or cases, decided at load from every one of them
+    // (#2520 item 1, #2452): a warning at the reference, which is left as it
+    // is.
+    for (const { copy, code, args, kind } of collectionItemWarnings) {
+        const ref: any = copy.extending
+            ? unwrapSource(copy.extending as any)
+            : undefined;
+        const reference = doenetMLReferenceAsWritten(
+            ref?.originalPath,
+            normalized_root.sources,
+        );
+        const extra: Record<string, string> = {};
+        if (code === "doenet-w0191") {
+            const suggestion = referenceNamingTheItem(
+                ref,
+                kind,
+                reference,
+                normalized_root.sources,
+            );
+            extra.suggestion = suggestion ?? "";
+            extra.hasSuggestion = suggestion === undefined ? "false" : "true";
+        } else {
+            extra.hasSuggestion = args.named === undefined ? "false" : "true";
+            extra.named = args.named ?? "";
+        }
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: code as any,
+                args: { ...args, ...extra, reference } as any,
+                position: copy.position,
+                sourceDoc: copy.sourceDoc,
+            }),
+        );
     }
 
     // A reference that depends on itself, through what is written in every
@@ -2288,4 +2326,56 @@ function getComponentType(element: FlatElement) {
     }
 
     return element.name;
+}
+
+/**
+ * The reference `reference` (as written, `$s.x`, `$s[1][2]`, `$s[1].x`) of
+ * the copy whose resolution is `ref`, with `.P` written after the
+ * `<select>` or `<conditionalContent>` it reaches and its first index, if
+ * any (`$s.P.x`, `$s[1].P[2]`, `$s[1].P.x`): what to write to read the
+ * component named `P` in each option or case (`doenet-w0191`). `undefined`
+ * when where to put it is not known from the positions in the DoenetML.
+ */
+function referenceNamingTheItem(
+    ref: any,
+    kind: "index" | "property",
+    reference: string,
+    sources: readonly string[],
+) {
+    const path: any[] = ref?.unresolvedPath ?? [];
+    const original: any[] = ref?.originalPath ?? [];
+    const start = original[0]?.position?.start?.offset;
+    const end = original[original.length - 1]?.position?.end?.offset;
+    const sourceDoc = original[0]?.sourceDoc ?? 0;
+    const source = sources[sourceDoc];
+    let at: number | undefined;
+    if (path[0]?.name !== "") {
+        // before the `.` of the property
+        at = path[0]?.position?.start?.offset - 1;
+    } else if (kind === "property") {
+        // before the `.` of the property after the first index
+        at = path[1]?.position?.start?.offset - 1;
+    } else {
+        // at the `[` of the second index
+        at = path[0]?.index?.[1]?.position?.start?.offset;
+    }
+    if (
+        source === undefined ||
+        typeof start !== "number" ||
+        typeof end !== "number" ||
+        typeof at !== "number" ||
+        Number.isNaN(at) ||
+        at <= start ||
+        at > end
+    ) {
+        return undefined;
+    }
+    // what is written before the path (`$`, `$$`)
+    const written = source.substring(start, end);
+    const at0 = reference.indexOf(written);
+    if (at0 < 0) {
+        return undefined;
+    }
+    const dollars = reference.slice(0, at0);
+    return `${dollars}${source.substring(start, at)}.P${source.substring(at, end)}`;
 }

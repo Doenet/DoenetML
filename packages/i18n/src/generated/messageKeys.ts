@@ -413,6 +413,8 @@ export type MessageKey =
     | "reference-index-past-instances"
     | "reference-name-missing-in-branch"
     | "reference-name-types-differ-in-branches"
+    | "reference-branches-hold-several"
+    | "reference-property-partly-held"
     | "component-action-unavailable"
     | "data-frame-inconsistent-row-lengths"
     | "data-frame-duplicate-column-names"
@@ -1100,6 +1102,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-index-past-instances",
     "reference-name-missing-in-branch",
     "reference-name-types-differ-in-branches",
+    "reference-branches-hold-several",
+    "reference-property-partly-held",
     "component-action-unavailable",
     "data-frame-inconsistent-row-lengths",
     "data-frame-duplicate-column-names",

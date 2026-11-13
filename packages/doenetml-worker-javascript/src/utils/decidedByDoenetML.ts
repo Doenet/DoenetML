@@ -223,7 +223,7 @@ function canChangeUncached(
     if (
         component.replacementOf &&
         (viaReference
-            ? replacementsCanChange(component.replacementOf, ctx)
+            ? madeByReferenceCanChange(component, ctx)
             : writtenInPlaceCanChange(component, ctx))
     ) {
         return true;
@@ -343,6 +343,28 @@ function replacementsCanChange(
 }
 
 /**
+ * Whether what made `component`, reached by a reference, can come to make
+ * something else (`replacementsCanChange` of the composite that made it).
+ * A copy a bare reference made (`$g` written in an option, its copy of
+ * `g`'s math) is the component it copies wherever that reference is
+ * written, so for it this asks only what `branchCanChange` asks of where
+ * the reference is: a case whose choice can change, or a reference that can
+ * name something else, not the pick of a `<select>` (SEL-8), as for the
+ * component a value reference (`$m` in an option) reads (#2520 item 4).
+ */
+function madeByReferenceCanChange(component: any, ctx: ChangeContext): boolean {
+    const madeBy = liveComponent(component.replacementOf, ctx);
+    if (
+        component.shadows &&
+        component.shadows.propVariable === undefined &&
+        madeBy.componentType === "_copy"
+    ) {
+        return branchCanChange(component, ctx);
+    }
+    return replacementsCanChange(component.replacementOf, ctx);
+}
+
+/**
  * The composites whose replacements are content the author wrote in them:
  * a case's or option's content, a repeat's template, what a group, sort or
  * shuffle holds. Which of it is shown can change (the active case, the
@@ -427,6 +449,22 @@ export function branchCanChange(component: any, ctx: ChangeContext): boolean {
         composite = live.replacementOf;
     }
     return false;
+}
+
+/**
+ * Whether which case the `<conditionalContent>` `conditionalContent` shows,
+ * or whether it shows one, can change as a reader works (a `condition` from
+ * an input), as `branchCanChange` asks of the one a component is made by.
+ */
+export function caseShownCanChange(
+    conditionalContent: any,
+    ctx: ChangeContext,
+): boolean {
+    return replacementsCanChange(
+        liveComponent(conditionalContent, ctx),
+        ctx,
+        true,
+    );
 }
 
 /**
