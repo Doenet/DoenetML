@@ -1,4 +1,5 @@
 import { targetIdxOfRefResolution } from "./refTargets";
+import { codedDiagnostic } from "./diagnostics";
 
 export function returnStandardTriggeringAttributes(triggerActionOnChange) {
     return {
@@ -273,4 +274,44 @@ export function addClickTargetStateVariableDefinition(
             return { setValue: { clickTarget } };
         },
     };
+}
+
+/**
+ * Whether each of the components an action (`<callAction>`, `<updateValue>`)
+ * would act on, `targetIndices`, is withheld from what is shown: in a case
+ * of a `<conditionalContent>` that is not true, or an iteration a repeat no
+ * longer has. From outside, withheld content acts as missing (SAVE-4, D40,
+ * #2152), so the action does nothing to it, and when it has nothing left to
+ * act on, the author is told with an info (`doenet-i0060`) naming the
+ * `target` as written. The withheld content keeps its state, and the action
+ * reaches it again once it is shown.
+ *
+ * Returns the indices of the targets not withheld.
+ */
+export async function targetsNotWithheld({ component, targetIndices }) {
+    const shown = [];
+    for (const targetIdx of targetIndices) {
+        if (!(await component.coreFunctions.componentIsWithheld(targetIdx))) {
+            shown.push(targetIdx);
+        }
+    }
+    if (shown.length === 0 && targetIndices.length > 0) {
+        const referenceText =
+            component.coreFunctions.doenetMLStringForReference(
+                await component.stateValues.targetOriginalPath,
+            );
+        component.coreFunctions.addDiagnostic(
+            codedDiagnostic({
+                type: "info",
+                code: "doenet-i0060",
+                args: {
+                    componentType: component.componentType,
+                    reference: referenceText ? "$" + referenceText : "",
+                },
+                position: component.position,
+                sourceDoc: component.sourceDoc,
+            }),
+        );
+    }
+    return shown;
 }

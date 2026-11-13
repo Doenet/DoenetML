@@ -26,6 +26,8 @@ import {
 import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
+    immediateValueFollowsValue,
+    returnValueUnderEditDefinition,
 } from "../utils/input";
 import {
     moveGraphicalObjectWithAnchorAction,
@@ -627,6 +629,11 @@ export default class MathInput extends Input {
             },
         };
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnValueUnderEditDefinition("valueUnderEdit"),
+        );
+
         stateVariableDefinitions.immediateValue = {
             description:
                 "The math value reflecting the user's in-progress edits.",
@@ -648,12 +655,19 @@ export default class MathInput extends Input {
                     variableName: "immediateValueChanged",
                     onlyToSetInInverseDefinition: true,
                 },
+                valueUnderEdit: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueUnderEdit",
+                    // bookkeeping, not part of the value (`valueUnderEdit`)
+                    notInRecursiveDependencyValues: true,
+                },
             }),
             set: convertValueToMathExpression,
             definition: function ({
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                justRestoredAtLoad,
                 usedDefault,
             }) {
                 // console.log(`definition of immediateValue`)
@@ -662,9 +676,14 @@ export default class MathInput extends Input {
                 // console.log(`justUpdatedForNewComponent: ${justUpdatedForNewComponent}`)
 
                 if (
-                    changes.value &&
-                    !justUpdatedForNewComponent &&
-                    !usedDefault.value
+                    immediateValueFollowsValue({
+                        valueChanged: changes.value,
+                        valueUsedDefault: usedDefault.value,
+                        justUpdatedForNewComponent,
+                        justRestoredAtLoad,
+                        value: dependencyValues.value,
+                        valueUnderEdit: dependencyValues.valueUnderEdit,
+                    })
                 ) {
                     // only update to value when it changes
                     // (otherwise, let its essential value change)
@@ -686,6 +705,7 @@ export default class MathInput extends Input {
             },
             inverseDefinition: function ({
                 desiredStateVariableValues,
+                dependencyValues,
                 initialChange,
                 shadowedVariable,
             }) {
@@ -698,6 +718,10 @@ export default class MathInput extends Input {
                     {
                         setDependency: "immediateValueChanged",
                         desiredValue: true,
+                    },
+                    {
+                        setDependency: "valueUnderEdit",
+                        desiredValue: dependencyValues.value,
                     },
                 ];
 
@@ -967,7 +991,7 @@ export default class MathInput extends Input {
             definition({
                 dependencyValues,
                 essentialValues,
-                justUpdatedForNewComponent,
+                justRestoredAtLoad,
                 usedDefault,
             }) {
                 // console.log(`definition of raw value for ${componentIdx}`)
@@ -978,7 +1002,11 @@ export default class MathInput extends Input {
                 if (
                     essentialValues.rawRendererValue === undefined ||
                     !(
-                        justUpdatedForNewComponent ||
+                        // A restored value is kept as the document loads. In
+                        // an input made from saved state later (a case shown
+                        // again), it is kept only if the value it showed is
+                        // still the value, as for `immediateValue` (#2325).
+                        justRestoredAtLoad ||
                         deepCompare(
                             essentialValues.lastValueForDisplay.tree,
                             dependencyValues.valueForDisplay.tree,

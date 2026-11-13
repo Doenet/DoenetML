@@ -1014,6 +1014,20 @@ export async function createChildrenThenComponent({
 }
 
 /**
+ * The mark left on a state variable restored from saved state
+ * (`justUpdatedForNewComponent`), which tells its definition whether it was
+ * restored as the document loaded (`"atLoad"`) or into a component made
+ * later (`"afterLoad"`), such as one in a case shown again or shown for the
+ * first time since a reload. A value saved while its component was withheld
+ * was not kept up to date with what it is computed from (#2325), so a
+ * definition that keeps a restored value instead of recomputing it can keep
+ * it only at load.
+ */
+function restoredFlag(core: Core) {
+    return core.initialAddPhase ? "atLoad" : "afterLoad";
+}
+
+/**
  * Apply any state-variable updates that were queued against
  * `componentIdx` while it was missing from `core._components` (e.g.
  * persisted state restored before the component was constructed). Marks
@@ -1060,7 +1074,8 @@ export async function checkForStateVariablesUpdatesForNewComponent({
             for (const vName in core.updateInfo
                 .stateVariableUpdatesForMissingComponents[stateId]) {
                 if (comp.state[vName]) {
-                    comp.state[vName].justUpdatedForNewComponent = true;
+                    comp.state[vName].justUpdatedForNewComponent =
+                        restoredFlag(core);
                 }
             }
         }
@@ -1092,7 +1107,8 @@ export async function checkForStateVariablesUpdatesForNewComponent({
                         componentIdx,
                         stateVariable: vName,
                     });
-                    comp.state[vName].justUpdatedForNewComponent = true;
+                    comp.state[vName].justUpdatedForNewComponent =
+                        restoredFlag(core);
                     if (result.foundIgnore) {
                         // This is a kludge
                         // The only case so far with ignored children is that Math ignores strings

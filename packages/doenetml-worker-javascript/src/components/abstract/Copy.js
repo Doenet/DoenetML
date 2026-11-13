@@ -770,6 +770,17 @@ export default class Copy extends CompositeComponent {
                                 // so it is not reported again as an index
                                 // into each replacement's value.
                                 indexPastComposite,
+                                // Only which property is read is needed
+                                // here, so a source withheld from what is
+                                // shown is not evaluated (#2152). Once it is
+                                // shown again (`withheld`), it is read.
+                                withheldValuesNotRead: true,
+                            };
+                            dependencies["withheld" + ind] = {
+                                dependencyType: "stateVariable",
+                                componentIdx: source.componentIdx,
+                                variableName: "isInactiveCompositeReplacement",
+                                variablesOptional: true,
                             };
                         } else {
                             if (typeof source === "string") {

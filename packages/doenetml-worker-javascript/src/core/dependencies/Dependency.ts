@@ -1147,6 +1147,12 @@ export class Dependency {
                     componentObj.componentIdx = componentIdx;
                 }
 
+                // The id saved state is keyed by (SAVE-3), which, unlike
+                // the index, is the same each time the document is built.
+                if (this.includeStateIds) {
+                    componentObj.stateId = depComponent.stateId;
+                }
+
                 if (depComponent.position) {
                     componentObj.position =
                         this.dependencyHandler.frozenPositionCopy(
@@ -1172,6 +1178,18 @@ export class Dependency {
                     let usedDefaultObj: any = {};
                     let foundOneUsedDefault = false;
 
+                    // A component withheld from what is shown (a case not
+                    // shown, an iteration a repeat no longer has) is not
+                    // evaluated by a reader that asks only what it has, not
+                    // what it holds (`withheldValuesNotRead`): from outside,
+                    // withheld content acts as missing (SAVE-4, D40, #2152).
+                    // Its variables are named, with no value, and their
+                    // changes are left for when it is read once shown.
+                    const valuesNotRead =
+                        this.withheldValuesNotRead &&
+                        (await depComponent.state.isInactiveCompositeReplacement
+                            ?.value);
+
                     for (let [
                         varInd,
                         originalVarName,
@@ -1193,7 +1211,10 @@ export class Dependency {
                         ) {
                             let mappedStateVarObj =
                                 depComponent.state[mappedVarName];
-                            if (!mappedStateVarObj.deferred) {
+                            if (valuesNotRead) {
+                                componentObj.stateValues[nameForOutput] =
+                                    undefined;
+                            } else if (!mappedStateVarObj.deferred) {
                                 componentObj.stateValues[nameForOutput] =
                                     await mappedStateVarObj.value;
                                 // absent when already consumed and not

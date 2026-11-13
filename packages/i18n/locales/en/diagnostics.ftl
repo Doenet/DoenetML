@@ -651,6 +651,13 @@ reference-property-after-several =
 # language, so it stays in English. $reference is the `target` as written.
 component-action-unavailable = Cannot call { $action } on component `{ $reference }`
 
+# An action (`<callAction>`, `<updateValue>`, $componentType) whose `target`,
+# $reference as written, is in content not shown now: a case of a
+# `<conditionalContent>` that is not true, or an iteration a repeat no longer
+# has. Content that is not shown acts as missing from outside, so the action
+# did nothing. The tag and attribute names stay in English.
+action-target-not-shown = The `<{ $componentType }>` did nothing: its `target`, `{ $reference }`, is not shown now.
+
 ## `<dataFrame>`
 
 # $componentIdx is an internal index, passed as a string so it is not grouped

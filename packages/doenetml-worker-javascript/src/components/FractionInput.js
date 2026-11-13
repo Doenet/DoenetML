@@ -19,6 +19,8 @@ import {
 } from "../utils/mathComponentInput";
 import {
     defineSubmitAnswerExternalAction,
+    immediateValueFollowsValue,
+    returnValueUnderEditDefinition,
     returnInputValueChangedStateVariableDefinitions,
 } from "../utils/input";
 
@@ -325,6 +327,11 @@ export class FractionInput extends Input {
         stateVariableDefinitions.immediateValueChanged =
             inputValueChangedStateVariableDefinitions.immediateValueChanged;
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnValueUnderEditDefinition("valueUnderEdit"),
+        );
+
         // The fraction value reflecting the user's in-progress edits.
         stateVariableDefinitions.immediateValue = {
             description:
@@ -348,17 +355,29 @@ export class FractionInput extends Input {
                     variableName: "immediateValueChanged",
                     onlyToSetInInverseDefinition: true,
                 },
+                valueUnderEdit: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueUnderEdit",
+                    // bookkeeping, not part of the value (`valueUnderEdit`)
+                    notInRecursiveDependencyValues: true,
+                },
             }),
             definition({
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                justRestoredAtLoad,
                 usedDefault,
             }) {
                 if (
-                    changes.value &&
-                    !justUpdatedForNewComponent &&
-                    !usedDefault.value
+                    immediateValueFollowsValue({
+                        valueChanged: changes.value,
+                        valueUsedDefault: usedDefault.value,
+                        justUpdatedForNewComponent,
+                        justRestoredAtLoad,
+                        value: dependencyValues.value,
+                        valueUnderEdit: dependencyValues.valueUnderEdit,
+                    })
                 ) {
                     return {
                         setValue: { immediateValue: dependencyValues.value },
@@ -378,6 +397,7 @@ export class FractionInput extends Input {
             },
             inverseDefinition({
                 desiredStateVariableValues,
+                dependencyValues,
                 initialChange,
                 shadowedVariable,
             }) {
@@ -392,6 +412,10 @@ export class FractionInput extends Input {
                     {
                         setDependency: "immediateValueChanged",
                         desiredValue: true,
+                    },
+                    {
+                        setDependency: "valueUnderEdit",
+                        desiredValue: dependencyValues.value,
                     },
                 ];
 

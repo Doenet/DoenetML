@@ -18,6 +18,7 @@ import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { targetIdxOfRefResolution } from "../utils/refTargets";
+import { targetsNotWithheld } from "../utils/triggering";
 
 export default class CallAction extends InlineComponent {
     constructor(args) {
@@ -227,7 +228,16 @@ export default class CallAction extends InlineComponent {
         }
         let targetIdx = await this.stateValues.targetComponentIdx;
         let actionName = await this.stateValues.actionName;
-        if (targetIdx != null && actionName != null) {
+        if (
+            targetIdx != null &&
+            actionName != null &&
+            (
+                await targetsNotWithheld({
+                    component: this,
+                    targetIndices: [targetIdx],
+                })
+            ).length > 0
+        ) {
             let args = { sourceInformation, skipRendererUpdate: true };
             if (this.serializedChildren.length > 0) {
                 args.serializedComponents = deepClone(this.serializedChildren);

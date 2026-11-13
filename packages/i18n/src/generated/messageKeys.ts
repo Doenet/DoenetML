@@ -417,6 +417,7 @@ export type MessageKey =
     | "reference-property-partly-held"
     | "reference-property-after-several"
     | "component-action-unavailable"
+    | "action-target-not-shown"
     | "data-frame-inconsistent-row-lengths"
     | "data-frame-duplicate-column-names"
     | "data-frame-missing-column-name"
@@ -1107,6 +1108,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-property-partly-held",
     "reference-property-after-several",
     "component-action-unavailable",
+    "action-target-not-shown",
     "data-frame-inconsistent-row-lengths",
     "data-frame-duplicate-column-names",
     "data-frame-missing-column-name",

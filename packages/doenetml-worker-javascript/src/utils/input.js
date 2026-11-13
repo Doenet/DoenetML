@@ -4,6 +4,8 @@
  * value the input holds.
  */
 
+import { deepCompare } from "@doenet/utils";
+
 /**
  * Define a `submitAnswer` external action on an input component that delegates
  * to its `answerAncestor`. Call from the component constructor.
@@ -129,6 +131,76 @@ export async function buildInputResponseEvent({
 }
 
 /**
+ * The state variable, named `valueUnderEditName`, holding the value an
+ * input's in-progress edit (its `immediateValue`) was typed over: the value
+ * when the reader last edited it. It is saved, so that an input made again
+ * from saved state after the document has loaded can tell whether its value
+ * has changed since (`immediateValueFollowsValue`).
+ */
+export function returnValueUnderEditDefinition(valueUnderEditName) {
+    return {
+        [valueUnderEditName]: {
+            defaultValue: null,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { [valueUnderEditName]: true },
+            }),
+            inverseDefinition: ({ desiredStateVariableValues }) => ({
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: valueUnderEditName,
+                        value: desiredStateVariableValues[valueUnderEditName],
+                    },
+                ],
+            }),
+        },
+    };
+}
+
+/**
+ * Whether an input's `immediateValue`, the reader's in-progress edit, is set
+ * to its `value`, which it follows only when the value changes.
+ *
+ * A value restored from saved state is not a change, as the document loads:
+ * the saved `immediateValue` is what the reader saw. But a saved
+ * `immediateValue` is brought up to date only when it is computed, so one
+ * saved while the input was withheld (in a case not shown) can be older than
+ * its value, which can change meanwhile (`bindValueTo`). An input made from
+ * saved state after the document has loaded (when the case is shown again,
+ * or shown for the first time since a reload) therefore keeps the saved edit
+ * only if its value is still the one the edit was typed over (`valueUnderEdit`),
+ * and otherwise follows its value, as it would have had it been shown
+ * (#2325).
+ */
+export function immediateValueFollowsValue({
+    valueChanged,
+    valueUsedDefault,
+    justUpdatedForNewComponent,
+    justRestoredAtLoad,
+    value,
+    valueUnderEdit,
+}) {
+    if (!valueChanged || valueUsedDefault) {
+        return false;
+    }
+    if (!justUpdatedForNewComponent) {
+        return true;
+    }
+    if (justRestoredAtLoad) {
+        return false;
+    }
+    return !(
+        valueUnderEdit != null &&
+        deepCompare(
+            valueUnderEdit?.tree ?? valueUnderEdit,
+            value?.tree ?? value,
+        )
+    );
+}
+
+/**
  * The `immediateValue` state variable used by inputs whose value is committed
  * on blur/enter (`textInput`, `codeEditor`): it mirrors `value`, but only
  * follows `value` when `value` itself changes — otherwise it holds the user's
@@ -139,7 +211,8 @@ export function returnImmediateValueStateVariableDefinition({
     description,
     createComponentOfType = "text",
 } = {}) {
-    const stateVariableDefinitions = {};
+    const stateVariableDefinitions =
+        returnValueUnderEditDefinition("valueUnderEdit");
 
     stateVariableDefinitions.immediateValue = {
         description,
@@ -160,17 +233,29 @@ export function returnImmediateValueStateVariableDefinition({
                 variableName: "immediateValueChanged",
                 onlyToSetInInverseDefinition: true,
             },
+            valueUnderEdit: {
+                dependencyType: "stateVariable",
+                variableName: "valueUnderEdit",
+                // bookkeeping, not part of the value (`valueUnderEdit`)
+                notInRecursiveDependencyValues: true,
+            },
         }),
         definition: function ({
             dependencyValues,
             changes,
             justUpdatedForNewComponent,
+            justRestoredAtLoad,
             usedDefault,
         }) {
             if (
-                changes.value &&
-                !justUpdatedForNewComponent &&
-                !usedDefault.value
+                immediateValueFollowsValue({
+                    valueChanged: changes.value,
+                    valueUsedDefault: usedDefault.value,
+                    justUpdatedForNewComponent,
+                    justRestoredAtLoad,
+                    value: dependencyValues.value,
+                    valueUnderEdit: dependencyValues.valueUnderEdit,
+                })
             ) {
                 // only update to value when it changes
                 // (otherwise, let its essential value change)
@@ -193,6 +278,7 @@ export function returnImmediateValueStateVariableDefinition({
         },
         inverseDefinition: function ({
             desiredStateVariableValues,
+            dependencyValues,
             initialChange,
             shadowedVariable,
         }) {
@@ -205,6 +291,10 @@ export function returnImmediateValueStateVariableDefinition({
                 {
                     setDependency: "immediateValueChanged",
                     desiredValue: true,
+                },
+                {
+                    setDependency: "valueUnderEdit",
+                    desiredValue: dependencyValues.value,
                 },
             ];
 
