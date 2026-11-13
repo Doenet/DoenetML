@@ -1,4 +1,4 @@
-import { drawsCarried } from "../utils/randomNumbers";
+import { drawsCarried, drawnFromParameters } from "../utils/randomNumbers";
 import {
     multivariateSamplingDiagnostics,
     sampleFromMultivariateDistribution,
@@ -331,6 +331,15 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
             providePreviousValuesInDefinition: true,
             shadowVariable: true,
             hasEssential: true,
+            // what the draws were made from, carried with them
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "drawnFrom",
+                    hasEssential: true,
+                    shadowVariable: true,
+                    defaultValue: null,
+                },
+            ],
             stateVariablesDeterminingDependencies: ["variantDeterminesSeed"],
             returnDependencies({ stateValues, sharedParameters }) {
                 let dependencies = {
@@ -376,6 +385,7 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                 essentialValues,
                 previousValues,
             }) {
+                const drawnFrom = drawnFromParameters(dependencyValues);
                 // if loaded in values from database (justUpdatedForNewComponent)
                 // or just resampled values from action (in which case there will be no changes)
                 // then don't resample the values but just use the current ones
@@ -385,7 +395,7 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                     drawsCarried({
                         essentialValues,
                         previousValues,
-                        numDraws: dependencyValues.numInCategories?.length,
+                        drawnFrom,
                     })
                 ) {
                     // Keep the counts, but re-check the parameters: they have not
@@ -394,7 +404,10 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                     // for why its counts are NaN. This draws nothing, so a variant
                     // stays reproducible.
                     return {
-                        useEssentialOrDefaultValue: { sampledValues: true },
+                        useEssentialOrDefaultValue: {
+                            sampledValues: true,
+                            drawnFrom: true,
+                        },
                         conditionDiagnostics: withLevels(
                             multivariateSamplingDiagnostics(dependencyValues),
                         ),
@@ -405,8 +418,8 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
                     sampleFromMultivariateDistribution(dependencyValues);
 
                 return {
-                    setEssentialValue: { sampledValues },
-                    setValue: { sampledValues },
+                    setEssentialValue: { sampledValues, drawnFrom },
+                    setValue: { sampledValues, drawnFrom },
                     // what these parameters give now, gone when they no longer
                     // give it (B33)
                     conditionDiagnostics: withLevels(diagnostics),

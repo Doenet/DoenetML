@@ -1,4 +1,4 @@
-import { drawsCarried } from "../utils/randomNumbers";
+import { drawsCarried, drawnFromParameters } from "../utils/randomNumbers";
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
 import { setUpVariantSeedAndRng } from "../utils/variants";
@@ -164,6 +164,15 @@ export default class SamplePrimeNumbers extends ValueListComponent {
             providePreviousValuesInDefinition: true,
             shadowVariable: true,
             hasEssential: true,
+            // what the draws were made from, carried with them
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "drawnFrom",
+                    hasEssential: true,
+                    shadowVariable: true,
+                    defaultValue: null,
+                },
+            ],
             stateVariablesDeterminingDependencies: ["variantDeterminesSeed"],
             returnDependencies({ stateValues, sharedParameters }) {
                 let dependencies = {
@@ -198,10 +207,11 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                 essentialValues,
                 previousValues,
             }) {
+                const drawnFrom = drawnFromParameters(dependencyValues);
                 if (dependencyValues.numSamples < 1) {
                     return {
-                        setEssentialValue: { sampledValues: [] },
-                        setValue: { sampledValues: [] },
+                        setEssentialValue: { sampledValues: [], drawnFrom },
+                        setValue: { sampledValues: [], drawnFrom },
                     };
                 }
 
@@ -214,11 +224,14 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                     drawsCarried({
                         essentialValues,
                         previousValues,
-                        numDraws: dependencyValues.numSamples,
+                        drawnFrom,
                     })
                 ) {
                     return {
-                        useEssentialOrDefaultValue: { sampledValues: true },
+                        useEssentialOrDefaultValue: {
+                            sampledValues: true,
+                            drawnFrom: true,
+                        },
                     };
                 }
 
@@ -229,8 +242,8 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                 });
 
                 return {
-                    setEssentialValue: { sampledValues },
-                    setValue: { sampledValues },
+                    setEssentialValue: { sampledValues, drawnFrom },
+                    setValue: { sampledValues, drawnFrom },
                 };
             },
             inverseDefinition({ desiredStateVariableValues }) {
