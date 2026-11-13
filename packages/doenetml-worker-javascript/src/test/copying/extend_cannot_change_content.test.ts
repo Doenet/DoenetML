@@ -742,6 +742,9 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
             // a property, a list of numbers
             [`<sequence extend="$s.value" to="5"/>`, ["doenet-e0071"], ""],
             [`<sequence copy="$s.value"/>`, ["doenet-e0071"], ""],
+            // an entry of a list or of a property, a number
+            [`<sequence extend="$s[1]"/>`, ["doenet-e0071"], ""],
+            [`<sequence copy="$s.value[2]"/>`, ["doenet-e0071"], ""],
             [`<sampleRandomNumbers extend="$rs[$k]"/>`, ["doenet-e0071"], ""],
         ] as const) {
             it(written, async () => {

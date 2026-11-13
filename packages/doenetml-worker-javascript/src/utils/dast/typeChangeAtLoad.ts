@@ -2924,7 +2924,8 @@ export function checkTypeChangesAtLoad({
      * scalar tag find wrong with anything else, and a property (`$s.value`),
      * whose type the DoenetML does not give, is `doenet-e0071`, which says
      * so rather than suggesting the tag read it as a value, which it can't
-     * (#2501). What names nothing is left as found.
+     * (#2501). So is an entry of a list or of a property (`$s[1]`,
+     * `$s.value[1]`), which is a value. What names nothing is left as found.
      */
     function decide(copy: SerializedComponent) {
         const decision = decideTag(copy);
@@ -2937,7 +2938,7 @@ export function checkTypeChangesAtLoad({
             return decision;
         }
         if (decision === undefined) {
-            return namesAProperty(copy)
+            return namesAProperty(copy) || namesAnEntry(copy)
                 ? { code: "doenet-e0071", args: {} }
                 : undefined;
         }
@@ -2971,6 +2972,30 @@ export function checkTypeChangesAtLoad({
             return false;
         }
         const named = descendantsNamed(ref.nodeIdx, path);
+        return named !== null && named.length === 0;
+    }
+
+    /**
+     * Whether the reference `copy` is of is one index into a list (`$s[1]`,
+     * `$nl[$k]`) or into a property (`$s.value[1]`), so names an entry, a
+     * value, whichever entry the index picks.
+     */
+    function namesAnEntry(copy: SerializedComponent) {
+        const ref = refOf(copy);
+        const path = ref?.unresolvedPath ?? [];
+        if (!ref || path.length !== 1 || (path[0].index ?? []).length !== 1) {
+            return false;
+        }
+        if (path[0].name === "") {
+            const type = referents.referentType(ref.nodeIdx);
+            return (
+                type !== undefined &&
+                allClasses[type]?.listEntryComponentType !== undefined
+            );
+        }
+        const named = descendantsNamed(ref.nodeIdx, [
+            { ...path[0], index: [] },
+        ]);
         return named !== null && named.length === 0;
     }
 
