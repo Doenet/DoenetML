@@ -1371,13 +1371,15 @@ type EditorIframeRemote = Comlink.Remote<{
 // Props whose "clear" gesture is passing `null` *or* dropping the prop, where
 // both gestures have to reach the iframe: dropping `styleOverrides` restores
 // the authored styles, dropping `documentLocale` means "back to English",
-// `uiLocale` "follow the document", and `localeResources` "English only".
+// `uiLocale` "follow the document", `localeResources` "English only", and
+// `scrollToTarget` "no target" (so the same target can be asked for again).
 // See `serializePropsSnapshot` for why these need pinning.
 const PROPS_PINNED_TO_NULL = [
     "styleOverrides",
     "documentLocale",
     "uiLocale",
     "localeResources",
+    "scrollToTarget",
 ];
 
 // Serialize the live-updatable props into the JSON string used both for

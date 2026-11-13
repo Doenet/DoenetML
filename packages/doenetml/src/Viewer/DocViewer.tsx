@@ -280,6 +280,14 @@ function StateLoadNoticeRegion({
     );
 }
 
+/**
+ * How long to wait for the element named by `scrollToTarget` to render
+ * before giving up, and then how long to keep it in place while content
+ * above it (images, typeset math) finishes laying out.
+ */
+const SCROLL_TARGET_WAIT_MS = 20000;
+const SCROLL_TARGET_SETTLE_MS = 4000;
+
 export function DocViewer({
     doenetML,
     userId,
@@ -316,6 +324,7 @@ export function DocViewer({
     initializeCounters: prescribedInitializeCounters = {},
     fetchExternalDoenetML,
     requestScrollTo,
+    scrollToTarget,
     onSourcePositionClick,
     scrollToSourceOffset,
 }: {
@@ -398,6 +407,7 @@ export function DocViewer({
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
+    scrollToTarget?: string | null;
     onSourcePositionClick?: (position: SourcePosition) => void;
     scrollToSourceOffset?: number | null;
 }) {
@@ -560,6 +570,111 @@ export function DocViewer({
 
         el.scrollIntoView({ block: "center" });
     }, [scrollToSourceOffset]);
+
+    // When the host names a target (`scrollToTarget`, e.g. from a link to
+    // `…/page#fig3`), scroll to the element with that name once it renders.
+    // Rendered components carry their name as their DOM id, as in-document
+    // `<ref>` links rely on. The element doesn't exist when the document
+    // loads, so watch for it, and give up quietly after a while (a wrong
+    // name, or content that is never shown). Then, for a few seconds, keep
+    // it in place while content above it settles (images loading push it
+    // down), unless the reader starts moving around the page themselves.
+    //
+    // Like the effect above, placed before the early returns below.
+    useEffect(() => {
+        if (!scrollToTarget) {
+            return;
+        }
+        const targetId = prefixForIds + scrollToTarget;
+        let settleObserver: ResizeObserver | null = null;
+        let settleTimer: ReturnType<typeof setTimeout> | undefined;
+
+        function scrollToElement(el: Element) {
+            if (requestScrollTo) {
+                // As for an in-document link: the offset of the element
+                // from the top of this document, which the host scrolls to.
+                requestScrollTo(
+                    el.getBoundingClientRect().top + window.scrollY,
+                );
+            } else {
+                el.scrollIntoView({ block: "start" });
+            }
+        }
+
+        function stopSettling() {
+            settleObserver?.disconnect();
+            settleObserver = null;
+            clearTimeout(settleTimer);
+            window.removeEventListener("wheel", stopSettling);
+            window.removeEventListener("touchmove", stopSettling);
+            window.removeEventListener("keydown", stopSettling);
+        }
+
+        function found(el: Element) {
+            scrollToElement(el);
+            if (
+                typeof ResizeObserver !== "undefined" &&
+                viewerContainerRef.current
+            ) {
+                // Look the target up again each time: a re-render can replace
+                // its element with a new one of the same id.
+                settleObserver = new ResizeObserver(() => {
+                    const el = lookUp();
+                    if (el) {
+                        scrollToElement(el);
+                    }
+                });
+                settleObserver.observe(viewerContainerRef.current);
+                settleTimer = setTimeout(stopSettling, SCROLL_TARGET_SETTLE_MS);
+                window.addEventListener("wheel", stopSettling, {
+                    passive: true,
+                });
+                window.addEventListener("touchmove", stopSettling, {
+                    passive: true,
+                });
+                window.addEventListener("keydown", stopSettling);
+            }
+        }
+
+        function lookUp() {
+            return (
+                viewerContainerRef.current?.querySelector(
+                    `#${CSS.escape(targetId)}`,
+                ) ?? null
+            );
+        }
+
+        const already = lookUp();
+        if (already) {
+            found(already);
+            return stopSettling;
+        }
+
+        const appearObserver = new MutationObserver(() => {
+            const el = lookUp();
+            if (el) {
+                stopWaiting();
+                found(el);
+            }
+        });
+        appearObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+        });
+        const waitTimer = setTimeout(stopWaiting, SCROLL_TARGET_WAIT_MS);
+        function stopWaiting() {
+            appearObserver.disconnect();
+            clearTimeout(waitTimer);
+        }
+
+        return () => {
+            stopWaiting();
+            stopSettling();
+        };
+        // `requestScrollTo` is left out on purpose: a host passing a new
+        // function each render must not restart the scroll.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [scrollToTarget, prefixForIds]);
 
     // Set when an in-graph JSXGraph element already handled the current
     // pointer interaction (element-level navigation, or a drag release):

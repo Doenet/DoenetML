@@ -127,6 +127,9 @@ export function CypressTest() {
     const [scrollToSourceOffset, setScrollToSourceOffset] = useState<
         number | null
     >(null);
+    // For Cypress tests of scrolling to a named target (a link to
+    // `…/page#name`): set via `scrollToTarget` in a postMessage.
+    const [scrollToTarget, setScrollToTarget] = useState<string | null>(null);
     // Locale settings a spec can drive without reloading, so a test can show
     // that `uiLocale` retranslates the chrome in place while `documentLocale`
     // rebuilds the core.
@@ -229,6 +232,10 @@ export function CypressTest() {
 
         if (e.data.scrollToSourceOffset !== undefined) {
             setScrollToSourceOffset(e.data.scrollToSourceOffset);
+        }
+
+        if (e.data.scrollToTarget !== undefined) {
+            setScrollToTarget(e.data.scrollToTarget);
         }
 
         if (e.data.documentLocale !== undefined) {
@@ -726,6 +733,7 @@ export function CypressTest() {
                     });
                 }}
                 scrollToSourceOffset={scrollToSourceOffset}
+                scrollToTarget={scrollToTarget}
                 activityId="activityIdFromCypress"
                 render={render}
                 darkMode={darkMode}
