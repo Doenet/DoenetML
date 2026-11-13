@@ -1605,6 +1605,10 @@ export function checkTypeChangesAtLoad({
         held: Holding,
         writtenType: string,
     ): TypeChangeAtLoadError | undefined {
+        if (isSelf(held, writtenType)) {
+            // one component of the tag's own type (`self`)
+            return undefined;
+        }
         if (held.skip || held.unknown) {
             return undefined;
         }
@@ -2726,6 +2730,18 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * Whether `held` is one component of the type `writtenType`, or of one
+     * that is a `writtenType`, as a tag that makes its list of values itself
+     * (`self`).
+     */
+    function isSelf(held: Holding, writtenType: string) {
+        return (
+            held.self !== undefined &&
+            typesAs(new Set([held.self]), writtenType).includes(writtenType)
+        );
+    }
+
+    /**
      * Whether a `componentType` is a tag that makes its list of values
      * itself, from its attributes (`<sequence>`, `<sampleRandomNumbers>`,
      * `<sortIndices>`), rather than holding the values it is given, as a
@@ -2972,13 +2988,7 @@ export function checkTypeChangesAtLoad({
         const entryOfList = isList ? tagType(copy) : undefined;
         /** The decision for a tag made from `held`, of the composite `tag`. */
         function verdict(held: Holding, tag: string, direct: boolean) {
-            if (
-                !isList &&
-                held.self !== undefined &&
-                typesAs(new Set([held.self]), writtenType).includes(
-                    writtenType!,
-                )
-            ) {
+            if (!isList && isSelf(held, writtenType!)) {
                 // one component of the tag's own type (`self`)
                 return "allowed";
             }
