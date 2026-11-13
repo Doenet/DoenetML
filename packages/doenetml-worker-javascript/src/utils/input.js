@@ -131,11 +131,12 @@ export async function buildInputResponseEvent({
 }
 
 /**
- * The state variable, named `valueUnderEditName`, holding the value an
- * input's in-progress edit (its `immediateValue`) was typed over: the value
- * when the reader last edited it. It is saved, so that an input made again
- * from saved state after the document has loaded can tell whether its value
- * has changed since (`immediateValueFollowsValue`).
+ * The state variable, named `valueUnderEditName`, holding the reader's last
+ * edit of an input (its `immediateValue`): `{ value, edit }`, the value the
+ * edit was typed over and the edit typed. It is saved, so that an input made
+ * again from saved state after the document has loaded can tell whether its
+ * saved `immediateValue` is still that edit, and its value still the one the
+ * edit was typed over (`immediateValueFollowsValue`).
  */
 export function returnValueUnderEditDefinition(valueUnderEditName) {
     return {
@@ -169,10 +170,13 @@ export function returnValueUnderEditDefinition(valueUnderEditName) {
  * saved while the input was withheld (in a case not shown) can be older than
  * its value, which can change meanwhile (`bindValueTo`). An input made from
  * saved state after the document has loaded (when the case is shown again,
- * or shown for the first time since a reload) therefore keeps the saved edit
- * only if its value is still the one the edit was typed over (`valueUnderEdit`),
- * and otherwise follows its value, as it would have had it been shown
- * (#2325).
+ * or shown for the first time since a reload) therefore keeps the saved
+ * `immediateValue` (`savedImmediateValue`) only if it is still the reader's
+ * last edit and its value is still the one that edit was typed over
+ * (`valueUnderEdit`), and otherwise follows its value, as it would have had
+ * it been shown (#2325). An edit the value replaced while the input was
+ * shown is not kept, even when the value has come back to what it was typed
+ * over.
  */
 export function immediateValueFollowsValue({
     valueChanged,
@@ -181,6 +185,7 @@ export function immediateValueFollowsValue({
     justRestoredAtLoad,
     value,
     valueUnderEdit,
+    savedImmediateValue,
 }) {
     if (!valueChanged || valueUsedDefault) {
         return false;
@@ -193,11 +198,13 @@ export function immediateValueFollowsValue({
     }
     return !(
         valueUnderEdit != null &&
-        deepCompare(
-            valueUnderEdit?.tree ?? valueUnderEdit,
-            value?.tree ?? value,
-        )
+        sameValue(valueUnderEdit.value, value) &&
+        sameValue(valueUnderEdit.edit, savedImmediateValue)
     );
+}
+
+function sameValue(a, b) {
+    return a !== undefined && deepCompare(a?.tree ?? a, b?.tree ?? b);
 }
 
 /**
@@ -215,6 +222,8 @@ export function returnImmediateValueStateVariableDefinition({
         returnValueUnderEditDefinition("valueUnderEdit");
 
     stateVariableDefinitions.immediateValue = {
+        // the saved edit, kept only if still the last (`valueUnderEdit`)
+        provideEssentialValuesInDefinition: true,
         description,
         public: true,
         shadowingInstructions: {
@@ -245,6 +254,7 @@ export function returnImmediateValueStateVariableDefinition({
             changes,
             justUpdatedForNewComponent,
             justRestoredAtLoad,
+            essentialValues,
             usedDefault,
         }) {
             if (
@@ -255,6 +265,7 @@ export function returnImmediateValueStateVariableDefinition({
                     justRestoredAtLoad,
                     value: dependencyValues.value,
                     valueUnderEdit: dependencyValues.valueUnderEdit,
+                    savedImmediateValue: essentialValues.immediateValue,
                 })
             ) {
                 // only update to value when it changes
@@ -294,7 +305,10 @@ export function returnImmediateValueStateVariableDefinition({
                 },
                 {
                     setDependency: "valueUnderEdit",
-                    desiredValue: dependencyValues.value,
+                    desiredValue: {
+                        value: dependencyValues.value,
+                        edit: desiredStateVariableValues.immediateValue,
+                    },
                 },
             ];
 

@@ -635,6 +635,8 @@ export default class MathInput extends Input {
         );
 
         stateVariableDefinitions.immediateValue = {
+            // the saved edit, kept only if still the last (`valueUnderEdit`)
+            provideEssentialValuesInDefinition: true,
             description:
                 "The math value reflecting the user's in-progress edits.",
             public: true,
@@ -668,6 +670,7 @@ export default class MathInput extends Input {
                 changes,
                 justUpdatedForNewComponent,
                 justRestoredAtLoad,
+                essentialValues,
                 usedDefault,
             }) {
                 // console.log(`definition of immediateValue`)
@@ -683,6 +686,7 @@ export default class MathInput extends Input {
                         justRestoredAtLoad,
                         value: dependencyValues.value,
                         valueUnderEdit: dependencyValues.valueUnderEdit,
+                        savedImmediateValue: essentialValues.immediateValue,
                     })
                 ) {
                     // only update to value when it changes
@@ -721,7 +725,10 @@ export default class MathInput extends Input {
                     },
                     {
                         setDependency: "valueUnderEdit",
-                        desiredValue: dependencyValues.value,
+                        desiredValue: {
+                            value: dependencyValues.value,
+                            edit: desiredStateVariableValues.immediateValue,
+                        },
                     },
                 ];
 

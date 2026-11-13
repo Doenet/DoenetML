@@ -275,6 +275,38 @@ describe("Restored state in withheld content follows changes outside it @group2"
             expect(w.immediateValue.tree).eq(4);
             expect(w.rawRendererValue).eq("4");
         });
+
+        it(`an edit its value replaced while shown is not brought back when the value returns while withheld${withElse ? ", with an else" : ""}`, async () => {
+            const h = await setup(inputInCase(withElse));
+            await h.typeMath("cc.w", "4");
+            await updateMathInputImmediateValue({
+                latex: "6",
+                componentIdx: await h.idx("cc.w"),
+                core: h.core(),
+            });
+            // the value changes while shown, so the edit is gone
+            await h.typeMath("x", "8");
+            expect((await h.sv("cc.w")).stateValues.immediateValue.tree).eq(8);
+
+            // and comes back, while withheld, to what the edit was typed over
+            await h.setBoolean("b", false);
+            await h.typeMath("x", "4");
+            await h.setBoolean("b", true);
+            let w = (await h.sv("cc.w")).stateValues;
+            expect(w.value.tree).eq(4);
+            expect(w.immediateValue.tree).eq(4);
+            expect(w.rawRendererValue).eq("4");
+
+            // and through a reload
+            await h.typeMath("x", "8");
+            await h.setBoolean("b", false);
+            await h.typeMath("x", "4");
+            await h.reload();
+            await h.setBoolean("b", true);
+            w = (await h.sv("cc.w")).stateValues;
+            expect(w.value.tree).eq(4);
+            expect(w.immediateValue.tree).eq(4);
+        });
     }
 
     it("a text input's edit not yet entered is kept through another case and back", async () => {

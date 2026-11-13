@@ -334,6 +334,8 @@ export class FractionInput extends Input {
 
         // The fraction value reflecting the user's in-progress edits.
         stateVariableDefinitions.immediateValue = {
+            // the saved edit, kept only if still the last (`valueUnderEdit`)
+            provideEssentialValuesInDefinition: true,
             description:
                 "The fraction value reflecting the user's in-progress edits.",
             public: true,
@@ -367,6 +369,7 @@ export class FractionInput extends Input {
                 changes,
                 justUpdatedForNewComponent,
                 justRestoredAtLoad,
+                essentialValues,
                 usedDefault,
             }) {
                 if (
@@ -377,6 +380,7 @@ export class FractionInput extends Input {
                         justRestoredAtLoad,
                         value: dependencyValues.value,
                         valueUnderEdit: dependencyValues.valueUnderEdit,
+                        savedImmediateValue: essentialValues.immediateValue,
                     })
                 ) {
                     return {
@@ -415,7 +419,10 @@ export class FractionInput extends Input {
                     },
                     {
                         setDependency: "valueUnderEdit",
-                        desiredValue: dependencyValues.value,
+                        desiredValue: {
+                            value: dependencyValues.value,
+                            edit: desiredStateVariableValues.immediateValue,
+                        },
                     },
                 ];
 

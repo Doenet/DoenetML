@@ -330,6 +330,8 @@ export class MatrixInput extends Input {
         );
 
         stateVariableDefinitions.immediateValueOriginal = {
+            // the saved edit, kept only if still the last (`valueUnderEdit`)
+            provideEssentialValuesInDefinition: true,
             hasEssential: true,
             shadowVariable: true,
             returnDependencies: () => ({
@@ -355,6 +357,7 @@ export class MatrixInput extends Input {
                 changes,
                 justUpdatedForNewComponent,
                 justRestoredAtLoad,
+                essentialValues,
                 usedDefault,
             }) {
                 // console.log(`definition of immediateValueOriginal`)
@@ -370,6 +373,8 @@ export class MatrixInput extends Input {
                         justRestoredAtLoad,
                         value: dependencyValues.valueOriginal,
                         valueUnderEdit: dependencyValues.valueUnderEdit,
+                        savedImmediateValue:
+                            essentialValues.immediateValueOriginal,
                     })
                 ) {
                     // only update to valueOriginal when it changes
@@ -412,7 +417,10 @@ export class MatrixInput extends Input {
                     },
                     {
                         setDependency: "valueUnderEdit",
-                        desiredValue: dependencyValues.valueOriginal,
+                        desiredValue: {
+                            value: dependencyValues.valueOriginal,
+                            edit: desiredStateVariableValues.immediateValueOriginal,
+                        },
                     },
                 ];
 
