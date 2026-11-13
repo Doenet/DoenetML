@@ -16,6 +16,7 @@ import {
     isIndexIntoValue,
     isValueEntriesVariable,
 } from "../../utils/mathVectorMatrixStateVariables";
+import { isWrapperOfSeveral, ownSettingOfWrapper } from "../../utils/wrappers";
 
 export class StateVariableDependency extends Dependency {
     static dependencyType = "stateVariable";
@@ -238,6 +239,24 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         if (indexAsProp && isValueEntriesVariable(variableName)) {
             this.publicStateVariablesOnly = false;
             this.caseInsensitiveVariableMatch = false;
+        }
+
+        // A wrapper holding several components keeps as its own the
+        // settings a composite keeps private (`$g.fixed` of a `<group>` of
+        // two is the group's), for a property is not passed into it (D41
+        // decision 3, `stopAtWrappersOfSeveral`).
+        const ownSetting = this.definition.ownSettingsOfWrappersOfSeveral
+            ? ownSettingOfWrapper(variableName)
+            : undefined;
+        if (
+            ownSetting !== undefined &&
+            nextPart.index.length === 0 &&
+            unresolvedPath.length === 0 &&
+            isWrapperOfSeveral(component)
+        ) {
+            variableName = ownSetting;
+            this.originalDownstreamVariableNames = [variableName];
+            this.publicStateVariablesOnly = false;
         }
 
         let propIndex = [];

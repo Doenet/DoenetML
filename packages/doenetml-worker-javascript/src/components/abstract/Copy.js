@@ -75,7 +75,11 @@ import {
     valueAsWritten,
 } from "../../utils/heldChoiceAttribute";
 import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
-import { componentsOfWrapper, isWrapperOfSeveral } from "../../utils/wrappers";
+import {
+    componentsOfWrapper,
+    isWrapperOfSeveral,
+    ownSettingOfWrapper,
+} from "../../utils/wrappers";
 import { instanceKindOf } from "../../utils/indexInstances";
 import {
     branchCanChange,
@@ -758,6 +762,9 @@ export default class Copy extends CompositeComponent {
                                 caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
+                                // `$g.fixed` of a group of several is the
+                                // group's own (D41 decision 3).
+                                ownSettingsOfWrappersOfSeveral: true,
                                 // An index past the composite's items was
                                 // reported where the reference was resolved,
                                 // so it is not reported again as an index
@@ -4246,7 +4253,11 @@ export async function replacementFromProp({
         // resolved to an array of the list (`utils/listEntryReference.ts`).
         varName =
             isListEntryArrayVariable(target, propName) ||
-            isValueEntriesVariable(propName)
+            isValueEntriesVariable(propName) ||
+            // `$g.fixed` of a group of several is the group's own
+            // (`ownSettingOfWrapper`, D41 decision 3)
+            (ownSettingOfWrapper(propName) === propName &&
+                isWrapperOfSeveral(target))
                 ? propName
                 : publicCaseInsensitiveAliasSubstitutions({
                       stateVariables: [propName],
@@ -7322,6 +7333,7 @@ async function wrapperOfSeveralDiagnostics({
     const pathEnd =
         originalPath?.[originalPath.length - 1]?.position?.end.offset;
     const source = allDoenetMLs?.[originalPath?.[0]?.sourceDoc ?? 0];
+    const instanceOf = wrapper.attributes?._instanceOf?.primitive?.value;
     let suggestion;
     if (
         source !== undefined &&
@@ -7330,10 +7342,22 @@ async function wrapperOfSeveralDiagnostics({
         pathEnd != undefined &&
         propStart > pathStart
     ) {
+        let before = source.substring(pathStart, propStart);
+        // A property after a repeat, or a select that picked several, with
+        // no index (`$r.x`): `$r.P.x` names `P` in several items, so suggest
+        // the first one's, `$r[1].P.x`, which works (DIAG-3). D41 decision
+        // 1 (a property after a collection applies to each item) is PR 14.
+        if (
+            before.endsWith(".") &&
+            !before.endsWith("].") &&
+            canReachSeveralItems(wrapper)
+        ) {
+            before = `${before.slice(0, -1)}[1].`;
+        }
         suggestion = `${doenetMLDollarsForReference(
             originalPath,
             allDoenetMLs,
-        )}${source.substring(pathStart, propStart)}${
+        )}${before}${
             childName ?? "P"
         }.${source.substring(propStart, pathEnd)}${doenetMLArgumentsForReference(
             originalPath,
@@ -7347,7 +7371,6 @@ async function wrapperOfSeveralDiagnostics({
                 : `${reference.substring(0, at)}.${childName ?? "P"}${reference.substring(at)}`;
     }
 
-    const instanceOf = wrapper.attributes?._instanceOf?.primitive?.value;
     // A `<group>` the author wrote holds what is written in it whenever it
     // is there, also in a case or a template, so how it is written decides
     // it: not one a reference made, or made as a copy.
@@ -7383,6 +7406,26 @@ async function wrapperOfSeveralDiagnostics({
             },
         }),
     ];
+}
+
+/**
+ * Whether a reference reaching `wrapper`, a wrapper made for an iteration or
+ * a pick, with no index before the property (`$r.x`, `$s.x`), can reach
+ * several items, so that naming a child after it (`$r.P.x`) would name it in
+ * several: an iteration (a repeat's count can change), or a pick of a select
+ * that picked several.
+ */
+function canReachSeveralItems(wrapper) {
+    const kind = instanceKindOf(
+        wrapper.attributes?._instanceOf?.primitive?.value,
+    );
+    if (kind === "iteration") {
+        return true;
+    }
+    return (
+        kind === "pick" &&
+        componentsOfWrapper(wrapper.replacementOf ?? {}).length > 1
+    );
 }
 
 /**

@@ -73,6 +73,7 @@ import {
 } from "./listEntryCountAtLoad";
 import { TAGS_MAKING_THEIR_CONTENT } from "../../components/abstract/Copy";
 import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
+import { ownSettingOfWrapper } from "../wrappers";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
 export type TypeChangeAtLoadError = {
@@ -123,6 +124,11 @@ export type CollectionItemWarning = {
     code: string;
     args: Record<string, any>;
     kind: "index" | "property";
+    /**
+     * Whether the suggestion is to name the first item (`$s[1].P.x`), for a
+     * reference with no index that can reach several (`doenet-w0191`).
+     */
+    firstIndex?: boolean;
 };
 
 /**
@@ -3639,6 +3645,12 @@ export function checkTypeChangesAtLoad({
             // the container's own (`$s.hide`), or the pick's (`$s[1].hide`)
             return;
         }
+        if (kind === "property" && ownSettingOfWrapper(property)) {
+            // a setting every component has, which a pick or a case holding
+            // several keeps as its own (`ownSettingOfWrapper`), and one
+            // holding one passes to what it holds
+            return;
+        }
         const branch = branchKind(container, true)!;
         const parts = partsOf(container, branch);
         if (!parts || parts.length === 0) {
@@ -3692,9 +3704,20 @@ export function checkTypeChangesAtLoad({
                 };
             }
             const withElse = several.some((s) => s.isElse);
+            // `$s.P.x` reads `P` of each pick only when the select picks one
+            // (D41 decision 1 is PR 14): otherwise suggest the first pick's,
+            // `$s[1].P.x`, which works (DIAG-3).
+            const picks = attributeOf(container, "numToSelect");
+            const firstIndex =
+                kind === "property" &&
+                first.name !== "" &&
+                branch === "option" &&
+                picks !== undefined &&
+                literalText(picks)?.trim() !== "1";
             collectionItemWarnings.push({
                 copy,
                 kind,
+                firstIndex,
                 code: "doenet-w0191",
                 args: {
                     what: kind,

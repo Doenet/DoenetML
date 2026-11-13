@@ -214,7 +214,7 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
             .filter((x: any) => x.code === "doenet-w0191")
             .map((x: any) => x.message);
         expect(messages).eqls([
-            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s.P.x`.',
+            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
             '`$s[1][2]`: an index after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
         ]);
     });
@@ -228,7 +228,7 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
         // decided at load from every option, one warning, nothing more
         // when the document runs. (Was `3, 5, 3, 5`.)
         expect(d.diagnostics().map((x: any) => x.message)).eqls([
-            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s.P.x`.',
+            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
         ]);
         expect(d.codes()).eqls(["warning doenet-w0191"]);
         expect(await d.text()).eq("[＿, ＿] [4] [3, 5]");
@@ -300,6 +300,49 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
             "warning doenet-w0193",
             "warning doenet-w0193",
             "warning doenet-w0193",
+        ]);
+    });
+
+    it("the settings a composite keeps private are a group's own when it holds several", async () => {
+        // COLL-2: `hide`, `fixed` and `disabled` are settings every
+        // component has; a wrapper of several keeps them as its own. One
+        // holding one stands for it. (Was each child's, run together.)
+        const d =
+            await setup(`<booleanInput name="bi"/><group name="g" fixed="$bi"><point name="A">(1,2)</point><point>(3,4)</point></group>
+<group name="h" disabled><point fixed>(5,6)</point></group>
+<p name="p">[$g.fixed] [$g.disabled] [$g.fixLocation] [$g.Fixed] [$h.fixed] [$h.disabled]</p>
+<boolean name="b" extend="$g.fixed"/>`);
+        expect(await d.text()).eq(
+            "[false] [false] [false] [false] [true] [true]",
+        );
+        expect(await d.text("b")).eq("false");
+        expect(d.codes()).eqls([]);
+        await d.setBoolean("bi", true);
+        expect(await d.text()).eq(
+            "[true] [false] [false] [true] [true] [true]",
+        );
+        expect(await d.text("b")).eq("true");
+    });
+
+    it("suggests the first item's child after a repeat, or a select that picks several", async () => {
+        // `$r.P.x` and `$s.P.x` (with several picks) do not name `P` of
+        // each item until D41 decision 1 (PR 14), so the warning suggests
+        // what works (DIAG-3).
+        const d =
+            await setup(`<repeat name="r" for="1 2" valueName="v"><point name="P">($v,1)</point><point>($v,2)</point></repeat>
+<group name="g">$r</group>
+<select name="s" numToSelect="2"><option><point name="P">(1,2)</point><point>(3,5)</point></option><option><point name="P">(1,4)</point><point>(7,2)</point></option></select>
+<p name="p">[$r.x] [$g.x] [$s.x]</p>
+<p name="q">[$r[1].P.x] [$g[1].P.x] [$s[1].P.x]</p>`);
+        expect(await d.text("q")).eq("[1] [1] [1]");
+        const suggestions = d
+            .diagnostics()
+            .map((x: any) => x.message.match(/write `([^`]*)`\.$/)?.[1]);
+        expect(suggestions).eqls(["$g[1].P.x", "$r[1].P.x", "$s[1].P.x"]);
+        expect(d.codes()).eqls([
+            "warning doenet-w0193",
+            "warning doenet-w0193",
+            "warning doenet-w0191",
         ]);
     });
 

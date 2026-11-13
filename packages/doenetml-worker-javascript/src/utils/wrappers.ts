@@ -55,3 +55,27 @@ function isBareReferenceToGroup(component: any): boolean {
         unresolvedPath.value == null
     );
 }
+
+/**
+ * The settings every component has that a composite keeps private
+ * (`CompositeComponent.js`), so that a property after a composite passes
+ * into what it holds. A wrapper holding several is only a container, and a
+ * property is not passed into it (D41 decision 3), so these are its own
+ * (`$g.fixed` is the group's, as `$g.hide` is; COLL-2).
+ */
+const OWN_SETTINGS_OF_WRAPPERS = ["hidden", "disabled", "fixed", "fixLocation"];
+
+/**
+ * The setting `propName` names (matched without regard to case), if it is
+ * one a wrapper holding several keeps as its own though a composite keeps it
+ * private ({@link OWN_SETTINGS_OF_WRAPPERS}), else `undefined`.
+ */
+export function ownSettingOfWrapper(propName: unknown): string | undefined {
+    if (typeof propName !== "string") {
+        return undefined;
+    }
+    const lower = propName.toLowerCase();
+    return OWN_SETTINGS_OF_WRAPPERS.find(
+        (setting) => setting.toLowerCase() === lower,
+    );
+}

@@ -729,7 +729,13 @@ export async function normalizedDastToSerializedComponents(
     // reaches in its options or cases, decided at load from every one of them
     // (#2520 item 1, #2452): a warning at the reference, which is left as it
     // is.
-    for (const { copy, code, args, kind } of collectionItemWarnings) {
+    for (const {
+        copy,
+        code,
+        args,
+        kind,
+        firstIndex,
+    } of collectionItemWarnings) {
         const ref: any = copy.extending
             ? unwrapSource(copy.extending as any)
             : undefined;
@@ -744,6 +750,7 @@ export async function normalizedDastToSerializedComponents(
                 kind,
                 reference,
                 normalized_root.sources,
+                firstIndex,
             );
             extra.suggestion = suggestion ?? "";
             extra.hasSuggestion = suggestion === undefined ? "false" : "true";
@@ -2335,12 +2342,15 @@ function getComponentType(element: FlatElement) {
  * any (`$s.P.x`, `$s[1].P[2]`, `$s[1].P.x`): what to write to read the
  * component named `P` in each option or case (`doenet-w0191`). `undefined`
  * when where to put it is not known from the positions in the DoenetML.
+ * With `firstIndex`, for a `<select>` that can pick several, the first
+ * pick's (`$s[1].P.x`), since `$s.P.x` then names `P` in several picks.
  */
 function referenceNamingTheItem(
     ref: any,
     kind: "index" | "property",
     reference: string,
     sources: readonly string[],
+    firstIndex = false,
 ) {
     const path: any[] = ref?.unresolvedPath ?? [];
     const original: any[] = ref?.originalPath ?? [];
@@ -2377,5 +2387,5 @@ function referenceNamingTheItem(
         return undefined;
     }
     const dollars = reference.slice(0, at0);
-    return `${dollars}${source.substring(start, at)}.P${source.substring(at, end)}`;
+    return `${dollars}${source.substring(start, at)}${firstIndex ? "[1]" : ""}.P${source.substring(at, end)}`;
 }
