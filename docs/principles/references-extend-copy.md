@@ -572,12 +572,27 @@ Since #2483 the children written on a `copy` or `extend` are read with the type'
 tag written on its own: `<point copy="$P">(3,4)</point>` is at (3,4) (B13, #2395), as are a
 `<vector>`, `<line>` or `<angle>` child; on `<sum>`, `<series>` and `<sortIndices>` the child is
 appended to the source's terms; on an input it is what the input is bound to, as `bindValueTo`.
-A child's sugar overrides an attribute written on the copy. **Known violations (#2486):** a
-child the copy ignores (`<function copy="$f">x^3</function>`, `<answer copy>`, `<curve copy>`, an
-extend of an input, a `<matrix>` copy with a child other than `<row>`) gives no warning, where it
-gave `w0107` before #2483. `<row>` children on a `<matrix>` copy or extend are appended to the
-source's rows, as this rule says. (`[[5,6],[7,8]]` is how a matrix's text is shown, not how one
-is written; `<math>` reads it as a list of lists.)
+A child's sugar overrides an attribute written on the copy. `<row>` children on a `<matrix>` copy
+or extend are appended to the source's rows, as this rule says. (`[[5,6],[7,8]]` is how a matrix's
+text is shown, not how one is written; `<math>` reads it as a list of lists.)
+
+**Done by #2542** (closing #2486): a child the component wouldn't use beside its source's is not
+added, with `doenet-w0190` on a copy and `doenet-w0169` on an extend:
+- a child group read once (a `<function>`'s formula, `<matchesPattern>`'s maths, an
+  `<orbitalDiagram>`'s diagram): on a copy the written child replaces the source's (REF-4a); on an
+  extend it is ignored, since an extend can't change what the tag makes (REF-7);
+- a `<math>` beside a `<matrix>`'s rows or beside its source's `<math>`, and a `<curve>`'s functions
+  beside `through`;
+- on an extend of an input, any child but a label or a description.
+
+A copy made from a value (`<point copy="$pl[1]">(7,8)</point>`) takes the written child.
+
+**Known violations** (#2546): `<substitute copy="$s">x+2</substitute>` keeps the source's
+child silently; a `<function>` whose formula is a reference (`<function name="f">$m</function>`)
+doesn't recognize it as its formula, so a formula written on its copy isn't applied, and on an
+extend is ignored with no warning; a `<math>` written on a copy of a `<matrix>` whose value is a
+`<math>` is ignored (`w0190`), while a `<function>`'s formula on a copy replaces the source's. Which
+rule a matrix should follow is open.
 
 ### REF-4a: of a child a component uses only one of, the last one written wins (Tier 1)
 A component uses only one `<label>`, `<title>` or `<shortDescription>`. When more than one is
@@ -730,9 +745,25 @@ can now be written through). A `<boolean>` from a text reads the word `true`/`fa
 other text is missing with `i0053`. A property source is checked against its value as it
 changes (`<point extend="$P.x"/>` is missing). `bindValueTo` of a `<subsetOfRealsInput>` works.
 
+**Done by #2542** (closing #2488, #2501):
+- `<point extend="$ci"/>` of a `<choiceInput>` is decided again as the selection changes;
+- a component in error beside others in what a tag is made from is missing, so the tag is made
+  from the rest;
+- **a tag that makes its list of values itself** (`<sequence>`, `<sampleRandomNumbers>`,
+  `<selectPrimeNumbers>`, `<samplePrimeNumbers>`, `<sampleMultivariateRandomNumber>`,
+  `<sortIndices>`) is made only from one component of its own type. Anything else, a property or
+  an entry included (`<sequence extend="$s.value"/>`, `$s[1]`), is `doenet-e0071`, which says to
+  write the reference bare. A `<conditionalContent>` or `<select>` holding one sequence in each
+  part is one sequence, and `<sequence extend="$cc"/>` is `＿` while no case is true.
+
 Known violations:
-- `<point extend="$ci"/>` of a `<choiceInput>` is checked only when made, not as the selection
-  changes (#2488);
+- `<point extend="$ci"/>` of a `<choiceInput>` with no choice selected, or several, is `(0, 0)`;
+  with a text choice among its choices it is `e0065` at load even while a tuple is selected
+  (#2546);
+- a component in error is dropped from a group's content only when the copy is first made; when
+  the content changes later, it counts again (#2546);
+- a composite tag (`<repeat>`, `<select>`, `<collect>`, `<sort>`) extending a property shows
+  nothing, with no diagnostic (#2546);
 - a copy that made nothing could report a different info after a reload (B37). #2447 removed
   the run-time `e0065` of its example; whether two infos can still differ is not checked;
 - a `<select>` whose options are all written with `copy` failed to load (B39); fixed by #2468.
@@ -855,7 +886,14 @@ Code: `extendChangesContentErrors` and `attributesAnExtendApplies` in
 `W/components/abstract/Copy.js`. The parser's `conditionalContent` and `repeat` sugar skips an
 element written with `extend`, which fixed B12.
 
-Known bugs, open: #2217, #2211 (with children, and `indexName`), and the copy half of #2216 (D4, B5). **[probe]** at `894d3ea`, #2218 and the copy half of #2215 look fixed. #2219
+**Done by #2542** (closing #2217, #2211, #2216; D4, B5): `condition` on a copy of a
+`<conditionalContent>` written without `<case>` becomes the condition of the case the sugar made
+(beside written cases it is ignored with `w0079`, as on the tag written whole); a copy that writes
+`valueName` or `indexName` gets aliases for each name; `replacement` on a copy of a `<substitute>`
+is read with its `type`. **Known violations** (#2546): `<substitute copy="$t" type="math">`
+of a text substitute (and the reverse) fails to load; `<repeat copy="$r"><number>2$v</number></repeat>`
+can't read `$v` from a child written in the copy unless the copy writes `valueName`.
+**[probe]** at `894d3ea`, #2218 and the copy half of #2215 look fixed. #2219
 (`styleNumber` on an extend of `<intersection>`) was fixed by #2426.
 
 ### REF-8: an extend's descendants are reached through the extend's own name, and an unnamed reference creates no names (Tier 1)
