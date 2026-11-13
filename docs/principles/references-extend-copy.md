@@ -269,7 +269,7 @@ through another component (`xmin="$p"` with `<number name="p">$xmin</number>` in
 `<setup>` name would. **Done by #2518** (closing #2489): `ref_expand.rs` puts the arguments in a
 `<setup>`, and `compactify`'s redirect of their names is gone. Accepted consequences: that setup
 takes a position among its parent's children, so a stateful sibling after it gets a new
-`stateId` (saved state from before doesn't reload into it), and a choice in the arguments counts
+`stateId` (state saved before it doesn't reload into it, which is fine: SAVE-3), and a choice in the arguments counts
 toward the document's variants, as one in a written `<setup>` does.
 
 ### NAME-5: an attribute resolves as if it were written in a child of its component (Tier 2)
