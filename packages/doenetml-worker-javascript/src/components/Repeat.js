@@ -1,3 +1,4 @@
+import { iterationAliasNames, iterationDummies } from "../utils/repeatAliases";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { instanceOfAttribute } from "../utils/indexInstances";
 import { deepClone } from "@doenet/utils";
@@ -171,7 +172,7 @@ export default class Repeat extends CompositeComponent {
         };
 
         stateVariableDefinitions.serializedChildren = {
-            additionalStateVariablesDefined: ["valueDummyIdx", "indexDummyIdx"],
+            additionalStateVariablesDefined: ["valueDummies", "indexDummies"],
             returnDependencies: () => ({
                 serializedChildren: {
                     dependencyType: "serializedChildren",
@@ -179,22 +180,11 @@ export default class Repeat extends CompositeComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let valueDummyIdx = null;
-                let indexDummyIdx = null;
-
-                const repeatSetup = dependencyValues.serializedChildren.find(
-                    (child) => child.componentType === "_repeatSetup",
+                // the placeholders of every `_repeatSetup`, the source's and a
+                // copy's (#2211)
+                const { valueDummies, indexDummies } = iterationDummies(
+                    dependencyValues.serializedChildren,
                 );
-
-                if (repeatSetup != undefined) {
-                    for (const child of repeatSetup.children) {
-                        if (child.componentType === "_placeholder") {
-                            valueDummyIdx = child.componentIdx;
-                        } else if (child.componentType === "integer") {
-                            indexDummyIdx = child.componentIdx;
-                        }
-                    }
-                }
 
                 const serializedChildren =
                     dependencyValues.serializedChildren.filter(
@@ -228,8 +218,8 @@ export default class Repeat extends CompositeComponent {
                 return {
                     setValue: {
                         serializedChildren,
-                        valueDummyIdx,
-                        indexDummyIdx,
+                        valueDummies,
+                        indexDummies,
                     },
                 };
             },
@@ -1058,19 +1048,23 @@ async function addAndLinkAliasComponents(
         children: [],
     };
 
-    const valueName = await component.stateValues.valueName;
-
     // a mapping from the dummy or value component indices to the new alias components we're creating
     const extendIdxMapping = {};
 
-    if (valueName && !hasIterationList(component, "_repeatValues")) {
+    // One component per name the iteration's value is read by: the
+    // repeat's `valueName`, and that of each placeholder, of a copy's as of
+    // its source's (`iterationAliasNames`, #2211).
+    const values = iterationAliasNames({
+        ownName: await component.stateValues.valueName,
+        holdsList: hasIterationList(component, "_repeatValues"),
+        dummies: await component.stateValues.valueDummies,
+    });
+    const valueComponentIdxByName = {};
+    for (const name of values.names) {
         const valueComponentIdx = nComponents++;
-        const valueDummyIdx = await component.stateValues.valueDummyIdx;
-        if (valueDummyIdx != null) {
-            extendIdxMapping[valueDummyIdx] = valueComponentIdx;
-        }
+        valueComponentIdxByName[name] = valueComponentIdx;
 
-        // Create reference with name `valueName` that will link to sources
+        // Create reference with name `name` that will link to sources
         setupComponent.children.push({
             type: "serialized",
             componentType: "_copy",
@@ -1085,7 +1079,7 @@ async function addAndLinkAliasComponents(
                 _createComponentName: {
                     type: "primitive",
                     name: "_createComponentName",
-                    primitive: { type: "string", value: valueName },
+                    primitive: { type: "string", value: name },
                 },
             },
             doenetAttributes: {},
@@ -1101,15 +1095,19 @@ async function addAndLinkAliasComponents(
             },
         });
     }
+    for (const [dummyIdx, name] of Object.entries(values.nameOfDummy)) {
+        extendIdxMapping[dummyIdx] = valueComponentIdxByName[name];
+    }
 
-    const indexName = await component.stateValues.indexName;
-
-    if (indexName && !hasIterationList(component, "_repeatIndices")) {
+    const indices = iterationAliasNames({
+        ownName: await component.stateValues.indexName,
+        holdsList: hasIterationList(component, "_repeatIndices"),
+        dummies: await component.stateValues.indexDummies,
+    });
+    const indexComponentIdxByName = {};
+    for (const name of indices.names) {
         const indexComponentIdx = nComponents++;
-        const indexDummyIdx = await component.stateValues.indexDummyIdx;
-        if (indexDummyIdx != null) {
-            extendIdxMapping[indexDummyIdx] = indexComponentIdx;
-        }
+        indexComponentIdxByName[name] = indexComponentIdx;
 
         setupComponent.children.push({
             type: "serialized",
@@ -1120,13 +1118,16 @@ async function addAndLinkAliasComponents(
                 name: {
                     type: "primitive",
                     name: "name",
-                    primitive: { type: "string", value: indexName },
+                    primitive: { type: "string", value: name },
                 },
             },
             doenetAttributes: {},
             children: [],
             state: { value: iter + 1, fixed: true },
         });
+    }
+    for (const [dummyIdx, name] of Object.entries(indices.nameOfDummy)) {
+        extendIdxMapping[dummyIdx] = indexComponentIdxByName[name];
     }
 
     const newRepl = { ...thisRepl };

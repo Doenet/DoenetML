@@ -1396,7 +1396,7 @@ export function expandAllUnflattenedAttributes({
  * If there are any primitive attributes that define a default value
  * but were not specified via props, add them with their default value.
  */
-function addDefaultPrimitiveAttributes({
+export function addDefaultPrimitiveAttributes({
     unflattenedAttributes,
     currentAttributes,
     componentClass,
@@ -1404,7 +1404,7 @@ function addDefaultPrimitiveAttributes({
     nComponents,
     stateIdInfo,
 }: {
-    unflattenedAttributes: Record<string, UnflattenedAttribute>;
+    unflattenedAttributes?: Record<string, UnflattenedAttribute>;
     currentAttributes: Record<string, SerializedAttribute>;
     componentClass: DoenetMLComponentClass<any>;
     componentInfoObjects: ComponentInfoObjects;
@@ -1728,7 +1728,10 @@ function createInitialComponentFromAttribute({
                 nComponents,
             };
         } else {
-            throw Error(`Invalid empty attribute ${attribute.name}`);
+            throw new DiagnosticError({
+                code: "doenet-e0072",
+                args: { attribute: attribute.name },
+            });
         }
     } else if (attribute.children.length === 1) {
         const firstChild = attribute.children[0];
@@ -1847,7 +1850,10 @@ function createPrimitiveFromAttribute({
         } else if (attrDef.createPrimitiveOfType === "boolean") {
             return { type: "boolean", value: true };
         } else {
-            throw Error(`Invalid empty attribute ${attribute.name}`);
+            throw new DiagnosticError({
+                code: "doenet-e0072",
+                args: { attribute: attribute.name },
+            });
         }
     } else if (attribute.children.length === 1) {
         const firstChild = attribute.children[0];
@@ -1902,6 +1908,7 @@ export function convertUnresolvedAttributesForComponentType({
     componentInfoObjects,
     compositeAttributesObj = {},
     dontSkipAttributes = [],
+    inheritedAttributes = {},
     nComponents,
     stateIdInfo,
 }: {
@@ -1910,6 +1917,15 @@ export function convertUnresolvedAttributesForComponentType({
     componentInfoObjects: ComponentInfoObjects;
     compositeAttributesObj?: Record<string, AttributeDefinition<any>>;
     dontSkipAttributes?: string[];
+    /**
+     * The attributes the component already has, when these are added to a
+     * component made from another (the replacement of a `copy` or `extend`,
+     * which is its source's DoenetML). A primitive one among them -- the
+     * `type` of a `<substitute>` -- is what a sugar function of an attribute
+     * written here reads, as it is on a tag written whole, unless one of
+     * `attributes` replaces it (#2216).
+     */
+    inheritedAttributes?: Record<string, SerializedAttribute>;
     nComponents: number;
     stateIdInfo?: {
         prefix: string;
@@ -1937,7 +1953,26 @@ export function convertUnresolvedAttributesForComponentType({
 
     const newAttributes: Record<string, SerializedAttribute> = {};
 
-    for (const attrNameOrig in attributes) {
+    // What a sugar function of an attribute component reads as its parent's
+    // attributes (`applySugar`'s `parentAttributes`): the primitive
+    // attributes of the component, the ones written here replacing the ones
+    // it already has. So the primitives are converted first.
+    const parentAttributes: Record<string, PrimitiveAttributeValue> = {};
+    for (const [attrName, attribute] of Object.entries(inheritedAttributes)) {
+        if (attribute.type === "primitive") {
+            parentAttributes[attrName] = attribute.primitive;
+        }
+    }
+    function isPrimitiveAttribute(attrNameOrig: string) {
+        const attrName = attributeLowerCaseMapping[attrNameOrig.toLowerCase()];
+        return Boolean(newAttributesObj[attrName]?.createPrimitiveOfType);
+    }
+    const attrNamesInOrder = [
+        ...Object.keys(attributes).filter(isPrimitiveAttribute),
+        ...Object.keys(attributes).filter((a) => !isPrimitiveAttribute(a)),
+    ];
+
+    for (const attrNameOrig of attrNamesInOrder) {
         const attribute = attributes[attrNameOrig];
 
         const attrNameLower = attrNameOrig.toLowerCase();
@@ -1978,6 +2013,10 @@ export function convertUnresolvedAttributesForComponentType({
                 diagnostics.push(...res.diagnostics);
                 nComponents = res.nComponents;
 
+                if (res.attribute.type === "primitive") {
+                    parentAttributes[attrName] = res.attribute.primitive;
+                }
+
                 if (newAttributes[attrName].type === "component") {
                     // give the children of the component new component indices
                     for (const child of newAttributes[attrName].component
@@ -2001,6 +2040,8 @@ export function convertUnresolvedAttributesForComponentType({
 
                     const sugarResult = applySugar({
                         serializedComponents,
+                        parentAttributes,
+                        parentComponentType: componentType,
                         componentInfoObjects,
                         nComponents,
                         stateIdInfo,

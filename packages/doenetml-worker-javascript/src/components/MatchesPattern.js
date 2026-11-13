@@ -55,6 +55,12 @@ function replacePlaceholders(tree, placeholderFor) {
 export default class MatchesPattern extends BooleanComponent {
     static componentType = "matchesPattern";
 
+    /**
+     * It tests its first `<math>` child, so of one written on its copy and
+     * the source's, the last written wins (REF-4a, #2486).
+     */
+    static childGroupsReadOnce = ["maths"];
+
     static componentDocs = {
         summary:
             "Boolean condition that tests whether input matches a math pattern",
