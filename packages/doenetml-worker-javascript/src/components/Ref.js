@@ -288,6 +288,20 @@ export default class Ref extends InlineComponent {
                         variableName: "title",
                         variablesOptional: true,
                     };
+                    // A figure, or a table without a title, has no title to
+                    // show: name it ("Figure 3") instead.
+                    dependencies.figureName = {
+                        dependencyType: "stateVariable",
+                        componentIdx: stateValues.targetComponentIdx,
+                        variableName: "figureName",
+                        variablesOptional: true,
+                    };
+                    dependencies.tableName = {
+                        dependencyType: "stateVariable",
+                        componentIdx: stateValues.targetComponentIdx,
+                        variableName: "tableName",
+                        variablesOptional: true,
+                    };
                 }
 
                 return dependencies;
@@ -296,10 +310,16 @@ export default class Ref extends InlineComponent {
                 let linkText = "";
                 if (dependencyValues.allChildren.length === 0) {
                     if (dependencyValues.targetRendererId) {
-                        if (dependencyValues.title !== null) {
+                        // An optional dependency on a state variable the target
+                        // doesn't have comes back undefined, not null.
+                        if (dependencyValues.title != null) {
                             linkText = dependencyValues.title;
-                        } else if (dependencyValues.equationTag !== null) {
+                        } else if (dependencyValues.equationTag != null) {
                             linkText = "(" + dependencyValues.equationTag + ")";
+                        } else if (dependencyValues.figureName) {
+                            linkText = dependencyValues.figureName;
+                        } else if (dependencyValues.tableName) {
+                            linkText = dependencyValues.tableName;
                         }
                     } else if (dependencyValues.url !== null) {
                         linkText = dependencyValues.url;

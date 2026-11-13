@@ -31,6 +31,28 @@ In the example above, the `to` attribute of the `<ref>{:dn}` component is used w
 webpage to create a link within a paragraph.
 
 
+### Example: `<ref>{:dn}` to a figure
+
+
+```doenet-editor-horiz
+<figure name="temple">
+  <image size="small" source="https://upload.wikimedia.org/wikipedia/commons/1/16/DoricParthenon.jpg">
+    <shortDescription>A Doric column capital</shortDescription>
+  </image>
+  <caption>The Doric order</caption>
+</figure>
+
+<p>The capital in <ref to="$temple" /> has no ornament.</p>
+```
+
+
+
+A `<ref>{:dn}` with no link text of its own names what it points to: a
+section or a titled table by its title, a numbered equation by its number in
+parentheses, and a figure or an untitled table by its name, such as
+"Figure 1".
+
+
 ## Attribute Examples
 
 ### Attribute Example: createButton
