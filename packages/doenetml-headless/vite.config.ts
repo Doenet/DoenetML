@@ -59,7 +59,15 @@ export default defineConfig({
         ignoreWireitCachesPlugin(),
         suppressLogPlugin(),
         keepResolverWasmExternal(),
-        dts({ rollupTypes: true }),
+        // The public types (`HeadlessCore`, `HeadlessSavedState`, ...) are
+        // declared in `@doenet/utils`, which is bundled into the code and is
+        // no dependency of the published package, so its declarations are
+        // inlined into `index.d.ts` too.
+        dts({
+            rollupTypes: true,
+            pathsToAliases: false,
+            bundledPackages: ["@doenet/utils"],
+        }),
         viteStaticCopy({
             targets: [
                 {

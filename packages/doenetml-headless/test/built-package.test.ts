@@ -11,7 +11,7 @@ import { promisify } from "node:util";
 const DIST = path.resolve(import.meta.dirname, "../dist");
 
 describe("the built package", () => {
-    it("ships the WASM as a file, not inlined, and a manifest without the private flag", () => {
+    it("ships the WASM as a file, not inlined, its own types, and a manifest without the private flag", () => {
         expect(
             fs.statSync(path.join(DIST, "lib_doenetml_worker_bg.wasm")).size,
         ).toBeGreaterThan(1_000_000);
@@ -29,6 +29,11 @@ describe("the built package", () => {
         expect(manifest.peerDependencies).toEqual({
             "math-expressions": "^3.0.0-alpha.1",
         });
+        // The types a consumer uses are in the package itself, not imported
+        // from `@doenet/utils`, which is not published with it.
+        const types = fs.readFileSync(path.join(DIST, "index.d.ts"), "utf8");
+        expect(types).toContain("export declare interface HeadlessCore");
+        expect(types).not.toMatch(/utils\/dist|@doenet\/utils/);
     });
 
     it("loads the WASM and grades in plain Node", async () => {
