@@ -170,6 +170,7 @@ export function DoenetViewer({
     initializeCounters = {},
     fetchExternalDoenetML,
     requestScrollTo,
+    scrollToTarget,
     onSourcePositionClick,
     scrollToSourceOffset,
     mathjaxUrl,
@@ -263,6 +264,15 @@ export function DoenetViewer({
     initializeCounters?: Record<string, number>;
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     requestScrollTo?: (offset: number) => void;
+    /**
+     * The name of an element to scroll to once it has rendered, e.g. from
+     * a link to `…/page#fig3`: the viewer scrolls there once (through
+     * `requestScrollTo` when given, as for an in-document link), keeps it in
+     * place for a few seconds while content above it finishes loading,
+     * unless the reader scrolls, and does nothing if no element of that name
+     * appears.
+     */
+    scrollToTarget?: string | null;
     /**
      * Called when the user Cmd/Ctrl+clicks a rendered element that has a
      * known source location, e.g. so a host app can move an editor's cursor
@@ -457,6 +467,7 @@ export function DoenetViewer({
             initializeCounters={initializeCounters}
             fetchExternalDoenetML={fetchExternalDoenetML}
             requestScrollTo={requestScrollTo}
+            scrollToTarget={scrollToTarget}
             onSourcePositionClick={onSourcePositionClick}
             scrollToSourceOffset={scrollToSourceOffset}
         />

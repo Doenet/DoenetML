@@ -336,6 +336,21 @@ in-document link target (unless you pass `requestScrollTo`), and
 `lti.frameResize` sizes the iframe to its content. A host does not need to
 handle them.
 
+**Opening at an element (`scrollToTarget`).** To open a document at a named
+element, for example when your page's URL ends in `#fig3`, pass its name:
+
+```tsx
+<DoenetViewer doenetML={doenetML} scrollToTarget="fig3" />
+```
+
+Once the element has rendered, the viewer scrolls to it once. It uses your
+`requestScrollTo` when you pass one, and otherwise the `scrollTo` message
+described above. For a few seconds it keeps the element in place while
+content above it (images, typeset math) finishes loading, unless the reader
+scrolls or types. If no element of that name appears within 20 seconds,
+nothing happens. Passing `null` (or dropping the prop) clears it, so the same
+target can be asked for again.
+
 **Capping submissions (`flags.maxNumAttempts`).** A host can limit how many
 times each answer can be submitted without editing the document:
 
