@@ -1413,6 +1413,14 @@ export function checkTypeChangesAtLoad({
         if (notOne) {
             return { notOne, notOneTag: tag, types, unknown };
         }
+        // Each part one component of the same tag that makes its list of
+        // values itself (a `<sequence>` in each case), so the composite is
+        // one of that tag, or nothing (`self`).
+        const self =
+            parts.length > 0 &&
+            parts.every((part) => part.self === parts[0].self)
+                ? parts[0].self
+                : undefined;
         if (partNotOne) {
             const named = asPartOf(partNotOne, tag, partKind);
             return {
@@ -1420,6 +1428,7 @@ export function checkTypeChangesAtLoad({
                 notOneTag: named.notOneTag,
                 types,
                 unknown,
+                ...(self !== undefined && { self }),
             };
         }
         if (parts.length === 0) {

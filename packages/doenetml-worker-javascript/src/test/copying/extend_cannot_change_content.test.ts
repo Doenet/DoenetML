@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateMathInputValue, updateSelectedIndices } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+    updateSelectedIndices,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -766,5 +770,63 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
                 ).eqls([text, "after"]);
             });
         }
+    });
+
+    /**
+     * A composite that holds one sequence in each case or option is one
+     * sequence, or nothing, so a `<sequence>` can be made from it, as on
+     * `main`; one that can hold something else is `doenet-e0071`.
+     */
+    describe("an extend of a sequence a composite holds", () => {
+        const SOURCES = `<booleanInput name="b">true</booleanInput>
+<conditionalContent name="cc" condition="$b"><sequence from="1" to="3"/></conditionalContent>
+<select name="sel"><option><sequence from="1" to="3"/></option><option><sequence from="1" to="3"/></option></select>
+<conditionalContent name="mixed"><case condition="$b"><sequence from="1" to="3"/></case><else><math>x</math></else></conditionalContent>`;
+
+        for (const [written, codes, text] of [
+            [`<sequence extend="$cc"/>`, [], "1, 2, 3"],
+            [`<sequence extend="$sel"/>`, [], "1, 2, 3"],
+            [`<sequence extend="$mixed"/>`, ["doenet-e0071"], ""],
+        ] as const) {
+            it(written, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${SOURCES}
+<p name="p">${written}</p>`,
+                });
+
+                const { errors, warnings } = getDiagnosticsByType(core);
+                expect(
+                    [...errors, ...warnings].map((d) => [
+                        d.code,
+                        d.position?.start.line,
+                    ]),
+                ).eqls(codes.map((code) => [code, 5]));
+                expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls([
+                    text,
+                ]);
+            });
+        }
+
+        it("is missing while the conditionalContent holds nothing", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${SOURCES}
+<p name="p"><sequence extend="$cc"/></p>`,
+            });
+            const p = () => textsOf(core, resolvePathToNodeIdx, ["p"]);
+            const b = await resolvePathToNodeIdx("b");
+
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: b,
+                core,
+            });
+            expect(await p()).eqls(["＿"]);
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: b,
+                core,
+            });
+            expect(await p()).eqls(["1, 2, 3"]);
+        });
     });
 });
