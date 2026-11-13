@@ -2349,6 +2349,7 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
                 numComponentsForSource,
                 publicCaseInsensitiveAliasSubstitutions,
+                sourceNum,
                 heldMadeFrom,
                 madeFrom,
             });
@@ -4151,6 +4152,7 @@ export async function replacementFromProp({
     componentInfoObjects,
     numComponentsForSource,
     publicCaseInsensitiveAliasSubstitutions,
+    sourceNum,
     heldMadeFrom,
     madeFrom,
 }) {
@@ -5682,15 +5684,19 @@ export async function replacementFromProp({
         // reaches the variable, as `<mathInput
         // bindValueTo="$image.aspectRatio"/>` of an image with no aspect
         // ratio sets it. An unlinked one is missing for good, through a
-        // reload too (`madeFrom.madeMissing`, `heldCopySnapshot`), and so is
-        // a value reference here, which is not made.
+        // reload too, and so is a value reference here, which is not made.
+        // A reload decides it by the source it was made from
+        // (`madeFrom.nullSources`, `heldCopySnapshot`), as a copy of a
+        // property of several components (`$c.aspectRatio` of a
+        // `<collect>`) holds a value of some and not others.
+        const sourceKey = String(sourceNum);
         const holdsNoValue =
             nullMeansMissing(stateVarObj) &&
             (!link && heldMadeFrom
-                ? Boolean(heldMadeFrom.madeMissing)
+                ? Boolean(heldMadeFrom.nullSources?.includes(sourceKey))
                 : (await stateVarObj.value) === null);
         if (holdsNoValue && !link && madeFrom) {
-            madeFrom.madeMissing = true;
+            madeFrom.nullSources = [...(madeFrom.nullSources ?? []), sourceKey];
         }
         if (
             !stateVarObj.shadowingInstructions?.createComponentOfType ||

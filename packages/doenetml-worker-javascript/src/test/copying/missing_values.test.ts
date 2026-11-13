@@ -1964,6 +1964,42 @@ describe("A value computed from a missing input (D40) @group2", () => {
         });
         expect(await text()).eq("[3][＿]");
     });
+
+    it("keeps an unlinked copy of a property of several components as made through a reload, where one held null", async () => {
+        // Only the image whose aspect ratio held null when the copy was
+        // made gives nothing; a reload decides it by image, not for all.
+        const doenetML = `
+    <graph name="gr"><image source="./a.png" name="ia"/><image source="./b.png" name="ib" aspectRatio="2"/></graph>
+    <mathInput name="mi" bindValueTo="$ia.aspectRatio"/>
+    <collect name="c" componentType="image" from="$gr"/>
+    <p name="p">[<mathList copy="$c.aspectRatio"/>]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[2]");
+        await updateMathInputValue({
+            latex: "1/2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await text()).eq("[2]");
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await text()).eq("[2]");
+    });
 });
 
 describe("Missing content read by a math and a list (#2516, #2525) @group2", () => {
