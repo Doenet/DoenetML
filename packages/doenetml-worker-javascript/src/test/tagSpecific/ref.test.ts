@@ -290,4 +290,29 @@ describe("ref tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("p12")].stateValues.text,
         ).eq("The text reffed is: another doc.");
     });
+
+    it("a reference to a figure or an untitled table names it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <figure name="fig"><image source="https://example.org/a.png"><shortDescription>a</shortDescription></image><caption>A</caption></figure>
+    <table name="untitled"><tabular><row><cell>1</cell></row></tabular></table>
+    <table name="titled"><title>Speeds</title><tabular><row><cell>2</cell></row></tabular></table>
+    <p><men name="eq">x=1</men></p>
+    <section name="sec"><title>Motion</title><p>s</p></section>
+    <p><ref name="rFig" to="$fig" /> <ref name="rUntitled" to="$untitled" /> <ref name="rTitled" to="$titled" /> <ref name="rEq" to="$eq" /> <ref name="rSec" to="$sec" /> <ref name="rText" to="$fig">this figure</ref></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const linkText = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .linkText;
+        expect(await linkText("rFig")).eq("Figure 1");
+        expect(await linkText("rUntitled")).eq("Table 2");
+        // a title still wins, for tables as for sections
+        expect(await linkText("rTitled")).eq("Speeds");
+        expect(await linkText("rSec")).eq("Motion");
+        expect(await linkText("rEq")).eq("(1)");
+        // and so does link text the author wrote
+        expect(await linkText("rText")).eq("this figure");
+    });
 });
