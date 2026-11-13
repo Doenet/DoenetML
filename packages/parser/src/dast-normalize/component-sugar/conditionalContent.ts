@@ -1,6 +1,6 @@
 import { DastAttribute, DastElement } from "../../types";
 import { isDastElement } from "../../types-util";
-import { isWrittenWithExtend } from "./utils/extend";
+import { isChildlessCopy, isWrittenWithExtend } from "./utils/extend";
 
 /**
  * Depending on the children, perform one of two transformations.
@@ -37,7 +37,10 @@ import { isWrittenWithExtend } from "./utils/extend";
  *
  * A `<conditionalContent extend>` is left as written, so that a `condition`
  * or children written on it are reported as what they are, and a bare one has
- * no generated `<case>` (`isWrittenWithExtend`).
+ * no generated `<case>` (`isWrittenWithExtend`). So is a `copy` or
+ * `copyWithState` with nothing written inside it (`isChildlessCopy`): it has
+ * its source's cases, and a `condition` written on it is the condition of
+ * its source's one case, which the copy applies (#2217).
  */
 export function conditionalContentSugar(node: DastElement) {
     if (node.name !== "conditionalContent") {
@@ -47,7 +50,7 @@ export function conditionalContentSugar(node: DastElement) {
         );
     }
 
-    if (isWrittenWithExtend(node)) {
+    if (isWrittenWithExtend(node) || isChildlessCopy(node)) {
         return;
     }
 
@@ -69,7 +72,18 @@ export function conditionalContentSugar(node: DastElement) {
         // If there are no `<case>` children (and no `<else>` children that were converted)
         // then wrap all children in a `<case>` child and move the `condition` attribute
         // from the `<conditionalContent>` to the `<case>`.
-        const attributes: Record<string, DastAttribute> = {};
+        // The case is marked as made here, not written: a `condition`
+        // written on a childless `copy` of this `<conditionalContent>` is
+        // that of this case, as a `condition` written on the
+        // `<conditionalContent>` is, but not that of a `<case>` the author
+        // wrote, beside which it is ignored (`doenet-w0079`, #2217).
+        const attributes: Record<string, DastAttribute> = {
+            _madeBySugar: {
+                type: "attribute",
+                name: "_madeBySugar",
+                children: [{ type: "text", value: "true" }],
+            },
+        };
         node.children = [
             {
                 type: "element",

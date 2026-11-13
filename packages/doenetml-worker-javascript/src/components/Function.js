@@ -163,6 +163,13 @@ function forwardFromShadowSourceIfUnmodified(stateDef, varName, conditionName) {
 export default class Function extends InlineComponent {
     static componentType = "function";
 
+    /**
+     * A function is defined by its first `<math>` or `<function>` child, so
+     * of one written on its copy and the source's, the last written wins
+     * (REF-4a, `addChildrenFromComposite`, #2486).
+     */
+    static childGroupsReadOnce = ["maths", "functions"];
+
     // missing while its content is only missing children (D40,
     // `BaseComponent.missingWhenContentMissing`)
     static missingWhenContentMissing = true;

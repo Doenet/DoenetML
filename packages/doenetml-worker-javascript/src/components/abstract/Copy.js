@@ -1,3 +1,4 @@
+import me from "math-expressions";
 import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
 import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
@@ -1208,6 +1209,17 @@ export default class Copy extends CompositeComponent {
                         ),
                     },
                 }),
+                // only where it does, so that no other copy depends on more
+                ...(propOfTypeChange(stateValues) &&
+                    propTypeVaries(
+                        propOfTypeChange(stateValues),
+                        componentInfoObjects,
+                    ) && {
+                        propTypeVaries: {
+                            dependencyType: "value",
+                            value: true,
+                        },
+                    }),
                 extendedComponent: {
                     dependencyType: "stateVariable",
                     variableName: "extendedComponent",
@@ -1242,6 +1254,29 @@ export default class Copy extends CompositeComponent {
                     ];
                 const writtenClass =
                     componentInfoObjects.allComponentClasses[writtenType];
+                if (
+                    dependencyValues.propTypeVaries &&
+                    dependencyValues.copyInChildren &&
+                    writtenClass &&
+                    writtenClass.listEntryComponentType === undefined &&
+                    writtenType !== "group"
+                ) {
+                    // A property whose type is that of its value, as the
+                    // `selectedValues` of a `<choiceInput>`, the type of the
+                    // selected choice: checked against its value as a math's
+                    // is, and decided again as it changes (#2488).
+                    return {
+                        setValue: {
+                            typeChangeValueCheck: typeChangeRule({
+                                writtenType,
+                                sourceType: "math",
+                                componentInfoObjects,
+                            }).valueCheck
+                                ? "value"
+                                : null,
+                        },
+                    };
+                }
                 if (
                     !dependencyValues.copyInChildren ||
                     !sourceType ||
@@ -2396,6 +2431,7 @@ export default class Copy extends CompositeComponent {
                         nComponents,
                         stateIdInfo,
                         diagnostics,
+                        link,
                     });
                 }
             }
@@ -2631,6 +2667,7 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
                 compositeAttributesObj,
                 dontSkipAttributes: ["asList"],
+                inheritedAttributes: repl.attributes,
                 nComponents,
                 stateIdInfo,
             });
@@ -2748,6 +2785,10 @@ export default class Copy extends CompositeComponent {
 
             Object.assign(repl.attributes, attributesFromComposite);
 
+            if (!link) {
+                applyConditionToOnlyCase(repl, attributesFromComposite);
+            }
+
             // The choice error a `<select>` was marked with when the document
             // loaded (`choiceErrorAtLoad`, `choiceErrorsAtLoad.ts`) is of what
             // its source wrote. A copy that writes attributes or children of
@@ -2785,6 +2826,7 @@ export default class Copy extends CompositeComponent {
                 nComponents,
                 stateIdInfo,
                 diagnostics,
+                link,
             });
         }
 
@@ -5562,6 +5604,7 @@ export async function replacementFromProp({
                     componentType: replacement.componentType,
                     componentInfoObjects,
                     compositeAttributesObj,
+                    inheritedAttributes: replacement.attributes,
                     nComponents,
                     stateIdInfo,
                 });
@@ -6344,6 +6387,37 @@ function propComponentType({ source, propName }, componentInfoObjects) {
     return typeof description?.createComponentOfType === "string"
         ? description.createComponentOfType
         : undefined;
+}
+
+/**
+ * Whether the property `propName` of `source` (`propOfTypeChange`) makes a
+ * component of the type of its value, which can change, rather than of one
+ * type: the `selectedValues` of a `<choiceInput>`, a math or a text as the
+ * selected choice is (`hasVariableComponentType`).
+ */
+function propTypeVaries({ source, propName }, componentInfoObjects) {
+    const description =
+        componentInfoObjects.publicStateVariableInfo[source.componentType]
+            ?.stateVariableDescriptions[propName];
+    return Boolean(
+        description?.public && description.createComponentOfType === undefined,
+    );
+}
+
+/**
+ * The component type a value is held in: a math expression in a `<math>`,
+ * and a string, number or boolean in a `<text>`, `<number>` or `<boolean>`.
+ * `undefined` for anything else, such as an array of several entries.
+ */
+function componentTypeOfValue(value) {
+    if (value instanceof me.class) {
+        return "math";
+    }
+    return {
+        string: "text",
+        number: "number",
+        boolean: "boolean",
+    }[typeof value];
 }
 
 /** Whether a `typeChangeValueCheck` is of what a composite holds. */
@@ -7864,9 +7938,15 @@ function missingOfWrittenType({
             ).toLowerCase()
         ];
 
-    if (componentInfoObjects.isCompositeComponent({ componentType })) {
+    if (
+        componentInfoObjects.isCompositeComponent({ componentType }) ||
+        componentInfoObjects.allComponentClasses[componentType]
+            ?.listEntryComponentType !== undefined
+    ) {
         // A composite, such as a `<group>`, has nothing of its type to be
-        // missing as (`convertNormalizedDast.ts`).
+        // missing as (`convertNormalizedDast.ts`), and a list, such as a
+        // `<sequence>`, is missing as one blank, as a `<numberList>` is
+        // (REF-0, #2501).
         return {
             replacements: [
                 missingReplacement({
@@ -8221,12 +8301,26 @@ async function typeChangeStatus({
             // Decided again as the document runs, from the type of the
             // property, when it is checked against its value
             // (`typeChangeValueCheck` "value").
-            const propType =
+            let propType =
                 propSource &&
                 propComponentType(
                     { source: propSource, propName },
                     componentInfoObjects,
                 );
+            if (
+                !propType &&
+                propVariable &&
+                propTypeVaries(
+                    { source: propSource, propName },
+                    componentInfoObjects,
+                )
+            ) {
+                // of the type of its value now, as the selected choice of a
+                // `<choiceInput>` is (#2488)
+                propType = componentTypeOfValue(
+                    await readTypeChangeValue(component, readValue),
+                );
+            }
             if (
                 !propVariable ||
                 !propType ||
@@ -9368,7 +9462,19 @@ function attributesAnExtendApplies({
  * already read. The children were sugared where they were written, as
  * children of the copy (`convertNormalizedDast.ts`), so only the
  * replacement type's own instructions are applied, not those of the
- * children again (`sugarApplied`).
+ * children again (`sugarApplied`). A replacement made from a value (an
+ * unlinked copy of a list entry, `<point copy="$pl[1]">(7,8)</point>`)
+ * carries that value as the essential value of its primary state variable,
+ * which would take precedence over the attribute, so it is dropped, and the
+ * written child applies (#2486).
+ *
+ * A child the component would not use beside those it has from its source
+ * (`ignoredBesideSource`) is not added. Of a child it reads only one of (its
+ * class's `childGroupsReadOnce`, a `<function>`'s formula), the last one
+ * written wins (REF-4a): on a copy the child replaces the source's. An extend
+ * shares its source's content, so there, and for a child that has no use
+ * beside the source's (a `<math>` beside a `<matrix>`'s rows), it is ignored,
+ * with a warning (DIAG-1).
  *
  * Returns the new `nComponents`.
  */
@@ -9379,6 +9485,7 @@ export function addChildrenFromComposite({
     nComponents,
     stateIdInfo,
     diagnostics,
+    link = false,
 }) {
     let repl = replacements[0];
     if (!repl.children) {
@@ -9425,7 +9532,20 @@ export function addChildrenFromComposite({
         const sugared = sugarResult.components[0];
         if (sugared.componentType === repl.componentType) {
             newChildren = sugared.children;
+            const setBySugar = Object.keys(sugared.attributes).some(
+                (attrName) =>
+                    sugared.attributes[attrName] !==
+                    repl.attributes?.[attrName],
+            );
             repl.attributes = sugared.attributes;
+            if (setBySugar && repl.holdsValue && repl.state) {
+                delete repl.state[
+                    primaryEssentialStateVariableOf({
+                        componentType: repl.componentType,
+                        componentInfoObjects,
+                    })
+                ];
+            }
         }
         // The marker is removed, and a component the sugar made with no
         // `stateId` is given the copy's, as its other replacements are
@@ -9484,9 +9604,130 @@ export function addChildrenFromComposite({
         };
     }
 
+    const ignored = ignoredBesideSource({
+        replacement: repl,
+        added: newChildren,
+        link,
+        componentInfoObjects,
+    });
+    if (ignored.size > 0) {
+        const args = { componentType: repl.componentType };
+        diagnostics?.push(
+            link
+                ? codedDiagnostic({
+                      type: "warning",
+                      code: "doenet-w0169",
+                      args,
+                  })
+                : codedDiagnostic({
+                      type: "warning",
+                      code: "doenet-w0190",
+                      args,
+                  }),
+        );
+        newChildren = newChildren.filter((child) => !ignored.has(child));
+    }
+
     repl.children.push(...newChildren);
 
     return nComponents;
+}
+
+/**
+ * The child group of `componentClass` that `child` is matched into, if any.
+ */
+function childGroupOf(componentClass, child, componentInfoObjects) {
+    if (typeof child !== "object") {
+        return undefined;
+    }
+    return componentClass.returnChildGroups().find(({ componentTypes }) =>
+        componentTypes?.some((componentType) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: child.componentType,
+                baseComponentType: componentType,
+            }),
+        ),
+    )?.group;
+}
+
+/**
+ * Of `added`, the children written on a copy or extend of `replacement`, the
+ * ones the component would not use beside those it has from its source (its
+ * `children` now) and its attributes, which are left out (#2486):
+ * - of the child groups its class reads only one child of
+ *   (`childGroupsReadOnce`), the last one written wins (REF-4a), so on a
+ *   copy the source's are removed from `replacement`; an extend shares its
+ *   source's, so the added ones are ignored;
+ * - those its class says it ignores beside the source's
+ *   (`childrenIgnoredBeside`, a `<math>` beside a `<matrix>`'s rows);
+ * - on an extend of an input, all of them but what describes it (a
+ *   `<label>`): it shares its source's value, which a child would otherwise
+ *   set.
+ */
+function ignoredBesideSource({
+    replacement,
+    added,
+    link,
+    componentInfoObjects,
+}) {
+    const ignored = new Set();
+    const componentClass =
+        componentInfoObjects.allComponentClasses[replacement.componentType];
+    const addedComponents = added.filter((child) => typeof child === "object");
+    if (!componentClass || addedComponents.length === 0) {
+        return ignored;
+    }
+
+    if (
+        link &&
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: replacement.componentType,
+            baseComponentType: "_input",
+        })
+    ) {
+        // What describes it (a `<label>`) is not its value, and the last
+        // one written wins (REF-4a).
+        const describing = ["labels", "descriptions", "shortDescriptions"];
+        for (const child of addedComponents) {
+            if (
+                !describing.includes(
+                    childGroupOf(componentClass, child, componentInfoObjects),
+                )
+            ) {
+                ignored.add(child);
+            }
+        }
+        return ignored;
+    }
+
+    const readOnce = componentClass.childGroupsReadOnce ?? [];
+    const inReadOnce = (child) =>
+        readOnce.includes(
+            childGroupOf(componentClass, child, componentInfoObjects),
+        );
+    if (
+        readOnce.length > 0 &&
+        addedComponents.some(inReadOnce) &&
+        replacement.children.some(inReadOnce)
+    ) {
+        if (link) {
+            addedComponents.filter(inReadOnce).forEach((c) => ignored.add(c));
+        } else {
+            replacement.children = replacement.children.filter(
+                (child) => !inReadOnce(child),
+            );
+        }
+    }
+
+    for (const child of componentClass.childrenIgnoredBeside?.({
+        fromSource: replacement.children,
+        added: addedComponents,
+        attributes: replacement.attributes ?? {},
+        groupOf: (c) => childGroupOf(componentClass, c, componentInfoObjects),
+    }) ?? []) {
+        ignored.add(child);
+    }
+    return ignored;
 }
 
 /**
@@ -9841,4 +10082,38 @@ async function referenceNamesItsSource({ component, sourceNum, heldCase }) {
         source !== null &&
         source.componentIdx === (await component.stateValues.extendIdx)
     );
+}
+
+/**
+ * A `condition` written on a `copy` of a `<conditionalContent>` written with
+ * no `<case>` -- whose one case the parser's sugar made, and moved the
+ * `<conditionalContent>`'s own `condition` to (`_madeBySugar`) -- is that
+ * case's condition, as it is when the tag is written whole: a copy is its
+ * source's DoenetML with the attributes written on it applied (#2217).
+ * Otherwise it is left on the `<conditionalContent>`, which ignores it beside
+ * the cases written in it, with a warning (`doenet-w0079`), as it does
+ * written whole.
+ *
+ * Only a `condition` written on the copy (in `attributesFromComposite`) is
+ * moved: one the source has, which it ignores beside its own `<case>`, is
+ * left, so the copy shows what its source does.
+ */
+function applyConditionToOnlyCase(replacement, attributesFromComposite) {
+    if (
+        replacement.componentType !== "conditionalContent" ||
+        !attributesFromComposite.condition
+    ) {
+        return;
+    }
+    const cases = replacement.children.filter(
+        (child) => typeof child === "object" && child.componentType === "case",
+    );
+    if (
+        cases.length !== 1 ||
+        !cases[0].attributes?._madeBySugar?.primitive?.value
+    ) {
+        return;
+    }
+    cases[0].attributes.condition = replacement.attributes.condition;
+    delete replacement.attributes.condition;
 }

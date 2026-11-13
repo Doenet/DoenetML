@@ -15,3 +15,24 @@ export function isWrittenWithExtend(node: DastElement) {
         (attrName) => attrName.toLowerCase() === "extend",
     );
 }
+
+/**
+ * Whether `node` is written with `copy` or `copyWithState` and has nothing
+ * written inside it but blank text.
+ *
+ * Such a copy is its source's DoenetML with the attributes written on it
+ * applied. A sugar that would wrap its (empty) content in a generated child
+ * is skipped, so that the copy adds no child to its source's, and an
+ * attribute the sugar would move to that child stays on the copy, where the
+ * copy applies it to the source's own child (#2217).
+ */
+export function isChildlessCopy(node: DastElement) {
+    return (
+        Object.keys(node.attributes).some((attrName) =>
+            ["copy", "copywithstate"].includes(attrName.toLowerCase()),
+        ) &&
+        node.children.every(
+            (child) => child.type === "text" && child.value.trim() === "",
+        )
+    );
+}

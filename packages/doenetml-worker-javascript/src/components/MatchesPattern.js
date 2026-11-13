@@ -58,6 +58,12 @@ export default class MatchesPattern extends BooleanComponent {
     // not missing for a missing operand: a pattern match is a test, not a computation on the value (D40, VAL-5)
     static missingWhenComputedFromMissing = false;
 
+    /**
+     * It tests its first `<math>` child, so of one written on its copy and
+     * the source's, the last written wins (REF-4a, #2486).
+     */
+    static childGroupsReadOnce = ["maths"];
+
     static componentDocs = {
         summary:
             "Boolean condition that tests whether input matches a math pattern",
