@@ -1123,11 +1123,18 @@ export function checkChoiceFeasibilityAtLoad({
             : null;
     }
 
-    /** Letters written as a literal, as the number a letters sequence has. */
+    /**
+     * Letters written as a literal, read as the number a letters sequence
+     * has. It is kept as the text, which is what a compiled parameter holds
+     * (`letterTextOf`): the run time reads the text `1` as no letters.
+     */
     function lettersLiteral(entry: Expr): Expr {
-        if (entry.k === "const" && typeof entry.value !== "number") {
-            const number = lettersToNumber(entry.value.symbolic);
-            return number === undefined ? entry : constant(number);
+        if (
+            entry.k === "const" &&
+            typeof entry.value !== "number" &&
+            lettersToNumber(entry.value.symbolic) !== undefined
+        ) {
+            return { k: "op", op: "letterNumber", args: [entry] };
         }
         return entry;
     }
@@ -3173,6 +3180,17 @@ export function checkChoiceFeasibilityAtLoad({
         if (scalars.some((e) => e && isUnknown(value(e)))) {
             return "unknown";
         }
+        if (
+            spec.type === "selectFromSequence" &&
+            spec.from &&
+            spec.to &&
+            spec.step &&
+            spec.length
+        ) {
+            // the run time can't make a sequence of all four (it throws,
+            // even when it selects none): nothing to show it selects
+            return "unknown";
+        }
         const numToSelectValue = number(spec.numToSelect);
         if (!Number.isFinite(numToSelectValue)) {
             // not finite (`1/0`) is no count either: with replacement the
@@ -3825,25 +3843,171 @@ export function checkChoiceFeasibilityAtLoad({
         return Infinity;
     }
 
-    function sequenceBounds(p: RepeatSequence) {
-        const from = p.from
-            ? intervalOf(p.from)
-            : { lo: 1, hi: 1, integer: true };
-        const step = p.step
-            ? intervalOf(p.step)
-            : { lo: 1, hi: 1, integer: true };
+    /**
+     * A sequence's first value, step, how many values it has and its last
+     * value, as expressions, in the forms whose derivation the bounds model
+     * exactly; `null` for any other form.
+     *
+     * The run time derives these (`calculateSequenceParameters`) from the
+     * parameters written. The forms modelled are those where how many
+     * values there are is `length` as written, 10, or
+     * `(to - from) / step + 1` rounded down (`from` 1 and `step` 1 when not
+     * written), and `length` with a `from` and a `to` (the step is
+     * `(to - from) / (length - 1)`, rounded down for letters) and, of a
+     * number or math sequence, `length` with a `to` and a `step` or neither
+     * (the first value is `to - step (length - 1)`). Not modelled: a letters
+     * sequence with a `to` and a `length` but no `from`, whose `length` the
+     * run time shortens when the first value would be before `a`; and all
+     * four of `from`, `to`, `step` and `length`, which the run time can't
+     * make. Such a sequence is decided exactly
+     * (`concreteSequence` calls `calculateSequenceParameters`), never by the
+     * bounds.
+     */
+    const sequenceModels = new Map<object, SequenceModel | null>();
+    type SequenceModel = {
+        from: Expr;
+        step: Expr;
+        count: Expr;
+        /** The last value, when the values end at a parameter written. */
+        last: Expr | null;
+        /**
+         * What is 0 exactly when the step is, when there are at least two
+         * values: `to - from` for a step derived from them.
+         */
+        stepZeroWhen: Expr;
+    };
+    function sequenceModelOf(p: {
+        seqType: string;
+        from: Expr | null;
+        to: Expr | null;
+        step: Expr | null;
+        length: Expr | null;
+    }): SequenceModel | null {
+        if (sequenceModels.has(p)) {
+            return sequenceModels.get(p)!;
+        }
+        const op = (
+            o: Extract<Expr, { k: "op" }>["op"],
+            ...args: Expr[]
+        ): Expr => ({
+            k: "op",
+            op: o,
+            args,
+        });
+        const { from, to, step, length } = p;
+        let model: SequenceModel | null;
+        const count = length
+            ? intervalOf(length).integer
+                ? length
+                : op("round", length)
+            : null;
+        if (from && to && step && length) {
+            model = null;
+        } else if (to && count) {
+            if (p.seqType === "letters" && from) {
+                // the step `(to - from) / (length - 1)` rounded down, so
+                // the values end at `to` or before it
+                const step = op(
+                    "floor",
+                    op(
+                        "/",
+                        op("+", to, op("neg", from)),
+                        op("+", count, constant(-1)),
+                    ),
+                );
+                model = {
+                    from,
+                    step,
+                    count,
+                    last: null,
+                    stepZeroWhen: step,
+                };
+            } else if (p.seqType === "letters") {
+                model = null;
+            } else if (from) {
+                const span = op("+", to, op("neg", from));
+                model = {
+                    from,
+                    step: op("/", span, op("+", count, constant(-1))),
+                    count,
+                    last: to,
+                    stepZeroWhen: span,
+                };
+            } else {
+                const s = step ?? constant(1);
+                model = {
+                    from: op(
+                        "+",
+                        to,
+                        op("neg", op("*", s, op("+", count, constant(-1)))),
+                    ),
+                    step: s,
+                    count,
+                    last: to,
+                    stepZeroWhen: s,
+                };
+            }
+        } else {
+            const f = from ?? constant(1);
+            const s = step ?? constant(1);
+            if (count) {
+                model = {
+                    from: f,
+                    step: s,
+                    count,
+                    last: null,
+                    stepZeroWhen: s,
+                };
+            } else if (!to) {
+                model = {
+                    from: f,
+                    step: s,
+                    count: constant(10),
+                    last: null,
+                    stepZeroWhen: s,
+                };
+            } else {
+                model = {
+                    from: f,
+                    step: s,
+                    // the values are between `from` and `to`, whichever
+                    // `from` the run time counts back to
+                    count: op(
+                        "+",
+                        op("/", op("+", to, op("neg", f)), s),
+                        constant(1),
+                    ),
+                    last: to,
+                    stepZeroWhen: s,
+                };
+            }
+        }
+        sequenceModels.set(p, model);
+        return model;
+    }
+
+    /**
+     * The least and greatest a sequence's values can be (as numbers, the
+     * letters of a letters sequence by their number), or no bounds when its
+     * form isn't modelled (`sequenceModelOf`).
+     */
+    function sequenceBounds(p: RepeatSequence): Interval {
+        const model = sequenceModelOf(p);
+        if (!model) {
+            return { lo: -Infinity, hi: Infinity, integer: false };
+        }
+        const from = intervalOf(model.from);
+        const step = intervalOf(model.step);
         let lo = from.lo;
         let hi = from.hi;
-        if (p.to) {
-            const to = intervalOf(p.to);
-            lo = Math.min(lo, to.lo);
-            hi = Math.max(hi, to.hi);
+        if (model.last) {
+            const last = intervalOf(model.last);
+            lo = Math.min(lo, last.lo);
+            hi = Math.max(hi, last.hi);
         } else {
-            const length = p.length
-                ? intervalOf(p.length)
-                : { lo: 10, hi: 10, integer: true };
+            const count = intervalOf(model.count);
             const span = mulInterval(
-                { lo: 0, hi: Math.max(0, length.hi - 1) },
+                { lo: 0, hi: Math.max(0, count.hi - 1) },
                 step,
             );
             lo = Math.min(lo, from.lo + span.lo);
@@ -3972,14 +4136,21 @@ export function checkChoiceFeasibilityAtLoad({
             const atom = lettersChoiceAtom(expr.args[0]);
             const spec = atom && (specOf(atom.node) as ChoiceSpec);
             if (atom) {
-                return (
-                    !!spec &&
-                    spec.type === "selectFromSequence" &&
-                    entrySurelyPresent(atom, spec) &&
-                    [spec.from, spec.to, spec.step, spec.length].every(
+                // a value of a letters sequence is letters again only when
+                // it is a whole number from 1 (`a`) on: a sequence that may
+                // count back before `a` selects `` ` ``, `_`, …
+                if (
+                    !spec ||
+                    spec.type !== "selectFromSequence" ||
+                    !entrySurelyPresent(atom, spec) ||
+                    ![spec.from, spec.to, spec.step, spec.length].every(
                         (e) => e === null || surelyFinite(e),
                     )
-                );
+                ) {
+                    return false;
+                }
+                const values = sequenceBounds(spec);
+                return values.integer && values.lo >= 1 && values.hi < Infinity;
             }
             // letters written as they are, or texts each of which is letters
             return letterNumbersOf(expr) !== undefined;
@@ -4515,7 +4686,16 @@ export function checkChoiceFeasibilityAtLoad({
         );
         if (
             numToSelectBounds.hi < 0.5 &&
-            !(spec.type === "select" && spec.optionsByVariant)
+            !(spec.type === "select" && spec.optionsByVariant) &&
+            // a sequence the run time can't make fails even so
+            // (`concreteProblem`)
+            !(
+                spec.type === "selectFromSequence" &&
+                spec.from &&
+                spec.to &&
+                spec.step &&
+                spec.length
+            )
         ) {
             // selects nothing; but a variant name must still be on as many
             // options as it selects (`concreteProblem`)
@@ -4703,7 +4883,13 @@ export function checkChoiceFeasibilityAtLoad({
             ]);
         }
 
-        // `<selectFromSequence>`
+        // `<selectFromSequence>`: only in a form whose count and values the
+        // bounds model as the run time derives them; any other form is
+        // decided by the run time's own function, exactly
+        const model = sequenceModelOf(spec);
+        if (!model) {
+            return tryWitness(new Map());
+        }
         if (
             spec.seqType === "math" &&
             !(
@@ -4734,46 +4920,11 @@ export function checkChoiceFeasibilityAtLoad({
             // `from` alone, with 10 values): tried exactly
             return tryWitness(new Map());
         }
-        // how many values: `length`, or `(to - from) / step + 1`, rounded
-        // down. What it is compared with is a whole number, and a number
-        // rounded down is at least a whole number exactly when the number
-        // is, so it is compared unrounded.
-        let count: Affine;
-        if (spec.length) {
-            count = affineOf(
-                intervalOf(spec.length).integer
-                    ? spec.length
-                    : { k: "op", op: "round", args: [spec.length] },
-            );
-        } else if (!spec.to) {
-            count = { c: 10, terms: new Map() };
-        } else {
-            const from = spec.from ?? constant(1);
-            const step = spec.step ?? constant(1);
-            const arg: Expr = {
-                k: "op",
-                op: "+",
-                args: [
-                    {
-                        k: "op",
-                        op: "/",
-                        args: [
-                            {
-                                k: "op",
-                                op: "+",
-                                args: [
-                                    spec.to,
-                                    { k: "op", op: "neg", args: [from] },
-                                ],
-                            },
-                            step,
-                        ],
-                    },
-                    constant(1),
-                ],
-            };
-            count = affineOf(arg);
-        }
+        // how many values: `length`, 10, or `(to - from) / step + 1`, rounded
+        // down (`sequenceModelOf`). What it is compared with is a whole
+        // number, and a number rounded down is at least a whole number
+        // exactly when the number is, so it is compared unrounded.
+        const count = affineOf(model.count);
         const slack = addAffine(addAffine(count, scaleAffine(need, -1)), {
             c: -Math.ceil(excludeCount),
             terms: new Map(),
@@ -4785,9 +4936,16 @@ export function checkChoiceFeasibilityAtLoad({
             numToSelectBounds.hi >= 2 &&
             !spec.excludeCombinations;
         // each exclusion leaves out one value at most, unless the step may
-        // be 0, which makes every value the same
-        const step = spec.step ? intervalOf(spec.step) : { lo: 1, hi: 1 };
-        const stepMayBeZero = !(step.lo > 0 || step.hi < 0);
+        // be 0, which makes every value the same: the step as the run time
+        // derives it, `(to - from) / (length - 1)` when not written, which
+        // is 0 when `to - from` is. (With one value, whose derived step is
+        // not finite, and an exclusion, the slack is below 0 unless none is
+        // selected.)
+        const stepZeroWhen = affineOf(model.stepZeroWhen);
+        const stepMayBeZero = !(
+            minimumOf(stepZeroWhen).min > 0 ||
+            minimumOf(scaleAffine(stepZeroWhen, -1)).min > 0
+        );
         if (
             min >= 0 &&
             !mayBeCoprime &&

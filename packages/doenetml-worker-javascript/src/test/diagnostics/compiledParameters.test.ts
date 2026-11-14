@@ -353,7 +353,12 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
      * (a `<math>x</math>` or text option), an entry that may be nothing
      * (`$c[2]` of a choice that may select one), an index into a list
      * (`$ns[$i]`), a division by what may be 0, a step that may be 0, or
-     * exclusions, of number and math sequences, primes and options.
+     * exclusions, of number and math sequences, primes and options. The
+     * sequences take each form the run time derives a count from: `to` or
+     * `length` with or without `from`, `to` and `length` together (a step
+     * derived from `from` and `to`, or values counted back from `to`), all
+     * four, and a letters selection read as letters that may count back
+     * before `a`.
      */
     function widerDocuments(
         random: () => number,
@@ -368,6 +373,8 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
             `<selectFromSequence name="m" type="math" from="1" to="${int(3, 6)}"/>`,
             `<selectPrimeNumbers name="p" from="2" to="${int(5, 20)}"/>`,
             `<selectFromSequence name="z" from="0" to="1"/>`,
+            // counts back from `to`: values may be 0 or less
+            `<selectFromSequence name="d" to="${int(2, 5)}" length="${int(3, 6)}"/>`,
         ];
         const bs = [
             `<select name="b"><option><math>x</math></option><option><number>${int(1, 4)}</number></option></select>`,
@@ -377,7 +384,12 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
         // what a letters sequence reads: letters, a letters choice, texts
         // that are letters or may not be
         const letters = [
-            `<selectFromSequence name="l" type="letters" from="a" to="${pick(["c", "e", "h"])}"/>`,
+            pick([
+                `<selectFromSequence name="l" type="letters" from="a" to="${pick(["c", "e", "h"])}"/>`,
+                // may count back before `a`
+                `<selectFromSequence name="l" type="letters" from="${pick(["b", "c"])}" step="-1" length="${int(2, 4)}"/>`,
+                `<selectFromSequence name="l" type="letters" from="c" to="a" length="${int(3, 4)}"/>`,
+            ]),
             `<select name="t" type="text">c ${pick(["d", "%", "2", "e"])}</select>`,
         ];
         const atoms = [
@@ -393,6 +405,7 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
             "$z",
             "($a-1)",
             "($z-1)",
+            "$d",
         ];
         const docs: string[] = [];
         while (docs.length < 120) {
@@ -437,10 +450,15 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
             let target: string;
             if (kind === "letters") {
                 const letter = () => pick(["c", "A", "$l", "$t", "$b"]);
+                const length = () =>
+                    ` length="${pick([String(int(1, 6)), term(), `${term()}+${int(1, 5)}`])}"`;
                 const range = pick([
                     "",
-                    ` length="${pick([String(int(1, 6)), term(), `${term()}+${int(1, 5)}`])}"`,
+                    length(),
                     ` to="${pick(["z", letter()])}"`,
+                    // the run time shortens `length` when counting back
+                    // from `to` would go before `a`, or rounds the step down
+                    ` to="${pick(["z", letter()])}"${length()}`,
                 ]);
                 target = `<selectFromSequence type="letters"${pick(["", ` from="${letter()}"`])}${range}${pick(["", ` step="${pick(["2", "-1", "$z", term()])}"`])}${pick(["", ` exclude="${letter()}"`])} numToSelect="${pick(["1", "2", term()])}"${pick(["", " withReplacement"])}/>`;
             } else if (kind === "select") {
@@ -448,10 +466,12 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
             } else if (kind === "primes") {
                 target = `<selectPrimeNumbers from="${pick(["2", term()])}" to="${term()} + ${int(0, 30)}" numToSelect="${pick(["1", "2", term()])}"${pick(["", ` exclude="${term()}"`, ` exclude="${int(2, 7)}"`])}/>`;
             } else {
-                const range =
-                    random() < 0.3
-                        ? ` length="${pick([String(int(1, 6)), term(), `${term()}+${int(1, 5)}`])}"`
-                        : ` to="${term()} + ${int(0, 20)}"`;
+                const length = ` length="${pick([String(int(1, 6)), term(), `${term()}+${int(1, 5)}`])}"`;
+                const to = ` to="${term()} + ${int(0, 20)}"`;
+                // `to` and `length`: the step derived from `from` and `to`
+                // (with no step), or the first value counted back from `to`
+                // (with no `from`); with all four the run time can't make it
+                const range = pick([to, to, length, `${to}${length}`]);
                 const step = pick([
                     "",
                     "",
@@ -467,7 +487,24 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
                     ` exclude="$b $a"`,
                     ` exclude="$ns"`,
                 ]);
-                target = `<selectFromSequence${kind === "math" ? ` type="math"` : ""} from="${pick(["1", "$i", term()])}"${range}${step}${exclude} numToSelect="${pick(["1", "2", String(int(1, 4)), term(), `min(${term()}, 2)`])}"${pick(["", "", " withReplacement"])}/>`;
+                const from = pick([
+                    "",
+                    ` from="${pick(["1", "$i", term()])}"`,
+                    ` from="${pick(["1", "$i", term()])}"`,
+                    ` from="${pick(["1", "$i", term()])}"`,
+                ]);
+                target = `<selectFromSequence${kind === "math" ? ` type="math"` : ""}${from}${range}${step}${exclude} numToSelect="${pick(["1", "2", String(int(1, 4)), term(), `min(${term()}, 2)`])}"${pick(["", "", " withReplacement"])}/>`;
+            }
+            if (
+                [" from=", " to=", " step=", " length="].every((a) =>
+                    target.includes(a),
+                ) &&
+                !/ (from|to|step|length)="[^"]*\$/.test(target)
+            ) {
+                // all four written as constants fail to load as they did
+                // before this check (not checked: the same in every
+                // variant); one reading the iteration is checked
+                target = target.replace(/ step="[^"]*"/, ` step="$i"`);
             }
             if (has(target)) {
                 docs.push(`<mathInput name="n" prefill="2"/>

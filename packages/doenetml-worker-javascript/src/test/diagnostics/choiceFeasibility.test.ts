@@ -890,6 +890,159 @@ describe("An iteration index ranges over every iteration (SEL-5) @group4", () =>
         }
     });
 
+    it("a sequence is shown by its bounds only in a form whose count and values they model as the run time derives them", async () => {
+        // each passed, though, when the document runs, it can't select: the
+        // run time derives the count, step or values from the parameters
+        // written (`calculateSequenceParameters`) otherwise than the bounds
+        // counted them
+        const cases: [string, string][] = [
+            // a letters `to` and `length` with no `from`: the run time
+            // shortens `length` when counting back from `to` would go
+            // before `a`
+            [
+                `<selectFromSequence name="a" type="letters" from="a" to="e"/><selectFromSequence type="letters" to="$a" length="3" numToSelect="3"/>`,
+                "when `$a` = a, it has 1 value to select 3 from.",
+            ],
+            [
+                `<selectFromSequence name="n" from="1" to="5"/><selectFromSequence type="letters" to="c" length="$n" numToSelect="$n"/>`,
+                "when `$n` = 4, it has 3 values to select 4 from.",
+            ],
+            [
+                `<repeat for="1 2 3" indexName="i"><selectFromSequence type="letters" to="c" length="$i+1" numToSelect="$i+1"/></repeat>`,
+                "when `$i` = 3, it has 3 values to select 4 from.",
+            ],
+            [
+                `<module name="m"><moduleAttributes><text name="l">e</text></moduleAttributes><selectFromSequence type="letters" to="$l" length="3" numToSelect="3"/></module><module name="m2" copy="$m" l="b"/>`,
+                "when `$l` = b, it has 2 values to select 3 from.",
+            ],
+            // a step derived from `from`, `to` and `length` is 0 when `to`
+            // is `from`, and an exclusion then leaves out every value
+            [
+                `<selectFromSequence name="a" from="1" to="2"/><selectFromSequence from="1" to="$a" length="3" exclude="1"/>`,
+                "when `$a` = 1, it has 0 values to select 1 from.",
+            ],
+            [
+                `<selectFromSequence name="a" from="1" to="2"/><selectFromSequence type="math" from="1" to="$a" length="3" exclude="1"/>`,
+                "when `$a` = 1, it has 0 values to select 1 from.",
+            ],
+            [
+                `<repeat for="1 2" indexName="i"><selectFromSequence from="5" to="$i+4" length="3" exclude="5"/></repeat>`,
+                "when `$i` = 1, it has 0 values to select 1 from.",
+            ],
+            // a letters step derived so is rounded down, to 0 here
+            [
+                `<selectFromSequence name="a" type="letters" from="a" to="c"/><selectFromSequence type="letters" from="a" to="$a" length="3" exclude="a"/>`,
+                "when `$a` = a, it has 0 values to select 1 from.",
+            ],
+            [
+                `<repeat for="1 2 3" indexName="i"><selectFromSequence type="letters" from="a" to="c" length="$i+1" exclude="a"/></repeat>`,
+                "when `$i` = 3, it has 0 values to select 1 from.",
+            ],
+            // a letters choice that counts back before `a` selects `` ` ``,
+            // which isn't letters
+            [
+                `<selectFromSequence name="a" type="letters" from="b" step="-1" length="3"/><selectFromSequence type="letters" from="$a" length="2"/>`,
+                "when `$a` = `, `from` isn't letters.",
+            ],
+            [
+                `<selectFromSequence name="a" type="letters" from="c" to="a" length="4"/><selectFromSequence type="letters" from="$a" length="2"/>`,
+                "when `$a` = `, `from` isn't letters.",
+            ],
+            // a number `to` and `length` with no `from`: the values count
+            // back from `to`, below 1 here
+            [
+                `<selectFromSequence name="a" to="3" length="5"/><selectFromSequence from="1" to="$a"/>`,
+                "when `$a` = -1, it has 0 values to select 1 from.",
+            ],
+            [
+                `<repeatForSequence to="3" length="5" valueName="v"><selectFromSequence from="1" to="$v"/></repeatForSequence>`,
+                "when `$v` = -1, it has 0 values to select 1 from.",
+            ],
+        ];
+        for (const [doenetML, when] of cases) {
+            expect((await load(doenetML)).errors, doenetML).eqls([
+                `doenet-e0073: \`<selectFromSequence>\` can't always select as written: ${when}`,
+            ]);
+        }
+
+        // all four of `from`, `to`, `step` and `length`: the run time
+        // throws making the sequence, even when it selects none; the choice
+        // is an error instead
+        for (const doenetML of [
+            `<selectFromSequence name="a" from="1" to="2"/><selectFromSequence from="1" to="5" step="$a" length="3"/>`,
+            `<selectFromSequence name="a" from="1" to="2"/><selectFromSequence type="math" from="1" to="5" step="$a" length="3"/>`,
+            `<selectFromSequence name="a" from="1" to="2"/><selectFromSequence from="1" to="5" step="$a" length="3" numToSelect="$a-2"/>`,
+            `<mathInput name="n" prefill="2"/><repeatForSequence to="$n" indexName="i"><selectFromSequence from="1" to="5" step="$i" length="2"/></repeatForSequence>`,
+        ]) {
+            const { errors } = await load(doenetML);
+            expect(errors, doenetML).toHaveLength(1);
+            expect(errors[0], doenetML).toMatch(
+                /^doenet-e0073: DoenetML can't show that `<selectFromSequence>` can always select as written/,
+            );
+        }
+
+        // the forms the bounds model, under an index with no end too
+        const repeat = (content: string) =>
+            `<mathInput name="n" prefill="2"/><repeatForSequence to="$n" indexName="i">${content}</repeatForSequence>`;
+        for (const doenetML of [
+            repeat(
+                `<selectFromSequence from="$i" to="$i+9" length="4" exclude="$i" numToSelect="3"/>`,
+            ),
+            repeat(
+                `<selectFromSequence to="$i+5" step="2" length="3" exclude="$i+5" numToSelect="2"/>`,
+            ),
+            repeat(
+                `<selectFromSequence type="math" to="$i+3" length="4" numToSelect="4"/>`,
+            ),
+            repeat(
+                `<selectFromSequence type="letters" from="a" to="z" length="$i+1" numToSelect="$i+1"/>`,
+            ),
+            repeat(
+                `<selectFromSequence name="c" to="5" length="3"/><selectFromSequence from="1" to="$c+$i" numToSelect="3"/>`,
+            ),
+            `<selectFromSequence name="a" type="letters" from="c" to="a" length="3"/><selectFromSequence type="letters" from="$a" length="2"/>`,
+        ]) {
+            expect((await load(doenetML)).codes, doenetML).eqls([]);
+        }
+    });
+
+    it("a letters sequence that reads the variant leaves out the letters its exclude writes", async () => {
+        // the letters were compiled as their numbers, which the selection
+        // reads as no letters: it left out nothing
+        const doenetML = `<selectFromSequence name="a" from="3" to="4"/><selectFromSequence name="s" type="letters" from="a" length="$a" exclude="a b" numToSelect="$a-2"/>`;
+        for (const v of [1, 2, 3, 4]) {
+            const { core, resolvePathToNodeIdx, codes } = await load(
+                doenetML,
+                v,
+            );
+            expect(codes).eqls([]);
+            const s = (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("s")
+            ];
+            expect(s.stateValues.exclude).eqls([1, 2]);
+            expect(s.stateValues.selectedValues).not.toContain("a");
+            expect(s.stateValues.selectedValues).not.toContain("b");
+        }
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="a" from="3" to="4"/><selectFromSequence type="letters" from="a" length="$a" exclude="a b" numToSelect="$a-1"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 3, it has 1 value to select 2 from.",
+        ]);
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="a" type="letters" from="c" to="d"/><selectFromSequence type="letters" from="a" to="$a" excludeCombinations="(a b) (b a) (a c) (c a) (b c) (c b)" numToSelect="2"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = c, every combination of 2 values is excluded.",
+        ]);
+    });
+
     it("an iteration far along with no end is named", async () => {
         expect(
             (
