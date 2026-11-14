@@ -881,13 +881,14 @@ export async function normalizedDastToSerializedComponents(
     // an error in every variant, reported now and made an `_error` in place
     // of the choice. After SEL-1, whose errors leave the choices reading
     // them unchecked, and before the variants are counted.
-    diagnostics.push(
-        ...checkChoiceFeasibilityAtLoad({
-            document,
-            componentInfoObjects,
-            sources: normalized_root.sources,
-        }),
-    );
+    const feasibility = checkChoiceFeasibilityAtLoad({
+        document,
+        componentInfoObjects,
+        sources: normalized_root.sources,
+        nComponents,
+    });
+    diagnostics.push(...feasibility.diagnostics);
+    nComponents = feasibility.nComponents;
 
     // Last, so that the walk sees the final tree -- after references became
     // copies, after attributes became components, and after sugar added

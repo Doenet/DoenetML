@@ -1,3 +1,7 @@
+import {
+    optionSelectionFailure,
+    variantCountFailure,
+} from "../utils/selectionFailure";
 import { serializedAttributeComponent } from "../utils/literalAttribute";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { instanceOfAttribute } from "../utils/indexInstances";
@@ -328,25 +332,23 @@ export default class Select extends CompositeComponent {
                 // DoenetML alone decides, so it can't hide their error in
                 // some variants. A literal mismatch is reported first.
                 let countError = null;
-                for (let variantName in availableVariants) {
-                    if (
-                        availableVariants[variantName].length !==
-                        dependencyValues.numToSelect
-                    ) {
-                        countError = selectError({
-                            code: "doenet-e0032",
-                            args: {
-                                variantName,
-                                numOptions:
-                                    availableVariants[variantName].length,
-                                numToSelect: dependencyValues.numToSelect,
-                            },
-                            type: selectFailureType(
-                                dependencyValues.choicesDecidedByDoenetML,
-                            ),
-                        });
-                        break;
-                    }
+                // the test the load-time check makes (`variantCountFailure`)
+                const countFailure = variantCountFailure(
+                    Object.fromEntries(
+                        Object.entries(availableVariants).map(
+                            ([name, options]) => [name, options.length],
+                        ),
+                    ),
+                    dependencyValues.numToSelect,
+                );
+                if (countFailure) {
+                    countError = selectError({
+                        code: countFailure.code,
+                        args: countFailure.args,
+                        type: selectFailureType(
+                            dependencyValues.choicesDecidedByDoenetML,
+                        ),
+                    });
                 }
                 if (
                     countError &&
@@ -601,18 +603,16 @@ export default class Select extends CompositeComponent {
 
             let selectedIndices = [];
 
-            let numUniqueRequired = 1;
-            if (!dependencyValues.withReplacement) {
-                numUniqueRequired = dependencyValues.numToSelect;
-            }
-
-            if (numUniqueRequired > dependencyValues.nOptions) {
+            // the test the load-time check makes (`optionSelectionFailure`)
+            const failure = optionSelectionFailure({
+                numOptions: dependencyValues.nOptions,
+                numToSelect: dependencyValues.numToSelect,
+                withReplacement: dependencyValues.withReplacement,
+            });
+            if (failure) {
                 const error = selectError({
-                    code: "doenet-e0035",
-                    args: {
-                        numToSelect: numUniqueRequired,
-                        numOptions: dependencyValues.nOptions,
-                    },
+                    code: failure.code,
+                    args: failure.args,
                     type: selectFailureType(
                         dependencyValues.choicesDecidedByDoenetML,
                     ),

@@ -423,7 +423,76 @@ export function serializedAttributeComponent(
             children: attribute.text === undefined ? [] : [attribute.text],
         } as SerializedComponent;
     }
+    if (attribute?.component?.componentType === "_selectionParameter") {
+        return attributeComponentOfSelectionParameter(attribute.component);
+    }
     return attribute?.component;
+}
+
+/**
+ * The attribute component a compiled selection parameter
+ * (`utils/selectionParameters.ts`) stands for, as code that reads what an
+ * attribute is written as sees it (how many variants a selection has,
+ * `determineNumberOfUniqueVariants`): one written as its value, when it
+ * holds no slot, and otherwise one written with a reference, which that code
+ * reads as not constant, as it read the attribute component it replaced.
+ */
+function attributeComponentOfSelectionParameter(
+    component: SerializedComponent,
+): SerializedComponent {
+    const parameter = component.doenetAttributes?.selectionParameter;
+    const componentType: string =
+        component.doenetAttributes?.attributeComponentType ?? "math";
+    const make = (type: string, children: any[]): SerializedComponent =>
+        ({
+            type: "serialized",
+            componentType: type,
+            componentIdx: -1,
+            attributes: {},
+            doenetAttributes: {},
+            state: {},
+            children,
+        }) as SerializedComponent;
+    const reference = make("_copy", []);
+    const textOf = (v: any) =>
+        typeof v === "number"
+            ? String(v)
+            : parameter?.output === "boolean"
+              ? v
+                  ? "true"
+                  : "false"
+              : String(v?.symbolic ?? "");
+    const valueType = parameter?.output === "text" ? "text" : "number";
+    const constantOf = (template: any) =>
+        template?.k === "const" ? template.value : undefined;
+
+    if (parameter?.kind === "scalar") {
+        const value = constantOf(parameter.template);
+        if (componentType === "_componentWithSelectableType") {
+            return make(componentType, [
+                make(
+                    valueType,
+                    value === undefined ? [reference] : [textOf(value)],
+                ),
+            ]);
+        }
+        let text = value;
+        if (value !== undefined && parameter.output === "boolean") {
+            text = textOf(typeof value === "number" ? value !== 0 : false);
+        } else if (value !== undefined) {
+            text = textOf(value);
+        }
+        return make(componentType, value === undefined ? [reference] : [text]);
+    }
+    if (parameter?.kind === "list") {
+        const entries = parameter.entries.map((entry: any) =>
+            entry.k === "entry" && constantOf(entry.template) !== undefined
+                ? make(valueType, [textOf(constantOf(entry.template))])
+                : reference,
+        );
+        return make(componentType, entries);
+    }
+    return make(componentType, [reference]);
 }
 
 /**

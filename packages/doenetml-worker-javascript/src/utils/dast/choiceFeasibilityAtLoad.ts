@@ -151,7 +151,24 @@ import {
     makeChoicesErrors,
     typeMadeBy,
 } from "./choiceParametersAtLoad";
-import { literalAttributeValue } from "../literalAttribute";
+import { attributesObjectOf, literalAttributeValue } from "../literalAttribute";
+import {
+    excludedCombinationsOf,
+    optionSelectionFailure,
+    primeSelectionFailure,
+    sequenceSelectionFailure,
+    variantCountFailure,
+    type SelectionFailure,
+} from "../selectionFailure";
+import {
+    evaluateTemplate,
+    outputOf,
+    type CompiledParameter,
+    type ParameterListEntry,
+    type ParameterOutput,
+    type ParameterTemplate,
+    type ParameterValue,
+} from "../selectionParameters";
 import {
     runTimeValue,
     RUN_TIME_TYPES,
@@ -235,8 +252,13 @@ function sym(symbolic: string, runTime?: RunTimeChild): Sym {
  */
 type Expr =
     | { k: "const"; value: Value }
-    /** `expr`, written as the reference `label`, which names it in a message. */
-    | { k: "named"; label: string; expr: Expr }
+    /**
+     * `expr`, written as the reference `label`, which names it in a message.
+     * `node` is the reference itself, when it reads a value from the variant
+     * or an iteration: a slot of the parameter when it is compiled
+     * (`utils/selectionParameters.ts`).
+     */
+    | { k: "named"; label: string; expr: Expr; node?: any }
     | { k: "atom"; atom: Atom }
     /**
      * A component of type `componentType` (a `<number>`, an `<integer>`, a
@@ -257,6 +279,16 @@ type Expr =
           items: (string | Expr)[];
           tree: Expr | null;
           caveat?: Caveat;
+          /**
+           * A compiled parameter (`utils/selectionParameters.ts`): its value
+           * is `template` computed from `items`, each the value a slot
+           * holds, by the function the selection itself computes it with
+           * when the document runs.
+           */
+          compiled?: {
+              template: ParameterTemplate;
+              output: ParameterOutput;
+          };
       }
     | {
           k: "op";
@@ -386,7 +418,8 @@ function valueKey(v: Value | string): string {
  * An entry of a list parameter (`exclude`): one value, or every value a
  * choice selects, of which there are `count`.
  */
-type ListEntry = Expr | { k: "many"; count: Expr; choice?: any };
+type ListEntry =
+    Expr | { k: "many"; count: Expr; choice?: any; node?: any; label?: string };
 
 /**
  * A value a choice reads that comes from the variant or the iteration:
@@ -464,6 +497,69 @@ type ChoiceSpec =
           numToSelect: Expr;
       };
 
+/**
+ * A parameter compiled (`utils/selectionParameters.ts`): the attribute it is
+ * written as, the compiled parameter, and the reference written for each of
+ * its slots.
+ */
+type CompiledAttribute = {
+    name: string;
+    parameter: CompiledParameter;
+    slotNodes: any[];
+};
+
+/**
+ * The parameters compiled of each kind of choice, and what each is made into
+ * (`ParameterOutput`; `selectable` is a number, or text for a letters
+ * sequence). Unwritten parameters keep their defaults.
+ */
+const COMPILED_ATTRIBUTES: Record<
+    string,
+    Record<string, ParameterOutput | "selectable"> | undefined
+> = {
+    select: { numToSelect: "integer", withReplacement: "boolean" },
+    selectFromSequence: {
+        numToSelect: "integer",
+        from: "selectable",
+        to: "selectable",
+        step: "number",
+        length: "integer",
+        withReplacement: "boolean",
+        coprime: "boolean",
+        exclude: "selectable",
+        excludeCombinations: "selectable",
+    },
+    selectPrimeNumbers: {
+        numToSelect: "integer",
+        from: "integer",
+        to: "integer",
+        withReplacement: "boolean",
+        exclude: "number",
+        excludeCombinations: "number",
+    },
+    selectRandomNumbers: {
+        numToSelect: "integer",
+        from: "number",
+        to: "number",
+        step: "number",
+    },
+};
+
+/**
+ * For tests: what is called with each choice the bounds show can always
+ * select, to sample values its parameters can take and check them exactly.
+ */
+type BoundsObserver = (pass: {
+    sample(random: () => number): {
+        values: { value: number; lo: number; hi: number }[];
+        problem: unknown;
+    } | null;
+}) => void;
+let boundsObserver: BoundsObserver | undefined;
+export function setBoundsObserver(observer: BoundsObserver | undefined) {
+    boundsObserver = observer;
+}
+
 /** A part of a parameter that isn't in an analysable form (SEL-6). */
 class NotAnalysable {
     part: string;
@@ -501,11 +597,17 @@ export function checkChoiceFeasibilityAtLoad({
     document,
     componentInfoObjects,
     sources,
+    nComponents,
 }: {
     document: SerializedComponent;
     componentInfoObjects: ComponentInfoObjects;
     sources: readonly string[];
-}) {
+    /** How many components the document has, to number those made here. */
+    nComponents: number;
+}): {
+    diagnostics: ReturnType<typeof codedDiagnostic>[];
+    nComponents: number;
+} {
     currentSources = sources;
     const nodeByIdx = new Map<number, any>();
     const parentOf = new Map<any, any>();
@@ -533,7 +635,7 @@ export function checkChoiceFeasibilityAtLoad({
         (node) => CHECKED_TYPES.has(node.componentType) && !node.extending,
     );
     if (choices.length === 0) {
-        return [];
+        return { diagnostics: [], nComponents };
     }
 
     let nextAtomId = 0;
@@ -542,6 +644,13 @@ export function checkChoiceFeasibilityAtLoad({
     const seqValueAtoms = new Map<any, Atom>();
     /** What each atom's range is computed from. */
     const atomSources = new Map<Atom, Expr[]>();
+    /**
+     * The choices another reads a value of: compiled, so that what they hold
+     * is what the check finds they can (`installCompiled`).
+     */
+    const readAsValues = new Set<any>();
+    /** Each choice's compiled parameters, by the attribute written. */
+    const compiledOf = new Map<any, CompiledAttribute[]>();
 
     function referenceText(ref: any) {
         return doenetMLReferenceAsWritten(ref?.originalPath, sources);
@@ -566,7 +675,7 @@ export function checkChoiceFeasibilityAtLoad({
         inProgress.add(choice);
         let spec: ChoiceSpec | NotAnalysable | Skip;
         try {
-            spec = analyseChoice(choice);
+            spec = compileChoice(choice, analyseChoice(choice));
         } catch (e) {
             if (e instanceof NotAnalysable || e instanceof Skip) {
                 spec = e;
@@ -951,10 +1060,9 @@ export function checkChoiceFeasibilityAtLoad({
             }
             throw e;
         }
-        const letters: Expr = { k: "op", op: "letterNumber", args: [text] };
-        return atomsOf([text]).size === 0
-            ? constant(evaluate(letters, new Map()))
-            : letters;
+        // kept as the text and the letters it is, so that a compiled
+        // parameter holds the text (`letterTextOf`)
+        return { k: "op", op: "letterNumber", args: [text] };
     }
 
     /**
@@ -1122,9 +1230,18 @@ export function checkChoiceFeasibilityAtLoad({
             const count =
                 spec.numToSelect.k === "const" ? spec.numToSelect : null;
             if (count && count.value === 1) {
-                return [choiceAtomExpr(target, 1, ref)];
+                return [slotOf(choiceAtomExpr(target, 1, ref), ref, node)];
             }
-            return [{ k: "many", count: spec.numToSelect, choice: target }];
+            readAsValues.add(target);
+            return [
+                {
+                    k: "many",
+                    count: spec.numToSelect,
+                    choice: target,
+                    node,
+                    label: referenceText(ref),
+                },
+            ];
         }
         if (
             ref &&
@@ -1447,11 +1564,31 @@ export function checkChoiceFeasibilityAtLoad({
             // names nothing: a blank, already reported
             throw new Skip();
         }
-        return analyseNamed(target, ref, ref.unresolvedPath ?? []);
+        return analyseNamed(target, ref, ref.unresolvedPath ?? [], node);
     }
 
-    /** What `target`, named by `ref`, with what is left of its path, is. */
-    function analyseNamed(target: any, ref: any, path: any[]): Expr {
+    /**
+     * `expr`, what the reference `node` reads, as one value from the
+     * variant or an iteration: a slot of the parameter (`named` with
+     * `node`).
+     */
+    function slotOf(expr: Expr, ref: any, node: any): Expr {
+        return node === undefined
+            ? expr
+            : { k: "named", label: referenceText(ref), expr, node };
+    }
+
+    /**
+     * What `target`, named by `ref`, with what is left of its path, is.
+     * `node` is the reference written in the parameter, which becomes a slot
+     * when what it reads comes from the variant or an iteration.
+     */
+    function analyseNamed(
+        target: any,
+        ref: any,
+        path: any[],
+        node?: any,
+    ): Expr {
         const type = target.componentType;
         if (
             type === "_error" ||
@@ -1486,7 +1623,7 @@ export function checkChoiceFeasibilityAtLoad({
                     // several values where one is read
                     throw new NotAnalysable(referenceText(ref));
                 }
-                return choiceAtomExpr(target, 1, ref);
+                return slotOf(choiceAtomExpr(target, 1, ref), ref, node);
             }
             if (
                 path.length === 1 &&
@@ -1494,7 +1631,11 @@ export function checkChoiceFeasibilityAtLoad({
                 (path[0].index ?? []).length === 1
             ) {
                 const entry = literalIndex(path[0].index[0]);
-                return choiceAtomExpr(target, entry ?? "any", ref);
+                return slotOf(
+                    choiceAtomExpr(target, entry ?? "any", ref),
+                    ref,
+                    node,
+                );
             }
             throw new NotAnalysable(referenceText(ref));
         }
@@ -1511,7 +1652,13 @@ export function checkChoiceFeasibilityAtLoad({
             // it, over every iteration
             const named = namedInTemplate(target, path[1].name);
             if (named) {
-                return analyseNamed(named, ref, []);
+                const expr = analyseNamed(named, ref, []);
+                if (atomsOf([expr]).size > 0) {
+                    // what an iteration's content reads in that iteration
+                    // isn't a value from where the parameter is
+                    throw new NotAnalysable(referenceText(ref));
+                }
+                return expr;
             }
         }
         if (
@@ -1539,13 +1686,21 @@ export function checkChoiceFeasibilityAtLoad({
             throw new NotAnalysable(referenceText(ref));
         }
         if (parentOf.get(target)?.componentType === "moduleAttributes") {
-            return { k: "atom", atom: moduleAttributeAtom(target, ref) };
+            return slotOf(
+                { k: "atom", atom: moduleAttributeAtom(target, ref) },
+                ref,
+                node,
+            );
         }
         const iteration = iterationVariable(target);
         if (iteration) {
             return iteration.kind === "index"
-                ? { k: "atom", atom: indexAtom(iteration.repeat, ref) }
-                : repeatValue(iteration.repeat, ref);
+                ? slotOf(
+                      { k: "atom", atom: indexAtom(iteration.repeat, ref) },
+                      ref,
+                      node,
+                  )
+                : repeatValue(iteration.repeat, ref, node);
         }
         if (RUN_TIME_TYPES.has(type) && !target.extending) {
             try {
@@ -1574,7 +1729,7 @@ export function checkChoiceFeasibilityAtLoad({
             ) {
                 return heldOf(
                     target.attributes?._createComponentOfType?.primitive?.value,
-                    analyseNamed(named, ref, []),
+                    analyseNamed(named, ref, [], node),
                 );
             }
         }
@@ -1753,6 +1908,7 @@ export function checkChoiceFeasibilityAtLoad({
                 entry: entry === "any" ? undefined : entry,
             };
             choiceAtoms.set(key, atom);
+            readAsValues.add(choice);
             if (atom.entry !== undefined) {
                 const entries = entryAtomsOf.get(choice);
                 if (entries) {
@@ -2036,11 +2192,12 @@ export function checkChoiceFeasibilityAtLoad({
      * What a repeat's `valueName` is, as an expression, named by the
      * reference to it, by which a message names it.
      */
-    function repeatValue(repeat: any, ref: any): Expr {
+    function repeatValue(repeat: any, ref: any, node?: any): Expr {
         return {
             k: "named",
             label: referenceText(ref),
             expr: repeatValueOf(repeat, ref),
+            ...(node === undefined ? {} : { node }),
         };
     }
 
@@ -2329,6 +2486,22 @@ export function checkChoiceFeasibilityAtLoad({
         const values = expr.items.map((item) =>
             typeof item === "string" ? item : evaluate(item, assignment),
         );
+        if (expr.compiled) {
+            // what the selection computes, with the values its slots hold
+            if (values.some((v) => typeof v !== "string" && isUnknown(v))) {
+                return unknownValue();
+            }
+            const { template, output } = expr.compiled;
+            return fromParameter(
+                outputOf(
+                    evaluateTemplate(template, (k) =>
+                        toParameter(values[k] as Value),
+                    ),
+                    output,
+                ),
+                output,
+            );
+        }
         if (
             expr.caveat === "unknown" ||
             values.some((v) => typeof v !== "string" && isUnknown(v))
@@ -2661,6 +2834,119 @@ export function checkChoiceFeasibilityAtLoad({
             : null;
     }
 
+    /**
+     * The problem the check reports for what keeps a selection from
+     * selecting (`utils/selectionFailure.ts`): none for the 70% rule when a
+     * combination remains, which is left to the selection (#2509 PR 16).
+     */
+    function problemOf(
+        failure: SelectionFailure | null,
+        numToSelect: number,
+    ): Problem | null {
+        if (!failure || failure.threshold) {
+            return null;
+        }
+        const args = failure.args ?? {};
+        switch (failure.code) {
+            case "doenet-e0032":
+                return {
+                    kind: "variants",
+                    args: {
+                        variantName: args.variantName,
+                        numValues: args.numOptions,
+                        numToSelect: args.numToSelect,
+                    },
+                };
+            case "doenet-e0035":
+                return {
+                    kind: "options",
+                    args: {
+                        numValues: args.numOptions,
+                        numToSelect: args.numToSelect,
+                    },
+                };
+            case "doenet-e0036":
+                return {
+                    kind: "values",
+                    args: {
+                        numValues: args.length,
+                        numToSelect: args.numToSelect,
+                    },
+                };
+            case "doenet-e0046":
+                return {
+                    kind: "values",
+                    args: {
+                        numValues: args.numPossibleValues,
+                        numToSelect: args.numToSelect,
+                    },
+                };
+            case "doenet-e0047":
+                return {
+                    kind: "primes",
+                    args: {
+                        numValues: args.numValues,
+                        numToSelect: args.numToSelect,
+                    },
+                };
+            case "doenet-e0041":
+            case "doenet-e0042":
+            case "doenet-e0043":
+            case "doenet-e0045":
+                return {
+                    kind: "coprime",
+                    args: { numToSelect },
+                };
+            default:
+                // `doenet-e0044`, `doenet-e0051`: no combination remains
+                return {
+                    kind: "combinations",
+                    args: { numToSelect },
+                };
+        }
+    }
+
+    /**
+     * The combinations `spec` excludes, with `value` for its parameters, as
+     * the selection holds them (a letter as its letters), or `undefined`
+     * when one holds a value the check doesn't know.
+     */
+    function combinationValues(
+        spec: ChoiceSpec,
+        numToSelect: number,
+        value: (e: Expr) => Value,
+    ): any[][] | undefined {
+        if (!("excludeCombinations" in spec) || !spec.excludeCombinations) {
+            return [];
+        }
+        const seqType =
+            spec.type === "selectFromSequence" ? spec.seqType : "number";
+        const lists: any[][] = [];
+        for (const combination of spec.excludeCombinations) {
+            const list: any[] = [];
+            for (const e of combination.slice(0, numToSelect)) {
+                const v = value(e);
+                if (typeof v !== "number" && isUnknown(v)) {
+                    return undefined;
+                }
+                // a value that isn't a number matches any, as the selection
+                // reads it
+                const n = sequenceNumber(v, seqType) ?? NaN;
+                list.push(
+                    seqType === "letters" && !Number.isNaN(n)
+                        ? numberToLetters(
+                              n,
+                              spec.type === "selectFromSequence" &&
+                                  spec.lowercase,
+                          )
+                        : n,
+                );
+            }
+            lists.push(list);
+        }
+        return lists;
+    }
+
     /** What, if anything, keeps `spec` from selecting with these values. */
     function concreteProblem(
         spec: ChoiceSpec,
@@ -2690,22 +2976,12 @@ export function checkChoiceFeasibilityAtLoad({
         const numToSelect = Math.round(numToSelectValue);
         if (spec.type === "select" && spec.optionsByVariant) {
             // each variant name must be on `numToSelect` options, even when
-            // that is 0 (`doenet-e0032`)
-            for (const [variantName, count] of Object.entries(
-                spec.optionsByVariant,
-            )) {
-                if (count !== numToSelect) {
-                    return {
-                        kind: "variants",
-                        args: {
-                            variantName,
-                            numValues: count,
-                            numToSelect,
-                        },
-                    };
-                }
-            }
-            return null;
+            // that is 0: the test the `<select>` makes
+            // (`variantCountFailure`)
+            return problemOf(
+                variantCountFailure(spec.optionsByVariant, numToSelect),
+                numToSelect,
+            );
         }
         if (numToSelect < 1) {
             return null;
@@ -2720,13 +2996,15 @@ export function checkChoiceFeasibilityAtLoad({
             if (spec.numOptions === null) {
                 return need > 1 ? "unknown" : null;
             }
-            if (spec.numOptions === 0 || need <= spec.numOptions) {
-                return null;
-            }
-            return {
-                kind: "options",
-                args: { numValues: spec.numOptions, numToSelect: need },
-            };
+            // the test the `<select>` makes (`optionSelectionFailure`)
+            return problemOf(
+                optionSelectionFailure({
+                    numOptions: spec.numOptions,
+                    numToSelect,
+                    withReplacement,
+                }),
+                numToSelect,
+            );
         }
 
         // What `exclude` leaves out. A value known leaves out that value,
@@ -2836,6 +3114,33 @@ export function checkChoiceFeasibilityAtLoad({
                 }
                 return "unknown";
             }
+            const combinations = combinationValues(spec, numToSelect, value);
+            if (
+                valuesKnown &&
+                combinations !== undefined &&
+                (spec.seqType === "number" || spec.seqType === "letters")
+            ) {
+                // the test the selection makes (`sequenceSelectionFailure`)
+                return problemOf(
+                    sequenceSelectionFailure({
+                        type: spec.seqType,
+                        from: seq.from,
+                        step: seq.step,
+                        length: seq.length,
+                        exclude: excludedValues,
+                        lowercase: spec.lowercase,
+                        numToSelect,
+                        withReplacement,
+                        coprime: truthOf(value(spec.coprime)),
+                        excludedCombinations: excludedCombinationsOf(
+                            combinations,
+                            numToSelect,
+                            spec.seqType,
+                        ),
+                    }).failure,
+                    numToSelect,
+                );
+            }
             kind = "values";
             const excluded = excludedIndices(seq, excludedValues);
             const removed = removedByKnownMany((v) => {
@@ -2873,6 +3178,23 @@ export function checkChoiceFeasibilityAtLoad({
                 to: Math.round(to),
                 exclude: excludedValues as never[],
             });
+            const combinations = combinationValues(spec, numToSelect, value);
+            if (valuesKnown && combinations !== undefined) {
+                // the test the selection makes (`primeSelectionFailure`)
+                return problemOf(
+                    primeSelectionFailure({
+                        possibleValues: values!,
+                        numToSelect,
+                        withReplacement,
+                        excludedCombinations: excludedCombinationsOf(
+                            combinations,
+                            numToSelect,
+                            "number",
+                        ),
+                    }),
+                    numToSelect,
+                );
+            }
             const primes = new Set(values);
             const removed = removedByKnownMany((v) =>
                 primes.has(v) ? String(v) : null,
@@ -3475,6 +3797,17 @@ export function checkChoiceFeasibilityAtLoad({
         if (expr.k === "named") {
             return affineOf(expr.expr);
         }
+        if (
+            expr.k === "op" &&
+            (expr.op === "round" ||
+                expr.op === "floor" ||
+                expr.op === "ceil") &&
+            intervalOf(expr.args[0]).integer
+        ) {
+            // rounding a whole number changes nothing, so it cancels with
+            // the same number elsewhere
+            return affineOf(expr.args[0]);
+        }
         if (expr.k === "held" && expr.tree) {
             return affineOf(expr.tree);
         }
@@ -3626,6 +3959,66 @@ export function checkChoiceFeasibilityAtLoad({
      * (see above).
      */
     function checkByBounds(
+        spec: ChoiceSpec,
+        direct: Named[],
+        ordered: Atom[],
+        proveOnly = false,
+    ): Verdict {
+        const verdict = checkByBoundsOf(spec, direct, ordered, proveOnly);
+        if (verdict.ok && boundsObserver) {
+            // what a test checks a pass by bounds against
+            // (`setBoundsObserver`)
+            const exprs = exprsOfSpec(spec).filter(
+                (e) => !(e.k === "held" && e.tree === null),
+            );
+            boundsObserver({
+                sample(random: () => number) {
+                    const assignment: Assignment = new Map();
+                    for (const atom of ordered) {
+                        const domain = domainOf(atom, assignment);
+                        let v: Value;
+                        if ("finite" in domain) {
+                            if (domain.finite.length === 0) {
+                                return null;
+                            }
+                            v =
+                                domain.finite[
+                                    Math.floor(random() * domain.finite.length)
+                                ];
+                        } else {
+                            const lo = Number.isFinite(domain.lo)
+                                ? domain.lo
+                                : Math.min(domain.hi, 0) - 1000;
+                            const hi = Number.isFinite(domain.hi)
+                                ? domain.hi
+                                : lo + 1000;
+                            v = lo + random() * (hi - lo);
+                            if (domain.integer) {
+                                v = Math.round(v);
+                            }
+                        }
+                        assignment.set(atom, v);
+                    }
+                    const values = exprs.map((e) => {
+                        const v = evaluate(e, assignment);
+                        const bounds = intervalOf(e);
+                        return {
+                            value: typeof v === "number" ? v : NaN,
+                            lo: bounds.lo,
+                            hi: bounds.hi,
+                        };
+                    });
+                    const problem = concreteProblem(spec, (e) =>
+                        evaluate(e, assignment),
+                    );
+                    return { values, problem };
+                },
+            });
+        }
+        return verdict;
+    }
+
+    function checkByBoundsOf(
         spec: ChoiceSpec,
         direct: Named[],
         ordered: Atom[],
@@ -3893,6 +4286,467 @@ export function checkChoiceFeasibilityAtLoad({
     }
 
     // ------------------------------------------------------------------
+    // Compiling: one function for the check and the selection
+    // ------------------------------------------------------------------
+
+    /**
+     * The slots of a parameter being compiled: the reference written for
+     * each, and what the check finds it holds (`model`).
+     */
+    class Slots {
+        nodes: any[] = [];
+        models: Expr[] = [];
+        add(node: any, model: Expr) {
+            this.nodes.push(node);
+            this.models.push(model);
+            return this.nodes.length - 1;
+        }
+    }
+
+    /** Whether `expr` reads a value from the variant or an iteration. */
+    function variantDependent(expr: Expr) {
+        return [...atomsOf([expr])].some((atom) => !atom.decidedByDoenetML);
+    }
+
+    /** The text of what a `held` is written as, for a message. */
+    function heldText(expr: Extract<Expr, { k: "held" }>): string {
+        return expr.items
+            .map((item) =>
+                typeof item === "string"
+                    ? item
+                    : item.k === "named"
+                      ? item.label
+                      : item.k === "held"
+                        ? heldText(item)
+                        : "",
+            )
+            .join("")
+            .trim();
+    }
+
+    /**
+     * `expr` as a template (`utils/selectionParameters.ts`), each reference
+     * that reads the variant or an iteration a slot of `slots`. What reads
+     * neither is its value, computed now. Anything else isn't one of SEL-6's
+     * forms: a `<boolean>` or `<text>` computed from such a value, a
+     * component with an attribute that changes its value, a value the check
+     * can't read.
+     */
+    function compileTemplate(expr: Expr, slots: Slots): ParameterTemplate {
+        if (atomsOf([expr]).size === 0) {
+            const value = evaluate(expr, new Map());
+            if (typeof value !== "number" && isUnknown(value)) {
+                // a value the check can't compute (an attribute that may
+                // change it), which a compiled parameter can't hold
+                throw new NotAnalysable(
+                    expr.k === "held" ? heldText(expr) : "",
+                );
+            }
+            return { k: "const", value: toParameter(value) };
+        }
+        if (expr.k === "named") {
+            if (expr.node !== undefined) {
+                return { k: "slot", slot: slots.add(expr.node, expr) };
+            }
+            return compileTemplate(expr.expr, slots);
+        }
+        if (expr.k === "held") {
+            if (
+                expr.tree &&
+                !expr.caveat &&
+                ["number", "integer", "math"].includes(expr.componentType)
+            ) {
+                return compileTemplate(expr.tree, slots);
+            }
+            // a `<boolean>` or `<text>` holding one reference alone, perhaps
+            // through another of its type (the attribute's, and the one it
+            // references)
+            let only: string | Expr | undefined = expr;
+            while (
+                typeof only === "object" &&
+                only.k === "held" &&
+                only.componentType === expr.componentType &&
+                !only.caveat
+            ) {
+                const items: (string | Expr)[] = only.items.filter(
+                    (item) => typeof item !== "string" || item.trim() !== "",
+                );
+                only = items.length === 1 ? items[0] : undefined;
+            }
+            if (
+                !expr.caveat &&
+                typeof only === "object" &&
+                only.k === "named" &&
+                only.node !== undefined
+            ) {
+                // a `<boolean>` or `<text>` holding one reference alone
+                const slot: ParameterTemplate = {
+                    k: "slot",
+                    slot: slots.add(only.node, only),
+                };
+                if (expr.componentType === "boolean") {
+                    return { k: "op", op: "truth", args: [slot] };
+                }
+                if (expr.componentType === "text") {
+                    return slot;
+                }
+            }
+            throw new NotAnalysable(heldText(expr));
+        }
+        if (expr.k === "op" && expr.op !== "letterNumber") {
+            return {
+                k: "op",
+                op: expr.op,
+                args: expr.args.map((arg) => compileTemplate(arg, slots)),
+            };
+        }
+        throw new NotAnalysable(expr.k === "atom" ? expr.atom.label : "");
+    }
+
+    /**
+     * The check's form of a template compiled from slots with `models`: a
+     * `held` whose value is the compiled function's (`evaluateHeld`), with
+     * the same arithmetic as a tree, for the bounds.
+     */
+    function compiledExpr(
+        template: ParameterTemplate,
+        output: ParameterOutput,
+        models: Expr[],
+    ): Expr {
+        if (template.k === "const") {
+            return constant(
+                fromParameter(outputOf(template.value, output), output),
+            );
+        }
+        function treeOf(t: ParameterTemplate): Expr | null {
+            if (t.k === "const") {
+                return constant(fromParameter(t.value, "number"));
+            }
+            if (t.k === "slot") {
+                return models[t.slot];
+            }
+            if (t.op === "truth") {
+                return null;
+            }
+            const args = t.args.map(treeOf);
+            return args.every((arg) => arg !== null)
+                ? { k: "op", op: t.op, args: args as Expr[] }
+                : null;
+        }
+        let tree =
+            output === "boolean" || output === "text" ? null : treeOf(template);
+        if (tree && output === "integer") {
+            tree = { k: "op", op: "round", args: [tree] };
+        }
+        return {
+            k: "held",
+            componentType:
+                output === "boolean"
+                    ? "boolean"
+                    : output === "text"
+                      ? "text"
+                      : output,
+            items: models,
+            tree,
+            compiled: { template, output },
+        };
+    }
+
+    /**
+     * Compile the parameters of `choice` as `spec` has them: each written
+     * attribute is kept as a `CompiledAttribute` (`compiledOf`), to be held
+     * by a `_selectionParameter` (`installCompiled`), and the spec returned
+     * reads each through the compiled function, so the check computes them
+     * as the selection does.
+     *
+     * A choice that reads the variant or an iteration must compile: a
+     * parameter that doesn't is an error (`NotAnalysable`, `doenet-e0074`).
+     * One that reads neither keeps what it is written as, and is compiled
+     * only for another choice that reads its values; when it can't be, it
+     * keeps the spec it has.
+     */
+    function compileChoice(choice: any, spec: ChoiceSpec): ChoiceSpec {
+        if (!COMPILED_ATTRIBUTES[spec.type] || choice.extending) {
+            return spec;
+        }
+        const dependent = variantDependent({
+            k: "op",
+            op: "+",
+            args: exprsOfSpec(spec),
+        });
+        try {
+            const { compiled, attributes } = compileSpec(choice, spec);
+            compiledOf.set(choice, attributes);
+            return compiled;
+        } catch (e) {
+            if (
+                e instanceof NotAnalysable &&
+                (dependent || spec.type === "selectRandomNumbers")
+            ) {
+                if (spec.type === "selectRandomNumbers") {
+                    // what it draws from isn't known: any number
+                    return { ...spec, distribution: null };
+                }
+                throw e;
+            }
+            if (e instanceof NotAnalysable) {
+                return spec;
+            }
+            throw e;
+        }
+    }
+
+    /** See `compileChoice`. */
+    function compileSpec(
+        choice: any,
+        spec: ChoiceSpec,
+    ): { compiled: ChoiceSpec; attributes: CompiledAttribute[] } {
+        const attributes: CompiledAttribute[] = [];
+        const outputs = COMPILED_ATTRIBUTES[spec.type]!;
+        const seqType =
+            spec.type === "selectFromSequence" ? spec.seqType : "number";
+        const compiled: any = { ...spec };
+        const writtenName = (name: string) =>
+            attributeNamed(choice, name)?.name;
+
+        for (const [name, kind] of Object.entries(outputs)) {
+            const written = writtenName(name);
+            const field = (spec as any)[name];
+            const output: ParameterOutput =
+                kind === "selectable"
+                    ? seqType === "letters"
+                        ? "text"
+                        : seqType === "math"
+                          ? "math"
+                          : "number"
+                    : kind === "number" && seqType === "math" && name === "step"
+                      ? "math"
+                      : kind;
+            if (name === "exclude" || name === "excludeCombinations") {
+                if (written === undefined || !field) {
+                    continue;
+                }
+                const slots = new Slots();
+                const entryOf = (entry: ListEntry): ParameterListEntry => {
+                    if (entry.k === "many") {
+                        if (entry.node === undefined) {
+                            throw new NotAnalysable(entry.label ?? name);
+                        }
+                        return {
+                            k: "all",
+                            slot: slots.add(entry.node, constant(NaN)),
+                        };
+                    }
+                    return {
+                        k: "entry",
+                        template: compileTemplate(
+                            letterTextOf(entry, seqType),
+                            slots,
+                        ),
+                    };
+                };
+                const checkEntry = (
+                    entry: ListEntry,
+                    compiledEntry: ParameterListEntry,
+                ): ListEntry => {
+                    if (entry.k === "many" || compiledEntry.k === "all") {
+                        return entry;
+                    }
+                    const e = compiledExpr(
+                        compiledEntry.template,
+                        output,
+                        slots.models,
+                    );
+                    return seqType === "letters"
+                        ? { k: "op", op: "letterNumber", args: [e] }
+                        : e;
+                };
+                let entries: ParameterListEntry[] = [];
+                let lists: ParameterListEntry[][] = [];
+                try {
+                    if (name === "exclude") {
+                        entries = (field as ListEntry[]).map(entryOf);
+                    } else {
+                        lists = (field as Expr[][]).map((c) => c.map(entryOf));
+                    }
+                } catch (e) {
+                    if (e instanceof NotAnalysable) {
+                        failedAttribute.set(choice, written);
+                    }
+                    throw e;
+                }
+                if (name === "exclude") {
+                    attributes.push({
+                        name: written,
+                        parameter: { kind: "list", output, entries },
+                        slotNodes: slots.nodes,
+                    });
+                    compiled.exclude = (field as ListEntry[]).map((entry, i) =>
+                        checkEntry(entry, entries[i]),
+                    );
+                } else {
+                    attributes.push({
+                        name: written,
+                        parameter: { kind: "lists", output, lists },
+                        slotNodes: slots.nodes,
+                    });
+                    compiled.excludeCombinations = (field as Expr[][]).map(
+                        (c, i) =>
+                            c.map(
+                                (entry, j) =>
+                                    checkEntry(entry, lists[i][j]) as Expr,
+                            ),
+                    );
+                }
+                continue;
+            }
+            if (written === undefined || !field) {
+                continue;
+            }
+            const slots = new Slots();
+            const source: Expr =
+                seqType === "letters" && (name === "from" || name === "to")
+                    ? letterTextOf(field as Expr, "letters")
+                    : (field as Expr);
+            let template: ParameterTemplate;
+            try {
+                template = compileTemplate(source, slots);
+            } catch (e) {
+                if (e instanceof NotAnalysable) {
+                    failedAttribute.set(choice, written);
+                }
+                throw e;
+            }
+            attributes.push({
+                name: written,
+                parameter: { kind: "scalar", output, template },
+                slotNodes: slots.nodes,
+            });
+            const e = compiledExpr(template, output, slots.models);
+            compiled[name] =
+                seqType === "letters" && (name === "from" || name === "to")
+                    ? { k: "op", op: "letterNumber", args: [e] }
+                    : e;
+        }
+        return { compiled, attributes };
+    }
+
+    /**
+     * For a letters sequence, the text a parameter is written as, which a
+     * compiled parameter holds and the sequence reads as letters (its
+     * `letterNumber`); for any other, the parameter.
+     */
+    function letterTextOf(expr: Expr, seqType: string): Expr {
+        if (
+            seqType === "letters" &&
+            expr.k === "op" &&
+            expr.op === "letterNumber"
+        ) {
+            return expr.args[0];
+        }
+        return expr;
+    }
+
+    /** The type of attribute component the attribute `name` of `choice` makes. */
+    function attributeComponentTypeOf(choice: any, name: string) {
+        const attributes = attributesObjectOf(
+            (componentInfoObjects.allComponentClasses as any)[
+                choice.componentType
+            ],
+        );
+        const lower = name.toLowerCase();
+        for (const [key, spec] of Object.entries(attributes)) {
+            if (key.toLowerCase() === lower) {
+                return (spec as any).createComponentOfType;
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Hold each compiled parameter of `choice` in a `_selectionParameter` in
+     * place of the attribute it was written as, its slots each a
+     * `_selectionParameterSlot` holding the reference written for it (moved
+     * from the attribute, or a copy of one written in another component,
+     * such as a `<number>` the parameter reads).
+     */
+    function installCompiled(choice: any) {
+        for (const { name, parameter, slotNodes } of compiledOf.get(choice) ??
+            []) {
+            const old: any = choice.attributes?.[name];
+            if (old === undefined) {
+                continue;
+            }
+            const inside = new Set<any>();
+            const collect = (node: any) => {
+                if (typeof node !== "object" || node === null) {
+                    return;
+                }
+                inside.add(node);
+                componentsUnder(node).forEach(collect);
+            };
+            if (old.type === "component") {
+                collect(old.component);
+            }
+            const placed = new Set<any>();
+            const children = slotNodes.map((node) => {
+                let child = node;
+                if (!inside.has(node) || placed.has(node)) {
+                    child = structuredClone(node);
+                    child.componentIdx = nComponents++;
+                }
+                placed.add(node);
+                return {
+                    type: "serialized",
+                    componentType: "_selectionParameterSlot",
+                    componentIdx: nComponents++,
+                    attributes: {},
+                    doenetAttributes: {},
+                    children: [child],
+                    state: {},
+                };
+            });
+            const position =
+                old.component?.doenetAttributes?.attributePosition ??
+                old.component?.position ??
+                old.position;
+            const sourceDoc = old.component?.sourceDoc ?? old.sourceDoc;
+            choice.attributes[name] = {
+                type: "component",
+                name,
+                component: {
+                    type: "serialized",
+                    componentType: "_selectionParameter",
+                    // the index of the attribute component it replaces, unless
+                    // that is a reference it now holds as a slot
+                    componentIdx:
+                        old.type === "component" &&
+                        typeof old.component?.componentIdx === "number" &&
+                        !placed.has(old.component)
+                            ? old.component.componentIdx
+                            : nComponents++,
+                    attributes: {},
+                    doenetAttributes: {
+                        selectionParameter: parameter,
+                        // the type of the attribute component it replaces
+                        attributeComponentType: attributeComponentTypeOf(
+                            choice,
+                            name,
+                        ),
+                        ...(position !== undefined
+                            ? { attributePosition: position }
+                            : {}),
+                    },
+                    children,
+                    state: {},
+                    ...(position !== undefined ? { position } : {}),
+                    ...(sourceDoc !== undefined ? { sourceDoc } : {}),
+                },
+            };
+        }
+    }
+
+    // ------------------------------------------------------------------
     // Each choice, in the order its references give (SEL-7)
     // ------------------------------------------------------------------
 
@@ -4067,8 +4921,49 @@ export function checkChoiceFeasibilityAtLoad({
         }
     }
 
+    // Each choice that reads the variant or an iteration, and each choice
+    // another reads a value of, computes its parameters as the check did
+    // (`utils/selectionParameters.ts`). One in error becomes an `_error`.
+    const installing = new Set<any>();
+    const visitInstall = (choice: any) => {
+        if (installing.has(choice) || errorByChoice.has(choice)) {
+            return;
+        }
+        installing.add(choice);
+        const spec = specs.get(choice);
+        if (!spec || spec instanceof Skip || spec instanceof NotAnalysable) {
+            return;
+        }
+        for (const atom of orderedAtoms(exprsOfSpec(spec))) {
+            if (atom.kind === "choice") {
+                visitInstall(atom.node);
+            }
+        }
+        for (const entry of [
+            ...("exclude" in spec ? spec.exclude : []),
+        ] as ListEntry[]) {
+            if (entry.k === "many" && entry.choice) {
+                visitInstall(entry.choice);
+            }
+        }
+    };
+    for (const [choice, spec] of specs) {
+        if (
+            !(spec instanceof Skip) &&
+            !(spec instanceof NotAnalysable) &&
+            variantDependent({ k: "op", op: "+", args: exprsOfSpec(spec) })
+        ) {
+            visitInstall(choice);
+        }
+    }
+    for (const choice of installing) {
+        if (!errorByChoice.has(choice)) {
+            installCompiled(choice);
+        }
+    }
+
     makeChoicesErrors({ errorByChoice, nodes, nodeByIdx });
-    return diagnostics;
+    return { diagnostics, nComponents };
 }
 
 /** The DoenetML of the document being checked, for references in messages. */
@@ -4164,6 +5059,43 @@ function fromRunTime(child: RunTimeChild): Value {
             return sym(JSON.stringify(tree), child);
         }
     }
+}
+
+/**
+ * A value as a slot of a compiled parameter holds it (`slotValue` in
+ * `utils/selectionParameters.ts`): a number, or, for a value that isn't
+ * one, its text (a letter as its letters, a math as its tree).
+ */
+function toParameter(v: Value): ParameterValue {
+    if (typeof v === "number") {
+        return v;
+    }
+    const letters = /^(letters|LETTERS):(-?\d+)$/.exec(v.symbolic);
+    if (letters) {
+        return {
+            symbolic: numberToLetters(
+                Number(letters[2]),
+                letters[1] === "letters",
+            ),
+        };
+    }
+    if (v.runTime?.componentType === "text") {
+        return { symbolic: v.runTime.value };
+    }
+    if (v.runTime?.componentType === "boolean") {
+        return v.runTime.value ? 1 : 0;
+    }
+    return { symbolic: v.symbolic };
+}
+
+/** A compiled parameter's value as the check reads it. */
+function fromParameter(v: ParameterValue, output: ParameterOutput): Value {
+    if (typeof v === "number") {
+        return v;
+    }
+    return output === "text"
+        ? sym(v.symbolic, { componentType: "text", value: v.symbolic })
+        : sym(v.symbolic);
 }
 
 /** A value of a letters sequence, by its number. */
