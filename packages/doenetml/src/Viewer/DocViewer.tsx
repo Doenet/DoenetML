@@ -38,7 +38,10 @@ import { Remote } from "comlink";
 import {
     actionIdentifier,
     clearPendingValuesForAction,
+    dropAnsweredPendingValuesBefore,
+    hasPendingValuesBefore,
     mainThunks,
+    markPendingValuesAnswered,
     UpdatesToIgnore,
     useAppDispatch,
 } from "../state";
@@ -405,6 +408,17 @@ export function DocViewer({
     // This map from event ids to event values helps keep track of the updates that need to be ignored
     // so we don't clobber the component's state.
     const updatesToIgnoreRef = useRef<UpdatesToIgnore>(new Map());
+    // Where each action comes among the actions sent to core, counting up from
+    // 1, for those whose renderer update has not been processed yet. An update
+    // for a later action shows that an earlier action's update is not coming;
+    // see `dropAnsweredPendingValuesBefore`.
+    const actionSequences = useRef(new Map<string, number>());
+    const lastActionSequence = useRef(0);
+    // The highest number of an action whose first renderer update has been
+    // processed. A reply that arrives after it, for an action sent earlier,
+    // finds that action's update already processed or not coming; see
+    // `markPendingValuesAnswered`.
+    const lastUpdatedSequence = useRef(0);
     const dispatch = useAppDispatch();
 
     // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
@@ -1092,6 +1106,7 @@ export function DocViewer({
                     updatesToIgnoreRef.current,
                     actionId,
                 );
+                actionSequences.current.delete(actionId);
             }
         }
         actionsBeforeCoreCreated.current = [];
@@ -1818,13 +1833,15 @@ export function DocViewer({
         let actionId = nanoid();
         args = { ...args };
         args.actionId = actionId;
+        const sequence = ++lastActionSequence.current;
+        actionSequences.current.set(actionId, sequence);
 
         if (baseVariableValue !== undefined && componentIdx != null) {
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
             updatesToIgnoreRef.current.set(
                 actionIdentifier(actionId, componentIdx),
-                { componentIdx, value: baseVariableValue },
+                { componentIdx, value: baseVariableValue, sequence },
             );
         }
 
@@ -1886,7 +1903,10 @@ export function DocViewer({
         }
 
         if (actionResult) {
-            resolveAction(actionResult);
+            // Core sent this action's renderer update before replying, but the
+            // update comes over a different channel and may not have been
+            // processed yet.
+            resolveAction({ ...actionResult, rendererUpdateMayFollow: true });
         } else {
             // coreWorker.current was null/undefined — optional chaining returned
             // undefined, which is not a throw. Settle the callback as false so the
@@ -2155,16 +2175,22 @@ export function DocViewer({
          * exists where a renderer showed a value ahead of core
          * (`baseVariableValue`), such as an input being typed in or a
          * `<slider>` being moved. That renderer is the target of its own
-         * update instruction, and core always sends an update's targets in
-         * the priority batch. It does not rest on that, though: the
-         * priority batch resolved this `actionId`, and `resolveAction` calls
-         * `clearPendingValuesForAction`, which drops every `actionId|*` key.
-         * By the time the deferred batch lands there is structurally no
-         * pending entry of its own left to match, whatever the renderers do.
-         * A deferred batch therefore never matches a pending entry and can
-         * neither consume nor clear one. What it does reach is
-         * the in-flight check, and that is what we want: an input the reader
+         * update instruction. Core queues an update's targets for the
+         * renderer even when nothing changed, and sends them in the priority
+         * batch, transient or not, before it schedules any deferred batch
+         * that carries the same `actionId`. That priority batch resolved
+         * this `actionId`, and `resolveAction` calls
+         * `clearPendingValuesForAction`, which drops every `actionId|*` key,
+         * so the deferred batch finds no pending entry of its own to match.
+         * (An action that performs no update at all sends neither batch.)
+         * What a deferred batch reaches is the in-flight check, answered
+         * entries included, and that is what we want: an input the reader
          * is still editing keeps the value it showed until core answers it.
+         *
+         * A deferred batch does not drop answered entries of earlier actions
+         * either. Its `actionId` is that of the update that left the work,
+         * which can be older than actions answered since, and its own number
+         * was already forgotten when its priority batch arrived.
          */
         deferred?: boolean;
         /**
@@ -2215,6 +2241,28 @@ export function DocViewer({
             return;
         }
 
+        const sequence =
+            actionId === undefined || deferred
+                ? undefined
+                : actionSequences.current.get(actionId);
+        if (sequence !== undefined) {
+            // Updates for actions sent before this one have all arrived by now,
+            // or are not coming.
+            dropAnsweredPendingValuesBefore(
+                updatesToIgnoreRef.current,
+                sequence,
+            );
+            lastUpdatedSequence.current = Math.max(
+                lastUpdatedSequence.current,
+                sequence,
+            );
+            for (let [id, earlier] of actionSequences.current) {
+                if (earlier <= sequence) {
+                    actionSequences.current.delete(id);
+                }
+            }
+        }
+
         for (let instruction of updateInstructions) {
             if (instruction.instructionType === "updateRendererStates") {
                 for (let {
@@ -2262,17 +2310,55 @@ export function DocViewer({
     function resolveAction({
         actionId,
         success = true,
+        rendererUpdateMayFollow = false,
     }: {
         actionId?: string;
         success?: boolean;
+        /**
+         * This is core's reply to the action, which can arrive before the
+         * renderer update core sent for it (#1988 made the reply clear the
+         * pending values; doing that before the update has been processed
+         * lets the update put an older value back on screen).
+         */
+        rendererUpdateMayFollow?: boolean;
     }) {
         if (!actionId) {
             return;
         }
 
-        // This action is being settled, so the value the renderer showed ahead
-        // of it is no longer waiting on an answer.
-        clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+        if (rendererUpdateMayFollow) {
+            // Core has answered, but the value the renderer showed ahead of
+            // the action is still needed to recognize the update that may be
+            // on its way. It is dropped when that update has been processed,
+            // or when the first update for a later action shows none is
+            // coming, which may already have happened.
+            markPendingValuesAnswered(
+                updatesToIgnoreRef.current,
+                actionId,
+                lastUpdatedSequence.current,
+            );
+            // The action's number is needed only to drop values that earlier
+            // actions left pending, when its update arrives. With none left,
+            // forget it now: many actions get no update at all (each
+            // `recordVisibilityChange` as the reader scrolls), and their
+            // numbers would otherwise pile up until some update arrives.
+            // Values pending from later actions carry later numbers, so none
+            // can need it afterwards.
+            const sequence = actionSequences.current.get(actionId);
+            if (
+                sequence !== undefined &&
+                !hasPendingValuesBefore(updatesToIgnoreRef.current, sequence)
+            ) {
+                actionSequences.current.delete(actionId);
+            }
+        } else {
+            // This action is being settled, so the value the renderer showed
+            // ahead of it is no longer waiting on an answer.
+            clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+            if (!success) {
+                actionSequences.current.delete(actionId);
+            }
+        }
 
         const callback = onActionCallbacks.current.get(actionId);
         if (callback) {

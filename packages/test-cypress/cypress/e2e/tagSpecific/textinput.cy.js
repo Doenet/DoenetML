@@ -1,3 +1,5 @@
+import { controlCoreMessages } from "../../support/coreMessages";
+
 describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -630,5 +632,60 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.log("Blur the input: focused becomes false");
         cy.get("#ti_input").blur();
         cy.get("#fv").should("have.text", "focused: false");
+    });
+
+    it("keeps every key when core replies before the renderer update", () => {
+        // See `typeWhileRepliesComeFirst` in mathinput.cy.js: core's replies to
+        // the first two keys reach the viewer before their renderer updates,
+        // and the first key's late update must not put "9" back in the box.
+        let control;
+        cy.window().then((win) => {
+            control = controlCoreMessages(win);
+            win.postMessage(
+                {
+                    doenetML: `<p><textInput name="ti" /></p>
+<p><text name="iv">$ti.immediateValue</text></p>`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ti_input").should("exist");
+        cy.window().then(() => {
+            control.hold = true;
+        });
+        cy.get("#ti_input").type("90");
+
+        cy.window().should(() => {
+            expect(control.allActionsAnswered()).eq(true);
+            expect(
+                control.held.filter(
+                    (u) => u.actionName === "updateImmediateValue",
+                ),
+            ).to.have.length(2);
+        });
+
+        cy.window().then(() => {
+            const firstKey = control.held.findIndex(
+                (u) => u.actionName === "updateImmediateValue",
+            );
+            control.release(firstKey + 1);
+        });
+
+        // The text shows that the first key's update has been drawn; the box
+        // must still read what was typed. (A keystroke typed after this point
+        // is not a reliable check here: Cypress computes the typed value from
+        // its own record of the field, not from what a stale update put in it.)
+        cy.get("#iv").should("have.text", "9");
+        cy.get("#ti_input").should("have.value", "90");
+
+        cy.get("#ti_input").type("8");
+        cy.window().then(() => {
+            control.hold = false;
+            control.release();
+        });
+
+        cy.get("#ti_input").should("have.value", "908");
+        cy.get("#iv").should("have.text", "908");
     });
 });
