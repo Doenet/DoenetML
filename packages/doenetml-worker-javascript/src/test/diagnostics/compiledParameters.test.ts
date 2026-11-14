@@ -114,6 +114,49 @@ describe("A selection computes a compiled parameter as the check does @group4", 
         }
     });
 
+    it("a text read as a number is the text parsed as math", async () => {
+        for (const requestedVariantIndex of variants) {
+            const { sv, codes } = await load(
+                `<select name="a" type="text">2 2+1</select>
+<selectFromSequence name="s" to="5" numToSelect="$a" exclude="$a"/>
+<setup><module name="m"><moduleAttributes><text name="k">2</text></moduleAttributes><selectFromSequence name="t" to="$k+$a" numToSelect="$k"/></module></setup>
+<module name="m1" copy="$m"/><module name="m2" copy="$m" k="3"/>`,
+                { requestedVariantIndex },
+            );
+            expect(codes).eqls([]);
+            const a = (await sv("s")).specifiedNumToSelect;
+            expect([2, 3]).toContain(a);
+            const s = await sv("s");
+            expect(s.specifiedExclude).eqls([a]);
+            expect(s.selectedValues).toHaveLength(a);
+            expect(s.selectedValues).not.toContain(a);
+            for (const [name, k] of [
+                ["m1.t", 2],
+                ["m2.t", 3],
+            ] as const) {
+                const t = await sv(name);
+                expect(t.specifiedTo).eq(k + a);
+                expect(t.selectedValues).toHaveLength(k);
+            }
+        }
+    });
+
+    it("a math sequence excludes a value read from a selection", async () => {
+        for (const requestedVariantIndex of variants) {
+            const { sv, codes } = await load(
+                `<selectFromSequence name="a" from="1" to="3"/>
+<selectFromSequence name="s" type="math" from="1" to="4" exclude="$a" numToSelect="3"/>`,
+                { requestedVariantIndex },
+            );
+            expect(codes).eqls([]);
+            const a = (await sv("a")).selectedValues[0];
+            const s = await sv("s");
+            expect(s.selectedValues.map((v: any) => v.tree).sort()).eqls(
+                [1, 2, 3, 4].filter((v) => v !== a),
+            );
+        }
+    });
+
     it("in each iteration of a repeat, and in each copy of a module", async () => {
         const { sv, codes } = await load(
             `<repeatForSequence name="r" to="3" indexName="i"><selectFromSequence name="s" to="$i+2" numToSelect="$i"/></repeatForSequence>

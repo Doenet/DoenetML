@@ -21,9 +21,15 @@
  * a number (or a letter, for a letters sequence) as `slotValue` reads it.
  */
 import me from "math-expressions";
+import { textToMath } from "./valueFunctions/text";
 
-/** A parameter's value: a number, or a value that isn't one, by its text. */
-export type ParameterValue = number | { symbolic: string };
+/**
+ * A parameter's value: a number, or a value that isn't one, by its text
+ * (`text` when it is a `<text>`'s value, which arithmetic, and a parameter
+ * that is a number or a math, read as the text parsed as math, as a
+ * `<text>`'s `math` and `number` are).
+ */
+export type ParameterValue = number | { symbolic: string; text?: true };
 
 /** The operations a template may hold (SEL-6). */
 export type ParameterOp =
@@ -93,7 +99,8 @@ export type SlotValues = {
 /**
  * What a slot holds, from the value its reference has when the document runs
  * (`raw`): a number; a math, its numeric value, or its text when it has none;
- * a text, its text; a boolean, 1 or 0. Anything else is no number.
+ * a text, its text (parsed as math where a number or a math is wanted,
+ * `asMath`); a boolean, 1 or 0. Anything else is no number.
  */
 export function slotValue(raw: unknown): ParameterValue {
     if (typeof raw === "number") {
@@ -103,19 +110,35 @@ export function slotValue(raw: unknown): ParameterValue {
         return raw ? 1 : 0;
     }
     if (typeof raw === "string") {
-        return { symbolic: raw };
+        return { symbolic: raw, text: true };
     }
     if (raw instanceof me.class) {
-        const n = (raw as any).evaluate_to_constant();
-        if (typeof n === "number" && Number.isFinite(n)) {
-            return n;
-        }
-        if (typeof n === "boolean") {
-            return n ? 1 : 0;
-        }
-        return { symbolic: JSON.stringify((raw as any).tree) };
+        return mathValue(raw);
     }
     return NaN;
+}
+
+/** A math's value: its numeric value, or its tree when it has none. */
+function mathValue(math: any): ParameterValue {
+    const n = math.evaluate_to_constant();
+    if (typeof n === "number" && Number.isFinite(n)) {
+        return n;
+    }
+    if (typeof n === "boolean") {
+        return n ? 1 : 0;
+    }
+    return { symbolic: JSON.stringify(math.tree) };
+}
+
+/**
+ * `v` read as a math: a text parsed as math (`Text.js`'s `math`, so `2` is
+ * 2 and `2+1` is 3), anything else as it is.
+ */
+function asMath(v: ParameterValue): ParameterValue {
+    if (typeof v === "number" || !v.text) {
+        return v;
+    }
+    return mathValue(textToMath({ value: v.symbolic, isLatex: false }));
 }
 
 /** Whether `v` is true, as a boolean parameter reads it: a number not 0. */
@@ -135,7 +158,7 @@ export function evaluateTemplate(
         return slot(template.slot);
     }
     if (template.op === "item") {
-        const index = evaluateTemplate(template.args[0], slot);
+        const index = asMath(evaluateTemplate(template.args[0], slot));
         if (typeof index !== "number" || !Number.isInteger(index)) {
             return NaN;
         }
@@ -146,10 +169,10 @@ export function evaluateTemplate(
     if (template.op === "truth") {
         return truthOfParameter(values[0]) ? 1 : 0;
     }
-    if (values.some((v) => typeof v !== "number")) {
+    const nums = values.map(asMath);
+    if (!nums.every((v): v is number => typeof v === "number")) {
         return NaN;
     }
-    const nums = values as number[];
     switch (template.op) {
         case "+":
             return nums.reduce((a, b) => a + b, 0);
@@ -186,13 +209,14 @@ export function outputOf(
     if (output === "text") {
         return typeof v === "number" ? { symbolic: String(v) } : v;
     }
+    const m = asMath(v);
     if (output === "math") {
-        return v;
+        return m;
     }
-    if (typeof v !== "number") {
+    if (typeof m !== "number") {
         return NaN;
     }
-    return output === "integer" ? Math.round(v) : v;
+    return output === "integer" ? Math.round(m) : m;
 }
 
 /**
@@ -245,11 +269,16 @@ export function asStateValue(value: any, output: ParameterOutput): any {
     if (output === "text") {
         return typeof value === "number" ? String(value) : value.symbolic;
     }
-    if (output === "math" && typeof value !== "number") {
+    if (output === "math") {
+        // a math, as a math sequence reads its `from`, `to`, `step` and
+        // each of its `exclude` (`equals`)
+        if (typeof value === "number") {
+            return me.fromAst(value);
+        }
         try {
             return me.fromAst(JSON.parse(value.symbolic));
         } catch (e) {
-            return NaN;
+            return me.fromAst(NaN);
         }
     }
     return typeof value === "number" ? value : NaN;

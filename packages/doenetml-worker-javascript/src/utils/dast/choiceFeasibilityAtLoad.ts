@@ -5071,15 +5071,17 @@ function toParameter(v: Value): ParameterValue {
     }
     const letters = /^(letters|LETTERS):(-?\d+)$/.exec(v.symbolic);
     if (letters) {
+        // a letter a selection holds, as the `<text>` it is
         return {
             symbolic: numberToLetters(
                 Number(letters[2]),
                 letters[1] === "letters",
             ),
+            text: true,
         };
     }
     if (v.runTime?.componentType === "text") {
-        return { symbolic: v.runTime.value };
+        return { symbolic: v.runTime.value, text: true };
     }
     if (v.runTime?.componentType === "boolean") {
         return v.runTime.value ? 1 : 0;
