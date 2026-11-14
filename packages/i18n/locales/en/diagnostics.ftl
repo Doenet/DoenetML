@@ -1910,8 +1910,10 @@ choice-parameter-reader-changeable =
 # $kind "unproven" it gives the values at which it can't be decided, or, when
 # the values were bounded instead, their ranges, as "`$i` ∈ {1, 2, 3, …}"
 # (it can't be decided for some values in them).
-# $attribute is the parameter that isn't a number (DoenetML). $variantName is
-# a variant name as the author wrote it.
+# $attribute is the parameter that isn't a number, or, for $kind "letters",
+# the `from` or `to` of a letters sequence whose text isn't letters (as text
+# with space around a letter isn't) (DoenetML). $variantName is a variant
+# name as the author wrote it.
 choice-not-always-possible =
     { $kind ->
         [values] `<{ $componentType }>` can't always select as written: when { $when }, it has { $numValues ->
@@ -1933,6 +1935,7 @@ choice-not-always-possible =
            *[other] { $numValues } options
         }.
         [number] `<{ $componentType }>` can't always select as written: when { $when }, `{ $attribute }` isn't a number.
+        [letters] `<{ $componentType }>` can't always select as written: when { $when }, `{ $attribute }` isn't letters.
        *[unproven] DoenetML can't show that `<{ $componentType }>` can always select as written: it can't decide whether it can when { $when }. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.
     }
 

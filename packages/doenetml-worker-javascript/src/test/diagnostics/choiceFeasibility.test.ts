@@ -200,12 +200,15 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
             `<selectFromSequence name="a" type="letters" from="c" to="e"/><selectFromSequence type="letters" from="$a" to="z" numToSelect="2"/>`,
         );
         expect(proven.errors).eqls([]);
-        // with space around it, the reference isn't letters when the
-        // document runs (it then has no values): not taken as a letter
+        // with space around it, the text isn't letters when the document
+        // runs (it then has no values), and the check reads it as the
+        // document does
         const spaced = await load(
             `<selectFromSequence name="a" type="letters" from="c" to="e"/><selectFromSequence type="letters" from="a" to="$a " numToSelect="3"/>`,
         );
-        expect(spaced.codes).eqls(["doenet-e0074"]);
+        expect(spaced.errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = c, `to` isn't letters.",
+        ]);
     });
 
     it("a letter is named as a letter", async () => {
@@ -219,22 +222,39 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
 
     // a time limit: going through each value took near a minute
     it("long ranges are checked without going through their values", async () => {
-        // 20000 combinations of values, each with a range of 40000 values
+        // 20000 combinations of values, each with a range of 40001 values,
+        // gone through one by one: the bounds don't prove it, as `$b/$b`
+        // has no bound when `b` can be -1 or 1
         const { errors } = await load(
-            `<selectFromSequence name="a" to="5000"/><selectFromSequence name="b" to="4"/><selectFromSequence name="c" to="4"/><selectFromSequence name="d" to="4"/><selectFromSequence from="$a" to="$a+$b+$c+$d+40000" exclude="3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20" numToSelect="2"/>`,
+            `<selectFromSequence name="a" to="1250"/><selectFromSequence name="b" from="-1" to="1" exclude="0"/><selectFromSequence name="c" to="8"/><selectFromSequence from="$a+$c" to="$a+$c+40000*$b/$b" exclude="3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20" numToSelect="2"/>`,
         );
         expect(errors).eqls([]);
     }, 20000);
 
     // a time limit: each choice went through every value assigned to
-    // every choice before it, and was checked twice: 25 s, now 10 s
-    it("many choices that exclude the ones before are each checked once", async () => {
-        let doenetML = `<selectFromSequence name="c0" to="100"/>`;
+    // every choice before it, then through 20000 combinations of them
+    // before the bounds; the check took seconds, and now takes milliseconds.
+    // The choices are in a case not shown, which the check reads but the
+    // document doesn't make, so the time is the check's.
+    it("many choices that exclude the ones before are each checked quickly", async () => {
+        let choices = `<selectFromSequence name="c0" to="100"/>`;
         for (let k = 1; k < 300; k++) {
-            doenetML += `<selectFromSequence name="c${k}" to="100" exclude="$c${k - 1} $c${Math.max(0, k - 2)}"/>`;
+            choices += `<selectFromSequence name="c${k}" to="100" exclude="$c${k - 1} $c${Math.max(0, k - 2)}"/>`;
         }
-        const { errors } = await load(doenetML);
+        // about 0.5 s each, where the check alone took 2.5 s
+        let start = Date.now();
+        const { errors } = await load(
+            `<conditionalContent><case condition="false">${choices}</case></conditionalContent>`,
+        );
         expect(errors).eqls([]);
+        expect(Date.now() - start).lessThan(2000);
+        // and one too many is still found, after the chain
+        start = Date.now();
+        const { codes } = await load(
+            `<conditionalContent><case condition="false">${choices}<selectFromSequence to="3" exclude="$c298 $c299" numToSelect="2"/></case></conditionalContent>`,
+        );
+        expect(codes).eqls(["doenet-e0073"]);
+        expect(Date.now() - start).lessThan(2000);
     }, 20000);
 
     it("a selection reading an extend in error is not an error of its own", async () => {
@@ -252,12 +272,12 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         expect(errors).eqls([]);
     });
 
-    it("a boolean parameter written as a reference is checked as true and as false", async () => {
+    it("a boolean parameter that reads a choice is what it reads, for each value", async () => {
         const { errors } = await load(
             `<select name="b"><option><boolean>true</boolean></option><option><boolean>false</boolean></option></select><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$b">u</select>`,
         );
         expect(errors).eqls([
-            "doenet-e0073: `<select>` can't always select as written: when `$a` = 2, `withReplacement` = false, it has 1 option to select 2 from.",
+            "doenet-e0073: `<select>` can't always select as written: when `$a` = 2, `$b` = false, it has 1 option to select 2 from.",
         ]);
     });
 
@@ -566,6 +586,80 @@ describe("A parameter is in an analysable form (SEL-6) @group4", () => {
                 )
             ).codes,
         ).eqls(["doenet-e0073"]);
+    });
+
+    it("a literal is the value the document gives it (pi, e, 3!)", async () => {
+        const choices = `<selectFromSequence name="a" to="3"/>`;
+        // pi is 3.14..., so 1 to pi has 3 values, and 3! has 6; content
+        // that reads nothing from the variant is its value in any form
+        for (const literal of ["pi", "3!", "10/3", "$n^2"]) {
+            expect(
+                (
+                    await load(
+                        `${choices}<number name="n">2</number><number name="m">${literal}</number><selectFromSequence to="$m" numToSelect="$a"/>`,
+                    )
+                ).codes,
+                literal,
+            ).eqls([]);
+        }
+        // e is 2.71..., so 1 to e has 2 values
+        expect(
+            (
+                await load(
+                    `${choices}<number name="m">e</number><selectFromSequence to="$m" numToSelect="$a"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 3, it has 2 values to select 3 from.",
+        ]);
+    });
+
+    it("a boolean written as an expression is the value the document gives it", async () => {
+        const choices = `<selectFromSequence name="a" to="3"/>`;
+        // `$n > 1` with n 2 is true: with replacement
+        expect(
+            (
+                await load(
+                    `<number name="n">2</number>${choices}<select numToSelect="$a" withReplacement="$n > 1">u</select>`,
+                )
+            ).codes,
+        ).eqls([]);
+        // with n 0 it is false
+        expect(
+            (
+                await load(
+                    `<number name="n">0</number>${choices}<select numToSelect="$a" withReplacement="$n > 1">u</select>`,
+                )
+            ).codes,
+        ).eqls(["doenet-e0073"]);
+        // with another choice in it, it is what that choice's value makes it
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="x" from="1" to="2"/>${choices}<select numToSelect="$a" withReplacement="$x > 0">u</select>`,
+                )
+            ).codes,
+        ).eqls([]);
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="x" from="0" to="1"/>${choices}<select numToSelect="$a" withReplacement="$x > 0">u</select>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$a` = 2, `$x` = 0, it has 1 option to select 2 from.",
+        ]);
+    });
+
+    it("an option the check can't know decides nothing", async () => {
+        // `$o` is an option that isn't one value: whether it is true isn't
+        // known, so the select can't be shown to always select, rather
+        // than taken as true or false
+        const { errors } = await load(
+            `<select name="o"><option><group><number>1</number></group></option></select><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$o">u</select>`,
+        );
+        expect(errors).toHaveLength(1);
+        expect(errors[0]).toMatch(/^doenet-e0073: DoenetML can't show/);
     });
 
     it("an <integer> is its content rounded, as the document has it", async () => {

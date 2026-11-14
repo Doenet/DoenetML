@@ -9,10 +9,27 @@
  * checks the choice over every combination of them. It never tries variants,
  * so it does not depend on how variants are seeded (D17).
  *
+ * ## How a value is read
+ *
+ * Every value is what the component holding it holds when the document
+ * runs, computed by that component's own functions
+ * (`choiceValuesAsRunTime.ts`): a `<number>`, `<integer>`, `<math>`,
+ * `<boolean>` or `<text>` written in a parameter or referenced from one, the
+ * attribute component a parameter is made (`numToSelect` an `<integer>`,
+ * `step` a `<math>`), and a literal attribute (`literalAttributeValue`). So
+ * `<number>pi</number>` is 3.14…, `<integer>2.4</integer>` is 2, a
+ * `<boolean>` reading a `<number>` is true when it isn't 0, and a letters
+ * sequence's `to="$a "` is text that isn't letters, as the document has
+ * them. The check keeps, for each, how it is computed from the values it
+ * reads (a `held` expression), and computes it again for each combination of
+ * them; what it keeps of it as arithmetic is only for the bounds below.
+ *
  * ## What a parameter can be (SEL-6)
  *
- * A parameter is analysable when it is:
- * - a literal (a number, or for a `type="math"` sequence any math);
+ * Content that reads no value from the variant or an iteration is its
+ * value, whatever its form (`3!`, `$n^2` with `n` a `<number>` written as
+ * `3`). Content that reads one is analysable when it is:
+ * - a literal;
  * - a reference SEL-1 allows, with a known range:
  *   - another random choice, `$a` or `$a[2]` (in a letters sequence's
  *     `from` or `to`, a letters choice, written alone): what it can select, found
@@ -37,12 +54,15 @@
  *
  * Anything else is an error (`doenet-e0074`), at the parameter, naming the
  * part that isn't analysable, and the `<number>` it is in when it is in
- * one. A boolean parameter (`withReplacement`, `coprime`) that reads a
- * `<boolean>` that can't change (written as `true` or `false`, or as a
- * reference to one, through a chain) or a module attribute written only in
- * the module is its value; one that reads another choice, or an
- * expression the check doesn't evaluate, can only be true or false, so it is
- * checked as both.
+ * one, as is a reference the check can't read at all (`$p.x`), even when it
+ * is the same in every variant. A boolean parameter (`withReplacement`,
+ * `coprime`), and a `<boolean>` or `<text>` it reads, needs no arithmetic
+ * form: it is what the component computes from the values it reads (a
+ * `<boolean>` reading another choice is true for some of its values and
+ * false for others). Only one whose references the check can't read is
+ * checked as both true and false. A value the check can't know (an option
+ * that isn't one value) decides nothing: a choice that depends on it can't
+ * be shown to select.
  *
  * The parameters read are those that decide whether the choice can select:
  * - `<select>`: `numToSelect`, `withReplacement`, and how many options it
@@ -60,7 +80,11 @@
  * ## The proof (SEL-5)
  *
  * The values a choice reads come from the variant (what other choices
- * select) and from the iteration it is in (an index). When every such value
+ * select) and from the iteration it is in (an index). The bounds described
+ * below are tried first: when they show that the choice can always select
+ * (`to="100" exclude="$a $b"`), that is enough, however many combinations
+ * of values there are, so a chain of choices each reading the ones before
+ * it is checked in time in proportion to its length. Otherwise, when every such value
  * ranges over a finite set, and there are not too many combinations, every
  * combination is checked exactly, as the choice itself would check it when
  * it selects, and the first that fails is named: "when `$a` = 1, it has 1
@@ -118,6 +142,12 @@ import {
     makeChoicesErrors,
     typeMadeBy,
 } from "./choiceParametersAtLoad";
+import { literalAttributeValue } from "../literalAttribute";
+import {
+    runTimeValue,
+    RUN_TIME_TYPES,
+    type RunTimeChild,
+} from "./choiceValuesAsRunTime";
 
 /** The choices this pass checks: those that can fail to select. */
 const CHECKED_TYPES = new Set([
@@ -142,8 +172,53 @@ const MAX_COMBINATIONS = 20000;
 const MAX_VALUES = 5000;
 
 /** A value that isn't a number: a symbol, a letter, or a math with one. */
-type Sym = { symbolic: string };
+/**
+ * A value that isn't a number: a symbol, a letter, a text, or a math with a
+ * symbol, named by `symbolic`, and, when it came from a component, the value
+ * the component holds (`runTime`, not enumerable, so `symbolic` alone is the
+ * value's identity), from which it is read again as the run time reads it.
+ */
+type Sym = { symbolic: string; runTime?: RunTimeChild };
 type Value = number | Sym;
+
+/** The marker of a value the check can't know. */
+const UNKNOWN = "\u0000unknown";
+
+/**
+ * A value the check can't know, such as an option that isn't one literal:
+ * any value, so nothing computed from it is known either.
+ */
+function unknownValue(): Sym {
+    return { symbolic: UNKNOWN };
+}
+
+/**
+ * Whether a boolean parameter is true with the value `v`: a boolean as it
+ * is, a number when not 0 (a literal written as `true` is 1).
+ */
+function truthOf(v: Value): boolean {
+    if (typeof v === "number") {
+        return v !== 0 && !Number.isNaN(v);
+    }
+    return v.runTime?.componentType === "boolean" ? v.runTime.value : false;
+}
+
+/** Whether `v` is a value the check can't know (`unknownValue`). */
+function isUnknown(v: Value): boolean {
+    return typeof v !== "number" && v.symbolic === UNKNOWN;
+}
+
+/** A `Sym` named `symbolic` that holds the run-time value `runTime`. */
+function sym(symbolic: string, runTime?: RunTimeChild): Sym {
+    const value: Sym = { symbolic };
+    if (runTime) {
+        Object.defineProperty(value, "runTime", {
+            value: runTime,
+            enumerable: false,
+        });
+    }
+    return value;
+}
 
 /**
  * What a parameter is, as an expression in the values it reads (atoms).
@@ -154,6 +229,22 @@ type Expr =
     /** `expr`, written as the reference `label`, which names it in a message. */
     | { k: "named"; label: string; expr: Expr }
     | { k: "atom"; atom: Atom }
+    /**
+     * A component of type `componentType` (a `<number>`, an `<integer>`, a
+     * `<math>`, a `<boolean>`, a `<text>`, or an attribute made one) whose
+     * content is `items`: the strings written in it and what each component
+     * in it is. Its value is what the component holds when the document
+     * runs, computed by the component's own functions
+     * (`choiceValuesAsRunTime.ts`). `tree` is the same value as arithmetic
+     * of the atoms, in a form the bounds can be found of, or `null` when it
+     * isn't arithmetic (a `<boolean>`, a `<text>`).
+     */
+    | {
+          k: "held";
+          componentType: string;
+          items: (string | Expr)[];
+          tree: Expr | null;
+      }
     | {
           k: "op";
           op:
@@ -377,13 +468,17 @@ export function checkChoiceFeasibilityAtLoad({
     /** The attribute names of `node` whose analysis failed, by attribute. */
     const failedAttribute = new Map<any, string>();
 
-    function scalarParam(choice: any, name: string): Expr | null {
+    function scalarParam(
+        choice: any,
+        name: string,
+        type = "number",
+    ): Expr | null {
         const attribute = attr(choice, name);
         if (attribute === undefined) {
             return null;
         }
         try {
-            return analyseAttributeScalar(attribute);
+            return analyseAttributeScalar(attribute, type);
         } catch (e) {
             if (e instanceof NotAnalysable) {
                 failedAttribute.set(choice, attributeNamed(choice, name)!.name);
@@ -397,42 +492,38 @@ export function checkChoiceFeasibilityAtLoad({
         if (attribute === undefined) {
             return constant(0);
         }
-        const literal =
-            literalBoolean(attribute) ??
-            (holdsReference(attribute)
-                ? undefined
-                : numericBoolean(literalTextOf(attribute)));
+        const literal = literalBoolean(attribute);
         if (literal !== undefined) {
             return constant(literal ? 1 : 0);
         }
         if (containsError(attribute)) {
             throw new Skip();
         }
+        // what the attribute's `<boolean>` holds, as it computes it: a
+        // constant when what it reads can't change (`true`, `x>0`, a
+        // reference to `<boolean>true</boolean>` or to a `<number>`, true
+        // when not 0), and otherwise computed from the values it reads, for
+        // each value they can take
         let expr: Expr | null = null;
-        if (holdsReference(attribute)) {
-            // a reference to content that can't change, such as
-            // `<boolean name="b">true</boolean>`: its value
-            try {
-                // written as one reference, what it reads
-                const component = attribute.component;
-                const reference =
-                    component?.componentType === "boolean" &&
-                    !component.extending
-                        ? singleReference(component)
-                        : undefined;
-                expr = reference
-                    ? analyseReference(reference)
-                    : analyseAttributeScalar(attribute);
-            } catch (e) {
-                if (e instanceof Skip) {
-                    // it reads an error, already reported
-                    throw e;
-                }
-                // it isn't analysable: true or false, as below
+        try {
+            expr = heldOf(
+                "boolean",
+                analyseAttributeScalar(attribute, "boolean"),
+            );
+            if (expr.k === "const") {
+                return constant(truthOf(expr.value) ? 1 : 0);
             }
+        } catch (e) {
+            if (e instanceof Skip) {
+                // it reads an error, already reported
+                throw e;
+            }
+            // it isn't analysable: true or false, as below
+        }
+        if (expr) {
             // a module attribute written only in the module is its value
             const fixed = new Map<Atom, Value>();
-            const atoms = expr ? [...atomsOf([expr])] : [];
+            const atoms = [...atomsOf([expr])];
             for (const atom of atoms) {
                 const sources = atomSources.get(atom) ?? [];
                 if (
@@ -443,35 +534,34 @@ export function checkChoiceFeasibilityAtLoad({
                     fixed.set(atom, evaluate(sources[0], new Map()));
                 }
             }
-            if (expr && fixed.size === atoms.length) {
-                const value = evaluate(expr, fixed);
-                if (typeof value === "number" && !Number.isNaN(value)) {
-                    return constant(value !== 0 ? 1 : 0);
-                }
+            if (fixed.size === atoms.length) {
+                return constant(truthOf(evaluate(expr, fixed)) ? 1 : 0);
             }
+            return expr;
         }
-        // a reference SEL-1 allows, or an expression the check doesn't
-        // evaluate (`x>0`): true or false, so both. One with no reference in
-        // it is decided by the DoenetML, so it doesn't make the choice
-        // differ between variants. One that reads another choice is
-        // checked after it, and is that choice's error when it has one.
+        // a reference SEL-1 allows that the check can't read: true or
+        // false, so both
         const atom: Atom = {
             id: nextAtomId++,
             label: `${attributeNamed(choice, name)!.name}`,
             kind: "bool",
             decidedByDoenetML: !holdsReference(attribute),
         };
-        atomSources.set(atom, expr ? [expr] : []);
+        atomSources.set(atom, []);
         return { k: "atom", atom };
     }
 
-    function listParam(choice: any, name: string): ListEntry[] {
+    function listParam(
+        choice: any,
+        name: string,
+        type = "number",
+    ): ListEntry[] {
         const attribute = attr(choice, name);
         if (attribute === undefined) {
             return [];
         }
         try {
-            return analyseAttributeList(attribute);
+            return analyseAttributeList(attribute, type);
         } catch (e) {
             if (e instanceof NotAnalysable) {
                 failedAttribute.set(choice, attributeNamed(choice, name)!.name);
@@ -480,7 +570,7 @@ export function checkChoiceFeasibilityAtLoad({
         }
     }
 
-    function combinationsParam(choice: any): Expr[][] | null {
+    function combinationsParam(choice: any, type = "number"): Expr[][] | null {
         const attribute = attr(choice, "excludeCombinations");
         if (attribute === undefined) {
             return null;
@@ -505,7 +595,7 @@ export function checkChoiceFeasibilityAtLoad({
                     throw new Skip();
                 }
                 const entries: Expr[] = [];
-                for (const entry of listEntriesOf(list.children ?? [])) {
+                for (const entry of listEntriesOf(list.children ?? [], type)) {
                     if (entry.k === "many") {
                         throw new NotAnalysable(
                             textOfChildren(list.children ?? []),
@@ -534,10 +624,12 @@ export function checkChoiceFeasibilityAtLoad({
             const seqType = String(
                 attr(choice, "type")?.primitive?.value ?? "number",
             ).toLowerCase();
+            // what a value of the sequence is written as
+            const valueType = seqType === "math" ? "math" : "number";
             const sequenceAttribute = (name: string) =>
                 seqType === "letters"
                     ? lettersParam(choice, name)
-                    : scalarParam(choice, name);
+                    : scalarParam(choice, name, valueType);
             // as the sequence decides: by `from` if written, else `to`
             const caseAttribute = attr(choice, "from") ?? attr(choice, "to");
             const caseText =
@@ -550,21 +642,21 @@ export function checkChoiceFeasibilityAtLoad({
                 lowercase: caseText === undefined || !/^[A-Z]*$/.test(caseText),
                 from: sequenceAttribute("from"),
                 to: sequenceAttribute("to"),
-                step: scalarParam(choice, "step"),
-                length: scalarParam(choice, "length"),
+                step: scalarParam(choice, "step", "math"),
+                length: scalarParam(choice, "length", "integer"),
                 exclude:
                     seqType === "letters"
                         ? lettersListParam(choice)
-                        : listParam(choice, "exclude"),
+                        : listParam(choice, "exclude", valueType),
                 numToSelect,
                 withReplacement: boolParam(choice, "withReplacement"),
                 coprime: boolParam(choice, "coprime"),
                 excludeCombinations:
                     seqType === "letters"
-                        ? (combinationsParam(choice)?.map((c) =>
+                        ? (combinationsParam(choice, "text")?.map((c) =>
                               c.map(lettersLiteral),
                           ) ?? null)
-                        : combinationsParam(choice),
+                        : combinationsParam(choice, valueType),
             };
         }
         if (type === "selectPrimeNumbers") {
@@ -690,7 +782,10 @@ export function checkChoiceFeasibilityAtLoad({
         return { numOptions, optionsByVariant, optionValues };
     }
 
-    /** What an option is, when it is one literal value. */
+    /**
+     * What an option is, when it is one value written as a literal, as the
+     * component it is (or a `<math>`, that text in an option is) holds it.
+     */
     function literalValueOfOption(option: any): Value | undefined {
         const children = (option.children ?? []).filter(
             (c: any) => typeof c !== "string" || c.trim() !== "",
@@ -699,63 +794,48 @@ export function checkChoiceFeasibilityAtLoad({
             return undefined;
         }
         const child = children[0];
-        if (typeof child === "string") {
-            return parseLiteral(child);
-        }
         if (
-            ["math", "number", "integer", "text"].includes(
+            typeof child !== "string" &&
+            !["math", "number", "integer", "text", "boolean"].includes(
                 child.componentType,
-            ) &&
-            !child.extending &&
-            (child.children ?? []).every((c: any) => typeof c === "string")
+            )
         ) {
-            const text = (child.children ?? []).join("").trim();
-            return child.componentType === "text"
-                ? { symbolic: text }
-                : parseLiteral(text);
+            return undefined;
         }
-        return undefined;
+        try {
+            const expr = analyseInPlace(child, "math");
+            return expr.k === "const" ? expr.value : undefined;
+        } catch (e) {
+            if (e instanceof NotAnalysable || e instanceof Skip) {
+                return undefined;
+            }
+            throw e;
+        }
     }
 
-    /** A letters sequence's `from` or `to`: letters, as numbers. */
+    /**
+     * A letters sequence's `from` or `to`: the text its attribute holds, as
+     * the sequence reads it as letters (`lettersToNumber`), so a text that
+     * isn't letters, such as one with space around a letter, is no value.
+     */
     function lettersParam(choice: any, name: string): Expr | null {
         const attribute = attr(choice, name);
         if (attribute === undefined) {
             return null;
         }
-        const text = literalTextOf(attribute);
-        const number = text === undefined ? undefined : lettersToNumber(text);
-        if (number !== undefined) {
-            return constant(number);
-        }
-        failedAttribute.set(choice, attributeNamed(choice, name)!.name);
-        if (containsError(attribute)) {
-            throw new Skip();
-        }
-        // a reference to a letter another letters choice selects, written
-        // alone: that letter's number
-        let node = attribute.component;
-        while (
-            ["_componentWithSelectableType", "text"].includes(
-                node?.componentType,
-            ) &&
-            !node.extending
-        ) {
-            // space around it would be part of the letters when the
-            // document runs, which are then no letters
-            const written = (node.children ?? []).filter(
-                (child: any) => child !== "",
-            );
-            node = written.length === 1 ? written[0] : undefined;
-        }
-        if (node?.componentType === "_copy" || node?.componentType === "_ref") {
-            const expr = analyseReference(node);
-            if (lettersChoiceAtom(expr)) {
-                failedAttribute.delete(choice);
-                return { k: "op", op: "letterNumber", args: [expr] };
+        let text: Expr;
+        try {
+            text = analyseAttributeScalar(attribute, "text");
+        } catch (e) {
+            if (e instanceof NotAnalysable) {
+                failedAttribute.set(choice, attributeNamed(choice, name)!.name);
             }
+            throw e;
         }
-        throw new NotAnalysable(text ?? writtenText(attribute));
+        const letters: Expr = { k: "op", op: "letterNumber", args: [text] };
+        return atomsOf([text]).size === 0
+            ? constant(evaluate(letters, new Map()))
+            : letters;
     }
 
     /**
@@ -763,7 +843,20 @@ export function checkChoiceFeasibilityAtLoad({
      * selects, written as a reference.
      */
     function lettersChoiceAtom(expr: Expr): Atom | null {
-        const inner = expr.k === "named" ? expr.expr : expr;
+        let inner = expr;
+        while (inner.k === "named" || inner.k === "held") {
+            if (inner.k === "named") {
+                inner = inner.expr;
+            } else {
+                // only a reference written alone is that letter: any text
+                // around it is part of the text (`$a ` isn't letters)
+                const items = inner.items.filter((item) => item !== "");
+                if (items.length !== 1 || typeof items[0] === "string") {
+                    return null;
+                }
+                inner = items[0];
+            }
+        }
         if (inner.k !== "atom" || inner.atom.kind !== "choice") {
             return null;
         }
@@ -786,64 +879,13 @@ export function checkChoiceFeasibilityAtLoad({
     }
 
     function lettersListParam(choice: any): ListEntry[] {
-        return listParam(choice, "exclude").map((entry) =>
+        return listParam(choice, "exclude", "text").map((entry) =>
             entry.k === "many" ? entry : lettersLiteral(entry),
         );
     }
 
-    /** The `<boolean>`s `booleanOf` is following, to stop at a cycle. */
-    const booleansFollowed = new Set<any>();
-
-    /**
-     * A `<boolean>` that can't change, as 1 or 0: written as `true` or
-     * `false`, or as one reference to content that can't change
-     * (`<boolean name="c">$b</boolean>`, a `<number>` true when not 0).
-     * `undefined` for any other, such as one that reads a choice.
-     */
-    function booleanOf(node: any): Expr | undefined {
-        const literal = literalBooleanText(node);
-        if (literal !== undefined) {
-            return constant(literal ? 1 : 0);
-        }
-        const reference = singleReference(node);
-        if (!reference || booleansFollowed.has(node)) {
-            // not one reference, or a cycle (`doenet-e0005`)
-            return undefined;
-        }
-        let expr: Expr;
-        booleansFollowed.add(node);
-        try {
-            expr = analyseReference(reference);
-        } catch (e) {
-            if (e instanceof NotAnalysable) {
-                return undefined;
-            }
-            throw e;
-        } finally {
-            booleansFollowed.delete(node);
-        }
-        if (atomsOf([expr]).size > 0) {
-            return undefined;
-        }
-        const value = evaluate(expr, new Map());
-        return typeof value === "number" && !Number.isNaN(value)
-            ? constant(value !== 0 ? 1 : 0)
-            : undefined;
-    }
-
-    /** The reference a component's content is, when it is one alone. */
-    function singleReference(node: any): any {
-        const meaningful = (node.children ?? []).filter(
-            (child: any) => typeof child !== "string" || child.trim() !== "",
-        );
-        return meaningful.length === 1 &&
-            ["_copy", "_ref"].includes(meaningful[0]?.componentType)
-            ? meaningful[0]
-            : undefined;
-    }
-
     /** The attribute `attribute` as one value. */
-    function analyseAttributeScalar(attribute: any): Expr {
+    function analyseAttributeScalar(attribute: any, type = "number"): Expr {
         if (attribute.type === "primitive") {
             const value = attribute.primitive?.value;
             if (typeof value === "number") {
@@ -852,31 +894,48 @@ export function checkChoiceFeasibilityAtLoad({
             if (typeof value === "boolean") {
                 return constant(value ? 1 : 0);
             }
-            return constant(parseLiteral(String(value)));
+            return analyseContent([String(value)], type);
         }
         if (attribute.type === "literal") {
-            if (typeof attribute.value === "number") {
-                return constant(attribute.value);
+            // as the attribute holds it (`literalAttributeValue`)
+            if (typeof attribute.value === "boolean") {
+                return constant(attribute.value ? 1 : 0);
             }
-            return constant(parseLiteral(String(attribute.text ?? "")));
+            const literalType = attribute.componentType;
+            if (["number", "integer", "math", "text"].includes(literalType)) {
+                const value = literalAttributeValue(
+                    attribute,
+                    componentInfoObjects,
+                );
+                return constant(
+                    fromRunTime(
+                        literalType === "math"
+                            ? { componentType: "math", value }
+                            : literalType === "text"
+                              ? { componentType: "text", value }
+                              : { componentType: "number", value },
+                    ),
+                );
+            }
+            return analyseContent([String(attribute.text ?? "")], type);
         }
         if (attribute.component) {
-            return analyseInPlace(attribute.component);
+            return analyseInPlace(attribute.component, type);
         }
         throw new NotAnalysable(writtenText(attribute));
     }
 
-    /** The attribute `attribute` as a list of values. */
-    function analyseAttributeList(attribute: any): ListEntry[] {
+    /** The attribute `attribute` as a list of values of type `type`. */
+    function analyseAttributeList(
+        attribute: any,
+        type = "number",
+    ): ListEntry[] {
         if (attribute.type === "primitive" || attribute.type === "literal") {
             const text =
                 attribute.type === "literal"
                     ? String(attribute.text ?? "")
                     : String(attribute.primitive?.value ?? "");
-            return text
-                .split(/[\s,]+/)
-                .filter(Boolean)
-                .map((part) => constant(parseLiteral(part)));
+            return listEntriesOf([text], type);
         }
         const component = attribute.component;
         if (!component) {
@@ -889,18 +948,22 @@ export function checkChoiceFeasibilityAtLoad({
             component.componentType === "_copy" ||
             component.componentType === "_ref"
         ) {
-            return listOfReference(component);
+            return listOfReference(component, type);
         }
-        return listEntriesOf(component.children ?? []);
+        return listEntriesOf(component.children ?? [], type);
     }
 
-    /** The entries of a list written as `children`. */
-    function listEntriesOf(children: any[]): ListEntry[] {
+    /**
+     * The entries of a list written as `children`, each a value of type
+     * `type` (text written in it is split at spaces and commas, as the list
+     * splits it).
+     */
+    function listEntriesOf(children: any[], type = "number"): ListEntry[] {
         const entries: ListEntry[] = [];
         for (const child of children) {
             if (typeof child === "string") {
                 for (const part of child.split(/[\s,]+/).filter(Boolean)) {
-                    entries.push(constant(parseLiteral(part)));
+                    entries.push(analyseContent([part], type));
                 }
                 continue;
             }
@@ -911,16 +974,16 @@ export function checkChoiceFeasibilityAtLoad({
                 child.componentType === "_copy" ||
                 child.componentType === "_ref"
             ) {
-                entries.push(...listOfReference(child));
+                entries.push(...listOfReference(child, type));
                 continue;
             }
-            entries.push(analyseInPlace(child));
+            entries.push(analyseInPlace(child, type));
         }
         return entries;
     }
 
     /** What a reference in a list stands for: one value, or several. */
-    function listOfReference(node: any): ListEntry[] {
+    function listOfReference(node: any, type = "number"): ListEntry[] {
         const ref = refOf(node);
         const target = ref && nodeByIdx.get(ref.nodeIdx);
         if (
@@ -953,7 +1016,14 @@ export function checkChoiceFeasibilityAtLoad({
             ) &&
             !target.extending
         ) {
-            return listEntriesOf(target.children ?? []);
+            return listEntriesOf(
+                target.children ?? [],
+                target.componentType === "textList"
+                    ? "text"
+                    : target.componentType === "mathList"
+                      ? "math"
+                      : "number",
+            );
         }
         if (
             ref &&
@@ -1009,100 +1079,151 @@ export function checkChoiceFeasibilityAtLoad({
 
     /**
      * A component written in place in a parameter: the components an
-     * attribute is made of (a `<number>`, an `<integer>`, a `<math>`), or a
-     * reference.
+     * attribute is made of (a `<number>`, an `<integer>`, a `<math>`, a
+     * `<boolean>`, a `<text>`), or a reference. A string is read as a
+     * component of type `type` reads it.
      */
-    function analyseInPlace(node: any): Expr {
+    function analyseInPlace(node: any, type = "number"): Expr {
         if (typeof node === "string") {
-            return constant(parseLiteral(node));
+            return analyseContent([node], type);
         }
-        const type = node.componentType;
-        if (type === "_error") {
+        const componentType = node.componentType;
+        if (componentType === "_error") {
             throw new Skip();
         }
-        if (type === "_copy" || type === "_ref") {
+        if (componentType === "_copy" || componentType === "_ref") {
             return analyseReference(node);
         }
         if (
-            [
-                "_componentWithSelectableType",
-                "number",
-                "integer",
-                "math",
-            ].includes(type) &&
+            componentType === "_componentWithSelectableType" &&
             !node.extending
         ) {
-            return asHeldBy(type, analyseContent(node.children ?? []));
+            // what it holds, as the type it was made for
+            const meaningful = (node.children ?? []).filter(
+                (child: any) =>
+                    typeof child !== "string" || child.trim() !== "",
+            );
+            return meaningful.length === 1 && typeof meaningful[0] !== "string"
+                ? analyseInPlace(meaningful[0], type)
+                : analyseContent(node.children ?? [], type);
         }
-        if (
-            type === "text" &&
-            !node.extending &&
-            (node.children ?? []).every((c: any) => typeof c === "string")
-        ) {
-            return constant({
-                symbolic: (node.children ?? []).join("").trim(),
-            });
-        }
-        if (type === "boolean" && !node.extending) {
-            const value = booleanOf(node);
-            if (value !== undefined) {
-                return value;
-            }
+        if (RUN_TIME_TYPES.has(componentType) && !node.extending) {
+            return analyseContent(node.children ?? [], componentType);
         }
         throw new NotAnalysable(textOfChildren([node]));
     }
 
     /**
-     * Content written as text and references, as one value: the text
-     * parsed as math, with each reference in it analysed.
+     * Content written as text and references, as a component of type `type`
+     * holds it (`held`). With no reference in it, it is a literal: its value,
+     * as the component computes it. With one, each reference in it is
+     * analysed, and its text is parsed as math into `tree`, which must be in
+     * one of the forms SEL-6 allows, unless it is a `<boolean>` or a
+     * `<text>`, whose value is only ever computed.
      */
-    function analyseContent(children: any[]): Expr {
+    function analyseContent(children: any[], type = "number"): Expr {
         // a label names the value, and is no part of it
         children = children.filter(
             (child) =>
                 typeof child === "string" || child.componentType !== "label",
         );
-        const meaningful = children.filter(
-            (child) => typeof child !== "string" || child.trim() !== "",
-        );
-        if (meaningful.length === 1 && typeof meaningful[0] !== "string") {
-            return analyseInPlace(meaningful[0]);
-        }
         const components = children.filter(
             (child) => typeof child !== "string",
         );
-        if (components.length === 0) {
-            return constant(parseLiteral(children.join("")));
+        const componentExprs = components.map((component) =>
+            analyseInPlace(component, type),
+        );
+        const exprOf = new Map<any, Expr>(
+            components.map((component, k) => [component, componentExprs[k]]),
+        );
+        const held: Extract<Expr, { k: "held" }> = {
+            k: "held",
+            componentType: RUN_TIME_TYPES.has(type) ? type : "number",
+            items: children.map((child) =>
+                typeof child === "string" ? child : exprOf.get(child)!,
+            ),
+            tree: null,
+        };
+        if (atomsOf(componentExprs).size === 0) {
+            // what it is written as decides it: its value
+            return constant(evaluate(held, new Map()));
         }
-        const strings = children.filter(
-            (child) => typeof child === "string",
-        ) as string[];
-        const codePre = mathCodePre(strings);
-        const parser = textToMathFactory({ functionSymbols: ["f", "g"] });
-        const { string } = createInputStringFromChildren({
-            children,
-            codePre,
-            format: "text",
-            parser,
-        });
-        let tree: any;
-        try {
-            tree = parser(string).tree;
-        } catch (e) {
-            throw new NotAnalysable(textOfChildren(children));
+        if (held.componentType === "boolean" || held.componentType === "text") {
+            return held;
         }
-        const codes = new Map<string, any>();
-        components.forEach((component, k) => {
-            codes.set(codePre + k, component);
-        });
-        return fromTree(tree, codes, codePre, children);
+        const meaningful = children.filter(
+            (child) => typeof child !== "string" || child.trim() !== "",
+        );
+        let tree: Expr;
+        if (meaningful.length === 1) {
+            tree = exprOf.get(meaningful[0])!;
+        } else {
+            const strings = children.filter(
+                (child) => typeof child === "string",
+            ) as string[];
+            const codePre = mathCodePre(strings);
+            const parser = textToMathFactory({ functionSymbols: ["f", "g"] });
+            const { string } = createInputStringFromChildren({
+                children,
+                codePre,
+                format: "text",
+                parser,
+            });
+            let parsed: any;
+            try {
+                parsed = parser(string).tree;
+            } catch (e) {
+                throw new NotAnalysable(textOfChildren(children));
+            }
+            const codes = new Map<string, { expr: Expr; component: any }>();
+            components.forEach((component, k) => {
+                codes.set(codePre + k, {
+                    expr: componentExprs[k],
+                    component,
+                });
+            });
+            tree = fromTree(parsed, codes, children);
+        }
+        // an `<integer>` rounds what it holds
+        held.tree =
+            held.componentType === "integer"
+                ? { k: "op", op: "round", args: [tree] }
+                : tree;
+        return held;
     }
 
-    /** A math-expressions tree as an expression in the atoms. */
+    /**
+     * `expr` held by a component of type `type`, such as one made by an
+     * extend (`<integer extend="$n"/>`), which converts it as the run time
+     * does.
+     */
+    function heldOf(type: string | undefined, expr: Expr): Expr {
+        if (!type || !RUN_TIME_TYPES.has(type)) {
+            return expr;
+        }
+        const held: Extract<Expr, { k: "held" }> = {
+            k: "held",
+            componentType: type,
+            items: [expr],
+            tree:
+                type === "integer"
+                    ? { k: "op", op: "round", args: [expr] }
+                    : type === "boolean" || type === "text"
+                      ? null
+                      : expr,
+        };
+        return atomsOf([expr]).size === 0
+            ? constant(evaluate(held, new Map()))
+            : held;
+    }
+
+    /**
+     * A math-expressions tree as arithmetic of the atoms, the structure of
+     * what a component holds, for the bounds (SEL-6: its forms).
+     */
     function fromTree(
         tree: any,
-        codes: Map<string, any>,
-        codePre: string,
+        codes: Map<string, { expr: Expr; component: any }>,
         children: any[],
     ): Expr {
         function partText(sub: any) {
@@ -1112,7 +1233,7 @@ export function checkChoiceFeasibilityAtLoad({
             } catch (e) {
                 text = textOfChildren(children);
             }
-            for (const [code, component] of codes) {
+            for (const [code, { component }] of codes) {
                 text = text.split(code).join(textOfChildren([component]));
             }
             return text;
@@ -1128,12 +1249,12 @@ export function checkChoiceFeasibilityAtLoad({
                 return constant(sub);
             }
             if (typeof sub === "string" && codes.has(sub)) {
-                return analyseInPlace(codes.get(sub));
+                return codes.get(sub)!.expr;
             }
             if (!hasCode(sub)) {
                 // a literal part
-                const value = literalOfTree(sub);
-                if (typeof value === "number") {
+                const value = numberOfTree(sub);
+                if (value !== undefined) {
                     return constant(value);
                 }
                 throw new NotAnalysable(partText(sub));
@@ -1258,7 +1379,10 @@ export function checkChoiceFeasibilityAtLoad({
             (path[0].index ?? []).length === 1
         ) {
             // an entry of a list written as literals (`$ns[$k]`)
-            const entries = listEntriesOf(target.children ?? []);
+            const entries = listEntriesOf(
+                target.children ?? [],
+                type === "mathList" ? "math" : "number",
+            );
             if (entries.every((e) => e.k !== "many")) {
                 const indexValue = path[0].index[0]?.value ?? [];
                 return {
@@ -1280,10 +1404,7 @@ export function checkChoiceFeasibilityAtLoad({
                 ? { k: "atom", atom: indexAtom(iteration.repeat, ref) }
                 : repeatValue(iteration.repeat, ref);
         }
-        if (
-            (type === "number" || type === "integer" || type === "math") &&
-            !target.extending
-        ) {
+        if (RUN_TIME_TYPES.has(type) && !target.extending) {
             try {
                 return analyseContentOf(target);
             } catch (e) {
@@ -1294,19 +1415,6 @@ export function checkChoiceFeasibilityAtLoad({
                     };
                 }
                 throw e;
-            }
-        }
-        if (
-            type === "text" &&
-            !target.extending &&
-            (target.children ?? []).every((c: any) => typeof c === "string")
-        ) {
-            return constant({ symbolic: target.children.join("").trim() });
-        }
-        if (type === "boolean" && !target.extending) {
-            const value = booleanOf(target);
-            if (value !== undefined) {
-                return value;
             }
         }
         if (type === "_copy" && target.extending) {
@@ -1321,7 +1429,7 @@ export function checkChoiceFeasibilityAtLoad({
                     (name) => name === "name" || name.startsWith("_"),
                 )
             ) {
-                return asHeldBy(
+                return heldOf(
                     target.attributes?._createComponentOfType?.primitive?.value,
                     analyseNamed(named, ref, []),
                 );
@@ -1346,12 +1454,7 @@ export function checkChoiceFeasibilityAtLoad({
         }
         const module = parentOf.get(parentOf.get(attribute));
         const name = attribute.attributes?.name?.primitive?.value;
-        const sources: Expr[] = [
-            (attribute.componentType === "boolean" &&
-                !attribute.extending &&
-                booleanOf(attribute)) ||
-                analyseContentOf(attribute),
-        ];
+        const sources: Expr[] = [analyseContentOf(attribute)];
         // the module, and each copy or extend of it, through a chain
         const modules = new Set<any>([module]);
         let added = true;
@@ -1385,9 +1488,9 @@ export function checkChoiceFeasibilityAtLoad({
                             : attributeNamed(node, name)?.attribute;
                     if (written !== undefined) {
                         sources.push(
-                            asHeldBy(
+                            analyseWrittenAttribute(
+                                written,
                                 attribute.componentType,
-                                analyseWrittenAttribute(written),
                             ),
                         );
                     }
@@ -1409,11 +1512,12 @@ export function checkChoiceFeasibilityAtLoad({
     }
 
     /** An attribute written on a copy of a module, not yet expanded. */
-    function analyseWrittenAttribute(written: any): Expr {
+    function analyseWrittenAttribute(written: any, type: string): Expr {
         if (written.type === "unresolved") {
-            return analyseContent(written.children ?? []);
+            // made the module attribute's component when the copy is made
+            return analyseContent(written.children ?? [], type);
         }
-        return analyseAttributeScalar(written);
+        return heldOf(type, analyseAttributeScalar(written, type));
     }
 
     /**
@@ -1458,9 +1562,9 @@ export function checkChoiceFeasibilityAtLoad({
         }
         contentMemo.set(target, new Skip());
         try {
-            const expr = asHeldBy(
+            const expr = analyseContent(
+                target.children ?? [],
                 target.componentType,
-                analyseContent(target.children ?? []),
             );
             contentMemo.set(target, expr);
             return expr;
@@ -1470,16 +1574,6 @@ export function checkChoiceFeasibilityAtLoad({
             }
             throw e;
         }
-    }
-
-    /**
-     * `expr` as a component of type `type` holds it: an `<integer>` rounds
-     * what it is written as (`<integer>2.4</integer>` is 2).
-     */
-    function asHeldBy(type: string | undefined, expr: Expr): Expr {
-        return type === "integer"
-            ? { k: "op", op: "round", args: [expr] }
-            : expr;
     }
 
     /** The atoms of the entries (`$a[2]`) of each choice, by the choice. */
@@ -1585,17 +1679,38 @@ export function checkChoiceFeasibilityAtLoad({
                     }
                     try {
                         if (seqType === "letters") {
-                            const text = literalTextOf(attribute);
+                            // the text it holds, as letters
+                            const text = analyseAttributeScalar(
+                                attribute,
+                                "text",
+                            );
                             const number =
-                                text === undefined
-                                    ? undefined
-                                    : lettersToNumber(text);
-                            if (number === undefined) {
+                                atomsOf([text]).size === 0
+                                    ? evaluate(
+                                          {
+                                              k: "op",
+                                              op: "letterNumber",
+                                              args: [text],
+                                          },
+                                          new Map(),
+                                      )
+                                    : NaN;
+                            if (
+                                typeof number !== "number" ||
+                                Number.isNaN(number)
+                            ) {
                                 throw new NotAnalysable(writtenText(attribute));
                             }
                             return constant(number);
                         }
-                        return analyseAttributeScalar(attribute);
+                        return analyseAttributeScalar(
+                            attribute,
+                            name === "step"
+                                ? "math"
+                                : name === "length"
+                                  ? "integer"
+                                  : "number",
+                        );
                     } catch (e) {
                         if (!(
                             e instanceof NotAnalysable || e instanceof Skip
@@ -1715,7 +1830,10 @@ export function checkChoiceFeasibilityAtLoad({
             ["numberList", "mathList"].includes(target.componentType) &&
             !target.extending
         ) {
-            const entries = listEntriesOf(target.children ?? []);
+            const entries = listEntriesOf(
+                target.children ?? [],
+                target.componentType === "mathList" ? "math" : "number",
+            );
             if (entries.every((e) => e.k !== "many")) {
                 return { kind: "items", items: entries };
             }
@@ -1726,10 +1844,11 @@ export function checkChoiceFeasibilityAtLoad({
     /** An item a `<repeat for>` iterates over, as a value, if it is one. */
     function itemOf(child: any): Expr {
         try {
-            return analyseInPlace(child);
+            // what `<repeat for>` iterates over is written as math
+            return analyseInPlace(child, "math");
         } catch (e) {
             if (e instanceof NotAnalysable || e instanceof Skip) {
-                return constant({ symbolic: "?" });
+                return constant(unknownValue());
             }
             throw e;
         }
@@ -1931,6 +2050,13 @@ export function checkChoiceFeasibilityAtLoad({
         for (const expr of exprs) {
             if (expr.k === "atom") {
                 into.add(expr.atom);
+            } else if (expr.k === "held") {
+                atomsOf(
+                    expr.items.filter(
+                        (item): item is Expr => typeof item !== "string",
+                    ),
+                    into,
+                );
             } else if (expr.k === "named") {
                 atomsOf([expr.expr], into);
             } else if (expr.k === "op") {
@@ -1970,6 +2096,9 @@ export function checkChoiceFeasibilityAtLoad({
         if (expr.k === "const") {
             return expr.value;
         }
+        if (expr.k === "held") {
+            return evaluateHeld(expr, assignment);
+        }
         if (expr.k === "named") {
             return evaluate(expr.expr, assignment);
         }
@@ -1978,20 +2107,31 @@ export function checkChoiceFeasibilityAtLoad({
             return value === undefined ? NaN : value;
         }
         if (expr.op === "letterNumber") {
+            // the text, as a letters sequence reads it (`lettersToNumber`)
             const v = evaluate(expr.args[0], assignment);
-            return typeof v === "number"
-                ? NaN
-                : (sequenceNumber(v, "letters") ?? NaN);
+            if (typeof v === "number") {
+                return NaN;
+            }
+            if (isUnknown(v)) {
+                return v;
+            }
+            if (v.runTime?.componentType === "text") {
+                return lettersToNumber(v.runTime.value) ?? NaN;
+            }
+            return sequenceNumber(v, "letters") ?? NaN;
         }
         if (expr.op === "item") {
             const index = evaluate(expr.args[0], assignment);
             if (typeof index !== "number") {
-                return NaN;
+                return isUnknown(index) ? index : NaN;
             }
             const item = expr.args[index];
             return item ? evaluate(item, assignment) : NaN;
         }
         const values = expr.args.map((arg) => evaluate(arg, assignment));
+        if (values.some(isUnknown)) {
+            return unknownValue();
+        }
         if (values.some((v) => typeof v !== "number")) {
             return NaN;
         }
@@ -2019,6 +2159,43 @@ export function checkChoiceFeasibilityAtLoad({
                 return Math.round(nums[0]);
         }
         return NaN;
+    }
+
+    /** The values of each `held` component found, by its children's values. */
+    const heldValues = new WeakMap<object, Map<string, Value>>();
+
+    /**
+     * The value a component holds (`held`) when the values it reads are
+     * `assignment`, as the component computes it when the document runs.
+     */
+    function evaluateHeld(
+        expr: Extract<Expr, { k: "held" }>,
+        assignment: Assignment,
+    ): Value {
+        const values = expr.items.map((item) =>
+            typeof item === "string" ? item : evaluate(item, assignment),
+        );
+        if (values.some((v) => typeof v !== "string" && isUnknown(v))) {
+            return unknownValue();
+        }
+        const key = JSON.stringify(values);
+        let found = heldValues.get(expr);
+        if (!found) {
+            found = new Map();
+            heldValues.set(expr, found);
+        }
+        if (found.has(key)) {
+            return found.get(key)!;
+        }
+        const value = fromRunTime(
+            runTimeValue(
+                expr.componentType,
+                values.map((v) => (typeof v === "string" ? v : toRunTime(v))),
+                componentInfoObjects,
+            ),
+        );
+        found.set(key, value);
+        return value;
     }
 
     /** What the atom `atom` can be, given values for those it depends on. */
@@ -2202,7 +2379,7 @@ export function checkChoiceFeasibilityAtLoad({
             if (spec.seqType === "math") {
                 const seq = concreteSequence(spec, value);
                 if (!seq) {
-                    return { finite: [{ symbolic: "math" }] };
+                    return { finite: [unknownValue()] };
                 }
             }
             return sequenceDomain(spec, value, spec.exclude);
@@ -2238,7 +2415,7 @@ export function checkChoiceFeasibilityAtLoad({
             if (spec.optionValues) {
                 return { finite: spec.optionValues };
             }
-            return { finite: [{ symbolic: "option" }] };
+            return { finite: [unknownValue()] };
         }
         // `<selectRandomNumbers>`
         const read = (e: Expr | null, fallback: number) => {
@@ -2330,6 +2507,19 @@ export function checkChoiceFeasibilityAtLoad({
             const v = value(e);
             return typeof v === "number" ? v : NaN;
         };
+        // a value the check can't know decides nothing either way
+        const scalars: (Expr | null)[] = [
+            spec.numToSelect,
+            "withReplacement" in spec ? spec.withReplacement : null,
+            "coprime" in spec ? spec.coprime : null,
+            "from" in spec ? spec.from : null,
+            "to" in spec ? spec.to : null,
+            "step" in spec ? spec.step : null,
+            "length" in spec ? spec.length : null,
+        ];
+        if (scalars.some((e) => e && isUnknown(value(e)))) {
+            return "unknown";
+        }
         const numToSelectValue = number(spec.numToSelect);
         if (Number.isNaN(numToSelectValue)) {
             return { kind: "number", args: { attribute: "numToSelect" } };
@@ -2360,7 +2550,7 @@ export function checkChoiceFeasibilityAtLoad({
         if (spec.type === "selectRandomNumbers") {
             return null;
         }
-        const withReplacement = number(spec.withReplacement) !== 0;
+        const withReplacement = truthOf(value(spec.withReplacement));
         const need = withReplacement ? 1 : numToSelect;
 
         if (spec.type === "select") {
@@ -2445,7 +2635,15 @@ export function checkChoiceFeasibilityAtLoad({
                 if (e && spec.seqType !== "math") {
                     const v = value(e);
                     if (typeof v !== "number" || Number.isNaN(v)) {
-                        return { kind: "number", args: { attribute: name } };
+                        return {
+                            // a letters sequence reads text as letters
+                            kind:
+                                spec.seqType === "letters" &&
+                                (name === "from" || name === "to")
+                                    ? "letters"
+                                    : "number",
+                            args: { attribute: name },
+                        };
                     }
                 }
             }
@@ -2488,7 +2686,7 @@ export function checkChoiceFeasibilityAtLoad({
             numValues = seq.length - excluded.size - removed;
             if (
                 seq.length <= 10 * MAX_VALUES &&
-                (spec.excludeCombinations || number(spec.coprime) !== 0)
+                (spec.excludeCombinations || truthOf(value(spec.coprime)))
             ) {
                 values = [];
                 for (let i = 0; i < seq.length; i++) {
@@ -2530,7 +2728,7 @@ export function checkChoiceFeasibilityAtLoad({
 
         if (spec.type === "selectFromSequence") {
             const coprime =
-                number(spec.coprime) !== 0 &&
+                truthOf(value(spec.coprime)) &&
                 spec.seqType === "number" &&
                 !spec.excludeCombinations &&
                 numToSelect > 1;
@@ -2639,6 +2837,12 @@ export function checkChoiceFeasibilityAtLoad({
                         atom: expr.atom,
                     });
                 }
+            } else if (expr.k === "held") {
+                for (const item of expr.items) {
+                    if (typeof item !== "string") {
+                        visit(item);
+                    }
+                }
             } else if (expr.k === "op") {
                 expr.args.forEach(visit);
             }
@@ -2730,6 +2934,15 @@ export function checkChoiceFeasibilityAtLoad({
         const exprs = exprsOfSpec(spec);
         const direct = namedOf(exprs);
         const ordered = orderedAtoms(exprs);
+
+        // First the bounds, which prove at once a choice whose values leave
+        // room (`to="100" exclude="$a $b"`), however many combinations
+        // there are of what it reads (a chain of choices each excluding the
+        // ones before it). A pass by bounds is sound; only a choice they
+        // don't prove is gone through, so what an error says is the same.
+        if (checkByBounds(spec, direct, ordered, true).ok) {
+            return { ok: true };
+        }
 
         // exactly, over every combination, when they are few
         let leaves = 0;
@@ -2978,6 +3191,14 @@ export function checkChoiceFeasibilityAtLoad({
         if (expr.k === "named") {
             return intervalOf(expr.expr);
         }
+        if (expr.k === "held") {
+            if (expr.tree) {
+                return intervalOf(expr.tree);
+            }
+            return expr.componentType === "boolean"
+                ? { lo: 0, hi: 1, integer: true }
+                : { lo: -Infinity, hi: Infinity, integer: false };
+        }
         if (expr.k === "const") {
             const v = expr.value;
             return typeof v === "number" && !Number.isNaN(v)
@@ -3091,6 +3312,9 @@ export function checkChoiceFeasibilityAtLoad({
         if (expr.k === "named") {
             return affineOf(expr.expr);
         }
+        if (expr.k === "held" && expr.tree) {
+            return affineOf(expr.tree);
+        }
         if (expr.k === "const") {
             const v = expr.value;
             return { c: typeof v === "number" ? v : NaN, terms: new Map() };
@@ -3158,9 +3382,21 @@ export function checkChoiceFeasibilityAtLoad({
         return { c: a.c * s, terms };
     }
 
+    const heldIds = new Map<Expr, number>();
     function exprKey(expr: Expr): string {
         if (expr.k === "named") {
             return exprKey(expr.expr);
+        }
+        if (expr.k === "held") {
+            if (expr.tree) {
+                return exprKey(expr.tree);
+            }
+            let id = heldIds.get(expr);
+            if (id === undefined) {
+                id = heldIds.size;
+                heldIds.set(expr, id);
+            }
+            return `held${id}`;
         }
         if (expr.k === "const") {
             return JSON.stringify(expr.value);
@@ -3230,6 +3466,7 @@ export function checkChoiceFeasibilityAtLoad({
         spec: ChoiceSpec,
         direct: Named[],
         ordered: Atom[],
+        proveOnly = false,
     ): Verdict {
         const describeRanges = () =>
             direct
@@ -3288,6 +3525,10 @@ export function checkChoiceFeasibilityAtLoad({
             witness: Assignment,
             unbounded: Unbounded[] = [],
         ): Verdict => {
+            if (proveOnly) {
+                // not proven by the bounds, which is all that is asked
+                return { ok: false, unproven: "" };
+            }
             if (unbounded.length > 0) {
                 const { atom, start, direction, root } = unbounded[0];
                 const candidates: number[] = [];
@@ -3677,32 +3918,12 @@ function refOf(node: any): any {
     return typeof ref === "object" && ref !== null ? ref : undefined;
 }
 
-/** A literal as a value: a number when it evaluates to one. */
-function parseLiteral(text: string): Value {
-    const trimmed = text.trim();
-    if (trimmed === "") {
-        return NaN;
-    }
-    const n = Number(trimmed);
-    if (!Number.isNaN(n)) {
-        return n;
-    }
-    if (/^[a-zA-Z]+$/.test(trimmed)) {
-        // a symbol, or letters of a letters sequence
-        return { symbolic: trimmed };
-    }
-    try {
-        const tree = textToMathFactory({ functionSymbols: ["f", "g"] })(
-            trimmed,
-        ).tree;
-        return literalOfTree(tree);
-    } catch (e) {
-        return { symbolic: trimmed };
-    }
-}
-
-/** A math-expressions tree with no reference in it, as a value. */
-function literalOfTree(tree: any): Value {
+/**
+ * The number a part of a math-expressions tree with no reference in it is,
+ * as math-expressions evaluates it, for the structure of a value
+ * (`fromTree`), or `undefined` when it isn't one.
+ */
+function numberOfTree(tree: any): number | undefined {
     try {
         const value = me.fromAst(tree).evaluate_to_constant();
         if (typeof value === "number" && Number.isFinite(value)) {
@@ -3711,7 +3932,75 @@ function literalOfTree(tree: any): Value {
     } catch (e) {
         // not a number
     }
-    return { symbolic: JSON.stringify(tree) };
+    return undefined;
+}
+
+/**
+ * A value as a component of the document holds it, to be read by another
+ * component (`runTimeValue`): a number, a letter as its text, or the value
+ * a `Sym` came from.
+ */
+function toRunTime(v: Value): RunTimeChild {
+    if (typeof v === "number") {
+        return { componentType: "number", value: v };
+    }
+    if (v.runTime) {
+        return v.runTime;
+    }
+    const letters = /^(letters|LETTERS):(-?\d+)$/.exec(v.symbolic);
+    if (letters) {
+        return {
+            componentType: "text",
+            value: numberToLetters(
+                Number(letters[2]),
+                letters[1] === "letters",
+            ),
+        };
+    }
+    try {
+        return {
+            componentType: "math",
+            value: me.fromAst(JSON.parse(v.symbolic)),
+        };
+    } catch (e) {
+        return { componentType: "text", value: v.symbolic };
+    }
+}
+
+/**
+ * The value a component holds as the check reads it: a number (a math that
+ * evaluates to one, as `evaluate_to_constant` reads it; a boolean as 1 or
+ * 0), or a `Sym` for anything else, holding what the component holds.
+ */
+function fromRunTime(child: RunTimeChild): Value {
+    switch (child.componentType) {
+        case "number":
+            return typeof child.value === "number" ? child.value : NaN;
+        case "boolean":
+            // a `<number>` reads a boolean as no number, as the run time
+            // does; a boolean parameter reads it with `truthOf`
+            return sym(child.value ? "true" : "false", child);
+        case "text":
+            return sym(child.value, child);
+        case "math": {
+            let number: unknown = NaN;
+            try {
+                number = child.value.evaluate_to_constant();
+            } catch (e) {
+                // not a number
+            }
+            if (typeof number === "number" && Number.isFinite(number)) {
+                return number;
+            }
+            let tree: unknown;
+            try {
+                tree = child.value.tree;
+            } catch (e) {
+                tree = "＿";
+            }
+            return sym(JSON.stringify(tree), child);
+        }
+    }
 }
 
 /** A value of a letters sequence, by its number. */
@@ -3798,40 +4087,29 @@ function literalIndex(indexPart: any): number | undefined {
     return undefined;
 }
 
-/** A boolean attribute written as `true` or `false`, or not written. */
+/**
+ * A boolean attribute whose value the conversion of the document already
+ * found (written as `true` or `false`, or with no value), or `undefined`
+ * for one a `<boolean>` computes (`analyseContent`).
+ */
 function literalBoolean(attribute: any): boolean | undefined {
     if (attribute.type === "primitive") {
         const v = attribute.primitive?.value;
         return typeof v === "boolean" ? v : undefined;
     }
     if (attribute.type === "literal") {
-        if (typeof attribute.value === "boolean") {
-            return attribute.value;
-        }
-        const text = String(attribute.text ?? "")
-            .trim()
-            .toLowerCase();
-        // `""` is read when the document runs
-        return text === "true" ? true : text === "false" ? false : undefined;
+        return typeof attribute.value === "boolean"
+            ? attribute.value
+            : undefined;
     }
     const component = attribute.component;
-    if (component?.componentType === "boolean") {
-        if (typeof component.state?.value === "boolean") {
-            return component.state.value;
-        }
-        return literalBooleanText(component);
+    if (
+        component?.componentType === "boolean" &&
+        typeof component.state?.value === "boolean"
+    ) {
+        return component.state.value;
     }
     return undefined;
-}
-
-/** A `<boolean>` written as `true` or `false`. */
-function literalBooleanText(component: any): boolean | undefined {
-    const children = component.children ?? [];
-    if (!children.every((c: any) => typeof c === "string")) {
-        return undefined;
-    }
-    const text = children.join("").trim().toLowerCase();
-    return text === "true" ? true : text === "false" ? false : undefined;
 }
 
 /** The text an attribute is written as, when it is only text. */
@@ -3896,74 +4174,6 @@ function variantNamesText(attribute: any): string | undefined {
     return attribute.component && visit([attribute.component])
         ? parts.join(" ")
         : undefined;
-}
-
-/**
- * The value of a boolean written with no reference as numbers compared
- * (`1>0`) or a number (`1`, true when not 0), or `undefined` when it is
- * anything else.
- */
-function numericBoolean(text: string | undefined): boolean | undefined {
-    if (text === undefined || text.trim() === "") {
-        return undefined;
-    }
-    let tree: any;
-    try {
-        tree = textToMathFactory()(text).tree;
-    } catch (e) {
-        return undefined;
-    }
-    function num(t: any): number {
-        try {
-            const v = me.fromAst(t).evaluate_to_constant();
-            return typeof v === "number" ? v : NaN;
-        } catch (e) {
-            return NaN;
-        }
-    }
-    function evaluateBoolean(t: any): boolean | undefined {
-        if (typeof t === "number") {
-            return t !== 0;
-        }
-        if (!Array.isArray(t)) {
-            return undefined;
-        }
-        const [op, ...args] = t;
-        if (op === "and" || op === "or") {
-            const values = args.map(evaluateBoolean);
-            if (values.some((v) => v === undefined)) {
-                return undefined;
-            }
-            return op === "and" ? values.every(Boolean) : values.some(Boolean);
-        }
-        if (op === "not" && args.length === 1) {
-            const v = evaluateBoolean(args[0]);
-            return v === undefined ? undefined : !v;
-        }
-        if (args.length === 2) {
-            const [a, b] = args.map(num);
-            if (Number.isNaN(a) || Number.isNaN(b)) {
-                return undefined;
-            }
-            switch (op) {
-                case "<":
-                    return a < b;
-                case ">":
-                    return a > b;
-                case "le":
-                    return a <= b;
-                case "ge":
-                    return a >= b;
-                case "=":
-                    return a === b;
-                case "ne":
-                    return a !== b;
-            }
-        }
-        const v = num(t);
-        return Number.isNaN(v) ? undefined : v !== 0;
-    }
-    return evaluateBoolean(tree);
 }
 
 /** Whether `attribute` holds a reference. */
