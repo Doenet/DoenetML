@@ -38,7 +38,9 @@ import { Remote } from "comlink";
 import {
     actionIdentifier,
     clearPendingValuesForAction,
+    dropAnsweredPendingValuesBefore,
     mainThunks,
+    markPendingValuesAnswered,
     UpdatesToIgnore,
     useAppDispatch,
 } from "../state";
@@ -405,6 +407,12 @@ export function DocViewer({
     // This map from event ids to event values helps keep track of the updates that need to be ignored
     // so we don't clobber the component's state.
     const updatesToIgnoreRef = useRef<UpdatesToIgnore>(new Map());
+    // Where each action comes among the actions sent to core, counting up from
+    // 1, for those whose renderer update has not been processed yet. An update
+    // for a later action shows that an earlier action's update is not coming;
+    // see `dropAnsweredPendingValuesBefore`.
+    const actionSequences = useRef(new Map<string, number>());
+    const lastActionSequence = useRef(0);
     const dispatch = useAppDispatch();
 
     // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
@@ -1092,6 +1100,7 @@ export function DocViewer({
                     updatesToIgnoreRef.current,
                     actionId,
                 );
+                actionSequences.current.delete(actionId);
             }
         }
         actionsBeforeCoreCreated.current = [];
@@ -1818,13 +1827,15 @@ export function DocViewer({
         let actionId = nanoid();
         args = { ...args };
         args.actionId = actionId;
+        const sequence = ++lastActionSequence.current;
+        actionSequences.current.set(actionId, sequence);
 
         if (baseVariableValue !== undefined && componentIdx != null) {
             // Update the bookkeeping variables for the optimistic UI that will tell the renderer
             // whether or not to ignore the information core sends when it finishes the action
             updatesToIgnoreRef.current.set(
                 actionIdentifier(actionId, componentIdx),
-                { componentIdx, value: baseVariableValue },
+                { componentIdx, value: baseVariableValue, sequence },
             );
         }
 
@@ -1886,7 +1897,10 @@ export function DocViewer({
         }
 
         if (actionResult) {
-            resolveAction(actionResult);
+            // Core sent this action's renderer update before replying, but the
+            // update comes over a different channel and may not have been
+            // processed yet.
+            resolveAction({ ...actionResult, rendererUpdateMayFollow: true });
         } else {
             // coreWorker.current was null/undefined — optional chaining returned
             // undefined, which is not a throw. Settle the callback as false so the
@@ -2215,6 +2229,24 @@ export function DocViewer({
             return;
         }
 
+        const sequence =
+            actionId === undefined || deferred
+                ? undefined
+                : actionSequences.current.get(actionId);
+        if (sequence !== undefined) {
+            // Updates for actions sent before this one have all arrived by now,
+            // or are not coming.
+            dropAnsweredPendingValuesBefore(
+                updatesToIgnoreRef.current,
+                sequence,
+            );
+            for (let [id, earlier] of actionSequences.current) {
+                if (earlier <= sequence) {
+                    actionSequences.current.delete(id);
+                }
+            }
+        }
+
         for (let instruction of updateInstructions) {
             if (instruction.instructionType === "updateRendererStates") {
                 for (let {
@@ -2262,17 +2294,36 @@ export function DocViewer({
     function resolveAction({
         actionId,
         success = true,
+        rendererUpdateMayFollow = false,
     }: {
         actionId?: string;
         success?: boolean;
+        /**
+         * This is core's reply to the action, which can arrive before the
+         * renderer update core sent for it (#1988 made the reply clear the
+         * pending values; doing that before the update has been processed
+         * lets the update put an older value back on screen).
+         */
+        rendererUpdateMayFollow?: boolean;
     }) {
         if (!actionId) {
             return;
         }
 
-        // This action is being settled, so the value the renderer showed ahead
-        // of it is no longer waiting on an answer.
-        clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+        if (rendererUpdateMayFollow) {
+            // Core has answered, but the value the renderer showed ahead of
+            // the action is still needed to recognize the update that may be
+            // on its way. It is dropped when that update has been processed,
+            // or when an update for a later action shows none is coming.
+            markPendingValuesAnswered(updatesToIgnoreRef.current, actionId);
+        } else {
+            // This action is being settled, so the value the renderer showed
+            // ahead of it is no longer waiting on an answer.
+            clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+            if (!success) {
+                actionSequences.current.delete(actionId);
+            }
+        }
 
         const callback = onActionCallbacks.current.get(actionId);
         if (callback) {
