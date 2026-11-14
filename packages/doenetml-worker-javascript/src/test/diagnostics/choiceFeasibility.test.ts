@@ -189,6 +189,19 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         ]);
     });
 
+    it("a letters choice's value in another letters choice's from or to", async () => {
+        const { errors } = await load(
+            `<selectFromSequence name="a" type="letters" from="a" to="c"/><selectFromSequence type="letters" from="a" to="$a" numToSelect="2"/>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = a, it has 1 value to select 2 from.",
+        ]);
+        const proven = await load(
+            `<selectFromSequence name="a" type="letters" from="c" to="e"/><selectFromSequence type="letters" from="$a" to="z" numToSelect="2"/>`,
+        );
+        expect(proven.errors).eqls([]);
+    });
+
     it("a letter is named as a letter", async () => {
         const { errors } = await load(
             `<selectFromSequence name="a" to="c" type="letters"/><selectFromSequence type="letters" from="a" to="c" exclude="$a" numToSelect="3"/>`,
@@ -242,6 +255,19 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         ]);
     });
 
+    it("a boolean parameter that references a literal <boolean> is its value", async () => {
+        const { errors } = await load(
+            `<boolean name="b">true</boolean><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$b">u</select>`,
+        );
+        expect(errors).eqls([]);
+        const isFalse = await load(
+            `<boolean name="b">false</boolean><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$b">u</select>`,
+        );
+        expect(isFalse.errors).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$a` = 2, it has 1 option to select 2 from.",
+        ]);
+    });
+
     it("a boolean written as an expression with no reference is its value", async () => {
         const { errors } = await load(
             `<selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="1>0">u</select>`,
@@ -276,6 +302,27 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).contains("A");
+    });
+
+    it("a choice in error adds no variants", async () => {
+        for (const [doenetML, numVariants] of [
+            [`<selectFromSequence name="a" from="1" to="10"/>`, 10],
+            [
+                `<selectFromSequence name="a" from="1" to="10"/><selectFromSequence to="$a" numToSelect="3"/>`,
+                10,
+            ],
+        ] as const) {
+            const { core, resolvePathToNodeIdx } = await load(doenetML);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .sharedParameters.allPossibleVariants,
+                doenetML,
+            ).toHaveLength(numVariants);
+        }
     });
 
     it("a copy or an extend of a choice in error is the same error, reported once", async () => {
@@ -501,10 +548,9 @@ describe("A parameter is in an analysable form (SEL-6) @group4", () => {
         const { errors } = await load(
             `<function name="f">x^2</function><selectFromSequence name="a" to="5"/><selectFromSequence to="$$f($a)"/>`,
         );
-        expect(errors).toHaveLength(1);
-        expect(errors[0]).toMatch(
-            /^doenet-e0074: `to` of `<selectFromSequence>` reads `\$\$f\(\$a\)`, which DoenetML can't analyse/,
-        );
+        expect(errors).eqls([
+            "doenet-e0074: `to` of `<selectFromSequence>` reads `$$f($a)`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to one value another random selection selects, a repeat's index or value, a module attribute, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.",
+        ]);
     });
 
     it("a power in a <number> is not, and the error names the <number>", async () => {
@@ -621,7 +667,7 @@ describe("Choices depending on each other (SEL-7) @group4", () => {
         expect(errors).eqls([]);
     });
 
-    it("a cycle is a circular dependency, reported once", async () => {
+    it("a cycle is a circular dependency, and no error of this check", async () => {
         const { codes } = await load(
             `<selectFromSequence name="c" to="$d"/><selectFromSequence name="d" to="$c"/>`,
         );

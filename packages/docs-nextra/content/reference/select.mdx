@@ -287,8 +287,8 @@ The choice must be possible for every value such a reference can take, in
 every variant and every iteration of a repeat. This is checked when the
 document loads, never by trying variants: `numToSelect="$n"` with `n` chosen from 2 to 4 is an error for a `<select>{:dn}` of three options, since `n` can be 4. A reference may be combined
 with numbers and other references by `+`, `-`, `*`, `/`, `min`, `max`, `abs`,
-`floor`, `ceil` and `round`, written in the attribute or in a `<number>{:dn}`
-it references. Anything else, such as a function evaluated, is an error, since
+`floor`, `ceil` and `round`, written in the attribute or in a `<number>{:dn}`,
+`<integer>{:dn}` or `<math>{:dn}` it references. Anything else, such as a function evaluated, is an error, since
 the check can't tell whether the choice can always be made.
 
 Select a new page variant from the pulldown menu at the top of the 

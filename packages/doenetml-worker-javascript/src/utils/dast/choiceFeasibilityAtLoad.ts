@@ -14,7 +14,8 @@
  * A parameter is analysable when it is:
  * - a literal (a number, or for a `type="math"` sequence any math);
  * - a reference SEL-1 allows, with a known range:
- *   - another random choice, `$a` or `$a[2]`: what it can select, found
+ *   - another random choice, `$a` or `$a[2]` (in a letters sequence's
+ *     `from` or `to`, a letters choice, written alone): what it can select, found
  *     from its own parameters (SEL-7, so choices are checked in the order
  *     their references give, and a choice in error leaves those reading it
  *     unchecked, reported once);
@@ -36,8 +37,10 @@
  *
  * Anything else is an error (`doenet-e0074`), at the parameter, naming the
  * part that isn't analysable, and the `<number>` it is in when it is in
- * one. A boolean parameter (`withReplacement`, `coprime`) written as a
- * reference can only be true or false, so it is checked as both.
+ * one. A boolean parameter (`withReplacement`, `coprime`) that reads a
+ * literal `<boolean>` is its value; one that reads another choice, or an
+ * expression the check doesn't evaluate, can only be true or false, so it is
+ * checked as both.
  *
  * The parameters read are those that decide whether the choice can select:
  * - `<select>`: `numToSelect`, `withReplacement`, and how many options it
@@ -162,7 +165,8 @@ type Expr =
               | "floor"
               | "ceil"
               | "round"
-              | "item";
+              | "item"
+              | "letterNumber";
           args: Expr[];
       };
 
@@ -192,7 +196,7 @@ type Atom = {
     entry?: number;
     /**
      * A `bool` whose value the DoenetML decides, though the check doesn't
-     * work it out (`withReplacement="1>0"`): both values are checked, but
+     * work it out (`withReplacement="x>0"`): both values are checked, but
      * alone it leaves the choice the same in every variant.
      */
     decidedByDoenetML?: boolean;
@@ -402,9 +406,27 @@ export function checkChoiceFeasibilityAtLoad({
         if (containsError(attribute)) {
             throw new Skip();
         }
-        // a reference SEL-1 allows, or an expression (`1>0`): true or
-        // false, so both. One with no reference in it is decided by the
-        // DoenetML, so it doesn't make the choice differ between variants.
+        if (holdsReference(attribute)) {
+            // a reference to content that can't change, such as
+            // `<boolean name="b">true</boolean>`: its value
+            let expr: Expr | null = null;
+            try {
+                expr = analyseAttributeScalar(attribute);
+            } catch (e) {
+                // a choice or an iteration reads it, or it isn't
+                // analysable: true or false, as below
+            }
+            if (expr && atomsOf([expr]).size === 0) {
+                const value = evaluate(expr, new Map());
+                if (typeof value === "number" && !Number.isNaN(value)) {
+                    return constant(value !== 0 ? 1 : 0);
+                }
+            }
+        }
+        // a reference SEL-1 allows, or an expression the check doesn't
+        // evaluate (`x>0`): true or false, so both. One with no reference in
+        // it is decided by the DoenetML, so it doesn't make the choice
+        // differ between variants.
         const atom: Atom = {
             id: nextAtomId++,
             label: `${attributeNamed(choice, name)!.name}`,
@@ -675,14 +697,54 @@ export function checkChoiceFeasibilityAtLoad({
         }
         const text = literalTextOf(attribute);
         const number = text === undefined ? undefined : lettersToNumber(text);
-        if (number === undefined) {
-            failedAttribute.set(choice, attributeNamed(choice, name)!.name);
-            if (containsError(attribute)) {
-                throw new Skip();
-            }
-            throw new NotAnalysable(text ?? writtenText(attribute));
+        if (number !== undefined) {
+            return constant(number);
         }
-        return constant(number);
+        failedAttribute.set(choice, attributeNamed(choice, name)!.name);
+        if (containsError(attribute)) {
+            throw new Skip();
+        }
+        // a reference to a letter another letters choice selects, written
+        // alone: that letter's number
+        let node = attribute.component;
+        while (
+            ["_componentWithSelectableType", "text"].includes(
+                node?.componentType,
+            ) &&
+            !node.extending
+        ) {
+            const meaningful = (node.children ?? []).filter(
+                (child: any) =>
+                    typeof child !== "string" || child.trim() !== "",
+            );
+            node = meaningful.length === 1 ? meaningful[0] : undefined;
+        }
+        if (node?.componentType === "_copy" || node?.componentType === "_ref") {
+            const expr = analyseReference(node);
+            if (lettersChoiceAtom(expr)) {
+                failedAttribute.delete(choice);
+                return { k: "op", op: "letterNumber", args: [expr] };
+            }
+        }
+        throw new NotAnalysable(text ?? writtenText(attribute));
+    }
+
+    /**
+     * The atom `expr` is, when it is a value a letters `<selectFromSequence>`
+     * selects, written as a reference.
+     */
+    function lettersChoiceAtom(expr: Expr): Atom | null {
+        const inner = expr.k === "named" ? expr.expr : expr;
+        if (inner.k !== "atom" || inner.atom.kind !== "choice") {
+            return null;
+        }
+        const spec = specOf(inner.atom.node);
+        return !(spec instanceof NotAnalysable) &&
+            !(spec instanceof Skip) &&
+            spec.type === "selectFromSequence" &&
+            spec.seqType === "letters"
+            ? inner.atom
+            : null;
     }
 
     /** Letters written as a literal, as the number a letters sequence has. */
@@ -1818,6 +1880,12 @@ export function checkChoiceFeasibilityAtLoad({
             const value = assignment.get(expr.atom);
             return value === undefined ? NaN : value;
         }
+        if (expr.op === "letterNumber") {
+            const v = evaluate(expr.args[0], assignment);
+            return typeof v === "number"
+                ? NaN
+                : (sequenceNumber(v, "letters") ?? NaN);
+        }
         if (expr.op === "item") {
             const index = evaluate(expr.args[0], assignment);
             if (typeof index !== "number") {
@@ -2890,6 +2958,16 @@ export function checkChoiceFeasibilityAtLoad({
                     hi: Math.round(args[0].hi),
                     integer: true,
                 };
+            case "letterNumber": {
+                const atom = lettersChoiceAtom(expr.args[0]);
+                const spec = atom && specOf(atom.node);
+                return spec &&
+                    !(spec instanceof NotAnalysable) &&
+                    !(spec instanceof Skip) &&
+                    spec.type === "selectFromSequence"
+                    ? sequenceBounds(spec)
+                    : { lo: -Infinity, hi: Infinity, integer: false };
+            }
             case "item": {
                 const items = args.slice(1);
                 return {

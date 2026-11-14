@@ -1907,7 +1907,8 @@ choice-parameter-reader-changeable =
 # A random selection that can't select as written for some value its
 # parameters can take, decided at load (SEL-5). $when names those values, as
 # "`$a` = 1, `$i` = 2" (references are DoenetML, and stay as written); for
-# $kind "unproven" it gives their ranges instead, as "`$i` ∈ {1, 2, 3, …}".
+# $kind "unproven" it gives the values at which it can't be shown, or, when
+# the values were bounded instead, their ranges, as "`$i` ∈ {1, 2, 3, …}".
 # $attribute is the parameter that isn't a number (DoenetML). $variantName is
 # a variant name as the author wrote it.
 choice-not-always-possible =
@@ -1940,8 +1941,8 @@ choice-not-always-possible =
 # $reference names.
 choice-parameter-not-analysable =
     { $through ->
-        [component] `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, a `<{ $throughType }>` holding `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to another random selection, a repeat's index or value, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
-       *[other] `{ $attribute }` of `<{ $componentType }>` reads `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to another random selection, a repeat's index or value, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
+        [component] `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, a `<{ $throughType }>` holding `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to one value another random selection selects, a repeat's index or value, a module attribute, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
+       *[other] `{ $attribute }` of `<{ $componentType }>` reads `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to one value another random selection selects, a repeat's index or value, a module attribute, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
     }
 
 # A document loaded from a URI, $uri, has no reader state, so a
