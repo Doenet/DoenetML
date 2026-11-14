@@ -243,6 +243,48 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         ]);
     });
 
+    it("a math sequence with a length has that many values, whatever they are", async () => {
+        // `a`'s values are maths (x, x + 1, x + 2), which the check doesn't
+        // know; `s` has `length` values whatever they are
+        const a = `<selectFromSequence name="a" type="math" from="x" step="1" length="3"/>`;
+        for (const doenetML of [
+            `${a}<selectFromSequence type="math" from="$a" step="1" length="2" numToSelect="2"/>`,
+            `${a}<selectFromSequence type="math" from="y" step="$a" length="3" numToSelect="2"/>`,
+            `${a}<selectFromSequence type="math" from="$a" length="3" numToSelect="2" exclude="$a"/>`,
+            `<select name="b" type="math">x y</select><selectFromSequence type="math" from="$b" step="2" length="2" numToSelect="2"/>`,
+        ]) {
+            expect(await errorsInVariants(doenetML, [1, 2, 3])).eqls([
+                [],
+                [],
+                [],
+            ]);
+        }
+        // in a repeat with no end to its iterations (bounds), a length
+        // alone says how many values it has
+        const repeat = (attributes: string) =>
+            `<mathInput name="n" prefill="3"/><repeatForSequence to="$n" indexName="i"><selectFromSequence type="math" ${attributes}/></repeatForSequence>`;
+        expect(
+            (await load(repeat(`from="$i/3" step="1/3" length="3"`))).errors,
+        ).eqls([]);
+        expect(
+            (await load(repeat(`from="x" length="$i+1" numToSelect="2"`)))
+                .errors,
+        ).eqls([]);
+        expect(
+            (await load(repeat(`from="x" length="$i" numToSelect="2"`))).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$i` = 1, it has 1 value to select 2 from.",
+        ]);
+        // too few values whatever they are
+        expect(
+            (
+                await load(
+                    `${a}<selectFromSequence type="math" from="$a" length="2" numToSelect="3"/>`,
+                )
+            ).codes,
+        ).eqls(["doenet-e0073"]);
+    });
+
     it("a value a choice isn't known to take is not named as one that fails", async () => {
         // `a`'s `to` is 3 (`valueOnNaN`), which the check can't compute, so
         // it doesn't know what `a` can be: it can't show the selection,

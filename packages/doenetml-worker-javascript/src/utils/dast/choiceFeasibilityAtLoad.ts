@@ -3118,14 +3118,20 @@ export function checkChoiceFeasibilityAtLoad({
             const v = value(e);
             return typeof v === "number" ? v : NaN;
         };
-        // a value the check can't know decides nothing either way
+        // a value the check can't know decides nothing either way, except
+        // where a math sequence's `length` decides how many values it has:
+        // its values, from another math selection's, may be any math
+        const valuesByLength =
+            spec.type === "selectFromSequence" &&
+            spec.seqType === "math" &&
+            spec.length !== null;
         const scalars: (Expr | null)[] = [
             spec.numToSelect,
             "withReplacement" in spec ? spec.withReplacement : null,
             "coprime" in spec ? spec.coprime : null,
-            "from" in spec ? spec.from : null,
-            "to" in spec ? spec.to : null,
-            "step" in spec ? spec.step : null,
+            "from" in spec && !valuesByLength ? spec.from : null,
+            "to" in spec && !valuesByLength ? spec.to : null,
+            "step" in spec && !valuesByLength ? spec.step : null,
             "length" in spec ? spec.length : null,
         ];
         if (scalars.some((e) => e && isUnknown(value(e)))) {
@@ -4438,7 +4444,16 @@ export function checkChoiceFeasibilityAtLoad({
         }
 
         // `<selectFromSequence>`
-        if (spec.seqType === "math") {
+        if (
+            spec.seqType === "math" &&
+            !(
+                spec.length &&
+                spec.exclude.length === 0 &&
+                !spec.excludeCombinations
+            )
+        ) {
+            // its values, maths, aren't bounded; only a `length` with
+            // nothing excluded says how many it has
             return { ok: false, unproven: describeRanges() };
         }
         // how many values: `length`, or `(to - from) / step + 1`, rounded
