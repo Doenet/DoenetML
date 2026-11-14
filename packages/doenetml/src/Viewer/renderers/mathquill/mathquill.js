@@ -3115,8 +3115,9 @@ var saneKeyboardEvents = (function () {
         // Backspace. Chrome sends the same bare pair for its own empty commit
         // just before an on-screen keyboard's Enter; the Enter keydown came
         // 1 to 10 ms after it on an Android 15 emulator with Gboard. 100 ms
-        // is ten times that, and still about the shortest delay a reader
-        // notices. A held backspace repeats about every 50 ms, but each
+        // is ten times that, for slower phones, and short enough that a
+        // single deletion still looks immediate. A held backspace repeats
+        // about every 50 ms (measured, Gboard), but each
         // repeat's keydown applies the one before it, so the timer only
         // delays the last deletion.
         var PENDING_BACKSPACE_MS = 100;
@@ -3241,11 +3242,13 @@ var saneKeyboardEvents = (function () {
             // there is nothing in the textarea for it to delete, which is the
             // usual case, since typed text is taken out of it at once.
             // A key that typed or composed anything raised an `input` event
-            // in between; one that did neither, on an empty textarea, is the
-            // backspace, with one exception: before an on-screen keyboard's
-            // Enter, Chrome commits an empty string, which is the same bare
-            // pair, and then sends the Enter key. So the backspace is held
-            // back and dropped if the next keydown is Enter (`onKeydown`).
+            // in between; one that did neither, on an empty textarea, is
+            // taken for the backspace. Chrome sends the same bare pair for an
+            // IME's empty commit or forward delete; it commits an empty string
+            // itself before an on-screen keyboard's Enter (seen with Gboard
+            // on every Enter), and then sends the Enter key. So the
+            // backspace is held back and dropped if the next keydown is Enter
+            // (`onKeydown`).
             // Only keyCode 229, the code Chrome gives on-screen keyboard
             // events, on both keydown and keyup: a desktop key the browser
             // cannot name is also "Unidentified", with another keyCode, and
@@ -3322,7 +3325,7 @@ var saneKeyboardEvents = (function () {
             // every key as a keydown of "Unidentified" (keyCode 229),
             // then says exactly what it typed in an `input` event of type
             // `insertText`. Ignoring every "Unidentified" keydown, as the
-            // guard below does, dropped all typing on Android phones. When
+            // guard below does, dropped all typing from such a keyboard. When
             // the browser has named the one character inserted, outside a
             // composition, take it. The Ctrl-Shift-U keydowns described
             // above carry modifiers and are still ignored; the ChromeOS case
