@@ -166,7 +166,8 @@ describe("A selection computes a compiled parameter as the check does @group4", 
 <selectFromSequence name="t" type="math" from="sqrt(2)+$a" step="$a" length="3" numToSelect="2" exclude="2$a+sqrt(2)"/>
 <selectFromSequence name="u" type="math" from="pi" to="$a+5" numToSelect="2"/>
 <selectFromSequence name="b" type="math" from="sqrt(2)" step="1/2" length="3"/>
-<selectFromSequence name="v" type="math" from="$b" step="1/2" length="2" numToSelect="2"/>`,
+<selectFromSequence name="v" type="math" from="$b" step="1/2" length="2" numToSelect="2"/>
+<selectFromSequence name="w" type="math" from="x+$a" step="1" length="3" numToSelect="2" exclude="y+$a"/>`,
                 { requestedVariantIndex },
             );
             expect(codes).eqls([]);
@@ -210,6 +211,19 @@ describe("A selection computes a compiled parameter as the check does @group4", 
             expect(v.from.tree).eqls(b.tree);
             for (const w of v.selectedValues) {
                 expect(w.toString()).toContain("sqrt(2)");
+            }
+
+            // a literal written with a symbol, combined with a reference,
+            // is the math it is written as
+            const w = await sv("w");
+            expect(w.from.tree).eqls(["+", "x", a]);
+            expect(w.exclude.map((e: any) => e.tree)).eqls([["+", "y", a]]);
+            const sequence = texts(
+                [0, 1, 2].map((k) => me.fromText(`x+${a + k}`)),
+            );
+            expect(w.selectedValues).toHaveLength(2);
+            for (const value of texts(w.selectedValues)) {
+                expect(sequence).toContain(value);
             }
         }
     });

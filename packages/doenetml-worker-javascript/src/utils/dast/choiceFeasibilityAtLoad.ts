@@ -39,9 +39,12 @@
  *
  * ## What a parameter can be (SEL-6)
  *
- * Content that reads no value from the variant or an iteration is its
- * value, whatever its form (`3!`, `$n^2` with `n` a `<number>` written as
- * `3`). Content that reads one is analysable when it is:
+ * A parameter, or the content of a `<number>` it reads, that reads no value
+ * from the variant or an iteration is its value, whatever its form (`3!`,
+ * `$n^2` with `n` a `<number>` written as `3`), and so is a part of
+ * arithmetic that references nothing (`$a + 2^3`); a part that references
+ * something is held to the forms below (`$a + $n^2` isn't one). Content that
+ * reads such a value is analysable when it is:
  * - a literal;
  * - a reference SEL-1 allows, with a known range, each a slot:
  *   - another random choice, `$a` or `$a[2]` (in a letters sequence's
@@ -200,7 +203,6 @@ const MAX_COMBINATIONS = 20000;
  */
 const MAX_VALUES = 5000;
 
-/** A value that isn't a number: a symbol, a letter, or a math with one. */
 /**
  * A value that isn't a number: a symbol, a letter, a text, or a math with a
  * symbol, named by `symbolic`, and, when it came from a component, the value
@@ -293,6 +295,8 @@ type Expr =
           items: (string | Expr)[];
           tree: Expr | null;
           caveat?: Caveat;
+          /** Its content as written, for a message (`heldText`). */
+          written?: string;
           /**
            * A compiled parameter (`utils/selectionParameters.ts`): its value
            * is `template` computed from `items`, each the value a slot
@@ -1404,6 +1408,7 @@ export function checkChoiceFeasibilityAtLoad({
                 typeof child === "string" ? child : exprOf.get(child)!,
             ),
             tree: null,
+            written: textOfChildren(children),
         };
         const caveat = component
             ? valueCaveatOf(component, held.componentType)
@@ -1603,12 +1608,24 @@ export function checkChoiceFeasibilityAtLoad({
                 return codes.get(sub)!.expr;
             }
             if (!hasCode(sub)) {
-                // a literal part, the math it is written as
+                // a literal part, the math it is written as: its number, or
+                // the math, written with a symbol (`x` in `x + $i`), as a
+                // `<math>` holding it is
                 const value = numberOfTree(sub);
                 if (value !== undefined) {
                     return { k: "const", value, math: sub };
                 }
-                throw new NotAnalysable(partText(sub));
+                let math: any;
+                try {
+                    math = me.fromAst(sub);
+                } catch (e) {
+                    throw new NotAnalysable(partText(sub));
+                }
+                return {
+                    k: "const",
+                    value: fromRunTime({ componentType: "math", value: math }),
+                    math: sub,
+                };
             }
             if (!Array.isArray(sub)) {
                 throw new NotAnalysable(partText(sub));
@@ -3463,6 +3480,14 @@ export function checkChoiceFeasibilityAtLoad({
         if (typeof v === "number") {
             return String(v);
         }
+        if (v.runTime?.componentType === "math") {
+            // a math as the document shows it (`2 i`), not its tree
+            try {
+                return v.runTime.value.toString();
+            } catch (e) {
+                return v.symbolic;
+            }
+        }
         const letters = /^(letters|LETTERS):(-?\d+)$/.exec(v.symbolic);
         return letters
             ? numberToLetters(Number(letters[2]), letters[1] === "letters")
@@ -4537,6 +4562,9 @@ export function checkChoiceFeasibilityAtLoad({
 
     /** The text of what a `held` is written as, for a message. */
     function heldText(expr: Extract<Expr, { k: "held" }>): string {
+        if (expr.written !== undefined) {
+            return expr.written;
+        }
         return expr.items
             .map((item) =>
                 typeof item === "string"
@@ -5608,8 +5636,9 @@ function writtenText(attribute: any): string {
 }
 
 /**
- * The text of `children` as written, roughly: strings, and each reference
- * as `$` and its path.
+ * The text of `children` as written, roughly: strings, each reference as `$`
+ * and its path, and each component written as a tag as the author wrote it
+ * (`<boolean>true</boolean>`), else its content.
  */
 function textOfChildren(children: any[]): string {
     return children
@@ -5623,6 +5652,16 @@ function textOfChildren(children: any[]): string {
                     ref.originalPath,
                     currentSources,
                 );
+            }
+            const start = child.position?.start?.offset;
+            const end = child.position?.end?.offset;
+            const source = currentSources?.[child.sourceDoc ?? 0];
+            if (
+                typeof start === "number" &&
+                typeof end === "number" &&
+                source?.[start] === "<"
+            ) {
+                return source.substring(start, end);
             }
             return textOfChildren(child.children ?? []);
         })

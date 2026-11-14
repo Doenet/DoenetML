@@ -3,9 +3,10 @@
  * one test a selection makes before it draws (`<selectFromSequence>`,
  * `<selectPrimeNumbers>`, `<select>`), and the load-time check
  * (`utils/dast/choiceFeasibilityAtLoad.ts`) makes for each value its
- * parameters can take (D39, SEL-4, SEL-5). Both call these functions, so the
- * check finds a selection that can't be made exactly when the selection
- * itself would.
+ * parameters can take (D39, SEL-4, SEL-5). Both call these functions, so,
+ * with every value known, the check finds a selection that can't be made
+ * exactly when the selection itself would. (A `type="math"` sequence's
+ * values the check counts itself, as they are maths.)
  *
  * Each returns the error the selection reports (its code and arguments), or
  * `null`. One failure isn't the selection's not existing: `threshold` marks

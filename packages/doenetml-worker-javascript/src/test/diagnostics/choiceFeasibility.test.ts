@@ -906,6 +906,60 @@ describe("A parameter is in an analysable form (SEL-6) @group4", () => {
         );
     });
 
+    it("the error names a component in the part as written", async () => {
+        const choices = `<selectFromSequence name="a" to="2"/><selectFromSequence name="k" to="2"/>`;
+        for (const [parameters, part] of [
+            [
+                `<number name="m">$a+<boolean>true</boolean></number><selectFromSequence to="$m"/>`,
+                "$a+<boolean>true</boolean>",
+            ],
+            [
+                `<number name="m"><number>$a</number>^2</number><selectFromSequence to="$m"/>`,
+                "<number>$a</number>^2",
+            ],
+            [
+                `<numberList name="ns"><sequence from="5" to="7"/></numberList><selectFromSequence to="$ns[$k]"/>`,
+                `<sequence from="5" to="7"/>`,
+            ],
+        ]) {
+            const { errors } = await load(`${choices}${parameters}`);
+            expect(errors, parameters).toHaveLength(1);
+            expect(errors[0], parameters).toContain(`\`${part}\`, `);
+        }
+    });
+
+    it("a math value is named as the document shows it", async () => {
+        const { errors } = await load(
+            `<select name="a" type="math"><option>2i</option><option>3</option></select><selectFromSequence to="$a" numToSelect="2"/>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 2 i, `to` isn't a number.",
+        ]);
+    });
+
+    it("content reading nothing from the variant is its value only as a whole or as a literal part", async () => {
+        const choices = `<selectFromSequence name="a" to="2"/><number name="n">3</number>`;
+        // `2^3` is a literal part, and `$n^2` the whole content of `m`
+        for (const parameters of [
+            `<selectFromSequence to="$a+2^3" numToSelect="9"/>`,
+            `<number name="m">$n^2</number><selectFromSequence to="$a+$m" numToSelect="10"/>`,
+        ]) {
+            expect(
+                (await load(`${choices}${parameters}`)).codes,
+                parameters,
+            ).eqls([]);
+        }
+        // a power of a reference is no form a parameter takes, even of one
+        // that reads nothing from the variant
+        expect(
+            (
+                await load(
+                    `${choices}<selectFromSequence to="$a+$n^2" numToSelect="10"/>`,
+                )
+            ).codes,
+        ).eqls(["doenet-e0074"]);
+    });
+
     it("references through extends and copies of literals are", async () => {
         const { codes } = await load(
             `<select numToSelect="$n">u v w x y z</select><number extend="$n3" name="n2"/><math extend="$num1" name="n"/><math name="num1">$n2+$num2</math><number name="num2">2</number><number name="n3">1</number>`,

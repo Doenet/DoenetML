@@ -6,7 +6,8 @@
  * selection can be made for every value its parameters can take. For that
  * proof to be about the document, the check and the run time must compute a
  * parameter the same way. So a selection whose parameters read a value from
- * the variant or an iteration does not hold them as attribute components (an
+ * the variant or an iteration, or that another selection reads a value of,
+ * does not hold them as attribute components (an
  * `<integer>` holding a `<math>` holding a reference, with the sugar,
  * adapters and attributes each brings): the load pass compiles each one into
  * a *template*, arithmetic of constants and *slots*, and the selection holds
@@ -18,7 +19,8 @@
  *
  * What remains for the two to agree on is what a slot holds: a value another
  * selection drew, a repeat's index or value, a module attribute's value, each
- * a number (or a letter, for a letters sequence) as `slotValue` reads it.
+ * read as a number (or a letter, for a letters sequence) by `slotValue`, and
+ * as the math it holds by `slotMath` for a math output.
  *
  * A parameter the selection reads as a math (a `type="math"` sequence's
  * `from`, `to`, `step` and `exclude`) is computed as a math
