@@ -134,6 +134,79 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         ]);
     });
 
+    it("entries of a choice without replacement are different values", async () => {
+        // `$a[1]` and `$a[2]` are never equal, so `d` is at least 1
+        const distinct = await load(
+            `<selectFromSequence name="a" to="9" numToSelect="2"/><number name="d">abs($a[1]-$a[2])</number><selectFromSequence to="$d"/>`,
+        );
+        expect(distinct.errors).eqls([]);
+        // with replacement they can be equal, and `d` is then 0
+        const same = await load(
+            `<selectFromSequence name="a" to="9" numToSelect="2" withReplacement/><number name="d">abs($a[1]-$a[2])</number><selectFromSequence to="$d"/>`,
+        );
+        expect(same.errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a[1]` = 1, `$a[2]` = 1, it has 0 values to select 1 from.",
+        ]);
+    });
+
+    it("options for variants must match numToSelect even when it is 0", async () => {
+        const { errors } = await load(
+            `<variantControl numVariants="2" variantNames="a b"/><selectFromSequence name="n" from="0" to="1"/><select numToSelect="$n"><option selectForVariants="a">u</option><option selectForVariants="b">v</option></select>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$n` = 0, `numToSelect` is 0, but variant a has 1 option.",
+        ]);
+    });
+
+    it("an exclude of a choice of several leaves out only values the choice has", async () => {
+        // `b` is never 1, 2, 3 or 4, so nothing is left out
+        const outside = await load(
+            `<selectFromSequence name="b" from="20" to="30" numToSelect="2"/><selectFromSequence name="a" from="3" to="4"/><selectFromSequence to="$a" exclude="$b" numToSelect="$a-1"/>`,
+        );
+        expect(outside.errors).eqls([]);
+        // `b` can be 1 and 2
+        const inside = await load(
+            `<selectFromSequence name="b" to="10" numToSelect="2"/><selectFromSequence name="a" from="3" to="4"/><selectFromSequence to="$a" exclude="$b" numToSelect="$a-1"/>`,
+        );
+        expect(inside.errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 3, it has 1 value to select 2 from.",
+        ]);
+    });
+
+    it("an exclude that may not be a value of the choice is not said to leave one out", async () => {
+        // the same value excluded twice leaves out one
+        const twice = await load(
+            `<selectFromSequence name="a" from="3" to="4"/><selectFromSequence type="math" from="x" length="$a" exclude="x+1 x+1" numToSelect="2"/>`,
+        );
+        expect(twice.errors).eqls([]);
+        // `y` may or may not be a value: it can't be shown, which isn't
+        // said to be too few values
+        const symbol = await load(
+            `<selectFromSequence name="a" from="3" to="4"/><selectFromSequence type="math" from="x" length="$a" exclude="y" numToSelect="3"/>`,
+        );
+        expect(symbol.errors).eqls([
+            "doenet-e0073: DoenetML can't show that `<selectFromSequence>` can always select as written, for every value of what it reads: `$a` = 3. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.",
+        ]);
+    });
+
+    it("a letter is named as a letter", async () => {
+        const { errors } = await load(
+            `<selectFromSequence name="a" to="c" type="letters"/><selectFromSequence type="letters" from="a" to="c" exclude="$a" numToSelect="3"/>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = a, it has 2 values to select 3 from.",
+        ]);
+    });
+
+    // a time limit: going through each value took near a minute
+    it("long ranges are checked without going through their values", async () => {
+        // 20000 combinations of values, each with a range of 40000 values
+        const { errors } = await load(
+            `<selectFromSequence name="a" to="5000"/><selectFromSequence name="b" to="4"/><selectFromSequence name="c" to="4"/><selectFromSequence name="d" to="4"/><selectFromSequence from="$a" to="$a+$b+$c+$d+40000" exclude="3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20" numToSelect="2"/>`,
+        );
+        expect(errors).eqls([]);
+    }, 20000);
+
     it("with replacement, one value is enough", async () => {
         const { errors } = await load(
             `<selectFromSequence name="a" to="5"/><selectFromSequence to="$a" numToSelect="4" withReplacement/>`,

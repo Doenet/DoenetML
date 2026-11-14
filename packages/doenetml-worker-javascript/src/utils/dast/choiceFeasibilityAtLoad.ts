@@ -61,7 +61,12 @@
  * it selects, and the first that fails is named: "when `$a` = 1, it has 1
  * value to select 3 from" (`doenet-e0073`). Values that depend on each other
  * (`to="$a + 2"` and `from="$a"`) are taken together, never as if
- * independent.
+ * independent, and two entries of a choice made without replacement
+ * (`$a[1]`, `$a[2]`) are never the same value. An exclusion whose value
+ * isn't known (a symbol, the values of a choice of several that depend on
+ * the variant) may or may not leave a value out: a choice that has too few
+ * values only when it does can't be shown to select, which is the error,
+ * and isn't said to have too few.
  *
  * Otherwise (an index with no end, a `<selectRandomNumbers>` drawing from
  * an interval, or too many combinations), the check bounds what the choice
@@ -88,7 +93,7 @@
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
 import me from "math-expressions";
-import { lettersToNumber } from "@doenet/utils";
+import { lettersToNumber, numberToLetters } from "@doenet/utils";
 import { textToMathFactory } from "../math";
 import { mathCodePre } from "../valueFunctions/math";
 import { createInputStringFromChildren } from "../parseMath";
@@ -165,7 +170,7 @@ type Expr =
  * An entry of a list parameter (`exclude`): one value, or every value a
  * choice selects, of which there are `count`.
  */
-type ListEntry = Expr | { k: "many"; count: Expr };
+type ListEntry = Expr | { k: "many"; count: Expr; choice?: any };
 
 /**
  * A value a choice reads that comes from the variant or the iteration:
@@ -183,6 +188,8 @@ type Atom = {
     label: string;
     kind: "choice" | "index" | "seqValue" | "bool" | "moduleAttribute";
     node?: any;
+    /** For a `choice`, the entry it is (from 1), when the reference names one. */
+    entry?: number;
     /**
      * A `bool` whose value the DoenetML decides, though the check doesn't
      * work it out (`withReplacement="1>0"`): both values are checked, but
@@ -200,6 +207,8 @@ type ChoiceSpec =
     | {
           type: "selectFromSequence";
           seqType: string;
+          /** For letters, whether they are lower case, as the sequence decides. */
+          lowercase: boolean;
           from: Expr | null;
           to: Expr | null;
           step: Expr | null;
@@ -479,9 +488,16 @@ export function checkChoiceFeasibilityAtLoad({
                 seqType === "letters"
                     ? lettersParam(choice, name)
                     : scalarParam(choice, name);
+            // as the sequence decides: by `from` if written, else `to`
+            const caseAttribute = attr(choice, "from") ?? attr(choice, "to");
+            const caseText =
+                caseAttribute === undefined
+                    ? undefined
+                    : literalTextOf(caseAttribute);
             return {
                 type,
                 seqType,
+                lowercase: caseText === undefined || !/^[A-Z]*$/.test(caseText),
                 from: sequenceAttribute("from"),
                 to: sequenceAttribute("to"),
                 step: scalarParam(choice, "step"),
@@ -493,7 +509,12 @@ export function checkChoiceFeasibilityAtLoad({
                 numToSelect,
                 withReplacement: boolParam(choice, "withReplacement"),
                 coprime: boolParam(choice, "coprime"),
-                excludeCombinations: combinationsParam(choice),
+                excludeCombinations:
+                    seqType === "letters"
+                        ? (combinationsParam(choice)?.map((c) =>
+                              c.map(lettersLiteral),
+                          ) ?? null)
+                        : combinationsParam(choice),
             };
         }
         if (type === "selectPrimeNumbers") {
@@ -664,15 +685,19 @@ export function checkChoiceFeasibilityAtLoad({
         return constant(number);
     }
 
+    /** Letters written as a literal, as the number a letters sequence has. */
+    function lettersLiteral(entry: Expr): Expr {
+        if (entry.k === "const" && typeof entry.value !== "number") {
+            const number = lettersToNumber(entry.value.symbolic);
+            return number === undefined ? entry : constant(number);
+        }
+        return entry;
+    }
+
     function lettersListParam(choice: any): ListEntry[] {
-        // letters, as the numbers a letters sequence has
-        return listParam(choice, "exclude").map((entry) => {
-            if (entry.k === "const" && typeof entry.value !== "number") {
-                const number = lettersToNumber(entry.value.symbolic);
-                return number === undefined ? entry : constant(number);
-            }
-            return entry;
-        });
+        return listParam(choice, "exclude").map((entry) =>
+            entry.k === "many" ? entry : lettersLiteral(entry),
+        );
     }
 
     /** The attribute `attribute` as one value. */
@@ -775,7 +800,7 @@ export function checkChoiceFeasibilityAtLoad({
             if (count && count.value === 1) {
                 return [choiceAtomExpr(target, 1, ref)];
             }
-            return [{ k: "many", count: spec.numToSelect }];
+            return [{ k: "many", count: spec.numToSelect, choice: target }];
         }
         if (
             ref &&
@@ -1310,6 +1335,7 @@ export function checkChoiceFeasibilityAtLoad({
                 label: referenceText(ref),
                 kind: "choice",
                 node: choice,
+                entry: entry === "any" ? undefined : entry,
             };
             choiceAtoms.set(key, atom);
             const spec = specOf(choice) as ChoiceSpec;
@@ -1944,7 +1970,7 @@ export function checkChoiceFeasibilityAtLoad({
 
     /** The values of a sequence not excluded. */
     function sequenceDomain(
-        p: RepeatSequence,
+        p: RepeatSequence & { lowercase?: boolean },
         value: (e: Expr) => Value,
         exclude: ListEntry[],
     ): Domain {
@@ -1961,18 +1987,25 @@ export function checkChoiceFeasibilityAtLoad({
                     Number.isInteger(seq.from) && Number.isInteger(seq.step),
             };
         }
-        const excluded = exclude
-            .filter((e): e is Expr => e.k !== "many")
-            .map((e) => value(e))
-            .filter((v): v is number => typeof v === "number");
+        // an exclusion whose value isn't known leaves the value in: what
+        // the sequence can be is then more than it is, never less
+        const excluded = excludedIndices(
+            seq,
+            exclude
+                .filter((e): e is Expr => e.k !== "many")
+                .map((e) => sequenceNumber(value(e), p.seqType))
+                .filter((v): v is number => v !== undefined),
+        );
         const values: Value[] = [];
         for (let i = 0; i < seq.length; i++) {
-            const v = seq.from + i * seq.step;
-            if (excluded.some((x) => sameNumber(x, v, seq.step))) {
+            if (excluded.has(i)) {
                 continue;
             }
+            const v = seq.from + i * seq.step;
             values.push(
-                p.seqType === "letters" ? { symbolic: `letters:${v}` } : v,
+                p.seqType === "letters"
+                    ? lettersValue(v, p.lowercase ?? true)
+                    : v,
             );
         }
         return { finite: values };
@@ -2069,6 +2102,44 @@ export function checkChoiceFeasibilityAtLoad({
     // The check of one choice with values for its parameters
     // ------------------------------------------------------------------
 
+    /**
+     * What the choice `choice`, read as an exclusion, can select, as numbers
+     * of a sequence of `seqType`, when that is the same in every variant and
+     * it can select any of them together (so that it can exclude as many of
+     * them as it selects); otherwise `null`.
+     */
+    function knownExcludedValues(
+        choice: any,
+        seqType: string,
+    ): number[] | null {
+        if (!choice) {
+            return null;
+        }
+        const spec = specOf(choice);
+        if (spec instanceof Skip || spec instanceof NotAnalysable) {
+            return null;
+        }
+        if (
+            atomsOf(exprsOfSpec(spec)).size > 0 ||
+            ("excludeCombinations" in spec && spec.excludeCombinations) ||
+            (spec.type === "selectFromSequence" &&
+                !(spec.coprime.k === "const" && spec.coprime.value === 0)) ||
+            (spec.type === "select" && spec.optionsByVariant)
+        ) {
+            return null;
+        }
+        const domain = choiceValues(choice, spec, (e) =>
+            evaluate(e, new Map()),
+        );
+        if (!("finite" in domain)) {
+            return null;
+        }
+        const numbers = domain.finite.map((v) => sequenceNumber(v, seqType));
+        return numbers.every((n) => n !== undefined)
+            ? (numbers as number[])
+            : null;
+    }
+
     /** What, if anything, keeps `spec` from selecting with these values. */
     function concreteProblem(
         spec: ChoiceSpec,
@@ -2083,6 +2154,25 @@ export function checkChoiceFeasibilityAtLoad({
             return { kind: "number", args: { attribute: "numToSelect" } };
         }
         const numToSelect = Math.round(numToSelectValue);
+        if (spec.type === "select" && spec.optionsByVariant) {
+            // each variant name must be on `numToSelect` options, even when
+            // that is 0 (`doenet-e0032`)
+            for (const [variantName, count] of Object.entries(
+                spec.optionsByVariant,
+            )) {
+                if (count !== numToSelect) {
+                    return {
+                        kind: "variants",
+                        args: {
+                            variantName,
+                            numValues: count,
+                            numToSelect,
+                        },
+                    };
+                }
+            }
+            return null;
+        }
         if (numToSelect < 1) {
             return null;
         }
@@ -2093,23 +2183,6 @@ export function checkChoiceFeasibilityAtLoad({
         const need = withReplacement ? 1 : numToSelect;
 
         if (spec.type === "select") {
-            if (spec.optionsByVariant) {
-                for (const [variantName, count] of Object.entries(
-                    spec.optionsByVariant,
-                )) {
-                    if (count !== numToSelect) {
-                        return {
-                            kind: "variants",
-                            args: {
-                                variantName,
-                                numValues: count,
-                                numToSelect,
-                            },
-                        };
-                    }
-                }
-                return null;
-            }
             if (spec.numOptions === null) {
                 return need > 1 ? "unknown" : null;
             }
@@ -2122,29 +2195,68 @@ export function checkChoiceFeasibilityAtLoad({
             };
         }
 
-        // the values to select from, and how many more an exclusion that
-        // isn't one value may leave out
-        let values: number[] | null = null;
-        let numValues: number;
-        let unknownExcluded = 0;
+        // What `exclude` leaves out. A value known leaves out that value,
+        // if the choice has it. A value that isn't known (a symbol, an
+        // option that isn't one value), and each value of a choice of
+        // several whose values aren't known, may or may not leave one out:
+        // a choice that has too few values only when they do can't be
+        // shown to select, but isn't said to have too few.
+        const seqType =
+            spec.type === "selectFromSequence" ? spec.seqType : "number";
         const excludedValues: number[] = [];
+        const symbolicExcluded = new Set<string>();
+        let unknownExcluded = 0;
+        const knownMany: { count: number; values: number[] }[] = [];
         for (const entry of spec.exclude) {
             if (entry.k === "many") {
                 const count = number(entry.count);
-                unknownExcluded += Number.isFinite(count)
+                const n = Number.isFinite(count)
                     ? Math.max(0, Math.round(count))
                     : 0;
+                const values = knownExcludedValues(entry.choice, seqType);
+                if (values) {
+                    knownMany.push({ count: n, values });
+                } else {
+                    unknownExcluded += n;
+                }
                 continue;
             }
             const v = value(entry);
-            if (typeof v === "number") {
-                if (!Number.isNaN(v)) {
-                    excludedValues.push(v);
-                }
-            } else {
-                unknownExcluded++;
+            const n = sequenceNumber(v, seqType);
+            if (n !== undefined) {
+                excludedValues.push(n);
+            } else if (typeof v !== "number") {
+                symbolicExcluded.add(JSON.stringify(v));
             }
         }
+        unknownExcluded += symbolicExcluded.size;
+        const valuesKnown = unknownExcluded === 0 && knownMany.length === 0;
+
+        /**
+         * How many values a choice of several whose values are known can
+         * leave out, at most, of those `has` finds in the pool not already
+         * left out (by a key).
+         */
+        const removedByKnownMany = (has: (v: number) => string | null) => {
+            const all = new Set<string>();
+            let total = 0;
+            for (const { count, values } of knownMany) {
+                const these = new Set<string>();
+                for (const v of values) {
+                    const key = has(v);
+                    if (key !== null) {
+                        these.add(key);
+                        all.add(key);
+                    }
+                }
+                total += Math.min(count, these.size);
+            }
+            return Math.min(total, all.size);
+        };
+
+        let values: number[] | null = null;
+        let numValues: number;
+        let kind: "values" | "primes";
 
         if (spec.type === "selectFromSequence") {
             for (const name of ["from", "to", "step", "length"] as const) {
@@ -2159,65 +2271,93 @@ export function checkChoiceFeasibilityAtLoad({
             const seq = concreteSequence(spec, value);
             if (!seq) {
                 if (spec.seqType === "math" && spec.length) {
-                    // symbolic values: only how many is known
-                    numValues = Math.max(
-                        0,
-                        Math.round(number(spec.length)) -
-                            spec.exclude.length -
-                            unknownExcluded,
-                    );
-                    if (need > numValues) {
+                    // symbolic values: only how many is known, and any
+                    // exclusion may or may not be one of them
+                    const length = Math.max(0, Math.round(number(spec.length)));
+                    if (need > length) {
                         return {
                             kind: "values",
-                            args: { numValues, numToSelect: need },
+                            args: { numValues: length, numToSelect: need },
                         };
                     }
-                    return spec.excludeCombinations ? "unknown" : null;
+                    const mayExclude =
+                        new Set(excludedValues).size +
+                        unknownExcluded +
+                        knownMany.reduce((s, m) => s + m.count, 0);
+                    if (
+                        need > length - mayExclude ||
+                        spec.excludeCombinations
+                    ) {
+                        return "unknown";
+                    }
+                    return null;
                 }
                 return "unknown";
             }
-            if (seq.length > 10 * MAX_VALUES) {
-                const excludedInSequence = new Set<number>();
-                for (const x of excludedValues) {
-                    const k = (x - seq.from) / seq.step;
-                    const rounded = Math.round(k);
-                    if (
-                        Math.abs(k - rounded) < 1e-10 &&
-                        rounded >= 0 &&
-                        rounded < seq.length
-                    ) {
-                        excludedInSequence.add(rounded);
+            kind = "values";
+            const excluded = excludedIndices(seq, excludedValues);
+            const removed = removedByKnownMany((v) => {
+                for (const i of excludedIndices(seq, [v])) {
+                    if (!excluded.has(i)) {
+                        return String(i);
                     }
                 }
-                numValues = seq.length - excludedInSequence.size;
-            } else {
+                return null;
+            });
+            numValues = seq.length - excluded.size - removed;
+            if (
+                seq.length <= 10 * MAX_VALUES &&
+                (spec.excludeCombinations || number(spec.coprime) !== 0)
+            ) {
                 values = [];
                 for (let i = 0; i < seq.length; i++) {
-                    const v = seq.from + i * seq.step;
-                    if (
-                        !excludedValues.some((x) => sameNumber(x, v, seq.step))
-                    ) {
-                        values.push(v);
+                    if (!excluded.has(i)) {
+                        values.push(seq.from + i * seq.step);
                     }
                 }
-                numValues = values.length;
             }
-            numValues = Math.max(0, numValues - unknownExcluded);
-            if (need > numValues) {
-                return {
-                    kind: "values",
-                    args: { numValues, numToSelect: need },
-                };
+        } else {
+            const from = number(spec.from);
+            const to = number(spec.to);
+            if (Number.isNaN(from)) {
+                return { kind: "number", args: { attribute: "from" } };
             }
+            if (Number.isNaN(to)) {
+                return { kind: "number", args: { attribute: "to" } };
+            }
+            kind = "primes";
+            values = createPrimesList({
+                from: Math.round(from),
+                to: Math.round(to),
+                exclude: excludedValues as never[],
+            });
+            const primes = new Set(values);
+            const removed = removedByKnownMany((v) =>
+                primes.has(v) ? String(v) : null,
+            );
+            numValues = values!.length - removed;
+        }
+
+        numValues = Math.max(0, numValues);
+        const fewest = Math.max(0, numValues - unknownExcluded);
+        if (need > numValues) {
+            return { kind, args: { numValues, numToSelect: need } };
+        }
+        if (need > fewest) {
+            return "unknown";
+        }
+
+        if (spec.type === "selectFromSequence") {
             const coprime =
                 number(spec.coprime) !== 0 &&
                 spec.seqType === "number" &&
                 !spec.excludeCombinations &&
                 numToSelect > 1;
             if (coprime) {
-                if (unknownExcluded > 0 || !values) {
+                if (!valuesKnown || !values) {
                     return "unknown";
                 }
+                const seq = concreteSequence(spec, value)!;
                 const last = seq.from + (seq.length - 1) * seq.step;
                 if (
                     !Number.isInteger(seq.from) ||
@@ -2233,52 +2373,21 @@ export function checkChoiceFeasibilityAtLoad({
                     return { kind: "coprime", args: { numToSelect } };
                 }
             }
-        } else {
-            const from = number(spec.from);
-            const to = number(spec.to);
-            if (Number.isNaN(from)) {
-                return { kind: "number", args: { attribute: "from" } };
-            }
-            if (Number.isNaN(to)) {
-                return { kind: "number", args: { attribute: "to" } };
-            }
-            values = createPrimesList({
-                from: Math.round(from),
-                to: Math.round(to),
-                exclude: excludedValues as never[],
-            });
-            numValues = Math.max(0, values!.length - unknownExcluded);
-            if (need > numValues) {
-                return {
-                    kind: "primes",
-                    args: { numValues, numToSelect: need },
-                };
-            }
         }
 
         if (spec.excludeCombinations && spec.excludeCombinations.length > 0) {
             const combinations = spec.excludeCombinations
                 .map((c) =>
-                    c.slice(0, numToSelect).map((e) => {
-                        const v = value(e);
-                        if (typeof v === "number") {
-                            return v;
-                        }
-                        // letters, as the numbers a letters sequence has
-                        const letters =
-                            spec.type === "selectFromSequence" &&
-                            spec.seqType === "letters"
-                                ? lettersToNumber(v.symbolic)
-                                : undefined;
+                    c
+                        .slice(0, numToSelect)
                         // a value that isn't a number matches any
-                        return letters ?? NaN;
-                    }),
+                        .map((e) => sequenceNumber(value(e), seqType) ?? NaN),
                 )
                 .filter((c) => c.length === numToSelect);
-            if (!values || unknownExcluded > 0) {
+            if (!values || !valuesKnown) {
                 // only how many combinations there are is known
                 const total = orderedCount(
-                    numValues,
+                    fewest,
                     numToSelect,
                     withReplacement,
                 );
@@ -2322,8 +2431,9 @@ export function checkChoiceFeasibilityAtLoad({
         if (typeof v === "number") {
             return String(v);
         }
-        return v.symbolic.startsWith("letters:")
-            ? String(v.symbolic.slice(8))
+        const letters = /^(letters|LETTERS):(-?\d+)$/.exec(v.symbolic);
+        return letters
+            ? numberToLetters(Number(letters[2]), letters[1] === "letters")
             : v.symbolic;
     }
 
@@ -2370,6 +2480,68 @@ export function checkChoiceFeasibilityAtLoad({
             .join(", ");
     }
 
+    /**
+     * Whether `v` for `atom`, an entry of a choice (`$a[2]`), is a value
+     * another entry of that choice already has in `assignment`, which can't
+     * be when the choice selects without replacement: its entries are then
+     * different values.
+     */
+    function sameAsOtherEntry(
+        atom: Atom,
+        v: Value,
+        assignment: Assignment,
+    ): boolean {
+        if (atom.kind !== "choice" || atom.entry === undefined) {
+            return false;
+        }
+        const n = sequenceNumber(v, "letters");
+        if (n === undefined || !entriesDiffer(atom.node)) {
+            return false;
+        }
+        for (const [other, w] of assignment) {
+            if (
+                other !== atom &&
+                other.kind === "choice" &&
+                other.node === atom.node &&
+                other.entry !== undefined &&
+                other.entry !== atom.entry &&
+                sequenceNumber(w, "letters") === n
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether the entries of what `choice` selects are always different
+     * values: it selects without replacement, from values that differ.
+     */
+    function entriesDiffer(choice: any): boolean {
+        const spec = specOf(choice);
+        if (
+            spec instanceof Skip ||
+            spec instanceof NotAnalysable ||
+            spec.type === "selectRandomNumbers" ||
+            !(
+                spec.withReplacement.k === "const" &&
+                spec.withReplacement.value === 0
+            )
+        ) {
+            return false;
+        }
+        if (spec.type === "select") {
+            // two options can be the same value
+            const keys = (spec.optionValues ?? []).map((v) =>
+                JSON.stringify(v),
+            );
+            return (
+                spec.optionValues !== null && new Set(keys).size === keys.length
+            );
+        }
+        return true;
+    }
+
     function check(spec: ChoiceSpec): Verdict {
         const exprs = exprsOfSpec(spec);
         const direct = namedOf(exprs);
@@ -2413,6 +2585,9 @@ export function checkChoiceFeasibilityAtLoad({
                 return true;
             }
             for (const v of domain.finite) {
+                if (sameAsOtherEntry(atom, v, assignment)) {
+                    continue;
+                }
                 assignment.set(atom, v);
                 if (enumerate(k + 1)) {
                     assignment.delete(atom);
@@ -2890,7 +3065,12 @@ export function checkChoiceFeasibilityAtLoad({
                 ? spec.numToSelect
                 : { k: "op", op: "round", args: [spec.numToSelect] },
         );
-        if (numToSelectBounds.hi < 0.5) {
+        if (
+            numToSelectBounds.hi < 0.5 &&
+            !(spec.type === "select" && spec.optionsByVariant)
+        ) {
+            // selects nothing; but a variant name must still be on as many
+            // options as it selects (`concreteProblem`)
             return { ok: true };
         }
         const replacement = intervalOf(
@@ -2944,7 +3124,9 @@ export function checkChoiceFeasibilityAtLoad({
                     const domain = domainOf(atom, assignment);
                     const v =
                         "finite" in domain
-                            ? domain.finite[0]
+                            ? domain.finite.find(
+                                  (w) => !sameAsOtherEntry(atom, w, assignment),
+                              )
                             : Number.isFinite(domain.lo)
                               ? domain.lo
                               : Number.isFinite(domain.hi)
@@ -2954,6 +3136,14 @@ export function checkChoiceFeasibilityAtLoad({
                         assignment.set(atom, v);
                     }
                 }
+            }
+            if (
+                [...assignment].some(([atom, v]) =>
+                    sameAsOtherEntry(atom, v, assignment),
+                )
+            ) {
+                // values the choice can't have together
+                return { ok: false, unproven: describeRanges() };
             }
             const problem = concreteProblem(spec, (e) =>
                 evaluate(e, assignment),
@@ -3314,6 +3504,56 @@ function literalOfTree(tree: any): Value {
         // not a number
     }
     return { symbolic: JSON.stringify(tree) };
+}
+
+/** A value of a letters sequence, by its number. */
+function lettersValue(n: number, lowercase: boolean): Sym {
+    return { symbolic: `${lowercase ? "letters" : "LETTERS"}:${n}` };
+}
+
+/**
+ * The number `v` is in a sequence of `seqType`, a letter of a letters
+ * sequence by its number, or `undefined` when it isn't one.
+ */
+function sequenceNumber(v: Value, seqType: string): number | undefined {
+    if (typeof v === "number") {
+        return Number.isNaN(v) ? undefined : v;
+    }
+    const letters = /^letters:(-?\d+)$/i.exec(v.symbolic);
+    return seqType === "letters" && letters ? Number(letters[1]) : undefined;
+}
+
+/**
+ * The indices (from 0) of the values of `seq` that `excluded` leaves out,
+ * as the sequence decides (`returnSequenceValueForIndex`).
+ */
+function excludedIndices(
+    seq: { from: number; step: number; length: number },
+    excluded: number[],
+): Set<number> {
+    const found = new Set<number>();
+    for (const x of excluded) {
+        if (seq.step === 0) {
+            // every value is `from`
+            if (sameNumber(x, seq.from, 0)) {
+                for (let i = 0; i < seq.length; i++) {
+                    found.add(i);
+                }
+            }
+            continue;
+        }
+        const k = Math.round((x - seq.from) / seq.step);
+        for (const i of [k - 1, k, k + 1]) {
+            if (
+                i >= 0 &&
+                i < seq.length &&
+                sameNumber(x, seq.from + i * seq.step, seq.step)
+            ) {
+                found.add(i);
+            }
+        }
+    }
+    return found;
 }
 
 /** Whether two numbers of a sequence are the same, as the sequence decides. */
