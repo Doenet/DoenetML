@@ -2,6 +2,7 @@ import BaseComponent from "./BaseComponent";
 import {
     asStateValue,
     parameterValue,
+    slotMath,
     slotValue,
 } from "../../utils/selectionParameters";
 
@@ -84,7 +85,8 @@ export class SelectionParameter extends BaseComponent {
 /**
  * A slot of a `_selectionParameter`: one reference, as its child, and what
  * it holds (`slotValues`): its value, and, for a reference to a selection of
- * several, each of them, as `slotValue` reads each.
+ * several, each of them, as `slotValue` reads each, and as a math output
+ * reads each (`slotMath`).
  */
 export class SelectionParameterSlot extends BaseComponent {
     static componentType = "_selectionParameterSlot";
@@ -112,20 +114,24 @@ export class SelectionParameterSlot extends BaseComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                const values = [];
+                const raws = [];
                 for (const child of dependencyValues.children) {
                     const selected = child.stateValues?.selectedValues;
                     if (Array.isArray(selected)) {
-                        values.push(...selected.map(slotValue));
+                        raws.push(...selected);
                     } else {
-                        values.push(slotValue(child.stateValues?.value));
+                        raws.push(child.stateValues?.value);
                     }
                 }
+                const values = raws.map(slotValue);
+                const maths = raws.map(slotMath);
                 return {
                     setValue: {
                         slotValues: {
                             value: values.length > 0 ? values[0] : NaN,
                             values,
+                            math: maths.length > 0 ? maths[0] : slotMath(NaN),
+                            maths,
                         },
                     },
                 };

@@ -19,6 +19,14 @@
  * What remains for the two to agree on is what a slot holds: a value another
  * selection drew, a repeat's index or value, a module attribute's value, each
  * a number (or a letter, for a letters sequence) as `slotValue` reads it.
+ *
+ * A parameter the selection reads as a math (a `type="math"` sequence's
+ * `from`, `to`, `step` and `exclude`) is computed as a math
+ * (`mathOfTemplate`): the same arithmetic, on the math each constant is
+ * written as and the math each slot's reference holds, so that the sequence
+ * holds what it held when the parameter was a `<math>`: `$a/3` with `$a` = 5
+ * is 5/3, not 1.666…. The check reads that math's numeric value
+ * (`numberOfParameter`).
  */
 import me from "math-expressions";
 import { textToMath } from "./valueFunctions/text";
@@ -44,15 +52,21 @@ export type ParameterOp =
     | "ceil"
     | "round"
     | "item"
-    | "truth";
+    | "truth"
+    | "number";
 
 /**
  * A compiled parameter: constants, slots (by their index among the
  * parameter's children), and operations. `item` is the entry, at the index
- * `args[0]` (from 1), of `args[1..]`. `truth` is a boolean: not 0.
+ * `args[0]` (from 1), of `args[1..]`. `truth` is a boolean: not 0. `number`
+ * is what a `<number>` or an `<integer>` holding its argument holds: its
+ * argument as a number (a math with no numeric value is no number).
+ *
+ * A constant written as a math has the math's tree as `math`, which a math
+ * output holds in place of its numeric `value` (`sqrt(2)`, not 1.414…).
  */
 export type ParameterTemplate =
-    | { k: "const"; value: ParameterValue }
+    | { k: "const"; value: ParameterValue; math?: any }
     | { k: "slot"; slot: number }
     | { k: "op"; op: ParameterOp; args: ParameterTemplate[] };
 
@@ -90,10 +104,15 @@ export type CompiledParameter =
           lists: ParameterListEntry[][];
       };
 
-/** What a slot holds: the value of its reference, and of all of them. */
+/**
+ * What a slot holds: the value of its reference, and of all of them; and the
+ * same as maths (`slotMath`), as a math output reads them.
+ */
 export type SlotValues = {
     value: ParameterValue;
     values: ParameterValue[];
+    math?: any;
+    maths?: any[];
 };
 
 /**
@@ -116,6 +135,27 @@ export function slotValue(raw: unknown): ParameterValue {
         return mathValue(raw);
     }
     return NaN;
+}
+
+/**
+ * What a slot holds, from the value its reference has when the document runs
+ * (`raw`), as a math output reads it: a math as it is, a number as a math, a
+ * text parsed as math. Anything else is no number.
+ */
+export function slotMath(raw: unknown): any {
+    if (raw instanceof me.class) {
+        return raw;
+    }
+    if (typeof raw === "number") {
+        return me.fromAst(raw);
+    }
+    if (typeof raw === "boolean") {
+        return me.fromAst(raw ? 1 : 0);
+    }
+    if (typeof raw === "string") {
+        return textToMath({ value: raw, isLatex: false });
+    }
+    return me.fromAst(NaN);
 }
 
 /** A math's value: its numeric value, or its tree when it has none. */
@@ -170,6 +210,9 @@ export function evaluateTemplate(
         return truthOfParameter(values[0]) ? 1 : 0;
     }
     const nums = values.map(asMath);
+    if (template.op === "number") {
+        return typeof nums[0] === "number" ? nums[0] : NaN;
+    }
     if (!nums.every((v): v is number => typeof v === "number")) {
         return NaN;
     }
@@ -198,6 +241,122 @@ export function evaluateTemplate(
     return NaN;
 }
 
+/** The math `v` is, as a math output holds it. */
+function mathOfValue(v: ParameterValue): any {
+    if (typeof v === "number") {
+        return me.fromAst(v);
+    }
+    if (v.text) {
+        return textToMath({ value: v.symbolic, isLatex: false });
+    }
+    try {
+        return me.fromAst(JSON.parse(v.symbolic));
+    } catch (e) {
+        return me.fromAst(NaN);
+    }
+}
+
+/**
+ * The math `template` computes, given the math each slot holds
+ * (`slotMath`): the same arithmetic as `evaluateTemplate`, written as a
+ * math, as the `<math>` the parameter was written as holds it (`$a/3` with
+ * `$a` = 5 is 5/3), each constant the math it is written as. What a
+ * `<number>` holds (`number`), an index (`item`) and a `truth` are numbers.
+ */
+export function mathOfTemplate(
+    template: ParameterTemplate,
+    slot: (k: number) => { value: ParameterValue; math?: any },
+): any {
+    if (template.k === "const") {
+        return template.math !== undefined
+            ? me.fromAst(template.math)
+            : mathOfValue(template.value);
+    }
+    if (template.k === "slot") {
+        const held = slot(template.slot);
+        return held.math ?? mathOfValue(held.value);
+    }
+    const numeric = (t: ParameterTemplate) =>
+        mathOfValue(evaluateTemplate(t, (k) => slot(k).value));
+    if (template.op === "item") {
+        const index = asMath(
+            evaluateTemplate(template.args[0], (k) => slot(k).value),
+        );
+        if (typeof index !== "number" || !Number.isInteger(index)) {
+            return me.fromAst(NaN);
+        }
+        const item = index >= 1 ? template.args[index] : undefined;
+        return item ? mathOfTemplate(item, slot) : me.fromAst(NaN);
+    }
+    if (template.op === "truth" || template.op === "number") {
+        return numeric(template);
+    }
+    return me.fromAst(
+        mathTreeOfOp(
+            template.op,
+            template.args.map((arg) => mathOfTemplate(arg, slot).tree),
+        ),
+    );
+}
+
+/**
+ * The tree of the math the arithmetic `op` of `trees` is written as (`$a/3`
+ * is `["/", a, 3]`), as a `<math>` holding it parses it.
+ */
+export function mathTreeOfOp(op: ParameterOp, trees: any[]): any {
+    switch (op) {
+        case "+":
+        case "*":
+            return [op, ...trees];
+        case "neg":
+            return ["-", trees[0]];
+        case "/":
+            return ["/", trees[0], trees[1]];
+        case "min":
+        case "max":
+            return [
+                "apply",
+                op,
+                trees.length === 1 ? trees[0] : ["tuple", ...trees],
+            ];
+        case "abs":
+        case "floor":
+        case "ceil":
+        case "round":
+            return ["apply", op, trees[0]];
+    }
+    return NaN;
+}
+
+/**
+ * The value of `template` made into `output`, given what each slot holds:
+ * for a `math` output, the math (`mathOfTemplate`); for any other, a
+ * `ParameterValue`. The run time holds it; the check reads it with
+ * `numberOfParameter`.
+ */
+export function templateValue(
+    template: ParameterTemplate,
+    output: ParameterOutput,
+    slot: (k: number) => { value: ParameterValue; math?: any },
+): any {
+    if (output === "math") {
+        return mathOfTemplate(template, slot);
+    }
+    return outputOf(
+        evaluateTemplate(template, (k) => slot(k).value),
+        output,
+    );
+}
+
+/**
+ * A value `templateValue` (or `parameterValue`) gives, as a
+ * `ParameterValue`: a math's numeric value (`evaluate_to_constant`), or its
+ * tree when it has none; anything else as it is.
+ */
+export function numberOfParameter(v: any): ParameterValue {
+    return v instanceof me.class ? mathValue(v) : v;
+}
+
 /** `v` made into what the attribute holds (`ParameterOutput`). */
 export function outputOf(
     v: ParameterValue,
@@ -221,32 +380,30 @@ export function outputOf(
 
 /**
  * The value of a scalar parameter, or the values of a list parameter, given
- * what its slots hold, as the selection reads them (`ParameterOutput`).
- * `lists` gives an array of arrays.
+ * what its slots hold, as the selection reads them (`ParameterOutput`,
+ * `templateValue`: a math for a `math` output). `lists` gives an array of
+ * arrays.
  */
 export function parameterValue(
     parameter: CompiledParameter,
     slots: (k: number) => SlotValues,
-): ParameterValue | ParameterValue[] | ParameterValue[][] {
-    const one = (k: number) => slots(k).value;
+): any {
+    const output = parameter.output;
     const listOf = (entries: ParameterListEntry[]) =>
-        entries.flatMap((entry) =>
-            entry.k === "all"
-                ? slots(entry.slot).values.map((v) =>
-                      outputOf(v, parameter.output),
-                  )
-                : [
-                      outputOf(
-                          evaluateTemplate(entry.template, one),
-                          parameter.output,
-                      ),
-                  ],
-        );
+        entries.flatMap((entry) => {
+            if (entry.k === "entry") {
+                return [templateValue(entry.template, output, slots)];
+            }
+            const held = slots(entry.slot);
+            if (output === "math") {
+                return held.values.map(
+                    (v, i) => held.maths?.[i] ?? mathOfValue(v),
+                );
+            }
+            return held.values.map((v) => outputOf(v, output));
+        });
     if (parameter.kind === "scalar") {
-        return outputOf(
-            evaluateTemplate(parameter.template, one),
-            parameter.output,
-        );
+        return templateValue(parameter.template, output, slots);
     }
     if (parameter.kind === "list") {
         return listOf(parameter.entries);
@@ -272,6 +429,9 @@ export function asStateValue(value: any, output: ParameterOutput): any {
     if (output === "math") {
         // a math, as a math sequence reads its `from`, `to`, `step` and
         // each of its `exclude` (`equals`)
+        if (value instanceof me.class) {
+            return value;
+        }
         if (typeof value === "number") {
             return me.fromAst(value);
         }

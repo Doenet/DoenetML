@@ -163,8 +163,9 @@ import {
     type SelectionFailure,
 } from "../selectionFailure";
 import {
-    evaluateTemplate,
-    outputOf,
+    mathTreeOfOp,
+    numberOfParameter,
+    templateValue,
     type CompiledParameter,
     type ParameterListEntry,
     type ParameterOutput,
@@ -259,7 +260,12 @@ const NO_LETTERS: Sym = sym("", { componentType: "text", value: "" });
  * `item` is the entry, at the index `args[0]` (from 1), of `args[1..]`.
  */
 type Expr =
-    | { k: "const"; value: Value }
+    /**
+     * `math` is the tree of the math a constant written as a `<math>` (or
+     * a part of one) holds, which a compiled math output keeps
+     * (`mathOfTemplate`: `sqrt(2)`, not 1.414…).
+     */
+    | { k: "const"; value: Value; math?: any }
     /**
      * `expr`, written as the reference `label`, which names it in a message.
      * `node` is the reference itself, when it reads a value from the variant
@@ -1407,7 +1413,7 @@ export function checkChoiceFeasibilityAtLoad({
         }
         if (atomsOf(componentExprs).size === 0) {
             // what it is written as decides it: its value
-            return constant(evaluate(held, new Map()));
+            return heldConstant(held);
         }
         if (held.componentType === "boolean" || held.componentType === "text") {
             return held;
@@ -1487,9 +1493,79 @@ export function checkChoiceFeasibilityAtLoad({
         if (caveat) {
             held.tree = null;
         }
-        return atomsOf([expr]).size === 0
-            ? constant(evaluate(held, new Map()))
-            : held;
+        return atomsOf([expr]).size === 0 ? heldConstant(held) : held;
+    }
+
+    /**
+     * `held`, which reads no value from the variant or an iteration, as the
+     * constant it is: its value, and, for a `<math>` with no attribute that
+     * changes its value, the tree of the math it holds (`math`), computed by
+     * the `<math>`'s own function with each component in it the math it
+     * holds.
+     */
+    function heldConstant(held: Extract<Expr, { k: "held" }>): Expr {
+        const value = evaluate(held, new Map());
+        if (held.componentType !== "math" || held.caveat || isUnknown(value)) {
+            return constant(value);
+        }
+        let math: any;
+        try {
+            const child = runTimeValue(
+                "math",
+                held.items.map((item) =>
+                    typeof item === "string" ? item : runTimeOfConstant(item),
+                ),
+                componentInfoObjects,
+            );
+            math =
+                child.componentType === "math" ? child.value.tree : undefined;
+        } catch (e) {
+            math = undefined;
+        }
+        return math === undefined
+            ? constant(value)
+            : { k: "const", value, math };
+    }
+
+    /** A constant as what holds it is when the document runs. */
+    function runTimeOfConstant(expr: Expr): RunTimeChild {
+        const math = constantMath(expr);
+        return math !== undefined
+            ? { componentType: "math", value: me.fromAst(math) }
+            : toRunTime(evaluate(expr, new Map()));
+    }
+
+    /**
+     * The tree of the math the constant `expr` holds, when it is written as
+     * a math (`heldConstant`, a part of a `<math>`), or arithmetic of one;
+     * `undefined` when it is a number.
+     */
+    function constantMath(expr: Expr): any {
+        if (expr.k === "const") {
+            return expr.math;
+        }
+        if (expr.k === "named") {
+            return constantMath(expr.expr);
+        }
+        if (
+            expr.k !== "op" ||
+            expr.op === "letterNumber" ||
+            expr.op === "item"
+        ) {
+            return undefined;
+        }
+        const maths = expr.args.map(constantMath);
+        if (maths.every((math) => math === undefined)) {
+            return undefined;
+        }
+        const trees = expr.args.map((arg, k) => {
+            if (maths[k] !== undefined) {
+                return maths[k];
+            }
+            const value = evaluate(arg, new Map());
+            return typeof value === "number" ? value : NaN;
+        });
+        return mathTreeOfOp(expr.op, trees);
     }
 
     /**
@@ -1527,10 +1603,10 @@ export function checkChoiceFeasibilityAtLoad({
                 return codes.get(sub)!.expr;
             }
             if (!hasCode(sub)) {
-                // a literal part
+                // a literal part, the math it is written as
                 const value = numberOfTree(sub);
                 if (value !== undefined) {
-                    return constant(value);
+                    return { k: "const", value, math: sub };
                 }
                 throw new NotAnalysable(partText(sub));
             }
@@ -2522,12 +2598,20 @@ export function checkChoiceFeasibilityAtLoad({
                 return unknownValue();
             }
             const { template, output } = expr.compiled;
+            // the selection's value, read as a number where it is a math
             return fromParameter(
-                outputOf(
-                    evaluateTemplate(template, (k) =>
-                        toParameter(values[k] as Value),
-                    ),
-                    output,
+                numberOfParameter(
+                    templateValue(template, output, (k) => {
+                        const v = values[k] as Value;
+                        return {
+                            value: toParameter(v),
+                            math:
+                                typeof v !== "number" &&
+                                v.runTime?.componentType === "math"
+                                    ? v.runTime.value
+                                    : undefined,
+                        };
+                    }),
                 ),
                 output,
             );
@@ -4470,7 +4554,10 @@ export function checkChoiceFeasibilityAtLoad({
                     expr.k === "held" ? heldText(expr) : "",
                 );
             }
-            return { k: "const", value: toParameter(value) };
+            const math = constantMath(expr);
+            return math === undefined
+                ? { k: "const", value: toParameter(value) }
+                : { k: "const", value: toParameter(value), math };
         }
         if (expr.k === "named") {
             if (expr.node !== undefined) {
@@ -4484,7 +4571,12 @@ export function checkChoiceFeasibilityAtLoad({
                 !expr.caveat &&
                 ["number", "integer", "math"].includes(expr.componentType)
             ) {
-                return compileTemplate(expr.tree, slots);
+                const template = compileTemplate(expr.tree, slots);
+                // a `<number>` or `<integer>` holds a number, also where a
+                // math is read
+                return expr.componentType === "math"
+                    ? template
+                    : { k: "op", op: "number", args: [template] };
             }
             // a `<boolean>` or `<text>` holding one reference alone, perhaps
             // through another of its type (the attribute's, and the one it
@@ -4543,7 +4635,14 @@ export function checkChoiceFeasibilityAtLoad({
     ): Expr {
         if (template.k === "const") {
             return constant(
-                fromParameter(outputOf(template.value, output), output),
+                fromParameter(
+                    numberOfParameter(
+                        templateValue(template, output, () => ({
+                            value: NaN,
+                        })),
+                    ),
+                    output,
+                ),
             );
         }
         function treeOf(t: ParameterTemplate): Expr | null {
@@ -4555,6 +4654,9 @@ export function checkChoiceFeasibilityAtLoad({
             }
             if (t.op === "truth") {
                 return null;
+            }
+            if (t.op === "number") {
+                return treeOf(t.args[0]);
             }
             const args = t.args.map(treeOf);
             return args.every((arg) => arg !== null)

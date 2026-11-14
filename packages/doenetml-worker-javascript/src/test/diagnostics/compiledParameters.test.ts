@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import seedrandom from "seedrandom";
+import me from "math-expressions";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { updateMathInputValue } from "../utils/actions";
@@ -154,6 +155,62 @@ describe("A selection computes a compiled parameter as the check does @group4", 
             expect(s.selectedValues.map((v: any) => v.tree).sort()).eqls(
                 [1, 2, 3, 4].filter((v) => v !== a),
             );
+        }
+    });
+
+    it("a math sequence holds the math its parameters are written as", async () => {
+        for (const requestedVariantIndex of variants) {
+            const { sv, codes } = await load(
+                `<selectFromSequence name="a" from="4" to="6"/>
+<selectFromSequence name="s" type="math" from="$a/3" step="1/3" length="4" numToSelect="4"/>
+<selectFromSequence name="t" type="math" from="sqrt(2)+$a" step="$a" length="3" numToSelect="2" exclude="2$a+sqrt(2)"/>
+<selectFromSequence name="u" type="math" from="pi" to="$a+5" numToSelect="2"/>
+<selectFromSequence name="b" type="math" from="sqrt(2)" step="1/2" length="3"/>
+<selectFromSequence name="v" type="math" from="$b" step="1/2" length="2" numToSelect="2"/>`,
+                { requestedVariantIndex },
+            );
+            expect(codes).eqls([]);
+            const a = (await sv("a")).selectedValues[0];
+            const texts = (values: any[]) =>
+                values.map((v: any) => v.toString()).sort();
+
+            // as when the parameters were `<math>`s: 5/3, not 1.666…
+            const s = await sv("s");
+            expect(s.from.tree).eqls(["/", a, 3]);
+            expect(s.step.tree).eqls(["/", 1, 3]);
+            expect(texts(s.selectedValues)).eqls(
+                texts(
+                    [a, a + 1, a + 2, a + 3].map((n) =>
+                        me.fromText(`${n}/3`).simplify(),
+                    ),
+                ),
+            );
+
+            const t = await sv("t");
+            expect(t.from.tree).eqls(["+", ["apply", "sqrt", 2], a]);
+            expect(t.exclude.map((v: any) => v.tree)).eqls([
+                ["+", ["*", 2, a], ["apply", "sqrt", 2]],
+            ]);
+            expect(t.selectedValues).toHaveLength(2);
+            for (const v of t.selectedValues) {
+                expect(v.toString()).toContain("sqrt(2)");
+            }
+
+            const u = await sv("u");
+            expect(u.from.tree).eq("pi");
+            for (const v of u.selectedValues) {
+                expect(v.toString()).toMatch(/^π( \+ \d)?$/);
+            }
+
+            // a math sequence another reads holds its math too, and so does
+            // the one that reads it
+            const b = (await sv("b")).selectedValues[0];
+            expect(b.toString()).toContain("sqrt(2)");
+            const v = await sv("v");
+            expect(v.from.tree).eqls(b.tree);
+            for (const w of v.selectedValues) {
+                expect(w.toString()).toContain("sqrt(2)");
+            }
         }
     });
 

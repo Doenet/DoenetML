@@ -463,8 +463,14 @@ function attributeComponentOfSelectionParameter(
                   : "false"
               : String(v?.symbolic ?? "");
     const valueType = parameter?.output === "text" ? "text" : "number";
+    // a constant written as a math is the math it is written as
+    // (`ParameterTemplate`)
     const constantOf = (template: any) =>
-        template?.k === "const" ? template.value : undefined;
+        template?.k !== "const"
+            ? undefined
+            : template.math !== undefined && parameter?.output === "math"
+              ? { symbolic: me.fromAst(template.math).toString() }
+              : template.value;
 
     if (parameter?.kind === "scalar") {
         const value = constantOf(parameter.template);
