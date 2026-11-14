@@ -1,0 +1,540 @@
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import { updateMathInputValue } from "../utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+/**
+ * Load `doenetML` and return its errors, as `code: message`, and the codes
+ * of its infos.
+ */
+async function load(doenetML: string, requestedVariantIndex = 1) {
+    const { core, resolvePathToNodeIdx } = await createTestCore({
+        doenetML,
+        requestedVariantIndex,
+    });
+    await core.returnAllStateVariables(false, true);
+    const diagnostics = getDiagnosticsByType(core);
+    return {
+        core,
+        resolvePathToNodeIdx,
+        errors: diagnostics.errors.map((d) => `${d.code}: ${d.message}`),
+        codes: diagnostics.errors.map((d) => d.code),
+        infos: diagnostics.infos.map((d) => d.code),
+    };
+}
+
+/** The errors of `doenetML` in each of the first few variants. */
+async function errorsInVariants(doenetML: string, variants = [1, 2, 3, 4]) {
+    const all: string[][] = [];
+    for (const v of variants) {
+        all.push((await load(doenetML, v)).errors);
+    }
+    return all;
+}
+
+/**
+ * Every choice that can appear can be made as written (D39, SEL-5): proven
+ * at load over every value its parameters can take, or an error in every
+ * variant that names the value that fails.
+ */
+describe("Feasibility is proven at load (SEL-5) @group4", () => {
+    const cases: {
+        tag: string;
+        proven: string;
+        fails: string;
+        message: string;
+    }[] = [
+        {
+            tag: "<selectFromSequence>, a range from another choice",
+            proven: `<selectFromSequence name="a" from="5" to="10"/><selectFromSequence to="$a" numToSelect="3"/>`,
+            fails: `<selectFromSequence name="a" from="1" to="10"/><selectFromSequence to="$a" numToSelect="3"/>`,
+            message:
+                "`<selectFromSequence>` can't always select as written: when `$a` = 1, it has 1 value to select 3 from.",
+        },
+        {
+            tag: "<selectFromSequence>, an exclude from another choice",
+            proven: `<selectFromSequence name="a" to="10"/><selectFromSequence to="10" exclude="$a" numToSelect="9"/>`,
+            fails: `<selectFromSequence name="a" to="10"/><selectFromSequence to="10" exclude="$a" numToSelect="10"/>`,
+            message:
+                "`<selectFromSequence>` can't always select as written: when `$a` = 1, it has 9 values to select 10 from.",
+        },
+        {
+            tag: "<selectPrimeNumbers>, a range from another choice",
+            proven: `<selectPrimeNumbers name="a" from="10" to="20"/><selectPrimeNumbers to="$a" numToSelect="3"/>`,
+            fails: `<selectPrimeNumbers name="a" to="20"/><selectPrimeNumbers to="$a" numToSelect="3"/>`,
+            message:
+                "`<selectPrimeNumbers>` can't always select as written: when `$a` = 2, it has 1 prime to select 3 from.",
+        },
+        {
+            tag: "<select>, numToSelect from another choice",
+            proven: `<selectFromSequence name="a" from="1" to="3"/><select numToSelect="$a">u v w</select>`,
+            fails: `<selectFromSequence name="a" from="3" to="4"/><select numToSelect="$a">u v w</select>`,
+            message:
+                "`<select>` can't always select as written: when `$a` = 4, it has 3 options to select 4 from.",
+        },
+        {
+            tag: "<select>, options for variants",
+            proven: `<variantControl numVariants="2" variantNames="a b"/><selectFromSequence name="n" from="2" to="2"/><select numToSelect="$n"><option selectForVariants="a b">u</option><option selectForVariants="a b">v</option></select>`,
+            fails: `<variantControl numVariants="2" variantNames="a b"/><selectFromSequence name="n" from="1" to="2"/><select numToSelect="$n"><option selectForVariants="a b">u</option><option selectForVariants="a b">v</option></select>`,
+            message:
+                "`<select>` can't always select as written: when `$n` = 1, `numToSelect` is 1, but variant a has 2 options.",
+        },
+        {
+            tag: "<selectFromSequence coprime>, a range from another choice",
+            proven: `<selectFromSequence name="a" from="1" to="3"/><selectFromSequence from="$a" to="9" numToSelect="2" coprime/>`,
+            fails: `<selectFromSequence name="a" from="0" to="2"/><selectFromSequence from="$a" to="5" numToSelect="2" coprime/>`,
+            message:
+                "`<selectFromSequence>` can't always select as written: when `$a` = 0, no 2 of its values have no common factor.",
+        },
+        {
+            tag: "<selectFromSequence excludeCombinations>, a range from another choice",
+            proven: `<selectFromSequence name="a" from="2" to="3"/><selectFromSequence to="$a" numToSelect="2" withReplacement excludeCombinations="(1 1) (2 2)"/>`,
+            fails: `<selectFromSequence name="a" from="1" to="3"/><selectFromSequence to="$a" numToSelect="2" withReplacement excludeCombinations="(1 1) (2 2)"/>`,
+            message:
+                "`<selectFromSequence>` can't always select as written: when `$a` = 1, every combination of 2 values is excluded.",
+        },
+    ];
+
+    for (const { tag, proven, fails, message } of cases) {
+        it(`${tag}: proven`, async () => {
+            for (const errors of await errorsInVariants(proven)) {
+                expect(errors).eqls([]);
+            }
+        });
+        it(`${tag}: an error in every variant, naming the value`, async () => {
+            for (const errors of await errorsInVariants(fails)) {
+                expect(errors).eqls([`doenet-e0073: ${message}`]);
+            }
+        });
+    }
+
+    it("values that depend on each other are taken together, never as if independent", async () => {
+        // `to` is always 2 more than `from`, so 3 values, whatever `a` is
+        const { errors } = await load(
+            `<selectFromSequence name="a" to="5"/><selectFromSequence from="$a" to="$a+2" numToSelect="3"/>`,
+        );
+        expect(errors).eqls([]);
+        // `a` is never above `b`, as `a` ranges up to `b`
+        const nested = await load(
+            `<selectFromSequence name="b" to="5"/><selectFromSequence name="a" to="$b"/><selectFromSequence from="$a" to="$b"/>`,
+        );
+        expect(nested.errors).eqls([]);
+    });
+
+    it("an entry of a choice of several", async () => {
+        const { errors } = await load(
+            `<selectFromSequence name="a" to="3" numToSelect="2"/><selectFromSequence to="$a[1]" numToSelect="$a[2]"/>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a[2]` = 2, `$a[1]` = 1, it has 1 value to select 2 from.",
+        ]);
+    });
+
+    it("with replacement, one value is enough", async () => {
+        const { errors } = await load(
+            `<selectFromSequence name="a" to="5"/><selectFromSequence to="$a" numToSelect="4" withReplacement/>`,
+        );
+        expect(errors).eqls([]);
+    });
+
+    it("a boolean parameter written as a reference is checked as true and as false", async () => {
+        const { errors } = await load(
+            `<select name="b"><option><boolean>true</boolean></option><option><boolean>false</boolean></option></select><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$b">u</select>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$a` = 2, `withReplacement` = false, it has 1 option to select 2 from.",
+        ]);
+    });
+
+    it("a boolean written as an expression with no reference is its value", async () => {
+        const { errors } = await load(
+            `<selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="1>0">u</select>`,
+        );
+        expect(errors).eqls([]);
+    });
+
+    it("a <selectRandomNumbers> ranges over what it can draw", async () => {
+        const discrete = await load(
+            `<selectRandomNumbers name="r" type="discreteUniform" from="3" to="5"/><selectFromSequence to="$r" numToSelect="3"/>`,
+        );
+        expect(discrete.errors).eqls([]);
+        const uniform = await load(
+            `<selectRandomNumbers name="r" from="1" to="5"/><selectFromSequence to="$r"/>`,
+        );
+        expect(uniform.errors).eqls([]);
+        const tooFew = await load(
+            `<selectRandomNumbers name="r" from="1" to="5"/><selectFromSequence to="$r" numToSelect="2"/>`,
+        );
+        expect(tooFew.codes).eqls(["doenet-e0073"]);
+    });
+
+    it("a choice in error is reported in place of the choice, and the rest renders", async () => {
+        const { core, resolvePathToNodeIdx, codes } = await load(
+            `<selectFromSequence name="a" from="1" to="10"/><p name="p">A <selectFromSequence name="s" to="$a" numToSelect="3"/> B</p>`,
+        );
+        expect(codes).eqls(["doenet-e0073"]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].componentType,
+        ).eq("_error");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).contains("A");
+    });
+
+    it("a copy or an extend of a choice in error is the same error, reported once", async () => {
+        for (const reference of [
+            `<selectFromSequence copy="$s"/>`,
+            `<selectFromSequence extend="$s"/>`,
+        ]) {
+            const { codes } = await load(
+                `<selectFromSequence name="a" from="1" to="10"/><selectFromSequence name="s" to="$a" numToSelect="3"/>${reference}`,
+            );
+            expect(codes, reference).eqls(["doenet-e0073"]);
+        }
+    });
+
+    it("a choice that reads a choice in error is the same error, reported once", async () => {
+        const { codes } = await load(
+            `<selectFromSequence name="a" from="1" to="10"/><selectFromSequence name="s" to="$a" numToSelect="3"/><selectFromSequence to="$s[1]" numToSelect="2"/>`,
+        );
+        expect(codes).eqls(["doenet-e0073"]);
+    });
+
+    it("a choice that reads a choice whose parameter can't be analysed is the same error, reported once", async () => {
+        const { codes } = await load(
+            `<function name="f">x^2</function><selectFromSequence name="s" to="$$f(3)"/><selectFromSequence to="$s" numToSelect="2"/>`,
+        );
+        expect(codes).eqls(["doenet-e0074"]);
+    });
+
+    it("a choice whose parameters read no value from the variant is left to the choice", async () => {
+        // its own error, the same in every variant
+        for (const errors of await errorsInVariants(
+            `<number name="n">4</number><select numToSelect="$n">u v w</select>`,
+        )) {
+            expect(errors).eqls([
+                "doenet-e0035: Cannot select 4 components from only 3.",
+            ]);
+        }
+    });
+
+    it("a choice in a case not shown is checked too", async () => {
+        const { codes } = await load(
+            `<booleanInput name="b"/><selectFromSequence name="a" from="1" to="10"/><conditionalContent condition="$b"><selectFromSequence to="$a" numToSelect="3"/></conditionalContent>`,
+        );
+        expect(codes).eqls(["doenet-e0073"]);
+    });
+});
+
+/**
+ * An iteration index ranges over every iteration that can exist: 1 to the
+ * count, or 1, 2, 3, … with no end when the count comes from an input
+ * (SEL-5, SEL-2).
+ */
+describe("An iteration index ranges over every iteration (SEL-5) @group4", () => {
+    it("a literal count", async () => {
+        expect(
+            (
+                await load(
+                    `<repeatForSequence to="10" indexName="i"><selectFromSequence to="$i"/></repeatForSequence>`,
+                )
+            ).errors,
+        ).eqls([]);
+        expect(
+            (
+                await load(
+                    `<repeatForSequence to="10" indexName="i"><selectFromSequence to="$i" numToSelect="3"/></repeatForSequence>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$i` = 1, it has 1 value to select 3 from.",
+        ]);
+    });
+
+    it("a count from an input, with no end", async () => {
+        expect(
+            (
+                await load(
+                    `<mathInput name="n"/><repeatForSequence to="$n" indexName="i"><selectFromSequence to="$i"/></repeatForSequence>`,
+                )
+            ).codes,
+        ).eqls([]);
+        expect(
+            (
+                await load(
+                    `<mathInput name="n"/><repeatForSequence to="$n" indexName="i"><selectFromSequence to="$i" numToSelect="3"/></repeatForSequence>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$i` = 1, it has 1 value to select 3 from.",
+        ]);
+        // the same index on both ends cancels: 6 values in every iteration
+        expect(
+            (
+                await load(
+                    `<mathInput name="n"/><repeatForSequence to="$n" indexName="i"><selectFromSequence from="$i" to="$i+5" numToSelect="3"/></repeatForSequence>`,
+                )
+            ).codes,
+        ).eqls([]);
+        // and so does the index read as numToSelect
+        expect(
+            (
+                await load(
+                    `<mathInput name="n"/><repeatForSequence to="$n" indexName="i"><selectFromSequence to="$i" numToSelect="$i"/></repeatForSequence>`,
+                )
+            ).codes,
+        ).eqls([]);
+    });
+
+    it("an iteration far along with no end is named", async () => {
+        expect(
+            (
+                await load(
+                    `<mathInput name="n"/><repeatForSequence to="$n" indexName="i"><selectFromSequence from="$i" to="1000000"/></repeatForSequence>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$i` = 1000001, it has 0 values to select 1 from.",
+        ]);
+        expect(
+            (
+                await load(
+                    `<mathInput name="n"/><repeatForSequence to="$n" indexName="i"><select numToSelect="$i">a b c</select></repeatForSequence>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$i` = 4, it has 3 options to select 4 from.",
+        ]);
+    });
+
+    it("iterations a reader makes later give no error when every one can select", async () => {
+        const { core, resolvePathToNodeIdx, codes } = await load(
+            `<mathInput name="n" prefill="0"/><repeatForSequence to="$n" indexName="i"><selectFromSequence to="$i+1" numToSelect="2"/></repeatForSequence>`,
+        );
+        expect(codes).eqls([]);
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+
+    it("a repeat's valueName", async () => {
+        expect(
+            (
+                await load(
+                    `<repeat for="3 4 5" valueName="v"><selectFromSequence to="$v" numToSelect="3"/></repeat>`,
+                )
+            ).codes,
+        ).eqls([]);
+        expect(
+            (
+                await load(
+                    `<repeat for="1 3 5" valueName="v"><selectFromSequence to="$v" numToSelect="3"/></repeat>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$v` = 1, it has 1 value to select 3 from.",
+        ]);
+        // a `<repeatForSequence>` whose count comes from an input: its
+        // values are still 2, 3, 4, …
+        expect(
+            (
+                await load(
+                    `<mathInput name="n" prefill="3"/><repeatForSequence from="2" to="$n" valueName="v"><selectFromSequence to="$v" numToSelect="3"/></repeatForSequence>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$v` = 2, it has 2 values to select 3 from.",
+        ]);
+        // of another choice
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="a" from="1" to="9" numToSelect="2"/><repeat for="$a" valueName="v"><selectFromSequence to="$v" numToSelect="2"/></repeat>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$v` = 1, it has 1 value to select 2 from.",
+        ]);
+    });
+});
+
+/**
+ * A parameter is in an analysable form (SEL-6): literals, references SEL-1
+ * allows, a `<number>` of these, and `+ − × /`, `min`, `max`, `abs`,
+ * `floor`, `ceil`, `round` of them. Anything else is an error at load.
+ */
+describe("A parameter is in an analysable form (SEL-6) @group4", () => {
+    it("a <number> or <integer> whose content is in these forms", async () => {
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="a" to="5"/><number name="m">$a + 2</number><selectFromSequence to="10" numToSelect="$m"/>`,
+                )
+            ).codes,
+        ).eqls([]);
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="a" to="5"/><integer name="m">max(2, $a) - 1</integer><selectFromSequence to="3" numToSelect="$m"/>`,
+                )
+            ).codes,
+        ).eqls(["doenet-e0073"]);
+    });
+
+    it("operators", async () => {
+        for (const [numToSelect, codes] of [
+            ["$a + 1", []],
+            ["2$a", ["doenet-e0073"]],
+            ["min($a, 2)", []],
+            ["abs($a - 3)", []],
+            ["floor($a / 2)", []],
+            ["round($a/2) + 4", ["doenet-e0073"]],
+        ] as const) {
+            const { codes: found } = await load(
+                `<selectFromSequence name="a" to="5"/><selectFromSequence to="6" numToSelect="${numToSelect}"/>`,
+            );
+            expect(found, numToSelect).eqls(codes);
+        }
+    });
+
+    it("a function evaluated is not, and the error names it", async () => {
+        const { errors } = await load(
+            `<function name="f">x^2</function><selectFromSequence name="a" to="5"/><selectFromSequence to="$$f($a)"/>`,
+        );
+        expect(errors).toHaveLength(1);
+        expect(errors[0]).toMatch(
+            /^doenet-e0074: `to` of `<selectFromSequence>` reads `\$\$f\(\$a\)`, which DoenetML can't analyse/,
+        );
+    });
+
+    it("a power in a <number> is not, and the error names the <number>", async () => {
+        const { errors } = await load(
+            `<selectFromSequence name="a" to="5"/><number name="m">$a^2</number><selectFromSequence to="30" numToSelect="$m"/>`,
+        );
+        expect(errors).toHaveLength(1);
+        expect(errors[0]).toMatch(
+            /^doenet-e0074: `numToSelect` of `<selectFromSequence>` reads `\$m`, a `<number>` holding `\$a\^2`/,
+        );
+    });
+
+    it("references through extends and copies of literals are", async () => {
+        const { codes } = await load(
+            `<select numToSelect="$n">u v w x y z</select><number extend="$n3" name="n2"/><math extend="$num1" name="n"/><math name="num1">$n2+$num2</math><number name="num2">2</number><number name="n3">1</number>`,
+        );
+        expect(codes).eqls([]);
+    });
+
+    it("a component in an iteration, and a <sequence> in an exclude, are", async () => {
+        expect(
+            (
+                await load(
+                    `<repeat name="r" for="1" valueName="v"><number name="n">2</number></repeat><select numToSelect="$r[1].n">u v w</select>`,
+                )
+            ).codes,
+        ).eqls([]);
+        expect(
+            (
+                await load(
+                    `<sequence name="odds" from="1" to="9" step="2" hide/><selectFromSequence name="a" to="2"/><selectFromSequence to="10" exclude="$odds" numToSelect="$a+3"/>`,
+                )
+            ).codes,
+        ).eqls([]);
+    });
+
+    it("an entry of a list written as literals, at an index in these forms", async () => {
+        expect(
+            (
+                await load(
+                    `<numberList name="ns">1 2</numberList><selectFromSequence name="k" to="2"/><select numToSelect="$ns[$k]">a b</select>`,
+                )
+            ).codes,
+        ).eqls([]);
+        expect(
+            (
+                await load(
+                    `<numberList name="ns">1 3</numberList><selectFromSequence name="k" to="2"/><select numToSelect="$ns[$k]">a b</select>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$k` = 2, it has 2 options to select 3 from.",
+        ]);
+    });
+
+    it("a module attribute ranges over what the module and each copy of it write", async () => {
+        const module = `<setup><module name="m"><moduleAttributes><integer name="k">2</integer></moduleAttributes><select numToSelect="$k">a b c</select></module></setup>`;
+        expect(
+            (
+                await load(
+                    `${module}<module copy="$m"/><module copy="$m" k="3"/>`,
+                )
+            ).codes,
+        ).eqls([]);
+        expect(
+            (
+                await load(
+                    `${module}<module copy="$m"/><module copy="$m" k="4"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$k` = 4, it has 3 options to select 4 from.",
+        ]);
+        // through a chain of copies, and from another choice
+        expect(
+            (
+                await load(
+                    `${module}<selectFromSequence name="a" to="4"/><module name="m1" copy="$m"/><module copy="$m1" k="$a"/>`,
+                )
+            ).codes,
+        ).eqls(["doenet-e0073"]);
+    });
+
+    it("a choice in error for its form is an _error, and the rest renders", async () => {
+        const { core, resolvePathToNodeIdx, codes } = await load(
+            `<function name="f">x^2</function><p name="p">A <selectFromSequence name="s" to="$$f(2)"/> B</p>`,
+        );
+        expect(codes).eqls(["doenet-e0074"]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].componentType,
+        ).eq("_error");
+    });
+});
+
+/**
+ * Choices depending on each other are checked in order, with no cycle
+ * (SEL-7): ranges flow forward.
+ */
+describe("Choices depending on each other (SEL-7) @group4", () => {
+    it("a range flows forward through a chain", async () => {
+        const { errors } = await load(
+            `<selectFromSequence name="a" to="5"/><selectFromSequence name="b" to="$a"/><selectFromSequence to="3" numToSelect="$b"/>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$b` = 4, it has 3 values to select 4 from.",
+        ]);
+    });
+
+    it("a choice written later is checked first", async () => {
+        const { errors } = await load(
+            `<selectFromSequence to="3" numToSelect="$b"/><selectFromSequence name="b" to="$a"/><selectFromSequence name="a" from="1" to="2"/>`,
+        );
+        expect(errors).eqls([]);
+    });
+
+    it("a cycle is a circular dependency, reported once", async () => {
+        const { codes } = await load(
+            `<selectFromSequence name="c" to="$d"/><selectFromSequence name="d" to="$c"/>`,
+        );
+        expect(codes.every((c) => c === "doenet-e0005")).eq(true);
+        expect(codes).not.toContain("doenet-e0073");
+        expect(codes).not.toContain("doenet-e0074");
+    });
+});

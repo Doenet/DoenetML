@@ -89,6 +89,14 @@ what is chosen may reference another random choice or content that can't
 change, but not an input, a sampler, or anything else a reader can change: that
 is an error when the document loads, in every variant.
 
+The choice must be possible for every value such a reference can take, in
+every variant and every iteration of a repeat. This is checked when the
+document loads, never by trying variants: `to="$a" numToSelect="3"` with `a` chosen from 2 to 20 is an error, since `a` can be 2, which leaves one prime. A reference may be combined
+with numbers and other references by `+`, `-`, `*`, `/`, `min`, `max`, `abs`,
+`floor`, `ceil` and `round`, written in the attribute or in a `<number>{:dn}`
+it references. Anything else, such as a function evaluated, is an error, since
+the check can't tell whether the choice can always be made.
+
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 

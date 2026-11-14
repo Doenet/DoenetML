@@ -1,0 +1,17 @@
+---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+---
+
+Every random selection that can appear can be made as written, and this is checked when the document loads (D39, SEL-5 to SEL-7). **This is a breaking change for authors:** a document whose selection fails in some variants now has an error in every variant.
+
+- **A selection that some values keep from being made is an error at load, in every variant** (`doenet-e0073`), naming the value: `<selectFromSequence to="$a" numToSelect="3"/>` with `a` chosen from 1 to 10 reports "when `$a` = 1, it has 1 value to select 3 from". Before, the variants where `a` was 1 or 2 selected nothing, with an info, and the others worked. This covers `<select>`, `<selectFromSequence>` and `<selectPrimeNumbers>`: too few values, options or primes, `coprime` values with no coprime combination, every combination excluded, and `numToSelect` not matching the options a variant name has.
+- **It is checked over every value the parameters can take, never by trying variants**, so it doesn't depend on how variants are seeded. Values that depend on each other are taken together: `from="$a" to="$a+2" numToSelect="3"` is fine whatever `a` is. A repeat's `indexName` ranges over every iteration that can exist, with no end when the count comes from an input: `to="$i"` is fine, and `to="$i" numToSelect="3"` is an error, as are `from="$i" to="1000000"` (iteration 1000001 has no value) and a `<select numToSelect="$i">` of three options.
+- **A parameter must be in a form the check can analyse** (SEL-6), or it is an error at load (`doenet-e0074`) naming what isn't: a literal; a reference to another random selection (`$a`, `$a[2]`), a repeat's index or value, or a `<number>`, `<integer>` or `<math>` whose content is in these forms; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`. So `to="$$f($a)"`, or `numToSelect="$m"` with `<number name="m">$a^2</number>`, is an error. A `<boolean>` parameter written as a reference is checked as both true and false.
+- **The selection in error is replaced by the error**, so it selects nothing and isn't counted as a variant. A copy or extend of it, and a selection that reads it, are the same error, reported once.
+- **Unchanged:** a selection whose parameters read nothing from the variant or an iteration (literals, or `<number name="n">4</number>`) reports its own error as before. An option's `selectWeight` and a `<selectRandomNumbers>`'s parameters can't keep a selection from being made, so they aren't checked. The rule that a selection excluding over 70% of its combinations fails (`doenet-e0044`, `doenet-e0051`) is unchanged.
+
+Part of #2508 (part 3).

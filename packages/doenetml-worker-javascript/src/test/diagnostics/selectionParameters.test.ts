@@ -500,7 +500,7 @@ describe("An iteration's choice is the one its position gives @group4", () => {
             tag: "<repeatForSequence>, the choice in a <group>, reading the index",
             doenetML: `<mathInput name="n" prefill="1"/>
 <repeatForSequence name="r" to="$n" indexName="i">
-  <group><selectFromSequence name="t" to="1000000" from="$i"/><select name="s" numToSelect="3">a b c d e f g h</select></group>
+  <group><selectFromSequence name="t" from="$i" to="$i+1000000"/><select name="s" numToSelect="3">a b c d e f g h</select></group>
 </repeatForSequence>`,
         },
         {

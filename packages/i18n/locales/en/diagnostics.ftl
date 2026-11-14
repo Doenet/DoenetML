@@ -1904,6 +1904,46 @@ choice-parameter-reader-changeable =
        *[other] `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, which reaches a `<{ $changeableType }>` that a reader can change. What a random selection chooses from must come from what the author wrote: literals, other random selections (not samplers), content that can't change, and a repeat's `indexName`.
     }
 
+# A random selection that can't select as written for some value its
+# parameters can take, decided at load (SEL-5). $when names those values, as
+# "`$a` = 1, `$i` = 2" (references are DoenetML, and stay as written); for
+# $kind "unproven" it gives their ranges instead, as "`$i` ∈ {1, 2, 3, …}".
+# $attribute is the parameter that isn't a number (DoenetML). $variantName is
+# a variant name as the author wrote it.
+choice-not-always-possible =
+    { $kind ->
+        [values] `<{ $componentType }>` can't always select as written: when { $when }, it has { $numValues ->
+            [one] 1 value
+           *[other] { $numValues } values
+        } to select { $numToSelect } from.
+        [primes] `<{ $componentType }>` can't always select as written: when { $when }, it has { $numValues ->
+            [one] 1 prime
+           *[other] { $numValues } primes
+        } to select { $numToSelect } from.
+        [options] `<{ $componentType }>` can't always select as written: when { $when }, it has { $numValues ->
+            [one] 1 option
+           *[other] { $numValues } options
+        } to select { $numToSelect } from.
+        [coprime] `<{ $componentType }>` can't always select as written: when { $when }, no { $numToSelect } of its values have no common factor.
+        [combinations] `<{ $componentType }>` can't always select as written: when { $when }, every combination of { $numToSelect } values is excluded.
+        [variants] `<{ $componentType }>` can't always select as written: when { $when }, `numToSelect` is { $numToSelect }, but variant { $variantName } has { $numValues ->
+            [one] 1 option
+           *[other] { $numValues } options
+        }.
+        [number] `<{ $componentType }>` can't always select as written: when { $when }, `{ $attribute }` isn't a number.
+       *[unproven] DoenetML can't show that `<{ $componentType }>` can always select as written, for every value of what it reads: { $when }. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.
+    }
+
+# A parameter of a random selection that the load-time check can't analyse
+# (SEL-6). $part is what isn't analysable, as written (DoenetML). With
+# $through "component", it is inside the `<{ $throughType }>` that
+# $reference names.
+choice-parameter-not-analysable =
+    { $through ->
+        [component] `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, a `<{ $throughType }>` holding `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to another random selection, a repeat's index or value, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
+       *[other] `{ $attribute }` of `<{ $componentType }>` reads `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to another random selection, a repeat's index or value, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
+    }
+
 # A document loaded from a URI, $uri, has no reader state, so a
 # `copyWithState` of it has nothing to carry and is made as a `copy`.
 copy-with-state-of-uri = `copyWithState` of `{ $uri }` carries nothing more than `copy`, since a document loaded from a URI has no state. Write `copy`.

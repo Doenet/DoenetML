@@ -80,6 +80,8 @@
     "doenet-e0070": "choice-parameter-reader-changeable",
     "doenet-e0071": "type-change-own-type-only",
     "doenet-e0072": "attribute-empty",
+    "doenet-e0073": "choice-not-always-possible",
+    "doenet-e0074": "choice-parameter-not-analysable",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",

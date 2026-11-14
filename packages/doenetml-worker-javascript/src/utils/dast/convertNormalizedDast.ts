@@ -49,6 +49,7 @@ import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
 import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
+import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -869,6 +870,19 @@ export async function normalizedDastToSerializedComponents(
     // before the variants are counted, so that the choice is not one.
     diagnostics.push(
         ...checkChoiceParametersAtLoad({
+            document,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
+
+    // Every random choice that can appear can be made as written (D39,
+    // SEL-5 to SEL-7): proven over every value its parameters can take, or
+    // an error in every variant, reported now and made an `_error` in place
+    // of the choice. After SEL-1, whose errors leave the choices reading
+    // them unchecked, and before the variants are counted.
+    diagnostics.push(
+        ...checkChoiceFeasibilityAtLoad({
             document,
             componentInfoObjects,
             sources: normalized_root.sources,
