@@ -68,16 +68,16 @@ function androidBackspace(ta, init = K229) {
     up(ta, init);
 }
 
-/** The keyboard's Enter: Chrome's empty commit, then the Enter key. */
-function androidEnter(ta) {
-    androidBackspace(ta);
-    const enter = {
-        key: "Enter",
-        keyCode: 13,
-        which: 13,
-        bubbles: true,
-        cancelable: true,
-    };
+const ENTER = {
+    key: "Enter",
+    keyCode: 13,
+    which: 13,
+    bubbles: true,
+    cancelable: true,
+};
+
+/** The Enter key itself, as Chrome sends it after the keyboard's Enter. */
+function enterKey(ta, enter = ENTER) {
     down(ta, enter);
     const win = ta.ownerDocument.defaultView;
     ta.dispatchEvent(new win.KeyboardEvent("keypress", enter));
@@ -87,17 +87,30 @@ function androidEnter(ta) {
     up(ta, enter);
 }
 
+/** The keyboard's Enter: Chrome's empty commit, then the Enter key. */
+function androidEnter(ta) {
+    androidBackspace(ta);
+    enterKey(ta);
+}
+
 function typeAll(ta, chars) {
     for (const ch of chars) {
         androidKey(ta, ch);
     }
 }
 
-function fieldText(name) {
-    return cy
-        .get(`#${name} .mq-root-block`)
-        .invoke("text")
-        .then((text) => text.replace(/​/g, ""));
+/** The field's text now, without MathQuill's zero-width spaces. */
+function fieldNow(name) {
+    return Cypress.$(`#${name} .mq-root-block`)
+        .text()
+        .replace(/\u200b/g, "");
+}
+
+/** Wait, retrying, until the field shows `expected`. */
+function fieldShould(name, expected) {
+    cy.get(`#${name} .mq-root-block`).should(($el) => {
+        expect($el.text().replace(/\u200b/g, "")).to.equal(expected);
+    });
 }
 
 describe(
@@ -131,7 +144,7 @@ describe(
             cy.get("#mi textarea").then(($ta) => {
                 typeAll($ta[0], ["+", "1"]);
             });
-            fieldText("mi").should("equal", "x2+1");
+            fieldShould("mi", "x2+1");
             cy.get("#mi textarea").type("{enter}", { force: true });
             cy.get("#c").should("have.text", "1");
         });
@@ -145,13 +158,13 @@ describe(
             cy.get("#mi textarea").then(($ta) => {
                 typeAll($ta[0], ["+", "1"]);
             });
-            fieldText("mi").should("equal", "x2+1");
+            fieldShould("mi", "x2+1");
             cy.get("#mi textarea").then(($ta) => {
                 androidEnter($ta[0]);
             });
-            // Past the time a held-back backspace waits.
+            // Past the time a held-back backspace waits: nothing is deleted.
             cy.wait(300);
-            fieldText("mi").should("equal", "x2+1");
+            fieldShould("mi", "x2+1");
             cy.get("#c").should("have.text", "1");
         });
 
@@ -160,21 +173,18 @@ describe(
             cy.get("#mi textarea").then(($ta) => {
                 typeAll($ta[0], ["x", "y", "z"]);
             });
-            fieldText("mi").should("equal", "xyz");
+            fieldShould("mi", "xyz");
             cy.get("#mi textarea").then(($ta) => {
                 androidBackspace($ta[0]);
             });
-            // The backspace is held back briefly in case Enter follows. (The
-            // wait lets the page's timer run: while Cypress retries an
-            // assertion, it did not.)
-            cy.wait(300);
-            fieldText("mi").should("equal", "xy");
+            // The backspace is held back briefly in case Enter follows.
+            fieldShould("mi", "xy");
             // A backspace and then a key at once: the deletion comes first.
             cy.get("#mi textarea").then(($ta) => {
                 androidBackspace($ta[0]);
                 androidKey($ta[0], "w");
             });
-            fieldText("mi").should("equal", "xw");
+            fieldShould("mi", "xw");
         });
 
         it("deletes once for each repeat of a held backspace", () => {
@@ -182,25 +192,120 @@ describe(
             cy.get("#mi textarea").then(($ta) => {
                 typeAll($ta[0], ["a", "b", "c", "d"]);
             });
-            fieldText("mi").should("equal", "abcd");
+            fieldShould("mi", "abcd");
             cy.get("#mi textarea").then(($ta) => {
                 for (let i = 0; i < 3; i++) {
                     androidBackspace($ta[0]);
                 }
             });
-            cy.wait(300);
-            fieldText("mi").should("equal", "a");
+            fieldShould("mi", "a");
         });
 
         it("types a key over a selection", () => {
             cy.get("#mi textarea").type("abc", { force: true });
-            fieldText("mi").should("equal", "abc");
+            fieldShould("mi", "abc");
             cy.get("#mi textarea").type("{ctrl}a", { force: true });
             cy.get("#mi textarea").then(($ta) => {
                 expect($ta[0].value.length).to.be.greaterThan(0);
                 androidKey($ta[0], "x");
             });
-            fieldText("mi").should("equal", "x");
+            fieldShould("mi", "x");
+        });
+
+        it("holds the backspace back until its timer, not longer", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                typeAll($ta[0], ["x", "y", "z"]);
+            });
+            fieldShould("mi", "xyz");
+            const seen = {};
+            cy.get("#mi textarea").then(($ta) => {
+                const win = $ta[0].ownerDocument.defaultView;
+                androidBackspace($ta[0]);
+                // Timers run in the order they fall due, whatever the load,
+                // so these read the field before and after the backspace's
+                // own 100 ms timer.
+                win.setTimeout(() => (seen.before = fieldNow("mi")), 40);
+                win.setTimeout(() => (seen.after = fieldNow("mi")), 200);
+            });
+            cy.wrap(seen).should((s) => {
+                expect(s.before).to.equal("xyz");
+                expect(s.after).to.equal("xy");
+            });
+        });
+
+        it("keeps the character when Enter comes 20 ms after the pair", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                typeAll($ta[0], ["x", "^", "2"]);
+            });
+            cy.get("#mi textarea").type("{rightarrow}", { force: true });
+            cy.get("#mi textarea").then(($ta) => {
+                typeAll($ta[0], ["+", "1"]);
+            });
+            fieldShould("mi", "x2+1");
+            cy.get("#mi textarea").then(($ta) => {
+                const win = $ta[0].ownerDocument.defaultView;
+                androidBackspace($ta[0]);
+                win.setTimeout(() => enterKey($ta[0]), 20);
+            });
+            cy.get("#c").should("have.text", "1");
+            cy.wait(300);
+            fieldShould("mi", "x2+1");
+        });
+
+        it("knows Enter by its key name when it has no keyCode", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                typeAll($ta[0], ["x", "y"]);
+            });
+            fieldShould("mi", "xy");
+            cy.get("#mi textarea").then(($ta) => {
+                androidBackspace($ta[0]);
+                enterKey($ta[0], {
+                    key: "Enter",
+                    bubbles: true,
+                    cancelable: true,
+                });
+                expect(fieldNow("mi")).to.equal("xy");
+            });
+            cy.wait(300);
+            fieldShould("mi", "xy");
+        });
+
+        it("applies a held-back backspace once when the field loses focus", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                typeAll($ta[0], ["x", "y", "z"]);
+            });
+            fieldShould("mi", "xyz");
+            cy.get("#mi textarea").then(($ta) => {
+                androidBackspace($ta[0]);
+                $ta[0].blur();
+                // At once, not when the timer runs.
+                expect(fieldNow("mi")).to.equal("xy");
+            });
+            // And not a second time when it would have run.
+            cy.wait(300);
+            fieldShould("mi", "xy");
+        });
+
+        it("skips a held-back backspace once its textarea is gone", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                typeAll($ta[0], ["x", "y", "z"]);
+            });
+            fieldShould("mi", "xyz");
+            cy.get("#mi textarea").then(($ta) => {
+                const ta = $ta[0];
+                // Out of focus first, so that removing it sends no blur.
+                ta.blur();
+                androidBackspace(ta);
+                ta.remove();
+            });
+            // Past the timer: no deletion, and no error.
+            cy.wait(300);
+            fieldShould("mi", "xyz");
         });
 
         it("does not delete for a desktop key the browser cannot name", () => {
@@ -223,7 +328,7 @@ describe(
                 });
             });
             cy.wait(200);
-            fieldText("mi").should("equal", "xy");
+            fieldShould("mi", "xy");
         });
 
         it("takes nothing from a key with a modifier, a keypress or text left in the textarea", () => {
@@ -258,7 +363,7 @@ describe(
                 ta.value = "";
             });
             cy.wait(200);
-            fieldText("mi").should("equal", "xy");
+            fieldShould("mi", "xy");
         });
 
         it("still ignores text the keyboard is composing", () => {
@@ -270,14 +375,14 @@ describe(
             });
             // Nothing reaches the field from a composition, as before.
             cy.wait(200);
-            fieldText("mi").should("equal", "");
+            fieldShould("mi", "");
         });
 
         it("types ordinary key events as before", () => {
             cy.get("#mi textarea").type("x^2{rightarrow}+1{enter}", {
                 force: true,
             });
-            fieldText("mi").should("equal", "x2+1");
+            fieldShould("mi", "x2+1");
             cy.get("#c").should("have.text", "1");
         });
     },
