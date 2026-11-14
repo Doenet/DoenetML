@@ -568,6 +568,55 @@ describe("A parameter is in an analysable form (SEL-6) @group4", () => {
         ).eqls(["doenet-e0073"]);
     });
 
+    it("an <integer> is its content rounded, as the document has it", async () => {
+        const fails =
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 2, it has 1 value to select 2 from.";
+        const choices = `<selectFromSequence name="a" from="2" to="3"/>`;
+        // 2.4 is 2, which the exclude removes from 1, 2
+        for (const integer of [
+            `<integer name="k">2.4</integer>`,
+            `<number name="n">2.4</number><integer name="k" extend="$n"/>`,
+            `<number name="k"><integer>2.4</integer></number>`,
+        ]) {
+            expect(
+                (
+                    await load(
+                        `${choices}${integer}<selectFromSequence to="$a" exclude="$k" numToSelect="2"/>`,
+                    )
+                ).errors,
+                integer,
+            ).eqls([fails]);
+        }
+        // a module attribute, as the module and a copy of it write it
+        expect(
+            (
+                await load(
+                    `${choices}<module name="m"><moduleAttributes><integer name="k">5</integer></moduleAttributes><selectFromSequence to="$a" exclude="$k" numToSelect="2"/></module><module copy="$m" k="2.4"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 2, `$k` = 2, it has 1 value to select 2 from.",
+        ]);
+        // 0.4 is 0, false
+        expect(
+            (
+                await load(
+                    `${choices}<integer name="k">0.4</integer><selectFromSequence to="2" numToSelect="$a" withReplacement="$k"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 3, it has 2 values to select 3 from.",
+        ]);
+        // from 1.4 or 2.4 is from 1 or 2: always 2 values or more
+        expect(
+            (
+                await load(
+                    `${choices}<integer name="k">$a-0.6</integer><selectFromSequence from="$k" to="3" numToSelect="2"/>`,
+                )
+            ).codes,
+        ).eqls([]);
+    });
+
     it("operators", async () => {
         for (const [numToSelect, codes] of [
             ["$a + 1", []],

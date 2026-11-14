@@ -1032,7 +1032,7 @@ export function checkChoiceFeasibilityAtLoad({
             ].includes(type) &&
             !node.extending
         ) {
-            return analyseContent(node.children ?? []);
+            return asHeldBy(type, analyseContent(node.children ?? []));
         }
         if (
             type === "text" &&
@@ -1321,7 +1321,10 @@ export function checkChoiceFeasibilityAtLoad({
                     (name) => name === "name" || name.startsWith("_"),
                 )
             ) {
-                return analyseNamed(named, ref, []);
+                return asHeldBy(
+                    target.attributes?._createComponentOfType?.primitive?.value,
+                    analyseNamed(named, ref, []),
+                );
             }
         }
         throw new NotAnalysable(referenceText(ref));
@@ -1381,7 +1384,12 @@ export function checkChoiceFeasibilityAtLoad({
                             ? undefined
                             : attributeNamed(node, name)?.attribute;
                     if (written !== undefined) {
-                        sources.push(analyseWrittenAttribute(written));
+                        sources.push(
+                            asHeldBy(
+                                attribute.componentType,
+                                analyseWrittenAttribute(written),
+                            ),
+                        );
                     }
                 }
             }
@@ -1450,7 +1458,10 @@ export function checkChoiceFeasibilityAtLoad({
         }
         contentMemo.set(target, new Skip());
         try {
-            const expr = analyseContent(target.children ?? []);
+            const expr = asHeldBy(
+                target.componentType,
+                analyseContent(target.children ?? []),
+            );
             contentMemo.set(target, expr);
             return expr;
         } catch (e) {
@@ -1459,6 +1470,16 @@ export function checkChoiceFeasibilityAtLoad({
             }
             throw e;
         }
+    }
+
+    /**
+     * `expr` as a component of type `type` holds it: an `<integer>` rounds
+     * what it is written as (`<integer>2.4</integer>` is 2).
+     */
+    function asHeldBy(type: string | undefined, expr: Expr): Expr {
+        return type === "integer"
+            ? { k: "op", op: "round", args: [expr] }
+            : expr;
     }
 
     /** The atoms of the entries (`$a[2]`) of each choice, by the choice. */
