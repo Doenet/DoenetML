@@ -112,7 +112,12 @@ export function InDocumentMathKeyStrip({
                 owner !== null &&
                 active instanceof Node &&
                 (owner.contains(active) || strip.contains(active));
-            if (coarsePointer && deviceKeyboardInPlay && editing) {
+            // Read afresh rather than from `coarsePointer`: not every change
+            // of primary pointer raises a `change` event on the media query
+            // (Chrome's touch emulation does not), and this runs at every
+            // focus change anyway. `coarsePointer` is what re-runs it when
+            // one does.
+            if (hasCoarsePrimaryPointer() && deviceKeyboardInPlay && editing) {
                 strip.show();
             } else {
                 strip.hide();
