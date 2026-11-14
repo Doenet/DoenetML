@@ -4030,7 +4030,11 @@ export function checkChoiceFeasibilityAtLoad({
                     if (a.atom?.kind === "bool") {
                         return `\`${a.label}\` ∈ {true, false}`;
                     }
-                    if (b.integer && b.hi === Infinity) {
+                    if (
+                        b.integer &&
+                        b.hi === Infinity &&
+                        Number.isFinite(b.lo)
+                    ) {
                         return `\`${a.label}\` ∈ {${b.lo}, ${b.lo + 1}, ${b.lo + 2}, …}`;
                     }
                     const fmt = (x: number) =>
@@ -4109,23 +4113,33 @@ export function checkChoiceFeasibilityAtLoad({
         };
         const tryOne = (witness: Assignment): Verdict => {
             const assignment: Assignment = new Map(witness);
+            // whether a value tried is one the atom isn't known to take (it
+            // can be anything the check can find): a failure with it is no
+            // value to name
+            let guessed = false;
             for (const atom of ordered) {
                 if (!assignment.has(atom)) {
                     const domain = domainOf(atom, assignment);
-                    const v =
-                        "finite" in domain
-                            ? domain.finite.find(
-                                  (w) => !sameAsOtherEntry(atom, w, assignment),
-                              )
-                            : Number.isFinite(domain.lo)
-                              ? domain.lo
-                              : Number.isFinite(domain.hi)
-                                ? domain.hi
-                                : 0;
+                    let v: Value | undefined;
+                    if ("finite" in domain) {
+                        v = domain.finite.find(
+                            (w) => !sameAsOtherEntry(atom, w, assignment),
+                        );
+                    } else if (Number.isFinite(domain.lo)) {
+                        v = domain.lo;
+                    } else if (Number.isFinite(domain.hi)) {
+                        v = domain.hi;
+                    } else {
+                        v = 0;
+                        guessed = true;
+                    }
                     if (v !== undefined) {
                         assignment.set(atom, v);
                     }
                 }
+            }
+            if (guessed) {
+                return { ok: false, unproven: describeRanges() };
             }
             if (
                 [...assignment].some(([atom, v]) =>

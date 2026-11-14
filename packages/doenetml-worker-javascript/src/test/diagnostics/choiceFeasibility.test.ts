@@ -189,6 +189,20 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         ]);
     });
 
+    it("a value a choice isn't known to take is not named as one that fails", async () => {
+        // `a`'s `to` is 3 (`valueOnNaN`), which the check can't compute, so
+        // it doesn't know what `a` can be: it can't show the selection,
+        // and doesn't say `$a` can be 0
+        const { errors } = await load(
+            `<number name="n" valueOnNaN="3">x</number>
+<selectFromSequence name="a" from="1" to="$n"/>
+<selectFromSequence to="$a+1" numToSelect="2"/>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: DoenetML can't show that `<selectFromSequence>` can always select as written: it can't decide whether it can when `$a` ∈ [-∞, ∞]. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.",
+        ]);
+    });
+
     it("a letters choice's value in another letters choice's from or to", async () => {
         const { errors } = await load(
             `<selectFromSequence name="a" type="letters" from="a" to="c"/><selectFromSequence type="letters" from="a" to="$a" numToSelect="2"/>`,
