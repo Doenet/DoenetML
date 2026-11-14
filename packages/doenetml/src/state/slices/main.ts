@@ -99,34 +99,47 @@ export function clearPendingValuesForAction(
  * message channels, so either can arrive first. Keep what the action left
  * pending, marked as answered, until the update has been processed (the viewer
  * then resolves the action again and `clearPendingValuesForAction` drops it)
- * or until an update for a later action shows that none is coming (see
- * `dropAnsweredPendingValuesBefore`).
+ * or until the first renderer update for a later action shows that none is
+ * coming (see `dropAnsweredPendingValuesBefore`).
  *
  * Dropping the values on the reply instead lets the late update through. It
  * carries the value from that action, which is older than what the reader has
  * typed since, so the input redraws with keys missing, and the updates for the
  * newer keys are then ignored because a new action is in flight.
+ *
+ * `updatedThrough` is the number of the latest action whose first renderer
+ * update has already been processed. If that action was sent after this one,
+ * this action's update has been processed too or is not coming, so its values
+ * are dropped now: no later update would drop them, and while they stayed they
+ * would hold back a deferred batch that brings the component a new value.
  */
 export function markPendingValuesAnswered(
     updatesToIgnore: UpdatesToIgnore,
     actionId: string,
+    updatedThrough = 0,
 ) {
     const prefix = `${actionId}|`;
     for (let [identifier, pending] of updatesToIgnore) {
         if (identifier.startsWith(prefix)) {
-            pending.answered = true;
+            if (pending.sequence < updatedThrough) {
+                updatesToIgnore.delete(identifier);
+            } else {
+                pending.answered = true;
+            }
         }
     }
 }
 
 /**
  * Drop the answered values of every action sent to core before the action
- * numbered `sequence`, once that action's renderer update has arrived. Core
- * handles actions one at a time, in the order they were sent, and sends each
- * one's renderer update while handling it, all on one channel; so by the time
- * a later action's update arrives, an earlier action's update has either been
- * processed already or was never sent. Core sends none when an action changes
- * nothing, such as leaving an input whose value is already committed.
+ * numbered `sequence`, once that action's first (non-deferred) renderer update
+ * has arrived. Core handles actions one at a time, in the order they were
+ * sent, and sends each one's first renderer update while handling it, all on
+ * one channel; so by the time a later action's update arrives, an earlier
+ * action's update has either been processed already or was never sent. Core
+ * sends none when an action changes nothing, such as leaving an input whose
+ * value is already committed. Values not yet answered are kept: their reply
+ * drops them (`markPendingValuesAnswered` with `updatedThrough`).
  */
 export function dropAnsweredPendingValuesBefore(
     updatesToIgnore: UpdatesToIgnore,

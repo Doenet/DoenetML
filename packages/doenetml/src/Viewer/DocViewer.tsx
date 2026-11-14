@@ -414,6 +414,11 @@ export function DocViewer({
     // see `dropAnsweredPendingValuesBefore`.
     const actionSequences = useRef(new Map<string, number>());
     const lastActionSequence = useRef(0);
+    // The highest number of an action whose first renderer update has been
+    // processed. A reply that arrives after it, for an action sent earlier,
+    // finds that action's update already processed or not coming; see
+    // `markPendingValuesAnswered`.
+    const lastUpdatedSequence = useRef(0);
     const dispatch = useAppDispatch();
 
     // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
@@ -2170,18 +2175,22 @@ export function DocViewer({
          * exists where a renderer showed a value ahead of core
          * (`baseVariableValue`), such as an input being typed in or a
          * `<slider>` being moved. That renderer is the target of its own
-         * update instruction, and core always sends an update's targets in
-         * the priority batch. When there is a priority batch, it resolved
+         * update instruction. Core queues an update's targets for the
+         * renderer even when nothing changed, and sends them in the priority
+         * batch, transient or not, before it schedules any deferred batch
+         * that carries the same `actionId`. That priority batch resolved
          * this `actionId`, and `resolveAction` calls
          * `clearPendingValuesForAction`, which drops every `actionId|*` key,
          * so the deferred batch finds no pending entry of its own to match.
-         * A step of a drag that changed nothing on screen has no priority
-         * batch; core's reply then only marks its entry answered, and a
-         * deferred batch for it that carries the target matches that entry
-         * like a priority batch would (ignored if it agrees, taken if not).
-         * What a deferred batch reaches otherwise is
-         * the in-flight check, and that is what we want: an input the reader
+         * (An action that performs no update at all sends neither batch.)
+         * What a deferred batch reaches is the in-flight check, answered
+         * entries included, and that is what we want: an input the reader
          * is still editing keeps the value it showed until core answers it.
+         *
+         * A deferred batch does not drop answered entries of earlier actions
+         * either. Its `actionId` is that of the update that left the work,
+         * which can be older than actions answered since, and its own number
+         * was already forgotten when its priority batch arrived.
          */
         deferred?: boolean;
         /**
@@ -2241,6 +2250,10 @@ export function DocViewer({
             // or are not coming.
             dropAnsweredPendingValuesBefore(
                 updatesToIgnoreRef.current,
+                sequence,
+            );
+            lastUpdatedSequence.current = Math.max(
+                lastUpdatedSequence.current,
                 sequence,
             );
             for (let [id, earlier] of actionSequences.current) {
@@ -2317,8 +2330,13 @@ export function DocViewer({
             // Core has answered, but the value the renderer showed ahead of
             // the action is still needed to recognize the update that may be
             // on its way. It is dropped when that update has been processed,
-            // or when an update for a later action shows none is coming.
-            markPendingValuesAnswered(updatesToIgnoreRef.current, actionId);
+            // or when the first update for a later action shows none is
+            // coming, which may already have happened.
+            markPendingValuesAnswered(
+                updatesToIgnoreRef.current,
+                actionId,
+                lastUpdatedSequence.current,
+            );
             // The action's number is needed only to drop values that earlier
             // actions left pending, when its update arrives. With none left,
             // forget it now: many actions get no update at all (each

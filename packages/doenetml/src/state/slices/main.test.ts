@@ -220,16 +220,42 @@ describe("core's reply arriving before the renderer update for the same action",
 
     it("stops waiting once an update for a later action shows the update is not coming", async () => {
         const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
-        // Leaving a box whose value is already committed: core changes nothing
-        // and sends no renderer update for it.
+        // Leaving a box whose value is already committed, or pressing Enter
+        // again with nothing changed: core changes nothing and sends no
+        // renderer update for it.
         const blur = eagerlyShow("blur", "9", COMPONENT_IDX);
         markPendingValuesAnswered(updatesToIgnore, "blur");
 
-        // The update for an action sent after it arrives.
+        // The update for an action sent after it (the blur's `focusChanged`)
+        // arrives.
         dropAnsweredPendingValuesBefore(updatesToIgnore, blur + 1);
 
         expect(updatesToIgnore.size).toBe(0);
         expect(await updateFromCore({ actionId: "later", value: "x" })).toBe(
+            false,
+        );
+    });
+
+    it("stops waiting at once when the reply comes after an update for a later action", async () => {
+        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
+        // Leaving a box whose value is already committed: core changes nothing
+        // and sends no renderer update for it.
+        const blur = eagerlyShow("blur", "9", COMPONENT_IDX);
+        // The update for an action sent after it (a button that changes the
+        // box's value while the box is offscreen) arrives before core's reply
+        // to the blur, so it cannot drop the blur's value yet.
+        const button = blur + 1;
+        dropAnsweredPendingValuesBefore(updatesToIgnore, button);
+        expect(updatesToIgnore.size).toBe(1);
+
+        // The reply comes now. That later update has already been processed,
+        // so the blur's update has been too, or is not coming.
+        markPendingValuesAnswered(updatesToIgnore, "blur", button);
+        expect(updatesToIgnore.size).toBe(0);
+
+        // The box's new value, sent offscreen in a deferred batch that carries
+        // the button's `actionId`, is taken.
+        expect(await updateFromCore({ actionId: "button", value: "5" })).toBe(
             false,
         );
     });
@@ -292,6 +318,49 @@ describe("markPendingValuesAnswered", () => {
         ).toBe(true);
         expect(
             updatesToIgnore.get(actionIdentifier("act10", OTHER_COMPONENT_IDX))
+                ?.answered,
+        ).toBeUndefined();
+    });
+});
+
+describe("markPendingValuesAnswered with the latest action updated", () => {
+    it("keeps the values when no later action's update has been processed", () => {
+        const updatesToIgnore: UpdatesToIgnore = new Map();
+        updatesToIgnore.set(actionIdentifier("act3", COMPONENT_IDX), {
+            componentIdx: COMPONENT_IDX,
+            value: "9",
+            sequence: 3,
+        });
+
+        // The latest update processed is this action's own, or an earlier one.
+        markPendingValuesAnswered(updatesToIgnore, "act3", 3);
+
+        expect(
+            updatesToIgnore.get(actionIdentifier("act3", COMPONENT_IDX))
+                ?.answered,
+        ).toBe(true);
+    });
+
+    it("drops only this action's values when a later action's update has been processed", () => {
+        const updatesToIgnore: UpdatesToIgnore = new Map();
+        updatesToIgnore.set(actionIdentifier("act3", COMPONENT_IDX), {
+            componentIdx: COMPONENT_IDX,
+            value: "9",
+            sequence: 3,
+        });
+        updatesToIgnore.set(actionIdentifier("act2", OTHER_COMPONENT_IDX), {
+            componentIdx: OTHER_COMPONENT_IDX,
+            value: "x",
+            sequence: 2,
+        });
+
+        markPendingValuesAnswered(updatesToIgnore, "act3", 4);
+
+        expect([...updatesToIgnore.keys()]).toEqual([
+            actionIdentifier("act2", OTHER_COMPONENT_IDX),
+        ]);
+        expect(
+            updatesToIgnore.get(actionIdentifier("act2", OTHER_COMPONENT_IDX))
                 ?.answered,
         ).toBeUndefined();
     });
