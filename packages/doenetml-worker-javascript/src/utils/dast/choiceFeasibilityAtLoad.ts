@@ -3310,7 +3310,10 @@ export function checkChoiceFeasibilityAtLoad({
                         knownMany.reduce((s, m) => s + m.count, 0);
                     if (
                         need > length - mayExclude ||
-                        spec.excludeCombinations
+                        spec.excludeCombinations ||
+                        // with a step of 0, every value is the same, which
+                        // one exclusion leaves out
+                        (mayExclude > 0 && mathMayBeZero(spec.step, value))
                     ) {
                         return "unknown";
                     }
@@ -3344,6 +3347,11 @@ export function checkChoiceFeasibilityAtLoad({
                     }).failure,
                     numToSelect,
                 );
+            }
+            if (seq.step === 0 && !valuesKnown) {
+                // every value is the same, which an exclusion not known
+                // may leave out (each is counted as leaving out one)
+                return "unknown";
             }
             kind = "values";
             const excluded = excludedIndices(seq, excludedValues, spec.seqType);
@@ -4619,10 +4627,16 @@ export function checkChoiceFeasibilityAtLoad({
                 spec.length &&
                 spec.exclude.length === 0 &&
                 !spec.excludeCombinations
+            ) &&
+            ![spec.from, spec.to, spec.step, spec.length].every(
+                (e) => e === null || surelyFinite(e),
             )
         ) {
-            // its values, maths, aren't bounded; only a `length` with
-            // nothing excluded says how many it has
+            // its values, maths that may have symbols, aren't bounded; only
+            // a `length` with nothing excluded says how many it has. With
+            // numbers only, it has as many as a number sequence would (the
+            // same `(to - from) / step + 1`, computed as a math), and each
+            // exclusion leaves out one at most, as below.
             return { ok: false, unproven: describeRanges() };
         }
         // how many values: `length`, or `(to - from) / step + 1`, rounded
@@ -4675,7 +4689,16 @@ export function checkChoiceFeasibilityAtLoad({
             coprimeBounds.hi > 0 &&
             numToSelectBounds.hi >= 2 &&
             !spec.excludeCombinations;
-        if (min >= 0 && !mayBeCoprime && !spec.excludeCombinations) {
+        // each exclusion leaves out one value at most, unless the step may
+        // be 0, which makes every value the same
+        const step = spec.step ? intervalOf(spec.step) : { lo: 1, hi: 1 };
+        const stepMayBeZero = !(step.lo > 0 || step.hi < 0);
+        if (
+            min >= 0 &&
+            !mayBeCoprime &&
+            !spec.excludeCombinations &&
+            !(excludeCount > 0 && stepMayBeZero)
+        ) {
             return { ok: true };
         }
         return tryWitness(witness, unbounded);
@@ -5588,6 +5611,29 @@ function sequenceNumber(v: Value, seqType: string): number | undefined {
  * The indices (from 0) of the values of `seq` that `excluded` leaves out,
  * as the sequence decides (`returnSequenceValueForIndex`).
  */
+/**
+ * Whether the step `step` of a math sequence, computed by `value`, may be 0
+ * (a step of 0 or a math equal to 0, such as `x - x`), or isn't known.
+ */
+function mathMayBeZero(step: Expr | null, value: (e: Expr) => Value): boolean {
+    if (!step) {
+        return false;
+    }
+    const v = value(step);
+    if (typeof v === "number") {
+        return !(v > 0 || v < 0);
+    }
+    const math = v.runTime?.componentType === "math" ? v.runTime.value : null;
+    if (!math) {
+        return true;
+    }
+    try {
+        return math.equals(me.fromAst(0));
+    } catch (e) {
+        return true;
+    }
+}
+
 function excludedIndices(
     seq: { from: number; step: number; length: number },
     excluded: number[],

@@ -285,6 +285,84 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         ).eqls(["doenet-e0073"]);
     });
 
+    it("a math sequence of numbers is bounded as a number sequence is", async () => {
+        // in a repeat with no end to its iterations: `from` and `to` that are
+        // numbers in every iteration
+        const repeat = (attributes: string) =>
+            `<mathInput name="n" prefill="3"/><repeatForSequence to="$n" indexName="i"><selectFromSequence type="math" ${attributes}/></repeatForSequence>`;
+        for (const attributes of [
+            `from="$i" to="$i+3" numToSelect="4"`,
+            `from="$i/3" to="$i/3+1" step="1/3" numToSelect="4"`,
+            `from="sqrt(2)+$i" to="sqrt(2)+$i+3" numToSelect="4"`,
+            `from="$i" length="4" exclude="$i+1" numToSelect="3"`,
+        ]) {
+            expect((await load(repeat(attributes))).errors, attributes).eqls(
+                [],
+            );
+        }
+        for (const [attributes, problem] of [
+            [`from="$i" to="$i+3" numToSelect="5"`, "4 values to select 5"],
+            [
+                `from="$i" length="4" exclude="$i+1" numToSelect="4"`,
+                "3 values to select 4",
+            ],
+        ]) {
+            expect((await load(repeat(attributes))).errors, attributes).eqls([
+                `doenet-e0073: \`<selectFromSequence>\` can't always select as written: when \`$i\` = 1, it has ${problem} from.`,
+            ]);
+        }
+    });
+
+    it("an exclusion leaves out every value when the step is 0", async () => {
+        // the bounds counted one exclusion as one value left out
+        const repeat = (attributes: string) =>
+            `<mathInput name="n" prefill="3"/><repeatForSequence to="$n" indexName="i"><selectFromSequence ${attributes}/></repeatForSequence>`;
+        for (const [doenetML, when] of [
+            [
+                repeat(
+                    `from="$i" step="0" length="5" exclude="$i" numToSelect="2"`,
+                ),
+                "`$i` = 1",
+            ],
+            [
+                repeat(
+                    `from="1" step="$i-1" length="5" exclude="1" numToSelect="2"`,
+                ),
+                "`$i` = 1",
+            ],
+            [
+                `<selectFromSequence name="b" from="0" to="1"/><selectFromSequence from="3" step="$b" length="5" exclude="3" numToSelect="2"/>`,
+                "`$b` = 0",
+            ],
+        ]) {
+            expect((await load(doenetML)).errors, doenetML).eqls([
+                `doenet-e0073: \`<selectFromSequence>\` can't always select as written: when ${when}, it has 0 values to select 2 from.`,
+            ]);
+        }
+        // a math sequence whose values are the same symbol
+        const b = `<select name="b"><option><math>x</math></option><option><math>y</math></option></select>`;
+        for (const step of ["0", "x-x"]) {
+            expect(
+                (
+                    await load(
+                        `${b}<selectFromSequence type="math" from="x" step="${step}" length="5" exclude="$b" numToSelect="2"/>`,
+                    )
+                ).codes,
+                step,
+            ).eqls(["doenet-e0073"]);
+        }
+        // a step that isn't 0
+        expect(
+            (
+                await load(
+                    repeat(
+                        `from="1" step="$i" length="5" exclude="1" numToSelect="4"`,
+                    ),
+                )
+            ).codes,
+        ).eqls([]);
+    });
+
     it("a value a choice isn't known to take is not named as one that fails", async () => {
         // `a`'s `to` is 3 (`valueOnNaN`), which the check can't compute, so
         // it doesn't know what `a` can be: it can't show the selection,
