@@ -1,7 +1,7 @@
 /**
  * Typing into a math input with an Android on-screen keyboard.
  *
- * Chrome on Android, with Gboard and other on-screen keyboards, reports every
+ * Chrome on Android, with an on-screen keyboard such as Gboard, reports every
  * key as a keydown whose `key` is "Unidentified" (keyCode 229), followed by an
  * `input` event of type `insertText` that names the character. MathQuill's
  * guard for the Ctrl-Shift-U Unicode sequence ignored every "Unidentified"

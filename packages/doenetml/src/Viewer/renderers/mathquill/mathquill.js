@@ -3104,8 +3104,9 @@ var saneKeyboardEvents = (function () {
             shouldBeSelected = !!text;
         }
         var shouldBeSelected = false;
-        // The last `input` event since the last keydown (DoenetML: see
-        // `typedText`).
+        // DOENET: local patch to this vendored bundle -- preserve it when
+        // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+        // The last `input` event since the last keydown (see `typedText`).
         var lastInput = null;
         // -*- helper subroutines -*- //
         // Determine whether there's a selection in the textarea.
@@ -3165,10 +3166,12 @@ var saneKeyboardEvents = (function () {
         function onKeyup(e) {
             everyTick.trigger(e);
             if (e.target !== textarea) return;
-            // DoenetML: on Android the on-screen keyboard's backspace is a
-            // keydown and keyup of "Unidentified" (keyCode 229) and nothing
-            // else when there is nothing in the textarea for it to delete,
-            // which is always, since typed text is taken out of it at once.
+            // DOENET: local patch to this vendored bundle -- preserve it when
+            // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+            // On Android the on-screen keyboard's backspace is a keydown and
+            // keyup of "Unidentified" (keyCode 229) and nothing else when
+            // there is nothing in the textarea for it to delete, which is the
+            // usual case, since typed text is taken out of it at once.
             // A key that typed or composed anything raised an `input` event
             // in between; one that did neither, on an empty textarea, is the
             // backspace. Only keyCode 229, the code Chrome gives on-screen
@@ -3238,14 +3241,18 @@ var saneKeyboardEvents = (function () {
             // Furthermore, an input event with the value "u" is still processed in Linux and Chrome OS due to the down/up mismatch.
             // The end result is that a spurious "u" is sent followed by the intended character.
             // Due to how this feature works, it's vital to completely ignore Ctrl-Shift-U no matter how the input event appears to Mathquill as clearing the textarea by mistake breaks the expected input flow.
-            // DoenetML: an on-screen keyboard on Android (Gboard and others)
-            // reports every key as a keydown of "Unidentified" (keyCode 229),
+            // DOENET: local patch to this vendored bundle -- preserve it when
+            // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+            // An on-screen keyboard on Android (seen with Gboard) reports
+            // every key as a keydown of "Unidentified" (keyCode 229),
             // then says exactly what it typed in an `input` event of type
             // `insertText`. Ignoring every "Unidentified" keydown, as the
             // guard below does, dropped all typing on Android phones. When
             // the browser has named the one character inserted, outside a
-            // composition, take it: that is not the Ctrl-Shift-U sequence the
-            // guard is for, which composes or carries modifiers.
+            // composition, take it. The Ctrl-Shift-U keydowns described
+            // above carry modifiers and are still ignored; the ChromeOS case
+            // without modifiers has not been reproduced, and if it names its
+            // character in a plain `insertText`, that character is now typed.
             var insertedByOnScreenKeyboard =
                 !!keydown &&
                 keydown.key === "Unidentified" &&
