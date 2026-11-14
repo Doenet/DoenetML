@@ -4,6 +4,7 @@ import {
     actionIdentifier,
     clearPendingValuesForAction,
     dropAnsweredPendingValuesBefore,
+    hasPendingValuesBefore,
     mainSlice,
     mainThunks,
     markPendingValuesAnswered,
@@ -293,5 +294,47 @@ describe("markPendingValuesAnswered", () => {
             updatesToIgnore.get(actionIdentifier("act10", OTHER_COMPONENT_IDX))
                 ?.answered,
         ).toBeUndefined();
+    });
+});
+
+describe("hasPendingValuesBefore", () => {
+    // After core replies to an action, `DocViewer` forgets the action's number
+    // unless its update could still drop something: a value an earlier action
+    // left pending. Actions that get no update (`recordVisibilityChange` as
+    // the reader scrolls) would otherwise pile up.
+
+    it("is false when nothing is pending", () => {
+        expect(hasPendingValuesBefore(new Map(), 5)).toBe(false);
+    });
+
+    it("counts only values left by actions sent earlier", () => {
+        const updatesToIgnore: UpdatesToIgnore = new Map();
+        updatesToIgnore.set(actionIdentifier("own", COMPONENT_IDX), {
+            componentIdx: COMPONENT_IDX,
+            value: "9",
+            sequence: 3,
+            answered: true,
+        });
+        updatesToIgnore.set(actionIdentifier("later", OTHER_COMPONENT_IDX), {
+            componentIdx: OTHER_COMPONENT_IDX,
+            value: "x",
+            sequence: 4,
+        });
+
+        expect(hasPendingValuesBefore(updatesToIgnore, 3)).toBe(false);
+        expect(hasPendingValuesBefore(updatesToIgnore, 4)).toBe(true);
+    });
+
+    it("counts earlier values whether or not core has answered them", () => {
+        const updatesToIgnore: UpdatesToIgnore = new Map();
+        updatesToIgnore.set(actionIdentifier("blur", COMPONENT_IDX), {
+            componentIdx: COMPONENT_IDX,
+            value: "9",
+            sequence: 1,
+        });
+        expect(hasPendingValuesBefore(updatesToIgnore, 2)).toBe(true);
+
+        markPendingValuesAnswered(updatesToIgnore, "blur");
+        expect(hasPendingValuesBefore(updatesToIgnore, 2)).toBe(true);
     });
 });

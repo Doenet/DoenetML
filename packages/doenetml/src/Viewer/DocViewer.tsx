@@ -39,6 +39,7 @@ import {
     actionIdentifier,
     clearPendingValuesForAction,
     dropAnsweredPendingValuesBefore,
+    hasPendingValuesBefore,
     mainThunks,
     markPendingValuesAnswered,
     UpdatesToIgnore,
@@ -2170,13 +2171,15 @@ export function DocViewer({
          * (`baseVariableValue`), such as an input being typed in or a
          * `<slider>` being moved. That renderer is the target of its own
          * update instruction, and core always sends an update's targets in
-         * the priority batch. It does not rest on that, though: the
-         * priority batch resolved this `actionId`, and `resolveAction` calls
-         * `clearPendingValuesForAction`, which drops every `actionId|*` key.
-         * By the time the deferred batch lands there is structurally no
-         * pending entry of its own left to match, whatever the renderers do.
-         * A deferred batch therefore never matches a pending entry and can
-         * neither consume nor clear one. What it does reach is
+         * the priority batch. When there is a priority batch, it resolved
+         * this `actionId`, and `resolveAction` calls
+         * `clearPendingValuesForAction`, which drops every `actionId|*` key,
+         * so the deferred batch finds no pending entry of its own to match.
+         * A step of a drag that changed nothing on screen has no priority
+         * batch; core's reply then only marks its entry answered, and a
+         * deferred batch for it that carries the target matches that entry
+         * like a priority batch would (ignored if it agrees, taken if not).
+         * What a deferred batch reaches otherwise is
          * the in-flight check, and that is what we want: an input the reader
          * is still editing keeps the value it showed until core answers it.
          */
@@ -2316,6 +2319,20 @@ export function DocViewer({
             // on its way. It is dropped when that update has been processed,
             // or when an update for a later action shows none is coming.
             markPendingValuesAnswered(updatesToIgnoreRef.current, actionId);
+            // The action's number is needed only to drop values that earlier
+            // actions left pending, when its update arrives. With none left,
+            // forget it now: many actions get no update at all (each
+            // `recordVisibilityChange` as the reader scrolls), and their
+            // numbers would otherwise pile up until some update arrives.
+            // Values pending from later actions carry later numbers, so none
+            // can need it afterwards.
+            const sequence = actionSequences.current.get(actionId);
+            if (
+                sequence !== undefined &&
+                !hasPendingValuesBefore(updatesToIgnoreRef.current, sequence)
+            ) {
+                actionSequences.current.delete(actionId);
+            }
         } else {
             // This action is being settled, so the value the renderer showed
             // ahead of it is no longer waiting on an answer.

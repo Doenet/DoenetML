@@ -139,6 +139,25 @@ export function dropAnsweredPendingValuesBefore(
     }
 }
 
+/**
+ * Whether anything in `updatesToIgnore` was left pending by an action sent
+ * before the action numbered `sequence`. Those are the only values the
+ * renderer update for that action could drop (see
+ * `dropAnsweredPendingValuesBefore`), so when there are none once core has
+ * replied, the viewer has no further use for the action's number.
+ */
+export function hasPendingValuesBefore(
+    updatesToIgnore: UpdatesToIgnore,
+    sequence: number,
+) {
+    for (let pending of updatesToIgnore.values()) {
+        if (pending.sequence < sequence) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function sameBaseValue(valueFromRenderer: any, valueFromCore: any) {
     return (
         valueFromRenderer === valueFromCore ||
