@@ -185,7 +185,7 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
             `<selectFromSequence name="a" from="3" to="4"/><selectFromSequence type="math" from="x" length="$a" exclude="y" numToSelect="3"/>`,
         );
         expect(symbol.errors).eqls([
-            "doenet-e0073: DoenetML can't show that `<selectFromSequence>` can always select as written, for every value of what it reads: `$a` = 3. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.",
+            "doenet-e0073: DoenetML can't show that `<selectFromSequence>` can always select as written: it can't decide whether it can when `$a` = 3. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.",
         ]);
     });
 
@@ -200,6 +200,12 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
             `<selectFromSequence name="a" type="letters" from="c" to="e"/><selectFromSequence type="letters" from="$a" to="z" numToSelect="2"/>`,
         );
         expect(proven.errors).eqls([]);
+        // with space around it, the reference isn't letters when the
+        // document runs (it then has no values): not taken as a letter
+        const spaced = await load(
+            `<selectFromSequence name="a" type="letters" from="c" to="e"/><selectFromSequence type="letters" from="a" to="$a " numToSelect="3"/>`,
+        );
+        expect(spaced.codes).eqls(["doenet-e0074"]);
     });
 
     it("a letter is named as a letter", async () => {
@@ -265,6 +271,40 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         );
         expect(isFalse.errors).eqls([
             "doenet-e0073: `<select>` can't always select as written: when `$a` = 2, it has 1 option to select 2 from.",
+        ]);
+    });
+
+    it("a boolean parameter reads a <boolean> through a chain, and a module attribute", async () => {
+        // `c` is `b`, which is true: the document always selects
+        const chain = await load(
+            `<boolean name="b">true</boolean><boolean name="c">$b</boolean><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$c">u</select>`,
+        );
+        expect(chain.errors).eqls([]);
+        // a `<number>` not 0 is true
+        const number = await load(
+            `<number name="n">2</number><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$n">u</select>`,
+        );
+        expect(number.errors).eqls([]);
+        const isFalse = await load(
+            `<boolean name="b">false</boolean><boolean name="c">$b</boolean><selectFromSequence name="a" to="3"/><select numToSelect="$a" withReplacement="$c">u</select>`,
+        );
+        expect(isFalse.errors).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$a` = 2, it has 1 option to select 2 from.",
+        ]);
+        // written only in the module, the same in every instance
+        const module = await load(
+            `<module name="m"><moduleAttributes><boolean name="wr">true</boolean></moduleAttributes><select numToSelect="3" withReplacement="$wr">u v</select></module>`,
+        );
+        expect(module.errors).eqls([]);
+    });
+
+    it("a boolean parameter reading a choice in error is that error", async () => {
+        // `x` has no value when `a` is 1; `withReplacement` reads it
+        const { errors } = await load(
+            `<selectFromSequence name="a" from="1" to="2"/><selectFromSequence name="x" from="0" to="$a" exclude="0 1"/><select numToSelect="3" withReplacement="$x">u v</select>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, it has 0 values to select 1 from.",
         ]);
     });
 

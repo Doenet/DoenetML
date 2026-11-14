@@ -38,7 +38,9 @@
  * Anything else is an error (`doenet-e0074`), at the parameter, naming the
  * part that isn't analysable, and the `<number>` it is in when it is in
  * one. A boolean parameter (`withReplacement`, `coprime`) that reads a
- * literal `<boolean>` is its value; one that reads another choice, or an
+ * `<boolean>` that can't change (written as `true` or `false`, or as a
+ * reference to one, through a chain) or a module attribute written only in
+ * the module is its value; one that reads another choice, or an
  * expression the check doesn't evaluate, can only be true or false, so it is
  * checked as both.
  *
@@ -406,18 +408,43 @@ export function checkChoiceFeasibilityAtLoad({
         if (containsError(attribute)) {
             throw new Skip();
         }
+        let expr: Expr | null = null;
         if (holdsReference(attribute)) {
             // a reference to content that can't change, such as
             // `<boolean name="b">true</boolean>`: its value
-            let expr: Expr | null = null;
             try {
-                expr = analyseAttributeScalar(attribute);
+                // written as one reference, what it reads
+                const component = attribute.component;
+                const reference =
+                    component?.componentType === "boolean" &&
+                    !component.extending
+                        ? singleReference(component)
+                        : undefined;
+                expr = reference
+                    ? analyseReference(reference)
+                    : analyseAttributeScalar(attribute);
             } catch (e) {
-                // a choice or an iteration reads it, or it isn't
-                // analysable: true or false, as below
+                if (e instanceof Skip) {
+                    // it reads an error, already reported
+                    throw e;
+                }
+                // it isn't analysable: true or false, as below
             }
-            if (expr && atomsOf([expr]).size === 0) {
-                const value = evaluate(expr, new Map());
+            // a module attribute written only in the module is its value
+            const fixed = new Map<Atom, Value>();
+            const atoms = expr ? [...atomsOf([expr])] : [];
+            for (const atom of atoms) {
+                const sources = atomSources.get(atom) ?? [];
+                if (
+                    atom.kind === "moduleAttribute" &&
+                    atom.decidedByDoenetML &&
+                    sources.length === 1
+                ) {
+                    fixed.set(atom, evaluate(sources[0], new Map()));
+                }
+            }
+            if (expr && fixed.size === atoms.length) {
+                const value = evaluate(expr, fixed);
                 if (typeof value === "number" && !Number.isNaN(value)) {
                     return constant(value !== 0 ? 1 : 0);
                 }
@@ -426,14 +453,15 @@ export function checkChoiceFeasibilityAtLoad({
         // a reference SEL-1 allows, or an expression the check doesn't
         // evaluate (`x>0`): true or false, so both. One with no reference in
         // it is decided by the DoenetML, so it doesn't make the choice
-        // differ between variants.
+        // differ between variants. One that reads another choice is
+        // checked after it, and is that choice's error when it has one.
         const atom: Atom = {
             id: nextAtomId++,
             label: `${attributeNamed(choice, name)!.name}`,
             kind: "bool",
             decidedByDoenetML: !holdsReference(attribute),
         };
-        atomSources.set(atom, []);
+        atomSources.set(atom, expr ? [expr] : []);
         return { k: "atom", atom };
     }
 
@@ -713,11 +741,12 @@ export function checkChoiceFeasibilityAtLoad({
             ) &&
             !node.extending
         ) {
-            const meaningful = (node.children ?? []).filter(
-                (child: any) =>
-                    typeof child !== "string" || child.trim() !== "",
+            // space around it would be part of the letters when the
+            // document runs, which are then no letters
+            const written = (node.children ?? []).filter(
+                (child: any) => child !== "",
             );
-            node = meaningful.length === 1 ? meaningful[0] : undefined;
+            node = written.length === 1 ? written[0] : undefined;
         }
         if (node?.componentType === "_copy" || node?.componentType === "_ref") {
             const expr = analyseReference(node);
@@ -760,6 +789,57 @@ export function checkChoiceFeasibilityAtLoad({
         return listParam(choice, "exclude").map((entry) =>
             entry.k === "many" ? entry : lettersLiteral(entry),
         );
+    }
+
+    /** The `<boolean>`s `booleanOf` is following, to stop at a cycle. */
+    const booleansFollowed = new Set<any>();
+
+    /**
+     * A `<boolean>` that can't change, as 1 or 0: written as `true` or
+     * `false`, or as one reference to content that can't change
+     * (`<boolean name="c">$b</boolean>`, a `<number>` true when not 0).
+     * `undefined` for any other, such as one that reads a choice.
+     */
+    function booleanOf(node: any): Expr | undefined {
+        const literal = literalBooleanText(node);
+        if (literal !== undefined) {
+            return constant(literal ? 1 : 0);
+        }
+        const reference = singleReference(node);
+        if (!reference || booleansFollowed.has(node)) {
+            // not one reference, or a cycle (`doenet-e0005`)
+            return undefined;
+        }
+        let expr: Expr;
+        booleansFollowed.add(node);
+        try {
+            expr = analyseReference(reference);
+        } catch (e) {
+            if (e instanceof NotAnalysable) {
+                return undefined;
+            }
+            throw e;
+        } finally {
+            booleansFollowed.delete(node);
+        }
+        if (atomsOf([expr]).size > 0) {
+            return undefined;
+        }
+        const value = evaluate(expr, new Map());
+        return typeof value === "number" && !Number.isNaN(value)
+            ? constant(value !== 0 ? 1 : 0)
+            : undefined;
+    }
+
+    /** The reference a component's content is, when it is one alone. */
+    function singleReference(node: any): any {
+        const meaningful = (node.children ?? []).filter(
+            (child: any) => typeof child !== "string" || child.trim() !== "",
+        );
+        return meaningful.length === 1 &&
+            ["_copy", "_ref"].includes(meaningful[0]?.componentType)
+            ? meaningful[0]
+            : undefined;
     }
 
     /** The attribute `attribute` as one value. */
@@ -964,9 +1044,9 @@ export function checkChoiceFeasibilityAtLoad({
             });
         }
         if (type === "boolean" && !node.extending) {
-            const value = literalBooleanText(node);
+            const value = booleanOf(node);
             if (value !== undefined) {
-                return constant(value ? 1 : 0);
+                return value;
             }
         }
         throw new NotAnalysable(textOfChildren([node]));
@@ -1223,19 +1303,10 @@ export function checkChoiceFeasibilityAtLoad({
         ) {
             return constant({ symbolic: target.children.join("").trim() });
         }
-        if (
-            type === "boolean" &&
-            !target.extending &&
-            (target.children ?? []).every((c: any) => typeof c === "string")
-        ) {
-            // written as a literal
-            if (type === "boolean") {
-                const value = literalBooleanText(target);
-                if (value !== undefined) {
-                    return constant(value ? 1 : 0);
-                }
-            } else {
-                return constant(parseLiteral(target.children.join("")));
+        if (type === "boolean" && !target.extending) {
+            const value = booleanOf(target);
+            if (value !== undefined) {
+                return value;
             }
         }
         if (type === "_copy" && target.extending) {
@@ -1272,7 +1343,12 @@ export function checkChoiceFeasibilityAtLoad({
         }
         const module = parentOf.get(parentOf.get(attribute));
         const name = attribute.attributes?.name?.primitive?.value;
-        const sources: Expr[] = [analyseContentOf(attribute)];
+        const sources: Expr[] = [
+            (attribute.componentType === "boolean" &&
+                !attribute.extending &&
+                booleanOf(attribute)) ||
+                analyseContentOf(attribute),
+        ];
         // the module, and each copy or extend of it, through a chain
         const modules = new Set<any>([module]);
         let added = true;

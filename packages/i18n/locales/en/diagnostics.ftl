@@ -1907,8 +1907,9 @@ choice-parameter-reader-changeable =
 # A random selection that can't select as written for some value its
 # parameters can take, decided at load (SEL-5). $when names those values, as
 # "`$a` = 1, `$i` = 2" (references are DoenetML, and stay as written); for
-# $kind "unproven" it gives the values at which it can't be shown, or, when
-# the values were bounded instead, their ranges, as "`$i` ∈ {1, 2, 3, …}".
+# $kind "unproven" it gives the values at which it can't be decided, or, when
+# the values were bounded instead, their ranges, as "`$i` ∈ {1, 2, 3, …}"
+# (it can't be decided for some values in them).
 # $attribute is the parameter that isn't a number (DoenetML). $variantName is
 # a variant name as the author wrote it.
 choice-not-always-possible =
@@ -1932,7 +1933,7 @@ choice-not-always-possible =
            *[other] { $numValues } options
         }.
         [number] `<{ $componentType }>` can't always select as written: when { $when }, `{ $attribute }` isn't a number.
-       *[unproven] DoenetML can't show that `<{ $componentType }>` can always select as written, for every value of what it reads: { $when }. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.
+       *[unproven] DoenetML can't show that `<{ $componentType }>` can always select as written: it can't decide whether it can when { $when }. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.
     }
 
 # A parameter of a random selection that the load-time check can't analyse
