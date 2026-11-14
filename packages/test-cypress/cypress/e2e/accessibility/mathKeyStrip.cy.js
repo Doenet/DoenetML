@@ -18,12 +18,14 @@
  */
 
 function emulateTouchDevice(enabled) {
-    return cy.wrap(
+    // Sent from inside the command queue, not when the test body runs:
+    // `Cypress.automation` acts at once, so a test that turns emulation on
+    // and later off would otherwise have both sent before its first command.
+    return cy.then({ log: false }, () =>
         Cypress.automation("remote:debugger:protocol", {
             command: "Emulation.setTouchEmulationEnabled",
             params: { enabled, maxTouchPoints: 5 },
         }),
-        { log: false },
     );
 }
 
@@ -79,6 +81,9 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         emulateTouchDevice(false);
     });
 
+    // Chrome applies touch emulation to `(pointer: coarse)` with a delay, so
+    // `load` waits for it before any test focuses anything. Every test
+    // emulates a touch device before loading.
     function load(message = {}) {
         cy.get("#testRunner_toggleControls").should("exist");
         cy.window().then((win) => {
@@ -94,6 +99,12 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         });
         cy.get("#mi4 textarea").should("exist");
         cy.get("#c4").should("have.text", "0");
+        cy.window().should((win) => {
+            expect(
+                win.matchMedia("(pointer: coarse)").matches,
+                "browser reports a coarse primary pointer",
+            ).to.equal(true);
+        });
     }
 
     function expectCoarsePointer() {
@@ -254,8 +265,12 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         cy.focused().should(($el) => {
             const el = $el[0];
             expect(el.closest(".doenet-math-key-strip")).to.equal(null);
-            expect(el.closest("#mi4")).to.equal(null);
-            const input = el.ownerDocument.querySelector("#mi4");
+            expect(el.closest("#mi4 .mq-editable-field")).to.equal(null);
+            // The next stop is the answer's check button, inside `#mi4`'s
+            // renderer but after the field.
+            const input = el.ownerDocument.querySelector(
+                "#mi4 .mq-editable-field",
+            );
             expect(
                 input.compareDocumentPosition(el) &
                     Node.DOCUMENT_POSITION_FOLLOWING,
@@ -330,6 +345,9 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         cy.get(STRIP).should("be.visible");
 
         emulateTouchDevice(false);
+        cy.window().should((win) => {
+            expect(win.matchMedia("(pointer: coarse)").matches).to.equal(false);
+        });
         cy.get("#mi3 textarea").focus();
         cy.get(STRIP).should("not.be.visible");
     });
