@@ -289,7 +289,7 @@ document loads, never by trying variants: `numToSelect="$n"` with `n` chosen fro
 with numbers and other references by `+`, `-`, `*`, `/`, `min`, `max`, `abs`,
 `floor`, `ceil` and `round`, written in the attribute or in a `<number>{:dn}`,
 `<integer>{:dn}` or `<math>{:dn}` it references. Anything else, such as a function evaluated, is an error, since
-the check can't tell whether the choice can always be made.
+the check can't tell whether the choice can always be made. `withReplacement` may read another random choice only as one reference alone, and a `<number>{:dn}` it reads may have no attribute that changes its value, such as `valueOnNaN` or `simplify`.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.

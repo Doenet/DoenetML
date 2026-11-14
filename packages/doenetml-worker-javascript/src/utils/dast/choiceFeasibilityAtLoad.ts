@@ -9,29 +9,33 @@
  * checks the choice over every combination of them. It never tries variants,
  * so it does not depend on how variants are seeded (D17).
  *
- * ## How a value is read
+ * ## One function for the check and the selection
  *
- * Every value is what the component holding it holds when the document
- * runs, computed by that component's own functions
- * (`choiceValuesAsRunTime.ts`): a `<number>`, `<integer>`, `<math>`,
- * `<boolean>` or `<text>` written in a parameter or referenced from one, the
- * attribute component a parameter is made (`numToSelect` an `<integer>`,
- * `step` a `<math>`), and a literal attribute (`literalAttributeValue`). So
- * `<number>pi</number>` is 3.14…, `<integer>2.4</integer>` is 2, a
- * `<boolean>` reading a `<number>` is true when it isn't 0, and a letters
- * sequence's `to="$a "` is text that isn't letters, as the document has
- * them. A component with an attribute that changes how it computes its
- * value (`valueOnNaN`, `convertBoolean`, a `<math>`'s `simplify` or
- * `format`, a `<boolean>`'s compare settings) is computed with its
- * attributes at their defaults, and that value is kept only where the
- * attribute can't change it (a number, for `valueOnNaN` and `simplify`);
- * otherwise it is a value the check can't know (`valueCaveatOf`).
+ * A choice whose parameters read a value from the variant or an iteration,
+ * and a choice another reads a value of, has each parameter compiled
+ * (`utils/selectionParameters.ts`): a template of arithmetic over *slots*,
+ * each slot one reference written in the parameter (`named` with its
+ * `node`). The choice then holds the parameter in a `_selectionParameter` in
+ * place of the attribute component it was written as (`installCompiled`),
+ * and, when the document runs, computes it with `parameterValue` from what
+ * its slots hold. The check computes it with the same function (a `held`
+ * with `compiled`, `evaluateHeld`), from each value a slot can take. So the
+ * check and the choice can't read a parameter differently: there is no
+ * attribute component, with its sugar, adapters and attributes, for the
+ * check to imitate. What the two must agree on is only what a slot holds: a
+ * value another choice drew (compiled too), a repeat's index or value, a
+ * module attribute's value.
  *
- * The check keeps, for each, how it is computed from the values it reads (a
- * `held` expression), and computes it again for each combination of them;
- * what it keeps of it as arithmetic is only for the bounds below, and only
- * when it is that value (not with a `<boolean>` in a `<number>`, which the
- * `<number>` doesn't read as a number).
+ * Whether a choice can select with values for its parameters is the test
+ * the choice itself makes before it draws (`utils/selectionFailure.ts`),
+ * which the check calls for each combination of values (`concreteProblem`).
+ *
+ * What a parameter that reads nothing from the variant or an iteration is
+ * written as is its value, computed once now with the run time's own
+ * functions (`choiceValuesAsRunTime.ts`, `literalAttributeValue`), and held
+ * by the compiled parameter as a constant: `<number>pi</number>` is 3.14…,
+ * `<integer>2.4</integer>` is 2. One whose value an attribute may change, so
+ * that the check can't compute it, is an error (`doenet-e0074`).
  *
  * ## What a parameter can be (SEL-6)
  *
@@ -39,39 +43,34 @@
  * value, whatever its form (`3!`, `$n^2` with `n` a `<number>` written as
  * `3`). Content that reads one is analysable when it is:
  * - a literal;
- * - a reference SEL-1 allows, with a known range:
+ * - a reference SEL-1 allows, with a known range, each a slot:
  *   - another random choice, `$a` or `$a[2]` (in a letters sequence's
- *     `from` or `to`, a letters choice, written alone): what it can select, found
- *     from its own parameters (SEL-7, so choices are checked in the order
- *     their references give, and a choice in error leaves those reading it
- *     unchecked, reported once);
+ *     `from` or `to`, a letters choice): what it can select, found from its
+ *     own parameters (SEL-7, so choices are checked in the order their
+ *     references give, and a choice reading one in error is that error);
  *   - a repeat's `indexName`: every iteration that can exist, `1` to the
  *     most iterations the repeat can have, or `1, 2, 3, …` with no end when
  *     the count isn't analysable (it may come from an input, SEL-2);
  *   - a repeat's `valueName`, when what the repeat iterates over is in these
  *     forms;
- *   - a `<number>`, `<integer>` or `<math>` whose content is in these
- *     forms, or that extends one with nothing of its own, or a component
- *     written as a literal (a `<boolean>`, a `<text>`, a `<numberList>`, a
- *     `<sequence>` in a list). SEL-6 names a `<number>` and an `<integer>`;
- *     a `<math>` is read too, as `numToSelect` read through a chain of
- *     `<math>`s and extends is a test the principles keep binding (COMP-8,
- *     "…initially unresolved");
- *   - a component in an iteration of a repeat, `$r[1].n`, over every
- *     iteration;
+ *   - a module attribute: what the module and each copy of it write;
+ * - a `<number>`, `<integer>` or `<math>` whose content is in these forms,
+ *   with no attribute that changes how it computes its value, or that
+ *   extends one with nothing of its own: its content is compiled into the
+ *   parameter, each reference in it a slot. SEL-6 names a `<number>` and an
+ *   `<integer>`; a `<math>` is read too, as `numToSelect` read through a
+ *   chain of `<math>`s and extends is a test the principles keep binding
+ *   (COMP-8, "…initially unresolved");
  * - `+ − ×`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round` of these.
  *
- * Anything else is an error (`doenet-e0074`), at the parameter, naming the
- * part that isn't analysable, and the `<number>` it is in when it is in
- * one, as is a reference the check can't read at all (`$p.x`), even when it
- * is the same in every variant. A boolean parameter (`withReplacement`,
- * `coprime`), and a `<boolean>` or `<text>` it reads, needs no arithmetic
- * form: it is what the component computes from the values it reads (a
- * `<boolean>` reading another choice is true for some of its values and
- * false for others). Only one whose references the check can't read is
- * checked as both true and false. A value the check can't know (an option
- * that isn't one value) decides nothing: a choice that depends on it can't
- * be shown to select.
+ * A boolean parameter (`withReplacement`, `coprime`) is a constant, or one
+ * reference alone to a value from the variant (a `<select>` of `<boolean>`
+ * options), true when not 0. Anything else is an error (`doenet-e0074`), at
+ * the parameter, naming the part that isn't analysable, and the `<number>`
+ * it is in when it is in one: a `<boolean>` or `<text>` computed from such a
+ * value (`withReplacement="$x > 0"`), an attribute that changes a value
+ * (`valueOnNaN`, `convertBoolean`, `simplify`), a reference the check can't
+ * read at all (`$p.x`, even when it is the same in every variant).
  *
  * The parameters read are those that decide whether the choice can select:
  * - `<select>`: `numToSelect`, `withReplacement`, and how many options it
