@@ -711,6 +711,91 @@ describe("A parameter is in an analysable form (SEL-6) @group4", () => {
         ).eqls([]);
     });
 
+    it("a <boolean> in a <number> is no part of it, as the document has it", async () => {
+        const choices = `<selectFromSequence name="a" from="1" to="2"/><boolean name="w">$a > 1</boolean>`;
+        // `$w + 3` is made a `<math>`, which takes no `<boolean>`: it is 3,
+        // which the exclude removes
+        for (const exclude of [
+            `<number name="x">$w + 3</number><selectFromSequence from="1" to="3" numToSelect="3" exclude="$x"/>`,
+            `<selectFromSequence from="1" to="3" numToSelect="3" exclude="$w+3"/>`,
+        ]) {
+            expect((await load(`${choices}${exclude}`)).errors, exclude).eqls([
+                "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, it has 2 values to select 3 from.",
+            ]);
+        }
+        // `$w` alone is no number: no bound of 0 to 1 shows that it selects
+        expect(
+            (
+                await load(
+                    `${choices}<number name="n">$w</number><selectFromSequence to="$n+3" numToSelect="3"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, `to` isn't a number.",
+        ]);
+    });
+
+    it("a <text> read as a number or a math is parsed as math, as the document has it", async () => {
+        const choices = `<selectFromSequence name="a" from="1" to="2"/>`;
+        // `1e2` is `1·e2`, no number
+        expect(
+            (
+                await load(
+                    `${choices}<text name="t">1e2</text><selectFromSequence to="$t" numToSelect="$a"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, `to` isn't a number.",
+        ]);
+        // a `<math>` holding the text `1` is 1
+        expect(
+            (
+                await load(
+                    `${choices}<text name="t">$a</text><math name="m">$t</math><boolean name="b">$m != 1</boolean><select numToSelect="2" withReplacement="$b">u</select>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$a` = 1, it has 1 option to select 2 from.",
+        ]);
+    });
+
+    it("a value computed again is told apart from another that isn't a number", async () => {
+        // `$d` is ∞ when `b` is 0 and NaN when `b` is 1: `$w` is true, then
+        // false, not the value found first
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="b" from="0" to="1"/><number name="d">(1-$b)/0</number><boolean name="w">$d > 1</boolean><select numToSelect="2" withReplacement="$w">u</select>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<select>` can't always select as written: when `$b` = 1, it has 1 option to select 2 from.",
+        ]);
+    });
+
+    it("a component with an attribute that changes its value isn't known, unless it is a number", async () => {
+        const choices = `<selectFromSequence name="a" from="1" to="2"/><boolean name="w">$a > 1</boolean>`;
+        // each is 3 or 1 or 0 in the document, which the exclude removes
+        for (const exclude of [
+            `<number name="x" valueOnNaN="3">$w</number><selectFromSequence from="1" to="3" numToSelect="3" exclude="$x"/>`,
+            `<number name="x" convertBoolean>$w</number><selectFromSequence from="0" to="2" numToSelect="3" exclude="$x"/>`,
+            `<math name="m" simplify>x-x+3</math><number name="x">$m</number><selectFromSequence from="1" to="3" numToSelect="$a+1" exclude="$x"/>`,
+        ]) {
+            const { errors } = await load(`${choices}${exclude}`);
+            expect(errors, exclude).toHaveLength(1);
+            expect(errors[0], exclude).toMatch(
+                /^doenet-e0073: DoenetML can't show/,
+            );
+        }
+        // a number is kept: `simplify` and `valueOnNaN` don't change it
+        for (const to of [
+            `<math name="m" simplify>$a+2</math><selectFromSequence to="$m" numToSelect="3"/>`,
+            `<number name="m" valueOnNaN="0">$a+2</number><selectFromSequence to="$m" numToSelect="3"/>`,
+        ]) {
+            expect((await load(`${choices}${to}`)).errors, to).eqls([]);
+        }
+    });
+
     it("operators", async () => {
         for (const [numToSelect, codes] of [
             ["$a + 1", []],

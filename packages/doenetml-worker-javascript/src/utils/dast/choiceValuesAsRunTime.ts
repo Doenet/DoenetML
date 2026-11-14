@@ -11,15 +11,24 @@
  * component in it the value that component has, of one of the types a
  * parameter can read (`RunTimeChild`). What is computed mirrors the
  * component's `value` state variable with every attribute at its default:
- * - `<number>`: `Number.js` (`numberFromString` for one string,
- *   `buildParsedExpression` and `numberValueFromCodes` otherwise), with
- *   `valueOnNaN` `NaN` and `convertBoolean` false;
+ * - `<number>`: `Number.js` (`numberFromString` for one string, the
+ *   `number` of one `<text>`; content of more than one piece is made a
+ *   `<math>` first, by `Number.js`'s sugar, and read as that `<math>`'s
+ *   number), with `valueOnNaN` `NaN` and `convertBoolean` false;
  * - `<integer>`: that, rounded (`Integer.js`);
  * - `<math>`: `Math.js` (`mathExpressionWithCodes`, `mathValueFromCodes`,
- *   then `normalizeMathExpression` with `simplify="none"`);
+ *   then `normalizeMathExpression` with `simplify="none"`); a `<number>` in
+ *   it is its math, a `<text>` the text parsed as math (`textToMath`, as
+ *   `Text.js`'s adapter has it), and a `<boolean>` is no part of it (it
+ *   isn't a child a `<math>` takes);
  * - `<boolean>`: `Boolean.js` (`buildParsedExpression`,
  *   `booleanValueFromCodes`, the compare settings at their defaults);
- * - `<text>`: `Text.js` (`textFromChildren`).
+ * - `<text>`: `Text.js` (`textFromChildren`); its `number` is the text
+ *   parsed as math, evaluated (`Text.js`'s `number`).
+ *
+ * A component with an attribute that changes how it computes its value is
+ * left to the caller (`choiceFeasibilityAtLoad.ts`), which doesn't take
+ * that value as known.
  */
 import me from "math-expressions";
 import { normalizeMathExpression } from "@doenet/utils";
@@ -35,6 +44,7 @@ import {
 } from "../valueFunctions/math";
 import { booleanValueFromCodes } from "../valueFunctions/boolean";
 import { textFromChildren } from "../text";
+import { textToMath } from "../valueFunctions/text";
 import { plainComplex, numberToMathExpression } from "../math";
 
 /**
@@ -132,10 +142,24 @@ function asChildComponent(child: string | RunTimeChild): any {
             text: textOf(child),
             number:
                 child.componentType === "text"
-                    ? numberFromString(child.value)
+                    ? textNumber(child.value)
                     : child.value,
         },
     };
+}
+
+/** A `<text>`'s `number`: its text parsed as math, evaluated (`Text.js`). */
+function textNumber(text: string): number {
+    let number: unknown;
+    try {
+        number = textToMath({
+            value: text,
+            isLatex: false,
+        }).evaluate_to_constant();
+    } catch (e) {
+        number = NaN;
+    }
+    return asNumber(number ?? NaN);
 }
 
 /** The text a value shows. */
@@ -155,6 +179,14 @@ function numberValue(
     content: (string | RunTimeChild)[],
     componentInfoObjects: any,
 ): number {
+    if (content.length > 1) {
+        // `Number.js`'s sugar: more than one child is made one `<math>`
+        // (with `convertBoolean` false), whose value the number is
+        return numberValue(
+            [{ componentType: "math", value: mathValue(content) }],
+            componentInfoObjects,
+        );
+    }
     const strings = content.filter((c): c is string => typeof c === "string");
     const children = content.filter(
         (c): c is RunTimeChild => typeof c !== "string",
@@ -180,7 +212,7 @@ function numberValue(
         const child = children[0];
         return asNumber(
             child.componentType === "text"
-                ? numberFromString(child.value, { componentInfoObjects } as any)
+                ? textNumber(child.value)
                 : child.value,
         );
     }
@@ -216,9 +248,7 @@ function numberValue(
         } else if (child.componentType === "number") {
             numberValuesByCode[code] = child.value;
         } else if (child.componentType === "text") {
-            numberValuesByCode[code] = asNumber(
-                numberFromString(child.value, { componentInfoObjects } as any),
-            );
+            numberValuesByCode[code] = textNumber(child.value);
         } else {
             // a boolean: `Number.js` reads it only with `convertBoolean`
             return NaN;
@@ -242,12 +272,17 @@ function asNumber(value: any): number {
 
 /** `<math>`'s `value` (`Math.js`), with its attributes at their defaults. */
 function mathValue(content: (string | RunTimeChild)[]): any {
+    // a `<boolean>` isn't a child a `<math>` takes: it is no part of it
+    content = content.filter(
+        (c) => typeof c === "string" || c.componentType !== "boolean",
+    );
     const strings = content.filter((c): c is string => typeof c === "string");
     const children = content.filter(
         (c): c is RunTimeChild => typeof c !== "string",
     );
     const codePre = mathCodePre(strings);
-    // a number, a text or a boolean in a `<math>` is adapted to a math
+    // a `<number>` or a `<text>` in a `<math>` is adapted to a math: the
+    // number's math, the text parsed as math (`Text.js`'s `math`)
     const codeValues = children.map((child) => {
         if (child.componentType === "math") {
             return child.value;
@@ -255,7 +290,7 @@ function mathValue(content: (string | RunTimeChild)[]): any {
         if (child.componentType === "number") {
             return numberToMathExpression(child.value);
         }
-        return me.fromAst(textOf(child));
+        return textToMath({ value: String(child.value), isLatex: false });
     });
     const expressionWithCodes = parsedOnce("math", content, () =>
         mathExpressionWithCodes({

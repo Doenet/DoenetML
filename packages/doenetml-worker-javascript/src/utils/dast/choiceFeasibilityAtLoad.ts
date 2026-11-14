@@ -20,9 +20,18 @@
  * `<number>pi</number>` is 3.14…, `<integer>2.4</integer>` is 2, a
  * `<boolean>` reading a `<number>` is true when it isn't 0, and a letters
  * sequence's `to="$a "` is text that isn't letters, as the document has
- * them. The check keeps, for each, how it is computed from the values it
- * reads (a `held` expression), and computes it again for each combination of
- * them; what it keeps of it as arithmetic is only for the bounds below.
+ * them. A component with an attribute that changes how it computes its
+ * value (`valueOnNaN`, `convertBoolean`, a `<math>`'s `simplify` or
+ * `format`, a `<boolean>`'s compare settings) is computed with its
+ * attributes at their defaults, and that value is kept only where the
+ * attribute can't change it (a number, for `valueOnNaN` and `simplify`);
+ * otherwise it is a value the check can't know (`valueCaveatOf`).
+ *
+ * The check keeps, for each, how it is computed from the values it reads (a
+ * `held` expression), and computes it again for each combination of them;
+ * what it keeps of it as arithmetic is only for the bounds below, and only
+ * when it is that value (not with a `<boolean>` in a `<number>`, which the
+ * `<number>` doesn't read as a number).
  *
  * ## What a parameter can be (SEL-6)
  *
@@ -237,13 +246,17 @@ type Expr =
      * runs, computed by the component's own functions
      * (`choiceValuesAsRunTime.ts`). `tree` is the same value as arithmetic
      * of the atoms, in a form the bounds can be found of, or `null` when it
-     * isn't arithmetic (a `<boolean>`, a `<text>`).
+     * isn't arithmetic (a `<boolean>`, a `<text>`, or content with a
+     * `<boolean>` in it, which a `<number>` or a `<math>` doesn't read as a
+     * number). `caveat` is set when the component has an attribute that
+     * changes how it computes its value (`valueCaveatOf`).
      */
     | {
           k: "held";
           componentType: string;
           items: (string | Expr)[];
           tree: Expr | null;
+          caveat?: Caveat;
       }
     | {
           k: "op";
@@ -262,6 +275,112 @@ type Expr =
               | "letterNumber";
           args: Expr[];
       };
+
+/**
+ * What an attribute of a component does to the value the check computes,
+ * with every attribute at its default:
+ * - `unknown`: it may change it (`convertBoolean`, a `<math>`'s `format`, a
+ *   `<boolean>`'s compare settings, a `<text>`'s `isLatex`), so the value
+ *   isn't known;
+ * - `number`: it changes only a value that isn't a number (`valueOnNaN`, a
+ *   `<math>`'s `simplify` or `expand`), so a number is kept and anything else
+ *   isn't known.
+ */
+type Caveat = "unknown" | "number";
+
+/**
+ * The attributes, by component type, that change how a component computes
+ * its value, and what each does to the value computed with the defaults.
+ */
+const VALUE_ATTRIBUTES: Record<string, Record<string, Caveat>> = {
+    number: { convertboolean: "unknown", valueonnan: "number" },
+    integer: { convertboolean: "unknown", valueonnan: "number" },
+    math: {
+        format: "unknown",
+        functionsymbols: "unknown",
+        referencesarefunctionsymbols: "unknown",
+        splitsymbols: "unknown",
+        parsescientificnotation: "unknown",
+        simplify: "number",
+        expand: "number",
+        createvectors: "number",
+        createintervals: "number",
+        assumptions: "number",
+    },
+    boolean: Object.fromEntries(
+        [
+            "symbolicEquality",
+            "expandOnCompare",
+            "simplifyOnCompare",
+            "unorderedCompare",
+            "matchByExactPositions",
+            "allowedErrorInNumbers",
+            "includeErrorInNumberExponents",
+            "allowedErrorIsAbsolute",
+            "numSignErrorsMatched",
+            "numPeriodicSetMatchesRequired",
+            "caseInsensitiveMatch",
+            "matchBlanks",
+        ].map((name) => [name.toLowerCase(), "unknown" as Caveat]),
+    ),
+    text: { islatex: "unknown" },
+};
+
+/**
+ * What the attributes written on `component`, of type `componentType`, do
+ * to the value computed with every attribute at its default (`Caveat`), or
+ * `undefined` when they change nothing.
+ */
+function valueCaveatOf(
+    component: any,
+    componentType: string,
+): Caveat | undefined {
+    const caveats = VALUE_ATTRIBUTES[componentType] ?? {};
+    let found: Caveat | undefined;
+    for (const name of Object.keys(component?.attributes ?? {})) {
+        const caveat = caveats[name.toLowerCase()];
+        if (caveat === "unknown") {
+            return caveat;
+        }
+        found ??= caveat;
+    }
+    return found;
+}
+
+/**
+ * Whether `expr` is a boolean, which a `<number>` or a `<math>` doesn't read
+ * as a number.
+ */
+function isBooleanExpr(expr: Expr): boolean {
+    if (expr.k === "named") {
+        return isBooleanExpr(expr.expr);
+    }
+    if (expr.k === "held") {
+        return expr.componentType === "boolean";
+    }
+    if (expr.k === "const") {
+        return (
+            typeof expr.value !== "number" &&
+            expr.value.runTime?.componentType === "boolean"
+        );
+    }
+    return false;
+}
+
+/**
+ * A key of the value `v` that tells apart every value the check can tell
+ * apart: `NaN`, `Infinity`, `-Infinity` and `-0` (which `JSON.stringify`
+ * makes `null` or `0`), and a text from a boolean or a math.
+ */
+function valueKey(v: Value | string): string {
+    if (typeof v === "string") {
+        return JSON.stringify(v);
+    }
+    if (typeof v === "number") {
+        return Object.is(v, -0) ? "n:-0" : `n:${v}`;
+    }
+    return JSON.stringify([v.runTime?.componentType ?? "", v.symbolic]);
+}
 
 /**
  * An entry of a list parameter (`exclude`): one value, or every value a
@@ -1108,7 +1227,7 @@ export function checkChoiceFeasibilityAtLoad({
                 : analyseContent(node.children ?? [], type);
         }
         if (RUN_TIME_TYPES.has(componentType) && !node.extending) {
-            return analyseContent(node.children ?? [], componentType);
+            return analyseContent(node.children ?? [], componentType, node);
         }
         throw new NotAnalysable(textOfChildren([node]));
     }
@@ -1121,7 +1240,11 @@ export function checkChoiceFeasibilityAtLoad({
      * one of the forms SEL-6 allows, unless it is a `<boolean>` or a
      * `<text>`, whose value is only ever computed.
      */
-    function analyseContent(children: any[], type = "number"): Expr {
+    function analyseContent(
+        children: any[],
+        type = "number",
+        component?: any,
+    ): Expr {
         // a label names the value, and is no part of it
         children = children.filter(
             (child) =>
@@ -1144,6 +1267,12 @@ export function checkChoiceFeasibilityAtLoad({
             ),
             tree: null,
         };
+        const caveat = component
+            ? valueCaveatOf(component, held.componentType)
+            : undefined;
+        if (caveat) {
+            held.caveat = caveat;
+        }
         if (atomsOf(componentExprs).size === 0) {
             // what it is written as decides it: its value
             return constant(evaluate(held, new Map()));
@@ -1184,6 +1313,12 @@ export function checkChoiceFeasibilityAtLoad({
             });
             tree = fromTree(parsed, codes, children);
         }
+        if (caveat || componentExprs.some(isBooleanExpr)) {
+            // its arithmetic may not be its value: an attribute may change
+            // it, and a `<boolean>` in a `<number>` or a `<math>` is no
+            // number (`NaN` alone, and no part of what it is with more)
+            return held;
+        }
         // an `<integer>` rounds what it holds
         held.tree =
             held.componentType === "integer"
@@ -1197,7 +1332,11 @@ export function checkChoiceFeasibilityAtLoad({
      * extend (`<integer extend="$n"/>`), which converts it as the run time
      * does.
      */
-    function heldOf(type: string | undefined, expr: Expr): Expr {
+    function heldOf(
+        type: string | undefined,
+        expr: Expr,
+        caveat?: Caveat,
+    ): Expr {
         if (!type || !RUN_TIME_TYPES.has(type)) {
             return expr;
         }
@@ -1205,13 +1344,17 @@ export function checkChoiceFeasibilityAtLoad({
             k: "held",
             componentType: type,
             items: [expr],
+            ...(caveat ? { caveat } : {}),
             tree:
-                type === "integer"
-                    ? { k: "op", op: "round", args: [expr] }
-                    : type === "boolean" || type === "text"
-                      ? null
+                type === "boolean" || type === "text" || isBooleanExpr(expr)
+                    ? null
+                    : type === "integer"
+                      ? { k: "op", op: "round", args: [expr] }
                       : expr,
         };
+        if (caveat) {
+            held.tree = null;
+        }
         return atomsOf([expr]).size === 0
             ? constant(evaluate(held, new Map()))
             : held;
@@ -1491,6 +1634,7 @@ export function checkChoiceFeasibilityAtLoad({
                             analyseWrittenAttribute(
                                 written,
                                 attribute.componentType,
+                                attribute,
                             ),
                         );
                     }
@@ -1512,12 +1656,21 @@ export function checkChoiceFeasibilityAtLoad({
     }
 
     /** An attribute written on a copy of a module, not yet expanded. */
-    function analyseWrittenAttribute(written: any, type: string): Expr {
+    function analyseWrittenAttribute(
+        written: any,
+        type: string,
+        attribute: any,
+    ): Expr {
         if (written.type === "unresolved") {
-            // made the module attribute's component when the copy is made
-            return analyseContent(written.children ?? [], type);
+            // made the module attribute's component when the copy is made,
+            // with the attributes it has in the module
+            return analyseContent(written.children ?? [], type, attribute);
         }
-        return heldOf(type, analyseAttributeScalar(written, type));
+        return heldOf(
+            type,
+            analyseAttributeScalar(written, type),
+            valueCaveatOf(attribute, type),
+        );
     }
 
     /**
@@ -1565,6 +1718,7 @@ export function checkChoiceFeasibilityAtLoad({
             const expr = analyseContent(
                 target.children ?? [],
                 target.componentType,
+                target,
             );
             contentMemo.set(target, expr);
             return expr;
@@ -2175,10 +2329,13 @@ export function checkChoiceFeasibilityAtLoad({
         const values = expr.items.map((item) =>
             typeof item === "string" ? item : evaluate(item, assignment),
         );
-        if (values.some((v) => typeof v !== "string" && isUnknown(v))) {
+        if (
+            expr.caveat === "unknown" ||
+            values.some((v) => typeof v !== "string" && isUnknown(v))
+        ) {
             return unknownValue();
         }
-        const key = JSON.stringify(values);
+        const key = values.map(valueKey).join(",");
         let found = heldValues.get(expr);
         if (!found) {
             found = new Map();
@@ -2187,13 +2344,20 @@ export function checkChoiceFeasibilityAtLoad({
         if (found.has(key)) {
             return found.get(key)!;
         }
-        const value = fromRunTime(
+        let value = fromRunTime(
             runTimeValue(
                 expr.componentType,
                 values.map((v) => (typeof v === "string" ? v : toRunTime(v))),
                 componentInfoObjects,
             ),
         );
+        if (
+            expr.caveat === "number" &&
+            (typeof value !== "number" || Number.isNaN(value))
+        ) {
+            // an attribute may make it another value
+            value = unknownValue();
+        }
         found.set(key, value);
         return value;
     }
@@ -2210,9 +2374,8 @@ export function checkChoiceFeasibilityAtLoad({
             return {
                 finite: values.filter(
                     (v, i) =>
-                        values.findIndex(
-                            (w) => JSON.stringify(w) === JSON.stringify(v),
-                        ) === i,
+                        values.findIndex((w) => valueKey(w) === valueKey(v)) ===
+                        i,
                 ),
             };
         }
@@ -3399,7 +3562,7 @@ export function checkChoiceFeasibilityAtLoad({
             return `held${id}`;
         }
         if (expr.k === "const") {
-            return JSON.stringify(expr.value);
+            return valueKey(expr.value);
         }
         if (expr.k === "atom") {
             return `a${expr.atom.id}`;
