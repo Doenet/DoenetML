@@ -225,9 +225,10 @@ export function sequenceSelectionFailure(selection: SequenceSelection): {
         withReplacement: selection.withReplacement,
         excludedCombinations: selection.excludedCombinations,
         type: selection.type,
-        thresholdCode: "doenet-e0044",
+        // each code as `code: "doenet-…"`, which `lint:i18n` reads as raised
+        threshold: { code: "doenet-e0044" },
         space: sequenceSpace(selection, coprime),
-        noneCode: coprime ? "doenet-e0045" : "doenet-e0044",
+        none: coprime ? { code: "doenet-e0045" } : { code: "doenet-e0044" },
     });
     return { failure, coprime, numCombinationsExcluded };
 }
@@ -307,9 +308,9 @@ export function primeSelectionFailure(
         withReplacement: selection.withReplacement,
         excludedCombinations: selection.excludedCombinations,
         type: "number",
-        thresholdCode: "doenet-e0051",
+        threshold: { code: "doenet-e0051" },
         space: primeSpace(selection),
-        noneCode: "doenet-e0051",
+        none: { code: "doenet-e0051" },
     });
 }
 
@@ -345,9 +346,9 @@ function combinationsFailure({
     withReplacement,
     excludedCombinations,
     type,
-    thresholdCode,
+    threshold,
     space,
-    noneCode,
+    none,
 }: {
     numCombinationsExcluded: number;
     numValues: () => number;
@@ -356,9 +357,9 @@ function combinationsFailure({
     withReplacement: boolean;
     excludedCombinations: any[][];
     type: string;
-    thresholdCode: string;
+    threshold: { code: string };
     space: Parameters<typeof someValidCombination>[0];
-    noneCode: string;
+    none: { code: string };
 }): SelectionFailure | null {
     const orderedCount = (n: number) => {
         if (withReplacement) {
@@ -388,14 +389,14 @@ function combinationsFailure({
             }
             if (excluded > 0.7 * numPossibilities) {
                 return {
-                    code: thresholdCode,
+                    code: threshold.code,
                     threshold: someValidCombination(space),
                 };
             }
         }
     }
     if (!someValidCombination(space)) {
-        return { code: noneCode };
+        return { code: none.code };
     }
     return null;
 }
