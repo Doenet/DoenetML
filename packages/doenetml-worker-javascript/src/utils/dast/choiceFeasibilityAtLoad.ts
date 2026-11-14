@@ -1047,7 +1047,12 @@ export function checkChoiceFeasibilityAtLoad({
     /** What `target`, named by `ref`, with what is left of its path, is. */
     function analyseNamed(target: any, ref: any, path: any[]): Expr {
         const type = target.componentType;
-        if (type === "_error") {
+        if (
+            type === "_error" ||
+            // an extend marked with its error (`extendErrorsAtLoad.ts`)
+            // becomes an `_error`: that error, already reported
+            (target.doenetAttributes?.extendErrorsAtLoad ?? []).length > 0
+        ) {
             throw new Skip();
         }
         // a property `value` is the value itself
@@ -1318,6 +1323,9 @@ export function checkChoiceFeasibilityAtLoad({
         }
     }
 
+    /** The atoms of the entries (`$a[2]`) of each choice, by the choice. */
+    const entryAtomsOf = new Map<any, Atom[]>();
+
     /** The atom of a value the choice `choice` selects. */
     function choiceAtomExpr(
         choice: any,
@@ -1338,6 +1346,14 @@ export function checkChoiceFeasibilityAtLoad({
                 entry: entry === "any" ? undefined : entry,
             };
             choiceAtoms.set(key, atom);
+            if (atom.entry !== undefined) {
+                const entries = entryAtomsOf.get(choice);
+                if (entries) {
+                    entries.push(atom);
+                } else {
+                    entryAtomsOf.set(choice, [atom]);
+                }
+            }
             const spec = specOf(choice) as ChoiceSpec;
             atomSources.set(atom, exprsOfSpec(spec));
         }
@@ -2494,19 +2510,22 @@ export function checkChoiceFeasibilityAtLoad({
         if (atom.kind !== "choice" || atom.entry === undefined) {
             return false;
         }
+        // only the other entries of the same choice, so that a check over
+        // many choices doesn't look through every value assigned
+        const others = entryAtomsOf.get(atom.node) ?? [];
+        if (others.length < 2) {
+            return false;
+        }
         const n = sequenceNumber(v, "letters");
         if (n === undefined || !entriesDiffer(atom.node)) {
             return false;
         }
-        for (const [other, w] of assignment) {
-            if (
-                other !== atom &&
-                other.kind === "choice" &&
-                other.node === atom.node &&
-                other.entry !== undefined &&
-                other.entry !== atom.entry &&
-                sequenceNumber(w, "letters") === n
-            ) {
+        for (const other of others) {
+            if (other === atom || other.entry === atom.entry) {
+                continue;
+            }
+            const w = assignment.get(other);
+            if (w !== undefined && sequenceNumber(w, "letters") === n) {
                 return true;
             }
         }
@@ -3301,6 +3320,7 @@ export function checkChoiceFeasibilityAtLoad({
     const diagnostics: ReturnType<typeof codedDiagnostic>[] = [];
     const errorByChoice = new Map<any, ReturnType<typeof codedDiagnostic>>();
     const checked = new Map<any, boolean>();
+    const verdicts = new Map<any, Verdict>();
     /** The choices that read a choice in error, and that choice. */
     const dependents: { choice: any; source: any }[] = [];
 
@@ -3360,7 +3380,7 @@ export function checkChoiceFeasibilityAtLoad({
             dependents.push({ choice, source: inError.node });
             continue;
         }
-        const verdict = check(spec);
+        const verdict = verdictOf(choice, spec);
         if (verdict.ok) {
             continue;
         }
@@ -3402,6 +3422,19 @@ export function checkChoiceFeasibilityAtLoad({
     }
 
     /**
+     * The check of `choice`, made once: a choice read by others is checked
+     * when the first of them is, and again by itself otherwise.
+     */
+    function verdictOf(choice: any, spec: ChoiceSpec): Verdict {
+        let verdict = verdicts.get(choice);
+        if (!verdict) {
+            verdict = check(spec);
+            verdicts.set(choice, verdict);
+        }
+        return verdict;
+    }
+
+    /**
      * Whether a choice read by another was checked and found able to
      * select. Choices are visited in document order, but one may read a
      * choice written after it (SEL-7).
@@ -3436,7 +3469,7 @@ export function checkChoiceFeasibilityAtLoad({
         }
         const ok =
             [...atomsOf(exprs)].every((atom) => atom.decidedByDoenetML) ||
-            check(spec).ok;
+            verdictOf(choice, spec).ok;
         checked.set(choice, ok);
         return ok;
     }

@@ -207,6 +207,25 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         expect(errors).eqls([]);
     }, 20000);
 
+    // a time limit: each choice went through every value assigned to
+    // every choice before it, and was checked twice: 25 s, now 10 s
+    it("many choices that exclude the ones before are each checked once", async () => {
+        let doenetML = `<selectFromSequence name="c0" to="100"/>`;
+        for (let k = 1; k < 300; k++) {
+            doenetML += `<selectFromSequence name="c${k}" to="100" exclude="$c${k - 1} $c${Math.max(0, k - 2)}"/>`;
+        }
+        const { errors } = await load(doenetML);
+        expect(errors).eqls([]);
+    }, 20000);
+
+    it("a selection reading an extend in error is not an error of its own", async () => {
+        // `b` is an `_error` (`doenet-e0056`), which `$b` reads as blank
+        const { codes } = await load(
+            `<selectFromSequence name="a" from="5" to="6"/><selectFromSequence name="b" extend="$a" from="5" to="6"/><selectFromSequence name="c" to="$b"/>`,
+        );
+        expect(codes).eqls(["doenet-e0056", "doenet-e0056"]);
+    });
+
     it("with replacement, one value is enough", async () => {
         const { errors } = await load(
             `<selectFromSequence name="a" to="5"/><selectFromSequence to="$a" numToSelect="4" withReplacement/>`,
