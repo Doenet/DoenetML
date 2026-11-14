@@ -31,6 +31,14 @@ export type IframeMessage = {
 export type IframeFocusMessage = {
     subject: "keyboard-focus";
     mathInputFocused: boolean;
+    /**
+     * Where the focused math input is — with its check button, if it has one —
+     * in the iframe's viewport, so a keyboard the parent draws can keep it in
+     * view. Sent only while a math input is focused, and only by viewers that
+     * know to; a parent must not rely on it. Vertical extent only: that is all
+     * a keyboard along the bottom of the screen can cover.
+     */
+    inputRect?: { top: number; bottom: number };
 };
 
 /**
