@@ -135,6 +135,9 @@ export function CypressTest() {
     // Lets a spec take the virtual keyboard away, as a host embedding the
     // viewer without one does.
     const [addVirtualKeyboard, setAddVirtualKeyboard] = useState(true);
+    // Lets a spec turn on the row of math keys shown above a touch device's
+    // own keyboard.
+    const [mathKeyStrip, setMathKeyStrip] = useState(false);
     const diagnosticsSummaryRef = useRef<Record<string, number> | null>(null);
     const diagnosticsSummaryCallsRef = useRef<
         { summary: Record<string, number>; doenetML: string }[]
@@ -241,6 +244,10 @@ export function CypressTest() {
 
         if (e.data.addVirtualKeyboard !== undefined) {
             setAddVirtualKeyboard(e.data.addVirtualKeyboard);
+        }
+
+        if (e.data.mathKeyStrip !== undefined) {
+            setMathKeyStrip(e.data.mathKeyStrip);
         }
 
         // don't do anything if receive a message from another source (like the youtube player)
@@ -735,6 +742,7 @@ export function CypressTest() {
                 includeVariantSelector={includeVariantSelector}
                 doenetImagesUrl={doenetImagesUrl}
                 addVirtualKeyboard={addVirtualKeyboard}
+                mathKeyStrip={mathKeyStrip}
                 documentLocale={documentLocale}
                 uiLocale={uiLocale}
             />
