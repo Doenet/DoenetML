@@ -134,7 +134,10 @@ import { lettersToNumber, numberToLetters } from "@doenet/utils";
 import { textToMathFactory } from "../math";
 import { mathCodePre } from "../valueFunctions/math";
 import { createInputStringFromChildren } from "../parseMath";
-import { calculateSequenceParameters } from "../sequence";
+import {
+    calculateSequenceParameters,
+    returnSequenceValueForIndex,
+} from "../sequence";
 import { createPrimesList } from "../primeNumbers";
 import {
     coprimeCombinations,
@@ -244,6 +247,12 @@ function sym(symbolic: string, runTime?: RunTimeChild): Sym {
     }
     return value;
 }
+
+/**
+ * What a reference to an entry a letters choice doesn't select holds: the
+ * empty text (`entryPresent`).
+ */
+const NO_LETTERS: Sym = sym("", { componentType: "text", value: "" });
 
 /**
  * What a parameter is, as an expression in the values it reads (atoms).
@@ -438,6 +447,13 @@ type Atom = {
     node?: any;
     /** For a `choice`, the entry it is (from 1), when the reference names one. */
     entry?: number;
+    /**
+     * For a `choice` whose entry is written as an expression (`$a[$k]`), that
+     * index, or `null` when the check can't read it. The entry is there only
+     * when the index is one of those the choice selects: else the reference
+     * is nothing, as is `$a[3]` of a choice of 2 (`entryPresent`).
+     */
+    index?: Expr | null;
     /**
      * A `bool` whose value the DoenetML decides, though the check doesn't
      * work it out (`withReplacement="x>0"`): both values are checked, but
@@ -1630,8 +1646,18 @@ export function checkChoiceFeasibilityAtLoad({
                 (path[0].index ?? []).length === 1
             ) {
                 const entry = literalIndex(path[0].index[0]);
+                let index: Expr | null = null;
+                if (entry === undefined) {
+                    try {
+                        index = analyseContent(path[0].index[0]?.value ?? []);
+                    } catch (e) {
+                        if (!(e instanceof NotAnalysable)) {
+                            throw e;
+                        }
+                    }
+                }
                 return slotOf(
-                    choiceAtomExpr(target, entry ?? "any", ref),
+                    choiceAtomExpr(target, entry ?? "any", ref, index),
                     ref,
                     node,
                 );
@@ -1892,6 +1918,7 @@ export function checkChoiceFeasibilityAtLoad({
         choice: any,
         entry: number | "any",
         ref: any,
+        index?: Expr | null,
     ): Expr {
         const key =
             entry === "any"
@@ -1905,6 +1932,7 @@ export function checkChoiceFeasibilityAtLoad({
                 kind: "choice",
                 node: choice,
                 entry: entry === "any" ? undefined : entry,
+                ...(entry === "any" && index !== undefined ? { index } : {}),
             };
             choiceAtoms.set(key, atom);
             readAsValues.add(choice);
@@ -1917,7 +1945,10 @@ export function checkChoiceFeasibilityAtLoad({
                 }
             }
             const spec = specOf(choice) as ChoiceSpec;
-            atomSources.set(atom, exprsOfSpec(spec));
+            atomSources.set(atom, [
+                ...exprsOfSpec(spec),
+                ...(atom.index ? [atom.index] : []),
+            ]);
         }
         return { k: "atom", atom };
     }
@@ -2552,11 +2583,25 @@ export function checkChoiceFeasibilityAtLoad({
             };
         }
         if (atom.kind === "choice") {
-            return choiceValues(
-                atom.node,
-                specOf(atom.node) as ChoiceSpec,
-                (e) => evaluate(e, assignment),
-            );
+            const spec = specOf(atom.node) as ChoiceSpec;
+            const value = (e: Expr) => evaluate(e, assignment);
+            const values = choiceValues(atom.node, spec, value);
+            const present = entryPresent(atom, spec, value);
+            if (present === true) {
+                return values;
+            }
+            // nothing, which a parameter reads as no number, and a letters
+            // sequence as the empty text
+            const nothing =
+                spec.type === "selectFromSequence" && spec.seqType === "letters"
+                    ? NO_LETTERS
+                    : NaN;
+            if (present === false) {
+                return { finite: [nothing] };
+            }
+            return "finite" in values
+                ? { finite: [...values.finite, nothing] }
+                : { lo: -Infinity, hi: Infinity, integer: false };
         }
         const count = repeatCountOf(atom.node);
         if (atom.kind === "index") {
@@ -2582,6 +2627,39 @@ export function checkChoiceFeasibilityAtLoad({
             (e) => evaluate(e, assignment),
             count.params.exclude,
         );
+    }
+
+    /**
+     * Whether the entry of a choice an atom is (`$a[2]`, `$a[$k]`) is there,
+     * with `value` for the parameters: whether the choice selects that many
+     * values. `undefined` when the check can't tell, as for an index it
+     * can't read. A reference to an entry that isn't there is nothing.
+     */
+    function entryPresent(
+        atom: Atom,
+        spec: ChoiceSpec,
+        value: (e: Expr) => Value,
+    ): boolean | undefined {
+        if (atom.entry === undefined && atom.index === undefined) {
+            // a value the choice selects, as a repeat over it has
+            return true;
+        }
+        const n = value(spec.numToSelect);
+        if (typeof n !== "number" || Number.isNaN(n)) {
+            return undefined;
+        }
+        const count = Math.round(n);
+        let k: Value | undefined = atom.entry;
+        if (k === undefined) {
+            if (!atom.index) {
+                return undefined;
+            }
+            k = value(atom.index);
+        }
+        if (typeof k !== "number" || !Number.isInteger(k)) {
+            return undefined;
+        }
+        return k >= 1 && k <= count;
     }
 
     /** How many iterations a repeat has, with `value` for its parameters. */
@@ -2688,6 +2766,7 @@ export function checkChoiceFeasibilityAtLoad({
                 .filter((e): e is Expr => e.k !== "many")
                 .map((e) => sequenceNumber(value(e), p.seqType))
                 .filter((v): v is number => v !== undefined),
+            p.seqType,
         );
         const values: Value[] = [];
         for (let i = 0; i < seq.length; i++) {
@@ -3141,9 +3220,9 @@ export function checkChoiceFeasibilityAtLoad({
                 );
             }
             kind = "values";
-            const excluded = excludedIndices(seq, excludedValues);
+            const excluded = excludedIndices(seq, excludedValues, spec.seqType);
             const removed = removedByKnownMany((v) => {
-                for (const i of excludedIndices(seq, [v])) {
+                for (const i of excludedIndices(seq, [v], spec.seqType)) {
                     if (!excluded.has(i)) {
                         return String(i);
                     }
@@ -3341,11 +3420,24 @@ export function checkChoiceFeasibilityAtLoad({
             .filter((n) =>
                 [...atomsOf([n.expr])].every((a) => assignment.has(a)),
             )
-            .map((n) =>
-                n.atom?.kind === "bool"
-                    ? `\`${n.label}\` = ${assignment.get(n.atom) ? "true" : "false"}`
-                    : `\`${n.label}\` = ${describeValue(evaluate(n.expr, assignment))}`,
-            )
+            .map((n) => {
+                if (n.atom?.kind === "bool") {
+                    return `\`${n.label}\` = ${assignment.get(n.atom) ? "true" : "false"}`;
+                }
+                const atoms = [...atomsOf([n.expr])];
+                if (atoms.length === 1 && atoms[0].kind === "choice") {
+                    const w = assignment.get(atoms[0]);
+                    if (w === NO_LETTERS || Number.isNaN(w)) {
+                        // an entry the choice doesn't select (`entryPresent`)
+                        return `\`${n.label}\` is nothing`;
+                    }
+                }
+                const v = evaluate(n.expr, assignment);
+                // a value the check can't read has no text to show
+                return isUnknown(v)
+                    ? `\`${n.label}\` is a value it can't read`
+                    : `\`${n.label}\` = ${describeValue(v)}`;
+            })
             .join(", ");
     }
 
@@ -3523,7 +3615,11 @@ export function checkChoiceFeasibilityAtLoad({
             const max = maxIterations(count);
             result = { lo: 1, hi: Math.max(1, max), integer: true };
         } else if (atom.kind === "choice") {
-            result = choiceBounds(atom.node, specOf(atom.node) as ChoiceSpec);
+            const spec = specOf(atom.node) as ChoiceSpec;
+            result = entrySurelyPresent(atom, spec)
+                ? choiceBounds(atom.node, spec)
+                : // an entry that can be nothing, which no bounds hold
+                  { lo: -Infinity, hi: Infinity, integer: false };
         } else {
             const count = repeatCountOf(atom.node);
             result =
@@ -3535,6 +3631,25 @@ export function checkChoiceFeasibilityAtLoad({
         }
         boundsMemo.set(atom, result);
         return result;
+    }
+
+    /**
+     * Whether the entry of a choice an atom is is there for every value of
+     * the choice's parameters, by their bounds (see `entryPresent`).
+     */
+    function entrySurelyPresent(atom: Atom, spec: ChoiceSpec): boolean {
+        if (atom.entry === undefined && atom.index === undefined) {
+            return true;
+        }
+        const count = intervalOf(spec.numToSelect);
+        if (atom.entry !== undefined) {
+            return count.lo >= atom.entry;
+        }
+        if (!atom.index) {
+            return false;
+        }
+        const k = intervalOf(atom.index);
+        return k.integer && k.lo >= 1 && k.hi <= Math.round(count.lo);
     }
 
     function maxIterations(count: any): number {
@@ -5137,12 +5252,18 @@ function sequenceNumber(v: Value, seqType: string): number | undefined {
 function excludedIndices(
     seq: { from: number; step: number; length: number },
     excluded: number[],
+    seqType = "number",
 ): Set<number> {
+    const same =
+        seqType === "math"
+            ? (x: number, i: number) => sameMath(x, seq, i)
+            : (x: number, i: number) =>
+                  sameNumber(x, seq.from + i * seq.step, seq.step);
     const found = new Set<number>();
     for (const x of excluded) {
         if (seq.step === 0) {
             // every value is `from`
-            if (sameNumber(x, seq.from, 0)) {
+            if (same(x, 0)) {
                 for (let i = 0; i < seq.length; i++) {
                     found.add(i);
                 }
@@ -5151,14 +5272,51 @@ function excludedIndices(
         }
         const k = Math.round((x - seq.from) / seq.step);
         for (const i of [k - 1, k, k + 1]) {
-            if (
-                i >= 0 &&
-                i < seq.length &&
-                sameNumber(x, seq.from + i * seq.step, seq.step)
-            ) {
+            if (i >= 0 && i < seq.length && same(x, i)) {
                 found.add(i);
             }
         }
+    }
+    return found;
+}
+
+/** What `sameMath` found, by the sequence, index and value. */
+const sameMathFound = new Map<string, boolean>();
+
+/**
+ * Whether `x` leaves out the value at index `i` of a math sequence, as the
+ * sequence decides: it computes that value as a math and compares the
+ * exclusion with `equals` (`returnSequenceValueForIndex`), whose tolerance
+ * isn't a number sequence's.
+ */
+function sameMath(
+    x: number,
+    seq: { from: number; step: number },
+    i: number,
+): boolean {
+    const v = seq.from + i * seq.step;
+    if (
+        Math.abs(x - v) >
+        1e-9 * Math.max(Math.abs(x), Math.abs(v), Math.abs(seq.step))
+    ) {
+        // much further apart than `equals` tells apart
+        return false;
+    }
+    const key = `${seq.from},${seq.step},${i},${x}`;
+    let found = sameMathFound.get(key);
+    if (found === undefined) {
+        found =
+            returnSequenceValueForIndex({
+                index: i,
+                from: me.fromAst(seq.from),
+                step: me.fromAst(seq.step),
+                exclude: [me.fromAst(x)],
+                type: "math",
+            }) === null;
+        if (sameMathFound.size > 100000) {
+            sameMathFound.clear();
+        }
+        sameMathFound.set(key, found);
     }
     return found;
 }

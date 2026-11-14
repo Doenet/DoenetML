@@ -149,6 +149,60 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         ]);
     });
 
+    it("an entry a choice may not select is nothing", async () => {
+        // `b` selects one value when `a` is 1, so `$b[2]` is then nothing
+        const fewer = await load(
+            `<selectFromSequence name="a" to="2"/><selectFromSequence name="b" to="3" numToSelect="$a"/><selectFromSequence to="$b[2]+$a" numToSelect="2"/>`,
+        );
+        expect(fewer.errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$b[2]` is nothing, `$a` = 1, `to` isn't a number.",
+        ]);
+        // an index past the values selected
+        const past = await load(
+            `<selectFromSequence name="b" to="5" numToSelect="2"/><selectFromSequence name="k" to="3"/><selectFromSequence to="$b[$k]"/>`,
+        );
+        expect(past.errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$b[$k]` is nothing, `to` isn't a number.",
+        ]);
+        // a letters sequence reads nothing as the empty text
+        const letters = await load(
+            `<selectFromSequence name="b" type="letters" to="e" numToSelect="2"/><selectFromSequence type="letters" to="$b[3]"/>`,
+        );
+        expect(letters.errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$b[3]` is nothing, it has 0 values to select 1 from.",
+        ]);
+        // each entry is there: always selected, at an index always within
+        for (const doenetML of [
+            `<selectFromSequence name="a" from="2" to="3"/><selectFromSequence name="b" to="3" numToSelect="$a"/><selectFromSequence to="$b[2]+1" numToSelect="2"/>`,
+            `<selectFromSequence name="b" to="5" numToSelect="2"/><selectFromSequence name="k" to="2"/><selectFromSequence to="$b[$k]"/>`,
+            `<selectFromSequence name="b" to="5" numToSelect="3"/><repeat for="1 2 3" indexName="i"><selectFromSequence to="$b[$i]+1" numToSelect="2"/></repeat>`,
+            // an exclude of nothing leaves nothing out
+            `<selectFromSequence name="a" to="2"/><selectFromSequence name="b" to="3" numToSelect="$a"/><selectFromSequence to="5" exclude="$b[2]" numToSelect="4"/>`,
+        ]) {
+            expect((await load(doenetML)).errors, doenetML).eqls([]);
+        }
+    });
+
+    it("a math sequence leaves out a value as it decides, with `equals`", async () => {
+        // the sequence's 102nd value is -10 + 101 * 0.1, which `equals` 0.1:
+        // left out when `a` is 1
+        const { errors } = await load(
+            `<selectFromSequence name="a" from="1" to="2"/><selectFromSequence type="math" from="-10" step="0.1" length="102" exclude="$a/10" numToSelect="102"/>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, it has 101 values to select 102 from.",
+        ]);
+    });
+
+    it("a value the check can't read is not shown as one", async () => {
+        const { errors } = await load(
+            `<select name="a"><option><number>1</number><number>2</number></option><option><number>3</number></option></select><selectFromSequence to="$a" numToSelect="2"/>`,
+        );
+        expect(errors).eqls([
+            "doenet-e0073: DoenetML can't show that `<selectFromSequence>` can always select as written: it can't decide whether it can when `$a` is a value it can't read. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.",
+        ]);
+    });
+
     it("options for variants must match numToSelect even when it is 0", async () => {
         const { errors } = await load(
             `<variantControl numVariants="2" variantNames="a b"/><selectFromSequence name="n" from="0" to="1"/><select numToSelect="$n"><option selectForVariants="a">u</option><option selectForVariants="b">v</option></select>`,
