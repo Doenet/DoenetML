@@ -83,8 +83,9 @@ viewer has no Doenet keyboard (`data-doenet-add-virtual-keyboard="false"`).
 That keyboard has letters and digits but no union, root or fraction bar.
 `data-doenet-math-key-strip="true"` adds a row of math keys on top of it while
 a math input has focus: union, infinity, nth root, fraction, power, pi,
-intersection, ≤, ≥, <, >, ≠, absolute value, ±, and a step-out key (to the
-next part of a root or fraction, or out of an exponent) pinned at the end. The
+intersection, ≤, ≥, <, >, ≠, absolute value, ±, and a right-arrow key (the
+same as the arrow key: from the end of an exponent, root or fraction it steps
+out) pinned at the end. The
 row scrolls sideways. It is a labelled toolbar of named buttons, operable with
 a hardware keyboard (one tab stop, arrow keys, Escape back to the input), and
 pressing a key leaves focus, and the device's keyboard, in the math input.

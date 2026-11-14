@@ -4,7 +4,7 @@ import {
     MATH_KEY_STRIP_COLORS,
     MATH_KEY_STRIP_KEYS,
     MATH_KEY_STRIP_SIZES,
-    MATH_KEY_STRIP_STEP_OUT_KEY,
+    MATH_KEY_STRIP_MOVE_RIGHT_KEY,
     mathKeyStripLabels,
     nextMathKeyIndex,
     placeMathKeyStrip,
@@ -16,7 +16,7 @@ import {
 } from "./host-math-key-strip";
 
 describe("the keys", () => {
-    it("are in the order settled on, with step out pinned apart", () => {
+    it("are in the order settled on, with move right pinned apart", () => {
         expect(MATH_KEY_STRIP_KEYS.map((k) => k.name)).toEqual([
             "union",
             "infinity",
@@ -33,12 +33,14 @@ describe("the keys", () => {
             "abs",
             "plusMinus",
         ]);
-        expect(MATH_KEY_STRIP_KEYS).not.toContain(MATH_KEY_STRIP_STEP_OUT_KEY);
+        expect(MATH_KEY_STRIP_KEYS).not.toContain(
+            MATH_KEY_STRIP_MOVE_RIGHT_KEY,
+        );
     });
 
     it("type what the key says", () => {
         const commands = Object.fromEntries(
-            [...MATH_KEY_STRIP_KEYS, MATH_KEY_STRIP_STEP_OUT_KEY].map((k) => [
+            [...MATH_KEY_STRIP_KEYS, MATH_KEY_STRIP_MOVE_RIGHT_KEY].map((k) => [
                 k.name,
                 k.commands,
             ]),
@@ -61,13 +63,15 @@ describe("the keys", () => {
         expect(commands.plusMinus).toEqual([
             { type: "write", command: "\\pm" },
         ]);
-        expect(commands.stepOut).toEqual([
-            { type: "keystroke", command: "Tab" },
+        // The right arrow, as the hardware key and the full keyboard's
+        // arrow: what readers already use to leave an exponent.
+        expect(commands.moveRight).toEqual([
+            { type: "keystroke", command: "Right" },
         ]);
     });
 
     it("have unique names and a glyph each", () => {
-        const all = [...MATH_KEY_STRIP_KEYS, MATH_KEY_STRIP_STEP_OUT_KEY];
+        const all = [...MATH_KEY_STRIP_KEYS, MATH_KEY_STRIP_MOVE_RIGHT_KEY];
         expect(new Set(all.map((k) => k.name)).size).toBe(all.length);
         for (const key of all) {
             expect(key.glyph.length).toBeGreaterThan(0);
@@ -80,10 +84,10 @@ describe("the keys", () => {
         expect(labels.toolbar).toBe("Math keys");
         expect(labels.union).toBe("union");
         expect(labels.nthRoot).toBe("nth root");
-        expect(labels.stepOut).toBe("step out");
+        expect(labels.moveRight).toBe("move right");
         for (const key of [
             ...MATH_KEY_STRIP_KEYS,
-            MATH_KEY_STRIP_STEP_OUT_KEY,
+            MATH_KEY_STRIP_MOVE_RIGHT_KEY,
         ]) {
             // A word, not the glyph: a screen reader would otherwise read
             // "n square root" or nothing at all.

@@ -19,6 +19,7 @@ import type { Translator } from "@doenet/i18n";
 import {
     KeyCommand,
     OPERATOR_KEYS,
+    SPECIAL_KEYS,
     SYMBOL_KEYS,
     TRIG_KEYS,
     VAR_KEYS,
@@ -57,7 +58,7 @@ export type MathKeyStripKeyName =
     | "neq"
     | "abs"
     | "plusMinus"
-    | "stepOut";
+    | "moveRight";
 
 /**
  * The scrolling keys, in the order they appear. Adding a key is one entry
@@ -74,8 +75,8 @@ export const MATH_KEY_STRIP_KEYS: readonly MathKeyStripKey[] = [
     },
     { name: "infinity", glyph: "∞", commands: SYMBOL_KEYS.infty.commands },
     {
-        // `\sqrt[]{}` with the caret in the index: type the index, step out
-        // into the radicand, type it, step out again.
+        // `\sqrt[]{}` with the caret in the index: type the index, move right
+        // into the radicand, type it, move right again to leave the root.
         name: "nthRoot",
         glyph: "ⁿ√",
         commands: TRIG_KEYS.athRootOfB.commands,
@@ -110,15 +111,16 @@ export const MATH_KEY_STRIP_KEYS: readonly MathKeyStripKey[] = [
  * the one pressed after nearly every other key here, so it must never be
  * scrolled out of reach.
  *
- * MathQuill's `Tab`: move to the next slot of the structure the caret is in
- * (index → radicand, numerator → denominator), or out of it from the last one
- * — from anywhere in the slot, not only from its end as `Right` would. In the
- * top level of the field it does nothing.
+ * It is the right arrow (MathQuill's `Right`), the same as the hardware right
+ * arrow and the full keyboard's arrow key, which is what readers already use:
+ * at the end of an exponent, index, numerator or radicand it steps out of it
+ * (from a root's index, into its radicand); anywhere else it moves the cursor
+ * one place to the right.
  */
-export const MATH_KEY_STRIP_STEP_OUT_KEY: MathKeyStripKey = {
-    name: "stepOut",
-    glyph: "⇥",
-    commands: [{ type: "keystroke", command: "Tab" }],
+export const MATH_KEY_STRIP_MOVE_RIGHT_KEY: MathKeyStripKey = {
+    name: "moveRight",
+    glyph: "\u2192",
+    commands: SPECIAL_KEYS.right.commands,
 };
 
 /**
@@ -155,7 +157,7 @@ export function mathKeyStripLabels(
         neq: t("math-key-not-equal", undefined, "not equal to"),
         abs: t("math-key-absolute-value", undefined, "absolute value"),
         plusMinus: t("math-key-plus-minus", undefined, "plus or minus"),
-        stepOut: t("math-key-step-out", undefined, "step out"),
+        moveRight: t("math-key-move-right", undefined, "move right"),
     };
 }
 
@@ -458,7 +460,7 @@ export function createMathKeyStrip(options: MathKeyStripOptions): MathKeyStrip {
     pinned.className = "mks-pinned";
     root.append(scroller, pinned);
 
-    const allKeys = [...MATH_KEY_STRIP_KEYS, MATH_KEY_STRIP_STEP_OUT_KEY];
+    const allKeys = [...MATH_KEY_STRIP_KEYS, MATH_KEY_STRIP_MOVE_RIGHT_KEY];
     const buttons = allKeys.map((key, index) => {
         const button = doc.createElement("button");
         button.type = "button";
@@ -474,7 +476,7 @@ export function createMathKeyStrip(options: MathKeyStripOptions): MathKeyStrip {
         button.addEventListener("focus", () => {
             setFocusIndex(index);
         });
-        (key === MATH_KEY_STRIP_STEP_OUT_KEY ? pinned : scroller).append(
+        (key === MATH_KEY_STRIP_MOVE_RIGHT_KEY ? pinned : scroller).append(
             button,
         );
         return button;

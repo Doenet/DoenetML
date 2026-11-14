@@ -136,14 +136,14 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
             typeInto("mi1", "y{enter}");
             cy.get("#c1").should("have.text", "1");
 
-            // nth root with an index: index, step out into the radicand,
-            // radicand, step out of the root.
+            // nth root with an index: index, move right into the
+            // radicand, radicand, move right out of the root.
             cy.get("#mi2 textarea").focus();
             press("nth root", "mi2");
             typeInto("mi2", "3");
-            press("step out", "mi2");
+            press("move right", "mi2");
             typeInto("mi2", "8");
-            press("step out", "mi2");
+            press("move right", "mi2");
             typeInto("mi2", "{enter}");
             cy.get("#c2").should("have.text", "1");
             cy.get("#mi2 .mq-root-block").should(($el) => {
@@ -158,13 +158,13 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
             typeInto("mi3", "2{enter}");
             cy.get("#c3").should("have.text", "1");
 
-            // Power, then step out of the exponent before "+1". Without the
-            // step out, "+1" would land in the exponent and not be credited.
+            // Power, then move right out of the exponent before "+1".
+            // Without it, "+1" would land in the exponent and not be credited.
             cy.get("#mi4 textarea").focus();
             typeInto("mi4", "x");
             press("power", "mi4");
             typeInto("mi4", "2");
-            press("step out", "mi4");
+            press("move right", "mi4");
             typeInto("mi4", "+1{enter}");
             cy.get("#c4").should("have.text", "1");
         });
@@ -196,7 +196,7 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
             "not equal to",
             "absolute value",
             "plus or minus",
-            "step out",
+            "move right",
         ];
         cy.get(`${STRIP} button`).should(($buttons) => {
             expect(
@@ -225,11 +225,11 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().should("have.attr", "aria-label", "infinity");
         cy.focused().trigger("keydown", { key: "End" });
-        cy.focused().should("have.attr", "aria-label", "step out");
+        cy.focused().should("have.attr", "aria-label", "move right");
         cy.focused().trigger("keydown", { key: "Home" });
         cy.focused().should("have.attr", "aria-label", "union");
         cy.focused().trigger("keydown", { key: "ArrowLeft" });
-        cy.focused().should("have.attr", "aria-label", "step out");
+        cy.focused().should("have.attr", "aria-label", "move right");
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().trigger("keydown", { key: "ArrowRight" });
@@ -303,11 +303,11 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
                 expect(r.width, "key width").to.be.within(32, 44);
             }
 
-            // The step-out key is pinned in view at the right end.
-            const stepOut = buttons[buttons.length - 1];
-            const stepOutRect = stepOut.getBoundingClientRect();
-            expect(stepOutRect.right).to.be.lessThan(rect.right);
-            expect(stepOutRect.left).to.be.greaterThan(rect.right - 60);
+            // The move-right key is pinned in view at the right end.
+            const moveRight = buttons[buttons.length - 1];
+            const moveRightRect = moveRight.getBoundingClientRect();
+            expect(moveRightRect.right).to.be.lessThan(rect.right);
+            expect(moveRightRect.left).to.be.greaterThan(rect.right - 60);
 
             // The row scrolls, and the last key in view is cut, not whole.
             const scroller = strip.querySelector(".mks-scroller");

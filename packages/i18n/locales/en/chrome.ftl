@@ -111,9 +111,9 @@ math-key-greater = greater than
 math-key-not-equal = not equal to
 math-key-absolute-value = absolute value
 math-key-plus-minus = plus or minus
-# Moves the cursor to the next part of an exponent, root or fraction, or out
-# of it from the last part.
-math-key-step-out = step out
+# The right arrow: moves the cursor one place right, which from the end of an
+# exponent, root or fraction steps out of it.
+math-key-move-right = move right
 
 # Accessible name of the button that drops one selected choice from an inline
 # `<choiceInput selectMultiple>`. The button itself is drawn as a bare cross,

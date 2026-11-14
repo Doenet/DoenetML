@@ -49,7 +49,7 @@ export type MessageKey =
     | "math-key-not-equal"
     | "math-key-absolute-value"
     | "math-key-plus-minus"
-    | "math-key-step-out"
+    | "math-key-move-right"
     | "choice-input-remove-choice"
     | "matrix-remove-row"
     | "matrix-add-row"
@@ -756,7 +756,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "math-key-not-equal",
     "math-key-absolute-value",
     "math-key-plus-minus",
-    "math-key-step-out",
+    "math-key-move-right",
     "choice-input-remove-choice",
     "matrix-remove-row",
     "matrix-add-row",
