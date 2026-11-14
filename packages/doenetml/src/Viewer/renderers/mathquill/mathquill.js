@@ -3171,10 +3171,13 @@ var saneKeyboardEvents = (function () {
             // which is always, since typed text is taken out of it at once.
             // A key that typed or composed anything raised an `input` event
             // in between; one that did neither, on an empty textarea, is the
-            // backspace.
+            // backspace. Only keyCode 229, the code Chrome gives on-screen
+            // keyboard events: a desktop key the browser cannot name is also
+            // "Unidentified", with another keyCode, and must not delete.
             if (
                 keydown &&
                 keydown.key === "Unidentified" &&
+                keydown.keyCode === 229 &&
                 !keydown.ctrlKey &&
                 !keydown.altKey &&
                 !keydown.metaKey &&

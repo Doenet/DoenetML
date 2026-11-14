@@ -22,6 +22,8 @@ function androidKey(textarea, inserted, { inputType = "insertText" } = {}) {
     const win = textarea.ownerDocument.defaultView;
     const unidentified = {
         key: "Unidentified",
+        keyCode: 229,
+        which: 229,
         bubbles: true,
         cancelable: true,
     };
@@ -99,12 +101,38 @@ describe(
             cy.get("#mi textarea").then(($ta) => {
                 const ta = $ta[0];
                 const win = ta.ownerDocument.defaultView;
-                const unidentified = { key: "Unidentified", bubbles: true };
+                const unidentified = {
+                    key: "Unidentified",
+                    keyCode: 229,
+                    which: 229,
+                    bubbles: true,
+                };
                 ta.dispatchEvent(
                     new win.KeyboardEvent("keydown", unidentified),
                 );
                 ta.dispatchEvent(new win.KeyboardEvent("keyup", unidentified));
             });
+            fieldText("mi").should("equal", "xy");
+        });
+
+        it("does not delete for a desktop key the browser cannot name", () => {
+            // A physical key with no key name is also "Unidentified", but its
+            // keyCode is not 229. It types nothing and must delete nothing.
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                for (const ch of ["x", "y"]) {
+                    androidKey($ta[0], ch);
+                }
+            });
+            fieldText("mi").should("equal", "xy");
+            cy.get("#mi textarea").then(($ta) => {
+                const ta = $ta[0];
+                const win = ta.ownerDocument.defaultView;
+                const unnamed = { key: "Unidentified", bubbles: true };
+                ta.dispatchEvent(new win.KeyboardEvent("keydown", unnamed));
+                ta.dispatchEvent(new win.KeyboardEvent("keyup", unnamed));
+            });
+            cy.wait(100);
             fieldText("mi").should("equal", "xy");
         });
 
