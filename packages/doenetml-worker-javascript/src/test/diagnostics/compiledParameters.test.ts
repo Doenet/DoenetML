@@ -348,6 +348,179 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
         return docs;
     }
 
+    /**
+     * Random documents whose parameters read values that may be no number
+     * (a `<math>x</math>` or text option), an entry that may be nothing
+     * (`$c[2]` of a choice that may select one), an index into a list
+     * (`$ns[$i]`), a division by what may be 0, a step that may be 0, or
+     * exclusions, of number and math sequences, primes and options.
+     */
+    function widerDocuments(random: () => number) {
+        const pick = <T>(xs: T[]) => xs[Math.floor(random() * xs.length)];
+        const int = (lo: number, hi: number) =>
+            lo + Math.floor(random() * (hi - lo + 1));
+        const others = [
+            `<selectFromSequence name="c" from="1" to="9" numToSelect="$a"/>`,
+            `<numberList name="ns">1 5 9</numberList>`,
+            `<selectFromSequence name="m" type="math" from="1" to="${int(3, 6)}"/>`,
+            `<selectPrimeNumbers name="p" from="2" to="${int(5, 20)}"/>`,
+            `<selectFromSequence name="z" from="0" to="1"/>`,
+        ];
+        const bs = [
+            `<select name="b"><option><math>x</math></option><option><number>${int(1, 4)}</number></option></select>`,
+            `<select name="b"><option><number>0</number></option><option><number>${int(1, 3)}</number></option></select>`,
+            `<select name="b" type="text">x ${int(1, 3)}</select>`,
+        ];
+        const atoms = [
+            "$i",
+            "$a",
+            "$b",
+            "$c[1]",
+            "$c[2]",
+            "$ns[$a]",
+            "$ns[$i]",
+            "$m",
+            "$p",
+            "$z",
+            "($a-1)",
+            "($z-1)",
+        ];
+        const docs: string[] = [];
+        while (docs.length < 120) {
+            const context = [
+                `<selectFromSequence name="a" from="1" to="${int(3, 6)}"/>`,
+                ...others.filter(() => random() < 0.6),
+                ...(random() < 0.7 ? [pick(bs)] : []),
+            ];
+            const has = (s: string) =>
+                [...s.matchAll(/\$(\w+)/g)].every(
+                    ([, name]) =>
+                        name === "i" ||
+                        context.some((c) => c.includes(`name="${name}"`)),
+                );
+            const term = (): string => {
+                for (let tries = 0; tries < 100; tries++) {
+                    const x = pick(atoms);
+                    const y = pick(atoms);
+                    const t = pick([
+                        x,
+                        `${x}+${y}`,
+                        `${x}-${y}`,
+                        `${x}*${y}`,
+                        `${x}/${y}`,
+                        `${x}/2`,
+                        `2${x}`,
+                        `-${x}`,
+                        `${x}-${x}`,
+                        `0*${x}`,
+                        `floor(${x}/2)`,
+                        `max(${x},${y})`,
+                        `abs(${x}-${y})`,
+                    ]);
+                    if (has(t)) {
+                        return t;
+                    }
+                }
+                return "$i";
+            };
+            const kind = pick([
+                "seq",
+                "seq",
+                "seq",
+                "math",
+                "primes",
+                "select",
+            ]);
+            let target: string;
+            if (kind === "select") {
+                target = `<select numToSelect="${pick(["1", "2", term(), `min(${term()},3)`])}"${pick(["", " withReplacement"])}>u v w</select>`;
+            } else if (kind === "primes") {
+                target = `<selectPrimeNumbers from="${pick(["2", term()])}" to="${term()} + ${int(0, 30)}" numToSelect="${pick(["1", "2", term()])}"${pick(["", ` exclude="${term()}"`, ` exclude="${int(2, 7)}"`])}/>`;
+            } else {
+                const range =
+                    random() < 0.3
+                        ? ` length="${pick([String(int(1, 6)), term(), `${term()}+${int(1, 5)}`])}"`
+                        : ` to="${term()} + ${int(0, 20)}"`;
+                const step = pick([
+                    "",
+                    "",
+                    ` step="${pick(["0", "2", "0.5", "-1", "1/3", "$z", "$i-1", term(), `1/${term()}`])}"`,
+                ]);
+                const exclude = pick([
+                    "",
+                    "",
+                    ` exclude="${term()}"`,
+                    ` exclude="${int(1, 5)} ${term()}"`,
+                    ` exclude="$c"`,
+                    ` exclude="$b"`,
+                    ` exclude="$b $a"`,
+                    ` exclude="$ns"`,
+                ]);
+                target = `<selectFromSequence${kind === "math" ? ` type="math"` : ""} from="${pick(["1", "$i", term()])}"${range}${step}${exclude} numToSelect="${pick(["1", "2", String(int(1, 4)), term(), `min(${term()}, 2)`])}"${pick(["", "", " withReplacement"])}/>`;
+            }
+            if (has(target)) {
+                docs.push(`<mathInput name="n" prefill="2"/>
+${context.join("\n")}
+<repeatForSequence to="$n" indexName="i">${target}</repeatForSequence>`);
+            }
+        }
+        return docs;
+    }
+
+    async function checkPasses(
+        docs: string[],
+        random: () => number,
+    ): Promise<{ passes: number; samples: number }> {
+        let passes = 0;
+        let samples = 0;
+        for (const doenetML of docs) {
+            const observed: Parameters<
+                Parameters<typeof setBoundsObserver>[0] & {}
+            >[0][] = [];
+            setBoundsObserver((pass) => observed.push(pass));
+            await createTestCore({ doenetML });
+            setBoundsObserver(undefined);
+            for (const pass of observed) {
+                passes++;
+                for (let k = 0; k < 200; k++) {
+                    const found = pass.sample(random);
+                    if (!found) {
+                        continue;
+                    }
+                    samples++;
+                    for (const { value, lo, hi } of found.values) {
+                        if (Number.isNaN(value)) {
+                            // a value that may be no number has no bounds
+                            expect([lo, hi], doenetML).eqls([
+                                -Infinity,
+                                Infinity,
+                            ]);
+                        } else {
+                            expect(value, doenetML).toBeGreaterThanOrEqual(
+                                lo - 1e-9,
+                            );
+                            expect(value, doenetML).toBeLessThanOrEqual(
+                                hi + 1e-9,
+                            );
+                        }
+                    }
+                    expect(found.problem, doenetML).toBeNull();
+                }
+            }
+        }
+        return { passes, samples };
+    }
+
+    it("on random documents of symbols, entries, list indices, divisions, steps and exclusions", async () => {
+        const random = seedrandom("wider bounds");
+        const { passes, samples } = await checkPasses(
+            widerDocuments(random),
+            random,
+        );
+        expect(passes).toBeGreaterThan(50);
+        expect(samples).toBeGreaterThan(10000);
+    }, 600000);
+
     it("on random documents", async () => {
         const random = seedrandom("bounds");
         let passes = 0;

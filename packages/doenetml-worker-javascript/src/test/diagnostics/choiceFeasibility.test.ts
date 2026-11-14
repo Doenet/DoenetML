@@ -745,6 +745,82 @@ describe("An iteration index ranges over every iteration (SEL-5) @group4", () =>
         ).eqls([]);
     });
 
+    it("a parameter that may be no number fails also where the count doesn't read it", async () => {
+        // each passed by its bounds, though, when the document runs, it
+        // selects nothing, or nothing but blanks (`from` and `step` with a
+        // `length` aren't in the count; with replacement, `numToSelect` was
+        // read only as at least 1; `1/$z` drew without end)
+        const b = `<select name="b"><option><math>x</math></option><option><number>1</number></option></select>`;
+        const repeat = (content: string) =>
+            `<mathInput name="n" prefill="2"/>${b}<repeatForSequence to="$n" indexName="i">${content}</repeatForSequence>`;
+        const cases: [string, string, string][] = [
+            [
+                `${b}<selectFromSequence from="$b" length="3"/>`,
+                "selectFromSequence",
+                "when `$b` = x, `from` isn't a number.",
+            ],
+            [
+                `${b}<selectFromSequence step="$b" length="3"/>`,
+                "selectFromSequence",
+                "when `$b` = x, `step` isn't a number.",
+            ],
+            [
+                `<selectFromSequence name="a" to="2"/><selectFromSequence name="c" from="5" to="9" numToSelect="$a"/><selectFromSequence from="$c[2]" length="2" numToSelect="2"/>`,
+                "selectFromSequence",
+                "when `$c[2]` is nothing, `from` isn't a number.",
+            ],
+            [
+                repeat(`<selectFromSequence from="2$b" length="6"/>`),
+                "selectFromSequence",
+                "when `$b` = x, `from` isn't a number.",
+            ],
+            [
+                `${b}<select numToSelect="$b" withReplacement>u v w</select>`,
+                "select",
+                "when `$b` = x, `numToSelect` isn't a number.",
+            ],
+            [
+                repeat(
+                    `<select numToSelect="min($b, 3)" withReplacement>u v w</select>`,
+                ),
+                "select",
+                "when `$b` = x, `numToSelect` isn't a number.",
+            ],
+            [
+                repeat(
+                    `<selectFromSequence to="5" numToSelect="$b" withReplacement/>`,
+                ),
+                "selectFromSequence",
+                "when `$b` = x, `numToSelect` isn't a number.",
+            ],
+            [
+                repeat(
+                    `<selectPrimeNumbers to="20" numToSelect="$b" withReplacement/>`,
+                ),
+                "selectPrimeNumbers",
+                "when `$b` = x, `numToSelect` isn't a number.",
+            ],
+            [
+                `<selectFromSequence name="z" from="0" to="1"/><select numToSelect="1/$z" withReplacement>u v</select>`,
+                "select",
+                "when `$z` = 0, `numToSelect` isn't a number.",
+            ],
+        ];
+        for (const [doenetML, tag, when] of cases) {
+            expect((await load(doenetML)).errors, doenetML).eqls([
+                `doenet-e0073: \`<${tag}>\` can't always select as written: ${when}`,
+            ]);
+        }
+        // a symbol where a math sequence starts is one of its values
+        expect(
+            (
+                await load(
+                    `${b}<selectFromSequence type="math" from="$b" length="3" numToSelect="3"/>`,
+                )
+            ).codes,
+        ).eqls([]);
+    });
+
     it("an iteration far along with no end is named", async () => {
         expect(
             (

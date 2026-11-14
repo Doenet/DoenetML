@@ -3174,7 +3174,9 @@ export function checkChoiceFeasibilityAtLoad({
             return "unknown";
         }
         const numToSelectValue = number(spec.numToSelect);
-        if (Number.isNaN(numToSelectValue)) {
+        if (!Number.isFinite(numToSelectValue)) {
+            // not finite (`1/0`) is no count either: with replacement the
+            // selection would draw without end
             return { kind: "number", args: { attribute: "numToSelect" } };
         }
         const numToSelect = Math.round(numToSelectValue);
@@ -4448,7 +4450,11 @@ export function checkChoiceFeasibilityAtLoad({
         const replacement = intervalOf(
             "withReplacement" in spec ? spec.withReplacement : constant(0),
         );
-        const alwaysReplacement = replacement.lo > 0;
+        // a `numToSelect` that may be no number, or not finite, is a
+        // failure (`concreteProblem`) even with replacement; then `need`
+        // has no bounds, and nothing is proven by them
+        const numToSelectFinite = surelyFinite(spec.numToSelect);
+        const alwaysReplacement = replacement.lo > 0 && numToSelectFinite;
         const need = alwaysReplacement
             ? { c: 1, terms: new Map() }
             : numToSelect;
@@ -4560,7 +4566,10 @@ export function checkChoiceFeasibilityAtLoad({
                 );
                 return tryWitness(witness, unbounded);
             }
-            if (alwaysReplacement || spec.numOptions === 0) {
+            if (
+                alwaysReplacement ||
+                (spec.numOptions === 0 && numToSelectFinite)
+            ) {
                 return { ok: true };
             }
             if (spec.numOptions !== null) {
@@ -4638,6 +4647,17 @@ export function checkChoiceFeasibilityAtLoad({
             // same `(to - from) / step + 1`, computed as a math), and each
             // exclusion leaves out one at most, as below.
             return { ok: false, unproven: describeRanges() };
+        }
+        if (
+            spec.seqType === "number" &&
+            ![spec.from, spec.to, spec.step, spec.length].every(
+                (e) => e === null || surelyFinite(e),
+            )
+        ) {
+            // a parameter that may be no number is a failure
+            // (`concreteProblem`), also one the count doesn't read (`from`
+            // and `step` with a `length`): tried exactly
+            return tryWitness(new Map());
         }
         // how many values: `length`, or `(to - from) / step + 1`, rounded
         // down. What it is compared with is a whole number, and a number
@@ -5608,10 +5628,6 @@ function sequenceNumber(v: Value, seqType: string): number | undefined {
 }
 
 /**
- * The indices (from 0) of the values of `seq` that `excluded` leaves out,
- * as the sequence decides (`returnSequenceValueForIndex`).
- */
-/**
  * Whether the step `step` of a math sequence, computed by `value`, may be 0
  * (a step of 0 or a math equal to 0, such as `x - x`), or isn't known.
  */
@@ -5634,6 +5650,10 @@ function mathMayBeZero(step: Expr | null, value: (e: Expr) => Value): boolean {
     }
 }
 
+/**
+ * The indices (from 0) of the values of `seq` that `excluded` leaves out,
+ * as the sequence decides (`returnSequenceValueForIndex`).
+ */
 function excludedIndices(
     seq: { from: number; step: number; length: number },
     excluded: number[],
