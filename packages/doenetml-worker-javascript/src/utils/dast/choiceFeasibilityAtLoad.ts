@@ -111,8 +111,10 @@
  * Otherwise (an index with no end, a `<selectRandomNumbers>` drawing from
  * an interval, or too many combinations), the check bounds what the choice
  * has to select from, with the parameters as sums of the values they read,
- * so that `to="$i + 5"` and `from="$i"` leave 6 values whatever `$i` is. When
- * the bound doesn't show that the choice can always select, the values at
+ * so that `to="$i + 5"` and `from="$i"` leave 6 values whatever `$i` is.
+ * Only a part that is a finite number for every value it reads has bounds
+ * and cancels so (`surelyFinite`): `$a - $a` isn't 0 when `$a` may be `x`,
+ * nothing, or a division by 0. When the bound doesn't show that the choice can always select, the values at
  * the bound are checked exactly: if the choice can't select with them, they
  * are named, and otherwise the error says that it can't be shown, and over
  * what range.
@@ -1509,6 +1511,12 @@ export function checkChoiceFeasibilityAtLoad({
      * holds.
      */
     function heldConstant(held: Extract<Expr, { k: "held" }>): Expr {
+        const found = heldConstantOf(held);
+        constantSource.set(found, held);
+        return found;
+    }
+
+    function heldConstantOf(held: Extract<Expr, { k: "held" }>): Expr {
         const value = evaluate(held, new Map());
         if (held.componentType !== "math" || held.caveat || isUnknown(value)) {
             return constant(value);
@@ -1822,7 +1830,11 @@ export function checkChoiceFeasibilityAtLoad({
         }
         if (RUN_TIME_TYPES.has(type) && !target.extending) {
             try {
-                return analyseContentOf(target);
+                const content = analyseContentOf(target);
+                if (!contentReference.has(content)) {
+                    contentReference.set(content, referenceText(ref));
+                }
+                return content;
             } catch (e) {
                 if (e instanceof NotAnalysable && !e.through) {
                     e.through = {
@@ -1978,6 +1990,13 @@ export function checkChoiceFeasibilityAtLoad({
     }
 
     const contentMemo = new Map<any, Expr | NotAnalysable | Skip>();
+    /**
+     * The reference that first read what a component holds, which names
+     * that component in a message (`notAnalysableAt`).
+     */
+    const contentReference = new Map<Expr, string>();
+    /** The `held` a constant is the value of (`heldConstant`), for a message. */
+    const constantSource = new Map<Expr, Extract<Expr, { k: "held" }>>();
     function analyseContentOf(target: any): Expr {
         if (contentMemo.has(target)) {
             const found = contentMemo.get(target)!;
@@ -3900,8 +3919,129 @@ export function checkChoiceFeasibilityAtLoad({
         return { lo: Math.min(...products), hi: Math.max(...products) };
     }
 
+    /**
+     * Whether `expr` is a finite number for every value of its atoms. Only
+     * such a value has bounds: one that may be no number (a symbol, an entry
+     * that may be nothing, an index past the list) or not finite (a division
+     * by a value that may be 0) has none, neither cancels with itself
+     * (`$a - $a` isn't 0 when `$a` may be `x`) nor vanishes when multiplied
+     * by 0, as `NaN` and `Infinity` don't.
+     */
+    const finiteMemo = new Map<Expr, boolean>();
+    function surelyFinite(expr: Expr): boolean {
+        const memo = finiteMemo.get(expr);
+        if (memo !== undefined) {
+            return memo;
+        }
+        // not known while it is being found (a cycle)
+        finiteMemo.set(expr, false);
+        const result = surelyFiniteOf(expr);
+        finiteMemo.set(expr, result);
+        return result;
+    }
+
+    function surelyFiniteOf(expr: Expr): boolean {
+        if (expr.k === "const") {
+            return (
+                typeof expr.value === "number" && Number.isFinite(expr.value)
+            );
+        }
+        if (expr.k === "named") {
+            return surelyFinite(expr.expr);
+        }
+        if (expr.k === "held") {
+            // a `<boolean>` is read only as true or false
+            return expr.tree
+                ? surelyFinite(expr.tree)
+                : expr.componentType === "boolean";
+        }
+        if (expr.k === "atom") {
+            return atomSurelyFinite(expr.atom);
+        }
+        if (expr.op === "letterNumber") {
+            const atom = lettersChoiceAtom(expr.args[0]);
+            const spec = atom && (specOf(atom.node) as ChoiceSpec);
+            return (
+                !!spec &&
+                spec.type === "selectFromSequence" &&
+                entrySurelyPresent(atom!, spec) &&
+                [spec.from, spec.to, spec.step, spec.length].every(
+                    (e) => e === null || surelyFinite(e),
+                )
+            );
+        }
+        if (expr.op === "item") {
+            // an index that isn't one of the entries is nothing
+            const [index, ...items] = expr.args;
+            if (!surelyFinite(index) || !items.every(surelyFinite)) {
+                return false;
+            }
+            const k = intervalOf(index);
+            return k.integer && k.lo >= 1 && k.hi <= items.length;
+        }
+        if (!expr.args.every(surelyFinite)) {
+            return false;
+        }
+        if (expr.op === "/") {
+            const divisor = intervalOf(expr.args[1]);
+            return divisor.lo > 0 || divisor.hi < 0;
+        }
+        return true;
+    }
+
+    /** Whether every value the atom can take is a finite number. */
+    function atomSurelyFinite(atom: Atom): boolean {
+        if (atom.kind === "bool" || atom.kind === "index") {
+            return true;
+        }
+        const bounds = atomBounds(atom);
+        if (Number.isFinite(bounds.lo) && Number.isFinite(bounds.hi)) {
+            return true;
+        }
+        // finite values, with no bound on how large (an index with no end)
+        const params = (p: {
+            from: Expr | null;
+            to: Expr | null;
+            step: Expr | null;
+            length: Expr | null;
+        }) =>
+            [p.from, p.to, p.step, p.length].every(
+                (e) => e === null || surelyFinite(e),
+            );
+        if (atom.kind === "choice") {
+            const spec = specOf(atom.node);
+            if (
+                spec instanceof NotAnalysable ||
+                spec instanceof Skip ||
+                !entrySurelyPresent(atom, spec)
+            ) {
+                return false;
+            }
+            return (
+                spec.type === "selectPrimeNumbers" ||
+                (spec.type === "selectFromSequence" &&
+                    spec.seqType === "number" &&
+                    params(spec))
+            );
+        }
+        if (atom.kind === "seqValue") {
+            const count = repeatCountOf(atom.node);
+            return (
+                count.kind === "sequence" &&
+                !count.params.countUnknown &&
+                !count.params.valuesUnknown &&
+                count.params.seqType === "number" &&
+                params(count.params)
+            );
+        }
+        return false;
+    }
+
     /** The values `expr` can take, over every value of its atoms. */
     function intervalOf(expr: Expr): Interval {
+        if (!surelyFinite(expr)) {
+            return { lo: -Infinity, hi: Infinity, integer: false };
+        }
         if (expr.k === "named") {
             return intervalOf(expr.expr);
         }
@@ -4023,6 +4163,10 @@ export function checkChoiceFeasibilityAtLoad({
     };
 
     function affineOf(expr: Expr): Affine {
+        if (!surelyFinite(expr)) {
+            // no bounds, and no cancelling (`surelyFinite`)
+            return { c: NaN, terms: new Map() };
+        }
         if (expr.k === "named") {
             return affineOf(expr.expr);
         }
@@ -4542,6 +4686,40 @@ export function checkChoiceFeasibilityAtLoad({
     // ------------------------------------------------------------------
 
     /**
+     * The error for `expr`, which a compiled parameter can't hold: what it is
+     * written as, and, when it is what a component holds, the reference that
+     * names that component (`reads $m, a <math> holding …`).
+     */
+    function notAnalysableAt(expr: Expr): NotAnalysable {
+        let inner = expr;
+        while (inner.k === "named") {
+            inner = inner.expr;
+        }
+        const held = inner.k === "held" ? inner : constantSource.get(inner);
+        const only = held?.items.filter(
+            (item) => typeof item !== "string" || item.trim() !== "",
+        );
+        if (only?.length === 1 && typeof only[0] !== "string") {
+            // what holds one thing alone (an attribute written `$m`): that
+            // thing, when it names a component
+            const deeper = notAnalysableAt(only[0]);
+            if (deeper.through) {
+                return deeper;
+            }
+        }
+        const error = new NotAnalysable(
+            held ? heldText(held) : inner.k === "atom" ? inner.atom.label : "",
+        );
+        const reference =
+            contentReference.get(inner) ??
+            (held ? contentReference.get(held) : undefined);
+        if (held && reference !== undefined) {
+            error.through = { componentType: held.componentType, reference };
+        }
+        return error;
+    }
+
+    /**
      * The slots of a parameter being compiled: the reference written for
      * each, and what the check finds it holds (`model`).
      */
@@ -4593,9 +4771,7 @@ export function checkChoiceFeasibilityAtLoad({
             if (typeof value !== "number" && isUnknown(value)) {
                 // a value the check can't compute (an attribute that may
                 // change it), which a compiled parameter can't hold
-                throw new NotAnalysable(
-                    expr.k === "held" ? heldText(expr) : "",
-                );
+                throw notAnalysableAt(expr);
             }
             const math = constantMath(expr);
             return math === undefined
@@ -4614,7 +4790,25 @@ export function checkChoiceFeasibilityAtLoad({
                 !expr.caveat &&
                 ["number", "integer", "math"].includes(expr.componentType)
             ) {
-                const template = compileTemplate(expr.tree, slots);
+                let template: ParameterTemplate;
+                try {
+                    template = compileTemplate(expr.tree, slots);
+                } catch (e) {
+                    // in what a component a reference reads holds: named
+                    // by that reference (`reads $m, a <number> holding …`)
+                    const reference = contentReference.get(expr);
+                    if (
+                        e instanceof NotAnalysable &&
+                        !e.through &&
+                        reference !== undefined
+                    ) {
+                        e.through = {
+                            componentType: expr.componentType,
+                            reference,
+                        };
+                    }
+                    throw e;
+                }
                 // a `<number>` or `<integer>` holds a number, also where a
                 // math is read
                 return expr.componentType === "math"
@@ -4654,7 +4848,7 @@ export function checkChoiceFeasibilityAtLoad({
                     return slot;
                 }
             }
-            throw new NotAnalysable(heldText(expr));
+            throw notAnalysableAt(expr);
         }
         if (expr.k === "op" && expr.op !== "letterNumber") {
             return {

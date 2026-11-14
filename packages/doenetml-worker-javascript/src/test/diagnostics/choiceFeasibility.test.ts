@@ -606,6 +606,67 @@ describe("An iteration index ranges over every iteration (SEL-5) @group4", () =>
         ).eqls([]);
     });
 
+    it("a value that may be no number or not finite has no bounds, and doesn't cancel", async () => {
+        // each passed by its bounds, though it fails when the document runs
+        // with the value named: `$a - $a` isn't 0, nor `0 * $a`, when `$a`
+        // is `x`, nothing, or 1/0
+        const cases: [string, string][] = [
+            [
+                `<select name="a"><option><math>x</math></option><option>1</option></select><selectFromSequence from="$a" to="$a+3"/>`,
+                "when `$a` = x, `from` isn't a number.",
+            ],
+            [
+                `<select name="a" type="text">x 1</select><selectFromSequence from="$a" to="$a+3"/>`,
+                "when `$a` = x, `from` isn't a number.",
+            ],
+            [
+                `<select name="a"><option><math>x</math></option><option>1</option></select><selectFromSequence from="0*$a+1" to="0*$a+4"/>`,
+                "when `$a` = x, `from` isn't a number.",
+            ],
+            [
+                `<select name="a"><option><math>x</math></option><option>1</option></select><selectPrimeNumbers minValue="0*$a+2" maxValue="20"/>`,
+                "when `$a` = x, `from` isn't a number.",
+            ],
+            [
+                `<selectFromSequence name="a" to="2"/><number name="m">($a-1)/($a-1)</number><selectFromSequence from="$m" to="$m+3"/>`,
+                "when `$a` = 1, `from` isn't a number.",
+            ],
+            [
+                `<selectFromSequence name="c" to="2"/><selectFromSequence name="b" to="9" numToSelect="$c"/><selectFromSequence from="$b[2]" to="$b[2]+3"/>`,
+                "when `$b[2]` is nothing, `from` isn't a number.",
+            ],
+            [
+                `<selectFromSequence name="k" to="4"/><numberList name="ns">5 6 7</numberList><selectFromSequence to="$ns[$k]"/>`,
+                "when `$k` = 4, `to` isn't a number.",
+            ],
+        ];
+        for (const [doenetML, when] of cases) {
+            const tag = doenetML.includes("selectPrimeNumbers minValue")
+                ? "selectPrimeNumbers"
+                : "selectFromSequence";
+            expect((await load(doenetML)).errors, doenetML).eqls([
+                `doenet-e0073: \`<${tag}>\` can't always select as written: ${when}`,
+            ]);
+        }
+        // a division by a value that may be 0 is no bound, and is decided
+        // exactly
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="a" to="2"/><number name="m">1/($a-1)</number><selectFromSequence from="$m" to="$m+3"/>`,
+                )
+            ).codes,
+        ).eqls(["doenet-e0073"]);
+        // a finite value with no end still cancels
+        expect(
+            (
+                await load(
+                    `<mathInput name="n"/><repeatForSequence to="$n" indexName="i"><selectFromSequence name="b" from="$i" to="$i+9"/><selectFromSequence from="$b" to="$b+3" numToSelect="4"/></repeatForSequence>`,
+                )
+            ).codes,
+        ).eqls([]);
+    });
+
     it("an iteration far along with no end is named", async () => {
         expect(
             (
@@ -925,6 +986,29 @@ describe("A parameter is in an analysable form (SEL-6) @group4", () => {
             const { errors } = await load(`${choices}${parameters}`);
             expect(errors, parameters).toHaveLength(1);
             expect(errors[0], parameters).toContain(`\`${part}\`, `);
+        }
+    });
+
+    it("an attribute that changes a value is named with the reference to its component", async () => {
+        const a = `<selectFromSequence name="a" to="2"/>`;
+        for (const [parameters, named] of [
+            [
+                `<number name="m" valueOnNaN="0">$a</number><selectFromSequence to="$m"/>`,
+                "`to` of `<selectFromSequence>` reads `$m`, a `<number>` holding `$a`, ",
+            ],
+            [
+                `<math name="m" simplify>$a+1</math><selectFromSequence to="$m"/>`,
+                "`to` of `<selectFromSequence>` reads `$m`, a `<math>` holding `$a+1`, ",
+            ],
+            [
+                // a constant whose value it changes, in a compiled parameter
+                `<math name="m" simplify>2x-x</math><selectFromSequence type="math" from="$a" step="$m" length="2"/>`,
+                "`step` of `<selectFromSequence>` reads `$m`, a `<math>` holding `2x-x`, ",
+            ],
+        ]) {
+            const { errors } = await load(`${a}${parameters}`);
+            expect(errors, parameters).toHaveLength(1);
+            expect(errors[0], parameters).toContain(named);
         }
     });
 
