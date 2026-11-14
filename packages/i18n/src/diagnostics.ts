@@ -363,6 +363,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0070": "choice-parameter-reader-changeable",
     "doenet-e0071": "type-change-own-type-only",
     "doenet-e0072": "attribute-empty",
+    "doenet-e0073": "choice-not-always-possible",
+    "doenet-e0074": "choice-parameter-not-analysable",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

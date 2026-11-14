@@ -85,9 +85,13 @@ export function selectError({
  * The level of a select's failure to select (D38, DIAG-7): an error when
  * what decides it is decided by the DoenetML (it cannot change), so it is
  * the same in every variant and the author must change it; otherwise an
- * info, since a value or another random choice decides it (`<selectFromSequence to="$a"
- * numToSelect="3"/>` with a random `a`), and the select is missing while it
- * lasts (DIAG-2).
+ * info, and the select is missing while it lasts (DIAG-2). A failure that
+ * another random choice or a repeat's index can cause
+ * (`<selectFromSequence to="$a" numToSelect="3"/>` with a random `a`) is an
+ * error at load in every variant (`choiceFeasibilityAtLoad.ts`, SEL-5), in
+ * place of the select, so it never comes here; what does is what that check
+ * leaves to the select, such as the share of combinations excluded
+ * (`doenet-e0044`) or options a random index copies (`doenet-e0033`).
  *
  * @param decidedByDoenetML The select's `choicesDecidedByDoenetML`.
  */

@@ -38,8 +38,12 @@ import {
 import {
     coprimeCombinations,
     drawValidCombination,
-    someValidCombination,
 } from "../utils/validCombinations";
+import {
+    excludedCombinationsOf,
+    sequenceSelectionFailure,
+    sequenceSpace,
+} from "../utils/selectionFailure";
 const { gcd } = me.math;
 
 /**
@@ -242,37 +246,24 @@ export default class SelectFromSequence extends Sequence {
                     );
                 }
                 if (dependencyValues.excludeCombinations !== null) {
-                    let excludedCombinations =
-                        dependencyValues.excludeCombinations.stateValues.lists
-                            .map((x) =>
-                                x.slice(0, dependencyValues.numToSelect),
-                            )
-                            .filter(
-                                (x) =>
-                                    x.length === dependencyValues.numToSelect,
-                            );
+                    // as the load-time check reads them
+                    // (`excludedCombinationsOf`)
+                    const excludedCombinations = excludedCombinationsOf(
+                        dependencyValues.excludeCombinations.stateValues.lists,
+                        dependencyValues.numToSelect,
+                        dependencyValues.type,
+                    );
 
-                    if (dependencyValues.type === "number") {
-                        while (true) {
-                            let result =
-                                mergeContainingNumberCombinations(
-                                    excludedCombinations,
-                                );
-                            if (result.merged) {
-                                excludedCombinations = result.combinations;
-                            } else {
-                                break;
-                            }
-                        }
-
-                        if (dependencyValues.coprime) {
-                            diagnostics.push(
-                                codedDiagnostic({
-                                    type: levelFromSource(levelDecided),
-                                    code: "doenet-w0052",
-                                }),
-                            );
-                        }
+                    if (
+                        dependencyValues.type === "number" &&
+                        dependencyValues.coprime
+                    ) {
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: levelFromSource(levelDecided),
+                                code: "doenet-w0052",
+                            }),
+                        );
                     }
                     return {
                         setValue: { excludedCombinations },
@@ -1058,18 +1049,15 @@ function makeFreshSelection(dependencyValues) {
         });
     }
 
-    let numUniqueRequired = 1;
-    if (!dependencyValues.withReplacement) {
-        numUniqueRequired = dependencyValues.numToSelect;
-    }
-
-    if (numUniqueRequired > dependencyValues.length) {
+    // Whether it can select is the test the load-time check makes for each
+    // value its parameters can take (`sequenceSelectionFailure`), decided
+    // before any draw, so a selection that can't be made fails the same way
+    // in every variant (SEL-4, DIAG-7).
+    const decision = sequenceSelectionFailure(dependencyValues);
+    if (decision.failure) {
         const error = selectError({
-            code: "doenet-e0036",
-            args: {
-                numToSelect: numUniqueRequired,
-                length: dependencyValues.length,
-            },
+            code: decision.failure.code,
+            args: decision.failure.args,
             type: failureType,
         });
         return selectionResult(error, {
@@ -1077,105 +1065,12 @@ function makeFreshSelection(dependencyValues) {
             selectedIndices: null,
         });
     }
+    const coprime = decision.coprime;
+    const numCombinationsExcluded = decision.numCombinationsExcluded;
 
-    let numCombinationsExcluded = dependencyValues.excludedCombinations.length;
-
-    let coprime = dependencyValues.coprime;
-
-    if (dependencyValues.type === "number") {
-        let error = null;
-        numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
-            excludedCombinations: dependencyValues.excludedCombinations,
-            numValues:
-                dependencyValues.length - dependencyValues.exclude.length,
-            withReplacement: dependencyValues.withReplacement,
-            numToSelect: dependencyValues.numToSelect,
-        });
-
-        if (coprime) {
-            const lastNumber =
-                dependencyValues.from +
-                (dependencyValues.length - 1) * dependencyValues.step;
-            if (numCombinationsExcluded > 0) {
-                // No need to send warning since already sent
-                // in definition of excludeCombinations
-                coprime = false;
-            } else if (
-                !Number.isInteger(dependencyValues.from) ||
-                !Number.isInteger(dependencyValues.step) ||
-                dependencyValues.from <= 0 ||
-                lastNumber <= 0
-            ) {
-                error = selectError({
-                    code: "doenet-e0041",
-                    type: failureType,
-                });
-            } else if (
-                gcd(dependencyValues.from, dependencyValues.step) !== 1
-            ) {
-                error = selectError({
-                    code: "doenet-e0042",
-                    type: failureType,
-                });
-            } else if (dependencyValues.numToSelect === 1) {
-                coprime = false;
-            } else if (
-                dependencyValues.length - dependencyValues.exclude.length <=
-                1
-            ) {
-                // It is possible that there is only one number to choose from,
-                // in which case, we cannot select coprime numbers, unless that number is 1.
-                // We have to verify that there is more than one number available only if 1 isn't a possibility.
-                if (
-                    dependencyValues.from > 1 ||
-                    dependencyValues.exclude.includes(1)
-                ) {
-                    // One situation and so one code, reached two ways: a
-                    // sequence short enough to tell from `length` alone, and
-                    // one whose values have to be generated to tell. The
-                    // short-circuit is what keeps the second from being
-                    // generated when the first already answered.
-                    if (
-                        dependencyValues.length <= 1 ||
-                        returnSequenceValues(dependencyValues).length <= 1
-                    ) {
-                        error = selectError({
-                            code: "doenet-e0043",
-                            type: failureType,
-                        });
-                    }
-                }
-            }
-
-            // Every value sharing a factor, which only an `exclude` can
-            // make, as `from` and `step` have none: no draw could be
-            // coprime. Found before drawing, as a select given a requested
-            // variant's choices finds what it would report without drawing
-            // (`selectionWithRequested`), so this error, which the DoenetML
-            // can decide, is reported in every variant (DIAG-7).
-            if (
-                !error &&
-                coprime &&
-                dependencyValues.exclude.length > 0 &&
-                !valuesHaveNoCommonFactor(dependencyValues)
-            ) {
-                error = selectError({
-                    code: "doenet-e0045",
-                    type: failureType,
-                });
-            }
-        }
-
-        if (error) {
-            return selectionResult(error, {
-                selectedValues: null,
-                selectedIndices: null,
-            });
-        }
-    } else {
-        // No need to send warning since already sent
-        // in definition of excludeCombinations
-        coprime = false;
+    let numUniqueRequired = 1;
+    if (!dependencyValues.withReplacement) {
+        numUniqueRequired = dependencyValues.numToSelect;
     }
 
     let selectedValues, selectedIndices;
@@ -1200,131 +1095,9 @@ function makeFreshSelection(dependencyValues) {
         selectedValues = selectedObj.selectedValues;
         selectedIndices = selectedObj.selectedIndices;
     } else {
-        let numPossibilitiesLowerBound =
-            dependencyValues.length - dependencyValues.exclude.length;
-
-        if (dependencyValues.withReplacement) {
-            numPossibilitiesLowerBound = Math.pow(
-                numPossibilitiesLowerBound,
-                dependencyValues.numToSelect,
-            );
-        } else {
-            let n = numPossibilitiesLowerBound;
-            for (let i = 1; i < dependencyValues.numToSelect; i++) {
-                numPossibilitiesLowerBound *= n - i;
-            }
-        }
-
-        if (numCombinationsExcluded > 0.7 * numPossibilitiesLowerBound) {
-            // may have excluded over 70% of combinations
-            // need to determine actual number of possibilities
-            // to see if really have excluded that many combinations
-
-            let numPossibilities = 0;
-            for (let index = 0; index < dependencyValues.length; index++) {
-                if (
-                    returnSequenceValueForIndex({
-                        index,
-                        from: dependencyValues.from,
-                        step: dependencyValues.step,
-                        length: dependencyValues.length,
-                        exclude: dependencyValues.exclude,
-                        type: dependencyValues.type,
-                    }) !== null
-                ) {
-                    numPossibilities++;
-                }
-            }
-
-            if (dependencyValues.withReplacement) {
-                numPossibilities = Math.pow(
-                    numPossibilities,
-                    dependencyValues.numToSelect,
-                );
-            } else {
-                let n = numPossibilities;
-                for (let i = 1; i < dependencyValues.numToSelect; i++) {
-                    numPossibilities *= n - i;
-                }
-            }
-
-            if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                // A combination naming NaN can name the same one twice, so the
-                // estimate is revised down before the threshold is believed.
-                // Nothing else can revise it, so a count that survives — or
-                // one there was nothing to revise — is the same failure and
-                // the same code.
-                if (
-                    dependencyValues.type === "number" &&
-                    dependencyValues.excludedCombinations.some((x) =>
-                        x.some(Number.isNaN),
-                    )
-                ) {
-                    numCombinationsExcluded -=
-                        estimateNumberOfDuplicateCombinations(
-                            dependencyValues.excludedCombinations,
-                            dependencyValues.length -
-                                dependencyValues.exclude.length,
-                            dependencyValues.withReplacement,
-                        );
-                }
-
-                if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                    const error = selectError({
-                        code: "doenet-e0044",
-                        type: failureType,
-                    });
-                    return selectionResult(error, {
-                        selectedValues: null,
-                        selectedIndices: null,
-                    });
-                }
-            }
-        }
-
-        // The combinations to draw from: those of the sequence's values,
-        // excluded values left out, that aren't an excluded combination and,
-        // with `coprime`, have no common factor.
-        const space = {
-            numValues: dependencyValues.length,
-            numToSelect: dependencyValues.numToSelect,
-            withReplacement: dependencyValues.withReplacement,
-            valueAt: (index) =>
-                returnSequenceValueForIndex({
-                    index,
-                    from: dependencyValues.from,
-                    step: dependencyValues.step,
-                    exclude: dependencyValues.exclude,
-                    type: dependencyValues.type,
-                    lowercase: dependencyValues.lowercase,
-                }),
-            isValid: (values) =>
-                (dependencyValues.excludedCombinations.length === 0 ||
-                    !checkForExcludedCombination({
-                        type: dependencyValues.type,
-                        excludedCombinations:
-                            dependencyValues.excludedCombinations,
-                        values,
-                    })) &&
-                // the values are integers, as `coprime` requires
-                (!coprime || integerGcd(values) === 1),
-        };
-
-        // Whether a valid combination exists is decided by the values, so
-        // it is found before any draw, and a select with none fails the same
-        // way in every variant (SEL-4, DIAG-7): with `coprime`, as values
-        // that all share a factor do (`6 10 15`, two at a time, have none),
-        // and otherwise as excluding too many combinations does.
-        if (!someValidCombination(space)) {
-            const error = selectError({
-                code: coprime ? "doenet-e0045" : "doenet-e0044",
-                type: failureType,
-            });
-            return selectionResult(error, {
-                selectedValues: null,
-                selectedIndices: null,
-            });
-        }
+        // The combinations to draw from (`sequenceSpace`), of which one is
+        // valid, as found above.
+        const space = sequenceSpace(dependencyValues, coprime);
 
         // Draw, and draw again when a combination isn't valid. When most
         // are valid, a few draws find one.

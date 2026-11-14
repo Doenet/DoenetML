@@ -22,6 +22,7 @@ import * as FeedbackDefinitions from "./components/FeedbackDefinitions";
 import * as StyleDefinitions from "./components/StyleDefinitions";
 import * as StylePalette from "./components/StylePalette";
 import * as ComponentWithSelectableType from "./components/abstract/ComponentWithSelectableType";
+import * as SelectionParameter from "./components/abstract/SelectionParameter";
 import * as SideBySide from "./components/SideBySide";
 import * as Indexing from "./components/Indexing";
 import * as Divisions from "./components/Divisions";
@@ -250,6 +251,7 @@ const componentTypeArray = [
     ...Object.values(StylePalette),
     ...Object.values(SideBySide),
     ...Object.values(ComponentWithSelectableType),
+    ...Object.values(SelectionParameter),
     ...Object.values(Indexing),
     ...Object.values(Divisions),
     ...Object.values(Verbatim),
