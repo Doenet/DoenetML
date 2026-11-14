@@ -355,7 +355,10 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
      * (`$ns[$i]`), a division by what may be 0, a step that may be 0, or
      * exclusions, of number and math sequences, primes and options.
      */
-    function widerDocuments(random: () => number) {
+    function widerDocuments(
+        random: () => number,
+        kinds = ["seq", "seq", "seq", "math", "primes", "select", "letters"],
+    ) {
         const pick = <T>(xs: T[]) => xs[Math.floor(random() * xs.length)];
         const int = (lo: number, hi: number) =>
             lo + Math.floor(random() * (hi - lo + 1));
@@ -370,6 +373,12 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
             `<select name="b"><option><math>x</math></option><option><number>${int(1, 4)}</number></option></select>`,
             `<select name="b"><option><number>0</number></option><option><number>${int(1, 3)}</number></option></select>`,
             `<select name="b" type="text">x ${int(1, 3)}</select>`,
+        ];
+        // what a letters sequence reads: letters, a letters choice, texts
+        // that are letters or may not be
+        const letters = [
+            `<selectFromSequence name="l" type="letters" from="a" to="${pick(["c", "e", "h"])}"/>`,
+            `<select name="t" type="text">c ${pick(["d", "%", "2", "e"])}</select>`,
         ];
         const atoms = [
             "$i",
@@ -391,6 +400,7 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
                 `<selectFromSequence name="a" from="1" to="${int(3, 6)}"/>`,
                 ...others.filter(() => random() < 0.6),
                 ...(random() < 0.7 ? [pick(bs)] : []),
+                ...letters.filter(() => random() < 0.6),
             ];
             const has = (s: string) =>
                 [...s.matchAll(/\$(\w+)/g)].every(
@@ -423,16 +433,17 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
                 }
                 return "$i";
             };
-            const kind = pick([
-                "seq",
-                "seq",
-                "seq",
-                "math",
-                "primes",
-                "select",
-            ]);
+            const kind = pick(kinds);
             let target: string;
-            if (kind === "select") {
+            if (kind === "letters") {
+                const letter = () => pick(["c", "A", "$l", "$t", "$b"]);
+                const range = pick([
+                    "",
+                    ` length="${pick([String(int(1, 6)), term(), `${term()}+${int(1, 5)}`])}"`,
+                    ` to="${pick(["z", letter()])}"`,
+                ]);
+                target = `<selectFromSequence type="letters"${pick(["", ` from="${letter()}"`])}${range}${pick(["", ` step="${pick(["2", "-1", "$z", term()])}"`])}${pick(["", ` exclude="${letter()}"`])} numToSelect="${pick(["1", "2", term()])}"${pick(["", " withReplacement"])}/>`;
+            } else if (kind === "select") {
                 target = `<select numToSelect="${pick(["1", "2", term(), `min(${term()},3)`])}"${pick(["", " withReplacement"])}>u v w</select>`;
             } else if (kind === "primes") {
                 target = `<selectPrimeNumbers from="${pick(["2", term()])}" to="${term()} + ${int(0, 30)}" numToSelect="${pick(["1", "2", term()])}"${pick(["", ` exclude="${term()}"`, ` exclude="${int(2, 7)}"`])}/>`;
@@ -515,6 +526,16 @@ ${context.join("\n")}
         const random = seedrandom("wider bounds");
         const { passes, samples } = await checkPasses(
             widerDocuments(random),
+            random,
+        );
+        expect(passes).toBeGreaterThan(50);
+        expect(samples).toBeGreaterThan(10000);
+    }, 600000);
+
+    it("on random documents of letters sequences", async () => {
+        const random = seedrandom("letters bounds");
+        const { passes, samples } = await checkPasses(
+            widerDocuments(random, ["letters"]),
             random,
         );
         expect(passes).toBeGreaterThan(50);

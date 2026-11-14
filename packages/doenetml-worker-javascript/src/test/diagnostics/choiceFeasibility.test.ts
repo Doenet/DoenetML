@@ -821,6 +821,75 @@ describe("An iteration index ranges over every iteration (SEL-5) @group4", () =>
         ).eqls([]);
     });
 
+    it("a letters sequence's parameter that may be no letters or no number fails also where the count doesn't read it", async () => {
+        // each passed, though, when the document runs, it selects nothing
+        // or blanks (a letters sequence is counted by its `length`, or 10,
+        // without reading `from` or `step`)
+        const t = `<select name="b" type="text">a %</select>`;
+        const m = `<select name="b"><option><math>x</math></option><option><number>1</number></option></select>`;
+        const repeat = (content: string) =>
+            `<mathInput name="n" prefill="2"/><repeatForSequence to="$n" indexName="i">${content}</repeatForSequence>`;
+        const cases: [string, string][] = [
+            [
+                `${t}<selectFromSequence type="letters" from="$b"/>`,
+                "when `$b` = %, `from` isn't letters.",
+            ],
+            [
+                `${t}<selectFromSequence type="letters" from="$b" length="3"/>`,
+                "when `$b` = %, `from` isn't letters.",
+            ],
+            [
+                `<select name="b" type="text">c %</select><selectFromSequence type="letters" to="$b" length="3"/>`,
+                "when `$b` = %, `to` isn't letters.",
+            ],
+            [
+                `${m}<selectFromSequence type="letters" from="a" step="$b" length="3"/>`,
+                "when `$b` = x, `step` isn't a number.",
+            ],
+            [
+                `${m}<selectFromSequence type="letters" from="a" step="$b" length="3" numToSelect="2" withReplacement/>`,
+                "when `$b` = x, `step` isn't a number.",
+            ],
+            [
+                `<selectFromSequence name="a" to="2"/><selectFromSequence name="c" from="5" to="9" numToSelect="$a"/><selectFromSequence type="letters" from="a" step="$c[2]" length="3"/>`,
+                "when `$c[2]` is nothing, `step` isn't a number.",
+            ],
+            [
+                repeat(
+                    `<select name="b" type="text">% a</select><selectFromSequence type="letters" from="$b" length="$i+2"/>`,
+                ),
+                "when `$b` = %, `$i` = 1, `from` isn't letters.",
+            ],
+            [
+                repeat(
+                    `${m}<selectFromSequence type="letters" step="$b" length="$i+2"/>`,
+                ),
+                "when `$b` = x, `$i` = 1, `step` isn't a number.",
+            ],
+        ];
+        for (const [doenetML, when] of cases) {
+            expect((await load(doenetML)).errors, doenetML).eqls([
+                `doenet-e0073: \`<selectFromSequence>\` can't always select as written: ${when}`,
+            ]);
+        }
+        // letters, as written or as a choice selects them, under an index
+        // with no end too
+        for (const doenetML of [
+            `<selectFromSequence type="letters" from="c" length="3" numToSelect="3"/>`,
+            repeat(
+                `<select name="b" type="text">c d</select><selectFromSequence type="letters" from="$b" length="$i+2"/>`,
+            ),
+            repeat(
+                `<selectFromSequence name="b" type="letters" from="a" to="e"/><selectFromSequence type="letters" from="$b" step="$i" length="$i+2" numToSelect="$i+2"/>`,
+            ),
+            repeat(
+                `<selectFromSequence type="letters" from="a" to="z" step="$i"/>`,
+            ),
+        ]) {
+            expect((await load(doenetML)).codes, doenetML).eqls([]);
+        }
+    });
+
     it("an iteration far along with no end is named", async () => {
         expect(
             (

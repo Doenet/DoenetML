@@ -3971,14 +3971,18 @@ export function checkChoiceFeasibilityAtLoad({
         if (expr.op === "letterNumber") {
             const atom = lettersChoiceAtom(expr.args[0]);
             const spec = atom && (specOf(atom.node) as ChoiceSpec);
-            return (
-                !!spec &&
-                spec.type === "selectFromSequence" &&
-                entrySurelyPresent(atom!, spec) &&
-                [spec.from, spec.to, spec.step, spec.length].every(
-                    (e) => e === null || surelyFinite(e),
-                )
-            );
+            if (atom) {
+                return (
+                    !!spec &&
+                    spec.type === "selectFromSequence" &&
+                    entrySurelyPresent(atom, spec) &&
+                    [spec.from, spec.to, spec.step, spec.length].every(
+                        (e) => e === null || surelyFinite(e),
+                    )
+                );
+            }
+            // letters written as they are, or texts each of which is letters
+            return letterNumbersOf(expr) !== undefined;
         }
         if (expr.op === "item") {
             // an index that isn't one of the entries is nothing
@@ -3997,6 +4001,59 @@ export function checkChoiceFeasibilityAtLoad({
             return divisor.lo > 0 || divisor.hi < 0;
         }
         return true;
+    }
+
+    /**
+     * The numbers the letters `expr` (a `letterNumber`) can be, over every
+     * value of the atoms it reads, when every one is letters and there are
+     * few (`from="c"`, or `from="$b"` with `$b` a `<select>` of texts that
+     * are letters); otherwise `undefined`.
+     */
+    const letterNumbersMemo = new Map<Expr, number[] | null>();
+    function letterNumbersOf(expr: Expr): number[] | undefined {
+        if (expr.k !== "op" || expr.op !== "letterNumber") {
+            return undefined;
+        }
+        const memo = letterNumbersMemo.get(expr);
+        if (memo !== undefined) {
+            return memo ?? undefined;
+        }
+        // not known while it is being found (a cycle)
+        letterNumbersMemo.set(expr, null);
+        const ordered = orderedAtoms([expr]);
+        const numbers: number[] = [];
+        const assignment: Assignment = new Map();
+        const allLetters = (k: number): boolean => {
+            if (k === ordered.length) {
+                const v = evaluate(expr, assignment);
+                if (
+                    numbers.length >= MAX_VALUES ||
+                    typeof v !== "number" ||
+                    !Number.isFinite(v)
+                ) {
+                    return false;
+                }
+                numbers.push(v);
+                return true;
+            }
+            const atom = ordered[k];
+            const domain = domainOf(atom, assignment);
+            if (!("finite" in domain)) {
+                return false;
+            }
+            for (const v of domain.finite) {
+                assignment.set(atom, v);
+                if (!allLetters(k + 1)) {
+                    return false;
+                }
+            }
+            assignment.delete(atom);
+            return true;
+        };
+        const result =
+            allLetters(0) && numbers.length > 0 ? numbers : undefined;
+        letterNumbersMemo.set(expr, result ?? null);
+        return result;
     }
 
     /** Whether every value the atom can take is a finite number. */
@@ -4143,11 +4200,21 @@ export function checkChoiceFeasibilityAtLoad({
             case "letterNumber": {
                 const atom = lettersChoiceAtom(expr.args[0]);
                 const spec = atom && specOf(atom.node);
-                return spec &&
+                if (
+                    spec &&
                     !(spec instanceof NotAnalysable) &&
                     !(spec instanceof Skip) &&
                     spec.type === "selectFromSequence"
-                    ? sequenceBounds(spec)
+                ) {
+                    return sequenceBounds(spec);
+                }
+                const numbers = atom ? undefined : letterNumbersOf(expr);
+                return numbers
+                    ? {
+                          lo: Math.min(...numbers),
+                          hi: Math.max(...numbers),
+                          integer: true,
+                      }
                     : { lo: -Infinity, hi: Infinity, integer: false };
             }
             case "item": {
@@ -4197,6 +4264,13 @@ export function checkChoiceFeasibilityAtLoad({
         if (expr.k === "const") {
             const v = expr.value;
             return { c: typeof v === "number" ? v : NaN, terms: new Map() };
+        }
+        if (expr.k === "op" && expr.op === "letterNumber") {
+            // letters written as they are (`from="c"`): their number
+            const letters = letterNumbersOf(expr);
+            if (letters?.length === 1 && atomsOf([expr]).size === 0) {
+                return { c: letters[0], terms: new Map() };
+            }
         }
         if (expr.k === "op") {
             if (expr.op === "+") {
@@ -4649,14 +4723,15 @@ export function checkChoiceFeasibilityAtLoad({
             return { ok: false, unproven: describeRanges() };
         }
         if (
-            spec.seqType === "number" &&
+            spec.seqType !== "math" &&
             ![spec.from, spec.to, spec.step, spec.length].every(
                 (e) => e === null || surelyFinite(e),
             )
         ) {
-            // a parameter that may be no number is a failure
-            // (`concreteProblem`), also one the count doesn't read (`from`
-            // and `step` with a `length`): tried exactly
+            // a parameter that may be no number (or, of a letters sequence,
+            // no letters) is a failure (`concreteProblem`), also one the
+            // count doesn't read (`from` and `step` with a `length`, or
+            // `from` alone, with 10 values): tried exactly
             return tryWitness(new Map());
         }
         // how many values: `length`, or `(to - from) / step + 1`, rounded
