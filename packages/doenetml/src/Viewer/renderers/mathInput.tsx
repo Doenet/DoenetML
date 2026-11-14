@@ -22,7 +22,7 @@ import {
     toNumberOrNaN,
 } from "@doenet/utils";
 import {
-    getVirtualKeyboardTrayElement,
+    getVirtualKeyboardElementContaining,
     isInVirtualKeyboardTray,
 } from "@doenet/virtual-keyboard";
 import { DescriptionPopover } from "./utils/Description";
@@ -849,17 +849,17 @@ export default function MathInput(props: UseDoenetRendererProps) {
     }
 
     /**
-     * After focus has been handed from this input to the keyboard tray, waits
-     * for it to leave the tray again and finishes the blur unless it comes back
-     * here.
+     * After focus has been handed from this input to the keyboard tray (or
+     * the math key strip), waits for it to leave that again and finishes the
+     * blur unless it comes back here. `keyboardElement` is where focus went.
      *
      * The tray is not part of this input's DOM, so focus leaving it raises no
      * further event on the input: without this the input would stay styled as
      * focused, with its value uncommitted, until the reader returned to it and
      * left it properly.
      */
-    function watchForFocusLeavingTray() {
-        const tray = getVirtualKeyboardTrayElement();
+    function watchForFocusLeavingTray(keyboardElement: EventTarget | null) {
+        const tray = getVirtualKeyboardElementContaining(keyboardElement);
         if (!tray) {
             return;
         }
@@ -901,7 +901,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
             // press, so focus never leaves the input; only deliberate keyboard
             // navigation into the tray produces this blur, and the editing
             // ends when focus leaves the tray for somewhere that is not here.
-            watchForFocusLeavingTray();
+            watchForFocusLeavingTray(relatedTarget);
             return;
         }
 
