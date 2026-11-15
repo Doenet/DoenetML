@@ -182,19 +182,19 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
             .and("have.attr", "aria-label", "Math keys");
 
         const names = [
-            "union",
-            "infinity",
-            "nth root",
             "fraction",
             "power",
+            "nth root",
+            "absolute value",
             "pi",
-            "intersection",
+            "infinity",
             "less than or equal to",
             "greater than or equal to",
+            "not equal to",
             "less than",
             "greater than",
-            "not equal to",
-            "absolute value",
+            "union",
+            "intersection",
             "plus or minus",
             "move right",
         ];
@@ -219,7 +219,7 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         // tablet). The input keeps its claim on the keys, so pressing a key
         // with Enter types into it.
         cy.get("#mi4 textarea").trigger("keydown", { ...TAB, force: true });
-        cy.focused().should("have.attr", "aria-label", "union");
+        cy.focused().should("have.attr", "aria-label", "fraction");
         cy.get(STRIP).should("be.visible");
 
         // The focus ring is drawn whole: the scrolling part of the row clips
@@ -258,11 +258,11 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         cy.focused().should(ringIsWhole);
 
         cy.focused().trigger("keydown", { key: "ArrowRight" });
-        cy.focused().should("have.attr", "aria-label", "infinity");
+        cy.focused().should("have.attr", "aria-label", "power");
         cy.focused().trigger("keydown", { key: "End" });
         cy.focused().should("have.attr", "aria-label", "move right");
         cy.focused().trigger("keydown", { key: "Home" });
-        cy.focused().should("have.attr", "aria-label", "union");
+        cy.focused().should("have.attr", "aria-label", "fraction");
         cy.focused().trigger("keydown", { key: "ArrowLeft" });
         cy.focused().should("have.attr", "aria-label", "move right");
         // A key the arrows bring into view from out of sight stops short of
@@ -272,7 +272,6 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         cy.focused().should(ringIsWhole);
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().should("have.attr", "aria-label", "move right");
-        cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().trigger("keydown", { key: "ArrowRight" });
@@ -362,6 +361,30 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
                     expect(r.height, "key height").to.be.closeTo(42, 0.5);
                     expect(r.width, "key width").to.be.within(32, 44);
                 }
+
+                // Keys of a group sit 6px apart, groups 12px: the wider gaps
+                // fall before pi, ≤, ∪ and ±.
+                const groupStarts = [];
+                for (let i = 1; i < buttons.length - 1; i++) {
+                    const space =
+                        buttons[i].getBoundingClientRect().left -
+                        buttons[i - 1].getBoundingClientRect().right;
+                    if (space > 9) {
+                        expect(space, "gap between groups").to.be.closeTo(
+                            12,
+                            0.5,
+                        );
+                        groupStarts.push(buttons[i].getAttribute("aria-label"));
+                    } else {
+                        expect(space, "gap in a group").to.be.closeTo(6, 0.5);
+                    }
+                }
+                expect(groupStarts).to.deep.equal([
+                    "pi",
+                    "less than or equal to",
+                    "union",
+                    "plus or minus",
+                ]);
 
                 // The move-right key is pinned in view at the right end.
                 const moveRight = buttons[buttons.length - 1];

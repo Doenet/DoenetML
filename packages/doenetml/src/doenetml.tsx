@@ -220,7 +220,7 @@ export function DoenetViewer({
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
     /**
-     * On a touch device, show a row of math keys (union, nth root, fraction,
+     * On a touch device, show a row of math keys (fraction, power, nth root,
      * ...) on top of the device's own keyboard while a math input has focus.
      * It appears only while the device's keyboard is in play: with
      * `addVirtualKeyboard={false}`, or once the reader closes the Doenet

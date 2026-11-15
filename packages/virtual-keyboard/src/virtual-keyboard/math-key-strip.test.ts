@@ -5,6 +5,7 @@ import {
     MATH_KEY_STRIP_KEYS,
     MATH_KEY_STRIP_SIZES,
     MATH_KEY_STRIP_MOVE_RIGHT_KEY,
+    mathKeyStripExtraGaps,
     mathKeyStripLabels,
     nextMathKeyIndex,
     placeMathKeyStrip,
@@ -18,24 +19,51 @@ import {
 describe("the keys", () => {
     it("are in the order settled on, with move right pinned apart", () => {
         expect(MATH_KEY_STRIP_KEYS.map((k) => k.name)).toEqual([
-            "union",
-            "infinity",
-            "nthRoot",
             "fraction",
             "power",
+            "nthRoot",
+            "abs",
             "pi",
-            "intersection",
+            "infinity",
             "leq",
             "geq",
+            "neq",
             "lt",
             "gt",
-            "neq",
-            "abs",
+            "union",
+            "intersection",
             "plusMinus",
         ]);
         expect(MATH_KEY_STRIP_KEYS).not.toContain(
             MATH_KEY_STRIP_MOVE_RIGHT_KEY,
         );
+    });
+
+    it("come in groups, each group in one run", () => {
+        const groups = MATH_KEY_STRIP_KEYS.map((k) => k.group);
+        const runs = groups.filter((g, i) => i === 0 || g !== groups[i - 1]);
+        expect(runs).toEqual([
+            "build",
+            "constant",
+            "comparison",
+            "set",
+            "sign",
+        ]);
+        // A group that came back later would be split by a wide gap.
+        expect(new Set(runs).size).toBe(runs.length);
+    });
+
+    it("leave the wider gap only where a group starts", () => {
+        const { gap, groupGap } = MATH_KEY_STRIP_SIZES;
+        expect(groupGap).toBeGreaterThan(gap);
+        const extra = mathKeyStripExtraGaps(MATH_KEY_STRIP_KEYS);
+        const starts = MATH_KEY_STRIP_KEYS.filter((_, i) => extra[i] > 0).map(
+            (k) => k.name,
+        );
+        expect(starts).toEqual(["pi", "leq", "union", "plusMinus"]);
+        for (const e of extra) {
+            expect([0, groupGap - gap]).toContain(e);
+        }
     });
 
     it("type what the key says", () => {
@@ -105,40 +133,58 @@ describe("the keys", () => {
 describe("fitMathKeyWidth", () => {
     const { gap, minKeyWidth, maxKeyWidth, baseKeyWidth } =
         MATH_KEY_STRIP_SIZES;
-    const count = MATH_KEY_STRIP_KEYS.length;
+    const extraGaps = mathKeyStripExtraGaps(MATH_KEY_STRIP_KEYS);
 
-    /** How many keys, counting a part key as a fraction, fit in `available`. */
-    function keysInView(available: number, width: number) {
-        return (available + gap) / (width + gap);
+    /**
+     * How much of the key the edge of `available` cuts, laid out as the
+     * strip lays it out (group gaps included); 1 if no key is cut.
+     */
+    function cutKeyShowing(available: number, width: number) {
+        let left = 0;
+        for (const extra of extraGaps) {
+            left += extra;
+            if (left + width > available) {
+                return (available - left) / width;
+            }
+            left += width + gap;
+        }
+        return 1;
     }
 
     it.each([150, 200, 256, 300, 326, 400, 500])(
         "cuts the last key in view about in half at %ipx",
         (available) => {
-            const width = fitMathKeyWidth(available, count);
+            const width = fitMathKeyWidth(available, extraGaps);
             expect(width).toBeGreaterThanOrEqual(minKeyWidth);
             expect(width).toBeLessThanOrEqual(maxKeyWidth);
-            const fraction = keysInView(available, width) % 1;
-            // Half a key is showing, give or take the gap.
+            const fraction = cutKeyShowing(available, width);
             expect(fraction).toBeGreaterThan(0.3);
             expect(fraction).toBeLessThan(0.7);
         },
     );
 
+    it("counts the group gaps", () => {
+        // Without them the edge would fall elsewhere on the key.
+        const flat = extraGaps.map(() => 0);
+        expect(fitMathKeyWidth(326, extraGaps)).not.toBe(
+            fitMathKeyWidth(326, flat),
+        );
+    });
+
     it("keeps the base width when every key fits", () => {
-        expect(fitMathKeyWidth(2000, count)).toBe(baseKeyWidth);
+        expect(fitMathKeyWidth(2000, extraGaps)).toBe(baseKeyWidth);
     });
 
     it("keeps the base width when there is no room to measure", () => {
-        expect(fitMathKeyWidth(0, count)).toBe(baseKeyWidth);
-        expect(fitMathKeyWidth(40, count)).toBe(baseKeyWidth);
+        expect(fitMathKeyWidth(0, extraGaps)).toBe(baseKeyWidth);
+        expect(fitMathKeyWidth(40, extraGaps)).toBe(baseKeyWidth);
     });
 
     it("never goes below the WCAG 2.2 AA target size", () => {
         for (let available = 50; available < 800; available += 7) {
-            expect(fitMathKeyWidth(available, count)).toBeGreaterThanOrEqual(
-                24,
-            );
+            expect(
+                fitMathKeyWidth(available, extraGaps),
+            ).toBeGreaterThanOrEqual(24);
         }
     });
 });

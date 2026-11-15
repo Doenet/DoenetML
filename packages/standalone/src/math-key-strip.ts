@@ -14,8 +14,8 @@
  * </script>
  * ```
  *
- * On a phone or tablet it draws a row of math keys (union, nth root,
- * fraction, ...) on top of the device's own keyboard while a math input in
+ * On a phone or tablet it draws a row of math keys (fraction, power,
+ * nth root, ...) on top of the device's own keyboard while a math input in
  * that iframe has focus. The activity inside must be rendered with
  * `data-doenet-math-key-strip="true"`,
  * `data-doenet-external-virtual-keyboard-provided="true"` and

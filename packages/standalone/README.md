@@ -82,10 +82,10 @@ On a touch device a math input raises the device's own keyboard when the
 viewer has no Doenet keyboard (`data-doenet-add-virtual-keyboard="false"`).
 That keyboard has letters and digits but no union, root or fraction bar.
 `data-doenet-math-key-strip="true"` adds a row of math keys on top of it while
-a math input has focus: union, infinity, nth root, fraction, power, pi,
-intersection, ≤, ≥, <, >, ≠, absolute value, ±, and a right-arrow key (the
-same as the arrow key: from the end of an exponent, root or fraction it steps
-out) pinned at the end. The
+a math input has focus, in groups set apart by a wider gap: fraction, power,
+nth root and absolute value; pi and infinity; ≤, ≥, ≠, < and >; union and
+intersection; then ±. A right-arrow key (the same as the arrow key: from the
+end of an exponent, root or fraction it steps out) is pinned at the end. The
 row scrolls sideways. It is a labelled toolbar of named buttons, and pressing
 a key leaves focus, and the device's keyboard, in the math input. On the
 viewer's own page it also works with a hardware keyboard: Tab from a math

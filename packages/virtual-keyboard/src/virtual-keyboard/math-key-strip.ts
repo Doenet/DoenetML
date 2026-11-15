@@ -33,10 +33,19 @@ import {
  */
 export const VIRTUAL_KEYBOARD_PART_ATTRIBUTE = "data-doenet-virtual-keyboard";
 
+/**
+ * The kinds of key, in the order they appear. Keys of one group sit together,
+ * and a wider gap separates one group from the next.
+ */
+export type MathKeyStripGroup =
+    "build" | "constant" | "comparison" | "set" | "sign" | "move";
+
 /** One key of the strip. */
 export type MathKeyStripKey = {
     /** Stable identifier, used for the CSS class and the label lookup. */
     name: MathKeyStripKeyName;
+    /** Which group it belongs to; see `MATH_KEY_STRIP_KEYS`. */
+    group: MathKeyStripGroup;
     /** What is drawn on the key. Hidden from assistive technology. */
     glyph: string;
     /** What pressing the key sends to the focused math input. */
@@ -64,43 +73,99 @@ export type MathKeyStripKeyName =
  * The scrolling keys, in the order they appear. Adding a key is one entry
  * here plus its label in `mathKeyStripLabels` (and the English catalog).
  *
+ * Grouped by kind, and within a group by how often answers in algebra and
+ * calculus use them: building an expression (fraction, power, root, absolute
+ * value), constants, comparisons (the three a phone's keyboard lacks before
+ * < and >), intervals and sets, then ±. A group starts where `group` changes,
+ * so the order and the gaps between groups cannot drift apart.
+ *
  * Where the full keyboard already has the key, its commands are reused, so
  * the two keyboards type the same thing.
  */
 export const MATH_KEY_STRIP_KEYS: readonly MathKeyStripKey[] = [
     {
-        name: "union",
-        glyph: "∪",
-        commands: [{ type: "write", command: "\\cup" }],
+        name: "fraction",
+        group: "build",
+        glyph: "a⁄b",
+        commands: OPERATOR_KEYS.divide.commands,
     },
-    { name: "infinity", glyph: "∞", commands: SYMBOL_KEYS.infty.commands },
+    {
+        name: "power",
+        group: "build",
+        glyph: "xⁿ",
+        commands: VAR_KEYS.exponent.commands,
+    },
     {
         // `\sqrt[]{}` with the caret in the index: type the index, move right
         // into the radicand, type it, move right again to leave the root.
         name: "nthRoot",
+        group: "build",
         glyph: "ⁿ√",
         commands: TRIG_KEYS.athRootOfB.commands,
     },
     {
-        name: "fraction",
-        glyph: "a⁄b",
-        commands: OPERATOR_KEYS.divide.commands,
+        name: "abs",
+        group: "build",
+        glyph: "|x|",
+        commands: VAR_KEYS.abs.commands,
     },
-    { name: "power", glyph: "xⁿ", commands: VAR_KEYS.exponent.commands },
-    { name: "pi", glyph: "π", commands: VAR_KEYS.pi.commands },
+    {
+        name: "pi",
+        group: "constant",
+        glyph: "π",
+        commands: VAR_KEYS.pi.commands,
+    },
+    {
+        name: "infinity",
+        group: "constant",
+        glyph: "∞",
+        commands: SYMBOL_KEYS.infty.commands,
+    },
+    {
+        name: "leq",
+        group: "comparison",
+        glyph: "≤",
+        commands: VAR_KEYS.leq.commands,
+    },
+    {
+        name: "geq",
+        group: "comparison",
+        glyph: "≥",
+        commands: VAR_KEYS.geq.commands,
+    },
+    {
+        name: "neq",
+        group: "comparison",
+        glyph: "≠",
+        commands: SYMBOL_KEYS.neq.commands,
+    },
+    {
+        name: "lt",
+        group: "comparison",
+        glyph: "<",
+        commands: VAR_KEYS.lt.commands,
+    },
+    {
+        name: "gt",
+        group: "comparison",
+        glyph: ">",
+        commands: VAR_KEYS.gt.commands,
+    },
+    {
+        name: "union",
+        group: "set",
+        glyph: "∪",
+        commands: [{ type: "write", command: "\\cup" }],
+    },
     {
         name: "intersection",
+        group: "set",
         glyph: "∩",
         commands: [{ type: "write", command: "\\cap" }],
     },
-    { name: "leq", glyph: "≤", commands: VAR_KEYS.leq.commands },
-    { name: "geq", glyph: "≥", commands: VAR_KEYS.geq.commands },
-    { name: "lt", glyph: "<", commands: VAR_KEYS.lt.commands },
-    { name: "gt", glyph: ">", commands: VAR_KEYS.gt.commands },
-    { name: "neq", glyph: "≠", commands: SYMBOL_KEYS.neq.commands },
-    { name: "abs", glyph: "|x|", commands: VAR_KEYS.abs.commands },
     {
         name: "plusMinus",
+        group: "sign",
         glyph: "±",
         commands: [{ type: "write", command: "\\pm" }],
     },
@@ -119,6 +184,7 @@ export const MATH_KEY_STRIP_KEYS: readonly MathKeyStripKey[] = [
  */
 export const MATH_KEY_STRIP_MOVE_RIGHT_KEY: MathKeyStripKey = {
     name: "moveRight",
+    group: "move",
     glyph: "\u2192",
     commands: SPECIAL_KEYS.right.commands,
 };
@@ -161,29 +227,55 @@ export function mathKeyStripLabels(
     };
 }
 
-/** Key size in CSS pixels. Height is fixed; width is fitted, see below. */
+/**
+ * Key size in CSS pixels. Height is fixed; width is fitted, see below.
+ * `gap` is between two keys of a group, `groupGap` between two groups.
+ */
 export const MATH_KEY_STRIP_SIZES = {
     keyHeight: 42,
     baseKeyWidth: 36,
     minKeyWidth: 32,
     maxKeyWidth: 44,
     gap: 6,
+    groupGap: 12,
     padding: 6,
 };
+
+/**
+ * For each key of `keys`, the space before it beyond the ordinary gap: the
+ * difference between the group gap and the gap where a new group starts,
+ * otherwise 0.
+ */
+export function mathKeyStripExtraGaps(
+    keys: readonly Pick<MathKeyStripKey, "group">[],
+    {
+        gap,
+        groupGap,
+    }: Pick<
+        typeof MATH_KEY_STRIP_SIZES,
+        "gap" | "groupGap"
+    > = MATH_KEY_STRIP_SIZES,
+): number[] {
+    return keys.map((key, i) =>
+        i > 0 && key.group !== keys[i - 1].group ? groupGap - gap : 0,
+    );
+}
 
 /**
  * The width to give each scrolling key so that the last one in view is cut
  * about in half, which is what tells the reader the row goes on.
  *
- * `available` is the width of the scrolling part. With `k` whole keys and
- * half of the next in view, `available = (k + 0.5) * width + k * gap`. Of the
- * widths between the minimum and maximum this gives, the one closest to the
- * base width wins. When every key fits, nothing is cut and the base width is
- * kept.
+ * `available` is the width of the scrolling part, and `extraGaps` the space
+ * before each key beyond the ordinary gap (`mathKeyStripExtraGaps`). With
+ * `k` whole keys and half of the next in view, `available = (k + 0.5) *
+ * width + k * gap + extra`, where `extra` is the extra space before key `k`.
+ * Of the widths between the minimum and maximum this gives, the one closest
+ * to the base width wins. When every key fits, nothing is cut and the base
+ * width is kept.
  */
 export function fitMathKeyWidth(
     available: number,
-    count: number,
+    extraGaps: readonly number[],
     {
         baseKeyWidth,
         minKeyWidth,
@@ -194,15 +286,27 @@ export function fitMathKeyWidth(
         "baseKeyWidth" | "minKeyWidth" | "maxKeyWidth" | "gap"
     > = MATH_KEY_STRIP_SIZES,
 ): number {
+    const count = extraGaps.length;
     if (!(available > 0) || count <= 0) {
         return baseKeyWidth;
     }
-    if (count * baseKeyWidth + (count - 1) * gap <= available) {
+    // The extra space before each key, summed up to it.
+    const extraBefore: number[] = [];
+    let sum = 0;
+    for (const extra of extraGaps) {
+        sum += extra;
+        extraBefore.push(sum);
+    }
+    if (
+        count * baseKeyWidth + (count - 1) * gap + extraBefore[count - 1] <=
+        available
+    ) {
         return baseKeyWidth;
     }
     let best: number | null = null;
     for (let whole = 1; whole < count; whole++) {
-        const width = (available - whole * gap) / (whole + 0.5);
+        const width =
+            (available - whole * gap - extraBefore[whole]) / (whole + 0.5);
         if (width < minKeyWidth || width > maxKeyWidth) {
             continue;
         }
@@ -335,8 +439,8 @@ function stylesheet() {
     // scrolling part clips what overflows it, so it is padded by that much
     // (and pulled back by a negative margin, leaving the layout as it was);
     // with less, the ring of a key in that part is cut flat on three sides.
-    // The same room is kept as scroll padding, so a key the arrow keys bring
-    // into view stops short of the edge with its ring whole.
+    // The same room is kept as scroll padding, so a key the arrow keys or Tab
+    // bring into view stops short of the edge with its ring whole.
     const ringRoom = 4;
     return `
 .${ROOT_CLASS}{${themeRules("light")}
@@ -359,6 +463,7 @@ font:inherit;font-size:20px;line-height:1;white-space:nowrap;
 color:var(--mks-key-text);background:var(--mks-key-bg);
 border:1px solid var(--mks-key-border);border-radius:6px;cursor:pointer;
 touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+.${ROOT_CLASS} .mks-scroller button.mks-group-start{margin-left:${s.groupGap - s.gap}px;}
 .${ROOT_CLASS} button.mks-key-abs,.${ROOT_CLASS} button.mks-key-fraction,.${ROOT_CLASS} button.mks-key-nthRoot,.${ROOT_CLASS} button.mks-key-power{font-size:16px;}
 .${ROOT_CLASS} button:active{background:var(--mks-key-pressed-bg);}
 .${ROOT_CLASS} button:focus{outline:none;}
@@ -471,10 +576,15 @@ export function createMathKeyStrip(options: MathKeyStripOptions): MathKeyStrip {
     root.append(scroller, pinned);
 
     const allKeys = [...MATH_KEY_STRIP_KEYS, MATH_KEY_STRIP_MOVE_RIGHT_KEY];
+    const extraGaps = mathKeyStripExtraGaps(MATH_KEY_STRIP_KEYS);
     const buttons = allKeys.map((key, index) => {
         const button = doc.createElement("button");
         button.type = "button";
         button.className = `mks-key-${key.name}`;
+        if (extraGaps[index]) {
+            // The first key of a group: the wider gap is its left margin.
+            button.classList.add("mks-group-start");
+        }
         button.tabIndex = index === 0 ? 0 : -1;
         const glyph = doc.createElement("span");
         glyph.setAttribute("aria-hidden", "true");
@@ -541,7 +651,7 @@ export function createMathKeyStrip(options: MathKeyStripOptions): MathKeyStrip {
 
     function fitKeys() {
         const available = scroller.clientWidth;
-        const width = fitMathKeyWidth(available, MATH_KEY_STRIP_KEYS.length);
+        const width = fitMathKeyWidth(available, extraGaps);
         root.style.setProperty("--mks-key-width", `${width}px`);
         // The pinned key keeps the base width whatever the scrolling keys do.
         buttons[buttons.length - 1].style.width =
