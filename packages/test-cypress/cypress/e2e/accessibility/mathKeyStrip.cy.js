@@ -222,6 +222,32 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         cy.focused().should("have.attr", "aria-label", "union");
         cy.get(STRIP).should("be.visible");
 
+        // The focus ring is drawn whole: the scrolling part of the row clips
+        // what overflows it, so it must leave room for the ring all round.
+        cy.focused().should(($el) => {
+            const button = $el[0];
+            const win = button.ownerDocument.defaultView;
+            expect(button.matches(":focus-visible"), "focus is shown").to.equal(
+                true,
+            );
+            const style = win.getComputedStyle(button);
+            const reach =
+                parseFloat(style.outlineWidth) +
+                parseFloat(style.outlineOffset);
+            expect(reach, "the ring reaches outside the key").to.be.greaterThan(
+                0,
+            );
+            const key = button.getBoundingClientRect();
+            const clip = button
+                .closest(".mks-scroller")
+                .getBoundingClientRect();
+            expect(key.top - reach, "ring top").to.be.at.least(clip.top);
+            expect(key.left - reach, "ring left").to.be.at.least(clip.left);
+            expect(key.bottom + reach, "ring bottom").to.be.at.most(
+                clip.bottom,
+            );
+        });
+
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().should("have.attr", "aria-label", "infinity");
         cy.focused().trigger("keydown", { key: "End" });
@@ -279,58 +305,73 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         });
     });
 
-    it("sits at the bottom of the viewport, cuts the last key in view, and leaves the input clear", () => {
-        cy.viewport(320, 568);
-        emulateTouchDevice(true);
-        load();
+    // Two widths: at 320 the base key width happens to cut a key about in
+    // half, at 390 only a fitted width does. The first show is what is
+    // measured, so a fit that only took effect after a resize fails here.
+    // 300 px is about what a phone leaves above its keyboard, and is short
+    // enough that the last input ends up under the strip unless the page is
+    // scrolled to clear it.
+    for (const [width, height] of [
+        [320, 300],
+        [390, 300],
+    ]) {
+        it(`sits at the bottom of the viewport, cuts the last key in view, and leaves the input clear, at ${width}px`, () => {
+            cy.viewport(width, height);
+            emulateTouchDevice(true);
+            load();
 
-        cy.get("#mi4 textarea").focus();
-        cy.get(STRIP).should("be.visible");
+            cy.get("#mi4 textarea").focus();
+            cy.get(STRIP).should("be.visible");
 
-        cy.window().then((win) => {
-            const strip = win.document.querySelector(".doenet-math-key-strip");
-            const rect = strip.getBoundingClientRect();
-            const viewportBottom =
-                win.visualViewport.offsetTop + win.visualViewport.height;
-            expect(Math.abs(rect.bottom - viewportBottom)).to.be.lessThan(1);
-            expect(rect.left).to.be.closeTo(0, 1);
-            expect(rect.width).to.be.closeTo(win.visualViewport.width, 1);
+            cy.window().then((win) => {
+                const strip = win.document.querySelector(
+                    ".doenet-math-key-strip",
+                );
+                const rect = strip.getBoundingClientRect();
+                const viewportBottom =
+                    win.visualViewport.offsetTop + win.visualViewport.height;
+                expect(Math.abs(rect.bottom - viewportBottom)).to.be.lessThan(
+                    1,
+                );
+                expect(rect.left).to.be.closeTo(0, 1);
+                expect(rect.width).to.be.closeTo(win.visualViewport.width, 1);
 
-            const buttons = [...strip.querySelectorAll("button")];
-            for (const b of buttons) {
-                const r = b.getBoundingClientRect();
-                expect(r.height, "key height").to.be.closeTo(42, 0.5);
-                expect(r.width, "key width").to.be.within(32, 44);
-            }
+                const buttons = [...strip.querySelectorAll("button")];
+                for (const b of buttons) {
+                    const r = b.getBoundingClientRect();
+                    expect(r.height, "key height").to.be.closeTo(42, 0.5);
+                    expect(r.width, "key width").to.be.within(32, 44);
+                }
 
-            // The move-right key is pinned in view at the right end.
-            const moveRight = buttons[buttons.length - 1];
-            const moveRightRect = moveRight.getBoundingClientRect();
-            expect(moveRightRect.right).to.be.lessThan(rect.right);
-            expect(moveRightRect.left).to.be.greaterThan(rect.right - 60);
+                // The move-right key is pinned in view at the right end.
+                const moveRight = buttons[buttons.length - 1];
+                const moveRightRect = moveRight.getBoundingClientRect();
+                expect(moveRightRect.right).to.be.lessThan(rect.right);
+                expect(moveRightRect.left).to.be.greaterThan(rect.right - 60);
 
-            // The row scrolls, and the last key in view is cut, not whole.
-            const scroller = strip.querySelector(".mks-scroller");
-            expect(scroller.scrollWidth).to.be.greaterThan(
-                scroller.clientWidth,
-            );
-            const edge = scroller.getBoundingClientRect().right;
-            const cut = buttons.slice(0, -1).find((b) => {
-                const r = b.getBoundingClientRect();
-                return r.left < edge && r.right > edge;
+                // The row scrolls, and the last key in view is cut, not whole.
+                const scroller = strip.querySelector(".mks-scroller");
+                expect(scroller.scrollWidth).to.be.greaterThan(
+                    scroller.clientWidth,
+                );
+                const edge = scroller.getBoundingClientRect().right;
+                const cut = buttons.slice(0, -1).find((b) => {
+                    const r = b.getBoundingClientRect();
+                    return r.left < edge && r.right > edge;
+                });
+                expect(cut, "a key cut by the edge of the row").to.exist;
+                const r = cut.getBoundingClientRect();
+                const shown = (edge - r.left) / r.width;
+                expect(shown).to.be.within(0.2, 0.8);
+
+                // The input and its check button are above the strip.
+                const row = win.document
+                    .querySelector("#mi4 .mathInputWrapper")
+                    .parentElement.getBoundingClientRect();
+                expect(row.bottom).to.be.at.most(rect.top);
             });
-            expect(cut, "a key cut by the edge of the row").to.exist;
-            const r = cut.getBoundingClientRect();
-            const shown = (edge - r.left) / r.width;
-            expect(shown).to.be.within(0.2, 0.8);
-
-            // The input and its check button are above the strip.
-            const row = win.document
-                .querySelector("#mi4 .mathInputWrapper")
-                .parentElement.getBoundingClientRect();
-            expect(row.bottom).to.be.at.most(rect.top);
         });
-    });
+    }
 
     it("hides when focus leaves the math input, and is absent without a touch screen", () => {
         cy.viewport(390, 700);

@@ -331,6 +331,11 @@ function themeRules(theme: MathKeyStripTheme) {
  */
 function stylesheet() {
     const s = MATH_KEY_STRIP_SIZES;
+    // The focus ring (3px, 1px off the key) reaches 4px outside a key. The
+    // scrolling part clips what overflows it, so it is padded by that much
+    // (and pulled back by a negative margin, leaving the layout as it was);
+    // with less, the ring of a key in that part is cut flat on three sides.
+    const ringRoom = 4;
     return `
 .${ROOT_CLASS}{${themeRules("light")}
 position:fixed;top:0;left:0;z-index:10001;box-sizing:border-box;
@@ -342,9 +347,9 @@ color:var(--mks-key-text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,
 .${ROOT_CLASS}[data-theme="dark"]{${themeRules("dark")}}
 .${ROOT_CLASS} .mks-scroller{display:flex;gap:${s.gap}px;flex:1 1 auto;min-width:0;
 overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;
-padding:3px;margin:-3px;}
+padding:${ringRoom}px;margin:-${ringRoom}px;}
 .${ROOT_CLASS} .mks-scroller::-webkit-scrollbar{display:none;}
-.${ROOT_CLASS} .mks-pinned{flex:0 0 auto;display:flex;padding:3px;margin:-3px;}
+.${ROOT_CLASS} .mks-pinned{flex:0 0 auto;display:flex;padding:${ringRoom}px;margin:-${ringRoom}px;}
 .${ROOT_CLASS} button{-webkit-appearance:none;appearance:none;box-sizing:border-box;margin:0;
 flex:0 0 auto;width:var(--mks-key-width);height:${s.keyHeight}px;padding:0;
 display:flex;align-items:center;justify-content:center;
@@ -566,8 +571,12 @@ export function createMathKeyStrip(options: MathKeyStripOptions): MathKeyStrip {
         if (!shown || destroyed) {
             return;
         }
-        fitKeys();
+        // Place first: that sets the strip's width. Before it is set (the
+        // first show), the scrolling part does not yet have the width it
+        // ends up with, and the keys were fitted to the wrong one. Fitting
+        // changes no heights, so `top` stays right.
         const { top, visibleTop } = place();
+        fitKeys();
         const avoid = options.getAvoidRect?.();
         if (avoid) {
             const delta = scrollToClearMathKeyStrip(avoid, top, visibleTop);
