@@ -220,3 +220,21 @@ attributes can be used.
 
 A `<repeat>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.
 For an alternative way to do this, see the [`<repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
+
+
+---
+
+## Property Examples
+
+### Property Example: numItems
+
+
+```doenet-editor-horiz
+<numberList name="values">1 2 3 4</numberList>
+<p><repeat name="r" for="$values" valueName="v"><math>$v^2</math></repeat></p>
+<p>Number of iterations: $r.numItems</p>
+```
+
+`numItems` is the number of iterations, which an index selects among
+(`$r[2]` is the second). Any other property after a repeat is that property
+of what each iteration holds.

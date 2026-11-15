@@ -163,7 +163,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -411,6 +411,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -426,7 +427,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1355,7 +1356,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1841,7 +1842,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -4328,7 +4329,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122221212122111111111112222221222122222211121111221222211221111122200",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122221212122111111111112222221222122222211121112221222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -5223,7 +5224,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5676,7 +5677,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -6129,7 +6130,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -7186,7 +7187,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -7583,6 +7584,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -7616,7 +7618,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222212222212202022222122222012212222222221222222111222222212211222221111111110212120",
+            "childBuckets": "12222111111111111111111111122222112222222122222122020222221222220122122222222212222221112222222212211222221111111110212120",
             "abstractAncestors": [
                 "_booleanOperatorOneInput",
                 "_inline",
@@ -10098,6 +10100,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -10113,7 +10116,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -10580,6 +10583,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -10595,7 +10599,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -11062,6 +11066,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -11077,7 +11082,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_booleanOperatorOfMath",
                 "_inline",
@@ -11574,6 +11579,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -11589,7 +11595,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -12482,6 +12488,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -12497,7 +12504,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -13390,6 +13397,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -13405,7 +13413,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -14290,6 +14298,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -14305,7 +14314,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -15190,6 +15199,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -15205,7 +15215,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -16090,6 +16100,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -16105,7 +16116,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -16977,6 +16988,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -16992,7 +17004,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -17835,6 +17847,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -17850,7 +17863,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -18709,6 +18722,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -18724,7 +18738,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -19583,6 +19597,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -19598,7 +19613,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -20457,6 +20472,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -20472,7 +20488,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -21331,6 +21347,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -21346,7 +21363,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -22239,6 +22256,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -22254,7 +22272,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -23147,6 +23165,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -23162,7 +23181,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -24072,6 +24091,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -24087,7 +24107,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -24997,6 +25017,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -25012,7 +25033,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -25905,6 +25926,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -25920,7 +25942,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -26813,6 +26835,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -26828,7 +26851,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -27721,6 +27744,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -27736,7 +27760,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -28629,6 +28653,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -28644,7 +28669,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -29537,6 +29562,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -29552,7 +29578,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperator",
                 "_inline",
@@ -30445,6 +30471,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -30460,7 +30487,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathOperatorOneInput",
                 "_inline",
@@ -31380,6 +31407,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -31395,7 +31423,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_valueList",
@@ -31652,6 +31680,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -31753,6 +31787,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -31768,7 +31803,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_valueList",
@@ -32025,6 +32060,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -32126,6 +32167,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -32141,7 +32183,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_valueList",
@@ -32398,6 +32440,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -32499,6 +32547,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -32514,7 +32563,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_valueList",
@@ -32771,6 +32820,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -32872,6 +32927,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -32887,7 +32943,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222220122122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
                 "_valueList",
@@ -33144,6 +33200,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -35734,6 +35796,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -36298,6 +36366,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -36813,6 +36887,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "categories",
@@ -37341,6 +37421,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "binEdges",
                     "type": "number",
                     "isArray": true,
@@ -37440,6 +37526,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "sortIndices",
                 "subsetOfReals",
                 "split",
@@ -37474,7 +37561,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "022222222220000111111111111111111111112222211222221220222101122212222221222212122222222222222222222222222222",
+            "childBuckets": "0222222222200001111111111111111111111122222112222212202221011222122222212222212122222222222222222222222222222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -38268,6 +38355,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "sortIndices",
                 "subsetOfReals",
                 "split",
@@ -38302,7 +38390,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222220111111111111111111111112222211222221220222101122212222221222212122222222222222222222222222222",
+            "childBuckets": "11222222222201111111111111111111111122222112222212202221011222122222212222212122222222222222222222222222222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -38631,6 +38719,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -38649,7 +38738,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "1222211111111111111111111112222211222211122222212222022222122222220112222222221222222122222222212212222110",
+            "childBuckets": "12222111111111111111111111122222112222111222222122220222221222222201122222222212222221222222222212212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -39596,6 +39685,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -39614,7 +39704,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "1222211111111111111111111112222211222211122222212222022222122222220112222222221222222122222222212212222110",
+            "childBuckets": "12222111111111111111111111122222112222111222222122220222221222222201122222222212222221222222222212212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -40561,6 +40651,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -40579,7 +40670,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "1222211111111111111111111112222211222211122222212222022222122222220112222222221222222122222222212212222110",
+            "childBuckets": "12222111111111111111111111122222112222111222222122220222221222222201122222222212222221222222222212212222110",
             "abstractAncestors": [
                 "_functionOperator",
                 "_inline",
@@ -41530,6 +41621,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -41545,7 +41637,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_textOperatorOfMath",
                 "_inline",
@@ -42082,7 +42174,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -42395,7 +42487,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -42708,7 +42800,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -43021,7 +43113,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -43334,7 +43426,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -43647,7 +43739,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -43960,7 +44052,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -44273,7 +44365,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -44586,7 +44678,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -44899,7 +44991,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -45212,7 +45304,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -45525,7 +45617,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -64980,6 +65072,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "endpoint",
                 "subsetOfReals",
                 "matrix",
@@ -65037,7 +65130,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "112222222222011111111111111111111111222221122110220101212111122211111111222222012222222222222222222222222222222222",
+            "childBuckets": "1122222222220111111111111111111111112222211221102201012121211122211111111222222012222222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -65800,6 +65893,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -65811,7 +65905,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222220122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
+            "childBuckets": "11222222222201222211111111111111111111112222211222222222222212222022221222220122122221222222122222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -66478,6 +66572,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -66489,7 +66584,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11222222222201110101222211111111111111111111112222211222222222212222022221222220112222122222212222212212222",
+            "childBuckets": "112222222222011101012222111111111111111111111122222112222222222122220222212222201122221222222122222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -68284,6 +68379,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -68299,7 +68395,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -69162,6 +69258,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -69173,7 +69270,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "02222222222012222111111111111111111111122222112222222222222122220222122222012212222122222212222212212222",
+            "childBuckets": "022222222220122221111111111111111111111222221122222222222221222202221222220122122221222222122222212212222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -74531,6 +74628,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -74542,7 +74640,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112222222222000122221111111111111111111111222221122222222222221222202222122222222212222122222212222212212222",
+            "childBuckets": "1122222222220001222211111111111111111111112222211222222222222212222022221222222222122221222222122222212212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -75226,7 +75324,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111222122221122111112221111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -75592,7 +75690,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111222122221122111112221111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -77723,6 +77821,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -77757,7 +77856,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222222222112222222222221211111111111111111111",
+            "childBuckets": "222222222222222222222222222222222222222222222222212220222222222222222222222222222221122222222222221211111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -78219,6 +78318,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -78233,7 +78333,7 @@
                 "latex",
                 "intervalList"
             ],
-            "childBuckets": "222222222222222222222222222222222222222222222222212220222222222222222222222222222221122222222222212",
+            "childBuckets": "2222222222222222222222222222222222222222222222222122202222222222222222222222222222211222222222222212",
             "abstractAncestors": [
                 "_authoredValueList",
                 "_valueList",
@@ -78402,6 +78502,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -78594,7 +78700,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122221212122111111111112222221222122222211121111221222211221111122200",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122221212122111111111112222221222122222211121112221222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -79010,6 +79116,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -79043,7 +79150,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222212222212202022222122222012212222222221222222111222222212211222221111111110212120",
+            "childBuckets": "12222111111111111111111111122222112222222122222122020222221222220122122222222212222221112222222212211222221111111110212120",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -79616,6 +79723,12 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -79733,6 +79846,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -79748,7 +79862,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -80606,6 +80720,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -80621,7 +80736,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_authoredValueList",
                 "_valueList",
@@ -80928,6 +81043,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -81053,6 +81174,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -81068,7 +81190,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_authoredValueList",
                 "_valueList",
@@ -81377,6 +81499,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -81477,6 +81605,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -81515,7 +81644,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111122222112222212202222101122222222122222212222222212122222222222222222222222222222",
+            "childBuckets": "11111111111111111111111222221122222122022221011222222221222222122222222212122222222222222222222222222222",
             "abstractAncestors": [
                 "_authoredValueList",
                 "_valueList",
@@ -81759,6 +81888,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -81859,10 +81994,46 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the collect itself is hidden; a `hide` written on it hides what it collects."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -82373,6 +82544,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "endpoint",
                 "subsetOfReals",
                 "matrix",
@@ -82430,7 +82602,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "112222222222011111111111111111111111222221122110220101212111122211111111222222012222222222222222222222222222222222",
+            "childBuckets": "1122222222220111111111111111111111112222211221102201012121211122211111111222222012222222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -83171,6 +83343,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -83186,7 +83359,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -84040,6 +84213,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -84051,7 +84225,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222220122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
+            "childBuckets": "11222222222201222211111111111111111111112222211222222222222212222022221222220122122221222222122222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -89508,6 +89682,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -89519,7 +89694,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222220122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
+            "childBuckets": "11222222222201222211111111111111111111112222211222222222222212222022221222220122122221222222122222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -90417,6 +90592,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -90428,7 +90604,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222220122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
+            "childBuckets": "11222222222201222211111111111111111111112222211222222222222212222022221222220122122221222222122222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -91158,6 +91334,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -91169,7 +91346,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11222222222201110101222211111111111111111111112222211222222222212222022221222220112222122222212222212212222",
+            "childBuckets": "112222222222011101012222111111111111111111111122222112222222222122220222212222201122221222222122222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -92119,6 +92296,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -92130,7 +92308,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "20222222222122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
+            "childBuckets": "202222222221222211111111111111111111112222211222222222222212222022221222220122122221222222122222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -92341,6 +92519,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -92397,7 +92576,7 @@
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "1111111111111111111111122222112210222101222221212222112222222222222222222222222222222222222222222222222",
+            "childBuckets": "11111111111111111111111222221122102221012222212122222112222222222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphicalValueList",
                 "_authoredValueList",
@@ -92691,6 +92870,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -92789,6 +92974,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "endpoint",
                 "subsetOfReals",
                 "matrix",
@@ -92838,7 +93024,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "1122222222220111111111111111111111112222211221102201012121111222222222012222222222222222222222222222222222",
+            "childBuckets": "11222222222201111111111111111111111122222112211022010121212111222222222012222222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -93593,6 +93779,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "sortIndices",
                 "subsetOfReals",
                 "split",
@@ -93627,7 +93814,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "1122222222220111111111111111111111112222211222221220222101122212222221222212122222222222222222222222222222",
+            "childBuckets": "11222222222201111111111111111111111122222112222212202221011222122222212222212122222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -94202,6 +94389,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -94226,7 +94414,7 @@
                 "hasSameFactoring",
                 "matchesPattern"
             ],
-            "childBuckets": "202222222221111110110001222211111111111111111111112222211222222212222210000102122200122122221222222111222122112221111111110011",
+            "childBuckets": "2022222222211111101100012222111111111111111111111122222112222222122222100001021222001221222212222221112222122112221111111110011",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -95263,6 +95451,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -95292,7 +95481,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "20222222222122221111111111111111111111222221122222221222221220202222122222012212222122222211122212211222221111111110212120",
+            "childBuckets": "202222222221222211111111111111111111112222211222222212222212202022221222220122122221222222111222212211222221111111110212120",
             "abstractAncestors": [
                 "_base"
             ],
@@ -95895,6 +96084,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -95928,7 +96118,7 @@
                 "booleanInput",
                 "orbitalDiagram"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222212222212202022222122222012212222222221222222111222222212211222221111111110212120",
+            "childBuckets": "12222111111111111111111111122222112222222122222122020222221222220122122222222212222221112222222212211222221111111110212120",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -96432,6 +96622,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -96443,7 +96634,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112222222222000122221111111111111111111111222221122222222222221222202222122222222212222122222212222212212222",
+            "childBuckets": "1122222222220001222211111111111111111111112222211222222222222212222022221222222222122221222222122222212212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -97311,6 +97502,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "sortIndices",
                 "subsetOfReals",
                 "split",
@@ -97320,7 +97512,7 @@
                 "latex",
                 "intervalList"
             ],
-            "childBuckets": "11222222222200022222222222222222222222222222222222222222222222122202222222222222222222222211222222212",
+            "childBuckets": "112222222222000222222222222222222222222222222222222222222222221222022222222222222222222222112222222212",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -97899,6 +98091,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -97910,7 +98103,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11222222222200011111111102211122221111111111111111111111222221122222222222221222202222122222012212222122222212222212212222",
+            "childBuckets": "112222222222000111111111022111222211111111111111111111112222211222222222222212222022221222220122122221222222122222212212222",
             "abstractAncestors": [
                 "_input",
                 "_inline",
@@ -99282,6 +99475,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -99337,7 +99531,7 @@
                 "matchesPattern",
                 "booleanInput"
             ],
-            "childBuckets": "111111111111111111111112222211222211020222210112222222212222221112222221211222222222222222222222222222222111111111021212",
+            "childBuckets": "1111111111111111111111122222112222110202222101122222222122222211122222221211222222222222222222222222222222111111111021212",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -99808,6 +100002,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -99863,7 +100058,7 @@
                 "matchesPattern",
                 "booleanInput"
             ],
-            "childBuckets": "111111111111111111111112222211222211020222210112222222212222221112222221211222222222222222222222222222222111111111021212",
+            "childBuckets": "1111111111111111111111122222112222110202222101122222222122222211122222221211222222222222222222222222222222111111111021212",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -100348,6 +100543,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "endpoint",
                 "subsetOfReals",
                 "bestFitLine",
@@ -100420,7 +100616,7 @@
                 "graph",
                 "annotations"
             ],
-            "childBuckets": "0222222222200011111111111111111111111222221122222111110221111111111111112211212111111111111222001112222222222212202222201222222221122220212220010000000",
+            "childBuckets": "02222222222000111111111111111111111112222211222221111102211111111111111122112121211111111111222001112222222222212202222201222222221122220212220010000000",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -101770,6 +101966,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -101788,7 +101985,7 @@
                 "yLabel",
                 "label"
             ],
-            "childBuckets": "1222211111111111111111111112222211222211122222212222022222122222220112222222221222222122222222212212222110",
+            "childBuckets": "12222111111111111111111111122222112222111222222122220222221222222201122222222212222221222222222212212222110",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -103513,6 +103710,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -103528,7 +103726,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -104977,6 +105175,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -105055,6 +105259,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -105089,7 +105294,7 @@
                 "label",
                 "matchesPattern"
             ],
-            "childBuckets": "222222222222222222222222222222222212022222220122222222222222222112222222221211222222222222222222202",
+            "childBuckets": "2222222222222222222222222222222222120222222201222222222222222221122222222221211222222222222222222202",
             "abstractAncestors": [
                 "_base"
             ],
@@ -106087,6 +106292,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -106222,7 +106428,6 @@
                 "updateValue",
                 "callAction",
                 "triggerSet",
-                "functionIterates",
                 "moduleAttributes",
                 "footnote",
                 "caption",
@@ -108233,7 +108438,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "0222222222211111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222121212211111111111222121222222111211111221122111112221111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "0222222222211111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222121212211111111111222121222222111211121221122111112221111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -108632,7 +108837,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "2222222202211111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122212121221111111111122212122222211121111122112211111222111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "2222222202211111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122212121221111111111122212122222211121112122112211111222111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -109211,10 +109416,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -109666,10 +109901,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -110628,6 +110893,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -110647,7 +110913,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222222222222221111222221211111111111112222212222222221222111111121222",
+            "childBuckets": "2222222222222222222222222222222222211112222212111111111111122222122222222221222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -110882,6 +111148,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -110901,7 +111168,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222222222222221111222221211111111111112222212222222221222111111121222",
+            "childBuckets": "2222222222222222222222222222222222211112222212111111111111122222122222222221222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -111490,6 +111757,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -111509,7 +111777,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "222222222222222222222222222222222221111222221211111111111112222212222222221222111111121222",
+            "childBuckets": "2222222222222222222222222222222222211112222212111111111111122222122222222221222111111121222",
             "abstractAncestors": [
                 "_constraint",
                 "_base"
@@ -112211,15 +112479,45 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
             "acceptsStringChildren": true,
-            "takesIndex": false,
+            "takesIndex": true,
             "docsSlug": "conditionalContent",
             "summary": "Renders content conditionally based on its `<case>` or `<else>` children",
             "layoutCategory": "other"
@@ -112387,7 +112685,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -113077,6 +113375,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "numToSelect",
                     "type": "integer",
                     "isArray": false,
@@ -113249,6 +113553,30 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
@@ -113259,6 +113587,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "How many were selected: the number to select when the selection was made."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -115232,6 +115566,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "step",
                     "type": "number",
                     "isArray": false,
@@ -115826,6 +116166,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "step",
                     "type": "number",
                     "isArray": false,
@@ -116249,6 +116595,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "numCategories",
                     "type": "integer",
                     "isArray": false,
@@ -116619,6 +116971,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "numToSelect",
                     "type": "integer",
                     "isArray": false,
@@ -116920,6 +117278,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -119872,6 +120236,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -119906,7 +120271,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222222222112222222222221211111111111111111111",
+            "childBuckets": "222222222222222222222222222222222222222222222222212220222222222222222222222222222221122222222222221211111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -120368,6 +120733,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -120402,7 +120768,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222222222112222222222221211111111111111111111",
+            "childBuckets": "222222222222222222222222222222222222222222222222212220222222222222222222222222222221122222222222221211111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -123476,7 +123842,7 @@
             "children": [],
             "childBuckets": "",
             "abstractAncestors": [
-                "_inline",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -123557,46 +123923,6 @@
                     "type": "reference"
                 },
                 {
-                    "name": "numIterates",
-                    "description": "Number of iterations to compute.",
-                    "defaultValue": 0,
-                    "type": "integer"
-                },
-                {
-                    "name": "forceSymbolic",
-                    "description": "Whether to force symbolic evaluation.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "forceNumeric",
-                    "description": "Whether to force numeric evaluation.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "initialValue",
-                    "description": "Starting value passed to the function on the first iteration.",
-                    "defaultValue": {
-                        "type": "math",
-                        "latex": "＿"
-                    },
-                    "type": "math"
-                },
-                {
-                    "name": "function",
-                    "description": "The function to iterate.",
-                    "type": "function"
-                },
-                {
                     "name": "displayDigits",
                     "description": "Number of significant digits to display when rendering this number.",
                     "groupName": "number-display",
@@ -123638,6 +123964,57 @@
                         "false"
                     ],
                     "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "numIterates",
+                    "description": "Number of iterations to compute.",
+                    "defaultValue": 0,
+                    "type": "integer"
+                },
+                {
+                    "name": "forceSymbolic",
+                    "description": "Whether to force symbolic evaluation.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "forceNumeric",
+                    "description": "Whether to force numeric evaluation.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "initialValue",
+                    "description": "Starting value passed to the function on the first iteration.",
+                    "defaultValue": {
+                        "type": "math",
+                        "latex": "＿"
+                    },
+                    "type": "math"
+                },
+                {
+                    "name": "function",
+                    "description": "The function to iterate.",
+                    "type": "function"
                 }
             ],
             "properties": [
@@ -123744,6 +124121,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "numDimensions",
                     "type": "integer",
                     "isArray": false,
@@ -123784,10 +124167,10 @@
             ],
             "top": true,
             "acceptsStringChildren": false,
-            "takesIndex": false,
+            "takesIndex": true,
             "docsSlug": "functionIterates",
             "summary": "List of values produced by iterating a function",
-            "layoutCategory": "inline"
+            "layoutCategory": "other"
         },
         {
             "name": "module",
@@ -125107,7 +125490,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -125480,7 +125863,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111222122221122111112221111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -125690,6 +126073,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "endpoint",
                 "subsetOfReals",
                 "matrix",
@@ -125747,7 +126131,7 @@
                 "piecewiseFunction",
                 "bestFitLine"
             ],
-            "childBuckets": "112222222222011111111111111111111111222221122110220101212111122211111111222222012222222222222222222222222222222222",
+            "childBuckets": "1122222222220111111111111111111111112222211221102201012121211122211111111222222012222222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -126882,10 +127266,40 @@
                     "groupName": "sorting"
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -127445,6 +127859,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -127874,10 +128294,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ],
             "top": true,
@@ -127979,6 +128429,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -127994,7 +128445,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -128568,6 +129019,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -128583,7 +129035,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -131184,6 +131636,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -131195,7 +131648,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1112012222222221222211111111111111111111112222211222222222212222022221222220112222122222212222212212222",
+            "childBuckets": "11120122222222212222111111111111111111111122222112222222222122220222212222201122221222222122222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -131571,6 +132024,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -131582,7 +132036,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1112012222222221222211111111111111111111112222211222222222212222022221222220112222122222212222212212222",
+            "childBuckets": "11120122222222212222111111111111111111111122222112222222222122220222212222201122221222222122222212212222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -132880,6 +133334,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -132895,7 +133350,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -133377,6 +133832,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -133415,7 +133871,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111122222112222212202222101122222222122222212222222212122222222222222222222222222222",
+            "childBuckets": "11111111111111111111111222221122222122022221011222222221222222122222222212122222222222222222222222222222",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -134277,7 +134733,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -134692,6 +135148,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -134707,7 +135164,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -136122,6 +136579,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -136137,7 +136595,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_base"
             ],
@@ -136487,6 +136945,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -136543,7 +137002,7 @@
                 "md",
                 "mdn"
             ],
-            "childBuckets": "122011122222222211111111111111111111112222211222212210222022221222122222222122222211122222212222112111111111111111111112222222222222222222201",
+            "childBuckets": "1220111222222222111111111111111111111122222112222122102220222212221222222221222222111222222212222112111111111111111111112222222222222222222201",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -137792,6 +138251,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "endpoint",
                 "subsetOfReals",
                 "bestFitLine",
@@ -137807,7 +138267,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "112222222222022222222222222222222222222222222222111122221211111111111112221222212111111121222",
+            "childBuckets": "1122222222220222222222222222222222222222222222221111222212111111111111122212222212111111121222",
             "abstractAncestors": [
                 "_graphical",
                 "_base"
@@ -139564,7 +140024,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211122212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -139774,6 +140234,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -139835,7 +140296,7 @@
                 "bestFitLine",
                 "latex"
             ],
-            "childBuckets": "111111111111111111111112222211221102220121222222121221221122211111111222222222222222222222222222222222222222222",
+            "childBuckets": "1111111111111111111111122222112211022201212222221212221221122211111111222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphicalValueList",
                 "_authoredValueList",
@@ -140080,6 +140541,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -140214,6 +140681,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "endpoint",
                 "sortIndices",
                 "subsetOfReals",
@@ -140224,7 +140692,7 @@
                 "pointList",
                 "vectorList"
             ],
-            "childBuckets": "2022222222221222211111111111111111111112222211222222222222212222022221222222222222212222221222221221222",
+            "childBuckets": "20222222222212222111111111111111111111122222112222222222222122220222212222222222222122222212222221221222",
             "abstractAncestors": [
                 "_authoredValueList",
                 "_valueList",
@@ -140468,6 +140936,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -140550,6 +141024,7 @@
                 "evaluate",
                 "substitute",
                 "periodicSet",
+                "functionIterates",
                 "module",
                 "setup",
                 "sort",
@@ -140606,7 +141081,7 @@
                 "latex",
                 "pointList"
             ],
-            "childBuckets": "1111111111111111111111122222112210222101222221212222112222222222222222222222222222222222222222222222222",
+            "childBuckets": "11111111111111111111111222221122102221012222212122222112222222222222222222222222222222222222222222222222",
             "abstractAncestors": [
                 "_graphicalValueList",
                 "_authoredValueList",
@@ -140849,6 +141324,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -141195,6 +141676,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -141311,6 +141798,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -141326,7 +141814,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_authoredValueList",
                 "_valueList",
@@ -141641,6 +142129,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -141757,6 +142251,7 @@
                 "intComma",
                 "pluralize",
                 "lorem",
+                "functionIterates",
                 "module",
                 "setup",
                 "endpoint",
@@ -141772,7 +142267,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
+            "childBuckets": "12222111111111111111111111122222112222222222222122220222221222222222122222222212222221222222222212212222",
             "abstractAncestors": [
                 "_authoredValueList",
                 "_valueList",

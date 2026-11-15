@@ -1365,6 +1365,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -11927,6 +11930,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -14504,6 +14510,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -15120,6 +15129,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -15751,6 +15763,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -16469,6 +16484,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -17413,6 +17431,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -18351,6 +18372,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -19293,6 +19317,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -20233,6 +20260,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -21167,6 +21197,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -22081,6 +22114,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -22987,6 +23023,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -23903,6 +23942,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -24817,6 +24859,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -25729,6 +25774,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -26657,6 +26705,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -27599,6 +27650,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -28548,6 +28602,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -29506,6 +29563,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -30455,6 +30515,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -31395,6 +31458,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -32339,6 +32405,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -33279,6 +33348,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -34223,6 +34295,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -35163,6 +35238,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -36115,6 +36193,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -36938,6 +37019,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -37076,6 +37160,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -37471,6 +37561,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -37609,6 +37702,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -38004,6 +38103,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -38142,6 +38244,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -38537,6 +38645,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -38675,6 +38786,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -39070,6 +39187,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -39208,6 +39328,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -42858,6 +42984,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -43838,6 +43970,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -44790,6 +44928,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "categories",
@@ -45761,6 +45905,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "binEdges",
                     "type": "number",
                     "isArray": true,
@@ -46221,6 +46371,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "sortIndices"
@@ -46908,6 +47061,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "sortIndices"
@@ -47673,6 +47829,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -48734,6 +48893,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -49793,6 +49955,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -50700,6 +50865,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -85961,6 +86129,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -86903,6 +87074,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -87779,6 +87953,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -89569,6 +89746,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -90344,6 +90524,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -98609,6 +98792,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -101737,6 +101923,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -102377,6 +102566,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -102475,6 +102667,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -103683,6 +103881,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -104153,6 +104354,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -104669,6 +104876,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -105512,6 +105722,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -105664,6 +105877,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -106115,6 +106334,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -106267,6 +106489,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -106616,6 +106844,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -106818,6 +107049,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
@@ -106909,10 +107146,46 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the collect itself is hidden; a `hide` written on it hides what it collects."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -108242,6 +108515,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -109164,6 +109440,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -110068,6 +110347,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -115023,6 +115305,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -115901,6 +116186,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -116764,6 +117052,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -117579,6 +117870,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -117955,6 +118249,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -118217,6 +118514,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -118676,6 +118979,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -119545,6 +119851,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "sortIndices"
@@ -120477,6 +120786,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -121457,6 +121769,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -122207,6 +122522,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -123014,6 +123332,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -123870,6 +124191,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "sortIndices"
                 },
                 {
@@ -124592,6 +124916,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -126498,6 +126825,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -127174,6 +127504,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -128052,6 +128385,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -129499,6 +129835,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -131220,6 +131559,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -132760,6 +133102,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -133147,6 +133495,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -134289,6 +134640,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -134692,9 +135046,6 @@
                 },
                 {
                     "ref": "triggerSet"
-                },
-                {
-                    "ref": "functionIterates"
                 },
                 {
                     "ref": "moduleAttributes"
@@ -138572,10 +138923,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -139531,10 +139912,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -140624,6 +141035,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -141039,6 +141453,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -141831,6 +142248,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -143032,10 +143452,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -144107,6 +144557,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "numToSelect",
                     "type": "integer",
                     "isArray": false,
@@ -144276,6 +144732,30 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
@@ -144286,6 +144766,12 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "How many were selected: the number to select when the selection was made."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -146442,6 +146928,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "step",
                     "type": "number",
                     "isArray": false,
@@ -146912,6 +147404,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "step",
                     "type": "number",
                     "isArray": false,
@@ -147268,6 +147766,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "numCategories",
                     "type": "integer",
                     "isArray": false,
@@ -147585,6 +148089,12 @@
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
+                },
+                {
                     "name": "numToSelect",
                     "type": "integer",
                     "isArray": false,
@@ -147850,6 +148360,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -151566,6 +152082,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -152236,6 +152755,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -156952,38 +157474,6 @@
                         "string"
                     ]
                 },
-                "numIterates": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "forceSymbolic": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "forceNumeric": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "initialValue": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "function": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -157014,6 +157504,45 @@
                     "type": [
                         "true",
                         "false"
+                    ]
+                },
+                "asList": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "numIterates": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "forceSymbolic": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "forceNumeric": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "initialValue": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "function": {
+                    "optional": true,
+                    "type": [
+                        "string"
                     ]
                 }
             },
@@ -157121,6 +157650,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "numDimensions",
@@ -161636,6 +162171,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -163034,10 +163572,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -164017,6 +164585,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -164939,10 +165513,40 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 }
             ]
         },
@@ -165307,6 +165911,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -166195,6 +166802,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -169044,6 +169654,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -169608,6 +170221,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -171521,6 +172137,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -172034,6 +172653,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -173791,6 +174413,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -175076,6 +175701,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -175617,6 +176245,9 @@
                 },
                 {
                     "ref": "lorem"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "module"
@@ -178070,6 +178701,9 @@
                 },
                 {
                     "ref": "periodicSet"
+                },
+                {
+                    "ref": "functionIterates"
                 },
                 {
                     "ref": "endpoint"
@@ -181326,6 +181960,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -181595,6 +182232,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -182034,6 +182677,9 @@
                     "ref": "lorem"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "endpoint"
                 },
                 {
@@ -182150,6 +182796,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
@@ -182445,6 +183097,9 @@
                     "ref": "periodicSet"
                 },
                 {
+                    "ref": "functionIterates"
+                },
+                {
                     "ref": "module"
                 },
                 {
@@ -182699,6 +183354,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "numItems",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
                 },
                 {
                     "name": "unordered",
