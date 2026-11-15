@@ -1028,7 +1028,7 @@ copies of a URI, copies of a module, and copies that change what is chosen (#245
 - fixed by #2549 (closing #2477): a `copyWithState` carries a sampler's draws through a reload, and a
   module attribute reaching a nested choice through any list of values keeps the carried choices,
   with `w0186`. **Left** (#2553): a sampler or `<selectRandomNumbers>` whose parameters come from
-  a composite written after it (the copy draws its own, or selects `null`); a one-entry list whose
+  a composite written after it (the copy draws its own, or, since #2555, is a false `e0075` where it selected `null`); a one-entry list whose
   entry's text holds a space (`2x`, written `2 x`) applies as written, with no `w0186`;
 - #2476 was not a defect: `condition` on a `<conditionalContent>` with an `<else>` is ignored with a
   warning, and the blank came from a name declared twice. #2481 made `<conditionalContent copy>`

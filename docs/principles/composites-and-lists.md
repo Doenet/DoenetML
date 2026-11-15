@@ -434,14 +434,56 @@ sources) without changing the statement above.
   with no end when the count comes from an input. So `to="$i"` with one value drawn is fine in
   every iteration, and `numToSelect="3"` with `to="$i"` is an error, since iterations 1 and 2
   can't draw 3.
+
+  **Done by #2555** (`W/utils/dast/choiceFeasibilityAtLoad.ts`) for `<select>`,
+  `<selectFromSequence>` and `<selectPrimeNumbers>`:
+  - **The error.** A selection that can't always select is `e0073` in every variant. It names
+    the value that fails ("when `$a` = 1, it has 1 value to select 3 from"), or says the
+    selection can't be shown to always select and gives the ranges. The selection becomes an
+    `_error`, as SEL-1's does.
+  - **Shared code.** The check and the run time share it. Each parameter is compiled at load
+    into arithmetic over references (`_selectionParameter`). The run time evaluates it with what
+    the references hold; the check evaluates it with each value they can take. Both use one
+    failure test (`W/utils/selectionFailure.ts`).
+  - **How it searches.** Ranges are bounded first. Only what the bounds don't prove is
+    enumerated, up to 20 000 combinations.
+
+  With it, **a selection's failure is always an error**, wherever it happens:
+  - #2468's info is removed: a failure a value decides was a missing selection;
+  - a failure after load goes through DIAG-7's after-load path;
+  - a `numToSelect` that isn't a number is `e0075`, not an empty selection, and one of 0 or below
+    selects nothing;
+  - a `<selectRandomNumbers>` can fail too (`e0075`, `e0036`);
+  - a `discreteUniform` range that counted without end no longer freezes the document.
+
+  It also changed how every sequence tag counts (`<sequence>`, `<selectFromSequence>`,
+  `<repeatForSequence>`, `<animateFromSequence>`), so the check and the run time count alike:
+  - a count that floating point leaves just below a whole number is that number:
+    `from="1000" to="1000.3" step="0.1"` has 4 values;
+  - a count rounded up ends at `to` exactly: 0.3, not 0.30000000000000004.
 - **SEL-6: a parameter is in an analysable form (Tier 2).** A literal; a reference SEL-1 allows,
   with a known range (a selection, a literal `<number>`, an index); and `+ − ×`, integer
   division, `min`, `max`, `abs` of these. A `<number>` or `<integer>` whose content is in these
   forms counts too, so `<number name="m">$a + 2</number>` and `numToSelect="$m"` is fine; an
   error there names the `<number>` and the part that isn't analysable. Anything else is an error.
   The list of forms may grow.
+
+  **Done by #2555** (`e0074`, at the parameter, naming the part, and the `<number>` it is in if
+  any). The list grew:
+  - `/`, `floor`, `ceil` and `round`;
+  - a repeat's `valueName`, and a module attribute;
+  - an entry of a literal list at an analysable index;
+  - a part that reads nothing from the variant or an iteration, which is its value in any form
+    (`$a + 2^3`).
+
+  A boolean parameter (`withReplacement`, `coprime`) is a constant, or one reference to another
+  selection. A parameter that can't keep a selection from being made, such as `selectWeight`,
+  isn't held to this rule. **`<math>` is read like `<number>`**, which D39 left out; see the open
+  question there.
 - **SEL-7: choices depending on each other form an order (Tier 2)**, with no cycle (`e0005`), and
-  ranges flow forward through it.
+  ranges flow forward through it. Done by #2555 for the check: a selection another reads is
+  checked first, wherever it is written. The *run time* still draws in build order, which
+  #2553 is about.
 - **SEL-8: every option, case and iteration template is checked, picked or not (Tier 2):** its
   errors and its warnings, each at its line.
 
@@ -450,7 +492,8 @@ denominator), which authors exclude; constraints on derived values such as `$b^2
 wanted future extension; saved variants from another version of the DoenetML; and samplers,
 which aren't choices.
 
-**Known violations** (#2508; SEL-1, SEL-3's test and SEL-4 done by #2511):
+**Known violations** (#2508; SEL-1, SEL-3's test and SEL-4 done by #2511; SEL-5 to SEL-7 by
+#2555, whose leftovers are #2563):
 - SEL-1 errs toward an error in places, where it reads a component rather than a property:
   - `$sec.sectionNumber` of a `<section>` holding an input is an error, though the number can't
     change;
@@ -462,11 +505,38 @@ which aren't choices.
 - `<selectFromSequence extend="$r"/>` of a sampler fails to load, as before #2511; it should be
   an `e0070`;
 - `e0044`/`e0051` reject a selection once 70% of combinations are excluded, even when valid ones
-  remain (SEL-4);
-- a failure a value decides is a missing selection with an info in some variants (#2468): `to="$a"`
-  with a random `a`, `e0032` at info level. Since #2495 a parameter that references only what
-  can't change (`numToSelect="$n"` of `<number name="n">3</number>`) is decided by the DoenetML,
-  so an infeasible selection is an error at load (`choicesDecidedByDoenetML`);
+  remain (SEL-4). Since #2555 this is an error rather than an info. So when the range comes from
+  another selection, it is an error **only in the variants where it happens** (DIAG-7);
+- **fixed by #2555:** a failure a value decided was a missing selection with an info in some
+  variants (#2468). Every selection failure is now an error;
+- left by #2555 (#2563). Each is an error in some variants only, or a false error:
+  - **A `<selectRandomNumbers>`'s parameters aren't checked at load.** So `from="$a" to="2"`
+    (`discreteUniform`, with `a` up to 3) is `e0036` only in the variants where `a` is 3.
+  - **A selection whose parameters read nothing from the variant is left to fail when it is
+    made.**
+    - In a case not shown, the failure is an error after load.
+    - In a `<select>` option, it is an error **only in the variants that pick the option**
+      **[probe]**. `<select><option><selectFromSequence from="1" to="2"
+      numToSelect="3"/></option><option>ok</option></select>` is `e0036` in variants 2 and 3,
+      and clean in variant 1.
+    - Its parameters are constants, and the check already has the failure test, so this can be
+      decided at load (SEL-8).
+  - **A `copy` of a selection with parameters of its own isn't checked** **[probe]**.
+    `<selectFromSequence copy="$c" numToSelect="3"/>`, with `c` ranging up to `$b`, chooses
+    again (D33). It fails in the variants where `b` < 3.
+  - **The `variantOptions` kind of `e0073` gives false errors** **[probe]**. It is meant for an
+    option copied by an index, beside options that name variants. It also fires for a literal
+    index (`$g[1]`), and when the options naming variants are in another `<select>`. The
+    DoenetML decides both, so neither should be an error.
+  - **Under an index with no end, an error can name a pair of values that can't occur.** With
+    `a` from `$i` to `$i+1.5`, a selection that can always be made gets "when `$a` = 3, `$i` =
+    1".
+  - **`discreteUniform` counts its range differently from a sequence.** A
+    `<selectRandomNumbers type="discreteUniform">` has no floating-point tolerance, so
+    `from="1000" to="1000.3" step="0.1"` gives 3 values where a sequence gives 4. Every range
+    should count the same way.
+  - **A constant `<math simplify>` read by a compiled math parameter is held as a number.** So it
+    shows as a decimal: `0.833…` where it showed `5/6`.
 - SEL-8 since #2547: reference and conversion warnings (`w0104`, `w0187`, `e0004`) are reported at
   load in a case not shown, an iteration not made and an option not picked, and an authored
   warning is a warning there, not an info. **Left** (#2506): a warning a component decides is
@@ -475,7 +545,7 @@ which aren't choices.
   made as the document loads are saved even with no update before a reload. **Left**
   (#2553): when a sampler's parameters come from a composite written after it, the source
   draws again at each reload, and its `copyWithState` draws its own; a `copyWithState` of a
-  `<selectRandomNumbers>` whose range comes from a group written later selects `null`;
+  `<selectRandomNumbers>` whose range comes from a group written later selected `null`. Since #2555 it is a false `e0075` in every variant;
 
 ### COMP-9: `conditionalContent` shows the first case whose condition is true, else the `<else>` (Tier 1)
 The single-case form `<conditionalContent condition="…">` shows its children or nothing.

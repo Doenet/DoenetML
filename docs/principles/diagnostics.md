@@ -240,9 +240,15 @@ reaches it takes its error explicitly:
   `<math>` entries and entries holding an error, `mergeMathLists`, `maxNumber` written as an
   expression, a composite or index source that isn't one written tag, and `<module extend="$t"/>`
   where `t` is a name inside a case or holds an error;
-- the choice errors of `<selectFromSequence>` and `<selectPrimeNumbers>` that a value decides,
-  for SEL-5 (D39, #2508 part 3). A parameter reaching what can change, or a sampler, is `e0070`
-  at load since #2511;
+- **fixed by #2555:** the choice errors of `<select>`, `<selectFromSequence>` and
+  `<selectPrimeNumbers>` that a value decides are proven at load (SEL-5): `e0073` in every
+  variant. A parameter reaching what can change, or a sampler, is `e0070` at load since #2511.
+  **Left** (#2563), still an error in some variants only:
+  - a `<selectRandomNumbers>` reading another selection;
+  - a failing selection with constant parameters in a `<select>` option, in the variants that
+    pick it;
+  - a `copy` of a selection with parameters of its own;
+  - the 70% rule (`e0044`/`e0051`);
 - fixed by #2542: a sequence extend through an index or a property threw, or gave a spurious
   `e0005`; it is `doenet-e0071` at load (REF-5);
 - **fixed by #2471 and #2513:** reference cycles are `e0005` at load over every branch and
@@ -251,10 +257,9 @@ reaches it takes its error explicitly:
   `copy` in what it is of. Left: the shapes listed under NAME-7 (#2515), still found when
   reached;
 - **fixed by #2468:** choice errors that depended on the variant or on values. A requested
-  variant's choices are taken as given (`e0037`–`e0040`, `e0048`–`e0050` are retired). A failure
-  is an error only when every attribute deciding it is written without a reference; otherwise it
-  is an info and the selection is missing (`to="$a"` with a random `a`). Those variants are
-  still broken, which D39 addresses. #2511 retired the fluke codes `e0052`/`e0053` and `coprime`'s
+  variant's choices are taken as given (`e0037`–`e0040`, `e0048`–`e0050` are retired). #2468 made
+  a failure a value decides an info, with the selection missing. #2555 removed that info: every
+  selection failure is an error, proven at load where a value decides it (above). #2511 retired the fluke codes `e0052`/`e0053` and `coprime`'s
   `i0057`: a selection never fails by chance (SEL-4);
 - state-variable cycles that throw (D14) through what #2513 doesn't cover: a property or
   attribute not in its tables, `$$f($n)`, an index into a `<repeat>` in its own template (#2515);

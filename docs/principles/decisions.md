@@ -2444,6 +2444,24 @@ variant misses a blank another variant shows.
 4. **No separate display:** a warning is located at its line in the DoenetML (DIAG-4), so one
    from an unpicked option isn't confusing.
 
+### Status
+
+- **Done:** SEL-1 and SEL-4 by #2511, SEL-3's test by #2511, and SEL-5 to SEL-7 by #2555. The
+  info-level failures listed under "Today" are gone: every selection failure is an error. The
+  leftovers are #2563, and #2553 for the run time's build order. SEL-8's warnings are part done
+  (#2547), and the rest wait for the cells core (#2506).
+- **Open question from #2555: is `<math>` an intermediate like `<number>`?** The decision above
+  allows `<number>` and `<integer>` only. #2555 also allows a `<math>` whose content is in the
+  analysable forms. It did so because COMP-8 keeps the "…initially unresolved" tests binding,
+  and `select.test.ts`'s "select multiple maths, initially unresolved" reads `numToSelect`
+  through a `<math>`. `e0074`'s message lists `<math>`.
+  - **For:** it treats the value tags alike, and the content is analysed the same way. A
+    `<math>` holding a symbol or another non-number already fails the check, naming the value.
+  - **Against:** the value of a `<math>` may not be a number, so the error is one step further
+    from the cause.
+  - **Recommendation:** accept it, since keeping the rule uniform across the value tags matches
+    how the other principles treat them. Otherwise, rewrite those tests to use `<number>`.
+
 ## D40. Decisions from the review of open issues (November 2026)
 
 A review of the open issues (after #2466's plan; the next plan is #2509) found fifteen waiting on a decision. Seven are
