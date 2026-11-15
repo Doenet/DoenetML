@@ -86,9 +86,10 @@ a math input has focus: union, infinity, nth root, fraction, power, pi,
 intersection, ≤, ≥, <, >, ≠, absolute value, ±, and a right-arrow key (the
 same as the arrow key: from the end of an exponent, root or fraction it steps
 out) pinned at the end. The
-row scrolls sideways. It is a labelled toolbar of named buttons, operable with
-a hardware keyboard (one tab stop, arrow keys, Escape back to the input), and
-pressing a key leaves focus, and the device's keyboard, in the math input.
+row scrolls sideways. It is a labelled toolbar of named buttons, and pressing
+a key leaves focus, and the device's keyboard, in the math input. On the
+viewer's own page it also works with a hardware keyboard: Tab from a math
+input goes into the row (one tab stop, arrow keys, Escape back to the input).
 
 | Attribute                                       | Prop                              | Meaning                                                                                          |
 | ----------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -126,9 +127,13 @@ device's keyboard. Render the activity with all three settings, and load
 
 `math-key-strip.js` has no dependencies (no React) and only acts on messages
 from the iframe it was attached to. The row hides when that iframe is removed
-or loads another page. An activity rendered with a version of
-DoenetML that does not know `mathKeyStrip` never reports focus to it, so the
-row simply does not appear.
+or loads another page. Its keys are named in English; for another language,
+pass `translate: (key, args, fallback) => string` to `attach`, which is asked
+for the `math-key-*` names of `@doenet/i18n`'s catalog. The row a host page
+draws is for touch only: Tab from a math input stays inside the iframe, where
+a hardware keyboard types the same notation as commands (`\cup`). An
+activity rendered with a version of DoenetML that does not know
+`mathKeyStrip` never reports focus to it, so the row simply does not appear.
 
 ## MathJax
 
