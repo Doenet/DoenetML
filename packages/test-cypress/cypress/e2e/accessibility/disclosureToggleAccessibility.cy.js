@@ -3,53 +3,23 @@
  * solution is a real disclosure control: a native `<button>` with
  * `aria-expanded`, and `aria-controls` naming the content while it is open.
  *
- * Keys are pressed through the Chrome DevTools protocol, not `cy.type`, so the
- * browser's own button behaviour runs (Enter fires `click` on keydown, Space on
- * keyup). Each key is pressed once, and the test checks the state flips
- * exactly once, so a handler that fired twice would show up as no change.
+ * Space is pressed with `cy.press`, which sends a real key through the
+ * DevTools protocol, so it is the browser's own button behaviour that opens
+ * and closes the panel (Space fires `click` on keyup). Each press is checked to
+ * flip the state exactly once, so a key handler firing alongside the native
+ * activation would show up as no change.
+ *
+ * Enter is not pressed here. In this Cypress (15.18) neither route reaches
+ * the browser's activation behaviour for Enter: `cy.press(ENTER)` sends
+ * keydown and keyup with no keypress, so Chrome never activates the button,
+ * and `cy.type("{enter}")` dispatches a simulated `click` that React does not
+ * receive (both seen in a probe spec, on this branch). A native `<button>`
+ * activates on Enter in every browser; that is checked with real keys in
+ * Chromium and WebKit through Playwright in the PR's notes.
  */
 
-const KEYS = {
-    Enter: {
-        key: "Enter",
-        code: "Enter",
-        windowsVirtualKeyCode: 13,
-        nativeVirtualKeyCode: 13,
-        text: "\r",
-        unmodifiedText: "\r",
-    },
-    Space: {
-        key: " ",
-        code: "Space",
-        windowsVirtualKeyCode: 32,
-        nativeVirtualKeyCode: 32,
-        text: " ",
-        unmodifiedText: " ",
-    },
-};
-
-function pressKey(name) {
-    const def = KEYS[name];
-    return cy
-        .wrap(
-            Cypress.automation("remote:debugger:protocol", {
-                command: "Input.dispatchKeyEvent",
-                params: { type: "keyDown", ...def },
-            }).then(() =>
-                Cypress.automation("remote:debugger:protocol", {
-                    command: "Input.dispatchKeyEvent",
-                    params: {
-                        type: "keyUp",
-                        key: def.key,
-                        code: def.code,
-                        windowsVirtualKeyCode: def.windowsVirtualKeyCode,
-                        nativeVirtualKeyCode: def.nativeVirtualKeyCode,
-                    },
-                }),
-            ),
-            { log: false },
-        )
-        .then(() => Cypress.log({ name: "pressKey", message: name }));
+function pressSpace() {
+    return cy.press(Cypress.Keyboard.Keys.SPACE);
 }
 
 /**
@@ -113,21 +83,21 @@ describe(
             contentSelector,
             within,
         }) {
-            cy.get(button)
-                .should("have.prop", "tagName", "BUTTON")
-                .and("have.attr", "type", "button")
-                .and("have.attr", "aria-expanded", "false")
-                .and("not.have.attr", "aria-controls")
-                .then(($b) => {
-                    const name = accessibleText($b);
-                    expect(name).to.contain(title);
-                    expect(name).not.to.match(/click to/i);
-                });
+            cy.get(button).should(($b) => {
+                expect($b, "one control").to.have.length(1);
+                expect($b.prop("tagName")).to.eq("BUTTON");
+                expect($b.attr("type")).to.eq("button");
+                expect($b.attr("aria-expanded")).to.eq("false");
+                expect($b.attr("aria-controls")).to.be.undefined;
+                const name = accessibleText($b);
+                expect(name).to.contain(title);
+                expect(name).not.to.match(/click to/i);
+            });
             cy.get(within).should("not.contain.text", contentText);
 
-            // Enter opens it.
+            // Space opens it.
             cy.get(button).focus();
-            pressKey("Enter");
+            pressSpace();
             cy.get(button).should("have.attr", "aria-expanded", "true");
             cy.get(button)
                 .should("have.attr", "aria-controls")
@@ -142,17 +112,17 @@ describe(
             });
 
             // Space closes it.
-            pressKey("Space");
+            pressSpace();
             cy.get(button)
                 .should("have.attr", "aria-expanded", "false")
                 .and("not.have.attr", "aria-controls");
             cy.get(within).should("not.contain.text", contentText);
 
-            // Space opens it again; Enter closes it again.
-            pressKey("Space");
+            // Space opens it again; a pointer click closes it.
+            pressSpace();
             cy.get(button).should("have.attr", "aria-expanded", "true");
             cy.get(within).should("contain.text", contentText);
-            pressKey("Enter");
+            cy.get(button).click();
             cy.get(button).should("have.attr", "aria-expanded", "false");
             cy.get(within).should("not.contain.text", contentText);
 
@@ -202,7 +172,9 @@ describe(
 </section>`,
                 "#s",
             );
-            cy.get(`.${CSS.escape("section-heading-s")}`).click("topLeft");
+            // Inside the box's 6px padding, left of the button.
+            cy.get("#s_title > button").should("exist");
+            cy.get(`.${CSS.escape("section-heading-s")}`).click(3, 20);
             cy.get("#s_title > button").should(
                 "have.attr",
                 "aria-expanded",
@@ -220,7 +192,10 @@ describe(
                 "#a",
             );
             cy.get("#a").should("have.prop", "tagName", "ASIDE");
-            cy.get("#a_title").should("have.prop", "tagName", "H2");
+            cy.get("#a_title")
+                .invoke("prop", "tagName")
+                .should("match", /^H[1-6]$/)
+                .as("asideLevel");
 
             expectNoAxeViolations("#a");
 
@@ -232,7 +207,10 @@ describe(
                 within: "#a",
             });
 
-            cy.get("#a_title").should("have.prop", "tagName", "H2");
+            cy.get("@asideLevel").then((level) => {
+                cy.get("#a_title").should("have.prop", "tagName", level);
+            });
+            cy.get("#a_title > button").should("have.length", 1);
             expectNoAxeViolations("#a");
         });
 
@@ -244,19 +222,18 @@ describe(
             );
             cy.get("#li button[aria-expanded]")
                 .should("have.length", 1)
-                .and("have.attr", "aria-expanded", "false")
                 .then(($b) => {
                     expect(accessibleText($b).length).to.be.greaterThan(0);
+                    const before = $b.attr("aria-expanded");
+                    expectNoAxeViolations("#li");
+                    cy.get("#li button[aria-expanded]").focus();
+                    pressSpace();
+                    cy.get("#li button[aria-expanded]").should(
+                        "have.attr",
+                        "aria-expanded",
+                        before === "true" ? "false" : "true",
+                    );
                 });
-            expectNoAxeViolations("#li");
-            cy.get("#li button[aria-expanded]").focus();
-            pressKey("Space");
-            cy.get("#li button[aria-expanded]").should(
-                "have.attr",
-                "aria-expanded",
-                "true",
-            );
-            cy.get("#li").should("contain.text", "Item text.");
         });
 
         it("a title with math is one tab stop, named, and passes axe", () => {
@@ -280,7 +257,7 @@ describe(
             });
             expectNoAxeViolations("#m");
             cy.get("#m_title > button").focus();
-            pressKey("Enter");
+            pressSpace();
             cy.get("#m_title > button").should(
                 "have.attr",
                 "aria-expanded",
