@@ -623,6 +623,9 @@ export type MessageKey =
     | "copy-with-state-changes-choice"
     | "copy-with-state-adds-options"
     | "choice-parameter-reader-changeable"
+    | "choice-not-always-possible"
+    | "choice-parameter-not-analysable"
+    | "choice-parameter-not-a-number"
     | "copy-with-state-of-uri"
     | "copy-with-state-attribute-reaches-choice"
     | "editor-update-viewer"
@@ -1314,6 +1317,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-with-state-changes-choice",
     "copy-with-state-adds-options",
     "choice-parameter-reader-changeable",
+    "choice-not-always-possible",
+    "choice-parameter-not-analysable",
+    "choice-parameter-not-a-number",
     "copy-with-state-of-uri",
     "copy-with-state-attribute-reaches-choice",
     "editor-update-viewer",

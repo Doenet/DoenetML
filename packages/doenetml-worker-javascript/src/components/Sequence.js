@@ -77,6 +77,10 @@ export default class Sequence extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "step",
                 },
+                last: {
+                    dependencyType: "stateVariable",
+                    variableName: "last",
+                },
                 type: {
                     dependencyType: "stateVariable",
                     variableName: "type",

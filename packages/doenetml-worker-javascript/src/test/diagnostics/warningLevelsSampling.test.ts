@@ -143,17 +143,20 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         ]);
     });
 
-    it("w0126: a selectRandomNumbers from another random choice is an info", async () => {
-        // Its selection is made once, so the info stays with it. (One from
-        // an input would be an error, D39, SEL-1.)
+    it("w0126: a selectRandomNumbers that can't select is an error, from another random choice too", async () => {
+        // A selection that can't be made as written is an error, wherever
+        // its parameters come from (D39). (One from an input is an error
+        // for that, D39, SEL-1.) A sampler's stays a warning or an info.
         const { diagnostics } = await setup(`
 <selectRandomNumbers type="gaussian" standardDeviation="-1"/>
 <selectFromSequence name="sd" from="-1" to="-1"/>
 <selectRandomNumbers type="gaussian" standardDeviation="$sd"/>
+<sampleRandomNumbers type="gaussian" standardDeviation="-1"/>
 `);
         expect(diagnostics("doenet-w0126")).eqls([
-            { type: "warning", line: 2 },
-            { type: "info", line: 4 },
+            { type: "error", line: 2 },
+            { type: "error", line: 4 },
+            { type: "warning", line: 5 },
         ]);
     });
 

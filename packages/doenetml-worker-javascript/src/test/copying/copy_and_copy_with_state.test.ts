@@ -860,7 +860,11 @@ ${repeat}
         await check();
     });
 
-    it("copyWithState of a module: a module attribute reaching a choice through a point's coordinates keeps the carried choices", async () => {
+    it("copyWithState of a module: a module attribute reaching a choice through a point's coordinates is an error at load", async () => {
+        // A point's coordinate isn't a form the load-time check can
+        // analyse, so a selection can't read one (D39, SEL-6): the select
+        // is an error in every instance of the module, and has no choices
+        // to carry.
         const doc = await loaded(`
 <setup>
   <module name="m">
@@ -874,16 +878,9 @@ ${repeat}
 <module name="m1" copy="$m"/>
 <module name="mw" copyWithState="$m1" k="4"/>
 `);
-        const source = (await doc.sv("m1.picks")).text;
-        expect(source.split(", ").length).eq(2);
-        expect((await doc.sv("mw.picks")).text).eq(source);
-        expect(
-            doc
-                .diagnostics()
-                .warnings.filter((w: any) => w.code === "doenet-w0186")
-                .map((w: any) => w.args.attribute),
-        ).eqls(["k"]);
-        expect(doc.diagnostics().errors).eqls([]);
+        expect(doc.diagnostics().errors.map((e: any) => e.code)).eqls([
+            "doenet-e0074",
+        ]);
     });
 
     it("a copy of a copyWithState of a module chooses again from the module attribute written on it", async () => {

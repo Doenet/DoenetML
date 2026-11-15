@@ -1010,13 +1010,15 @@ describe("SelectFromSequence tag tests @group4", async () => {
     });
 
     it("select multiple numbers with excludeCombinations, handles round-off error", async () => {
-        // Third number selected will be 0.1*3, which isn't exactly 0.3 due to round off error.
-        // Even so, excluding 0.3 works successfully.
+        // The count, (0.3 - 0.1) / 0.1 + 1, is 2.9999999999999996, which is 3
+        // within floating point, so the third number is `to`, 0.3, not
+        // 0.1 + 0.1*2, 0.30000000000000004, which is past it. Excluding 0.3
+        // works.
         const doenetML = `<selectFromSequence from="0.1" to="0.3" step="0.1" numToSelect="2" excludeCombinations="(0.1 0.3) (0.2 0.3) (0.3 0.1)" name="s"/>`;
         const valid_combinations = [
             [0.1, 0.2],
             [0.2, 0.1],
-            [0.1 * 3, 0.2],
+            [0.3, 0.2],
         ];
         const componentName = "s";
 
@@ -2499,6 +2501,42 @@ describe("SelectFromSequence tag tests @group4", async () => {
         );
         // sort with no value should produce consistent results
         expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("a count within floating point of a whole number is that number", async () => {
+        // `(1000.3 - 1000) / 0.1 + 1` is 3.99999999999954 in floating point:
+        // 4 values, also when `from` and `to` read another selection
+        for (const doenetML of [
+            `<selectFromSequence name="s" from="1000" to="1000.3" step="0.1" numToSelect="4"/>`,
+            `<selectFromSequence name="t" from="1000" to="1001"/><selectFromSequence name="s" from="$t" to="$t+0.3" step="0.1" numToSelect="4"/>`,
+        ]) {
+            for (const requestedVariantIndex of [1, 2]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                });
+                const { errors, infos } = getDiagnosticsByType(core);
+                expect(errors, doenetML).eqls([]);
+                expect(
+                    infos.map((i) => i.code),
+                    doenetML,
+                ).not.toContain("doenet-e0036");
+                const s = (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("s")
+                ].stateValues;
+                expect(s.length).eq(4);
+                expect(s.selectedValues).toHaveLength(4);
+            }
+        }
+        // a count that isn't near a whole number is rounded down
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<selectFromSequence name="s" from="1" to="1.25" step="0.1"/>`,
+        });
+        expect(
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("s")
+            ].stateValues.length,
+        ).eq(3);
     });
 
     // Doenet/DoenetML#1665: an attribute that refers back to the selection

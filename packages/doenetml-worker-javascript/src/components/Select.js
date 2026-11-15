@@ -1,3 +1,9 @@
+import {
+    notANumberFailure,
+    numToSelectNotANumber,
+    optionSelectionFailure,
+    variantCountFailure,
+} from "../utils/selectionFailure";
 import { serializedAttributeComponent } from "../utils/literalAttribute";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { instanceOfAttribute } from "../utils/indexInstances";
@@ -16,11 +22,7 @@ import {
     NO_SELECT_ERROR,
     choicesWrittenWithoutReference,
     isCopiedOption,
-    isInfoSelectFailure,
-    returnChoicesDecidedByDoenetMLDefinition,
-    returnOptionsDecidedByDoenetMLDefinition,
     selectError,
-    selectFailureType,
     selectionResult,
     keptSelection,
     NUM_TO_SELECT_VARIABLE,
@@ -29,7 +31,6 @@ import {
     selectionReproducible,
 } from "../utils/selectErrors";
 import { errorComponentState } from "../utils/dast/errors";
-import { codedDiagnostic, diagnosticCodeFrom } from "../utils/diagnostics";
 
 /**
  * A {@link SelectErrorState} under the names the `availableVariants` group
@@ -104,23 +105,10 @@ export default class Select extends CompositeComponent {
         const serializedOptions = args.serializedComponent?.children ?? [];
         // Whether what it chooses from is written without a reference, so a
         // fresh load reproduces its selection (with the weights, below).
-        // Whether a failure to select is an error is the state variable
-        // `choicesDecidedByDoenetML`.
         this.doenetAttributes.choicesWrittenWithoutReference =
             choicesWrittenWithoutReference({
                 component: this,
                 attributeNames: ["numToSelect", "withReplacement"],
-                serializedOptions,
-                componentInfoObjects: args.componentInfoObjects,
-            });
-        // Whether the options are all written in the select, which alone
-        // decides whether each variant name has one (`e0033`, `e0034`):
-        // an option copied by an index from another random choice can
-        // differ between variants
-        this.doenetAttributes.optionsDecidedByDoenetML =
-            choicesWrittenWithoutReference({
-                component: this,
-                attributeNames: [],
                 serializedOptions,
                 componentInfoObjects: args.componentInfoObjects,
             });
@@ -296,14 +284,6 @@ export default class Select extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "allVariantNames",
                 },
-                choicesDecidedByDoenetML: {
-                    dependencyType: "stateVariable",
-                    variableName: "choicesDecidedByDoenetML",
-                },
-                optionsDecidedByDoenetML: {
-                    dependencyType: "stateVariable",
-                    variableName: "optionsDecidedByDoenetML",
-                },
             }),
             definition: function ({ dependencyValues }) {
                 let availableVariants = {};
@@ -322,39 +302,25 @@ export default class Select extends CompositeComponent {
                 }
 
                 // A count of options for a variant name that doesn't match
-                // `numToSelect`. `numToSelect` can come from a value, such as
-                // another random choice, and then the mismatch is an info.
-                // Such an info is reported only after the names, which the
-                // DoenetML alone decides, so it can't hide their error in
-                // some variants. A literal mismatch is reported first.
-                let countError = null;
-                for (let variantName in availableVariants) {
-                    if (
-                        availableVariants[variantName].length !==
-                        dependencyValues.numToSelect
-                    ) {
-                        countError = selectError({
-                            code: "doenet-e0032",
-                            args: {
-                                variantName,
-                                numOptions:
-                                    availableVariants[variantName].length,
-                                numToSelect: dependencyValues.numToSelect,
-                            },
-                            type: selectFailureType(
-                                dependencyValues.choicesDecidedByDoenetML,
-                            ),
-                        });
-                        break;
-                    }
-                }
-                if (
-                    countError &&
-                    !isInfoSelectFailure(countError.errorDiagnostic)
-                ) {
+                // `numToSelect`: the test the load-time check makes
+                // (`variantCountFailure`)
+                const countFailure = variantCountFailure(
+                    Object.fromEntries(
+                        Object.entries(availableVariants).map(
+                            ([name, options]) => [name, options.length],
+                        ),
+                    ),
+                    dependencyValues.numToSelect,
+                );
+                if (countFailure) {
                     return {
                         setValue: {
-                            ...variantsError(countError),
+                            ...variantsError(
+                                selectError({
+                                    code: countFailure.code,
+                                    args: countFailure.args,
+                                }),
+                            ),
                             availableVariants: [],
                         },
                     };
@@ -368,9 +334,6 @@ export default class Select extends CompositeComponent {
                             const error = selectError({
                                 code: "doenet-e0033",
                                 args: { variantName },
-                                type: selectFailureType(
-                                    dependencyValues.optionsDecidedByDoenetML,
-                                ),
                             });
 
                             return {
@@ -390,9 +353,6 @@ export default class Select extends CompositeComponent {
                             const error = selectError({
                                 code: "doenet-e0034",
                                 args: { variantName },
-                                type: selectFailureType(
-                                    dependencyValues.optionsDecidedByDoenetML,
-                                ),
                             });
 
                             return {
@@ -405,15 +365,6 @@ export default class Select extends CompositeComponent {
                     }
                 }
 
-                if (countError) {
-                    return {
-                        setValue: {
-                            ...variantsError(countError),
-                            availableVariants: [],
-                        },
-                    };
-                }
-
                 return {
                     setValue: {
                         ...variantsError(NO_SELECT_ERROR),
@@ -422,14 +373,6 @@ export default class Select extends CompositeComponent {
                 };
             },
         };
-
-        stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition({
-                attributeNames: ["numToSelect", "withReplacement"],
-                withOptions: true,
-            });
-        stateVariableDefinitions.optionsDecidedByDoenetML =
-            returnOptionsDecidedByDoenetMLDefinition();
 
         stateVariableDefinitions.selectedIndices = {
             immutable: true,
@@ -491,10 +434,6 @@ export default class Select extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "errorDiagnosticVariants",
                 },
-                choicesDecidedByDoenetML: {
-                    dependencyType: "stateVariable",
-                    variableName: "choicesDecidedByDoenetML",
-                },
                 // The error its literals decide, found when the document
                 // loaded (`choiceErrorsAtLoad.ts`), if any
                 choiceErrorAtLoad: {
@@ -555,6 +494,14 @@ export default class Select extends CompositeComponent {
                 return selectionResult(error, { selectedIndices: [] });
             }
 
+            // the test the load-time check makes first, in each value
+            if (numToSelectNotANumber(dependencyValues.numToSelect)) {
+                const error = selectError(
+                    notANumberFailure("select", "numToSelect"),
+                );
+                return selectionResult(error, { selectedIndices: [] });
+            }
+
             if (dependencyValues.errorMessageVariants) {
                 const error = {
                     errorMessage: dependencyValues.errorMessageVariants,
@@ -601,21 +548,16 @@ export default class Select extends CompositeComponent {
 
             let selectedIndices = [];
 
-            let numUniqueRequired = 1;
-            if (!dependencyValues.withReplacement) {
-                numUniqueRequired = dependencyValues.numToSelect;
-            }
-
-            if (numUniqueRequired > dependencyValues.nOptions) {
+            // the test the load-time check makes (`optionSelectionFailure`)
+            const failure = optionSelectionFailure({
+                numOptions: dependencyValues.nOptions,
+                numToSelect: dependencyValues.numToSelect,
+                withReplacement: dependencyValues.withReplacement,
+            });
+            if (failure) {
                 const error = selectError({
-                    code: "doenet-e0035",
-                    args: {
-                        numToSelect: numUniqueRequired,
-                        numOptions: dependencyValues.nOptions,
-                    },
-                    type: selectFailureType(
-                        dependencyValues.choicesDecidedByDoenetML,
-                    ),
+                    code: failure.code,
+                    args: failure.args,
                 });
                 return selectionResult(error, { selectedIndices: [] });
             }
@@ -844,31 +786,6 @@ export default class Select extends CompositeComponent {
 
         let errorMessage = await component.stateValues.errorMessage;
         const errorDiagnostic = await component.stateValues.errorDiagnostic;
-        if (errorMessage && isInfoSelectFailure(errorDiagnostic)) {
-            // A value or the variant decided that nothing can be selected,
-            // so the select is missing, a blank, and says why with an info
-            // (D38, DIAG-7)
-            return {
-                replacements: [
-                    {
-                        type: "serialized",
-                        componentType: "_missing",
-                        componentIdx: nComponents++,
-                        attributes: {},
-                        doenetAttributes: {},
-                        children: [],
-                        state: {},
-                    },
-                ],
-                diagnostics: [
-                    codedDiagnostic({
-                        type: "info",
-                        ...diagnosticCodeFrom(errorDiagnostic),
-                    }),
-                ],
-                nComponents,
-            };
-        }
         if (errorMessage) {
             return {
                 replacements: [

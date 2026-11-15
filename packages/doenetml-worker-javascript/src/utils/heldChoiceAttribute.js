@@ -59,6 +59,19 @@ export async function valueAsWritten(component) {
  * the text is written as (`holdAttributeComponentAt`).
  */
 export async function listTypeAsWritten(component) {
+    if (component?.componentType === "_selectionParameter") {
+        // a compiled parameter (`utils/selectionParameters.ts`) that is a
+        // list, of what its output is
+        const parameter = component.doenetAttributes?.selectionParameter;
+        if (parameter?.kind !== "list") {
+            return undefined;
+        }
+        return (
+            { number: "numberList", math: "mathList", text: "textList" }[
+                parameter.output
+            ] ?? "numberList"
+        );
+    }
     if (component?.componentType !== "_componentListWithSelectableType") {
         return undefined;
     }
@@ -83,7 +96,11 @@ async function listEntriesOf(component) {
     if (!component) {
         return undefined;
     }
-    if (component.componentType === "_componentListWithSelectableType") {
+    if (
+        component.componentType === "_componentListWithSelectableType" ||
+        (component.componentType === "_selectionParameter" &&
+            component.doenetAttributes?.selectionParameter?.kind === "list")
+    ) {
         return await component.stateValues.values;
     }
     const arrayName = component.constructor?.listValuesArrayName;
@@ -112,6 +129,9 @@ export function holdAttributeComponentAt({
 }) {
     attribute.authoredComponent = deepClone(attribute.component);
     delete attribute.keepSourceIterationValue;
+    if (attribute.component?.componentType === "_selectionParameter") {
+        attribute.component = attributeComponentInPlaceOf(attribute.component);
+    }
     const selectableClass =
         componentInfoObjects.allComponentClasses._componentWithSelectableType;
     function isSelectableTypeWrapper(component) {
@@ -184,6 +204,56 @@ export function holdAttributeComponentAt({
               },
           ]
         : [text];
+}
+
+/**
+ * The attribute component a compiled selection parameter
+ * (`utils/selectionParameters.ts`) was made in place of, of the type it was
+ * (`attributeComponentType`), holding nothing yet, for the value to be
+ * written in it as in any other (`holdAttributeComponentAt`): a parameter
+ * held at a value is that value, written.
+ */
+function attributeComponentInPlaceOf(component) {
+    const parameter = component.doenetAttributes?.selectionParameter;
+    const componentType =
+        component.doenetAttributes?.attributeComponentType ?? "math";
+    const valueType =
+        parameter?.output === "text"
+            ? "text"
+            : parameter?.output === "math"
+              ? "math"
+              : "number";
+    const shell = (type, children) => ({
+        type: "serialized",
+        componentType: type,
+        componentIdx: component.componentIdx,
+        stateId: component.stateId,
+        ...(component.sourceDoc !== undefined
+            ? { sourceDoc: component.sourceDoc }
+            : {}),
+        attributes: {},
+        doenetAttributes: {},
+        state: {},
+        children,
+    });
+    // what it holds first takes the index of its first slot, as what the
+    // attribute component held took its own
+    const firstSlot = (component.children ?? []).find(
+        (child) => typeof child === "object" && child !== null,
+    );
+    const inner = (type) => ({
+        ...shell(type, []),
+        componentIdx: firstSlot?.componentIdx,
+        stateId: firstSlot?.stateId,
+    });
+    if (componentType === "_componentWithSelectableType") {
+        return shell(componentType, [inner(valueType)]);
+    }
+    if (parameter?.kind === "list") {
+        // a list is written to through what it holds first
+        return shell(componentType, [inner("_copy")]);
+    }
+    return shell(componentType, []);
 }
 
 /**

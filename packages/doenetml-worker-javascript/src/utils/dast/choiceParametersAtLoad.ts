@@ -580,10 +580,29 @@ export function checkChoiceParametersAtLoad({
         diagnostics.push(diagnostic);
     }
 
-    // A choice that extends or copies a choice in error
-    // (`<selectFromSequence extend="$s"/>`) takes its parameters from it, so
-    // it is the same error, reported once: it becomes an `_error` too, as
-    // there would be nothing left for it to take them from.
+    makeChoicesErrors({ errorByChoice, nodes, nodeByIdx });
+    return diagnostics;
+}
+
+/**
+ * Make each choice in `errorByChoice` an `_error` in place of the choice,
+ * reported where its diagnostic is, so it chooses nothing, and the error is
+ * the same one, kept once, when the `_error` is made.
+ *
+ * A choice that extends or copies a choice in error
+ * (`<selectFromSequence extend="$s"/>`) takes its parameters from it, so it
+ * is the same error, reported once: it becomes an `_error` too, as there
+ * would be nothing left for it to take them from.
+ */
+export function makeChoicesErrors({
+    errorByChoice,
+    nodes,
+    nodeByIdx,
+}: {
+    errorByChoice: Map<any, ReturnType<typeof codedDiagnostic>>;
+    nodes: any[];
+    nodeByIdx: Map<number, any>;
+}) {
     let added = errorByChoice.size > 0;
     while (added) {
         added = false;
@@ -621,14 +640,13 @@ export function checkChoiceParametersAtLoad({
         delete choice.extending;
         delete choice.variants;
     }
-    return diagnostics;
 }
 
 /**
  * The attribute of `component` named `name`, matched without regard to case,
  * and the name it has.
  */
-function attributeNamed(component: any, name: string) {
+export function attributeNamed(component: any, name: string) {
     const lower = name.toLowerCase();
     for (const [attributeName, attribute] of Object.entries(
         component.attributes ?? {},
@@ -671,7 +689,7 @@ function componentsOfAttribute(attribute: any): any[] {
  * The serialized components directly under `node`: its children and the
  * components of its attributes.
  */
-function componentsUnder(node: any): any[] {
+export function componentsUnder(node: any): any[] {
     const under: any[] = [];
     for (const child of node.children ?? []) {
         if (typeof child === "object" && child !== null) {
@@ -705,13 +723,13 @@ function referencesOf(node: any): any[] {
  * The index of the component a `_copy` is made with, which a reference to
  * it by name names, if it has one.
  */
-function createdIdxOf(node: any): number | undefined {
+export function createdIdxOf(node: any): number | undefined {
     const value = node.attributes?._createComponentIdx?.primitive?.value;
     return typeof value === "number" ? value : undefined;
 }
 
 /** The type of the component `node` makes: what a `_copy` creates. */
-function typeMadeBy(node: any): string {
+export function typeMadeBy(node: any): string {
     return (
         node.attributes?._createComponentOfType?.primitive?.value ??
         node.componentType

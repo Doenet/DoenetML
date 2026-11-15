@@ -2,6 +2,7 @@ import { serializedAttributeComponent } from "../utils/literalAttribute";
 import Sequence from "./Sequence";
 import {
     calculateSequenceParameters,
+    invalidSequenceAttribute,
     returnSequenceValueForIndex,
     returnSequenceValues,
 } from "../utils/sequence";
@@ -12,22 +13,14 @@ import {
     extractConstantSortAttribute,
     pushVariantInfo,
 } from "../utils/variants";
-import {
-    checkForExcludedCombination,
-    estimateNumberOfDuplicateCombinations,
-    estimateNumberOfNumberCombinationsExcluded,
-    mergeContainingNumberCombinations,
-} from "../utils/excludeCombinations";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     NO_SELECT_ERROR,
     choicesWrittenWithoutReference,
-    returnChoicesDecidedByDoenetMLDefinition,
     returnSelectErrorReportDefinition,
     selectError,
-    selectFailureType,
     selectionResult,
     takeSelectError,
     keptSelection,
@@ -38,15 +31,19 @@ import {
 import {
     coprimeCombinations,
     drawValidCombination,
-    someValidCombination,
 } from "../utils/validCombinations";
-const { gcd } = me.math;
+import {
+    excludedCombinationsOf,
+    notANumberFailure,
+    numToSelectNotANumber,
+    sequenceSelectionFailure,
+    sequenceSpace,
+} from "../utils/selectionFailure";
 
 /**
  * The attributes that decide what a `<selectFromSequence>` can select. When
- * none of them can change, a failure to select is an error; otherwise it is
- * a missing selection with an info (`selectFailureType`,
- * `choicesDecidedByDoenetML`).
+ * all are written without a reference, a fresh load reproduces its
+ * selection (`choicesWrittenWithoutReference`).
  */
 const ATTRIBUTES_DECIDING_CHOICES = [
     "from",
@@ -242,37 +239,24 @@ export default class SelectFromSequence extends Sequence {
                     );
                 }
                 if (dependencyValues.excludeCombinations !== null) {
-                    let excludedCombinations =
-                        dependencyValues.excludeCombinations.stateValues.lists
-                            .map((x) =>
-                                x.slice(0, dependencyValues.numToSelect),
-                            )
-                            .filter(
-                                (x) =>
-                                    x.length === dependencyValues.numToSelect,
-                            );
+                    // as the load-time check reads them
+                    // (`excludedCombinationsOf`)
+                    const excludedCombinations = excludedCombinationsOf(
+                        dependencyValues.excludeCombinations.stateValues.lists,
+                        dependencyValues.numToSelect,
+                        dependencyValues.type,
+                    );
 
-                    if (dependencyValues.type === "number") {
-                        while (true) {
-                            let result =
-                                mergeContainingNumberCombinations(
-                                    excludedCombinations,
-                                );
-                            if (result.merged) {
-                                excludedCombinations = result.combinations;
-                            } else {
-                                break;
-                            }
-                        }
-
-                        if (dependencyValues.coprime) {
-                            diagnostics.push(
-                                codedDiagnostic({
-                                    type: levelFromSource(levelDecided),
-                                    code: "doenet-w0052",
-                                }),
-                            );
-                        }
+                    if (
+                        dependencyValues.type === "number" &&
+                        dependencyValues.coprime
+                    ) {
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: levelFromSource(levelDecided),
+                                code: "doenet-w0052",
+                            }),
+                        );
                     }
                     return {
                         setValue: { excludedCombinations },
@@ -299,11 +283,6 @@ export default class SelectFromSequence extends Sequence {
                 return { setValue: { variants: dependencyValues.variants } };
             },
         };
-
-        stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition({
-                attributeNames: ATTRIBUTES_DECIDING_CHOICES,
-            });
 
         stateVariableDefinitions.selectedValues = {
             immutable: true,
@@ -336,10 +315,6 @@ export default class SelectFromSequence extends Sequence {
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 ...selectionDependencies(),
-                choicesDecidedByDoenetML: {
-                    dependencyType: "stateVariable",
-                    variableName: "choicesDecidedByDoenetML",
-                },
                 variantRng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -923,6 +898,10 @@ function selectionDependencies() {
             dependencyType: "stateVariable",
             variableName: "step",
         },
+        last: {
+            dependencyType: "stateVariable",
+            variableName: "last",
+        },
         exclude: {
             dependencyType: "stateVariable",
             variableName: "exclude",
@@ -950,6 +929,24 @@ function selectionDependencies() {
         variants: {
             dependencyType: "stateVariable",
             variableName: "variants",
+        },
+        // what is written, to name an attribute that isn't valid
+        // (`invalidSequenceAttribute`)
+        specifiedFrom: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedFrom",
+        },
+        specifiedTo: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedTo",
+        },
+        specifiedStep: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedStep",
+        },
+        specifiedLength: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedLength",
         },
     };
 }
@@ -993,6 +990,7 @@ function selectionOfIndices(dependencyValues, indices) {
             from: dependencyValues.from,
             step: dependencyValues.step,
             length: dependencyValues.length,
+            last: dependencyValues.last,
             exclude: [],
             type: dependencyValues.type,
             lowercase: dependencyValues.lowercase,
@@ -1045,12 +1043,16 @@ function makeSelection({ dependencyValues, essentialValues }) {
 
 /** The selection a `<selectFromSequence>` makes itself, given no choices. */
 function makeFreshSelection(dependencyValues) {
-    // An error when the DoenetML decides that nothing can be selected, and a
-    // missing selection with an info when a value does (D38, DIAG-7)
-    const failureType = selectFailureType(
-        dependencyValues.choicesDecidedByDoenetML,
-    );
-
+    const notANumber = (attribute, kind) =>
+        selectionResult(
+            selectError(
+                notANumberFailure("selectFromSequence", attribute, kind),
+            ),
+            { selectedValues: null, selectedIndices: null },
+        );
+    if (numToSelectNotANumber(dependencyValues.numToSelect)) {
+        return notANumber("numToSelect");
+    }
     if (dependencyValues.numToSelect < 1) {
         return selectionResult(NO_SELECT_ERROR, {
             selectedValues: [],
@@ -1058,124 +1060,35 @@ function makeFreshSelection(dependencyValues) {
         });
     }
 
-    let numUniqueRequired = 1;
-    if (!dependencyValues.withReplacement) {
-        numUniqueRequired = dependencyValues.numToSelect;
-    }
-
-    if (numUniqueRequired > dependencyValues.length) {
+    // Whether it can select is the test the load-time check makes for each
+    // value its parameters can take (`sequenceSelectionFailure`), decided
+    // before any draw, so a selection that can't be made fails the same way
+    // in every variant (SEL-4, DIAG-7).
+    const decision = sequenceSelectionFailure(dependencyValues);
+    if (decision.failure) {
         const error = selectError({
-            code: "doenet-e0036",
-            args: {
-                numToSelect: numUniqueRequired,
-                length: dependencyValues.length,
-            },
-            type: failureType,
+            code: decision.failure.code,
+            args: decision.failure.args,
         });
         return selectionResult(error, {
             selectedValues: null,
             selectedIndices: null,
         });
     }
+    // A sequence whose `from` or `step` isn't valid, counted by its
+    // `length`, has values that aren't numbers (or letters): it can't select
+    // as written, as the load-time check finds in each value. (One with no
+    // values fails above, `doenet-e0036`.)
+    const invalid = invalidSequenceAttribute(dependencyValues);
+    if (invalid) {
+        return notANumber(invalid.attribute, invalid.kind);
+    }
+    const coprime = decision.coprime;
+    const numCombinationsExcluded = decision.numCombinationsExcluded;
 
-    let numCombinationsExcluded = dependencyValues.excludedCombinations.length;
-
-    let coprime = dependencyValues.coprime;
-
-    if (dependencyValues.type === "number") {
-        let error = null;
-        numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
-            excludedCombinations: dependencyValues.excludedCombinations,
-            numValues:
-                dependencyValues.length - dependencyValues.exclude.length,
-            withReplacement: dependencyValues.withReplacement,
-            numToSelect: dependencyValues.numToSelect,
-        });
-
-        if (coprime) {
-            const lastNumber =
-                dependencyValues.from +
-                (dependencyValues.length - 1) * dependencyValues.step;
-            if (numCombinationsExcluded > 0) {
-                // No need to send warning since already sent
-                // in definition of excludeCombinations
-                coprime = false;
-            } else if (
-                !Number.isInteger(dependencyValues.from) ||
-                !Number.isInteger(dependencyValues.step) ||
-                dependencyValues.from <= 0 ||
-                lastNumber <= 0
-            ) {
-                error = selectError({
-                    code: "doenet-e0041",
-                    type: failureType,
-                });
-            } else if (
-                gcd(dependencyValues.from, dependencyValues.step) !== 1
-            ) {
-                error = selectError({
-                    code: "doenet-e0042",
-                    type: failureType,
-                });
-            } else if (dependencyValues.numToSelect === 1) {
-                coprime = false;
-            } else if (
-                dependencyValues.length - dependencyValues.exclude.length <=
-                1
-            ) {
-                // It is possible that there is only one number to choose from,
-                // in which case, we cannot select coprime numbers, unless that number is 1.
-                // We have to verify that there is more than one number available only if 1 isn't a possibility.
-                if (
-                    dependencyValues.from > 1 ||
-                    dependencyValues.exclude.includes(1)
-                ) {
-                    // One situation and so one code, reached two ways: a
-                    // sequence short enough to tell from `length` alone, and
-                    // one whose values have to be generated to tell. The
-                    // short-circuit is what keeps the second from being
-                    // generated when the first already answered.
-                    if (
-                        dependencyValues.length <= 1 ||
-                        returnSequenceValues(dependencyValues).length <= 1
-                    ) {
-                        error = selectError({
-                            code: "doenet-e0043",
-                            type: failureType,
-                        });
-                    }
-                }
-            }
-
-            // Every value sharing a factor, which only an `exclude` can
-            // make, as `from` and `step` have none: no draw could be
-            // coprime. Found before drawing, as a select given a requested
-            // variant's choices finds what it would report without drawing
-            // (`selectionWithRequested`), so this error, which the DoenetML
-            // can decide, is reported in every variant (DIAG-7).
-            if (
-                !error &&
-                coprime &&
-                dependencyValues.exclude.length > 0 &&
-                !valuesHaveNoCommonFactor(dependencyValues)
-            ) {
-                error = selectError({
-                    code: "doenet-e0045",
-                    type: failureType,
-                });
-            }
-        }
-
-        if (error) {
-            return selectionResult(error, {
-                selectedValues: null,
-                selectedIndices: null,
-            });
-        }
-    } else {
-        // No need to send warning since already sent
-        // in definition of excludeCombinations
-        coprime = false;
+    let numUniqueRequired = 1;
+    if (!dependencyValues.withReplacement) {
+        numUniqueRequired = dependencyValues.numToSelect;
     }
 
     let selectedValues, selectedIndices;
@@ -1187,7 +1100,6 @@ function makeFreshSelection(dependencyValues) {
             numToSelect: dependencyValues.numToSelect,
             withReplacement: dependencyValues.withReplacement,
             rng: dependencyValues.variantRng,
-            failureType,
         });
 
         if (selectedObj.errorMessage) {
@@ -1200,131 +1112,9 @@ function makeFreshSelection(dependencyValues) {
         selectedValues = selectedObj.selectedValues;
         selectedIndices = selectedObj.selectedIndices;
     } else {
-        let numPossibilitiesLowerBound =
-            dependencyValues.length - dependencyValues.exclude.length;
-
-        if (dependencyValues.withReplacement) {
-            numPossibilitiesLowerBound = Math.pow(
-                numPossibilitiesLowerBound,
-                dependencyValues.numToSelect,
-            );
-        } else {
-            let n = numPossibilitiesLowerBound;
-            for (let i = 1; i < dependencyValues.numToSelect; i++) {
-                numPossibilitiesLowerBound *= n - i;
-            }
-        }
-
-        if (numCombinationsExcluded > 0.7 * numPossibilitiesLowerBound) {
-            // may have excluded over 70% of combinations
-            // need to determine actual number of possibilities
-            // to see if really have excluded that many combinations
-
-            let numPossibilities = 0;
-            for (let index = 0; index < dependencyValues.length; index++) {
-                if (
-                    returnSequenceValueForIndex({
-                        index,
-                        from: dependencyValues.from,
-                        step: dependencyValues.step,
-                        length: dependencyValues.length,
-                        exclude: dependencyValues.exclude,
-                        type: dependencyValues.type,
-                    }) !== null
-                ) {
-                    numPossibilities++;
-                }
-            }
-
-            if (dependencyValues.withReplacement) {
-                numPossibilities = Math.pow(
-                    numPossibilities,
-                    dependencyValues.numToSelect,
-                );
-            } else {
-                let n = numPossibilities;
-                for (let i = 1; i < dependencyValues.numToSelect; i++) {
-                    numPossibilities *= n - i;
-                }
-            }
-
-            if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                // A combination naming NaN can name the same one twice, so the
-                // estimate is revised down before the threshold is believed.
-                // Nothing else can revise it, so a count that survives — or
-                // one there was nothing to revise — is the same failure and
-                // the same code.
-                if (
-                    dependencyValues.type === "number" &&
-                    dependencyValues.excludedCombinations.some((x) =>
-                        x.some(Number.isNaN),
-                    )
-                ) {
-                    numCombinationsExcluded -=
-                        estimateNumberOfDuplicateCombinations(
-                            dependencyValues.excludedCombinations,
-                            dependencyValues.length -
-                                dependencyValues.exclude.length,
-                            dependencyValues.withReplacement,
-                        );
-                }
-
-                if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                    const error = selectError({
-                        code: "doenet-e0044",
-                        type: failureType,
-                    });
-                    return selectionResult(error, {
-                        selectedValues: null,
-                        selectedIndices: null,
-                    });
-                }
-            }
-        }
-
-        // The combinations to draw from: those of the sequence's values,
-        // excluded values left out, that aren't an excluded combination and,
-        // with `coprime`, have no common factor.
-        const space = {
-            numValues: dependencyValues.length,
-            numToSelect: dependencyValues.numToSelect,
-            withReplacement: dependencyValues.withReplacement,
-            valueAt: (index) =>
-                returnSequenceValueForIndex({
-                    index,
-                    from: dependencyValues.from,
-                    step: dependencyValues.step,
-                    exclude: dependencyValues.exclude,
-                    type: dependencyValues.type,
-                    lowercase: dependencyValues.lowercase,
-                }),
-            isValid: (values) =>
-                (dependencyValues.excludedCombinations.length === 0 ||
-                    !checkForExcludedCombination({
-                        type: dependencyValues.type,
-                        excludedCombinations:
-                            dependencyValues.excludedCombinations,
-                        values,
-                    })) &&
-                // the values are integers, as `coprime` requires
-                (!coprime || integerGcd(values) === 1),
-        };
-
-        // Whether a valid combination exists is decided by the values, so
-        // it is found before any draw, and a select with none fails the same
-        // way in every variant (SEL-4, DIAG-7): with `coprime`, as values
-        // that all share a factor do (`6 10 15`, two at a time, have none),
-        // and otherwise as excluding too many combinations does.
-        if (!someValidCombination(space)) {
-            const error = selectError({
-                code: coprime ? "doenet-e0045" : "doenet-e0044",
-                type: failureType,
-            });
-            return selectionResult(error, {
-                selectedValues: null,
-                selectedIndices: null,
-            });
-        }
+        // The combinations to draw from (`sequenceSpace`), of which one is
+        // valid, as found above.
+        const space = sequenceSpace(dependencyValues, coprime);
 
         // Draw, and draw again when a combination isn't valid. When most
         // are valid, a few draws find one.
@@ -1336,7 +1126,6 @@ function makeFreshSelection(dependencyValues) {
                 numToSelect: dependencyValues.numToSelect,
                 withReplacement: dependencyValues.withReplacement,
                 rng: dependencyValues.variantRng,
-                failureType,
             });
 
             if (selectedObj.errorMessage) {
@@ -1424,57 +1213,12 @@ function makeFreshSelection(dependencyValues) {
     });
 }
 
-/**
- * The greatest common divisor of the integers `values`, by Euclid's
- * algorithm: what `gcd` gives, without its cost for each type it handles,
- * since the exact draw of a coprime selection asks it of every combination.
- */
-function integerGcd(values) {
-    let divisor = 0;
-    for (const value of values) {
-        let a = Math.abs(divisor);
-        let b = Math.abs(value);
-        while (b !== 0) {
-            [a, b] = [b, a % b];
-        }
-        divisor = a;
-    }
-    return divisor;
-}
-
-/**
- * Whether the values of the number sequence `dependencyValues`, those not
- * excluded, have no common factor (a greatest common divisor of 1). Stops at
- * the first values that show it, so a long sequence is not generated.
- */
-function valuesHaveNoCommonFactor(dependencyValues) {
-    let divisor = 0;
-    for (let index = 0; index < dependencyValues.length; index++) {
-        const value = returnSequenceValueForIndex({
-            index,
-            from: dependencyValues.from,
-            step: dependencyValues.step,
-            exclude: dependencyValues.exclude,
-            type: dependencyValues.type,
-        });
-        if (value === null) {
-            continue;
-        }
-        divisor = gcd(divisor, value);
-        if (divisor === 1) {
-            return true;
-        }
-    }
-    return false;
-}
-
 function selectValuesAndIndices({
     stateValues,
     numUniqueRequired = 1,
     numToSelect = 1,
     withReplacement = false,
     rng,
-    failureType,
 }) {
     let selectedValues = [];
     let selectedIndices = [];
@@ -1512,6 +1256,8 @@ function selectValuesAndIndices({
                     index: selectedIndex - 1,
                     from: stateValues.from,
                     step: stateValues.step,
+                    length: stateValues.length,
+                    last: stateValues.last,
                     exclude: stateValues.exclude,
                     type: stateValues.type,
                     lowercase: stateValues.lowercase,
@@ -1558,7 +1304,6 @@ function selectValuesAndIndices({
             ...selectError({
                 code: "doenet-e0046",
                 args: { numToSelect: numUniqueRequired, numPossibleValues },
-                type: failureType,
             }),
             selectedValues: null,
             selectedIndices: null,
