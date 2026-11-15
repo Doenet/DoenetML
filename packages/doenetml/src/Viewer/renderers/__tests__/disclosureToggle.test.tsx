@@ -66,8 +66,10 @@ describe("collapsible section toggle", () => {
         expect(tag).not.toContain("aria-controls");
         // The heading keeps its level and holds the button.
         expect(html).toMatch(/<h2 id="s_title"[^>]*><button/);
-        // The heading box is no tab stop of its own.
-        expect(html).not.toContain("tabindex");
+        // The button is the one tab stop, with an explicit tabindex so that
+        // Safari's Tab reaches it; the heading box is no tab stop of its own.
+        expect(tag).toContain('tabindex="0"');
+        expect(html.match(/tabindex/g)).toHaveLength(1);
         // The closed content is not rendered.
         expect(html).not.toContain('id="s_content"');
         // The words stay visible but out of the accessible name.
@@ -137,7 +139,8 @@ describe("hint toggle", () => {
         expect(tag).toContain('data-test="hint-heading"');
         expect(tag).toContain('aria-expanded="false"');
         expect(tag).not.toContain("aria-controls");
-        expect(html).not.toContain("tabindex");
+        expect(tag).toContain('tabindex="0"');
+        expect(html.match(/tabindex/g)).toHaveLength(1);
         expect(html).toMatch(/<span aria-hidden="true">\(click to open\)/);
     });
 
@@ -168,7 +171,8 @@ describe("solution toggle", () => {
         expect(tag).toContain('aria-expanded="false"');
         expect(tag).not.toContain("aria-controls");
         expect(tag).not.toContain("aria-disabled");
-        expect(html).not.toContain("tabindex");
+        expect(tag).toContain('tabindex="0"');
+        expect(html.match(/tabindex/g)).toHaveLength(1);
     });
 
     it("when open, controls its content", () => {
