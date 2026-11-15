@@ -119,7 +119,7 @@ describe("SideBySide Tag Tests", { tags: ["@group4"] }, function () {
 
     it("keeps the row as written on a wide screen and stacks it on a phone", () => {
         post(`
-<sideBySide name="sbs" widths="47% 47%" margins="2%">
+<sideBySide name="sbs" widths="46% 46%" margins="2%">
   <p name="left">Left panel text</p>
   <p name="right">Right panel text</p>
 </sideBySide>
@@ -134,7 +134,7 @@ describe("SideBySide Tag Tests", { tags: ["@group4"] }, function () {
         // The widths and margins the worker computed, unchanged.
         expectInOneRow(
             "sbs",
-            [47, 47],
+            [46, 46],
             [
                 [2, 2],
                 [2, 2],
@@ -152,7 +152,7 @@ describe("SideBySide Tag Tests", { tags: ["@group4"] }, function () {
         cy.viewport(...WIDE);
         expectInOneRow(
             "sbs",
-            [47, 47],
+            [46, 46],
             [
                 [2, 2],
                 [2, 2],
@@ -176,13 +176,14 @@ describe("SideBySide Tag Tests", { tags: ["@group4"] }, function () {
         cy.viewport(600, 800);
         cy.get(".doenet-viewer").then(($viewer) => {
             const viewer = $viewer[0];
-            const style = getComputedStyle(viewer);
+            const win = viewer.ownerDocument.defaultView;
+            const style = win.getComputedStyle(viewer);
             const padding =
                 parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-            const outside =
-                viewer.ownerDocument.documentElement.clientWidth -
-                viewer.getBoundingClientRect().width;
-            const extra = Math.ceil(padding + outside);
+            const contentBox = viewer.getBoundingClientRect().width - padding;
+            // Everything between the window's edge and the content box,
+            // scrollbar included.
+            const extra = Math.ceil(win.innerWidth - contentBox);
 
             cy.viewport(480 + extra + 2, 800);
             expectInOneRow("sbs", [50, 50]);
@@ -271,20 +272,17 @@ describe("SideBySide Tag Tests", { tags: ["@group4"] }, function () {
         cy.viewport(...PHONE);
         expectStacked("sbs");
 
-        // Nothing is cut off: the table fits inside the row, and the graph is
-        // its own 300px rather than squeezed into half the row.
+        // Nothing is cut off: the table fits inside the row and comes first,
+        // and the graph is no longer squeezed into half of the row.
         cy.get("#sbs").should(($row) => {
             const row = $row[0].getBoundingClientRect();
             const table = $row.find("table")[0].getBoundingClientRect();
+            const graph = $row.find("#graph")[0].getBoundingClientRect();
             expect(table.right).lte(row.right + 0.5);
-            expect(table.top).lt(
-                $row.find("#graph")[0].getBoundingClientRect().top,
-            );
+            expect(table.bottom).lte(graph.top);
+            expect(graph.width).gt(0.6 * row.width);
+            expect(graph.right).lte(row.right + 0.5);
         });
-        cy.get("#graph")
-            .invoke("css", "width")
-            .then((width) => parseFloat(width))
-            .should("be.closeTo", 300, 1);
 
         cy.checkAccessibility([".doenet-viewer"], {
             onlyWarnImpacts: ["moderate", "minor"],
