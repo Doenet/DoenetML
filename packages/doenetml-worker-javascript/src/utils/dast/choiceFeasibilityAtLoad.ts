@@ -66,6 +66,14 @@
  *   (COMP-8, "…initially unresolved");
  * - `+ − ×`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round` of these.
  *
+ * Content with a reference in it whose text doesn't parse (`($a`), or parses
+ * with the reference lost in it (`$a+`, which math-expressions reads as the
+ * one symbol `math0+`), holds a blank, or that symbol, whatever the
+ * reference reads. It is a blank that still reads each reference in it, as
+ * `$a*` (`$a × ＿`) is, so that it is checked in each value they can take,
+ * and is not taken for a constant that the choice is left to report, while
+ * the run time finds that the reference can change.
+ *
  * A boolean parameter (`withReplacement`, `coprime`) is a constant, or one
  * reference alone to a value from the variant (a `<select>` of `<boolean>`
  * options), true when not 0. Anything else is an error (`doenet-e0074`), at
@@ -1478,12 +1486,6 @@ export function checkChoiceFeasibilityAtLoad({
                 format: "text",
                 parser,
             });
-            let parsed: any;
-            try {
-                parsed = parser(string).tree;
-            } catch (e) {
-                throw new NotAnalysable(textOfChildren(children));
-            }
             const codes = new Map<string, { expr: Expr; component: any }>();
             components.forEach((component, k) => {
                 codes.set(codePre + k, {
@@ -1491,6 +1493,21 @@ export function checkChoiceFeasibilityAtLoad({
                     component,
                 });
             });
+            let parsed: any;
+            try {
+                parsed = parser(string).tree;
+            } catch (e) {
+                parsed = undefined;
+            }
+            if (
+                parsed === undefined ||
+                [...codes.keys()].some((code) => !treeHasSymbol(parsed, code))
+            ) {
+                // text that doesn't parse (`($a`), or loses a reference in
+                // parsing (`$a+` is the symbol `math0+`): a blank that still
+                // reads each reference, as `$a*` (see the comment at the top)
+                parsed = ["*", ...codes.keys(), "＿"];
+            }
             tree = fromTree(parsed, codes, children);
         }
         if (caveat || componentExprs.some(isBooleanExpr)) {
@@ -5862,6 +5879,16 @@ function refOf(node: any): any {
     // `Ref`, or `ExtendAttribute`, `CopyAttribute`, … for an extend or copy
     const ref = node?.extending ? Object.values(node.extending)[0] : undefined;
     return typeof ref === "object" && ref !== null ? ref : undefined;
+}
+
+/** Whether the math-expressions tree `tree` has the symbol `symbol` in it. */
+function treeHasSymbol(tree: any, symbol: string): boolean {
+    if (typeof tree === "string") {
+        return tree === symbol;
+    }
+    return (
+        Array.isArray(tree) && tree.some((sub) => treeHasSymbol(sub, symbol))
+    );
 }
 
 /**

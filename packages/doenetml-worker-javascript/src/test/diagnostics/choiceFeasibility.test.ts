@@ -767,6 +767,62 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         }
     });
 
+    it("text that doesn't parse, or loses a reference in parsing, is a blank in each value the reference reads", async () => {
+        // `$a+` parses as the one symbol `math0+`, in which the reference's
+        // value is lost, and `($a` doesn't parse: in every variant the
+        // choice can't select. Each is checked as `$a*` is (`$a × ＿`)
+        const a = `<selectFromSequence name="a" from="1" to="3"/>`;
+        const toNaN =
+            "`<selectFromSequence>` can't always select as written: when `$a` = 1, `to` isn't a number.";
+        for (const [doenetML, message] of [
+            [`${a}<selectFromSequence from="1" to="$a*"/>`, toNaN],
+            [`${a}<selectFromSequence from="1" to="$a+"/>`, toNaN],
+            [`${a}<selectFromSequence from="1" to="$a-"/>`, toNaN],
+            [`${a}<selectFromSequence from="1" to="$a−"/>`, toNaN],
+            [`${a}<selectFromSequence from="1" to="$a + "/>`, toNaN],
+            [`${a}<selectFromSequence from="1" to="min($a+)"/>`, toNaN],
+            [`${a}<selectFromSequence from="1" to="($a"/>`, toNaN],
+            [`${a}<selectFromSequence from="1" to="$a)"/>`, toNaN],
+            [
+                `${a}<number name="n">$a+</number><selectFromSequence from="1" to="$n"/>`,
+                toNaN,
+            ],
+            [
+                `${a}<math name="n">$a+</math><selectFromSequence from="1" to="$n"/>`,
+                toNaN,
+            ],
+            [
+                `${a}<selectFromSequence type="math" from="$a+" to="5"/>`,
+                "DoenetML can't show that `<selectFromSequence>` can always select as written: it can't decide whether it can when `$a` = 1. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.",
+            ],
+            [
+                `${a}<select numToSelect="$a+"><option>x</option><option>y</option></select>`,
+                "`<select>` can't always select as written: when `$a` = 1, `numToSelect` isn't a number.",
+            ],
+            [
+                `<selectFromSequence name="a" from="10" to="12"/><selectPrimeNumbers from="2" to="$a+"/>`,
+                "`<selectPrimeNumbers>` can't always select as written: when `$a` = 10, `to` isn't a number.",
+            ],
+        ] as const) {
+            for (const errors of await errorsInVariants(doenetML, [1, 2])) {
+                expect(errors, doenetML).eqls([`doenet-e0073: ${message}`]);
+            }
+        }
+
+        // one that selects with the blank in every variant is unchanged,
+        // and so is a reference the parse keeps
+        for (const doenetML of [
+            `${a}<selectFromSequence from="1" to="4" exclude="$a+"/>`,
+            `${a}<selectFromSequence from="1" to="4" exclude="($a"/>`,
+            `${a}<selectFromSequence from="1" to="$a 2"/>`,
+            `${a}<selectFromSequence from="1" to="+$a"/>`,
+        ]) {
+            for (const errors of await errorsInVariants(doenetML, [1, 2])) {
+                expect(errors, doenetML).eqls([]);
+            }
+        }
+    });
+
     it("a choice in a case not shown is checked too", async () => {
         const { codes } = await load(
             `<booleanInput name="b"/><selectFromSequence name="a" from="1" to="10"/><conditionalContent condition="$b"><selectFromSequence to="$a" numToSelect="3"/></conditionalContent>`,
