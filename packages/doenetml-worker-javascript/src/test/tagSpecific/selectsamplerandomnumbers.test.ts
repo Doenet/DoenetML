@@ -681,6 +681,45 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("discrete uniform values that would be counted without end are none, and don't freeze the document", async () => {
+        // A step of 0 to a `to`, or a step of 0 or a `from` or step that
+        // isn't a finite number past an excluded value (an excluded `NaN`
+        // or `Infinity` matches one), counted values without end. The
+        // sampler draws nothing, with no diagnostic, as with no value.
+        for (const doenetML of [
+            `<sampleRandomNumbers name="s" type="discreteUniform" from="1" to="5" step="0" />`,
+            `<sampleRandomNumbers name="s" type="discreteUniform" to="5" step="0" />`,
+            `<sampleRandomNumbers name="s" type="discreteUniform" from="3" step="0" exclude="3" />`,
+            `<sampleRandomNumbers name="s" type="discreteUniform" from="1" step="x" exclude="1 x" />`,
+            `<sampleRandomNumbers name="s" type="discreteUniform" from="1" step="x" exclude="x" />`,
+            `<sampleRandomNumbers name="s" type="discreteUniform" from="1/0" exclude="1/0" />`,
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const s =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues;
+            expect(s.sampledValues, doenetML).eqls([]);
+            expect(s.numDiscreteValues, doenetML).eq(0);
+            expect(getDiagnosticsByType(core).errors, doenetML).eqls([]);
+        }
+
+        // a step of 0 from a `from` not excluded, with no `to`, is that
+        // value twice, as before
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="discreteUniform" from="3" step="0" numSamples="2" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                .sampledValues,
+        ).eqls([3, 3]);
+    });
+
     it("10 odd integers from -3 to 5", async () => {
         const doenetMLs = [
             `<selectRandomNumbers name="s" type="discreteUniform" numToSelect="10" from="-3" to="5" step="2" />`,

@@ -87,7 +87,7 @@ when the document loads, in every variant.
 
 A selection that can't be made as written is an error: a `numToSelect`, `from`,
 `to` or `step` that isn't a number, a `discreteUniform` range with no value (a
-`from` past `to`, a `step` of 0 or one that goes away from `to`, or every value
+`from` past `to`, a `step` of 0 to a `to` or one that goes away from `to`, or every value
 excluded), or parameters a distribution can't draw from, such as a negative
 `standardDeviation`. A `numToSelect` of `0` selects nothing, with no error.
 Unlike `<selectFromSequence>{:dn}`, whether such a parameter that references

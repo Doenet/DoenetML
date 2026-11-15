@@ -503,10 +503,23 @@ export default class SampleRandomNumbers extends ValueListComponent {
                     }
                     if (dependencyValues.type === "uniform") {
                         to = from + 1;
-                    } else if (step === 0 && exclude.includes(from)) {
-                        // stepping past an excluded `from` would never end
-                        to = from;
-                        numDiscreteValues = 0;
+                    } else if (!(
+                        Number.isFinite(from) &&
+                        Number.isFinite(step) &&
+                        step !== 0
+                    )) {
+                        // Stepping past an excluded value would never end
+                        // (a step of 0, or a `from` or step that isn't a
+                        // finite number, which an excluded `NaN` or
+                        // `Infinity` matches): the two values are `from` and
+                        // `from + step`, and none when either is excluded.
+                        to = from + step;
+                        if (exclude.includes(from) || exclude.includes(to)) {
+                            to = from;
+                            numDiscreteValues = 0;
+                        } else {
+                            numDiscreteValues = 2;
+                        }
                     } else {
                         // make sure from isn't excluded
                         while (exclude.includes(from)) {

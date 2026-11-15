@@ -863,6 +863,20 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
                 length0,
             ],
             [
+                `<selectRandomNumbers type="discreteUniform" from="3" step="0" exclude="3"/>`,
+                length0,
+            ],
+            // and so did a `from` or `step` that isn't a finite number past
+            // an excluded value that matches it
+            [
+                `<selectRandomNumbers type="discreteUniform" from="1" step="x" exclude="1 x"/>`,
+                notANumber("selectRandomNumbers", "step"),
+            ],
+            [
+                `<selectRandomNumbers type="discreteUniform" from="1/0" exclude="1/0"/>`,
+                notANumber("selectRandomNumbers", "from"),
+            ],
+            [
                 `<selectRandomNumbers type="discreteUniform" from="1" to="3" exclude="1 2 3"/>`,
                 length0,
             ],

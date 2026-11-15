@@ -13,12 +13,6 @@ import {
     extractConstantSortAttribute,
     pushVariantInfo,
 } from "../utils/variants";
-import {
-    checkForExcludedCombination,
-    estimateNumberOfDuplicateCombinations,
-    estimateNumberOfNumberCombinationsExcluded,
-    mergeContainingNumberCombinations,
-} from "../utils/excludeCombinations";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
@@ -45,7 +39,6 @@ import {
     sequenceSelectionFailure,
     sequenceSpace,
 } from "../utils/selectionFailure";
-const { gcd } = me.math;
 
 /**
  * The attributes that decide what a `<selectFromSequence>` can select. When
@@ -1218,52 +1211,6 @@ function makeFreshSelection(dependencyValues) {
         selectedValues,
         selectedIndices,
     });
-}
-
-/**
- * The greatest common divisor of the integers `values`, by Euclid's
- * algorithm: what `gcd` gives, without its cost for each type it handles,
- * since the exact draw of a coprime selection asks it of every combination.
- */
-function integerGcd(values) {
-    let divisor = 0;
-    for (const value of values) {
-        let a = Math.abs(divisor);
-        let b = Math.abs(value);
-        while (b !== 0) {
-            [a, b] = [b, a % b];
-        }
-        divisor = a;
-    }
-    return divisor;
-}
-
-/**
- * Whether the values of the number sequence `dependencyValues`, those not
- * excluded, have no common factor (a greatest common divisor of 1). Stops at
- * the first values that show it, so a long sequence is not generated.
- */
-function valuesHaveNoCommonFactor(dependencyValues) {
-    let divisor = 0;
-    for (let index = 0; index < dependencyValues.length; index++) {
-        const value = returnSequenceValueForIndex({
-            index,
-            from: dependencyValues.from,
-            step: dependencyValues.step,
-            length: dependencyValues.length,
-            last: dependencyValues.last,
-            exclude: dependencyValues.exclude,
-            type: dependencyValues.type,
-        });
-        if (value === null) {
-            continue;
-        }
-        divisor = gcd(divisor, value);
-        if (divisor === 1) {
-            return true;
-        }
-    }
-    return false;
 }
 
 function selectValuesAndIndices({

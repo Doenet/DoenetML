@@ -11,12 +11,7 @@ import {
     notANumberFailure,
     numToSelectNotANumber,
 } from "../utils/selectionFailure";
-import {
-    checkForExcludedCombination,
-    estimateNumberOfDuplicateCombinations,
-    estimateNumberOfNumberCombinationsExcluded,
-    mergeContainingNumberCombinations,
-} from "../utils/excludeCombinations";
+import { estimateNumberOfNumberCombinationsExcluded } from "../utils/excludeCombinations";
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
 import ValueListComponent from "./abstract/ValueListComponent";
@@ -31,10 +26,7 @@ import {
     withNumToSelect,
     selectionWithRequested,
 } from "../utils/selectErrors";
-import {
-    drawValidCombination,
-    someValidCombination,
-} from "../utils/validCombinations";
+import { drawValidCombination } from "../utils/validCombinations";
 
 /**
  * The attributes that decide what a `<selectPrimeNumbers>` can select. When
