@@ -53,7 +53,7 @@ function literalName(element: DastElement): string | null {
 }
 
 /** Whether `element` is written with `copy` or `extend`. */
-function isWrittenAsCopy(element: DastElement): boolean {
+export function isWrittenAsCopy(element: DastElement): boolean {
     return (
         findAttributeKey(element, "copy") !== undefined ||
         findAttributeKey(element, "extend") !== undefined

@@ -139,6 +139,9 @@ export default class Select extends CompositeComponent {
 
     static componentType = "select";
 
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
+
     static componentDocs = {
         summary:
             "Randomly selects components from a list of children to create document variants",

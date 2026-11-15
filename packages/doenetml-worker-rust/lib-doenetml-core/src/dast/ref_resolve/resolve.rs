@@ -100,18 +100,32 @@ pub(super) fn names_per_item(
     element: &FlatElement,
     literal_text: impl Fn(&FlatAttribute) -> Option<String>,
 ) -> bool {
+    let is_copy = || {
+        element.extending.is_some()
+            || element
+                .attributes
+                .iter()
+                .any(|attr| crate::dast::ref_expand::is_extend_or_copy_attribute(&attr.name))
+    };
     match element.name.as_str() {
         "repeat" | "repeatForSequence" => true,
-        "select" => {
-            let is_copy = element.extending.is_some()
-                || element
-                    .attributes
-                    .iter()
-                    .any(|attr| crate::dast::ref_expand::is_extend_or_copy_attribute(&attr.name));
-            !is_copy && branch_container_kind(element, literal_text).is_none()
-        }
+        "select" => !is_copy() && branch_container_kind(element, literal_text).is_none(),
         _ => false,
     }
+}
+
+/// Whether a name after `element` that is ambiguous among what it holds reaches into each of
+/// its items instead (D41 decision 1, COLL-2): a `<collect>`, whose items are copies of the
+/// components it gathers, each holding their own names (`$c.P` for a `P` in each collected
+/// `<group>`). A name it holds once, such as that of a component it collected (`$c.A`, the
+/// copy of `A`), still names that one.
+pub(super) fn names_per_item_if_ambiguous(element: &FlatElement) -> bool {
+    element.name == "collect"
+        && element.extending.is_none()
+        && !element
+            .attributes
+            .iter()
+            .any(|attr| crate::dast::ref_expand::is_extend_or_copy_attribute(&attr.name))
 }
 
 /// The `Visibility` of a node determines how the `name_map` is constructed.
@@ -317,6 +331,10 @@ pub struct NodeResolverData {
     /// in each item (D41 decision 1, COLL-2, NAME-3).
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub(super) names_per_item: bool,
+    /// Whether a name after the node that is ambiguous among what it holds reaches into each
+    /// of its items instead, as for a `<collect>` (see [`names_per_item_if_ambiguous`]).
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub(super) names_per_item_if_ambiguous: bool,
 }
 
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
@@ -530,6 +548,18 @@ impl Resolver {
                                 nodes_in_resolved_path.push(current_idx);
                             }
                             node_data = &self.node_resolver_data[current_idx + 1];
+                        }
+                        Ref::Ambiguous(_) if node_data.names_per_item_if_ambiguous => {
+                            // Left for the worker to resolve in each item (`$c.P`).
+                            let remaining_path: Vec<FlatPathPart> =
+                                iter::once(part.clone()).chain(path.cloned()).collect();
+                            return Ok(RefResolution {
+                                node_idx: current_idx,
+                                unresolved_path: Some(remaining_path),
+                                original_path,
+                                nodes_in_resolved_path,
+                                child_index: None,
+                            });
                         }
                         Ref::Ambiguous(_) => {
                             return Err(ResolutionError::NonUniqueReferent);

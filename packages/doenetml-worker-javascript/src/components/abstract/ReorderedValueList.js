@@ -110,6 +110,10 @@ export function reorderedValueListClass(Base) {
             return undefined;
         }
 
+        // Built as a list, it keeps none of the attributes of the authored
+        // list it is built on as properties, as the composite (COMP-4).
+        static attributePropertiesKept = [];
+
         static get listOwnProperties() {
             return listOwnPropertiesOfComposite(this.collectionCompositeClass);
         }

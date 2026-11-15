@@ -543,22 +543,22 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(getDiagnosticsByType(core).infos).eqls([]);
     });
 
-    it("reads a property that holds no value, as `maxNumber` of a collect with no limit, as missing", async () => {
-        // `maxNumber` is `null` for no limit, which is no value (#2416), in
-        // each form a `<collect>` takes: a list form (`y`), a composite
-        // (`w`), and with a limit (`z`).
+    it("reads a property that holds no value, as `aspectRatio` of an image with none, as missing", async () => {
+        // `aspectRatio` is `null` for an image with none known, which is no
+        // value (#2416): of an image (`y`), through a composite (`w`, a
+        // `<collect>`, read at an index), and with one given (`z`). (This
+        // read a `<collect>`'s `maxNumber`, `null` for no limit, which is an
+        // attribute and not a property, D41 decision 2.)
         const { text, warnings, errors, infos, core, resolvePathToNodeIdx } =
             await shownAndReported(`
-    <p name="src"><text>a</text><text>b</text></p>
-    <collect name="y" componentType="text" from="$src"/>
-    <collect name="z" componentType="text" from="$src" maxNumber="1"/>
-    <collect name="w" componentType="p" from="$src"/>
-    <p name="p">[$y.maxNumber][$z.maxNumber][$w.maxNumber]</p>
-    <p name="pn"><number name="n1" extend="$y.maxNumber"/><number name="n2" extend="$w.maxNumber"/><number name="n3" extend="$z.maxNumber"/></p>
-    <math name="m1">$y.maxNumber</math>
-    <math name="m2">$y.maxNumber + 1</math>
-    <boolean name="b1">$y.maxNumber = 3</boolean>
-    <boolean name="b2">$z.maxNumber = 1</boolean>
+    <graph name="gr"><image name="y" source="./a.png"/><image name="z" source="./b.png" aspectRatio="1"/></graph>
+    <collect name="w" componentType="image" from="$gr"/>
+    <p name="p">[$y.aspectRatio][$z.aspectRatio][$w[1].aspectRatio]</p>
+    <p name="pn"><number name="n1" extend="$y.aspectRatio"/><number name="n2" extend="$w[1].aspectRatio"/><number name="n3" extend="$z.aspectRatio"/></p>
+    <math name="m1">$y.aspectRatio</math>
+    <math name="m2">$y.aspectRatio + 1</math>
+    <boolean name="b1">$y.aspectRatio = 3</boolean>
+    <boolean name="b2">$z.aspectRatio = 1</boolean>
     `);
         expect(text).eq("[＿][1][＿]");
         expect([...errors, ...warnings, ...infos]).eqls([]);
@@ -1877,8 +1877,8 @@ describe("A value computed from a missing input (D40) @group2", () => {
         const { texts } = await textsOf(
             `
     <award name="aw"><math>1</math></award>
-    <collect name="c" from="$g"/><group name="g"/>
-    <p name="p">[$aw.feedbackText][<text extend="$aw.feedbackText"/>][<text>$aw.feedbackText</text>][$c.maxNumber]</p>
+    <graph><image name="c" source="./a.png"/></graph>
+    <p name="p">[$aw.feedbackText][<text extend="$aw.feedbackText"/>][<text>$aw.feedbackText</text>][$c.aspectRatio]</p>
     `,
             ["p"],
         );

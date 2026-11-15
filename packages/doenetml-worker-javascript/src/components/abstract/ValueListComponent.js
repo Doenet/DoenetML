@@ -73,6 +73,9 @@ import {
  */
 export default class ValueListComponent extends BaseComponent {
     static componentType = "_valueList";
+
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
     // The list is drawn as its entries, each by the renderer of its type
     // (`RendererInstructionBuilder`), so it has no renderer of its own; this
     // is the type its entries need.

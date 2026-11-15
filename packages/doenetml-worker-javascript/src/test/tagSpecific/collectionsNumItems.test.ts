@@ -416,4 +416,73 @@ describe("A collection's own properties @group4", () => {
         expect(lists.texts).toEqual({ p1: "＿", p2: "＿", p3: "＿" });
         expect(composites.texts).toEqual(lists.texts);
     });
+
+    it("an attribute of a collection is read of each item, as any property after it (D41 decision 2)", async () => {
+        // Before: each of these was the collection's attribute (`$c.maxNumber`
+        // was `5`, `$sel.numToSelect` `2`, `$fi.numIterates` `2`, …).
+        const { lists, composites } = await bothBuilds({
+            doenetML: `
+<graph name="g"><point name="A">(1,2)</point><point>(3,4)</point></graph>
+<collect name="c" from="$g" componentType="point" maxNumber="5"/>
+<collect name="cm" from="$ml" componentType="math" maxNumber="5"/>
+<mathList name="ml">a b</mathList>
+<sort name="s" sortVectorsBy="angle" sortByComponent="1">$A (0,1)</sort>
+<shuffle name="sh">$A (0,1)</shuffle>
+<select name="sel" numToSelect="2" withReplacement><option><math>1</math></option><option><math>2</math></option></select>
+<functionIterates name="fi" function="2x" initialValue="1" numIterates="2" forceSymbolic/>
+<selectFromSequence name="sfs" from="1" to="10" numToSelect="2" sort withReplacement/>
+<searchSorted name="ss" target="2" side="right">1 2 3</searchSorted>
+<binCounts name="bc" binEdges="0 2 4" closed="left">1 3</binCounts>
+<cumulativeSum name="cs" forceNumeric>1 2</cumulativeSum>
+<sortIndices name="si" sortVectorsBy="angle">$A (0,1)</sortIndices>
+<p name="p1">[$c.maxNumber][$cm.maxNumber][$s.sortVectorsBy][$s.sortByComponent]</p>
+<p name="p2">[$sel.numToSelect][$sel.withReplacement][$fi.numIterates][$fi.forceSymbolic]</p>
+<p name="p3">[$sfs.sort][$sfs.withReplacement][$sfs.numToSelect][$ss.side][$bc.closed][$cs.forceNumeric][$si.sortVectorsBy]</p>
+<p name="p4">[$c.numItems][$sel.numItems][$fi.numItems][$c.hide][$s.fixed][$c.x][$sh.numItems]</p>
+`,
+            names: ["p1", "p2", "p3", "p4"],
+        });
+        expect(lists.texts).toEqual({
+            p1: "[＿][＿][＿][＿]",
+            p2: "[＿][＿][＿][＿]",
+            p3: "[＿][＿][＿][＿][＿][＿][＿]",
+            p4: "[2][2][2][false][false][1, 3][2]",
+        });
+        expect(composites.texts).toEqual(lists.texts);
+        expect(composites.diagnostics).toEqual(lists.diagnostics);
+        // Each names nothing an item has (`doenet-w0104`).
+        expect(lists.diagnostics.filter((d) => d.includes("w0104"))).toEqual(
+            Array(15)
+                .fill(0)
+                .map(
+                    (_, i) =>
+                        `warning doenet-w0104 line ${i < 4 ? 15 : i < 8 ? 16 : 17}`,
+                ),
+        );
+    });
+
+    it("keeps an attribute documented as a property of a list, a tally or a sampler", async () => {
+        // An authored list's `maxNumber`, `unordered` and `mergeMathLists`,
+        // a `<tally>`'s `categories` (those that turned up), and the
+        // distribution a sampler draws from (the expected `mean`). D41 leaves
+        // the older properties of authored lists open.
+        const { lists, composites } = await bothBuilds({
+            doenetML: `
+<mathList name="ml" maxNumber="3" unordered>a b</mathList>
+<tally name="t">a b a</tally>
+<sampleRandomNumbers name="srn" numSamples="2" from="1" to="3" type="uniform"/>
+<sampleMultivariateRandomNumber name="smv" type="hypergeometric" numInCategories="5 3 2" numDraws="4"/>
+<p name="p1">[$ml.maxNumber][$ml.unordered][$ml.mergeMathLists][$t.categories]</p>
+<p name="p2">[$srn.mean][$srn.type][$srn.from][$smv.numTotal]</p>
+<p name="p3">[$srn.numSamples]</p>
+`,
+            names: ["p1", "p2", "p3"],
+        });
+        expect(lists.texts).toEqual({
+            p1: "[3][true][false][a, b]",
+            p2: "[2][uniform][1][10]",
+            p3: "[＿]",
+        });
+        expect(composites.texts).toEqual(lists.texts);
+    });
 });

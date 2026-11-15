@@ -87,6 +87,10 @@ function collectListClass(Base) {
 
         // Its properties of its own are those of the composite `<collect>`,
         // so the two builds agree (COMP-4, COLL-2).
+        // Built as a list, it keeps none of the attributes of the authored
+        // list it is built on as properties, as the composite (COMP-4).
+        static attributePropertiesKept = [];
+
         static get listOwnProperties() {
             return listOwnPropertiesOfComposite(Collect);
         }

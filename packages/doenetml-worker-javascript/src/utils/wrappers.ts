@@ -82,11 +82,15 @@ export function ownSettingOfWrapper(propName: unknown): string | undefined {
 
 /**
  * The collections whose items each hold the names their template or options
- * declare, so that a name after one is resolved in each item (`$r.P`, D41
- * decision 1, COLL-2), as the resolver leaves it (`names_per_item`).
+ * declare, or, for a `<collect>`, the names the components it gathers hold,
+ * so that a name after one is resolved in each item (`$r.P`, `$c.P`, D41
+ * decision 1, COLL-2), as the resolver leaves it (`names_per_item`; for a
+ * `<collect>`, only a name it holds more than once,
+ * `names_per_item_if_ambiguous`: `$c.A` is still the copy of `A` it holds).
  */
 export const COLLECTIONS_OF_NAMED_ITEMS = new Set([
     "repeat",
     "repeatForSequence",
     "select",
+    "collect",
 ]);

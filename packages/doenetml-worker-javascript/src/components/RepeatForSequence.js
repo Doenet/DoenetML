@@ -28,6 +28,9 @@ import {
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
 
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
+
     static componentDocs = {
         summary:
             "Repeats template content for each value in an arithmetic sequence",

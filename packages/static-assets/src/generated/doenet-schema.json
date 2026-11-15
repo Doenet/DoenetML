@@ -31606,22 +31606,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -31984,22 +31968,6 @@
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
-                },
-                {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true,
-                    "highlighted": true
                 },
                 {
                     "name": "hidden",
@@ -32366,22 +32334,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -32746,22 +32698,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -33124,22 +33060,6 @@
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
-                },
-                {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
-                    "fromAttribute": true,
-                    "highlighted": true
                 },
                 {
                     "name": "hidden",
@@ -36292,22 +36212,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "allowUnsorted",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
-                    "name": "side",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Which end of a run of equal values the target is placed at.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -37351,14 +37255,6 @@
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
-                },
-                {
-                    "name": "closed",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Which end of each bin includes its cut point.",
-                    "fromAttribute": true,
-                    "highlighted": true
                 },
                 {
                     "name": "hidden",
@@ -80964,27 +80860,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing items.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -81415,27 +81290,6 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Maximum number of items to retain in the list.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing items.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
                     "fromAttribute": true
                 },
                 {
@@ -81986,13 +81840,6 @@
                 }
             ],
             "properties": [
-                {
-                    "name": "maxNumber",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Maximum number of descendants to collect.",
-                    "fromAttribute": true
-                },
                 {
                     "name": "hidden",
                     "type": "boolean",
@@ -113294,27 +113141,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "withReplacement",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the same value can be selected more than once.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "sort",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Whether and how to sort the selected values.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "coprime",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Require the selected numbers to be pairwise coprime (numbers only).",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -113379,12 +113205,6 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
-                },
-                {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many were selected: the number to select when the selection was made."
                 }
             ],
             "top": true,
@@ -113546,13 +113366,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "withReplacement",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the same child can be selected more than once.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -113581,12 +113394,6 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
-                },
-                {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many were selected: the number to select when the selection was made."
                 },
                 {
                     "name": "numItems",
@@ -115699,12 +115506,6 @@
                     "description": "Standard deviation of the sampling distribution.",
                     "groupName": "sampling-moments",
                     "highlighted": true
-                },
-                {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many were selected: the number to select when the selection was made."
                 }
             ],
             "top": true,
@@ -116083,27 +115884,12 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numSamples",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of samples to draw.",
-                    "fromAttribute": true,
-                    "highlighted": true
-                },
-                {
                     "name": "type",
                     "type": "text",
                     "isArray": false,
                     "description": "Distribution from which to sample.",
                     "fromAttribute": true,
                     "highlighted": true
-                },
-                {
-                    "name": "variantDeterminesSeed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the document's variant index determines the random seed.",
-                    "fromAttribute": true
                 },
                 {
                     "name": "hidden",
@@ -116528,13 +116314,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "variantDeterminesSeed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the document's variant index determines the random seed.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -116876,41 +116655,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "from",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Lower bound (inclusive) of the prime range to select from.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "to",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Upper bound (inclusive) of the prime range to select from.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "exclude",
-                    "type": "numberList",
-                    "isArray": false,
-                    "description": "Primes to exclude from the selection.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "withReplacement",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the same prime can be selected more than once.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "sort",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Sort order applied to the selected primes.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -116975,12 +116719,6 @@
                     "type": "integer",
                     "isArray": false,
                     "description": "The number of items, which an index selects among (`$c[2]` is item 2)."
-                },
-                {
-                    "name": "numToSelect",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "How many were selected: the number to select when the selection was made."
                 }
             ],
             "top": true,
@@ -117182,41 +116920,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "numSamples",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Number of prime samples to draw.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "from",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Lower bound (inclusive) of the prime range to sample from.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "to",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Upper bound (inclusive) of the prime range to sample from.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "exclude",
-                    "type": "numberList",
-                    "isArray": false,
-                    "description": "Primes to exclude from the sample.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "variantDeterminesSeed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the document's variant index determines the random seed.",
                     "fromAttribute": true
                 },
                 {
@@ -124040,27 +123743,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "numIterates",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of iterations to compute.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceSymbolic",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force symbolic evaluation.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "forceNumeric",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to force numeric evaluation.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -127250,22 +126932,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "sortVectorsBy",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Whether to sort vectors by component or by magnitude.",
-                    "fromAttribute": true,
-                    "groupName": "sorting"
-                },
-                {
-                    "name": "sortByComponent",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Index of the component to sort by (when sorting vectors).",
-                    "fromAttribute": true,
-                    "groupName": "sorting"
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -127783,22 +127449,6 @@
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
-                },
-                {
-                    "name": "sortVectorsBy",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Whether to sort vectors by component or by magnitude.",
-                    "fromAttribute": true,
-                    "groupName": "sorting"
-                },
-                {
-                    "name": "sortByComponent",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Index of the component to sort by (when sorting vectors).",
-                    "fromAttribute": true,
-                    "groupName": "sorting"
                 },
                 {
                     "name": "hidden",
@@ -141595,27 +141245,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing items.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false,
@@ -142045,27 +141674,6 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Maximum number of items to retain in the list.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "functionSymbols",
-                    "type": "textList",
-                    "isArray": false,
-                    "description": "Symbols treated as function names when parsing items.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "splitSymbols",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether multi-character symbols are split into a product of variables.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "parseScientificNotation",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
                     "fromAttribute": true
                 },
                 {

@@ -27,6 +27,9 @@ import {
 export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
 
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
+
     static componentDocs = {
         summary: "Repeats template content for each item in a source",
     };

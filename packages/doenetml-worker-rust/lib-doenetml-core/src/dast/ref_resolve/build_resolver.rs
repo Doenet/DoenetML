@@ -35,6 +35,7 @@ impl Resolver {
                         iteration_aliases: false,
                         setup: false,
                         names_per_item: false,
+                        names_per_item_if_ambiguous: false,
                     }
                 } else {
                     let node = &flat_root.nodes[idx_plus_1 - 1];
@@ -55,6 +56,7 @@ impl Resolver {
                             &FlatRootOrFragment::Root(flat_root),
                             node,
                         ),
+                        names_per_item_if_ambiguous: node_names_per_item_if_ambiguous(node),
                     }
                 }
             })
@@ -131,6 +133,7 @@ impl Resolver {
                     iteration_aliases: false,
                     setup: false,
                     names_per_item: false,
+                    names_per_item_if_ambiguous: false,
                 },
                 padding,
             ));
@@ -150,6 +153,8 @@ impl Resolver {
                 node_branch_kind(&FlatRootOrFragment::Fragment(flat_fragment), node);
             self.node_resolver_data[node.idx() + 1].names_per_item =
                 node_names_per_item(&FlatRootOrFragment::Fragment(flat_fragment), node);
+            self.node_resolver_data[node.idx() + 1].names_per_item_if_ambiguous =
+                node_names_per_item_if_ambiguous(node);
         }
 
         let base_parent_kind = flat_fragment
@@ -624,6 +629,15 @@ fn node_names_per_item(flat_root_or_fragment: &FlatRootOrFragment, node: &FlatNo
         FlatNode::Element(element) => names_per_item(element, |attr| {
             literal_attribute_text(flat_root_or_fragment, attr)
         }),
+        _ => false,
+    }
+}
+
+/// Whether a name after `node` that is ambiguous among what it holds reaches into each of
+/// its items (see [`names_per_item_if_ambiguous`]).
+fn node_names_per_item_if_ambiguous(node: &FlatNode) -> bool {
+    match node {
+        FlatNode::Element(element) => names_per_item_if_ambiguous(element),
         _ => false,
     }
 }

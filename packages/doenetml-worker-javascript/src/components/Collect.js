@@ -23,6 +23,9 @@ function collectedKey(collected) {
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
+
     static componentDocs = {
         summary:
             "Collects descendants of a component matching a specified component type",

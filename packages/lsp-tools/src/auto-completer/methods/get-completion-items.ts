@@ -22,7 +22,7 @@ import type {
 import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 import { walkIndexAliases } from "../index-aliases";
-import { hasImplicitSingleIndex } from "../select-family";
+import { hasImplicitIndex } from "../select-family";
 import { mergeDeclaredIntoSchemaAttributes } from "../module-attributes";
 import { getElementAttributeValue } from "../dast-attribute-utils";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
@@ -1187,7 +1187,7 @@ export async function getCompletionItems(
         // `determineVisibleNames` rather than collapsing it into
         // `resolvedPartHasIndex` so the shorthand offers descendants AND keeps
         // the composite's own properties (e.g. `$s.numToSelect`) accessible.
-        const implicitSingleIndex = hasImplicitSingleIndex(resolvedNode);
+        const implicitSingleIndex = hasImplicitIndex(resolvedNode);
 
         // When the resolved element does NOT take an index but the user
         // wrote one (e.g. $sec[1].), the access is invalid — return nothing.

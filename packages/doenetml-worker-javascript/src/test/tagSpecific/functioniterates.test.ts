@@ -700,7 +700,7 @@ describe("FunctionIterates tag tests @group2", async () => {
 <function name="f">2x</function>
 <mathInput name="n" prefill="3"/>
 <p name="p1"><functionIterates name="fi" function="$f" initialValue="1" numIterates="$n"/></p>
-<p name="p2">$fi[2] $fi.numItems $fi.numIterates</p>
+<p name="p2">$fi[2] $fi.numItems</p>
 <p name="p3">$fi</p>
 <p name="p4"><sum>$fi</sum></p>
 <p name="p5">$fi.iterates</p>
@@ -723,7 +723,7 @@ describe("FunctionIterates tag tests @group2", async () => {
         }
         expect(await texts()).eqls({
             p1: "2, 4, 8",
-            p2: "4 3 3",
+            p2: "4 3",
             p3: "2, 4, 8",
             p4: "14",
             p5: "2, 4, 8",
@@ -736,7 +736,7 @@ describe("FunctionIterates tag tests @group2", async () => {
         });
         expect(await texts()).eqls({
             p1: "2, 4, 8, 16",
-            p2: "4 4 4",
+            p2: "4 4",
             p3: "2, 4, 8, 16",
             p4: "30",
             p5: "2, 4, 8, 16",

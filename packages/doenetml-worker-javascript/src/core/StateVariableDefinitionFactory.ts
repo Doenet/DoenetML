@@ -7,6 +7,7 @@ import {
 } from "../utils/attributes";
 import type { AttributeDefinition } from "../utils/dast/types";
 import { normalizeArrayStateVariableDefaults } from "./StateVariableInitializer";
+import { attributesAsProperties } from "../utils/numItems";
 
 /**
  * Map from `attributeSpecification.createPrimitiveOfType` codes to the
@@ -256,7 +257,10 @@ function createAttributeStateVariableDefinitions({
     stateVariableDefinitions: Record<string, any>;
 }) {
     let attributes = preprocessAttributesObject(
-        componentClass.createAttributesObject(),
+        attributesAsProperties(
+            componentClass,
+            componentClass.createAttributesObject(),
+        ),
     );
 
     for (let attrName in attributes) {
@@ -349,7 +353,10 @@ function createAdapterStateVariableDefinitions({
         ];
 
     let attributes = preprocessAttributesObject(
-        componentClass.createAttributesObject(),
+        attributesAsProperties(
+            componentClass,
+            componentClass.createAttributesObject(),
+        ),
     );
 
     for (let attrName in attributes) {
@@ -554,7 +561,10 @@ async function createReferenceShadowStateVariableDefinitions({
     // - then on targetComponent (if not copying a prop and attribute exists in targetComponent)
 
     let attributes = preprocessAttributesObject(
-        componentClass.createAttributesObject(),
+        attributesAsProperties(
+            componentClass,
+            componentClass.createAttributesObject(),
+        ),
     );
 
     for (let attrName in attributes) {

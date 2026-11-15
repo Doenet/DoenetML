@@ -53,6 +53,7 @@ impl Resolver {
                         iteration_aliases: node_data.iteration_aliases,
                         setup: node_data.setup,
                         names_per_item: node_data.names_per_item,
+                        names_per_item_if_ambiguous: node_data.names_per_item_if_ambiguous,
                     }
                 } else {
                     NodeResolverData {
@@ -69,6 +70,7 @@ impl Resolver {
                         iteration_aliases: node_data.iteration_aliases,
                         setup: node_data.setup,
                         names_per_item: node_data.names_per_item,
+                        names_per_item_if_ambiguous: node_data.names_per_item_if_ambiguous,
                     }
                 }
             })

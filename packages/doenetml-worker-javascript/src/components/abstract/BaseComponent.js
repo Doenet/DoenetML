@@ -24,6 +24,10 @@ import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
 } from "../../utils/stateVariables";
+import {
+    attributesAsProperties,
+    stateVariablesAsProperties,
+} from "../../utils/numItems";
 
 export const SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX = "Encountered ";
 
@@ -270,6 +274,24 @@ export default class BaseComponent {
      * (`utils/listEntryReference.ts`).
      */
     static listOwnProperties = [];
+
+    /**
+     * Whether the attributes of this component are properties an author
+     * reads (`$P.draggable`). A collection's are not (D41 decision 2,
+     * COLL-2): a property after a collection applies to each item, so an
+     * attribute of the collection must not shadow the items' properties
+     * (`$c.maxNumber` of a `<collect>`). The settings every component has
+     * stay properties, with those in `attributePropertiesKept`
+     * (`utils/numItems.ts`, `attributeNamesNotProperties`).
+     */
+    static attributesAreProperties = true;
+
+    /**
+     * For a collection, the properties named as its attributes that stay
+     * properties, as they are documented for authors and computed beyond
+     * what is written (a `<tally>`'s `categories`).
+     */
+    static attributePropertiesKept = [];
 
     /**
      * Whether a linked copy of this component (a shadow, `serialize`
@@ -1359,6 +1381,9 @@ export default class BaseComponent {
             }
         }
 
+        // A collection's attributes are not properties (D41 decision 2).
+        stateVariablesAsProperties(this, stateVariableDefinitions);
+
         return stateVariableDefinitions;
     }
 
@@ -1366,7 +1391,10 @@ export default class BaseComponent {
         onlyPublic = false,
         onlyForRenderer = false,
     } = {}) {
-        let attributeObject = this.createAttributesObject();
+        let attributeObject = attributesAsProperties(
+            this,
+            this.createAttributesObject(),
+        );
 
         let stateVariableDescriptions = {};
         let arrayEntryPrefixes = {};

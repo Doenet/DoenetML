@@ -471,10 +471,22 @@ export class ReplacementDependency extends Dependency {
             } catch (_e) {
                 resolution = undefined;
             }
-            const component =
+            let component =
                 resolution && resolution.nodeIdx !== item.componentIdx
                     ? components[resolution.nodeIdx]
                     : undefined;
+            // A name the item gives a component that a reference in it
+            // creates (`_createComponentIdx`), such as a repeat's `valueName`
+            // (`$r.v`), names that reference's replacement, which may not be
+            // made yet: the reference stands for it, and is expanded with the
+            // other composites found.
+            if (!component && resolution) {
+                const creatingIdx =
+                    core.createComponentIdxMapping?.[resolution.nodeIdx];
+                if (creatingIdx != null) {
+                    component = components[creatingIdx];
+                }
+            }
             if (!component) {
                 return false;
             }

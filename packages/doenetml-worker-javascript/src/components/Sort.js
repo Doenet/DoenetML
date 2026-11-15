@@ -275,6 +275,9 @@ export function returnSortedValuesDefinition() {
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
+
     static componentDocs = {
         summary: "Sorts a list according to a comparison function",
     };

@@ -64,6 +64,9 @@ function wrapperUnits(ranges = []) {
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
 
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
+
     static componentDocs = {
         summary: "Randomly shuffles its children",
     };

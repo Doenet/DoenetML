@@ -343,6 +343,103 @@ describe("A tag made from a property after a collection of several (#2548 item 1
     });
 });
 
+describe("The value and index names of a repeat after the repeat", () => {
+    it("are each iteration's, as a name written in the template is", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="3 5" valueName="v" indexName="i"><math name="m">$v+1</math></repeat>
+<repeat name="rp" for="(1,2) (3,4)" valueName="v"><math>$v</math><text>a</text></repeat>
+<repeatForSequence name="rs" from="4" length="2" valueName="v"><math>$v</math></repeatForSequence>
+<p name="p1">$r.v</p><p name="p2">$r.i</p><p name="p3">$r[2].v</p>
+<p name="p4">$rp.v</p><p name="p5">$rp.v.x</p><p name="p6">$rs.v</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6"],
+        );
+        // Before: `$r.v` nothing (`$rp.v.x` an info that a math has no `v.x`).
+        expect(texts).eqls({
+            p1: "3, 5",
+            p2: "1, 2",
+            p3: "5",
+            p4: "(1, 2), (3, 4)",
+            p5: "1, 3",
+            p6: "4, 5",
+        });
+        expect(diagnostics).eqls([]);
+    });
+
+    it("follow the iterations live, as after a reload", async () => {
+        const doenetML = `<mathInput name="n" prefill="2"/>
+<repeatForSequence name="r" length="$n" valueName="v"><point>($v,1)</point></repeatForSequence>
+<p name="p">$r.v</p><p name="q"><sum>$r.v</sum></p>`;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        const read = async (core: any, resolve: any) => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return [
+                stateVariables[await resolve("p")].stateValues.text,
+                stateVariables[await resolve("q")].stateValues.text,
+            ];
+        };
+        expect(await read(core, resolvePathToNodeIdx)).eqls(["1, 2", "3"]);
+        const set = async (latex: string) =>
+            updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+        await set("3");
+        expect(await read(core, resolvePathToNodeIdx)).eqls(["1, 2, 3", "6"]);
+        await set("1");
+        expect(await read(core, resolvePathToNodeIdx)).eqls(["1", "1"]);
+        await set("4");
+        expect(await read(core, resolvePathToNodeIdx)).eqls([
+            "1, 2, 3, 4",
+            "10",
+        ]);
+        await core.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(await read(reloaded.core, reloaded.resolvePathToNodeIdx)).eqls([
+            "1, 2, 3, 4",
+            "10",
+        ]);
+        expect(
+            core.core!.diagnostics.filter(
+                (d: any) => !d.code?.startsWith("doenet-a"),
+            ),
+        ).eqls([]);
+    });
+});
+
+describe("A name after a collect", () => {
+    it("is each collected component's, when the components collected each hold it", async () => {
+        const { texts, diagnostics } = await both(
+            `<section name="sec"><group name="g1"><point name="P">(1,2)</point><text>a</text></group><group name="g2"><point name="P">(3,4)</point><text>b</text></group></section>
+<section name="sec2"><p name="q1"><math name="m">1</math></p><p name="q2"><math name="m">2</math></p></section>
+<collect name="c" from="$sec" componentType="group"/>
+<collect name="cp" from="$sec2" componentType="p"/>
+<p name="p1">$c.P</p><p name="p2">$c.P.x</p><p name="p3">$c[2].P.x</p><p name="p4">$cp.m</p><p name="p5">$c.numItems</p><p name="p6">$c.g2.P</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6"],
+        );
+        // Before: `$c.P` and `$cp.m` were ambiguous (`doenet-w0105`). A name
+        // a collect holds once, as that of a component it collected
+        // (`$c.g2`, the copy of `g2`), still names that one.
+        expect(texts).eqls({
+            p1: "(1, 2), (3, 4)",
+            p2: "1, 3",
+            p3: "3",
+            p4: "1, 2",
+            p5: "2",
+            p6: "(3, 4)",
+        });
+        expect(diagnostics).eqls([]);
+    });
+});
+
 describe("An index then a property past the items whose count follows an input (#2548 item 7)", () => {
     it("gives the same information live as after a reload", async () => {
         const doenetML = `<mathInput name="n" prefill="2"/>

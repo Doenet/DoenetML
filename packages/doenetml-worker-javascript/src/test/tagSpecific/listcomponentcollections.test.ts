@@ -1343,15 +1343,16 @@ describe("Collect, sort and shuffle of values @group4", async () => {
       <number>0.00000000000001234</number>
     </section>
     <collect name="c" componentType="number" from="$sec" />
-    <collect name="c2" componentType="number" from="$sec" maxNumber="3" />
-    <p name="p">[$c.maxNumber] [$c2.maxNumber]</p>
+    <collect name="c2" componentType="number" from="$sec" maxNumber="1" />
+    <p name="p">[$c.numItems] [$c2.numItems]</p>
     <p name="p1"><collect name="c3" componentType="number" from="$sec" avoidScientificNotation /></p>
     `,
         });
 
-        // no limit has no value, so `$c.maxNumber` is missing (#2416)
+        // no limit unless given (a collect's `maxNumber` is an attribute, not
+        // a property, D41 decision 2)
         await expectTexts(core, resolvePathToNodeIdx, {
-            p: "[＿] [3]",
+            p: "[2] [1]",
             p1: "123456789012345690000000, 0.0000000000000123",
         });
         // held as a list, not copied

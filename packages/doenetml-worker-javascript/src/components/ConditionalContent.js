@@ -13,6 +13,9 @@ import { codedDiagnostic } from "../utils/diagnostics";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
 
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
+
     // An index selects the case shown, its one item (COLL-1).
     static takesIndex = true;
 

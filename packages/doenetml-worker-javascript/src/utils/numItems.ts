@@ -50,18 +50,138 @@ export function numItemsDefinition({
 }
 
 /**
+ * The number display settings, which a list's entries take from the list and
+ * a property after the list reads of each entry (`$ml.displayDigits`), and
+ * which are copied from a list to an entry a reference makes (`$ml[2]`,
+ * `addShadowNumberDisplayAttributes`), so they stay public on the list.
+ */
+const NUMBER_DISPLAY_SETTINGS = [
+    "displaydigits",
+    "displaydecimals",
+    "displaysmallaszero",
+    "padzeros",
+    "avoidscientificnotation",
+];
+
+const attributeNamesNotPropertiesByClass = new WeakMap<any, Set<string>>();
+
+/**
+ * The names, in lower case, of the state variables of a component of class
+ * `componentClass` that are its attributes and so not properties an author
+ * reads (D41 decision 2, COLL-2): a collection's attributes are not
+ * properties, so that adding one never shadows the items' properties
+ * (`$c.maxNumber` of a `<collect>` of points is each point's `maxNumber`,
+ * which a point does not have). A class that is a collection says so with
+ * `attributesAreProperties = false`. An attribute is a state variable an
+ * attribute creates, or a state variable named as an attribute is
+ * (`unordered`). The settings every component has (the attributes of
+ * `BaseComponent`), the number display settings, and those a class keeps
+ * (`attributePropertiesKept`, documented as properties for authors, such as
+ * a `<tally>`'s `categories`) stay properties.
+ */
+export function attributeNamesNotProperties(componentClass: any): Set<string> {
+    let names = attributeNamesNotPropertiesByClass.get(componentClass);
+    if (names) {
+        return names;
+    }
+    names = new Set<string>();
+    if (componentClass.attributesAreProperties === false) {
+        let rootClass = componentClass;
+        while (Object.getPrototypeOf(rootClass)?.createAttributesObject) {
+            rootClass = Object.getPrototypeOf(rootClass);
+        }
+        const kept = new Set<string>([
+            ...Object.keys(rootClass.createAttributesObject()).map((name) =>
+                name.toLowerCase(),
+            ),
+            ...NUMBER_DISPLAY_SETTINGS,
+            ...(componentClass.attributePropertiesKept ?? []).map(
+                (name: string) => name.toLowerCase(),
+            ),
+        ]);
+        const attributes = componentClass.createAttributesObject();
+        for (const attributeName in attributes) {
+            if (kept.has(attributeName.toLowerCase())) {
+                continue;
+            }
+            names.add(attributeName.toLowerCase());
+            const variableName = attributes[attributeName].createStateVariable;
+            if (variableName && !kept.has(variableName.toLowerCase())) {
+                names.add(variableName.toLowerCase());
+            }
+        }
+    }
+    attributeNamesNotPropertiesByClass.set(componentClass, names);
+    return names;
+}
+
+/**
+ * The attributes object `attributes` of `componentClass`, with the
+ * attributes that are not properties ({@link attributeNamesNotProperties})
+ * no longer public, so the state variables they create are not.
+ */
+export function attributesAsProperties<T extends Record<string, any>>(
+    componentClass: any,
+    attributes: T,
+): T {
+    const notProperties = attributeNamesNotProperties(componentClass);
+    if (notProperties.size === 0) {
+        return attributes;
+    }
+    for (const name in attributes) {
+        const attribute = attributes[name];
+        if (attribute?.public && notProperties.has(name.toLowerCase())) {
+            (attributes as Record<string, any>)[name] = {
+                ...attribute,
+                public: false,
+            };
+        }
+    }
+    return attributes;
+}
+
+/**
+ * Make private the state variables in `stateVariableDefinitions` of
+ * `componentClass` that are its attributes, not properties
+ * ({@link attributeNamesNotProperties}). Internal code reads them as before.
+ */
+export function stateVariablesAsProperties(
+    componentClass: any,
+    stateVariableDefinitions: Record<string, any>,
+) {
+    const notProperties = attributeNamesNotProperties(componentClass);
+    if (notProperties.size === 0) {
+        return;
+    }
+    for (const name in stateVariableDefinitions) {
+        const definition = stateVariableDefinitions[name];
+        if (
+            definition?.public &&
+            !definition.isAlias &&
+            notProperties.has(name.toLowerCase())
+        ) {
+            stateVariableDefinitions[name] = { ...definition, public: false };
+        }
+    }
+}
+
+/**
  * The names of the public state variables of a component of class
  * `componentClass`: those it defines, and those its attributes create.
  */
 function publicVariablesOf(componentClass: any): Set<string> {
     const names = new Set<string>();
     const definitions = componentClass.returnStateVariableDefinitions();
+    stateVariablesAsProperties(componentClass, definitions);
     for (const name in definitions) {
         if (definitions[name].public) {
             names.add(name);
         }
     }
-    const attributes = componentClass.createAttributesObject();
+    const attributes = attributesAsProperties(
+        componentClass,
+        componentClass.createAttributesObject(),
+    );
     for (const name in attributes) {
         const { createStateVariable, public: isPublic } = attributes[name];
         if (createStateVariable && isPublic) {
