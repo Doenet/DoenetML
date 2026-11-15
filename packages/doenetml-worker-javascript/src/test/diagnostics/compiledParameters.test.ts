@@ -359,8 +359,9 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
      * derived from `from` and `to`, or values counted back from `to`), all
      * four, and a letters selection read as letters that may count back
      * before `a`. With `"fractional"`, a choice `f` counting back from a `to`
-     * that isn't a whole number, and sequences with a fractional step from
-     * a large `$t`.
+     * that isn't a whole number (some just short of one, off the step's
+     * grid), a choice `w` of large whole numbers, and sequences with a
+     * fractional step from a large `$t`.
      */
     function widerDocuments(
         random: () => number,
@@ -422,8 +423,12 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
                 ...(fractional
                     ? [
                           // its values count back from `to`: 1.6, 2.6, …
-                          `<selectFromSequence name="f" to="${pick(["2.6", "3.5", "4.25", "$a+0.5", "$a+1.6"])}"${pick(["", ` step="${pick(["1", "2", "$a"])}"`])}/>`,
+                          // or from a `to` just short of a whole number, off
+                          // the step's grid, whose count isn't rounded up
+                          `<selectFromSequence name="f" to="${pick(["2.6", "3.5", "4.25", "$a+0.5", "$a+1.6", "$a+0.9999999999", "2.9999999999"])}"${pick(["", ` step="${pick(["1", "2", "$a"])}"`])}/>`,
                           `<selectFromSequence name="t" from="${base}" to="${base + pick([1, 1000, 100000])}"/>`,
+                          // large whole numbers, whose counts are exact
+                          `<selectFromSequence name="w" ${pick([`to="1000000000" step="1000000"`, `from="1" to="1000000000" step="1000000"`, `from="1" to="2000000000" step="1000000000"`, `from="$a" to="$a+999999999" step="1000000000"`, `from="0.7" to="1000000000" step="1000000"`])}/>`,
                       ]
                     : []),
             ];
@@ -470,6 +475,8 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
                 target = pick([
                     `<selectFromSequence${pick(["", ` from="1"`, ` from="$f"`])} to="${pick(["$f", "$f+1", "$f-1", term()])}" numToSelect="${pick(["$f", "$f-1", "round($f)", "2", term()])}"/>`,
                     `<selectFromSequence from="$t" to="$t+${span}" step="${step}" numToSelect="${pick([String(count), String(count - 1), term()])}"/>`,
+                    `<selectFromSequence from="$t" to="$t+${pick(["0.9999999999", "1.9999999999", "2"])}" numToSelect="${pick(["2", "3", term()])}"/>`,
+                    `<selectFromSequence from="1" to="${pick(["floor($f)", "ceil($w/1000000000)", "2"])}" numToSelect="${pick(["1", "2", "floor($f)", "ceil($w/1000000000)", "ceil($w/2000000000)"])}"/>`,
                 ]);
             } else if (kind === "letters") {
                 const letter = () => pick(["c", "A", "$l", "$t", "$b"]);

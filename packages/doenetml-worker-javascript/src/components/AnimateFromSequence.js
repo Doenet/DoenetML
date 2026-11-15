@@ -134,6 +134,10 @@ export default class AnimateFromSequence extends BaseComponent {
                     dependencyType: "stateVariable",
                     variableName: "step",
                 },
+                last: {
+                    dependencyType: "stateVariable",
+                    variableName: "last",
+                },
                 exclude: {
                     dependencyType: "stateVariable",
                     variableName: "exclude",

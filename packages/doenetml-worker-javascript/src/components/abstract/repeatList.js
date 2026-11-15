@@ -154,6 +154,10 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
                     dependencyType: "stateVariable",
                     variableName: "step",
                 },
+                last: {
+                    dependencyType: "stateVariable",
+                    variableName: "last",
+                },
                 exclude: {
                     dependencyType: "stateVariable",
                     variableName: "exclude",

@@ -18,6 +18,7 @@ import me from "math-expressions";
 import {
     returnSequenceValueForIndex as returnSequenceValueForIndexJs,
     returnSequenceValues,
+    sequenceValueAt,
 } from "./sequence";
 
 /** `returnSequenceValueForIndex`, with the fields it reads optional. */
@@ -75,6 +76,8 @@ export type SequenceSelection = {
     from: any;
     step: any;
     length: number;
+    /** The last value, when it isn't `from + step (length - 1)`. */
+    last?: any;
     exclude: any[];
     lowercase?: boolean;
     numToSelect: number;
@@ -127,8 +130,7 @@ export function sequenceSelectionFailure(selection: SequenceSelection): {
         });
 
         if (coprime) {
-            const lastNumber =
-                selection.from + (selection.length - 1) * selection.step;
+            const lastNumber = sequenceValueAt(selection, selection.length - 1);
             let failure: SelectionFailure | null = null;
             if (numCombinationsExcluded > 0) {
                 coprime = false;
@@ -212,6 +214,7 @@ export function sequenceSelectionFailure(selection: SequenceSelection): {
                         from: selection.from,
                         step: selection.step,
                         length: selection.length,
+                        last: selection.last,
                         exclude: selection.exclude,
                         type: selection.type,
                     }) !== null
@@ -250,6 +253,8 @@ export function sequenceSpace(selection: SequenceSelection, coprime: boolean) {
                 index,
                 from: selection.from,
                 step: selection.step,
+                length: selection.length,
+                last: selection.last,
                 exclude: selection.exclude,
                 type: selection.type,
                 lowercase: selection.lowercase,
@@ -430,6 +435,8 @@ function valuesHaveNoCommonFactor(selection: SequenceSelection) {
             index,
             from: selection.from,
             step: selection.step,
+            length: selection.length,
+            last: selection.last,
             exclude: selection.exclude,
             type: selection.type,
         });

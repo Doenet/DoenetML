@@ -1010,13 +1010,15 @@ describe("SelectFromSequence tag tests @group4", async () => {
     });
 
     it("select multiple numbers with excludeCombinations, handles round-off error", async () => {
-        // Third number selected will be 0.1*3, which isn't exactly 0.3 due to round off error.
-        // Even so, excluding 0.3 works successfully.
+        // The count, (0.3 - 0.1) / 0.1 + 1, is 2.9999999999999996, which is 3
+        // within floating point, so the third number is `to`, 0.3, not
+        // 0.1 + 0.1*2, 0.30000000000000004, which is past it. Excluding 0.3
+        // works.
         const doenetML = `<selectFromSequence from="0.1" to="0.3" step="0.1" numToSelect="2" excludeCombinations="(0.1 0.3) (0.2 0.3) (0.3 0.1)" name="s"/>`;
         const valid_combinations = [
             [0.1, 0.2],
             [0.2, 0.1],
-            [0.1 * 3, 0.2],
+            [0.3, 0.2],
         ];
         const componentName = "s";
 

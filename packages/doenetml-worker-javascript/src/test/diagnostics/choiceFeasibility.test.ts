@@ -1083,6 +1083,104 @@ describe("An iteration index ranges over every iteration (SEL-5) @group4", () =>
         ]);
     });
 
+    it("a count is rounded up only within the floating point of its parameters, so off-grid and whole-number counts are as written, and values never pass `to`", async () => {
+        // A `to` just short of a whole number, off the step's grid, and
+        // large whole numbers keep their counts (`sequenceCountTolerance`):
+        // the run time can select, as the check finds, in each variant
+        const counts: [string, number][] = [
+            [
+                `<selectFromSequence name="a" to="1000000000" step="1000000"/>`,
+                1000,
+            ],
+            [
+                `<selectFromSequence name="a" from="1" to="1000000000" step="1000000"/>`,
+                1000,
+            ],
+            [
+                `<selectFromSequence name="a" from="0.7" to="1000000000" step="1000000"/>`,
+                1000,
+            ],
+            [
+                `<selectFromSequence name="a" from="1" to="2000000000" step="1000000000"/>`,
+                2,
+            ],
+            [
+                `<selectFromSequence name="a" from="0" to="0.9999999999" step="1"/>`,
+                1,
+            ],
+            [`<selectFromSequence name="a" from="0" to="2.9999999999"/>`, 3],
+            [`<selectFromSequence name="a" to="2.9999999999"/>`, 2],
+            [
+                `<selectFromSequence name="a" from="1000" to="1000.3" step="0.1"/>`,
+                4,
+            ],
+        ];
+        for (const [doenetML, length] of counts) {
+            const { core, resolvePathToNodeIdx, errors } = await load(doenetML);
+            expect(errors, doenetML).eqls([]);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("a")].stateValues
+                    .length,
+                doenetML,
+            ).eq(length);
+        }
+        for (const doenetML of [
+            `<selectFromSequence name="b" from="1" to="2"/><selectFromSequence name="a" to="$b+0.9999999999"/><selectFromSequence name="s" from="1" to="floor($a)"/>`,
+            `<selectFromSequence name="b" from="1" to="2"/><selectFromSequence name="a" to="$b+999999999" step="1000000000"/><selectFromSequence name="s" from="1" to="$a"/>`,
+            `<selectFromSequence name="a" from="0" to="2.9999999999"/><selectFromSequence name="s" from="1" to="1" numToSelect="ceil($a/2.9999999999)"/>`,
+            `<selectFromSequence name="a" from="1" to="2000000000" step="1000000000"/><selectFromSequence name="s" from="1" to="1" numToSelect="ceil($a/2000000000)"/>`,
+            `<selectFromSequence name="a" from="1" to="1000000000" step="1000000"/><selectFromSequence name="s" from="1" to="1" numToSelect="ceil($a/1000000000)"/>`,
+            // the last value is `to`, 1000.3 (not past it)
+            `<selectFromSequence name="t" from="1000" to="1003"/><selectFromSequence name="a" from="$t" to="$t+0.3" step="0.1"/><selectFromSequence name="s" from="$a" to="$t+0.3" step="0.1" numToSelect="1"/>`,
+            // whole numbers within floating point past `to`: 1 to 8
+            `<selectFromSequence name="a" from="1" to="(0.1+0.7)*10"/><selectFromSequence name="s" from="1" to="8" numToSelect="$a"/>`,
+        ]) {
+            expect(await errorsInVariants(doenetML), doenetML).eqls([
+                [],
+                [],
+                [],
+                [],
+            ]);
+        }
+
+        // `<selectRandomNumbers type="discreteUniform">`: its values as the
+        // run time computes them, `from + i step`: 1, not
+        // 0.9999999999999999, the sum of ten steps of 0.1
+        expect(
+            (
+                await load(
+                    `<selectRandomNumbers name="a" type="discreteUniform" from="0" to="1" step="0.1"/><selectFromSequence name="s" from="1" to="9" numToSelect="floor($a*10)"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, it has 9 values to select 10 from.",
+        ]);
+        // with no `from`, counted back from `to`: 0.1, 0.4, 0.7, 1
+        expect(
+            (
+                await load(
+                    `<selectRandomNumbers name="a" type="discreteUniform" to="1" step="0.3"/><selectFromSequence name="s" from="1" to="9" numToSelect="ceil($a*10)"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, it has 9 values to select 10 from.",
+        ]);
+        // with no `to`: `from` and `from + step`
+        expect(
+            (
+                await load(
+                    `<selectRandomNumbers name="a" type="discreteUniform" step="2"/><selectFromSequence name="s" from="1" to="1" numToSelect="$a"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 2, it has 1 value to select 2 from.",
+        ]);
+    });
+
     it("a letters sequence that reads the variant leaves out the letters its exclude writes", async () => {
         // the letters were compiled as their numbers, which the selection
         // reads as no letters: it left out nothing

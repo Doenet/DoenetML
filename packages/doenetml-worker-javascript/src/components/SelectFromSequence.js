@@ -914,6 +914,10 @@ function selectionDependencies() {
             dependencyType: "stateVariable",
             variableName: "step",
         },
+        last: {
+            dependencyType: "stateVariable",
+            variableName: "last",
+        },
         exclude: {
             dependencyType: "stateVariable",
             variableName: "exclude",
@@ -984,6 +988,7 @@ function selectionOfIndices(dependencyValues, indices) {
             from: dependencyValues.from,
             step: dependencyValues.step,
             length: dependencyValues.length,
+            last: dependencyValues.last,
             exclude: [],
             type: dependencyValues.type,
             lowercase: dependencyValues.lowercase,
@@ -1227,6 +1232,8 @@ function valuesHaveNoCommonFactor(dependencyValues) {
             index,
             from: dependencyValues.from,
             step: dependencyValues.step,
+            length: dependencyValues.length,
+            last: dependencyValues.last,
             exclude: dependencyValues.exclude,
             type: dependencyValues.type,
         });
@@ -1285,6 +1292,8 @@ function selectValuesAndIndices({
                     index: selectedIndex - 1,
                     from: stateValues.from,
                     step: stateValues.step,
+                    length: stateValues.length,
+                    last: stateValues.last,
                     exclude: stateValues.exclude,
                     type: stateValues.type,
                     lowercase: stateValues.lowercase,

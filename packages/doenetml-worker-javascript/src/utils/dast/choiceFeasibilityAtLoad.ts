@@ -141,8 +141,10 @@ import { mathCodePre } from "../valueFunctions/math";
 import { createInputStringFromChildren } from "../parseMath";
 import {
     calculateSequenceParameters,
-    sequenceLengthOf,
+    roundSequenceCount,
+    countToleranceOf,
     returnSequenceValueForIndex,
+    sequenceValueAt,
 } from "../sequence";
 import { createPrimesList } from "../primeNumbers";
 import {
@@ -523,6 +525,8 @@ type ChoiceSpec =
           to: Expr | null;
           step: Expr | null;
           numToSelect: Expr;
+          /** Whether it has an `exclude`. */
+          excludes?: boolean;
       };
 
 /**
@@ -961,6 +965,7 @@ export function checkChoiceFeasibilityAtLoad({
                 to,
                 step,
                 numToSelect,
+                excludes: attr(choice, "exclude") !== undefined,
             };
         }
         // `<select>`
@@ -1344,7 +1349,7 @@ export function checkChoiceFeasibilityAtLoad({
             throw new NotAnalysable(referenceText(ref));
         }
         return Array.from({ length: seq.length }, (_, i) =>
-            constant(seq.from + i * seq.step),
+            constant(numberAt(seq, i)),
         );
     }
 
@@ -2828,7 +2833,7 @@ export function checkChoiceFeasibilityAtLoad({
             length: Expr | null;
         },
         value: (e: Expr) => Value,
-    ): { from: number; step: number; length: number } | null {
+    ): ConcreteSequence | null {
         const read = (e: Expr | null) => {
             if (!e) {
                 return null;
@@ -2878,12 +2883,14 @@ export function checkChoiceFeasibilityAtLoad({
             return { lo: -Infinity, hi: Infinity, integer: false };
         }
         if (seq.length > MAX_VALUES) {
-            const last = seq.from + (seq.length - 1) * seq.step;
+            const last = numberAt(seq, seq.length - 1);
             return {
                 lo: Math.min(seq.from, last),
                 hi: Math.max(seq.from, last),
                 integer:
-                    Number.isInteger(seq.from) && Number.isInteger(seq.step),
+                    Number.isInteger(seq.from) &&
+                    Number.isInteger(seq.step) &&
+                    Number.isInteger(last),
             };
         }
         // an exclusion whose value isn't known leaves the value in: what
@@ -2901,7 +2908,7 @@ export function checkChoiceFeasibilityAtLoad({
             if (excluded.has(i)) {
                 continue;
             }
-            const v = seq.from + i * seq.step;
+            const v = numberAt(seq, i);
             values.push(
                 p.seqType === "letters"
                     ? lettersValue(v, p.lowercase ?? true)
@@ -2968,17 +2975,33 @@ export function checkChoiceFeasibilityAtLoad({
             return typeof v === "number" ? v : NaN;
         };
         if (spec.distribution === "discreteuniform") {
+            // its values as the run time computes them
+            // (`SampleRandomNumbers`: `from`, `to` and `numDiscreteValues`,
+            // and values `from + i step`): with a `to`, as many as
+            // `(to - from) / step + 1` rounded down, from `from` (0 when
+            // not written, counting back from `to`); with no `to`, `from`
+            // and `from + step`, past excluded values. An excluded value
+            // leaves out one of them, so these are what it can be.
             const from = read(spec.from, 0);
-            const to = read(spec.to, 1);
+            const to = read(spec.to, NaN);
             const step = read(spec.step, 1);
-            if (
-                [from, to, step].every(Number.isFinite) &&
-                step > 0 &&
-                (to - from) / step < MAX_VALUES
-            ) {
+            let first: number | null = null;
+            let count = 0;
+            if (Number.isFinite(from) && Number.isFinite(step) && step > 0) {
+                if (!spec.to) {
+                    if (!spec.excludes) {
+                        first = from;
+                        count = 2;
+                    }
+                } else if (Number.isFinite(to)) {
+                    count = Math.floor((to - from) / step + 1);
+                    first = spec.from ? from : to - (count - 1) * step;
+                }
+            }
+            if (first !== null && count < MAX_VALUES) {
                 const values: number[] = [];
-                for (let v = from; v <= to + 1e-14 * Math.abs(to); v += step) {
-                    values.push(v);
+                for (let i = 0; i < count; i++) {
+                    values.push(first + i * step);
                 }
                 return { finite: values };
             }
@@ -3355,6 +3378,7 @@ export function checkChoiceFeasibilityAtLoad({
                         from: seq.from,
                         step: seq.step,
                         length: seq.length,
+                        last: seq.last,
                         exclude: excludedValues,
                         lowercase: spec.lowercase,
                         numToSelect,
@@ -3392,7 +3416,7 @@ export function checkChoiceFeasibilityAtLoad({
                 values = [];
                 for (let i = 0; i < seq.length; i++) {
                     if (!excluded.has(i)) {
-                        values.push(seq.from + i * seq.step);
+                        values.push(numberAt(seq, i));
                     }
                 }
             }
@@ -3455,7 +3479,7 @@ export function checkChoiceFeasibilityAtLoad({
                     return "unknown";
                 }
                 const seq = concreteSequence(spec, value)!;
-                const last = seq.from + (seq.length - 1) * seq.step;
+                const last = numberAt(seq, seq.length - 1);
                 if (
                     !Number.isInteger(seq.from) ||
                     !Number.isInteger(seq.step) ||
@@ -3830,21 +3854,35 @@ export function checkChoiceFeasibilityAtLoad({
             if (p.length) {
                 return Math.round(intervalOf(p.length).hi);
             }
-            const from = p.from ? intervalOf(p.from) : { lo: 1, hi: 1 };
+            const from = p.from
+                ? intervalOf(p.from)
+                : { lo: 1, hi: 1, integer: true };
             if (!p.to) {
                 return 10;
             }
             const to = intervalOf(p.to);
-            const step = p.step ? intervalOf(p.step) : { lo: 1, hi: 1 };
+            const step = p.step
+                ? intervalOf(p.step)
+                : { lo: 1, hi: 1, integer: true };
             if (!(step.lo > 0)) {
                 return Infinity;
             }
-            // as the run time rounds it down (`calculateSequenceParameters`)
-            return sequenceLengthOf((to.hi - from.lo) / step.lo + 1, {
-                from: from.lo,
-                to: to.hi,
-                step: step.lo,
-            });
+            // the most the run time's count can be (`sequenceLengthOf`): the
+            // greatest count, rounded up to a whole number when within the
+            // greatest tolerance of one (0 with whole numbers only)
+            const wholeNumbers = [from, to, step].every(
+                (x) =>
+                    x.integer &&
+                    Number.isSafeInteger(x.lo) &&
+                    Number.isSafeInteger(x.hi),
+            );
+            const magnitude = Math.max(
+                ...[from.lo, from.hi, to.lo, to.hi].map(Math.abs),
+            );
+            return roundSequenceCount(
+                (to.hi - from.lo) / step.lo + 1,
+                wholeNumbers ? 0 : countToleranceOf(magnitude, step.lo),
+            );
         }
         return Infinity;
     }
@@ -4029,7 +4067,59 @@ export function checkChoiceFeasibilityAtLoad({
             from.integer &&
             step.integer &&
             (p.from || !model.last || intervalOf(model.last).integer);
+        if (integer && p.from && model.last) {
+            const last = intervalOf(model.last);
+            if (!last.integer && mayEndAtToNotWhole(last, step, from)) {
+                // a count rounded up to a whole number ends at the whole
+                // number within floating point past `to`
+                // (`calculateSequenceParameters`)
+                if (!(step.hi < 0)) {
+                    hi = Math.max(hi, Math.ceil(last.hi));
+                }
+                if (!(step.lo > 0)) {
+                    lo = Math.min(lo, Math.floor(last.lo));
+                }
+            }
+        }
         return { lo, hi, integer: Boolean(integer) };
+    }
+
+    /**
+     * Whether a sequence of whole numbers `from` and `step` with a `to`
+     * that isn't a whole number may end past that `to`, at a whole number:
+     * when its count is rounded up to a whole number (`sequenceLengthOf`),
+     * which is when `to` is within floating point below (with a step above
+     * 0; above, with a step below 0) the whole number its steps reach. That
+     * is within `1e-14` of the count plus the tolerance, in steps; `1e-13`
+     * of the largest magnitude bounds both.
+     */
+    function mayEndAtToNotWhole(
+        to: Interval,
+        step: Interval,
+        from: Interval,
+    ): boolean {
+        if (![to.lo, to.hi].every(Number.isFinite)) {
+            return true;
+        }
+        const width =
+            1e-13 *
+            Math.max(
+                1,
+                ...[from.lo, from.hi, to.lo, to.hi, step.lo, step.hi].map(
+                    Math.abs,
+                ),
+            );
+        // just below a whole number, for a step above 0
+        const below = to.hi >= Math.floor(to.lo) + 1 - width;
+        // just above one, for a step below 0
+        const above = to.lo <= Math.ceil(to.hi) - 1 + width;
+        if (step.lo > 0) {
+            return below;
+        }
+        if (step.hi < 0) {
+            return above;
+        }
+        return below || above;
     }
 
     function choiceBounds(choice: any, spec: ChoiceSpec) {
@@ -5900,11 +5990,28 @@ function mathMayBeZero(step: Expr | null, value: (e: Expr) => Value): boolean {
 }
 
 /**
+ * A sequence's `from`, `step`, how many values it has and, when it isn't
+ * `from + step (length - 1)`, its last value, as numbers, as the sequence
+ * computes them (`calculateSequenceParameters`).
+ */
+type ConcreteSequence = {
+    from: number;
+    step: number;
+    length: number;
+    last?: number | null;
+};
+
+/** The value at index `i` (from 0) of `seq`, as the sequence computes it. */
+function numberAt(seq: ConcreteSequence, i: number): number {
+    return sequenceValueAt({ ...seq, type: "number" }, i);
+}
+
+/**
  * The indices (from 0) of the values of `seq` that `excluded` leaves out,
  * as the sequence decides (`returnSequenceValueForIndex`).
  */
 function excludedIndices(
-    seq: { from: number; step: number; length: number },
+    seq: ConcreteSequence,
     excluded: number[],
     seqType = "number",
 ): Set<number> {
@@ -5912,7 +6019,7 @@ function excludedIndices(
         seqType === "math"
             ? (x: number, i: number) => sameMath(x, seq, i)
             : (x: number, i: number) =>
-                  sameNumber(x, seq.from + i * seq.step, seq.step);
+                  sameNumber(x, numberAt(seq, i), seq.step);
     const found = new Set<number>();
     for (const x of excluded) {
         if (seq.step === 0) {
@@ -5943,12 +6050,8 @@ const sameMathFound = new Map<string, boolean>();
  * exclusion with `equals` (`returnSequenceValueForIndex`), whose tolerance
  * isn't a number sequence's.
  */
-function sameMath(
-    x: number,
-    seq: { from: number; step: number },
-    i: number,
-): boolean {
-    const v = seq.from + i * seq.step;
+function sameMath(x: number, seq: ConcreteSequence, i: number): boolean {
+    const v = numberAt(seq, i);
     if (
         Math.abs(x - v) >
         1e-9 * Math.max(Math.abs(x), Math.abs(v), Math.abs(seq.step))
@@ -5956,7 +6059,8 @@ function sameMath(
         // much further apart than `equals` tells apart
         return false;
     }
-    const key = `${seq.from},${seq.step},${i},${x}`;
+    const last = seq.last ?? null;
+    const key = `${seq.from},${seq.step},${seq.length},${last},${i},${x}`;
     let found = sameMathFound.get(key);
     if (found === undefined) {
         found =
@@ -5964,6 +6068,8 @@ function sameMath(
                 index: i,
                 from: me.fromAst(seq.from),
                 step: me.fromAst(seq.step),
+                length: seq.length,
+                last: last === null ? null : me.fromAst(last),
                 exclude: [me.fromAst(x)],
                 type: "math",
             }) === null;
