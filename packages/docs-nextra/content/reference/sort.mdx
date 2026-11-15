@@ -102,6 +102,51 @@ using the `<sort>{:dn}` component.
 
 
 
+---
+
+### Example: Items of one type, and lists sorted together
+
+
+```doenet-editor-horiz
+<numberList name="a">7 2 9</numberList>
+<numberList name="b">4 1</numberList>
+<number name="c">5</number>
+
+<p><sort>$a $b $c</sort></p>
+```
+
+
+A `<sort>{:dn}` sorts items of one type. A list among its children, such as a
+`<numberList>{:dn}`, gives its entries as items, so several lists are sorted together
+with any other numbers. A `<number>{:dn}` and a `<math>{:dn}` are one type for sorting,
+as both are ordered by value. A `<number>{:dn}` beside a `<text>{:dn}`, or a
+`<point>{:dn}` beside a `<vector>{:dn}`, is an error, shown in place of the sorted list:
+give each type a `<sort>{:dn}` of its own.
+
+A `<group>{:dn}` holding one component is sorted as that component. A `<group>{:dn}`
+holding several components has nothing to be compared by, so a `<sort>{:dn}` of one is
+an error. To keep components together while reordering them, use a
+[`<shuffle>{:dn}`](shuffle).
+
+
+
+---
+
+### Example: Blanks go last
+
+
+```doenet-editor-horiz
+<numberList name="scores">8 $missing 3</numberList>
+
+<p><sort>$scores 5</sort></p>
+```
+
+
+A reference that names nothing, like `$missing` here, is a blank (`＿`). A
+`<sort>{:dn}` keeps it and puts it after every value, whatever the type. So does a number that has no value (`NaN`).
+
+
+
 ## Attribute Examples
 
 ### Attribute Example: type

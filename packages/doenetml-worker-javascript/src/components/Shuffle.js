@@ -13,7 +13,9 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { returnBreakStringsIntoTypeSugarInstruction } from "../utils/listValues";
 import { listEntryReplacement } from "./Sort";
+import { isWrapperOfSeveral } from "../utils/wrappers";
 import { returnReplacementsToHideDefinitions } from "../utils/replacementsToHide";
+import { reorderErrorReplacements } from "../utils/reorderErrors";
 
 /**
  * What the shuffle copies for `key`, one of its `originalComponentIndices`:
@@ -27,6 +29,36 @@ function shuffledSource(key, components) {
         return list ? { list, listInd } : undefined;
     }
     return components[key];
+}
+
+/**
+ * The wrappers of several components among the children of a `<shuffle>`,
+ * which it moves as one item each, from the ranges of its children that
+ * composites made (`compositeReplacementRange`, with `wrapperOfSeveral`): by
+ * the index of the first child of each, the outermost where they are
+ * nested.
+ */
+function wrapperUnits(ranges = []) {
+    const wrappers = ranges
+        .filter(
+            (range) =>
+                range.wrapperOfSeveral && range.lastInd >= range.firstInd,
+        )
+        .sort(
+            (a, b) =>
+                a.firstInd - b.firstInd ||
+                b.lastInd - b.firstInd - (a.lastInd - a.firstInd),
+        );
+    const units = new Map();
+    let coveredTo = -1;
+    for (const range of wrappers) {
+        if (range.firstInd <= coveredTo) {
+            continue;
+        }
+        units.set(range.firstInd, range);
+        coveredTo = range.lastInd;
+    }
+    return units;
 }
 
 export default class Shuffle extends CompositeComponent {
@@ -95,7 +127,9 @@ export default class Shuffle extends CompositeComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType, {
+                allowComponents: true,
+            }),
         );
 
         return sugarInstructions;
@@ -124,12 +158,28 @@ export default class Shuffle extends CompositeComponent {
                     childGroups: ["anything"],
                     variableNames: ["componentIndicesInList"],
                     variablesOptional: true,
+                    markWrappersOfSeveral: true,
+                    reportCompositeChanges: true,
                 },
             }),
             definition({ dependencyValues }) {
                 let originalComponentIndices = [];
                 const diagnostics = [];
-                for (let child of dependencyValues.children) {
+                const children = dependencyValues.children;
+                // A wrapper of several components (a `<group>`, an
+                // iteration, a pick, a case shown) is not flattened: it is
+                // moved as one item, and its components stay together
+                // (COLL-4, D41 decision 4). The outermost one, where they
+                // are nested.
+                const units = wrapperUnits(children.compositeReplacementRange);
+                for (let ind = 0; ind < children.length; ind++) {
+                    const unit = units.get(ind);
+                    if (unit) {
+                        originalComponentIndices.push(unit.compositeIdx);
+                        ind = unit.lastInd;
+                        continue;
+                    }
+                    const child = children[ind];
                     if (typeof child === "string") {
                         diagnostics.push(
                             codedDiagnostic({
@@ -411,6 +461,16 @@ export default class Shuffle extends CompositeComponent {
         workspace,
         nComponents,
     }) {
+        // Items not of one type, decided at load (COLL-4): the error.
+        const errorResult = reorderErrorReplacements({
+            component,
+            nComponents,
+        });
+        if (errorResult) {
+            workspace.componentsCopied = [];
+            return errorResult;
+        }
+
         let diagnostics = [];
 
         let replacements = [];
@@ -495,6 +555,31 @@ export default class Shuffle extends CompositeComponent {
             );
             nComponents = res.nComponents;
 
+            if (
+                replacementSource.componentType === "_copy" &&
+                isWrapperOfSeveral(replacementSource)
+            ) {
+                // A reference to a group of several (`$g`) makes the group's
+                // components in its place, so its copy is put in a group,
+                // to be one item, as a group written in the shuffle is
+                // (`$sh[1]` is the whole of it).
+                replacements.push({
+                    type: "serialized",
+                    componentType: "group",
+                    componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                    attributes: {},
+                    // what it is the copy of, for
+                    // `recreateMissingReplacements`
+                    doenetAttributes: {
+                        shuffledUnitOf: replacementSource.componentIdx,
+                    },
+                    state: {},
+                    children: res.components,
+                });
+                continue;
+            }
+
             replacements.push(...res.components);
         }
 
@@ -541,7 +626,9 @@ export default class Shuffle extends CompositeComponent {
             if (
                 typeof sourceIdx === "string"
                     ? replacement !== undefined
-                    : replacement?.shadows?.componentIdx === sourceIdx
+                    : replacement?.shadows?.componentIdx === sourceIdx ||
+                      replacement?.doenetAttributes?.shuffledUnitOf ===
+                          sourceIdx
             ) {
                 replacementInd++;
                 continue;
@@ -586,6 +673,11 @@ export default class Shuffle extends CompositeComponent {
         nComponents,
     }) {
         let diagnostics = [];
+
+        if (component.doenetAttributes?.reorderErrorAtLoad) {
+            // the error, which does not change
+            return { replacementChanges: [], diagnostics, nComponents };
+        }
 
         let componentsToCopy = [];
 
@@ -653,6 +745,23 @@ export default class Shuffle extends CompositeComponent {
         let numComponents = 0;
 
         for (let child of serializedComponent.children) {
+            if (
+                typeof child === "object" &&
+                child.componentType === "group" &&
+                !child.extending
+            ) {
+                // A group of several components is one item (COLL-4). A
+                // group of one stands for its component, which is left
+                // undecided here, as before.
+                const held = child.children.filter(
+                    (x) => typeof x !== "string" || x.trim() !== "",
+                );
+                if (held.length > 1) {
+                    numComponents++;
+                    continue;
+                }
+                return undefined;
+            }
             // A list component (`<sequence>`) is as many children as it
             // has entries, which are not known from the document.
             if (

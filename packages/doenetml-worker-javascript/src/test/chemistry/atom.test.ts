@@ -191,9 +191,11 @@ describe("Atom tests @group3", async () => {
     <atom symbol="o" />
   </group></p>
 
-  <p name="pAn">Sort by atomic number: <sort sortByProp="atomicNumber">$original</sort></p>
-  <p name="pAr">Sort by atomic radius: <sort sortByProp="atomicRadius">$original</sort></p>
-  <p name="pIe">Sort by ionization energy: <sort sortByProp="ionizationEnergy">$original</sort></p>
+  <!-- a group of several is not flattened by a sort (COLL-4), so the atoms
+       are collected from it -->
+  <p name="pAn">Sort by atomic number: <sort sortByProp="atomicNumber"><collect componentType="atom" from="$original"/></sort></p>
+  <p name="pAr">Sort by atomic radius: <sort sortByProp="atomicRadius"><collect componentType="atom" from="$original"/></sort></p>
+  <p name="pIe">Sort by ionization energy: <sort sortByProp="ionizationEnergy"><collect componentType="atom" from="$original"/></sort></p>
   `,
         });
 

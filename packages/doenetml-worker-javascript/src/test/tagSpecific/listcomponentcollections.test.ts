@@ -610,9 +610,11 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     `,
         });
 
+        // A text and a number are two types, an error at load (COLL-4); they
+        // used to be sorted as text (`3, b`).
         await expectTexts(core, resolvePathToNodeIdx, {
             p1: "1, 2.5, 3",
-            p2: "3, b",
+            p2: "",
         });
     });
 
@@ -1247,13 +1249,13 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     <p name="p1">$c[1].anchor | $d[1].anchor | $d[1].styleNumber</p>
     <sort name="s">$c</sort>
     <p name="p2">$s[1].anchor $s[2].anchor | $s[1].styleNumber</p>
-    <sort name="s2">$m z</sort>
+    <sort name="s2" type="math">$m z</sort>
     <p name="p3">$s2[1].anchor</p>
     <shuffle name="sh">$m</shuffle>
     <p name="p4">$sh[1].anchor</p>
     <sort name="s3">$m</sort>
     <p name="p5">$s3[1].anchor</p>
-    <sort name="s4"><sort>$m z</sort></sort>
+    <sort name="s4"><sort type="math">$m z</sort></sort>
     <p name="p6">$s4[1].anchor</p>
     `,
         });

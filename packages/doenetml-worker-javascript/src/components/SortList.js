@@ -4,7 +4,7 @@ import {
 } from "./abstract/ReorderedValueList";
 import { entryKind } from "./abstract/ValueListComponent";
 import Sort, { returnSortAttributes } from "./Sort";
-import { compareExtractedValues } from "../utils/listValues";
+import { compareForSorting } from "../utils/listValues";
 import { coordinatesOf, coordinatesValue } from "./abstract/GraphicalValueList";
 
 /**
@@ -49,6 +49,10 @@ function sortListClass(Base) {
                             dependencyType: "stateVariable",
                             variableName: "sortByComponent",
                         },
+                        childOrderMissing: {
+                            dependencyType: "stateVariable",
+                            variableName: "childOrderMissing",
+                        },
                         ...(entryType === "vector" &&
                         stateValues.sortVectorsBy === "tail"
                             ? {
@@ -63,18 +67,27 @@ function sortListClass(Base) {
                         const sortedValues =
                             dependencyValues.childOrderTails ??
                             dependencyValues.childOrderValues;
-                        const comparables = sortedValues.map((value) =>
-                            entryType === "point" || entryType === "vector"
-                                ? comparableCoordinate(
-                                      value,
-                                      dependencyValues.sortByComponent,
-                                  )
-                                : comparableEntryValue(value, kind),
+                        const comparables = sortedValues.map((value, ind) =>
+                            dependencyValues.childOrderMissing[ind]
+                                ? // a blank, placed last (`compareForSorting`)
+                                  {
+                                      numericalValue: NaN,
+                                      textValue: "",
+                                      numeric: true,
+                                      missing: true,
+                                  }
+                                : entryType === "point" ||
+                                    entryType === "vector"
+                                  ? comparableCoordinate(
+                                        value,
+                                        dependencyValues.sortByComponent,
+                                    )
+                                  : comparableEntryValue(value, kind),
                         );
                         const numeric = comparables.every((x) => x.numeric);
                         const entryOrder = [...comparables.keys()].sort(
                             (a, b) =>
-                                compareExtractedValues(
+                                compareForSorting(
                                     comparables[a],
                                     comparables[b],
                                     numeric,
@@ -86,6 +99,47 @@ function sortListClass(Base) {
                         };
                     },
                 },
+            };
+            // Whether each entry, in the order of the children, is blank:
+            // a reference that names nothing or past the end of a list, a
+            // child that is missing, or a blank entry of a list among the
+            // children (VAL-5, D40), which `<sort>` places last.
+            definitions.childOrderMissing = {
+                returnDependencies: () => ({
+                    entryStructure: {
+                        dependencyType: "stateVariable",
+                        variableName: "childOrderEntryStructure",
+                    },
+                    children: {
+                        dependencyType: "child",
+                        childGroups: componentGroups,
+                        variableNames: ["valueMissing", "contentMissing"],
+                        variablesOptional: true,
+                    },
+                }),
+                definition: ({ dependencyValues }) => ({
+                    setValue: {
+                        childOrderMissing: dependencyValues.entryStructure.map(
+                            (source) => {
+                                if (source.missing) {
+                                    return true;
+                                }
+                                if (source.componentInd === undefined) {
+                                    return false;
+                                }
+                                const child =
+                                    dependencyValues.children[
+                                        source.componentInd
+                                    ];
+                                return Boolean(
+                                    child?.componentType === "_missing" ||
+                                    child?.stateValues?.valueMissing ||
+                                    child?.stateValues?.contentMissing,
+                                );
+                            },
+                        ),
+                    },
+                }),
             };
             if (entryType === "vector") {
                 // The tail of each vector, in the order of the children, by

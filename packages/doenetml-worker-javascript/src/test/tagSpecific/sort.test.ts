@@ -622,31 +622,25 @@ describe("Sort tag tests @group4", async () => {
         });
     });
 
-    it("sort texts, numbers, maths", async () => {
+    it("sort texts", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort>
         <text>b</text>
-        <number>3</number>
-        <math>5</math>
+        <text>3</text>
         <textList>1 z 15 orange</textList>
-        <math>x</math>
-        <number>222</number>
-        <mathList>8 u</mathList>
-        <numberList>99 765</numberList>
+        <text>x</text>
+        <textList>222 u</textList>
     </sort></p>
   `,
         });
 
+        // texts sort alphabetically, digits and all
         const sorted_result = [
             "1",
             "15",
             "222",
             "3",
-            "5",
-            "765",
-            "8",
-            "99",
             "b",
             "orange",
             "u",
@@ -659,6 +653,30 @@ describe("Sort tag tests @group4", async () => {
             resolvePathToNodeIdx,
             sorted_result,
         });
+    });
+
+    it("texts, numbers and maths together are an error at load", async () => {
+        // A `<sort>` takes items of one type (COLL-4, D41): this used to sort
+        // them all as text.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><sort>
+        <text>b</text>
+        <number>3</number>
+        <math>5</math>
+        <textList>1 z 15 orange</textList>
+        <math>x</math>
+        <numberList>99 765</numberList>
+    </sort></p>
+  `,
+        });
+
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result: [""] });
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => e.code)).eqls(["doenet-e0076"]);
+        expect(errors[0].message).eq(
+            "`<sort>` takes items of one type, but it has a `<text>` and a `<number>`. Give each type a `<sort>` of its own.",
+        );
     });
 
     it("sort sugar type math", async () => {
@@ -1062,7 +1080,8 @@ describe("Sort tag tests @group4", async () => {
         expect((await replacementStateIds()).stateIds).eqls(stateIds);
     });
 
-    it("string children ignored when mixed with non-string children with warning", async () => {
+    it("text beside components is read as their type", async () => {
+        // It used to be left out, with a warning (#2525 item 3).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort>
@@ -1071,24 +1090,14 @@ describe("Sort tag tests @group4", async () => {
   `,
         });
 
-        const sorted_result = ["b", "d"];
-
         await test_sort({
             core,
             resolvePathToNodeIdx,
-            sorted_result,
+            sorted_result: ["a", "b", "d"],
             replacements_all_of_type: "math",
         });
 
-        let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).gte(1);
-        expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes(
-                    'String " a " is not a valid component to sort.',
-                ),
-            ),
-        ).eq(true);
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
     // A composite's replacements. A `<sort>` of points or values of one type
     // is a list (`listcomponentcollections.test.ts`); `hide="false"`, which

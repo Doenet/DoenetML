@@ -1075,11 +1075,13 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
     });
 
     it("still selects the items of a shuffle or a sort", async () => {
-        // A shuffle or a sort of groups arranges what the groups hold, so
-        // its items are the components in them, and an index after one is
-        // an index into that component (`doenet-w0100` for a math)
+        // A group of one component in a sort stands for that component
+        // (COLL-4), so its items are the components, and an index after one
+        // is an index into that component (`doenet-w0100` for a math). (A
+        // sort of a group of several is an error, and a shuffle moves one as
+        // a unit.)
         const { text, warnings } = await shownAndReported(
-            `<sort name="sh"><group><math>a</math><math>b</math></group><group><math>c</math></group></sort><p name="p">[$sh[2]] [$sh[3]] [$sh[1][2]]</p>`,
+            `<sort name="sh"><group><math>a</math></group><group><math>b</math></group><group><math>c</math></group></sort><p name="p">[$sh[2]] [$sh[3]] [$sh[1][2]]</p>`,
         );
         expect(text).eq("[b] [c] [＿]");
         expect(warnings.map((w) => w.code)).eqls(["doenet-w0100"]);

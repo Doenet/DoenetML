@@ -1969,3 +1969,37 @@ copy-with-state-of-uri = `copyWithState` of `{ $uri }` carries nothing more than
 # inside it, such as a `<module>` attribute that sets a nested `numToSelect`.
 # The choices copied with the state are kept, so it changes nothing there.
 copy-with-state-attribute-reaches-choice = `{ $attribute }` reaches a choice inside this `copyWithState`, which keeps the choices it copies, so it does not change them. Use `copy` to make the choices again.
+
+# A `<sort>` or `<shuffle>` ($component) whose items are of more than one
+# type (COLL-4, D41). $first and $second are two of the items found, each
+# described by a kind: "one", a component of the tag $first; "piece", the
+# text $firstPiece the author wrote, read as the tag $first; "group", a
+# `<group>` of $firstCount components; or "item", the items of the
+# collection $first (`repeat`, `select`, `conditionalContent`), each holding
+# $firstCount components. Likewise for $second.
+reorder-items-of-several-types = `<{ $component }>` takes items of one type, but it has { $firstKind ->
+        [group] a `<group>` of { $firstCount } components
+        [item] the items of a `<{ $first }>` (each of { $firstCount } components)
+        [piece] `{ $firstPiece }` (read as a `<{ $first }>`)
+       *[one] a `<{ $first }>`
+    } and { $secondKind ->
+        [group] a `<group>` of { $secondCount } components
+        [item] the items of a `<{ $second }>` (each of { $secondCount } components)
+        [piece] `{ $secondPiece }` (read as a `<{ $second }>`)
+       *[one] a `<{ $second }>`
+    }. Give each type a `<{ $component }>` of its own{ $firstKind ->
+        [piece] , or write `type` to say how to read the text
+       *[other] { $secondKind ->
+            [piece] , or write `type` to say how to read the text
+           *[other] {""}
+        }
+    }.
+
+# A `<sort>` of an item holding several components, which has nothing to be
+# compared by (COLL-4, D41). The item is described by $itemKind: "group", a
+# `<group>` of $itemCount components, or "item", the items of the
+# collection $item, each holding $itemCount components.
+sort-item-of-several = { $itemKind ->
+        [item] `<sort>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components.
+       *[group] `<sort>` can't compare a `<group>` of { $itemCount } components.
+    } Sort the components themselves, or use `<shuffle>` to keep each item's components together.

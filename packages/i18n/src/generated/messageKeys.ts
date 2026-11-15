@@ -628,6 +628,8 @@ export type MessageKey =
     | "choice-parameter-not-a-number"
     | "copy-with-state-of-uri"
     | "copy-with-state-attribute-reaches-choice"
+    | "reorder-items-of-several-types"
+    | "sort-item-of-several"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1322,6 +1324,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "choice-parameter-not-a-number",
     "copy-with-state-of-uri",
     "copy-with-state-attribute-reaches-choice",
+    "reorder-items-of-several-types",
+    "sort-item-of-several",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

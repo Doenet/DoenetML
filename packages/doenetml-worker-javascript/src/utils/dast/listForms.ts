@@ -16,7 +16,7 @@ import { serializedAttributeComponent } from "../literalAttribute";
  *   of the types of `REORDERED_LIST_BASES`, or a list of them: an authored
  *   component, the text its sugar split into such components, a reference
  *   whose type the document gives, a list component, or a `<group>` of
- *   such children;
+ *   one such child (a group of several is moved as one item, COLL-4);
  * - and none is an `extend` or `copy`, or takes an attribute the list does
  *   not (`sortByProp`, or, for a `<collect>`, one it would pass on to the
  *   copies it makes, other than the display settings and `hide`).
@@ -382,7 +382,9 @@ export function convertToListForms({
      * reads through a `<group>` among its children. Only a group that is not
      * an `extend` or `copy` and sets nothing but its name and `hide`
      * qualifies, so that a hidden group hides its entries in the list as it
-     * hides them anywhere else (#2390).
+     * hides them anywhere else (#2390). A group of several components is not
+     * flattened (COLL-4): a `<shuffle>` moves it as one item, which the
+     * composite does, and a `<sort>` of it is an error.
      */
     function groupValueType(
         group: SerializedComponent,
@@ -391,7 +393,10 @@ export function convertToListForms({
             group.extending !== undefined ||
             !Object.keys(group.attributes).every((name) =>
                 GROUP_ATTRIBUTES.has(name.toLowerCase()),
-            )
+            ) ||
+            group.children.filter(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            ).length > 1
         ) {
             return undefined;
         }
@@ -448,6 +453,9 @@ export function convertToListForms({
         let type: string | null = null;
         if (
             component.extending === undefined &&
+            // one whose items are not of one type is an error, shown by the
+            // composite (`reorderedItemsAtLoad.ts`)
+            component.doenetAttributes?.reorderErrorAtLoad === undefined &&
             hasOnlyListFormAttributes(component) &&
             copiesKeepTheList(component)
         ) {

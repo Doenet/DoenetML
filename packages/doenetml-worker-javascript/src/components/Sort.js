@@ -6,11 +6,12 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import {
-    compareExtractedValues,
+    compareForSorting,
     returnBreakStringsIntoTypeSugarInstruction,
     returnListValueStateVariableDefinitions,
 } from "../utils/listValues";
 import { returnReplacementsToHideDefinitions } from "../utils/replacementsToHide";
+import { reorderErrorReplacements } from "../utils/reorderErrors";
 
 /**
  * The permutation taking `previous` to `current`, or `null` if `current` is
@@ -263,7 +264,7 @@ export function returnSortedValuesDefinition() {
             let sortedValues = [...dependencyValues.listValues];
 
             sortedValues.sort((a, b) =>
-                compareExtractedValues(a, b, dependencyValues.allAreNumeric),
+                compareForSorting(a, b, dependencyValues.allAreNumeric),
             );
 
             return { setValue: { sortedValues } };
@@ -305,7 +306,9 @@ export default class Sort extends CompositeComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType, {
+                allowComponents: true,
+            }),
         );
 
         return sugarInstructions;
@@ -331,6 +334,7 @@ export default class Sort extends CompositeComponent {
             returnListValueStateVariableDefinitions({
                 componentName: this.componentType,
                 supportProps: true,
+                keepMissing: true,
             }),
         );
 
@@ -390,6 +394,16 @@ export default class Sort extends CompositeComponent {
         workspace,
         nComponents,
     }) {
+        // Items not of one type, decided at load (COLL-4): the error.
+        const errorResult = reorderErrorReplacements({
+            component,
+            nComponents,
+        });
+        if (errorResult) {
+            workspace.componentsCopied = [];
+            return errorResult;
+        }
+
         let diagnostics = [];
 
         let replacements = [];
@@ -487,6 +501,11 @@ export default class Sort extends CompositeComponent {
         nComponents,
     }) {
         let diagnostics = [];
+
+        if (component.doenetAttributes?.reorderErrorAtLoad) {
+            // the error, which does not change
+            return { replacementChanges: [], diagnostics, nComponents };
+        }
 
         let componentsToCopy = [];
 

@@ -50,6 +50,7 @@ import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
 import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
+import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -789,6 +790,18 @@ export async function normalizedDastToSerializedComponents(
             serializedComponents: sugarResult.components,
             componentInfoObjects,
             sources: normalized_root.sources,
+        }),
+    );
+
+    // A `<sort>` or `<shuffle>` takes items of one type, decided from what
+    // is written (COLL-4, D41 decision 4): one that does not is an error,
+    // marked on it and reported now, wherever it is (DIAG-7). After sugar,
+    // which splits its text into the items it reads, and before the list
+    // forms, which leave one in error a composite.
+    diagnostics.push(
+        ...checkReorderedItemsAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
         }),
     );
 

@@ -104,11 +104,13 @@ describe("A copy of a <sort> reads the text written in it as its own type (#2414
 <p name="pt"><sort name="t" type="text">$x 10 3 $y</sort></p>
 <p name="p2"><sort copy="$t" type="number"/></p>
 `);
+        // Numbers among text are items of two types, an error at load
+        // (COLL-4), as is a copy of it; they used to be sorted as text.
         expect(await texts(["ps", "p1", "pt", "p2"])).eqls({
             ps: "1, 3, 5, 10",
             p1: "1, 10, 3, 5",
-            pt: "10, 20, 3, 5",
-            p2: "3, 5, 10, 20",
+            pt: "",
+            p2: "",
         });
     });
 

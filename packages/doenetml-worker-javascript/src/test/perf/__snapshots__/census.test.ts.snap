@@ -387,10 +387,10 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
   },
   "components": 6,
   "copies": 1,
-  "dependencies": 673,
+  "dependencies": 676,
   "shadows": 1,
-  "stateVariables": 452,
-  "stateVariablesResolved": 272,
+  "stateVariables": 453,
+  "stateVariablesResolved": 273,
 }
 `;
 
