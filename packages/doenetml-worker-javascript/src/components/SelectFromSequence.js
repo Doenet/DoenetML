@@ -2,6 +2,7 @@ import { serializedAttributeComponent } from "../utils/literalAttribute";
 import Sequence from "./Sequence";
 import {
     calculateSequenceParameters,
+    invalidSequenceAttribute,
     returnSequenceValueForIndex,
     returnSequenceValues,
 } from "../utils/sequence";
@@ -24,10 +25,8 @@ import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     NO_SELECT_ERROR,
     choicesWrittenWithoutReference,
-    returnChoicesDecidedByDoenetMLDefinition,
     returnSelectErrorReportDefinition,
     selectError,
-    selectFailureType,
     selectionResult,
     takeSelectError,
     keptSelection,
@@ -41,6 +40,8 @@ import {
 } from "../utils/validCombinations";
 import {
     excludedCombinationsOf,
+    notANumberFailure,
+    numToSelectNotANumber,
     sequenceSelectionFailure,
     sequenceSpace,
 } from "../utils/selectionFailure";
@@ -48,9 +49,8 @@ const { gcd } = me.math;
 
 /**
  * The attributes that decide what a `<selectFromSequence>` can select. When
- * none of them can change, a failure to select is an error; otherwise it is
- * a missing selection with an info (`selectFailureType`,
- * `choicesDecidedByDoenetML`).
+ * all are written without a reference, a fresh load reproduces its
+ * selection (`choicesWrittenWithoutReference`).
  */
 const ATTRIBUTES_DECIDING_CHOICES = [
     "from",
@@ -291,11 +291,6 @@ export default class SelectFromSequence extends Sequence {
             },
         };
 
-        stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition({
-                attributeNames: ATTRIBUTES_DECIDING_CHOICES,
-            });
-
         stateVariableDefinitions.selectedValues = {
             immutable: true,
             hasEssential: true,
@@ -327,10 +322,6 @@ export default class SelectFromSequence extends Sequence {
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 ...selectionDependencies(),
-                choicesDecidedByDoenetML: {
-                    dependencyType: "stateVariable",
-                    variableName: "choicesDecidedByDoenetML",
-                },
                 variantRng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -946,6 +937,24 @@ function selectionDependencies() {
             dependencyType: "stateVariable",
             variableName: "variants",
         },
+        // what is written, to name an attribute that isn't valid
+        // (`invalidSequenceAttribute`)
+        specifiedFrom: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedFrom",
+        },
+        specifiedTo: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedTo",
+        },
+        specifiedStep: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedStep",
+        },
+        specifiedLength: {
+            dependencyType: "stateVariable",
+            variableName: "specifiedLength",
+        },
     };
 }
 
@@ -1041,12 +1050,16 @@ function makeSelection({ dependencyValues, essentialValues }) {
 
 /** The selection a `<selectFromSequence>` makes itself, given no choices. */
 function makeFreshSelection(dependencyValues) {
-    // An error when the DoenetML decides that nothing can be selected, and a
-    // missing selection with an info when a value does (D38, DIAG-7)
-    const failureType = selectFailureType(
-        dependencyValues.choicesDecidedByDoenetML,
-    );
-
+    const notANumber = (attribute, kind) =>
+        selectionResult(
+            selectError(
+                notANumberFailure("selectFromSequence", attribute, kind),
+            ),
+            { selectedValues: null, selectedIndices: null },
+        );
+    if (numToSelectNotANumber(dependencyValues.numToSelect)) {
+        return notANumber("numToSelect");
+    }
     if (dependencyValues.numToSelect < 1) {
         return selectionResult(NO_SELECT_ERROR, {
             selectedValues: [],
@@ -1063,12 +1076,19 @@ function makeFreshSelection(dependencyValues) {
         const error = selectError({
             code: decision.failure.code,
             args: decision.failure.args,
-            type: failureType,
         });
         return selectionResult(error, {
             selectedValues: null,
             selectedIndices: null,
         });
+    }
+    // A sequence whose `from` or `step` isn't valid, counted by its
+    // `length`, has values that aren't numbers (or letters): it can't select
+    // as written, as the load-time check finds in each value. (One with no
+    // values fails above, `doenet-e0036`.)
+    const invalid = invalidSequenceAttribute(dependencyValues);
+    if (invalid) {
+        return notANumber(invalid.attribute, invalid.kind);
     }
     const coprime = decision.coprime;
     const numCombinationsExcluded = decision.numCombinationsExcluded;
@@ -1087,7 +1107,6 @@ function makeFreshSelection(dependencyValues) {
             numToSelect: dependencyValues.numToSelect,
             withReplacement: dependencyValues.withReplacement,
             rng: dependencyValues.variantRng,
-            failureType,
         });
 
         if (selectedObj.errorMessage) {
@@ -1114,7 +1133,6 @@ function makeFreshSelection(dependencyValues) {
                 numToSelect: dependencyValues.numToSelect,
                 withReplacement: dependencyValues.withReplacement,
                 rng: dependencyValues.variantRng,
-                failureType,
             });
 
             if (selectedObj.errorMessage) {
@@ -1254,7 +1272,6 @@ function selectValuesAndIndices({
     numToSelect = 1,
     withReplacement = false,
     rng,
-    failureType,
 }) {
     let selectedValues = [];
     let selectedIndices = [];
@@ -1340,7 +1357,6 @@ function selectValuesAndIndices({
             ...selectError({
                 code: "doenet-e0046",
                 args: { numToSelect: numUniqueRequired, numPossibleValues },
-                type: failureType,
             }),
             selectedValues: null,
             selectedIndices: null,

@@ -503,6 +503,10 @@ export default class SampleRandomNumbers extends ValueListComponent {
                     }
                     if (dependencyValues.type === "uniform") {
                         to = from + 1;
+                    } else if (step === 0 && exclude.includes(from)) {
+                        // stepping past an excluded `from` would never end
+                        to = from;
+                        numDiscreteValues = 0;
                     } else {
                         // make sure from isn't excluded
                         while (exclude.includes(from)) {
@@ -531,7 +535,12 @@ export default class SampleRandomNumbers extends ValueListComponent {
                             numDiscreteValues = Math.floor(
                                 (to - targetFrom) / step + 1,
                             );
-                            if (numDiscreteValues < 1) {
+                            // a step of 0 gives no count (counting without
+                            // end would never finish)
+                            if (
+                                numDiscreteValues < 1 ||
+                                numDiscreteValues === Infinity
+                            ) {
                                 numDiscreteValues = 0;
                                 from = null;
                             } else {
@@ -554,7 +563,12 @@ export default class SampleRandomNumbers extends ValueListComponent {
                             numDiscreteValues = Math.floor(
                                 (to - from) / step + 1,
                             );
-                            if (numDiscreteValues < 1) {
+                            // a step of 0 gives no count (counting without
+                            // end would never finish)
+                            if (
+                                numDiscreteValues < 1 ||
+                                numDiscreteValues === Infinity
+                            ) {
                                 numDiscreteValues = 0;
                             } else {
                                 to = from + (numDiscreteValues - 1) * step;

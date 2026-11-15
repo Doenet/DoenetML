@@ -43,18 +43,18 @@ export type SelectErrorState = {
     errorDiagnostic: {
         code: DiagnosticCode;
         args?: DiagnosticArgs;
-        /**
-         * Set when the select could not select because of a value or the
-         * variant, rather than because of what the author wrote. Then the
-         * select is missing and reports an info rather than an error (D38,
-         * DIAG-7; see {@link selectFailureType}).
-         */
-        type?: "info";
     } | null;
 };
 
 /**
- * The pair for a select that cannot select.
+ * The pair for a select that cannot select. A failure to select is always an
+ * error (D39, SEL-5): what a select chooses from is either decided by the
+ * DoenetML, the same in every variant, or proven at load to allow a
+ * selection over every value it can take (`choiceFeasibilityAtLoad.ts`), and
+ * it never changes (SEL-1). So a select that fails after the document has
+ * loaded is a bug, a failure the load-time check missed, and is handled as
+ * any error after load is (DIAG-7, `errorsAfterLoad`): an assertion in tests,
+ * a warning with a blank in a browser.
  *
  * Takes the code as a named property rather than positionally: `lint:i18n`
  * recognizes a raised code by the text `code: "doenet-…"` in source, and a
@@ -64,53 +64,17 @@ export type SelectErrorState = {
 export function selectError({
     code,
     args,
-    type = "error",
 }: {
     code: DiagnosticCode;
     args?: DiagnosticArgs;
-    /** {@link selectFailureType}; an error unless said otherwise. */
-    type?: "error" | "info";
 }): SelectErrorState {
     return {
         errorMessage: formatEnglishDiagnostic(code, args),
         errorDiagnostic: {
             code,
             ...(args === undefined ? {} : { args }),
-            ...(type === "info" ? { type } : {}),
         },
     };
-}
-
-/**
- * The level of a select's failure to select (D38, DIAG-7): an error when
- * what decides it is decided by the DoenetML (it cannot change), so it is
- * the same in every variant and the author must change it; otherwise an
- * info, and the select is missing while it lasts (DIAG-2). A failure that
- * another random choice or a repeat's index can cause
- * (`<selectFromSequence to="$a" numToSelect="3"/>` with a random `a`) is an
- * error at load in every variant (`choiceFeasibilityAtLoad.ts`, SEL-5), in
- * place of the select, so it never comes here; what does is what that check
- * leaves to the select, such as the share of combinations excluded
- * (`doenet-e0044`) or options a random index copies (`doenet-e0033`).
- *
- * @param decidedByDoenetML The select's `choicesDecidedByDoenetML`.
- */
-export function selectFailureType(
-    decidedByDoenetML: boolean,
-): "error" | "info" {
-    return decidedByDoenetML ? "error" : "info";
-}
-
-/**
- * Whether a failure of the select to select is a missing selection with an
- * info rather than an error (`selectFailureType`).
- */
-export function isInfoSelectFailure(errorDiagnostic: unknown): boolean {
-    return (
-        typeof errorDiagnostic === "object" &&
-        errorDiagnostic !== null &&
-        (errorDiagnostic as { type?: unknown }).type === "info"
-    );
 }
 
 /**
@@ -271,11 +235,8 @@ function componentWrittenWithoutReference(
  * select is made, from what the author wrote. Then a fresh load reproduces
  * the selection (`definitionEssentialValuesReproducible`).
  *
- * Whether a failure to select is an error asks a wider question, whether
- * any of it can change ({@link returnChoicesDecidedByDoenetMLDefinition}):
- * a reference to a component that cannot change decides it too. This one
- * stays narrow, so a select whose choices come through a reference keeps
- * its selection in a save, as before.
+ * A select whose choices come through a reference keeps its selection in
+ * a save, as before.
  */
 export function choicesWrittenWithoutReference({
     component,
@@ -298,92 +259,6 @@ export function choicesWrittenWithoutReference({
         return attributesWritten;
     }
     return serializedOptions.every(optionWrittenInDoenetML);
-}
-
-/**
- * The state variable `choicesDecidedByDoenetML` of a select, read by the
- * definition that selects to set the level of a failure
- * ({@link selectFailureType}): whether what it chooses from, and how many,
- * is decided by the DoenetML alone (D38, DIAG-7). It is when none of the
- * attributes `attributeNames` can change (a `decidedByDoenetML`
- * dependency, `canChange`): one written as a literal, or as a reference to
- * a component that cannot change (`numToSelect="$n"` of a `<number>`
- * written as `5`). One that reaches an input, a random choice or something
- * a reader can write to can change. With `withOptions`, its options must
- * also be written in it (`optionsDecidedByDoenetML`, kept by the
- * constructor in `doenetAttributes`).
- *
- * It depends on what the author wrote, not on the variant, so it is the
- * same in every variant, and it is decided when the select first selects,
- * as the document loads, so an error is reported at load.
- */
-export function returnChoicesDecidedByDoenetMLDefinition({
-    attributeNames,
-    withOptions = false,
-}: {
-    attributeNames: string[];
-    withOptions?: boolean;
-}) {
-    return {
-        returnDependencies: () => ({
-            attributesDecided: {
-                dependencyType: "decidedByDoenetML",
-                attributeNames,
-            },
-            ...(withOptions
-                ? {
-                      optionsDecided: {
-                          dependencyType: "doenetAttribute",
-                          attributeName: "optionsDecidedByDoenetML",
-                      },
-                  }
-                : {}),
-        }),
-        definition({
-            dependencyValues,
-        }: {
-            dependencyValues: {
-                attributesDecided: boolean;
-                optionsDecided?: boolean;
-            };
-        }) {
-            return {
-                setValue: {
-                    choicesDecidedByDoenetML:
-                        dependencyValues.attributesDecided &&
-                        dependencyValues.optionsDecided !== false,
-                },
-            };
-        },
-    };
-}
-
-/**
- * The state variable `optionsDecidedByDoenetML` of a `<select>`: whether
- * its options are all written in it (`optionWrittenInDoenetML`), kept by
- * its constructor in `doenetAttributes`.
- */
-export function returnOptionsDecidedByDoenetMLDefinition() {
-    return {
-        returnDependencies: () => ({
-            decided: {
-                dependencyType: "doenetAttribute",
-                attributeName: "optionsDecidedByDoenetML",
-            },
-        }),
-        definition({
-            dependencyValues,
-        }: {
-            dependencyValues: { decided: boolean | undefined };
-        }) {
-            return {
-                setValue: {
-                    optionsDecidedByDoenetML:
-                        dependencyValues.decided !== false,
-                },
-            };
-        },
-    };
 }
 
 /**
@@ -474,12 +349,9 @@ const NO_DRAW = Symbol("a probe selection does not draw");
  *
  * What the select would report is still found, by making its selection
  * with a generator that never draws, so no random choice of the document
- * moves: a failure the DoenetML decides (an error) is reported in every
- * variant, in place of the choices; one a value decides (an info) is
- * reported only when the choices are empty, as a select that couldn't
- * select gives back, with the `numToSelect` it tried, as when it failed, so a
- * reload is the same. The probe stops at the first draw, so a failure the
- * DoenetML can decide must be found before any draw (`doenet-e0045` of a
+ * moves: a failure (always an error, {@link selectError}) is reported in
+ * every variant, in place of the choices. The probe stops at the first
+ * draw, so a failure must be found before any draw (`doenet-e0045` of a
  * `<selectFromSequence>`, and whether any valid combination exists,
  * `validCombinations.ts`). A select never fails by drawing (SEL-4).
  *
@@ -518,14 +390,13 @@ export function selectionWithRequested({
             throw e;
         }
     }
-    const failed = Boolean(probe?.setValue?.errorMessage);
-    if (failed && !isInfoSelectFailure(probe.setValue.errorDiagnostic)) {
+    if (probe?.setValue?.errorMessage) {
         return probe;
     }
     if (requested.length > 0) {
         return withNumToSelect(takeRequested(requested), requested.length);
     }
-    return failed ? probe : withNumToSelect(emptySelection, 0);
+    return withNumToSelect(emptySelection, 0);
 }
 
 /** The pair for a select that selected something. */
@@ -576,9 +447,8 @@ export function selectionResult(
 /**
  * The state variable `selectErrorReported` of a select that is a list
  * component (`<selectFromSequence>`, `<selectPrimeNumbers>`), which reports
- * the select's error, when it has one, as an error diagnostic, or as an info
- * when a value or the variant decided it ({@link selectFailureType}): the
- * select then selects nothing, and has no error put after it.
+ * the select's error, when it has one, as an error diagnostic (always an
+ * error, {@link selectError}).
  *
  * Such a select has no replacement to be the error box. A definition that
  * sends an error while the document is built has one put after its component
@@ -619,11 +489,7 @@ export function returnSelectErrorReportDefinition() {
                 sendDiagnostics: report
                     ? [
                           {
-                              type: isInfoSelectFailure(
-                                  dependencyValues.errorDiagnostic,
-                              )
-                                  ? "info"
-                                  : "error",
+                              type: "error",
                               message: dependencyValues.errorMessage,
                               ...diagnosticCodeFrom(
                                   dependencyValues.errorDiagnostic,

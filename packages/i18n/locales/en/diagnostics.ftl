@@ -1913,7 +1913,9 @@ choice-parameter-reader-changeable =
 # $attribute is the parameter that isn't a number, or, for $kind "letters",
 # the `from` or `to` of a letters sequence whose text isn't letters (as text
 # with space around a letter isn't) (DoenetML). $variantName is a variant
-# name as the author wrote it.
+# name as the author wrote it. For $kind "variantOptions", $reference is the
+# reference an option is copied with, as written (DoenetML), and $when is
+# empty.
 choice-not-always-possible =
     { $kind ->
         [values] `<{ $componentType }>` can't always select as written: when { $when }, it has { $numValues ->
@@ -1936,6 +1938,7 @@ choice-not-always-possible =
         }.
         [number] `<{ $componentType }>` can't always select as written: when { $when }, `{ $attribute }` isn't a number.
         [letters] `<{ $componentType }>` can't always select as written: when { $when }, `{ $attribute }` isn't letters.
+        [variantOptions] DoenetML can't show that `<{ $componentType }>` can always select as written: the option it copies with `{ $reference }` can be a different option in each variant, so a variant may have no option for it, while another option names the variants it is for (`selectForVariants`). Copy an option that the DoenetML decides, or name no variants.
        *[unproven] DoenetML can't show that `<{ $componentType }>` can always select as written: it can't decide whether it can when { $when }. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.
     }
 
@@ -1947,6 +1950,15 @@ choice-parameter-not-analysable =
     { $through ->
         [component] `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, a `<{ $throughType }>` holding `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to one value another random selection selects, a repeat's index or value, a module attribute, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
        *[other] `{ $attribute }` of `<{ $componentType }>` reads `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to one value another random selection selects, a repeat's index or value, a module attribute, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
+    }
+
+# A random selection whose parameter $attribute (an attribute name, which
+# stays in English) isn't a number, or, with $kind "letters", isn't letters,
+# so it can't select as written (D39). $componentType is the tag.
+choice-parameter-not-a-number =
+    { $kind ->
+        [letters] `<{ $componentType }>` can't select as written: `{ $attribute }` isn't letters.
+       *[number] `<{ $componentType }>` can't select as written: `{ $attribute }` isn't a number.
     }
 
 # A document loaded from a URI, $uri, has no reader state, so a

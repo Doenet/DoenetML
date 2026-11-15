@@ -107,18 +107,6 @@ function liveComponent(component: any, ctx: ChangeContext): any {
 }
 
 /**
- * Whether `component` is a reference that names nothing in the DoenetML
- * (`$nothing`, `doenet-w0104` at load), read by a random choice's parameter
- * as a blank, as that attribute written empty (`to=""`) is: marked
- * `blankDecidedByDoenetML` by `choiceFeasibilityAtLoad.ts`. It names
- * nothing whatever the values, so it can't change, and the choice's failure
- * is an error (`selectFailureType`).
- */
-function isBlankDecidedByDoenetML(component: any): boolean {
-    return component.doenetAttributes?.blankDecidedByDoenetML === true;
-}
-
-/**
  * Whether the value of `component`, a live component or a serialized one,
  * can change after the document is loaded:
  * - a reader writes to it (`readerWritable`) or sets its state by an
@@ -139,8 +127,7 @@ function isBlankDecidedByDoenetML(component: any): boolean {
  * reference names is read as it is now, so a reader's write reaches it.
  *
  * A component that isn't made yet (a reference to one) counts as one that
- * can change. A reference that names nothing in the DoenetML, read by a
- * random choice's parameter as a blank (`blankDecidedByDoenetML`), can't.
+ * can change.
  */
 export function canChange(
     component: any,
@@ -175,9 +162,6 @@ function canChangeUncached(
 ): boolean {
     const componentInfoObjects = ctx.componentInfoObjects;
     const componentType = component.componentType;
-    if (isBlankDecidedByDoenetML(component)) {
-        return false;
-    }
     if (viaReference && ctx.writable.has(component.componentIdx)) {
         return true;
     }
@@ -328,9 +312,6 @@ function replacementsCanChange(
         return known;
     }
     ctx.memo.set(key, false);
-    if (isBlankDecidedByDoenetML(live)) {
-        return false;
-    }
     let result =
         isRandom(live, ctx.componentInfoObjects) ||
         (typeof live.refResolution === "object" &&

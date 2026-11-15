@@ -294,6 +294,14 @@ can't tell whether the choice can always be made. `withReplacement` may read ano
 and a `<number>{:dn}` or `<math>{:dn}` an attribute reads may have no attribute
 that changes its value, such as `valueOnNaN` or `simplify`.
 
+A selection that can't be made as written is always an error, never a selection
+of nothing: so is a `numToSelect` that isn't a number, such as `numToSelect="x"`
+or `numToSelect=""`. A `numToSelect` of `0` asks for nothing, and selects
+nothing with no error. An `<option copy="$g[$k]"/>{:dn}` whose index reads
+another random choice can be a different option in each variant, so beside
+options that name the variants they are for (`selectForVariants`), it is an
+error when the document loads.
+
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 

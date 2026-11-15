@@ -262,92 +262,50 @@ describe("A selection that a value decides can't be made @group4", async () => {
         });
     }
 
-    // A `<select>` a variant gives no option, as one whose options a random
-    // index copies (`$g[$k]`): `k` is 1 or 2, and with 2 the copied option is
-    // for no variant name, so `a` has none
+    // A `<select>` whose options a random index copies (`$g[$k]`): `k` is 1
+    // or 2, and with 2 the copied option is for no variant name, so `a` would
+    // have none. Which variants the options are for can't be shown, so it is
+    // an error at load in every variant (SEL-5), never a missing selection
+    // with an info (as it was, #2468) and never an error in some variants.
     const noOptionForVariant = (p: string) =>
         `<variantControl numVariants="2" variantNames="a b"/>
 <setup><group name="options"><option selectForVariants="a">x</option><option>y</option></group><collect name="g" componentType="option" from="$options"/></setup>
 <selectFromSequence name="k" from="1" to="2"/>
 ${p}`;
     const selectWithNoOption = `<select name="s"><option copy="$g[$k]"/><option selectForVariants="b">z</option></select>`;
+    const variantOptionsError =
+        "doenet-e0073: DoenetML can't show that `<select>` can always select as written: the option it copies with `$g[$k]` can be a different option in each variant, so a variant may have no option for it, while another option names the variants it is for (`selectForVariants`). Copy an option that the DoenetML decides, or name no variants.";
 
-    /** A variant in which the select has no option for the variant. */
-    async function variantWithNoOption(doenetML: string) {
-        for (const requestedVariantIndex of [1, 2, 3, 4, 5, 6, 7, 8]) {
-            const { infos } = await load({
-                doenetML,
-                requestedVariantIndex,
-                variable: "selectedIndices",
-            });
-            if (infos.includes("doenet-e0033")) {
-                return requestedVariantIndex;
-            }
-        }
-        throw Error("no variant leaves the select with no option");
-    }
-
-    it("a <select> that a value leaves with no option for its variant is missing, a blank", async () => {
-        const doenetML = noOptionForVariant(
-            `<p name="p">A ${selectWithNoOption} B</p>`,
-        );
-        const requestedVariantIndex = await variantWithNoOption(doenetML);
-        const { errors, infos, texts } = await load({
-            doenetML,
-            requestedVariantIndex,
-            variable: "selectedIndices",
-            paragraphs: ["p"],
-        });
-        expect(errors).eqls([]);
-        expect(infos).toContain("doenet-e0033");
-        expect(texts.p).eq("A ＿ B");
-    });
-
-    it("a reference to a <select> that a value leaves missing is a blank too, and the info is reported once", async () => {
+    it("a <select> whose options a value decides, with options for variants, is an error at load in every variant, and a reference to it is that error", async () => {
         const doenetML = noOptionForVariant(
             `<p name="p">A ${selectWithNoOption} B</p><p name="q">C $s D</p>`,
         );
-        const requestedVariantIndex = await variantWithNoOption(doenetML);
-        const { errors, infos, texts } = await load({
-            doenetML,
-            requestedVariantIndex,
+        for (const requestedVariantIndex of [1, 2, 3, 4, 5, 6]) {
+            const { core, infos, texts } = await load({
+                doenetML,
+                requestedVariantIndex,
+                variable: "selectedIndices",
+                paragraphs: ["p", "q"],
+            });
+            const errors = getDiagnosticsByType(core).errors.map(
+                (d) => `${d.code}: ${d.message}`,
+            );
+            expect(errors).eqls([variantOptionsError]);
+            expect(infos).not.toContain("doenet-e0033");
+            // the rest renders
+            expect(texts.p.startsWith("A ")).eq(true);
+            expect(texts.q.startsWith("C ")).eq(true);
+        }
+
+        // with no option for variants, which options it copies decides
+        // nothing it is checked for
+        const { errors } = await load({
+            doenetML: `<setup><group name="options"><option>x</option><option>y</option></group><collect name="g" componentType="option" from="$options"/></setup>
+<selectFromSequence name="k" from="1" to="2"/>
+<select name="s"><option copy="$g[$k]"/><option>z</option></select>`,
             variable: "selectedIndices",
-            paragraphs: ["p", "q"],
         });
         expect(errors).eqls([]);
-        expect(infos.filter((c) => c === "doenet-e0033").length).eq(1);
-        expect(texts.p).eq("A ＿ B");
-        expect(texts.q).eq("C ＿ D");
-    });
-
-    it("a <select> that a value leaves missing stays a blank through a reload of its state", async () => {
-        const doenetML = noOptionForVariant(
-            `<mathInput name="mi"/><p name="p">A ${selectWithNoOption} B</p>`,
-        );
-        const requestedVariantIndex = await variantWithNoOption(doenetML);
-        const first = await load({
-            doenetML,
-            requestedVariantIndex,
-            variable: "selectedIndices",
-            paragraphs: ["p"],
-        });
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: await first.resolvePathToNodeIdx("mi"),
-            core: first.core,
-        });
-        await first.core.saveImmediately();
-        expect(first.scoreState.state).toBeTruthy();
-        const reloaded = await load({
-            doenetML,
-            requestedVariant: first.generatedVariantInfo,
-            initialState: first.scoreState.state,
-            variable: "selectedIndices",
-            paragraphs: ["p"],
-        });
-        expect(reloaded.errors).eqls([]);
-        expect(reloaded.infos).toContain("doenet-e0033");
-        expect(reloaded.texts.p).eq("A ＿ B");
     });
 
     const literalCases: { tag: string; doenetML: string; code: string }[] = [
@@ -413,16 +371,16 @@ ${p}`;
         it(`<selectFromSequence> ${code}: an error at load from a value, its own error when written`, async () => {
             const valued = await load({ doenetML: fromValue });
             expect(valued.errors).eqls(
-                code === "doenet-e0044" ? [] : ["doenet-e0073"],
+                code === "doenet-e0044" ? [code] : ["doenet-e0073"],
             );
+            expect(valued.infos).not.toContain(code);
             if (code === "doenet-e0044") {
-                // one combination is left, so a selection can be made; the
-                // select still rejects it, by excluding over 70% of them
-                // (`doenet-e0044`, #2509 PR 16)
-                expect(valued.infos).toContain(code);
+                // one combination is left, so the check finds a selection
+                // can be made; the select still rejects it, by excluding
+                // over 70% of them (`doenet-e0044`, left to the select,
+                // #2509 PR 16), and its failure is an error, as every
+                // selection's is
                 expect(valued.selected).eq(null);
-            } else {
-                expect(valued.infos).not.toContain(code);
             }
 
             const literal = await load({ doenetML: written });
@@ -460,7 +418,7 @@ describe("A selection that couldn't be made, given back @group4", async () => {
         doenetML: string;
         variable: "selectedIndices" | "selectedValues";
         code: string;
-        type: "errors" | "infos" | "load";
+        type: "errors" | "load";
     }[] = [
         {
             tag: "<selectFromSequence>, coprime from a value",
@@ -477,11 +435,13 @@ describe("A selection that couldn't be made, given back @group4", async () => {
             type: "load",
         },
         {
+            // the 70% rule, left to the select (#2509 PR 16), whose failure
+            // is an error, as every selection's is
             tag: "<selectPrimeNumbers>, combinations excluded from a range from a value",
             doenetML: `<selectFromSequence name="a" from="5" to="5"/><selectPrimeNumbers name="s" to="$a" numToSelect="2" excludeCombinations="(2 3) (3 2) (2 5) (5 2) (3 5)"/>`,
             variable: "selectedValues",
             code: "doenet-e0051",
-            type: "infos",
+            type: "errors",
         },
         {
             tag: "<select>, numToSelect from a value",
@@ -534,14 +494,12 @@ describe("A selection that couldn't be made, given back @group4", async () => {
                 selection: "c",
                 variable,
             });
-            const both = type === "infos" ? infos : errors;
-            // an error at load is one error, which the copy is too
-            expect(both.filter((c) => c === code).length).eq(
+            // an error at load is one error, which the copy is too; the
+            // select's own error is the copy's too, a select of its own
+            expect(errors.filter((c) => c === code).length).eq(
                 type === "load" ? 1 : 2,
             );
-            if (type === "infos") {
-                expect(errors).eqls([]);
-            }
+            expect(infos).not.toContain(code);
         });
     }
 });
@@ -577,36 +535,6 @@ describe("Errors the DoenetML decides, beside ones a value decides @group4", asy
         }
         // both counts occur across these variants
         expect([...counts].sort()).eqls([1, 2]);
-    });
-
-    it("a variant name with no option among options a random index copies is an info, never an error", async () => {
-        // The copied option is for `a` when k is 1, and for no name when k
-        // is 2, so `a` has an option in some variants only. The options are
-        // collected so that an index selects among them (an index after a
-        // `<group>` names nothing, D27).
-        const doenetML = `<variantControl numVariants="2" variantNames="a b"/>
-<setup><group name="options"><option selectForVariants="a">x</option><option>y</option></group><collect name="g" componentType="option" from="$options"/></setup>
-<selectFromSequence name="k" from="1" to="2"/>
-<p name="p"><select name="s"><option copy="$g[$k]"/><option selectForVariants="b">z</option></select></p>`;
-        let made = 0;
-        let missing = 0;
-        for (const requestedVariantIndex of [1, 2, 3, 4, 5, 6]) {
-            const { errors, infos, texts } = await load({
-                doenetML,
-                requestedVariantIndex,
-                variable: "selectedIndices",
-                paragraphs: ["p"],
-            });
-            expect(errors).eqls([]);
-            if (infos.includes("doenet-e0033")) {
-                missing++;
-                expect(texts.p).eq("＿");
-            } else {
-                made++;
-            }
-        }
-        expect(made).gt(0);
-        expect(missing).gt(0);
     });
 
     it("coprime values that random draws rarely find are found in every variant (SEL-4)", async () => {
@@ -724,7 +652,9 @@ describe("What a selection is made from is fixed with it @group4", async () => {
             doenetML,
             requestedVariant: first.generatedVariantInfo,
         });
-        expect(replayed.errors).eqls([]);
+        // it can't select as written, which is an error, replayed or not
+        expect(first.errors).eqls(["doenet-w0129"]);
+        expect(replayed.errors).eqls(["doenet-w0129"]);
         // taken as given: the variant, JSON round-tripped, holds `null`
         expect(replayed.selected).eqls([null]);
     });

@@ -129,16 +129,16 @@
  *
  * A choice whose parameters read no value from the variant or an iteration
  * is the same in every variant, and is left to the choice itself, which
- * reports a failure as an error (`choicesDecidedByDoenetML`,
- * `choiceErrorsAtLoad.ts`).
+ * reports a failure as an error (`selectError`, `choiceErrorsAtLoad.ts`).
+ * A choice never reports a failure as anything but an error: one that fails
+ * after the document has loaded is one this check missed (DIAG-7).
  *
  * A reference in a parameter that names nothing in the DoenetML
  * (`to="$nothing"`, `doenet-w0104`) names nothing in every variant: it is a
  * blank, as the attribute written empty (`to=""`) is, alone or in
- * arithmetic, and is marked so that it counts as decided by the DoenetML
- * (`blankDecidedByDoenetML`). A choice whose other parameters read no value
- * from the variant then fails with its own error, as with `to=""`; beside a
- * value from the variant, the blank is checked in each value (`doenet-e0073`,
+ * arithmetic. A choice whose other parameters read no value from the
+ * variant then fails with its own error, as with `to=""`; beside a value
+ * from the variant, the blank is checked in each value (`doenet-e0073`,
  * "`to` isn't a number").
  *
  * A choice in error becomes an `_error` in place of the choice, as for
@@ -546,6 +546,12 @@ type ChoiceSpec =
           optionsByVariant: Record<string, number> | null;
           /** What each option is, when each is one value. */
           optionValues: Value[] | null;
+          /**
+           * An option copied with an index that reads a value
+           * (`<option copy="$g[$k]"/>`), as written, if one: which option it
+           * is, and which variants it is for, can differ between variants.
+           */
+          optionCopiedByValue: string | null;
       }
     | {
           type: "selectRandomNumbers";
@@ -754,6 +760,12 @@ export function checkChoiceFeasibilityAtLoad({
     function attr(node: any, name: string) {
         return attributeNamed(node, name)?.attribute;
     }
+
+    /**
+     * The first error of each choice extending another that is marked with
+     * its errors (`extendErrorsAtLoad.ts`) and read by a choice.
+     */
+    const extendErrorOf = new Map<any, { code: string; args?: any }>();
 
     /** The attribute names of `node` whose analysis failed, by attribute. */
     const failedAttribute = new Map<any, string>();
@@ -1012,6 +1024,7 @@ export function checkChoiceFeasibilityAtLoad({
         let numOptions: number | null = 0;
         let optionsByVariant: Record<string, number> | null = null;
         let optionValues: Value[] | null = [];
+        let optionCopiedByValue: string | null = null;
         const options: any[] = [];
         for (const child of select.children ?? []) {
             if (typeof child === "string") {
@@ -1039,6 +1052,18 @@ export function checkChoiceFeasibilityAtLoad({
                 optionValues = null;
             } else {
                 numOptions = null;
+                if (
+                    optionCopiedByValue === null &&
+                    child.componentType === "_copy" &&
+                    typeMadeBy(child) === "option"
+                ) {
+                    const ref: any = Object.values(child.extending ?? {}).find(
+                        (r: any) => r && r.unresolvedPath !== null,
+                    );
+                    if (ref) {
+                        optionCopiedByValue = referenceText(ref);
+                    }
+                }
             }
         }
         if (numOptions !== null) {
@@ -1070,7 +1095,12 @@ export function checkChoiceFeasibilityAtLoad({
         if (numOptions === null) {
             optionValues = null;
         }
-        return { numOptions, optionsByVariant, optionValues };
+        return {
+            numOptions,
+            optionsByVariant,
+            optionValues,
+            optionCopiedByValue,
+        };
     }
 
     /**
@@ -1736,14 +1766,9 @@ export function checkChoiceFeasibilityAtLoad({
                 // A name that names nothing in the DoenetML (`$nothing`,
                 // `$nothing.x`, `doenet-w0104` at load) names nothing in
                 // every variant: a blank, as the attribute written empty
-                // (`to=""`) is, which the author must change. It is marked,
-                // so that the choice, when the DoenetML decides the rest of
-                // it, finds its failure decided by the DoenetML too, and an
-                // error (`blankDecidedByDoenetML`, `canChange`).
-                node.doenetAttributes = {
-                    ...node.doenetAttributes,
-                    blankDecidedByDoenetML: true,
-                };
+                // (`to=""`) is, which the author must change. A choice that
+                // reads no value from the variant then fails with its own
+                // error, as with `to=""`.
                 return constant(blankHeldBy(type));
             }
             // not a component the check finds: left unchecked
@@ -1775,12 +1800,17 @@ export function checkChoiceFeasibilityAtLoad({
         node?: any,
     ): Expr {
         const type = target.componentType;
-        if (
-            type === "_error" ||
-            // an extend marked with its error (`extendErrorsAtLoad.ts`)
-            // becomes an `_error`: that error, already reported
-            (target.doenetAttributes?.extendErrorsAtLoad ?? []).length > 0
-        ) {
+        const extendErrors = target.doenetAttributes?.extendErrorsAtLoad ?? [];
+        if (extendErrors.length > 0 && CHOICE_TYPES.has(typeMadeBy(target))) {
+            // a choice extending another, marked with its error
+            // (`extendErrorsAtLoad.ts`), becomes an `_error`: a choice that
+            // reads it is that error, already reported, as a choice reading
+            // a choice in error is (D3, D15), not an error of its own
+            extendErrorOf.set(target, extendErrors[0]);
+            throw new Skip(target);
+        }
+        if (type === "_error" || extendErrors.length > 0) {
+            // an error, already reported: left to the choice
             throw new Skip();
         }
         // a property `value` is the value itself
@@ -5657,6 +5687,12 @@ export function checkChoiceFeasibilityAtLoad({
 
     const diagnostics: ReturnType<typeof codedDiagnostic>[] = [];
     const errorByChoice = new Map<any, ReturnType<typeof codedDiagnostic>>();
+    /** Whether an option in the document names variants it is for. */
+    const documentHasVariantOptions = nodes.some(
+        (node) =>
+            node.componentType === "option" &&
+            attr(node, "selectForVariants") !== undefined,
+    );
     const checked = new Map<any, boolean>();
     const verdicts = new Map<any, Verdict>();
     /** The choices that read a choice in error, and that choice. */
@@ -5701,6 +5737,36 @@ export function checkChoiceFeasibilityAtLoad({
             diagnostics.push(diagnostic);
             continue;
         }
+        if (
+            spec.type === "select" &&
+            spec.optionCopiedByValue !== null &&
+            documentHasVariantOptions
+        ) {
+            // Whether each variant name has an option, and each option's
+            // variant exists, is decided by which options it has
+            // (`doenet-e0033`, `doenet-e0034`), and an option copied with
+            // an index that reads a value can be a different one, for
+            // different variants, in each variant: that can't be shown.
+            const diagnostic = codedDiagnostic({
+                type: "error",
+                code: "doenet-e0073",
+                args: {
+                    componentType: choice.componentType,
+                    when: "",
+                    kind: "variantOptions",
+                    attribute: "",
+                    numValues: "",
+                    numToSelect: "",
+                    variantName: "",
+                    reference: spec.optionCopiedByValue,
+                },
+                position: choice.position,
+                sourceDoc: choice.sourceDoc,
+            });
+            errorByChoice.set(choice, diagnostic);
+            diagnostics.push(diagnostic);
+            continue;
+        }
         const exprs = exprsOfSpec(spec);
         if ([...atomsOf(exprs)].every((atom) => atom.decidedByDoenetML)) {
             // the same in every variant, which the choice decides itself
@@ -5735,6 +5801,7 @@ export function checkChoiceFeasibilityAtLoad({
                           numValues: "",
                           numToSelect: "",
                           variantName: "",
+                          reference: "",
                           ...verdict.problem.args,
                       },
                       position: choice.position,
@@ -5751,12 +5818,32 @@ export function checkChoiceFeasibilityAtLoad({
                           numValues: "",
                           numToSelect: "",
                           variantName: "",
+                          reference: "",
                       },
                       position: choice.position,
                       sourceDoc: choice.sourceDoc,
                   });
         errorByChoice.set(choice, diagnostic);
         diagnostics.push(diagnostic);
+    }
+
+    /**
+     * The error of `node`, a choice extending another marked with its error,
+     * as the extend reports it where it is (`Copy.js`), so that a choice
+     * made the same `_error` reports nothing more.
+     */
+    function extendErrorDiagnostic(node: any) {
+        const mark = extendErrorOf.get(node);
+        if (!mark) {
+            return undefined;
+        }
+        return codedDiagnostic({
+            type: "error",
+            code: mark.code as any,
+            args: mark.args,
+            position: node.position,
+            sourceDoc: node.sourceDoc,
+        });
     }
 
     /**
@@ -5818,7 +5905,8 @@ export function checkChoiceFeasibilityAtLoad({
     while (added) {
         added = false;
         for (const { choice, source } of dependents) {
-            const diagnostic = errorByChoice.get(source);
+            const diagnostic =
+                errorByChoice.get(source) ?? extendErrorDiagnostic(source);
             if (diagnostic && !errorByChoice.has(choice)) {
                 errorByChoice.set(choice, diagnostic);
                 added = true;

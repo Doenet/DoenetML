@@ -44,6 +44,94 @@ export type SelectionFailure = {
 };
 
 /**
+ * The failure of the selection `componentType` whose parameter `attribute`
+ * isn't a number (or, with `kind` `"letters"`, letters): it can't select as
+ * written (`doenet-e0075`). The load-time check finds the same in each value
+ * of a parameter read from the variant (`doenet-e0073`, kind `"number"`).
+ */
+export function notANumberFailure(
+    componentType: string,
+    attribute: string,
+    kind: "number" | "letters" = "number",
+): SelectionFailure {
+    return {
+        code: "doenet-e0075",
+        args: { componentType, attribute, kind },
+    };
+}
+
+/**
+ * Whether `numToSelect`, as a selection holds it, is no count: not a finite
+ * number (`"x"`, `""`, `-1/0` give `null`, `1/0` is infinite, with which a
+ * selection with replacement would draw without end). Such a selection
+ * can't select as written ({@link notANumberFailure}), as the load-time
+ * check finds in each value. A number below 1 (`"0"`, `"-2"`) is a request
+ * for nothing, which selects nothing.
+ */
+export function numToSelectNotANumber(numToSelect: unknown): boolean {
+    return typeof numToSelect !== "number" || !Number.isFinite(numToSelect);
+}
+
+/** What a `<selectRandomNumbers>` draws from, as its state has it. */
+export type RandomNumbersSelection = {
+    /** The distribution, in lower case. */
+    type: string;
+    /** `from` and `to` as written (`null` when not). */
+    specifiedFrom: unknown;
+    specifiedTo: unknown;
+    step: unknown;
+    /** How many values a discrete uniform distribution has. */
+    numDiscreteValues: unknown;
+    numToSelect: unknown;
+};
+
+/**
+ * Whether a `<selectRandomNumbers>` can select with what it draws from, of
+ * the parameters a uniform or discrete uniform distribution reads: its
+ * `numToSelect` and, for those, `from` and `to` must be numbers, and a
+ * discrete uniform distribution's `step` must be one and leave at least one
+ * value (a `step` of 0, or one that doesn't go from `from` toward `to`, or
+ * every value excluded, leaves none, `doenet-e0036`). Another distribution whose
+ * parameters it can't draw from says why where it draws
+ * (`sampleFromRandomNumbers`).
+ */
+export function randomNumbersSelectionFailure(
+    selection: RandomNumbersSelection,
+): SelectionFailure | null {
+    if (numToSelectNotANumber(selection.numToSelect)) {
+        return notANumberFailure("selectRandomNumbers", "numToSelect");
+    }
+    if (!((selection.numToSelect as number) >= 1)) {
+        return null;
+    }
+    const isNumber = (v: unknown) =>
+        typeof v === "number" && Number.isFinite(v);
+    if (selection.type === "uniform" || selection.type === "discreteuniform") {
+        for (const [attribute, v] of [
+            ["from", selection.specifiedFrom],
+            ["to", selection.specifiedTo],
+        ] as const) {
+            if (v !== null && v !== undefined && !isNumber(v)) {
+                return notANumberFailure("selectRandomNumbers", attribute);
+            }
+        }
+    }
+    if (selection.type === "discreteuniform") {
+        if (!isNumber(selection.step)) {
+            return notANumberFailure("selectRandomNumbers", "step");
+        }
+        if (!((selection.numDiscreteValues as number) >= 1)) {
+            // drawn with replacement: one value is enough
+            return {
+                code: "doenet-e0036",
+                args: { numToSelect: 1, length: 0 },
+            };
+        }
+    }
+    return null;
+}
+
+/**
  * The combinations `lists` excludes, as a selection of `numToSelect` reads
  * them: each cut to `numToSelect` values, those shorter dropped, and, of
  * numbers, one that contains another merged into it.

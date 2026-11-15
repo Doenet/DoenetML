@@ -8,6 +8,8 @@ import {
     excludedCombinationsOf,
     primeSelectionFailure,
     primeSpace,
+    notANumberFailure,
+    numToSelectNotANumber,
 } from "../utils/selectionFailure";
 import {
     checkForExcludedCombination,
@@ -21,10 +23,8 @@ import ValueListComponent from "./abstract/ValueListComponent";
 import {
     NO_SELECT_ERROR,
     choicesWrittenWithoutReference,
-    returnChoicesDecidedByDoenetMLDefinition,
     returnSelectErrorReportDefinition,
     selectError,
-    selectFailureType,
     selectionResult,
     keptSelection,
     NUM_TO_SELECT_VARIABLE,
@@ -37,9 +37,9 @@ import {
 } from "../utils/validCombinations";
 
 /**
- * The attributes that decide what a `<selectPrimeNumbers>` can select:
- * whether a failure to select is an error or a missing selection with an
- * info (`selectFailureType`, `choicesDecidedByDoenetML`).
+ * The attributes that decide what a `<selectPrimeNumbers>` can select. When
+ * all are written without a reference, a fresh load reproduces its
+ * selection (`choicesWrittenWithoutReference`).
  */
 const ATTRIBUTES_DECIDING_CHOICES = [
     "from",
@@ -279,11 +279,6 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             },
         };
 
-        stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition({
-                attributeNames: ATTRIBUTES_DECIDING_CHOICES,
-            });
-
         stateVariableDefinitions.selectedValues = {
             immutable: true,
             hasEssential: true,
@@ -309,10 +304,6 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 ...selectionDependencies(),
-                choicesDecidedByDoenetML: {
-                    dependencyType: "stateVariable",
-                    variableName: "choicesDecidedByDoenetML",
-                },
                 variantRng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -689,13 +680,13 @@ function makeSelection({ dependencyValues, essentialValues }) {
 
 /** The selection a `<selectPrimeNumbers>` makes itself, given no choices. */
 function makeFreshSelection(dependencyValues) {
+    if (numToSelectNotANumber(dependencyValues.numToSelect)) {
+        const failure = notANumberFailure("selectPrimeNumbers", "numToSelect");
+        return selectionResult(selectError(failure), { selectedValues: null });
+    }
     if (dependencyValues.numToSelect < 1) {
         return selectionResult(NO_SELECT_ERROR, { selectedValues: [] });
     }
-
-    // An error when the DoenetML decides that nothing can be selected, and a
-    // missing selection with an info when a value does (D38, DIAG-7)
-    const type = selectFailureType(dependencyValues.choicesDecidedByDoenetML);
 
     // Whether it can select is the test the load-time check makes for each
     // value its parameters can take (`primeSelectionFailure`), decided
@@ -705,7 +696,6 @@ function makeFreshSelection(dependencyValues) {
         const error = selectError({
             code: failure.code,
             args: failure.args,
-            type,
         });
         return selectionResult(error, { selectedValues: null });
     }

@@ -596,6 +596,50 @@ export function returnStandardSequenceStateVariableDefinitions() {
 }
 
 /**
+ * The first attribute of a sequence of numbers or letters, in the order
+ * `from`, `to`, `step`, `length`, that its `validSequence` finds invalid,
+ * with what it isn't (`"letters"` for a letters sequence's `from` or `to`,
+ * else `"number"`), or `null` when there is none. A sequence of maths is not
+ * read. A random selection from such a sequence can't select as written
+ * (`doenet-e0075`), the test the load-time check makes in each value.
+ */
+export function invalidSequenceAttribute({
+    specifiedFrom,
+    specifiedTo,
+    specifiedStep,
+    specifiedLength,
+    type,
+}) {
+    if (type !== "number" && type !== "letters") {
+        return null;
+    }
+    const endpointValid = (value) =>
+        type === "letters"
+            ? lettersToNumber(value) !== undefined
+            : Number.isFinite(findFiniteNumericalValue(value));
+    const endpointKind = type === "letters" ? "letters" : "number";
+    if (specifiedFrom !== null && !endpointValid(specifiedFrom)) {
+        return { attribute: "from", kind: endpointKind };
+    }
+    if (specifiedTo !== null && !endpointValid(specifiedTo)) {
+        return { attribute: "to", kind: endpointKind };
+    }
+    if (
+        specifiedStep !== null &&
+        !Number.isFinite(findFiniteNumericalValue(specifiedStep))
+    ) {
+        return { attribute: "step", kind: "number" };
+    }
+    if (
+        specifiedLength !== null &&
+        (!Number.isInteger(specifiedLength) || specifiedLength < 0)
+    ) {
+        return { attribute: "length", kind: "number" };
+    }
+    return null;
+}
+
+/**
  * How far below a whole number a sequence's count, `(to - from) / step + 1`
  * as computed, can be from floating point alone, given the `from`, `to` and
  * `step` it is computed from (numbers; of a math sequence, their numeric

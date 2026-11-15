@@ -2016,7 +2016,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx("s");
 
-        const warnings = getDiagnosticsByType(core).warnings.filter(
+        // it can't select as written, which is an error (D39)
+        const warnings = getDiagnosticsByType(core).errors.filter(
             (w) => w.code === "doenet-w0127",
         );
         expect(warnings.length).eq(1);

@@ -709,11 +709,27 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         for (const doenetML of [
             `<selectFromSequence from="1" to="$nothing" numToSelect="0"/>`,
             `<selectFromSequence from="1" to="5" exclude="$nothing" numToSelect="5"/>`,
-            `<selectFromSequence from="1" to="5" numToSelect="$nothing"/>`,
-            `<select numToSelect="$nothing"><option>u</option></select>`,
         ]) {
             const { errors } = await load(doenetML);
             expect(errors, doenetML).eqls([]);
+        }
+
+        // a `numToSelect` that names nothing isn't a number: the choice
+        // can't select as written, as `numToSelect=""`
+        for (const [doenetML, tag] of [
+            [
+                `<selectFromSequence from="1" to="5" numToSelect="$nothing"/>`,
+                "selectFromSequence",
+            ],
+            [
+                `<select numToSelect="$nothing"><option>u</option></select>`,
+                "select",
+            ],
+        ] as const) {
+            const { errors } = await load(doenetML);
+            expect(errors, doenetML).eqls([
+                `doenet-e0075: \`<${tag}>\` can't select as written: \`numToSelect\` isn't a number.`,
+            ]);
         }
     });
 
@@ -765,6 +781,132 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
                 expect(errors, doenetML).eqls([]);
             }
         }
+    });
+
+    it("a selection's failure is an error, never a missing selection with an info", async () => {
+        // A selection's parameters are decided by the DoenetML or proven at
+        // load over every value, and never change (SEL-1, SEL-5): one that
+        // can't select as written is an error in every variant, wherever its
+        // parameters come from. A `numToSelect` that isn't a number selects
+        // nothing as written, so it is such a failure, as the check finds
+        // in each value (`doenet-e0073`); `numToSelect="0"` asks for nothing.
+        const notANumber = (tag: string, attribute: string) =>
+            `doenet-e0075: \`<${tag}>\` can't select as written: \`${attribute}\` isn't a number.`;
+        const length0 =
+            "doenet-e0036: Cannot select 1 values from a sequence of length 0.";
+        const options = "<option>u</option><option>v</option>";
+        for (const [doenetML, expected] of [
+            [
+                `<select numToSelect="x">${options}</select>`,
+                notANumber("select", "numToSelect"),
+            ],
+            [
+                `<select numToSelect="">${options}</select>`,
+                notANumber("select", "numToSelect"),
+            ],
+            [
+                `<number name="k">5</number><select numToSelect="$k+">${options}</select>`,
+                notANumber("select", "numToSelect"),
+            ],
+            [
+                `<select numToSelect="-1/0">${options}</select>`,
+                notANumber("select", "numToSelect"),
+            ],
+            [
+                `<selectFromSequence to="5" numToSelect="x"/>`,
+                notANumber("selectFromSequence", "numToSelect"),
+            ],
+            [
+                `<selectPrimeNumbers to="20" numToSelect=""/>`,
+                notANumber("selectPrimeNumbers", "numToSelect"),
+            ],
+            [
+                `<selectRandomNumbers numToSelect="x"/>`,
+                notANumber("selectRandomNumbers", "numToSelect"),
+            ],
+            // a sequence counted by its `length`, with a `from` or `step`
+            // that isn't a number, has no value to select
+            [
+                `<selectFromSequence from="x" length="3"/>`,
+                notANumber("selectFromSequence", "from"),
+            ],
+            [
+                `<selectFromSequence step="x" length="3"/>`,
+                notANumber("selectFromSequence", "step"),
+            ],
+            // `<selectRandomNumbers>` can fail too (D5 corrected): a
+            // parameter that isn't a number, a discrete uniform distribution
+            // with no value, or parameters it can't draw from
+            [
+                `<selectRandomNumbers type="uniform" from="x" to="1"/>`,
+                notANumber("selectRandomNumbers", "from"),
+            ],
+            [
+                `<selectRandomNumbers type="discreteUniform" from="1" to="$nothing"/>`,
+                notANumber("selectRandomNumbers", "to"),
+            ],
+            [
+                `<selectRandomNumbers type="discreteUniform" from="1" to="5" step="NaN"/>`,
+                notANumber("selectRandomNumbers", "step"),
+            ],
+            [
+                `<selectRandomNumbers type="discreteUniform" from="5" to="1"/>`,
+                length0,
+            ],
+            [
+                `<selectRandomNumbers type="discreteUniform" from="1" to="5" step="-1"/>`,
+                length0,
+            ],
+            // a step of 0 counted without end before
+            [
+                `<selectRandomNumbers type="discreteUniform" from="1" to="5" step="0"/>`,
+                length0,
+            ],
+            [
+                `<selectRandomNumbers type="discreteUniform" from="1" to="3" exclude="1 2 3"/>`,
+                length0,
+            ],
+            [
+                `<selectRandomNumbers type="gaussian" variance="-1"/>`,
+                "doenet-w0126: Invalid mean (0) or standardDeviation (NaN) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be finite and non-negative. No numbers can be sampled.",
+            ],
+        ] as const) {
+            for (const variant of [1, 2]) {
+                const { errors, infos } = await load(doenetML, variant);
+                expect(errors, doenetML).eqls([expected]);
+                expect(infos, doenetML).not.toContain(expected.split(":")[0]);
+            }
+        }
+
+        // asking for none, or for a number below 1, selects nothing, with
+        // no error
+        for (const doenetML of [
+            `<select numToSelect="0">${options}</select>`,
+            `<selectFromSequence to="5" numToSelect="-2"/>`,
+            `<selectPrimeNumbers to="20" numToSelect="0"/>`,
+            `<selectRandomNumbers numToSelect="0"/>`,
+            `<selectRandomNumbers type="gaussian" variance="-1" numToSelect="0"/>`,
+            // a uniform distribution from above `to` draws between them
+            `<selectRandomNumbers type="uniform" from="5" to="1"/>`,
+            `<selectRandomNumbers type="discreteUniform" from="5" to="1" step="-1"/>`,
+        ]) {
+            const { errors } = await load(doenetML);
+            expect(errors, doenetML).eqls([]);
+        }
+
+        // the selection that fails selects nothing
+        const { core, resolvePathToNodeIdx } = await load(
+            `<select name="s" numToSelect="x">${options}</select><selectFromSequence name="q" to="5" numToSelect="x"/>`,
+        );
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                .selectedIndices,
+        ).eqls([]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("q")].stateValues
+                .selectedValues,
+        ).eq(null);
     });
 
     it("text that doesn't parse, or loses a reference in parsing, is a blank in each value the reference reads", async () => {
