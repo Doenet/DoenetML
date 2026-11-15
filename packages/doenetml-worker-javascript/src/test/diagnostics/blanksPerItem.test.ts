@@ -74,6 +74,27 @@ const point12: Values = {
     ne: "1",
 };
 
+/**
+ * The values when the items are points with these x's: a `<number>` of
+ * several is their product, and the line is through what `$R.x` and `(5,6)`
+ * give.
+ */
+function points(pL: string, ...xs: string[]): Values {
+    const list = xs.join(", ");
+    return {
+        p: list,
+        t: list,
+        m: `(${list}) + 1`,
+        ml: list,
+        nm: String(xs.reduce((a, x) => a * Number(x), 1)),
+        pQ: `((${list}), 3)`,
+        pL,
+        bv: list,
+        me: "＿",
+        ne: "NaN",
+    };
+}
+
 type Step = {
     /** the input set before checking, as `[name, value]` */
     set?: [string, string | boolean];
@@ -84,6 +105,8 @@ type Step = {
 
 const n = Object.keys(parents).length;
 const severalWarning = { "warning doenet-w0193": n };
+// A repeat's template holding several is decided at load, from the
+// template, so its warning stays at 0 iterations (#2548 item 3, DIAG-7).
 const repeat = (count: string, template: string) =>
     `<mathInput name="n" prefill="${count}"/><repeatForSequence name="r" length="$n" valueName="v">${template}</repeatForSequence>`;
 const twoPoints = `<point>($v,1)</point><point>($v,2)</point>`;
@@ -249,7 +272,7 @@ const cases: {
                 values: blanks(1),
                 diagnostics: severalWarning,
             },
-            { set: ["n", "0"], values: blanks(0), diagnostics: {} },
+            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
             {
                 set: ["n", "3"],
                 values: blanks(3),
@@ -267,7 +290,7 @@ const cases: {
         source: repeat("0", twoPoints),
         ref: "r",
         steps: [
-            { values: blanks(0), diagnostics: {} },
+            { values: blanks(0), diagnostics: severalWarning },
             {
                 set: ["n", "1"],
                 values: blanks(1),
@@ -278,7 +301,7 @@ const cases: {
                 values: blanks(2),
                 diagnostics: severalWarning,
             },
-            { set: ["n", "0"], values: blanks(0), diagnostics: {} },
+            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
         ],
     },
     {
@@ -286,7 +309,7 @@ const cases: {
         source: repeat("0", twoPoints),
         ref: "r",
         steps: [
-            { values: blanks(0), diagnostics: {} },
+            { values: blanks(0), diagnostics: severalWarning },
             {
                 set: ["n", "2"],
                 values: blanks(2),
@@ -305,13 +328,37 @@ const cases: {
                 values: blanks(1),
                 diagnostics: severalWarning,
             },
-            { set: ["n", "0"], values: blanks(0), diagnostics: {} },
+            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
             {
                 set: ["n", "2"],
                 values: blanks(2),
                 diagnostics: severalWarning,
             },
         ],
+    },
+    {
+        // A name after a repeat reaches into each item (D41 decision 1,
+        // COLL-2): `$r.P.x` is the x of each iteration's `P`, whatever else
+        // the template holds.
+        // (Not 1: `<number extend>` of a property of the one item left is
+        // `NaN` live and `1` after a reload, #2548 item 6, as for `$r.x`.)
+        name: "a name in each iteration of several, 2 → 3",
+        source: repeat("2", `<point name="P">($v,1)</point><text>a</text>`),
+        ref: "r.P",
+        steps: [
+            { values: points("0 = y", "1", "2"), diagnostics: {} },
+            {
+                set: ["n", "3"],
+                values: points("0 = y", "1", "2", "3"),
+                diagnostics: {},
+            },
+        ],
+    },
+    {
+        name: "a name in each pick of several",
+        source: `<select name="s" numToSelect="2"><option><point name="P">(1,2)</point><text>a</text></option><option><point name="P">(2,4)</point></option></select>`,
+        ref: "s.P",
+        steps: [{ values: points("0 = y", "1", "2"), diagnostics: {} }],
     },
 ];
 

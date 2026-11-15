@@ -77,6 +77,7 @@ import {
 } from "../../utils/heldChoiceAttribute";
 import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
 import {
+    COLLECTIONS_OF_NAMED_ITEMS,
     componentsOfWrapper,
     isWrapperOfSeveral,
     ownSettingOfWrapper,
@@ -437,6 +438,19 @@ export default class Copy extends CompositeComponent {
                             stopAtWrappersOfSeveral: Boolean(
                                 firstPropNameFromPath,
                             ),
+                            // A name after a repeat or a select that picks
+                            // several is resolved in each item (`$r.P`,
+                            // D41 decision 1); the resolver leaves it
+                            // unresolved there (`names_per_item`).
+                            namePerItem:
+                                firstPropNameFromPath &&
+                                (COLLECTIONS_OF_NAMED_ITEMS.has(
+                                    stateValues.extendedComponent.componentType,
+                                ) ||
+                                    stateValues.extendedComponent
+                                        .componentType === "group")
+                                    ? stateValues.unresolvedPath
+                                    : undefined,
                         };
                     }
 
@@ -511,6 +525,7 @@ export default class Copy extends CompositeComponent {
             stateVariablesDeterminingDependencies: [
                 "usedReplacements",
                 "extendedComponent",
+                "unresolvedPath",
             ],
             returnDependencies({ stateValues }) {
                 const dependencies = {
@@ -531,6 +546,23 @@ export default class Copy extends CompositeComponent {
                         variableName: "asList",
                         variablesOptional: true,
                     };
+                    // A property after a `<group>` holding one component
+                    // is that component's (COLL-3): after a group holding
+                    // only `$r`, the items of `r` are shown as `$r.x`
+                    // shows them, with commas (COMP-2, #2548 item 2).
+                    if (
+                        stateValues.extendedComponent.componentType ===
+                            "group" &&
+                        stateValues.unresolvedPath?.[0]?.name
+                    ) {
+                        dependencies.groupContentAsList = {
+                            dependencyType: "replacement",
+                            compositeIdx:
+                                stateValues.extendedComponent.componentIdx,
+                            variableNames: ["asList"],
+                            variablesOptional: true,
+                        };
+                    }
                 }
                 return dependencies;
             },
@@ -539,6 +571,24 @@ export default class Copy extends CompositeComponent {
                 // then the `asList` state variable of the extended composite skipped.
                 // In this case, we add look up that `asList` variable
                 // and modify the copy's `asList` if it wasn't specifically set on the copy.
+                const groupContent = (
+                    dependencyValues.groupContentAsList ?? []
+                ).filter((x) => typeof x !== "string" || x.trim() !== "");
+                if (
+                    usedDefault.asListPreliminary &&
+                    groupContent.length === 1 &&
+                    (groupContent[0].componentType === "_copy" ||
+                        COLLECTIONS_OF_NAMED_ITEMS.has(
+                            groupContent[0].componentType,
+                        )) &&
+                    typeof groupContent[0]?.stateValues?.asList === "boolean"
+                ) {
+                    return {
+                        setValue: {
+                            asList: groupContent[0].stateValues.asList,
+                        },
+                    };
+                }
                 if (
                     usedDefault.asListPreliminary &&
                     dependencyValues.usedReplacements &&
@@ -722,6 +772,15 @@ export default class Copy extends CompositeComponent {
                         source,
                     ] of stateValues.replacementSourceIdentities.entries()) {
                         let thisUnresolvedPath = stateValues.unresolvedPath;
+                        // What a name resolved in the source's item left of
+                        // the path (`namePerItem`): `null` when the source
+                        // is the component the name names, copied whole.
+                        if (
+                            typeof source === "object" &&
+                            source.remainingPath !== undefined
+                        ) {
+                            thisUnresolvedPath = source.remainingPath;
+                        }
 
                         if (stateValues.implicitProp) {
                             thisUnresolvedPath = [
@@ -779,7 +838,10 @@ export default class Copy extends CompositeComponent {
                             };
                             dependencies["withheld" + ind] = {
                                 dependencyType: "stateVariable",
-                                componentIdx: source.componentIdx,
+                                // A component a name named in an item is
+                                // withheld with its item (`namePerItem`).
+                                componentIdx:
+                                    source.namedInItem ?? source.componentIdx,
                                 variableName: "isInactiveCompositeReplacement",
                                 variablesOptional: true,
                             };
@@ -7469,18 +7531,9 @@ async function wrapperOfSeveralDiagnostics({
         pathEnd != undefined &&
         propStart > pathStart
     ) {
-        let before = source.substring(pathStart, propStart);
-        // A property after a repeat, or a select that picked several, with
-        // no index (`$r.x`): `$r.P.x` names `P` in several items, so suggest
-        // the first one's, `$r[1].P.x`, which works (DIAG-3). D41 decision
-        // 1 (a property after a collection applies to each item) is PR 14.
-        if (
-            before.endsWith(".") &&
-            !before.endsWith("].") &&
-            canReachSeveralItems(wrapper)
-        ) {
-            before = `${before.slice(0, -1)}[1].`;
-        }
+        // After a repeat, or a select that picked several, with no index
+        // (`$r.x`), `$r.P.x` reads `P` in each item (D41 decision 1).
+        const before = source.substring(pathStart, propStart);
         suggestion = `${doenetMLDollarsForReference(
             originalPath,
             allDoenetMLs,
@@ -7539,26 +7592,6 @@ async function wrapperOfSeveralDiagnostics({
             },
         }),
     ];
-}
-
-/**
- * Whether a reference reaching `wrapper`, a wrapper made for an iteration or
- * a pick, with no index before the property (`$r.x`, `$s.x`), can reach
- * several items, so that naming a child after it (`$r.P.x`) would name it in
- * several: an iteration (a repeat's count can change), or a pick of a select
- * that picked several.
- */
-function canReachSeveralItems(wrapper) {
-    const kind = instanceKindOf(
-        wrapper.attributes?._instanceOf?.primitive?.value,
-    );
-    if (kind === "iteration") {
-        return true;
-    }
-    return (
-        kind === "pick" &&
-        componentsOfWrapper(wrapper.replacementOf ?? {}).length > 1
-    );
 }
 
 /**

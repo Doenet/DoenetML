@@ -79,3 +79,14 @@ export function ownSettingOfWrapper(propName: unknown): string | undefined {
         (setting) => setting.toLowerCase() === lower,
     );
 }
+
+/**
+ * The collections whose items each hold the names their template or options
+ * declare, so that a name after one is resolved in each item (`$r.P`, D41
+ * decision 1, COLL-2), as the resolver leaves it (`names_per_item`).
+ */
+export const COLLECTIONS_OF_NAMED_ITEMS = new Set([
+    "repeat",
+    "repeatForSequence",
+    "select",
+]);

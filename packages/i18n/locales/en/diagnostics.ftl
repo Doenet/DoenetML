@@ -603,8 +603,10 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
 # Decided at load from every option or case. $reference is the reference as
 # written, with its `$`; $property the property and $lackingType the tag of a
 # component that lacks it, both as written. $container is the container's
-# name when $hasName is `true`, else its tag name. $branch is `option` or
-# `case`. A name in only some options or cases names nothing from outside
+# name when $hasName is `true`, else its tag name. $branch is `option`,
+# `case`, or `item` (the items of a `<repeat>`, of types that differ through
+# its `for` or a `<conditionalContent>` in it). A name in only some options
+# or cases names nothing from outside
 # (`doenet-w0183`), so the message does not suggest reading one by name.
 
 reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $hasName ->
@@ -612,12 +614,14 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
        *[other] the `<{ $container }>`
     } has no property `{ $property }`, so it gives a blank there. For a value from each, give every { $branch ->
         [option] option
+        [item] item
        *[case] case
     } a component that has `{ $property }`.
 
 # A property after a `<group>` that holds several components: `$g.x` on a
-# `<group name="g">` holding two points, `$r[1].x` after an iteration of a
-# repeat that holds two, `$s.x` after a pick that holds two, or `$cc.x` after
+# `<group name="g">` holding two points, `$r.x` or `$r[1].x` after a repeat
+# whose template holds two (said as "each item holds 2"; authors are not
+# told of iterations as groups), `$s.x` after a pick that holds two, or `$cc.x` after
 # the case a `<conditionalContent>` shows, holding two (D41). A group holding
 # one component stands for it, and the property is that component's; with
 # several, the group is only a container, and the reference names nothing
@@ -635,7 +639,7 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
 # references and attributes stay as written.
 reference-property-after-several =
     { $container ->
-        [iteration] `{ $reference }` names nothing: this iteration of a `<{ $component }>` holds { $count } components, and a property passes into an iteration only when it holds one.
+        [iteration] `{ $reference }` names nothing: what is written inside the `<{ $component }>` holds { $count } components, so each item holds { $count }, and a property applies to an item only when it is one component.
         [pick] `{ $reference }` names nothing: what the `<{ $component }>` picked holds { $count } components, and a property passes into a pick only when it holds one.
         [case] `{ $reference }` names nothing: what the `<{ $component }>` shows holds { $count } components, and a property passes into it only when it holds one.
        *[group] `{ $reference }` names nothing: the `<group>` holds { $count } components, and a property passes into a group only when it holds one.
