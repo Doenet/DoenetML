@@ -25,8 +25,9 @@ export type IframeMessage = {
  *
  * Posted with a target origin of `"*"`, for the same reason `IframeMessage`
  * is: the two documents are routinely on different origins, and neither can
- * read the other's. Nothing here is sensitive — one bit about focus — and the
- * parent only acts on messages whose `event.source` is its own iframe.
+ * read the other's. Nothing here is sensitive — whether a math input has
+ * focus, and where it is on the screen (`inputRect`) — and the parent only
+ * acts on messages whose `event.source` is its own iframe.
  */
 export type IframeFocusMessage = {
     subject: "keyboard-focus";
