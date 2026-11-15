@@ -1048,7 +1048,41 @@ export class RefResolutionDependency extends Dependency {
         if (refResolution.unresolvedPath[0].name !== "") {
             // We stopped matching on a name.
             // This name must match a prop.
-            // Return the result
+            // Return the result.
+            // An index before it that reached a replacement its composite
+            // now withholds (`$r[1].x` once the repeat has no iterations)
+            // names nothing as one past the end does, as when nothing
+            // follows the index (above), and as a reload reports it
+            // (#2548 item 7, DIAG-6).
+            const originalPath = refResolution.originalPath ?? [];
+            const indexedPart =
+                originalPath[
+                    originalPath.length -
+                        refResolution.unresolvedPath.length -
+                        1
+                ];
+            const target =
+                this.dependencyHandler._components[refResolution.nodeIdx];
+            const holder = target?.replacementOf;
+            if (
+                indexedPart?.index?.length > 0 &&
+                holder &&
+                isWithheldReplacement(holder, target)
+            ) {
+                this.reportIndexPastComposite(
+                    composite,
+                    holder,
+                    getReferenceAsWritten(),
+                    [
+                        {
+                            name: "",
+                            index: [
+                                indexedPart.index[indexedPart.index.length - 1],
+                            ],
+                        },
+                    ],
+                );
+            }
 
             return this.foundExtend();
         }

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateBooleanInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 import { setListFormsEnabled } from "../../utils/dast/listForms";
 
 const Mock = vi.fn();
@@ -168,8 +171,9 @@ describe("A name after a collection applies to each item (D41 decision 1)", () =
             ["p1"],
         );
         expect(types.texts).eqls({ p1: "" });
+        // The tag is made from the `P` of each of two picks (#2548 item 1)
         expect(types.diagnostics).eqls([
-            "error doenet-e0065",
+            "error doenet-e0064",
             "error doenet-w0184",
         ]);
     });
@@ -299,5 +303,83 @@ describe("An item lacking a property gives a blank, with the warning decided at 
         // text was picked.
         expect(texts).eqls({ p1: "3, ＿" });
         expect(diagnostics).eqls(["warning doenet-w0192"]);
+    });
+});
+
+describe("A tag made from a property after a collection of several (#2548 item 1)", () => {
+    it("is the error a tag made from the collection is, decided at load", async () => {
+        for (const source of [
+            `<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point></option></select>`,
+            `<repeatForSequence name="s" length="$n" valueName="v"><point>($v,1)</point></repeatForSequence>`,
+            `<pointList name="s">(1,2) (3,4)</pointList>`,
+        ]) {
+            for (const n of ["0", "1", "2"]) {
+                const { texts, diagnostics } = await both(
+                    `<number name="n">${n}</number>${source}
+<point extend="$s" name="A0"/><point extend="$s.x" name="A"/><math extend="$s.x" name="B"/>
+<p name="p">$A0|$A|$B</p><p name="q">$s.x</p>`,
+                    ["p", "q"],
+                );
+                // Was `(0, 0)` for the point, with no diagnostic.
+                expect(texts.p, source).eq("＿|＿|＿");
+                expect(diagnostics, source).eqls([
+                    "error doenet-e0064",
+                    "error doenet-e0064",
+                    "error doenet-e0064",
+                ]);
+            }
+        }
+    });
+
+    it("but not after a case shown, or a select that picks one", async () => {
+        const { texts, diagnostics } = await both(
+            `<select name="s"><option><point>(1,2)</point></option><option><point>(1,4)</point></option></select>
+<conditionalContent name="cc"><case condition="true"><point>(5,6)</point></case></conditionalContent>
+<math extend="$s.x" name="A"/><math extend="$cc.x" name="B"/><p name="p">$A $B</p>`,
+            ["p"],
+        );
+        expect(texts.p).eq("1 5");
+        expect(diagnostics).eqls([]);
+    });
+});
+
+describe("An index then a property past the items whose count follows an input (#2548 item 7)", () => {
+    it("gives the same information live as after a reload", async () => {
+        const doenetML = `<mathInput name="n" prefill="2"/>
+<repeatForSequence name="r" length="$n" valueName="v"><point>($v,1)</point></repeatForSequence>
+<p name="p">$r[1].x</p>`;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        const codes = () =>
+            core
+                .core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                )
+                .map((d: any) => `${d.type} ${d.code}`);
+        expect(codes()).eqls([]);
+        const set = async (latex: string) =>
+            updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+        await set("0");
+        // There was none live, and an info after a reload.
+        expect(codes()).eqls(["info doenet-w0181"]);
+        await core.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(
+            reloaded.core
+                .core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                )
+                .map((d: any) => `${d.type} ${d.code}`),
+        ).eqls(["info doenet-w0181"]);
+        await set("2");
+        expect(codes()).eqls([]);
     });
 });

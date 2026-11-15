@@ -7447,7 +7447,13 @@ async function wrapperOfSeveralDiagnostics({
     allDoenetMLs,
 }) {
     const severalAtLoad = component.doenetAttributes?.severalAtLoad;
-    if (severalAtLoad === "every") {
+    if (
+        severalAtLoad === "every" ||
+        // a tag in error at load reports that error only
+        component.doenetAttributes?.typeChangeAtLoad?.code?.startsWith(
+            "doenet-e",
+        )
+    ) {
         return [];
     }
     // Only what it shows: once a `<repeat>` has no iterations, `$r.x` shows

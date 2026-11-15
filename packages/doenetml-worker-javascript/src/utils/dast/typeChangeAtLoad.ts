@@ -73,7 +73,7 @@ import {
 } from "./listEntryCountAtLoad";
 import { TAGS_MAKING_THEIR_CONTENT } from "../../components/abstract/Copy";
 import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
-import { ownSettingOfWrapper } from "../wrappers";
+import { COLLECTIONS_OF_NAMED_ITEMS, ownSettingOfWrapper } from "../wrappers";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
 export type TypeChangeAtLoadError = {
@@ -3086,6 +3086,102 @@ export function checkTypeChangesAtLoad({
         return named !== null && named.length === 0;
     }
 
+    /**
+     * The error for a scalar tag made from a property after a collection
+     * (`<point extend="$s.x"/>`, `$r.x`, `$pl.x`): the property of each
+     * item, so as many values as the collection holds items, and a tag is
+     * made from it only when that is always one, as from the collection
+     * itself (`<point extend="$s"/>`, `doenet-e0064`; REF-5, COLL-2, #2548
+     * item 1). A property the collection has itself (`$r.numItems`) is its
+     * own, a `<group>` is a wrapper, not a collection (COLL-3), and a
+     * `<conditionalContent>` or a one-pick `<select>` holds one item at
+     * most.
+     */
+    function propertyOfEachItemError(
+        copy: SerializedComponent,
+        nodeIdx: number,
+        path: any[],
+    ): TypeChangeAtLoadError | undefined {
+        // A name in each item first (`$r.P.x`, `$r.P`, D41 decision 1) is
+        // as many as the items, as the property after it is.
+        const names = path.findIndex(
+            (part: any) =>
+                typeof part?.name !== "string" || !allNames.has(part.name),
+        );
+        const numNames = names === -1 ? path.length : names;
+        const rest = path.slice(numNames);
+        if (
+            path.length === 0 ||
+            path.some(
+                (part: any) =>
+                    typeof part?.name !== "string" ||
+                    part.name === "" ||
+                    (part.index ?? []).length > 0,
+            ) ||
+            rest.length > 1 ||
+            (rest.length === 1 && ownSettingOfWrapper(rest[0].name)) ||
+            copy.doenetAttributes?.forList !== undefined ||
+            !isScalarTag(copy)
+        ) {
+            return undefined;
+        }
+        const property: string | undefined =
+            numNames === 0 ? rest[0].name : undefined;
+        const writtenType = tagType(copy);
+        if (writtenType === undefined) {
+            return undefined;
+        }
+        const ownProperty = (type: string) =>
+            property !== undefined &&
+            typeHasProperty({
+                componentType: type,
+                propName: property,
+                componentInfoObjects,
+            });
+        const seen = new Set([copy.componentIdx]);
+        const added: (SerializedComponent | string)[][] = [];
+        const holder = namedHolder(nodeIdx, seen, added);
+        let error: TypeChangeAtLoadError | undefined;
+        if (holder) {
+            if (
+                holder.componentType === "group" ||
+                (numNames > 0 &&
+                    !COLLECTIONS_OF_NAMED_ITEMS.has(holder.componentType)) ||
+                // at most one item: a case shown, or the one pick, whose
+                // components a property passes into or not (`w0191`)
+                branchKind(holder) !== undefined ||
+                ownProperty(holder.componentType)
+            ) {
+                return undefined;
+            }
+            const held = withAdded(
+                asSelf(holder.componentType, () => holding(holder, seen)),
+                added,
+                seen,
+            );
+            if (held.skip) {
+                return undefined;
+            }
+            error = scalarError(held, writtenType, holder.componentType, true);
+        } else {
+            const node = referents.componentsByIdx.get(nodeIdx);
+            if (
+                !node ||
+                numNames > 0 ||
+                !isAuthoredListType(node.componentType, componentInfoObjects) ||
+                ownProperty(node.componentType)
+            ) {
+                return undefined;
+            }
+            error = authoredListCountError(node);
+        }
+        if (error?.code !== "doenet-e0064") {
+            return undefined;
+        }
+        // `$s.x[1]` is not the first pick's: suggest reading them all
+        return { ...error, args: { ...error.args, indexSelectsOne: "false" } };
+    }
+
     function decideTag(copy: SerializedComponent) {
         const ref = refOf(copy);
         if (!ref || ref.nodeIdx < 0) {
@@ -3188,6 +3284,11 @@ export function checkTypeChangesAtLoad({
                 };
             }
             return decision;
+        }
+
+        const ofEach = propertyOfEachItemError(copy, ref.nodeIdx, path);
+        if (ofEach) {
+            return ofEach;
         }
 
         // Names, the last of which may have one index (`$m2.s[1]`), or one
