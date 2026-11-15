@@ -4,13 +4,13 @@
  * `aria-expanded`, and `aria-controls` naming the content while it is open.
  *
  * Space is pressed with `cy.press`, which sends a real key through the
- * DevTools protocol, so it is the browser's own button behaviour that opens
+ * DevTools protocol, so it is the browser's own button behavior that opens
  * and closes the panel (Space fires `click` on keyup). Each press is checked to
  * flip the state exactly once, so a key handler firing alongside the native
  * activation would show up as no change.
  *
  * Enter is not pressed here. In this Cypress (15.18) neither route reaches
- * the browser's activation behaviour for Enter: `cy.press(ENTER)` sends
+ * the browser's activation behavior for Enter: `cy.press(ENTER)` sends
  * keydown and keyup with no keypress, so Chrome never activates the button,
  * and `cy.type("{enter}")` dispatches a simulated `click` that React does not
  * receive (both seen in a probe spec, on this branch). A native `<button>`

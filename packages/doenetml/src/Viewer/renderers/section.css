@@ -1,7 +1,7 @@
 /*
  * The control of a collapsible section: a native button inside the heading,
  * drawn so that the heading looks exactly as it did before it held a button.
- * The heading box around it keeps the colour, the padding and the pointer.
+ * The heading box around it keeps the color, the padding and the pointer.
  */
 .doenet-viewer .section-disclosure-button {
     appearance: none;

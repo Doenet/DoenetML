@@ -1,6 +1,6 @@
 /*
  * The hint's control is a native button; the reset makes it draw as the bar
- * it was when it was a span (font, colour, alignment and width), and
+ * it was when it was a span (font, color, alignment and width), and
  * `box-sizing` plus the width keep it as wide as a block span between its
  * 4px side margins.
  */
