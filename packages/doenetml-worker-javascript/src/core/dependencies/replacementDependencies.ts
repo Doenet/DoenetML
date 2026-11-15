@@ -491,6 +491,24 @@ export class ReplacementDependency extends Dependency {
                 return false;
             }
             itemsSearched.push(item.componentIdx);
+            // A composite the name was resolved through, as a
+            // `<conditionalContent>` in the template whose cases each
+            // declare it, may change what the name names (the case shown
+            // switching), so the name is resolved again when it does.
+            for (const idx of resolution.nodesInResolvedPath ?? []) {
+                if (
+                    idx !== item.componentIdx &&
+                    components[idx] &&
+                    this.dependencyHandler.componentInfoObjects.isCompositeComponent(
+                        {
+                            componentType: components[idx].componentType,
+                            includeNonStandard: true,
+                        },
+                    )
+                ) {
+                    itemsSearched.push(idx);
+                }
+            }
             const remaining = resolution.unresolvedPath ?? null;
             // A name in each item of a collection named in the item
             // (`$r.q.t`, `q` a repeat in the template of `r`): `t` of each

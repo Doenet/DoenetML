@@ -203,6 +203,69 @@ describe("A name after a collection applies to each item (D41 decision 1)", () =
         );
         expect(diagnostics).eqls(["error doenet-e0005"]);
     });
+
+    it("follows the case each item shows, when its cases each declare the name", async () => {
+        // Both builds, live and after a reload. Each item's `P` was the
+        // first case's, and stayed so after the case shown switched.
+        const doenetML = `<booleanInput name="b" prefill="true"/>
+<repeat name="r" for="1 2" valueName="v"><conditionalContent><case condition="$b"><point name="P">($v,1)</point></case><else><point name="P">($v,5)</point></else></conditionalContent></repeat>
+<select name="s" numToSelect="2"><option><conditionalContent><case condition="$b"><point name="P">(3,1)</point></case><else><point name="P">(3,5)</point></else></conditionalContent></option><option><point name="P">(4,7)</point></option></select>
+<p name="p1">$r.P.y</p><p name="p2">$r.P</p><p name="p3">$s.P.y</p>`;
+        for (const asLists of [true, false]) {
+            setListFormsEnabled(asLists);
+            try {
+                const { core, resolvePathToNodeIdx, scoreState } =
+                    await createTestCore({ doenetML });
+                const read = async (core: any, resolve: any) => {
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    return Promise.all(
+                        ["p1", "p2", "p3"].map(
+                            async (name) =>
+                                stateVariables[await resolve(name)].stateValues
+                                    .text,
+                        ),
+                    );
+                };
+                // the order of the picks follows the variant
+                const picks = async (y: string) =>
+                    (await read(core, resolvePathToNodeIdx))[2]
+                        .split(", ")
+                        .sort()
+                        .join(", ") === y;
+                expect(
+                    (await read(core, resolvePathToNodeIdx)).slice(0, 2),
+                ).eqls(["1, 1", "(1, 1), (2, 1)"]);
+                expect(await picks("1, 7")).eq(true);
+                await updateBooleanInputValue({
+                    boolean: false,
+                    componentIdx: await resolvePathToNodeIdx("b"),
+                    core,
+                });
+                expect(
+                    (await read(core, resolvePathToNodeIdx)).slice(0, 2),
+                ).eqls(["5, 5", "(1, 5), (2, 5)"]);
+                expect(await picks("5, 7")).eq(true);
+                await core.saveImmediately();
+                const reloaded = await createTestCore({
+                    doenetML,
+                    initialState: scoreState.state,
+                });
+                expect(
+                    await read(reloaded.core, reloaded.resolvePathToNodeIdx),
+                ).eqls(await read(core, resolvePathToNodeIdx));
+                expect(
+                    core.core!.diagnostics.filter(
+                        (d: any) => !d.code?.startsWith("doenet-a"),
+                    ),
+                ).eqls([]);
+            } finally {
+                setListFormsEnabled(true);
+            }
+        }
+    });
 });
 
 describe("A property after a repeat whose template holds several is decided at load (#2548 item 3)", () => {
