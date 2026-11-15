@@ -1008,3 +1008,54 @@ fn references_can_span_three_source_documents() {
         })
     );
 }
+
+#[test]
+fn a_name_after_a_repeat_or_a_select_of_several_is_left_for_each_item() {
+    // `$r.P` is the `P` of each item (D41 decision 1, COLL-2), never the one the template
+    // declares or one item's alone (NAME-3): the path stops at the collection with the name
+    // left for the worker to resolve in each item. An index first (`$r[1].P`) is not affected.
+    for (dast, tag) in [
+        (
+            r#"<repeat name="r" for="1 2"><point name="P" /></repeat><p />"#,
+            "repeat",
+        ),
+        (
+            r#"<repeatForSequence name="r" length="2"><point name="P" /></repeatForSequence><p />"#,
+            "repeatForSequence",
+        ),
+        (
+            r#"<select name="r" numToSelect="2"><option><point name="P" /></option><option><point name="P" /></option></select><p />"#,
+            "select",
+        ),
+    ] {
+        let flat_root = FlatRoot::from_dast(&dast_root_no_position(dast));
+        let r_idx = find(&flat_root, tag).unwrap();
+        let p_idx = find(&flat_root, "p").unwrap();
+        let resolver = Resolver::from_flat_root(&flat_root);
+        let referent = resolver.resolve(make_path(["r", "P", "x"], None), p_idx, false);
+        assert_eq!(
+            referent,
+            Ok(RefResolution {
+                node_idx: r_idx,
+                unresolved_path: Some(make_path(["P", "x"], None)),
+                original_path: make_path(["r", "P", "x"], None),
+                nodes_in_resolved_path: vec![p_idx, r_idx],
+                child_index: None,
+            }),
+            "{dast}"
+        );
+    }
+
+    // A select that picks one shows one branch, through which the name is resolved as before
+    let flat_root = FlatRoot::from_dast(&dast_root_no_position(
+        r#"<select name="s"><option><point name="P" /></option><option><point name="P" /></option></select><p />"#,
+    ));
+    let s_idx = find(&flat_root, "select").unwrap();
+    let p_idx = find(&flat_root, "p").unwrap();
+    let resolver = Resolver::from_flat_root(&flat_root);
+    let referent = resolver.resolve(make_path(["s", "P"], None), p_idx, false);
+    assert_eq!(
+        referent.map(|r| (r.node_idx, r.unresolved_path)),
+        Ok((s_idx, Some(make_path(["P"], None))))
+    );
+}

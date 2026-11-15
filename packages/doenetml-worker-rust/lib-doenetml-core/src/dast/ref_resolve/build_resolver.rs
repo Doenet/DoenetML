@@ -34,6 +34,7 @@ impl Resolver {
                         branch_kind: None,
                         iteration_aliases: false,
                         setup: false,
+                        names_per_item: false,
                     }
                 } else {
                     let node = &flat_root.nodes[idx_plus_1 - 1];
@@ -50,6 +51,10 @@ impl Resolver {
                         branch_kind: node_branch_kind(&FlatRootOrFragment::Root(flat_root), node),
                         iteration_aliases: holds_iteration_aliases(node),
                         setup: is_setup(node),
+                        names_per_item: node_names_per_item(
+                            &FlatRootOrFragment::Root(flat_root),
+                            node,
+                        ),
                     }
                 }
             })
@@ -125,6 +130,7 @@ impl Resolver {
                     branch_kind: None,
                     iteration_aliases: false,
                     setup: false,
+                    names_per_item: false,
                 },
                 padding,
             ));
@@ -142,6 +148,8 @@ impl Resolver {
             self.node_resolver_data[node.idx() + 1].setup = is_setup(node);
             self.node_resolver_data[node.idx() + 1].branch_kind =
                 node_branch_kind(&FlatRootOrFragment::Fragment(flat_fragment), node);
+            self.node_resolver_data[node.idx() + 1].names_per_item =
+                node_names_per_item(&FlatRootOrFragment::Fragment(flat_fragment), node);
         }
 
         let base_parent_kind = flat_fragment
@@ -607,6 +615,16 @@ fn node_branch_kind(
             literal_attribute_text(flat_root_or_fragment, attr)
         }),
         _ => None,
+    }
+}
+
+/// Whether a name after `node` reaches into each of its items (see [`names_per_item`]).
+fn node_names_per_item(flat_root_or_fragment: &FlatRootOrFragment, node: &FlatNode) -> bool {
+    match node {
+        FlatNode::Element(element) => names_per_item(element, |attr| {
+            literal_attribute_text(flat_root_or_fragment, attr)
+        }),
+        _ => false,
     }
 }
 

@@ -52,6 +52,7 @@ impl Resolver {
                         branch_kind: node_data.branch_kind,
                         iteration_aliases: node_data.iteration_aliases,
                         setup: node_data.setup,
+                        names_per_item: node_data.names_per_item,
                     }
                 } else {
                     NodeResolverData {
@@ -67,6 +68,7 @@ impl Resolver {
                         branch_kind: node_data.branch_kind,
                         iteration_aliases: node_data.iteration_aliases,
                         setup: node_data.setup,
+                        names_per_item: node_data.names_per_item,
                     }
                 }
             })
