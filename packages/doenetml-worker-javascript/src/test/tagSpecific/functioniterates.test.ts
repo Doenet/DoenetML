@@ -693,4 +693,54 @@ describe("FunctionIterates tag tests @group2", async () => {
             expect(n.stateValues.value.tree).eq("\uff3f");
         }
     });
+
+    it("is a collection: shows its iterates as a list, and an index selects one (D41)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<function name="f">2x</function>
+<mathInput name="n" prefill="3"/>
+<p name="p1"><functionIterates name="fi" function="$f" initialValue="1" numIterates="$n"/></p>
+<p name="p2">$fi[2] $fi.numItems $fi.numIterates</p>
+<p name="p3">$fi</p>
+<p name="p4"><sum>$fi</sum></p>
+<p name="p5">$fi.iterates</p>
+<p name="p6">$fi.finalIterate</p>
+`,
+        });
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, string> = {};
+            for (const name of ["p1", "p2", "p3", "p4", "p5", "p6"]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.text;
+            }
+            return result;
+        }
+        expect(await texts()).eqls({
+            p1: "2, 4, 8",
+            p2: "4 3 3",
+            p3: "2, 4, 8",
+            p4: "14",
+            p5: "2, 4, 8",
+            p6: "8",
+        });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(await texts()).eqls({
+            p1: "2, 4, 8, 16",
+            p2: "4 4 4",
+            p3: "2, 4, 8, 16",
+            p4: "30",
+            p5: "2, 4, 8, 16",
+            p6: "16",
+        });
+    });
 });

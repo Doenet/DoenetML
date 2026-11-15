@@ -445,6 +445,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 textList: `<textList name="c">a b c</textList>`,
                 booleanList: `<booleanList name="c">true false</booleanList>`,
                 intervalList: `<intervalList name="c">(1,2) [3,4]</intervalList>`,
+                functionIterates: `<functionIterates name="c" function="x+1" initialValue="0" numIterates="3"/>`,
             };
 
             let declared: string[] | undefined;
