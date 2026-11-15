@@ -124,6 +124,15 @@
  * reports a failure as an error (`choicesDecidedByDoenetML`,
  * `choiceErrorsAtLoad.ts`).
  *
+ * A reference in a parameter that names nothing in the DoenetML
+ * (`to="$nothing"`, `doenet-w0104`) names nothing in every variant: it is a
+ * blank, as the attribute written empty (`to=""`) is, alone or in
+ * arithmetic, and is marked so that it counts as decided by the DoenetML
+ * (`blankDecidedByDoenetML`). A choice whose other parameters read no value
+ * from the variant then fails with its own error, as with `to=""`; beside a
+ * value from the variant, the blank is checked in each value (`doenet-e0073`,
+ * "`to` isn't a number").
+ *
  * A choice in error becomes an `_error` in place of the choice, as for
  * SEL-1 (`choiceParametersAtLoad.ts`), and so does a choice that extends or
  * copies it. A choice that extends or copies another takes its parameters
@@ -261,6 +270,18 @@ function sym(symbolic: string, runTime?: RunTimeChild): Sym {
  * empty text (`entryPresent`).
  */
 const NO_LETTERS: Sym = sym("", { componentType: "text", value: "" });
+
+/**
+ * What a component of type `type` holds of a reference in it that names
+ * nothing (`$nothing`), as the blank the reference makes in it does when the
+ * document runs: the text `＿` in a `<text>` (and a `<boolean>`, which is
+ * false with it), and otherwise the math `＿`, which is no number.
+ */
+function blankHeldBy(type: string): Sym {
+    return type === "text" || type === "boolean"
+        ? sym("＿", { componentType: "text", value: "＿" })
+        : sym("＿", { componentType: "math", value: me.fromAst("＿") });
+}
 
 /**
  * What a parameter is, as an expression in the values it reads (atoms).
@@ -604,8 +625,9 @@ class NotAnalysable {
 
 /**
  * A parameter that reads a choice already in error, or a reference already
- * reported (a cycle, a name that names nothing): the choice is left
- * unchecked, so the error is reported once.
+ * reported (a cycle): the choice is left unchecked, so the error is reported
+ * once. (A name that names nothing is a blank, not this:
+ * `analyseReference`.)
  */
 class Skip {
     /** The choice in error for its parameters that it reads, if that. */
@@ -1310,7 +1332,7 @@ export function checkChoiceFeasibilityAtLoad({
         ) {
             return sequenceEntries(target, ref);
         }
-        return [analyseReference(node)];
+        return [analyseReference(node, type)];
     }
 
     /**
@@ -1368,7 +1390,7 @@ export function checkChoiceFeasibilityAtLoad({
             throw new Skip();
         }
         if (componentType === "_copy" || componentType === "_ref") {
-            return analyseReference(node);
+            return analyseReference(node, type);
         }
         if (
             componentType === "_componentWithSelectableType" &&
@@ -1682,15 +1704,32 @@ export function checkChoiceFeasibilityAtLoad({
         return convert(tree);
     }
 
-    /** What a reference written in a parameter is (SEL-6). */
-    function analyseReference(node: any): Expr {
+    /**
+     * What a reference written in a parameter is (SEL-6), read by a
+     * component of type `type`.
+     */
+    function analyseReference(node: any, type = "number"): Expr {
         const ref = refOf(node);
         if (!ref) {
             throw new NotAnalysable(textOfChildren([node]));
         }
         const target = nodeByIdx.get(ref.nodeIdx);
         if (!target) {
-            // names nothing: a blank, already reported
+            if (node.doenetAttributes?.noReferent) {
+                // A name that names nothing in the DoenetML (`$nothing`,
+                // `$nothing.x`, `doenet-w0104` at load) names nothing in
+                // every variant: a blank, as the attribute written empty
+                // (`to=""`) is, which the author must change. It is marked,
+                // so that the choice, when the DoenetML decides the rest of
+                // it, finds its failure decided by the DoenetML too, and an
+                // error (`blankDecidedByDoenetML`, `canChange`).
+                node.doenetAttributes = {
+                    ...node.doenetAttributes,
+                    blankDecidedByDoenetML: true,
+                };
+                return constant(blankHeldBy(type));
+            }
+            // not a component the check finds: left unchecked
             throw new Skip();
         }
         return analyseNamed(target, ref, ref.unresolvedPath ?? [], node);

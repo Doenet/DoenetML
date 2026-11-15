@@ -616,6 +616,157 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
         }
     });
 
+    it("a reference that names nothing is a blank, as the attribute written empty, and the choice's failure is an error", async () => {
+        // `$nothing` names nothing in every variant (`doenet-w0104`): what
+        // the choice can select is decided by the DoenetML, so a failure is
+        // the choice's own error, as with `to=""`, not an info
+        const length0 =
+            "doenet-e0036: Cannot select 1 values from a sequence of length 0.";
+        const primes0 =
+            "doenet-e0047: Cannot select 1 values from a list of primes of length 0";
+        for (const [doenetML, expected, reference] of [
+            [`<selectFromSequence from="1" to=""/>`, length0, null],
+            [
+                `<selectFromSequence from="1" to="$nothing"/>`,
+                length0,
+                "$nothing",
+            ],
+            [
+                `<selectFromSequence from="1" to="$nothing+1"/>`,
+                length0,
+                "$nothing",
+            ],
+            [
+                `<selectFromSequence from="1" to="$nothing.x"/>`,
+                length0,
+                "$nothing.x",
+            ],
+            [
+                `<selectFromSequence from="$nothing" to="5"/>`,
+                length0,
+                "$nothing",
+            ],
+            [
+                `<selectFromSequence from="1" to="5" step="$nothing"/>`,
+                length0,
+                "$nothing",
+            ],
+            [
+                `<selectFromSequence from="1" length="$nothing"/>`,
+                length0,
+                "$nothing",
+            ],
+            [
+                `<selectFromSequence type="letters" from="a" to="$nothing"/>`,
+                length0,
+                "$nothing",
+            ],
+            [
+                `<selectFromSequence type="math" from="1" to="$nothing"/>`,
+                length0,
+                "$nothing",
+            ],
+            [
+                `<number name="k">$nothing</number><selectFromSequence from="1" to="$k"/>`,
+                length0,
+                "$nothing",
+            ],
+            [
+                `<repeat for="1 2"><selectFromSequence name="q" to="5"/></repeat><selectFromSequence from="1" to="$q"/>`,
+                length0,
+                "$q",
+            ],
+            [
+                `<selectFromSequence from="1" to="2" numToSelect="3" withReplacement="$nothing"/>`,
+                "doenet-e0036: Cannot select 3 values from a sequence of length 2.",
+                "$nothing",
+            ],
+            [
+                `<selectPrimeNumbers from="$nothing" to="10"/>`,
+                primes0,
+                "$nothing",
+            ],
+            [`<selectPrimeNumbers maxValue="$nothing"/>`, primes0, "$nothing"],
+        ] as const) {
+            for (const variant of [1, 2]) {
+                const { core, errors, infos } = await load(doenetML, variant);
+                expect(errors, doenetML).eqls([expected]);
+                expect(infos, doenetML).not.toContain(expected.split(":")[0]);
+                const warnings = getDiagnosticsByType(core)
+                    .warnings.map((d) => `${d.code}: ${d.message}`)
+                    .filter((w) => w.startsWith("doenet-w0104"));
+                expect(warnings, doenetML).eqls(
+                    reference === null
+                        ? []
+                        : [
+                              `doenet-w0104: No referent found for reference: \`${reference}\``,
+                          ],
+                );
+            }
+        }
+
+        // one that still selects with the blank is unchanged
+        for (const doenetML of [
+            `<selectFromSequence from="1" to="$nothing" numToSelect="0"/>`,
+            `<selectFromSequence from="1" to="5" exclude="$nothing" numToSelect="5"/>`,
+            `<selectFromSequence from="1" to="5" numToSelect="$nothing"/>`,
+            `<select numToSelect="$nothing"><option>u</option></select>`,
+        ]) {
+            const { errors } = await load(doenetML);
+            expect(errors, doenetML).eqls([]);
+        }
+    });
+
+    it("a reference that names nothing, beside one that reads the variant, is a blank in each value checked", async () => {
+        const a = `<selectFromSequence name="a" from="1" to="3"/>`;
+        for (const [doenetML, message] of [
+            [
+                `${a}<selectFromSequence from="$a" to="$nothing"/>`,
+                "`<selectFromSequence>` can't always select as written: when `$a` = 1, `to` isn't a number.",
+            ],
+            [
+                `${a}<selectFromSequence from="$a" to="$nothing+7"/>`,
+                "`<selectFromSequence>` can't always select as written: when `$a` = 1, `to` isn't a number.",
+            ],
+            [
+                `${a}<selectFromSequence from="1" to="$a+$nothing"/>`,
+                "`<selectFromSequence>` can't always select as written: when `$a` = 1, `to` isn't a number.",
+            ],
+            [
+                `${a}<selectFromSequence from="$a" to="5" numToSelect="$nothing"/>`,
+                "`<selectFromSequence>` can't always select as written: when `$a` = 1, `numToSelect` isn't a number.",
+            ],
+            [
+                `${a}<selectFromSequence from="1" to="$a" numToSelect="3" withReplacement="$nothing"/>`,
+                "`<selectFromSequence>` can't always select as written: when `$a` = 1, it has 1 value to select 3 from.",
+            ],
+        ] as const) {
+            for (const errors of await errorsInVariants(doenetML, [1, 2])) {
+                expect(errors, doenetML).eqls([`doenet-e0073: ${message}`]);
+            }
+        }
+
+        // as `to=""` beside `from="$a"` is
+        for (const errors of await errorsInVariants(
+            `${a}<selectFromSequence from="$a" to=""/>`,
+            [1, 2],
+        )) {
+            expect(errors).eqls([
+                "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$a` = 1, `to` isn't a number.",
+            ]);
+        }
+
+        // one that selects with the blank in every variant is unchanged
+        for (const doenetML of [
+            `${a}<selectFromSequence from="$a" to="$nothing" numToSelect="0"/>`,
+            `${a}<selectFromSequence from="1" to="5" exclude="$a $nothing" numToSelect="4"/>`,
+        ]) {
+            for (const errors of await errorsInVariants(doenetML, [1, 2])) {
+                expect(errors, doenetML).eqls([]);
+            }
+        }
+    });
+
     it("a choice in a case not shown is checked too", async () => {
         const { codes } = await load(
             `<booleanInput name="b"/><selectFromSequence name="a" from="1" to="10"/><conditionalContent condition="$b"><selectFromSequence to="$a" numToSelect="3"/></conditionalContent>`,
