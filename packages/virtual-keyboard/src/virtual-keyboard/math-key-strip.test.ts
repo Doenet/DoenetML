@@ -292,9 +292,25 @@ describe("host page messages", () => {
     });
 
     it("moves the iframe's box onto the host page", () => {
-        expect(iframeRectToHost({ top: 10, bottom: 50 }, 300)).toEqual({
+        expect(iframeRectToHost({ top: 10, bottom: 50 }, 300, 200)).toEqual({
             top: 310,
             bottom: 350,
+        });
+    });
+
+    it("keeps a reported box inside the iframe", () => {
+        // The numbers come from the iframe's document. A box far below the
+        // iframe would otherwise scroll the host page as far as it said.
+        expect(
+            iframeRectToHost({ top: 1e9, bottom: 1e9 + 40 }, 300, 200),
+        ).toEqual({ top: 500, bottom: 500 });
+        expect(iframeRectToHost({ top: -1e9, bottom: 30 }, 300, 200)).toEqual({
+            top: 300,
+            bottom: 330,
+        });
+        expect(iframeRectToHost({ top: 10, bottom: 50 }, 300, -5)).toEqual({
+            top: 300,
+            bottom: 300,
         });
     });
 });

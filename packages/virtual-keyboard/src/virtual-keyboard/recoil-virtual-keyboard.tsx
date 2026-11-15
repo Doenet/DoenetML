@@ -168,13 +168,33 @@ export function ExternalAwareVirtualKeyboard({
             pending = setTimeout(report, 0);
         }
 
+        // The embedding page asks again after its iframe loads a document
+        // (see `IframeFocusQueryMessage`): answer if one of this viewer's
+        // math inputs still has focus.
+        function onMessage(event: MessageEvent) {
+            if (
+                event.source !== window.parent ||
+                (event.data as { subject?: unknown } | null)?.subject !==
+                    "keyboard-focus-query"
+            ) {
+                return;
+            }
+            if (lastReported) {
+                send(true, lastReportedOwner);
+            }
+        }
+
         document.addEventListener("focusin", scheduleReport);
         document.addEventListener("focusout", scheduleReport);
+        if (externalVirtualKeyboardProvided) {
+            window.addEventListener("message", onMessage);
+        }
 
         return () => {
             clearTimeout(pending);
             document.removeEventListener("focusin", scheduleReport);
             document.removeEventListener("focusout", scheduleReport);
+            window.removeEventListener("message", onMessage);
             if (lastReported) {
                 // This viewer is unmounting with one of its math inputs
                 // focused. Withdraw the claim, or the tray would stay open for

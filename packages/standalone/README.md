@@ -125,7 +125,8 @@ device's keyboard. Render the activity with all three settings, and load
 ```
 
 `math-key-strip.js` has no dependencies (no React) and only acts on messages
-from the iframe it was attached to. An activity rendered with a version of
+from the iframe it was attached to. The row hides when that iframe is removed
+or loads another page. An activity rendered with a version of
 DoenetML that does not know `mathKeyStrip` never reports focus to it, so the
 row simply does not appear.
 

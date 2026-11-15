@@ -19,6 +19,7 @@
 import type { Translator } from "@doenet/i18n";
 import type {
     IframeFocusMessage,
+    IframeFocusQueryMessage,
     IframeMessage,
 } from "./external-virtual-keyboard";
 import { createMathKeyStrip, MathKeyStripTheme } from "./math-key-strip";
@@ -61,12 +62,25 @@ export function readKeyboardFocusMessage(
 
 /**
  * Converts a box inside the iframe's viewport to the host page's layout
- * viewport, given where the iframe's content box is on the host page.
+ * viewport, given where the iframe's content box is on the host page and how
+ * tall it is.
+ *
+ * The box is first clamped to the iframe's own viewport: only that part of
+ * an input can be on the host's screen, and the numbers come from the
+ * iframe's document, which the host does not control. Without the clamp, a
+ * page loaded into the iframe could report a box far below it and make the
+ * host scroll as far as it liked each time it reported focus.
  */
-export function iframeRectToHost(inner: Rect, frameContentTop: number): Rect {
+export function iframeRectToHost(
+    inner: Rect,
+    frameContentTop: number,
+    frameContentHeight: number,
+): Rect {
+    const height = Math.max(0, frameContentHeight);
+    const clamp = (y: number) => Math.min(Math.max(y, 0), height);
     return {
-        top: inner.top + frameContentTop,
-        bottom: inner.bottom + frameContentTop,
+        top: clamp(inner.top) + frameContentTop,
+        bottom: clamp(inner.bottom) + frameContentTop,
     };
 }
 
@@ -96,6 +110,8 @@ export function attachMathKeyStrip(
 
     let inputFocused = false;
     let inputRect: Rect | null = null;
+    let detached = false;
+    let pendingSync: ReturnType<typeof setTimeout> | undefined;
 
     const strip = createMathKeyStrip({
         document: doc,
@@ -115,11 +131,32 @@ export function attachMathKeyStrip(
                 return null;
             }
             const frame = iframe.getBoundingClientRect();
-            return iframeRectToHost(inputRect, frame.top + iframe.clientTop);
+            return iframeRectToHost(
+                inputRect,
+                frame.top + iframe.clientTop,
+                iframe.clientHeight,
+            );
         },
     });
 
+    // Removing the iframe ends its document without a word to the host: no
+    // `keyboard-focus: false` comes, no focus event fires here. So while the
+    // strip is shown, watch for the iframe leaving the page.
+    const removalWatcher =
+        typeof win.MutationObserver === "function"
+            ? new win.MutationObserver(() => {
+                  if (!iframe.isConnected) {
+                      inputFocused = false;
+                      inputRect = null;
+                      sync();
+                  }
+              })
+            : null;
+
     function sync() {
+        if (detached) {
+            return;
+        }
         const focusInStrip = strip.contains(doc.activeElement);
         const wanted =
             iframe.isConnected &&
@@ -130,10 +167,37 @@ export function attachMathKeyStrip(
                 strip.update();
             } else {
                 strip.show();
+                removalWatcher?.observe(doc, {
+                    childList: true,
+                    subtree: true,
+                });
             }
         } else {
             strip.hide();
+            removalWatcher?.disconnect();
         }
+    }
+
+    // The iframe loading a document: navigating away, or being parked on
+    // `about:blank` by the coordinator, ends the document whose input had
+    // focus without a report (a message it posts while unloading arrives with
+    // no usable `event.source`). But the same document finishing a late load
+    // — its input took focus before its images arrived — looks the same from
+    // here. So forget the focus and ask; a viewer with a focused math input
+    // answers, and anything else stays silent.
+    function onFrameLoad() {
+        inputFocused = false;
+        inputRect = null;
+        // Hidden even if focus is in the strip: its keys would now go to a
+        // document that may never have asked for them.
+        strip.hide();
+        removalWatcher?.disconnect();
+        iframe.contentWindow?.postMessage(
+            {
+                subject: "keyboard-focus-query",
+            } satisfies IframeFocusQueryMessage,
+            "*",
+        );
     }
 
     function onMessage(event: MessageEvent) {
@@ -154,7 +218,8 @@ export function attachMathKeyStrip(
     // is not a math input in the iframe hides it; going back into the iframe
     // brings a fresh `keyboard-focus` report that shows it again.
     function onFocusOut() {
-        setTimeout(sync, 0);
+        clearTimeout(pendingSync);
+        pendingSync = setTimeout(sync, 0);
     }
 
     function onThemeChange() {
@@ -162,12 +227,20 @@ export function attachMathKeyStrip(
     }
 
     win.addEventListener("message", onMessage);
+    iframe.addEventListener("load", onFrameLoad);
     strip.element.addEventListener("focusout", onFocusOut);
     coarse?.addEventListener?.("change", sync);
     darkScheme?.addEventListener?.("change", onThemeChange);
 
     return function detach() {
+        if (detached) {
+            return;
+        }
+        detached = true;
+        clearTimeout(pendingSync);
         win.removeEventListener("message", onMessage);
+        iframe.removeEventListener("load", onFrameLoad);
+        removalWatcher?.disconnect();
         strip.element.removeEventListener("focusout", onFocusOut);
         coarse?.removeEventListener?.("change", sync);
         darkScheme?.removeEventListener?.("change", onThemeChange);

@@ -42,6 +42,20 @@ export type IframeFocusMessage = {
 };
 
 /**
+ * A message from the parent window asking the iframe to report focus again
+ * (an `IframeFocusMessage` with `mathInputFocused: true`) if one of its math
+ * inputs has focus. Nothing is sent otherwise.
+ *
+ * The parent sends it when its iframe has loaded a document. It cannot tell
+ * the load of a new document (the one whose input had focus is gone, and
+ * nothing says so) from the late load of the same one (whose input took focus
+ * before its images finished), so it forgets the focus and asks.
+ */
+export type IframeFocusQueryMessage = {
+    subject: "keyboard-focus-query";
+};
+
+/**
  * Virtual keyboard that is connected via `<mathInput>` elements.
  */
 export function ExternalVirtualKeyboard({
