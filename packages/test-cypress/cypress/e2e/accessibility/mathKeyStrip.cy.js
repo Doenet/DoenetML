@@ -224,7 +224,7 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
 
         // The focus ring is drawn whole: the scrolling part of the row clips
         // what overflows it, so it must leave room for the ring all round.
-        cy.focused().should(($el) => {
+        const ringIsWhole = ($el) => {
             const button = $el[0];
             const win = button.ownerDocument.defaultView;
             expect(button.matches(":focus-visible"), "focus is shown").to.equal(
@@ -246,7 +246,14 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
             expect(key.bottom + reach, "ring bottom").to.be.at.most(
                 clip.bottom,
             );
-        });
+            // A key scrolled into view lands on a whole-pixel scroll
+            // position while key widths are fractional: allow that rounding
+            // (under a pixel), not the 4px a missing scroll padding cuts.
+            expect(key.right + reach, "ring right").to.be.at.most(
+                clip.right + 0.99,
+            );
+        };
+        cy.focused().should(ringIsWhole);
 
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().should("have.attr", "aria-label", "infinity");
@@ -255,6 +262,13 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         cy.focused().trigger("keydown", { key: "Home" });
         cy.focused().should("have.attr", "aria-label", "union");
         cy.focused().trigger("keydown", { key: "ArrowLeft" });
+        cy.focused().should("have.attr", "aria-label", "move right");
+        // A key the arrows bring into view from out of sight stops short of
+        // the scrolling edge, ring and all.
+        cy.focused().trigger("keydown", { key: "ArrowLeft" });
+        cy.focused().should("have.attr", "aria-label", "plus or minus");
+        cy.focused().should(ringIsWhole);
+        cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().should("have.attr", "aria-label", "move right");
         cy.focused().trigger("keydown", { key: "ArrowRight" });
         cy.focused().trigger("keydown", { key: "ArrowRight" });

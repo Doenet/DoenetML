@@ -335,6 +335,8 @@ function stylesheet() {
     // scrolling part clips what overflows it, so it is padded by that much
     // (and pulled back by a negative margin, leaving the layout as it was);
     // with less, the ring of a key in that part is cut flat on three sides.
+    // The same room is kept as scroll padding, so a key the arrow keys bring
+    // into view stops short of the edge with its ring whole.
     const ringRoom = 4;
     return `
 .${ROOT_CLASS}{${themeRules("light")}
@@ -347,7 +349,7 @@ color:var(--mks-key-text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,
 .${ROOT_CLASS}[data-theme="dark"]{${themeRules("dark")}}
 .${ROOT_CLASS} .mks-scroller{display:flex;gap:${s.gap}px;flex:1 1 auto;min-width:0;
 overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;
-padding:${ringRoom}px;margin:-${ringRoom}px;}
+padding:${ringRoom}px;margin:-${ringRoom}px;scroll-padding-inline:${ringRoom}px;}
 .${ROOT_CLASS} .mks-scroller::-webkit-scrollbar{display:none;}
 .${ROOT_CLASS} .mks-pinned{flex:0 0 auto;display:flex;padding:${ringRoom}px;margin:-${ringRoom}px;}
 .${ROOT_CLASS} button{-webkit-appearance:none;appearance:none;box-sizing:border-box;margin:0;
