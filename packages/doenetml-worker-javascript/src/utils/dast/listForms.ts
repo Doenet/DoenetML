@@ -126,6 +126,15 @@ const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {
 };
 
 /**
+ * Disable the pass, to compare a document with its `<collect>`, `<sort>` and
+ * `<shuffle>` built as lists and as composites in tests (COMP-4).
+ */
+let listFormsEnabled = true;
+export function setListFormsEnabled(enabled: boolean) {
+    listFormsEnabled = enabled;
+}
+
+/**
  * Whether the `<collect>` `collect` is made a `_collectList` as written: it
  * is no `extend` or `copy`, takes only the attributes the list does, and
  * names, as `componentType`, one of the types of `COLLECT_LIST_BASES`. An
@@ -139,7 +148,11 @@ export function collectIsListFormAsWritten(
     collect: SerializedComponent,
     componentInfoObjects: ComponentInfoObjects,
 ) {
-    if (collect.componentType !== "collect" || collect.extending) {
+    if (
+        !listFormsEnabled ||
+        collect.componentType !== "collect" ||
+        collect.extending
+    ) {
         return false;
     }
     const allowed = LIST_FORM_ATTRIBUTES.collect;
@@ -176,6 +189,9 @@ export function convertToListForms({
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
 }): { nComponents: number } {
+    if (!listFormsEnabled) {
+        return { nComponents };
+    }
     const { componentsByIdx, copiesByCreatedIdx, referentType, referentClass } =
         documentReferents({ serializedComponents, componentInfoObjects });
 

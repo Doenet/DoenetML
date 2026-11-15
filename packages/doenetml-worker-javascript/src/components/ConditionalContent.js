@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { instanceOfAttribute } from "../utils/indexInstances";
 import { deepClone } from "@doenet/utils";
@@ -8,6 +12,9 @@ import {
 import { codedDiagnostic } from "../utils/diagnostics";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
+
+    // An index selects the case shown, its one item (COLL-1).
+    static takesIndex = true;
 
     static componentDocs = {
         summary:
@@ -51,6 +58,9 @@ export default class ConditionalContent extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
 
         stateVariableDefinitions.warnIfCondition = {
             returnDependencies: () => ({
@@ -206,6 +216,12 @@ export default class ConditionalContent extends CompositeComponent {
                 };
             },
         };
+
+        // The number of items, the case shown, if any: 0 or 1 (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "selectedIndex",
+            count: (selectedIndex) => (selectedIndex === null ? 0 : 1),
+        });
 
         return stateVariableDefinitions;
     }

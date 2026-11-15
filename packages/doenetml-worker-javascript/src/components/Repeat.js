@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import { iterationAliasNames, iterationDummies } from "../utils/repeatAliases";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { instanceOfAttribute } from "../utils/indexInstances";
@@ -102,6 +106,9 @@ export default class Repeat extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
 
         stateVariableDefinitions.sourcesComponentIdx = {
             returnDependencies: () => ({
@@ -301,6 +308,12 @@ export default class Repeat extends CompositeComponent {
                 };
             },
         };
+
+        // The number of items, its iterations (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "numIterates",
+            count: (numIterates) => numIterates ?? 0,
+        });
 
         return stateVariableDefinitions;
     }

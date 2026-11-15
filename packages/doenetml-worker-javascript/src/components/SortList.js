@@ -3,7 +3,7 @@ import {
     reorderedValueListClass,
 } from "./abstract/ReorderedValueList";
 import { entryKind } from "./abstract/ValueListComponent";
-import { returnSortAttributes } from "./Sort";
+import Sort, { returnSortAttributes } from "./Sort";
 import { compareExtractedValues } from "../utils/listValues";
 import { coordinatesOf, coordinatesValue } from "./abstract/GraphicalValueList";
 
@@ -18,6 +18,10 @@ import { coordinatesOf, coordinatesValue } from "./abstract/GraphicalValueList";
 function sortListClass(Base) {
     return class SortList extends reorderedValueListClass(Base) {
         static componentType = "_sortList";
+
+        static get collectionCompositeClass() {
+            return Sort;
+        }
 
         static createAttributesObject() {
             let attributes = super.createAttributesObject();

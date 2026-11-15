@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
@@ -108,6 +112,9 @@ export default class Shuffle extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
 
         stateVariableDefinitions.originalComponentIndices = {
             additionalStateVariablesDefined: ["numComponents"],
@@ -376,6 +383,11 @@ export default class Shuffle extends CompositeComponent {
                 };
             },
         };
+
+        // The number of items, what it shuffles (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "originalComponentIndices",
+        });
 
         return stateVariableDefinitions;
     }

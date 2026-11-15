@@ -1,5 +1,10 @@
 import AuthoredValueList, { blankValue } from "./AuthoredValueList";
 import { entryKind, entryValueOfType } from "./ValueListComponent";
+import {
+    keepOnlyAttributePropertiesOfComposite,
+    keepOnlyPropertiesOfComposite,
+    listOwnPropertiesOfComposite,
+} from "../../utils/numItems";
 import NumberList from "../NumberList";
 import MathList from "../MathList";
 import TextList from "../TextList";
@@ -98,6 +103,26 @@ export function reorderedValueListClass(Base) {
             return false;
         }
 
+        // The composite this is the list form of (`<sort>` or `<shuffle>`),
+        // whose properties of its own are the list's (COMP-4, COLL-2): a
+        // subclass gives it.
+        static get collectionCompositeClass() {
+            return undefined;
+        }
+
+        static get listOwnProperties() {
+            return listOwnPropertiesOfComposite(this.collectionCompositeClass);
+        }
+
+        static createAttributesObject() {
+            let attributes = super.createAttributesObject();
+            keepOnlyAttributePropertiesOfComposite(
+                attributes,
+                this.collectionCompositeClass,
+            );
+            return attributes;
+        }
+
         static returnStateVariableDefinitions() {
             let stateVariableDefinitions =
                 super.returnStateVariableDefinitions();
@@ -185,6 +210,11 @@ export function reorderedValueListClass(Base) {
                     };
                 },
             };
+
+            keepOnlyPropertiesOfComposite(
+                stateVariableDefinitions,
+                this.collectionCompositeClass,
+            );
 
             return stateVariableDefinitions;
         }

@@ -592,6 +592,7 @@ describe("List operator results as children @group4", async () => {
     <p name="pAllValue">$c.value</p>
     <p name="pAllText">$c.text</p>
     <p name="pAllFixed">$c.fixed</p>
+    <p name="pEachFixed">$c[1].fixed $c[2].fixed</p>
     <p name="pAllDigits">$c.displayDigits</p>
     <p name="pAllStyle">$c.styleNumber</p>
     <p name="pSum"><sum>$c.number</sum></p>
@@ -615,7 +616,9 @@ describe("List operator results as children @group4", async () => {
             nDigits: "3",
             pAllValue: "1.23, 3.7, 7.41",
             pAllText: "1.23, 3.7, 7.41",
-            pAllFixed: "true, true, true",
+            // a collection's own setting (COLL-2); each result is fixed
+            pAllFixed: "false",
+            pEachFixed: "true true",
             pAllDigits: "3, 3, 3",
             pAllStyle: "1",
             pSum: "12.35",
@@ -651,7 +654,8 @@ describe("List operator results as children @group4", async () => {
             nDigits: "1",
             pAllValue: "1, 4, 7, 10",
             pAllText: "1, 4, 7, 10",
-            pAllFixed: "true, true, true, true",
+            pAllFixed: "false",
+            pEachFixed: "true true",
             pAllDigits: "1, 1, 1, 1",
             pNumbers: "2 2 1, 2, 3, 4",
             tNumbers: "3",
@@ -668,7 +672,8 @@ describe("List operator results as children @group4", async () => {
             pText: "＿",
             pIndexBy: "＿",
             pAllValue: "1",
-            pAllFixed: "true",
+            pAllFixed: "false",
+            pEachFixed: "true ＿",
             pNumbers: "＿ ＿ 1",
         });
     });

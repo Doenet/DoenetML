@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
@@ -77,6 +81,20 @@ export default class Collect extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A collection's settings are its own (COLL-2). The `hide`, `fixed`
+        // and `disabled` written on a `<collect>` go to what it collects, so
+        // its own are those it takes from where it is, and its own `hide`
+        // (`$c.hide`, which a list form has) is not set.
+        makeCollectionSettingsOwn(stateVariableDefinitions);
+        stateVariableDefinitions.hide = {
+            public: true,
+            description:
+                "Whether the collect itself is hidden; a `hide` written on it hides what it collects.",
+            shadowingInstructions: { createComponentOfType: "boolean" },
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { hide: false } }),
+        };
 
         stateVariableDefinitions.link = {
             returnDependencies: () => ({}),
@@ -455,6 +473,11 @@ export default class Collect extends CompositeComponent {
                 };
             },
         };
+
+        // The number of items, what it collects (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "collectedComponents",
+        });
 
         return stateVariableDefinitions;
     }

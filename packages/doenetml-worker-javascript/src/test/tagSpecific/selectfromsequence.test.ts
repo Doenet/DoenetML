@@ -1362,9 +1362,9 @@ describe("SelectFromSequence tag tests @group4", async () => {
       <textInput name="c4">$c2</textInput>
     </p>
     <p>
-      <boolean extend="$a.fixed" name="af" />
-      <boolean extend="$b.fixed" name="bf" />
-      <boolean extend="$c.fixed" name="cf" />
+      <boolean extend="$a[1].fixed" name="af" />
+      <boolean extend="$b[1].fixed" name="bf" />
+      <boolean extend="$c[1].fixed" name="cf" />
     </p>
     <p>
       <boolean extend="$a2.fixed" name="a2f" />

@@ -13,6 +13,11 @@ import { entryKind, entryValueOfType } from "./abstract/ValueListComponent";
 import { RegisteredNumberEntries } from "./abstract/ReorderedValueList";
 import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import Collect from "./Collect";
+import {
+    keepOnlyAttributePropertiesOfComposite,
+    keepOnlyPropertiesOfComposite,
+    listOwnPropertiesOfComposite,
+} from "../utils/numItems";
 import NumberList from "./NumberList";
 import MathList from "./MathList";
 import TextList from "./TextList";
@@ -80,6 +85,12 @@ function collectListClass(Base) {
         // The type collected, which the document pass records.
         static listEntryTypeAttribute = "componentType";
 
+        // Its properties of its own are those of the composite `<collect>`,
+        // so the two builds agree (COMP-4, COLL-2).
+        static get listOwnProperties() {
+            return listOwnPropertiesOfComposite(Collect);
+        }
+
         static listEntryTypeFromAttribute(attribute) {
             const type =
                 attribute?.type === "primitive"
@@ -118,6 +129,7 @@ function collectListClass(Base) {
                 createPrimitiveOfType: "string",
                 description: collectAttributes.componentType.description,
             };
+            keepOnlyAttributePropertiesOfComposite(attributes, Collect);
             return attributes;
         }
 
@@ -725,6 +737,8 @@ function collectListClass(Base) {
                     ),
                 );
             }
+
+            keepOnlyPropertiesOfComposite(stateVariableDefinitions, Collect);
 
             return stateVariableDefinitions;
         }

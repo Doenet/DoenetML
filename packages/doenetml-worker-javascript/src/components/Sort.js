@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { createNewComponentIndices } from "../utils/componentIndices";
@@ -319,6 +323,9 @@ export default class Sort extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
+
         Object.assign(
             stateVariableDefinitions,
             returnListValueStateVariableDefinitions({
@@ -367,6 +374,11 @@ export default class Sort extends CompositeComponent {
                 return { setValue: { readyToExpandWhenResolved: true } };
             },
         };
+
+        // The number of items, what it sorts (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "sortedValues",
+        });
 
         return stateVariableDefinitions;
     }
