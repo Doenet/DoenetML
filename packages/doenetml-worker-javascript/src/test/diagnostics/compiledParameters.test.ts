@@ -358,7 +358,9 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
      * `length` with or without `from`, `to` and `length` together (a step
      * derived from `from` and `to`, or values counted back from `to`), all
      * four, and a letters selection read as letters that may count back
-     * before `a`.
+     * before `a`. With `"fractional"`, a choice `f` counting back from a `to`
+     * that isn't a whole number, and sequences with a fractional step from
+     * a large `$t`.
      */
     function widerDocuments(
         random: () => number,
@@ -407,13 +409,23 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
             "($z-1)",
             "$d",
         ];
+        const fractional = kinds.includes("fractional");
+        const atomsHere = fractional ? [...atoms, "$f", "$t"] : atoms;
         const docs: string[] = [];
         while (docs.length < 120) {
+            const base = pick([1, 1000, 100000]);
             const context = [
                 `<selectFromSequence name="a" from="1" to="${int(3, 6)}"/>`,
                 ...others.filter(() => random() < 0.6),
                 ...(random() < 0.7 ? [pick(bs)] : []),
                 ...letters.filter(() => random() < 0.6),
+                ...(fractional
+                    ? [
+                          // its values count back from `to`: 1.6, 2.6, …
+                          `<selectFromSequence name="f" to="${pick(["2.6", "3.5", "4.25", "$a+0.5", "$a+1.6"])}"${pick(["", ` step="${pick(["1", "2", "$a"])}"`])}/>`,
+                          `<selectFromSequence name="t" from="${base}" to="${base + pick([1, 1000, 100000])}"/>`,
+                      ]
+                    : []),
             ];
             const has = (s: string) =>
                 [...s.matchAll(/\$(\w+)/g)].every(
@@ -423,8 +435,8 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
                 );
             const term = (): string => {
                 for (let tries = 0; tries < 100; tries++) {
-                    const x = pick(atoms);
-                    const y = pick(atoms);
+                    const x = pick(atomsHere);
+                    const y = pick(atomsHere);
                     const t = pick([
                         x,
                         `${x}+${y}`,
@@ -448,7 +460,18 @@ describe("A pass by bounds is never contradicted by the exact check @group4", ()
             };
             const kind = pick(kinds);
             let target: string;
-            if (kind === "letters") {
+            if (kind === "fractional") {
+                // `to - from` in floating point, off by more than the run
+                // time allows when `$t` is large, against as many values as
+                // there are exactly, or one fewer
+                const span = pick([0.3, 0.5, 0.7, 1.1, 2]);
+                const step = pick([0.1, 0.2, 0.5]);
+                const count = Math.floor(span / step + 1e-9) + 1;
+                target = pick([
+                    `<selectFromSequence${pick(["", ` from="1"`, ` from="$f"`])} to="${pick(["$f", "$f+1", "$f-1", term()])}" numToSelect="${pick(["$f", "$f-1", "round($f)", "2", term()])}"/>`,
+                    `<selectFromSequence from="$t" to="$t+${span}" step="${step}" numToSelect="${pick([String(count), String(count - 1), term()])}"/>`,
+                ]);
+            } else if (kind === "letters") {
                 const letter = () => pick(["c", "A", "$l", "$t", "$b"]);
                 const length = () =>
                     ` length="${pick([String(int(1, 6)), term(), `${term()}+${int(1, 5)}`])}"`;
@@ -563,6 +586,16 @@ ${context.join("\n")}
         const random = seedrandom("wider bounds");
         const { passes, samples } = await checkPasses(
             widerDocuments(random),
+            random,
+        );
+        expect(passes).toBeGreaterThan(50);
+        expect(samples).toBeGreaterThan(10000);
+    }, 600000);
+
+    it("on random documents of sequences counting back from a `to` that isn't a whole number, and of fractional steps", async () => {
+        const random = seedrandom("fractional bounds");
+        const { passes, samples } = await checkPasses(
+            widerDocuments(random, ["fractional"]),
             random,
         );
         expect(passes).toBeGreaterThan(50);

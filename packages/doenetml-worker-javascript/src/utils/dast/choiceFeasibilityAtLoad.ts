@@ -141,6 +141,7 @@ import { mathCodePre } from "../valueFunctions/math";
 import { createInputStringFromChildren } from "../parseMath";
 import {
     calculateSequenceParameters,
+    sequenceLengthOf,
     returnSequenceValueForIndex,
 } from "../sequence";
 import { createPrimesList } from "../primeNumbers";
@@ -3838,7 +3839,12 @@ export function checkChoiceFeasibilityAtLoad({
             if (!(step.lo > 0)) {
                 return Infinity;
             }
-            return Math.floor((to.hi - from.lo) / step.lo + 1);
+            // as the run time rounds it down (`calculateSequenceParameters`)
+            return sequenceLengthOf((to.hi - from.lo) / step.lo + 1, {
+                from: from.lo,
+                to: to.hi,
+                step: step.lo,
+            });
         }
         return Infinity;
     }
@@ -3852,7 +3858,9 @@ export function checkChoiceFeasibilityAtLoad({
      * parameters written. The forms modelled are those where how many
      * values there are is `length` as written, 10, or
      * `(to - from) / step + 1` rounded down (`from` 1 and `step` 1 when not
-     * written), and `length` with a `from` and a `to` (the step is
+     * written; taken exactly: the run time counts a value floating point
+     * leaves just below a whole number as that number, `sequenceLengthOf`),
+     * and `length` with a `from` and a `to` (the step is
      * `(to - from) / (length - 1)`, rounded down for letters) and, of a
      * number or math sequence, `length` with a `to` and a `step` or neither
      * (the first value is `to - step (length - 1)`). Not modelled: a letters
@@ -4013,7 +4021,15 @@ export function checkChoiceFeasibilityAtLoad({
             lo = Math.min(lo, from.lo + span.lo);
             hi = Math.max(hi, from.hi + span.hi);
         }
-        return { lo, hi, integer: from.integer && step.integer };
+        // the values are `from` and steps from it; with no `from` written
+        // and a `to`, the run time counts back from `to`, so they are
+        // `to` and steps back from it (the `from` of the model, 1 when only
+        // `to` is written, is where they may begin, not a value)
+        const integer =
+            from.integer &&
+            step.integer &&
+            (p.from || !model.last || intervalOf(model.last).integer);
+        return { lo, hi, integer: Boolean(integer) };
     }
 
     function choiceBounds(choice: any, spec: ChoiceSpec) {

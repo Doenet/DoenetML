@@ -595,6 +595,49 @@ export function returnStandardSequenceStateVariableDefinitions() {
     return stateVariableDefinitions;
 }
 
+/**
+ * How many values a sequence from `from` toward `to` by `step` has, given
+ * `count`, `(to - from) / step + 1` as computed: `count` rounded down, where
+ * a count within a floating-point tolerance below a whole number is that
+ * whole number.
+ *
+ * `from` and `to` are each off by a few units in their last place (a
+ * decimal such as `0.3` isn't held exactly, and the arithmetic that
+ * computes them rounds), which `to - from` doesn't cancel: with `from` 1000
+ * and `to` 1000.3, `(to - from) / 0.1 + 1` is 3.99999999999954, which an
+ * author means as 4. That error is about 10⁻¹⁶ times the magnitude of
+ * `from` and `to` over the step. The tolerance is 10⁻⁹ times that
+ * magnitude over the step: some ten million times the error of holding
+ * `from` and `to`, room for the rounding of the arithmetic that computed
+ * them, while far smaller than any fraction of a step an author means (a
+ * `to` off the step's grid by a billionth of its size). It is at most
+ * 10⁻⁶, so a very large `from` or `to` over a small step isn't rounded up
+ * by more than that; and `1e-14` of the count is added, as before.
+ *
+ * `from`, `to` and `step` are numbers (of a math sequence, their numeric
+ * values, `NaN` when not numbers, which give no tolerance but `1e-14`).
+ */
+export function sequenceLengthOf(count, { from, to, step }) {
+    const magnitude = Math.max(
+        ...[from, to, step].map((x) => (Number.isFinite(x) ? Math.abs(x) : 0)),
+    );
+    const scaled = (1e-9 * magnitude) / Math.abs(step);
+    const tolerance = Number.isFinite(scaled) ? Math.min(scaled, 1e-6) : 0;
+    return Math.floor(count * (1 + 1e-14) + tolerance);
+}
+
+/** The numeric values of a math sequence's `from`, `to` and `step`. */
+function mathMagnitudes({ from, to, step }) {
+    const value = (x) => {
+        if (typeof x === "number") {
+            return x;
+        }
+        const v = x.evaluate_to_constant();
+        return typeof v === "number" ? v : NaN;
+    };
+    return { from: value(from), to: value(to), step: value(step) };
+}
+
 export function calculateSequenceParameters({ from, to, step, length, type }) {
     // calculate from, length and step from combinatons of from/to/length/step specified
 
@@ -632,13 +675,16 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
             }
             if (length === null) {
                 if (type === "math") {
-                    length = Math.floor(
-                        (to.subtract(1).divide(step).evaluate_to_constant() +
-                            1) *
-                            (1 + 1e-14),
+                    length = sequenceLengthOf(
+                        to.subtract(1).divide(step).evaluate_to_constant() + 1,
+                        mathMagnitudes({ from: 1, to, step }),
                     );
                 } else {
-                    length = Math.floor(((to - 1) / step + 1) * (1 + 1e-14));
+                    length = sequenceLengthOf((to - 1) / step + 1, {
+                        from: 1,
+                        to,
+                        step,
+                    });
                 }
             }
 
@@ -651,9 +697,11 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                 if (type === "letters") {
                     if (from < 1) {
                         // adjust length so that have valid letters
-                        length = Math.floor(
-                            ((to - 1) / step + 1) * (1 + 1e-14),
-                        );
+                        length = sequenceLengthOf((to - 1) / step + 1, {
+                            from: 1,
+                            to,
+                            step,
+                        });
                         from = to - step * (length - 1);
                     }
                 }
@@ -679,13 +727,17 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                 if (length === null) {
                     if (type === "math") {
                         step = me.fromAst(1);
-                        length = Math.floor(
-                            to.subtract(from).add(1).evaluate_to_constant() *
-                                (1 + 1e-14),
+                        length = sequenceLengthOf(
+                            to.subtract(from).add(1).evaluate_to_constant(),
+                            mathMagnitudes({ from, to, step }),
                         );
                     } else {
                         step = 1;
-                        length = Math.floor((to - from + 1) * (1 + 1e-14));
+                        length = sequenceLengthOf(to - from + 1, {
+                            from,
+                            to,
+                            step,
+                        });
                     }
                 } else {
                     if (type === "math") {
@@ -702,18 +754,20 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                 if (length === null) {
                     // from, to, and step, no length
                     if (type === "math") {
-                        length = Math.floor(
+                        length = sequenceLengthOf(
                             to
                                 .subtract(from)
                                 .divide(step)
                                 .add(1)
-                                .evaluate_to_constant() *
-                                (1 + 1e-14),
+                                .evaluate_to_constant(),
+                            mathMagnitudes({ from, to, step }),
                         );
                     } else {
-                        length = Math.floor(
-                            ((to - from) / step + 1) * (1 + 1e-14),
-                        );
+                        length = sequenceLengthOf((to - from) / step + 1, {
+                            from,
+                            to,
+                            step,
+                        });
                     }
                 } else {
                     // from, to, step, and length defined

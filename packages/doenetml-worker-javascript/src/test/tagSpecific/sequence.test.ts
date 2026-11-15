@@ -2502,6 +2502,57 @@ describe("Sequence tag tests @group1", async () => {
         }
     });
 
+    it("a count within floating point of a whole number is that number", async () => {
+        // `(1000.3 - 1000) / 0.1 + 1` is 3.99999999999954 in floating point,
+        // which an author means as 4 (`sequenceLengthOf`); a count that
+        // isn't near a whole number is still rounded down
+        const cases: [string, number[]][] = [
+            [
+                `from="1000" to="1000.3" step="0.1"`,
+                [1000, 1000.1, 1000.2, 1000.3],
+            ],
+            [
+                `type="math" from="1000" to="1000.3" step="0.1"`,
+                [1000, 1000.1, 1000.2, 1000.3],
+            ],
+            [
+                `from="127+1/3" to="128+1/3" step="1/3"`,
+                [127 + 1 / 3, 127 + 2 / 3, 128, 128 + 1 / 3],
+            ],
+            [
+                `to="1000.3" step="0.1" length="4"`,
+                [1000, 1000.1, 1000.2, 1000.3],
+            ],
+            [`from="0.1" to="0.3" step="0.1"`, [0.1, 0.2, 0.3]],
+            [`from="1" to="1.25" step="0.1"`, [1, 1.1, 1.2]],
+            [`from="1000" to="1000.25" step="0.1"`, [1000, 1000.1, 1000.2]],
+            [`from="1" to="3.999999"`, [1, 2, 3]],
+        ];
+        for (const [attributes, values] of cases) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p name="p"><sequence ${attributes}/></p>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const children = childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("p"),
+            );
+            expect(children.length, attributes).eq(values.length);
+            for (let i = 0; i < values.length; i++) {
+                const value = children[i].stateValues.value;
+                const number =
+                    typeof value === "number"
+                        ? value
+                        : value.evaluate_to_constant();
+                expect(Math.abs(number - values[i]), attributes).lessThan(1e-9);
+            }
+        }
+    });
+
     // The same cycle `<selectFromSequence>` hits in Doenet/DoenetML#1665: the
     // exclusion is one of the values the sequence has yet to produce. It is
     // an error at the reference, decided when the document loads (#2473).

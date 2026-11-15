@@ -1006,6 +1006,83 @@ describe("An iteration index ranges over every iteration (SEL-5) @group4", () =>
         }
     });
 
+    it("a sequence's values are those the run time computes when counted back from a `to` that isn't a whole number, and its count is a whole number within floating point", async () => {
+        // each passed, though, when the document runs, it can't select
+        const cases: [string, string][] = [
+            // with a `to` and no `from` or `length`, the values count back
+            // from `to` (`calculateSequenceParameters`): 1.6 and 2.6, not
+            // whole numbers, so `numToSelect="$a"` rounds and doesn't cancel
+            // with the count
+            [
+                `<selectFromSequence name="a" to="2.6"/><selectFromSequence from="1" to="$a" numToSelect="$a"/>`,
+                "when `$a` = 1.6, it has 1 value to select 2 from.",
+            ],
+            [
+                `<repeatForSequence to="2.6" valueName="v"><selectFromSequence from="1" to="$v" numToSelect="$v"/></repeatForSequence>`,
+                "when `$v` = 1.6, it has 1 value to select 2 from.",
+            ],
+            [
+                `<selectFromSequence name="b" from="1" to="3"/><selectFromSequence name="a" to="$b+2.6"/><selectFromSequence from="1" to="$a" numToSelect="$a"/>`,
+                "when `$a` = 1.6, it has 1 value to select 2 from.",
+            ],
+            [
+                `<selectFromSequence name="b" from="1" to="2"/><selectFromSequence name="a" to="2.6" step="$b"/><selectFromSequence from="1" to="$a" numToSelect="$a"/>`,
+                "when `$a` = 1.6, it has 1 value to select 2 from.",
+            ],
+            [
+                `<select name="b">0.5 1.5 2.5</select><selectFromSequence name="a" to="$b+4"/><selectFromSequence from="1" to="$a" numToSelect="$a"/>`,
+                "when `$a` = 1.5, it has 1 value to select 2 from.",
+            ],
+        ];
+        for (const [doenetML, when] of cases) {
+            expect((await load(doenetML)).errors, doenetML).eqls([
+                `doenet-e0073: \`<selectFromSequence>\` can't always select as written: ${when}`,
+            ]);
+        }
+
+        // whole numbers, and fractional steps: the run time counts within a
+        // floating-point tolerance of a whole number as that number
+        // (`sequenceLengthOf`): `(1000.3 - 1000) / 0.1 + 1` is
+        // 3.99999999999954, and 4 values; `382/3 + 1 - 382/3` is
+        // 0.99999999999997
+        const repeat = (content: string) =>
+            `<mathInput name="n" prefill="2"/><repeatForSequence to="$n" indexName="i">${content}</repeatForSequence>`;
+        for (const doenetML of [
+            `<selectFromSequence name="a" to="3"/><selectFromSequence from="1" to="$a" numToSelect="$a"/>`,
+            `<selectFromSequence name="a" to="3"/><selectFromSequence to="$a" numToSelect="$a"/>`,
+            `<selectFromSequence name="t" from="1000" to="1001"/><selectFromSequence from="$t" to="$t+0.3" step="0.1" numToSelect="4"/>`,
+            `<selectFromSequence name="t" from="1000" to="100000"/><selectFromSequence from="$t" to="$t+0.3" step="0.1" numToSelect="4"/>`,
+            `<selectFromSequence name="t" from="1000" to="1001"/><selectFromSequence type="math" from="$t" to="$t+0.3" step="0.1" numToSelect="4"/>`,
+            `<selectFromSequence name="j" from="1" to="100000"/><selectFromSequence from="$j*1000000" to="$j*1000000+2" step="0.1" numToSelect="21"/>`,
+            repeat(
+                `<selectFromSequence from="$i" to="$i+2" step="0.1" numToSelect="21"/>`,
+            ),
+            repeat(
+                `<selectFromSequence from="0" to="$i" step="0.1" numToSelect="10$i+1"/>`,
+            ),
+            repeat(
+                `<selectFromSequence from="$i" to="$i+0.3" step="0.1" numToSelect="4"/>`,
+            ),
+            repeat(
+                `<selectFromSequence from="$i/3" to="$i/3+1" step="1/3" numToSelect="4"/>`,
+            ),
+            repeat(`<selectFromSequence to="$i+3" numToSelect="$i+3"/>`),
+        ]) {
+            expect((await load(doenetML)).errors, doenetML).eqls([]);
+        }
+
+        // a count that isn't near a whole number is rounded down
+        expect(
+            (
+                await load(
+                    `<selectFromSequence name="t" from="1000" to="1001"/><selectFromSequence from="$t" to="$t+0.25" step="0.1" numToSelect="4"/>`,
+                )
+            ).errors,
+        ).eqls([
+            "doenet-e0073: `<selectFromSequence>` can't always select as written: when `$t` = 1000, it has 3 values to select 4 from.",
+        ]);
+    });
+
     it("a letters sequence that reads the variant leaves out the letters its exclude writes", async () => {
         // the letters were compiled as their numbers, which the selection
         // reads as no letters: it left out nothing

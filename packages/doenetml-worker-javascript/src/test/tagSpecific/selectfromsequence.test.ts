@@ -2501,6 +2501,42 @@ describe("SelectFromSequence tag tests @group4", async () => {
         expect(secondNumbers).eqls(originalNumbers);
     });
 
+    it("a count within floating point of a whole number is that number", async () => {
+        // `(1000.3 - 1000) / 0.1 + 1` is 3.99999999999954 in floating point:
+        // 4 values, also when `from` and `to` read another selection
+        for (const doenetML of [
+            `<selectFromSequence name="s" from="1000" to="1000.3" step="0.1" numToSelect="4"/>`,
+            `<selectFromSequence name="t" from="1000" to="1001"/><selectFromSequence name="s" from="$t" to="$t+0.3" step="0.1" numToSelect="4"/>`,
+        ]) {
+            for (const requestedVariantIndex of [1, 2]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                });
+                const { errors, infos } = getDiagnosticsByType(core);
+                expect(errors, doenetML).eqls([]);
+                expect(
+                    infos.map((i) => i.code),
+                    doenetML,
+                ).not.toContain("doenet-e0036");
+                const s = (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("s")
+                ].stateValues;
+                expect(s.length).eq(4);
+                expect(s.selectedValues).toHaveLength(4);
+            }
+        }
+        // a count that isn't near a whole number is rounded down
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<selectFromSequence name="s" from="1" to="1.25" step="0.1"/>`,
+        });
+        expect(
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("s")
+            ].stateValues.length,
+        ).eq(3);
+    });
+
     // Doenet/DoenetML#1665: an attribute that refers back to the selection
     // cannot be evaluated until the selection is made, which in turn needs the
     // attribute. Both cases exhausted the worker's heap before the fix, and
