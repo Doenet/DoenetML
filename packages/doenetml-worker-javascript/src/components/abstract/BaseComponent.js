@@ -152,6 +152,12 @@ export default class BaseComponent {
 
         if (this.doenetAttributes.missing) {
             this.state.valueMissing = missingDefinition();
+            // made for a reference that names nothing
+            // (`contentNamesNothingDefinition`)
+            this.state.namesNothing = {
+                returnDependencies: () => ({}),
+                definition: () => ({ setValue: { namesNothing: true } }),
+            };
         } else if (this.doenetAttributes.missingWhileEntryEmpty) {
             this.state.valueMissing = missingWhileEntryEmptyDefinition();
         } else if (

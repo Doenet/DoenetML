@@ -85,6 +85,80 @@ export function contentMissingDefinition() {
 }
 
 /**
+ * The definition of `contentNamesNothing`: whether what a `<math>`, a
+ * `<point>` or a `<vector>` holds is only references that name nothing now
+ * (`$nothing`, `$pl[3]` while `pl` has two points), each made a missing
+ * component (`doenetAttributes.missing`, whose `namesNothing` is `true`).
+ * A point or vector made from an attribute (`center="$nothing"`) holds its
+ * content in its `coords` or `displacement` (`attributeName`). It makes a
+ * shape whose point that is missing (`BaseComponent.missingWhenPointsMissing`,
+ * D40). Unlike `contentMissing`, it does not read whether a reference's
+ * source is missing, which for a reference to a property of the shape
+ * (`<ray through="$(r.endpoint)">`) would read the shape again.
+ */
+export function contentNamesNothingDefinition(attributeName?: string) {
+    return {
+        returnDependencies: () => ({
+            children: {
+                dependencyType: "child",
+                includeAllChildren: true,
+                variableNames: ["namesNothing", "contentNamesNothing"],
+                variablesOptional: true,
+            },
+            ...(attributeName
+                ? {
+                      attribute: {
+                          dependencyType: "attributeComponent",
+                          attributeName,
+                          variableNames: ["contentNamesNothing"],
+                          variablesOptional: true,
+                      },
+                  }
+                : {}),
+        }),
+        definition({
+            dependencyValues,
+            componentInfoObjects,
+        }: {
+            dependencyValues: { children: any[]; attribute?: any };
+            componentInfoObjects: any;
+        }) {
+            if (dependencyValues.attribute?.stateValues?.contentNamesNothing) {
+                return { setValue: { contentNamesNothing: true } };
+            }
+            let found = false;
+            for (const child of dependencyValues.children) {
+                if (typeof child !== "object") {
+                    if (String(child).trim() !== "") {
+                        return { setValue: { contentNamesNothing: false } };
+                    }
+                    continue;
+                }
+                if (
+                    NON_CONTENT_CHILD_TYPES.some((baseComponentType) =>
+                        componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: child.componentType,
+                            baseComponentType,
+                        }),
+                    )
+                ) {
+                    continue;
+                }
+                if (
+                    child.stateValues?.namesNothing ||
+                    child.stateValues?.contentNamesNothing
+                ) {
+                    found = true;
+                } else {
+                    return { setValue: { contentNamesNothing: false } };
+                }
+            }
+            return { setValue: { contentNamesNothing: found } };
+        },
+    };
+}
+
+/**
  * The definitions of `contentMissing` and `valueMissing` of a component that
  * is missing while its content is only missing children
  * (`BaseComponent.missingWhenContentMissing`, D40): `<number>$nothing</number>`
@@ -171,7 +245,10 @@ export function missingWhenContentMissingDefinitions({
                         {
                             dependencyType: "attributeComponent",
                             attributeName,
-                            variableNames: ["valueMissing", "contentMissing"],
+                            variableNames: [
+                                "valueMissing",
+                                "contentNamesNothing",
+                            ],
                             variablesOptional: true,
                         },
                     ]),
@@ -194,7 +271,7 @@ export function missingWhenContentMissingDefinitions({
                                 ?.stateValues;
                         return Boolean(
                             stateValues?.valueMissing ||
-                            stateValues?.contentMissing,
+                            stateValues?.contentNamesNothing,
                         );
                     });
                 return {

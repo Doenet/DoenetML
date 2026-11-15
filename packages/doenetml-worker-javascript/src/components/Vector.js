@@ -1,5 +1,5 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
-import { contentMissingDefinition } from "../utils/missing";
+import { contentNamesNothingDefinition } from "../utils/missing";
 import me from "math-expressions";
 import {
     breakEmbeddedStringByCommas,
@@ -355,34 +355,12 @@ export default class Vector extends GraphicalComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // Whether its content is only missing children
-        // (`<vector>$nothing</vector>`), or the `displacement` it is made from is
-        // (`center="$nothing"` makes a vector from `displacement`), which makes a
-        // shape it is an attribute of missing
-        // (`BaseComponent.missingWhenPointsMissing`, D40). The vector itself
-        // is not made missing by it.
-        if (!stateVariableDefinitions.contentMissing) {
-            const childrenMissing = contentMissingDefinition();
-            stateVariableDefinitions.contentMissing = {
-                returnDependencies: () => ({
-                    ...childrenMissing.returnDependencies(),
-                    displacementAttr: {
-                        dependencyType: "attributeComponent",
-                        attributeName: "displacement",
-                        variableNames: ["contentMissing", "valueMissing"],
-                        variablesOptional: true,
-                    },
-                }),
-                definition(args) {
-                    const attr =
-                        args.dependencyValues.displacementAttr?.stateValues;
-                    if (attr?.contentMissing || attr?.valueMissing) {
-                        return { setValue: { contentMissing: true } };
-                    }
-                    return childrenMissing.definition(args);
-                },
-            };
-        }
+        // Whether it holds only references that name nothing, as its
+        // children or its `displacement` (`center="$nothing"`), which makes a shape
+        // it gives a point to missing (`BaseComponent.missingWhenPointsMissing`,
+        // D40). The vector itself is not made missing by it.
+        stateVariableDefinitions.contentNamesNothing =
+            contentNamesNothingDefinition("displacement");
 
         Object.assign(
             stateVariableDefinitions,

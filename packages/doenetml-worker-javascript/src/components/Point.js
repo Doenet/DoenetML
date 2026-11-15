@@ -1,5 +1,5 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
-import { contentMissingDefinition } from "../utils/missing";
+import { contentNamesNothingDefinition } from "../utils/missing";
 import me from "math-expressions";
 import { breakEmbeddedStringByCommas } from "./commonsugar/breakstrings";
 import {
@@ -421,33 +421,12 @@ export default class Point extends GraphicalComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // Whether its content is only missing children
-        // (`<point>$nothing</point>`), or the `coords` it is made from is
-        // (`center="$nothing"` makes a point from `coords`), which makes a
-        // shape it is an attribute of missing
-        // (`BaseComponent.missingWhenPointsMissing`, D40). The point itself
-        // is not made missing by it.
-        if (!stateVariableDefinitions.contentMissing) {
-            const childrenMissing = contentMissingDefinition();
-            stateVariableDefinitions.contentMissing = {
-                returnDependencies: () => ({
-                    ...childrenMissing.returnDependencies(),
-                    coordsAttr: {
-                        dependencyType: "attributeComponent",
-                        attributeName: "coords",
-                        variableNames: ["contentMissing", "valueMissing"],
-                        variablesOptional: true,
-                    },
-                }),
-                definition(args) {
-                    const attr = args.dependencyValues.coordsAttr?.stateValues;
-                    if (attr?.contentMissing || attr?.valueMissing) {
-                        return { setValue: { contentMissing: true } };
-                    }
-                    return childrenMissing.definition(args);
-                },
-            };
-        }
+        // Whether it holds only references that name nothing, as its
+        // children or its `coords` (`center="$nothing"`), which makes a shape
+        // it gives a point to missing (`BaseComponent.missingWhenPointsMissing`,
+        // D40). The point itself is not made missing by it.
+        stateVariableDefinitions.contentNamesNothing =
+            contentNamesNothingDefinition("coords");
 
         Object.assign(
             stateVariableDefinitions,
