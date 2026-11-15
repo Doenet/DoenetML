@@ -1,11 +1,12 @@
 /*
- * The hint's control is a native button; the reset makes it draw as the bar
- * it was when it was a span (font, color, alignment and width), and
- * `box-sizing` plus the width keep it as wide as a block span between its
- * 4px side margins.
+ * The hint's control is a native button, drawn as the bar it was when it was
+ * a span. `all: unset` clears the browser's button styles and any rules for
+ * `button` on a page that embeds the viewer, as `.doenet-button` does; text
+ * properties then inherit, as the span's did. `box-sizing` plus the width keep
+ * it as wide as a block span between its 4px side margins.
  */
 .doenet-viewer .hint-title {
-    appearance: none;
+    all: unset;
     display: block;
     box-sizing: border-box;
     width: calc(100% - 8px);
@@ -14,10 +15,6 @@
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
     background-color: var(--revealButtonSurface);
-    color: inherit;
-    font: inherit;
-    letter-spacing: inherit;
-    line-height: inherit;
     text-align: start;
     cursor: pointer;
     &:focus-visible {

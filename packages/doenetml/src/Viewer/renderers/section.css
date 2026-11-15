@@ -2,19 +2,13 @@
  * The control of a collapsible section: a native button inside the heading,
  * drawn so that the heading looks exactly as it did before it held a button.
  * The heading box around it keeps the color, the padding and the pointer.
+ * `all: unset` clears the browser's button styles and any rules for `button`
+ * on a page that embeds the viewer (see hint.css).
  */
 .doenet-viewer .section-disclosure-button {
-    appearance: none;
+    all: unset;
     display: block;
     width: 100%;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    letter-spacing: inherit;
-    line-height: inherit;
     text-align: start;
     cursor: inherit;
 }

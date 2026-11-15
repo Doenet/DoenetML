@@ -302,5 +302,50 @@ describe(
             });
             expectNoAxeViolations("#sol");
         });
+
+        it("a host page's button styles do not restyle the toggles", () => {
+            // An embedded viewer (`@doenet/standalone`) shares the host page's
+            // stylesheet. The toggles were spans, which a host's rules for
+            // `button` never reached; as buttons they must still look the same.
+            load(
+                `<section name="s" collapsible startOpen="false"><title>Later part</title><p>Text.</p></section>
+<hint name="h"><title>Try a smaller case</title><p>Words of the hint.</p></hint>
+<solution name="sol"><p>Words of the solution.</p></solution>`,
+                "#sol",
+            );
+            const toggles = [
+                "#s_title > button",
+                "#h [data-test=hint-heading]",
+                "#sol_button",
+            ];
+            const props = [
+                "text-transform",
+                "box-shadow",
+                "font-family",
+                "font-size",
+                "min-height",
+            ];
+            const measure = (win) =>
+                toggles.map((sel) => {
+                    const el = win.document.querySelector(sel);
+                    const cs = win.getComputedStyle(el);
+                    return {
+                        sel,
+                        height: el.getBoundingClientRect().height,
+                        ...Object.fromEntries(
+                            props.map((p) => [p, cs.getPropertyValue(p)]),
+                        ),
+                    };
+                });
+            cy.window().then((win) => {
+                const before = measure(win);
+                const style = win.document.createElement("style");
+                style.textContent = `button { text-transform: uppercase; box-shadow: 0 1px 2px black;
+                    min-height: 44px; font-family: serif; font-size: 10px; padding: 8px 16px;
+                    background: blue; border: 1px solid navy; border-radius: 6px; }`;
+                win.document.head.appendChild(style);
+                expect(measure(win)).to.deep.equal(before);
+            });
+        });
     },
 );

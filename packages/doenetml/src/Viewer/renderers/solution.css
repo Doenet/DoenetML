@@ -5,17 +5,14 @@
     }
 }
 /*
- * The solution's control is a native button; the reset makes it draw as the
- * bar it was when it was a span (see hint.css).
+ * The solution's control is a native button, drawn as the bar it was when it
+ * was a span (see hint.css). Its box and colors are set inline.
  */
 .doenet-viewer .solution .solution-button {
-    appearance: none;
+    all: unset;
+    display: block;
     box-sizing: border-box;
     width: calc(100% - 8px);
-    color: inherit;
-    font: inherit;
-    letter-spacing: inherit;
-    line-height: inherit;
     text-align: start;
     &:focus-visible {
         outline: 2px solid var(--canvasText);
