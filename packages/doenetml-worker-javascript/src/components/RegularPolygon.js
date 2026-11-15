@@ -24,6 +24,10 @@ export default class RegularPolygon extends Polygon {
 
     static componentType = "regularPolygon";
 
+    // Missing while its center is a missing point (D40, VAL-5;
+    // `BaseComponent.missingWhenPointsMissing`).
+    static missingWhenPointsMissing = ["center"];
+
     static componentDocs = {
         summary: "A regular polygon with a given number of sides",
     };
@@ -392,10 +396,15 @@ export default class RegularPolygon extends Polygon {
                     let varEnding = Number(arrayKey) + 1;
 
                     if (dependencyValuesByKey[arrayKey].centerAttr !== null) {
-                        specifiedCenter[arrayKey] = evaluateToNumber(
+                        // a missing center has no coordinates: the polygon
+                        // is missing (`missingWhenPointsMissing`)
+                        const coordinate =
                             dependencyValuesByKey[arrayKey].centerAttr
-                                .stateValues["x" + varEnding],
-                        );
+                                .stateValues["x" + varEnding];
+                        specifiedCenter[arrayKey] =
+                            coordinate === undefined
+                                ? NaN
+                                : evaluateToNumber(coordinate);
                     }
                 }
 

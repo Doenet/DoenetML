@@ -26,6 +26,10 @@ export default class Ray extends GraphicalComponent {
         });
     }
     static componentType = "ray";
+
+    // Missing while its endpoint, a point it goes through or its direction is a missing point (D40, VAL-5;
+    // `BaseComponent.missingWhenPointsMissing`).
+    static missingWhenPointsMissing = ["endpoint", "through", "direction"];
     static styleOverrideCategories = ["line"];
 
     static componentDocs = {

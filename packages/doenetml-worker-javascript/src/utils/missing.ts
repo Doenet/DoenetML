@@ -114,10 +114,12 @@ export function contentMissingDefinition() {
 export function missingWhenContentMissingDefinitions({
     contentMissing = true,
     entriesAttributes = [],
+    pointAttributes = [],
     computedMissing = false,
 }: {
     contentMissing?: boolean;
     entriesAttributes?: string[];
+    pointAttributes?: string[];
     computedMissing?: boolean;
 } = {}) {
     return {
@@ -159,17 +161,42 @@ export function missingWhenContentMissingDefinitions({
                         },
                     ]),
                 ),
+                // A point a shape is made from, given by an attribute of one
+                // point (`BaseComponent.missingWhenPointsMissing`), that is
+                // missing: `<ray through="$nothing"/>`, `<circle
+                // center="$pl[3]"/>` (D40, VAL-5).
+                ...Object.fromEntries(
+                    pointAttributes.map((attributeName) => [
+                        `point_${attributeName}`,
+                        {
+                            dependencyType: "attributeComponent",
+                            attributeName,
+                            variableNames: ["valueMissing", "contentMissing"],
+                            variablesOptional: true,
+                        },
+                    ]),
+                ),
             }),
             definition({
                 dependencyValues,
             }: {
                 dependencyValues: Record<string, any>;
             }) {
-                const entryMissing = entriesAttributes.some((attributeName) =>
-                    dependencyValues[
-                        `entries_${attributeName}`
-                    ]?.stateValues?.entriesMissing?.some(Boolean),
-                );
+                const entryMissing =
+                    entriesAttributes.some((attributeName) =>
+                        dependencyValues[
+                            `entries_${attributeName}`
+                        ]?.stateValues?.entriesMissing?.some(Boolean),
+                    ) ||
+                    pointAttributes.some((attributeName) => {
+                        const stateValues =
+                            dependencyValues[`point_${attributeName}`]
+                                ?.stateValues;
+                        return Boolean(
+                            stateValues?.valueMissing ||
+                            stateValues?.contentMissing,
+                        );
+                    });
                 return {
                     setValue: {
                         valueMissing:

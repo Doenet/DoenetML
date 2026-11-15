@@ -339,6 +339,7 @@ export default class BaseComponent {
             (this.constructor.missingWhenContentMissing ||
                 this.constructor.missingWhenComputedFromMissing ||
                 this.constructor.missingWhenEntriesMissing.length > 0 ||
+                this.constructor.missingWhenPointsMissing.length > 0 ||
                 Boolean(
                     this.doenetAttributes.missingWhenContentMissing ||
                     this.doenetAttributes.missingWhileEntryEmpty ||
@@ -379,6 +380,14 @@ export default class BaseComponent {
      * entry is there (`missingWhenContentMissingDefinitions`).
      */
     static missingWhenEntriesMissing = [];
+
+    /**
+     * The attributes giving a shape one point (`center`, `vertex`, a ray's
+     * `endpoint` and `through`) whose missing point makes it missing (D40,
+     * VAL-5): `<circle center="$pl[3]"/>` while `pl` has two points is a
+     * missing circle, as `missingWhenEntriesMissing` is for a list of points.
+     */
+    static missingWhenPointsMissing = [];
 
     /**
      * Whether this component is missing (D37): a tag whose source is
@@ -1227,13 +1236,15 @@ export default class BaseComponent {
         if (
             this.missingWhenContentMissing ||
             this.missingWhenComputedFromMissing ||
-            this.missingWhenEntriesMissing.length > 0
+            this.missingWhenEntriesMissing.length > 0 ||
+            this.missingWhenPointsMissing.length > 0
         ) {
             Object.assign(
                 stateVariableDefinitions,
                 missingWhenContentMissingDefinitions({
                     contentMissing: this.missingWhenContentMissing,
                     entriesAttributes: this.missingWhenEntriesMissing,
+                    pointAttributes: this.missingWhenPointsMissing,
                     computedMissing: this.missingWhenComputedFromMissing,
                 }),
             );
