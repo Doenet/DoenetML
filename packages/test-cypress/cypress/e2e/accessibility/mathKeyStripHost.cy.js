@@ -161,3 +161,74 @@ describe("Math key strip on a host page", { tags: ["@group5"] }, () => {
         expectStripsShown(0);
     });
 });
+
+describe(
+    "Math key strip on a host page, detached",
+    { tags: ["@group5"] },
+    () => {
+        // `detach()` must leave nothing running, even with the strip's re-check
+        // after a focusout still pending. That re-check could otherwise show the
+        // destroyed strip's watcher again: it observes the whole host document.
+        // To reach that state the touch test is a stand-in the test can flip
+        // (Chrome's emulation sends no `change`), and observers are counted.
+        it("leaves no watcher behind when detached with a re-check pending", () => {
+            const coarse = {
+                matches: true,
+                listeners: [],
+                addEventListener(type, fn) {
+                    this.listeners.push(fn);
+                },
+                removeEventListener(type, fn) {
+                    this.listeners = this.listeners.filter((f) => f !== fn);
+                },
+            };
+            let watching = 0;
+            cy.viewport(390, 700);
+            cy.visit("/math-key-strip-host-page.html", {
+                onBeforeLoad(win) {
+                    const matchMedia = win.matchMedia.bind(win);
+                    win.matchMedia = (query) =>
+                        query === "(pointer: coarse)"
+                            ? coarse
+                            : matchMedia(query);
+                    const Observer = win.MutationObserver;
+                    win.MutationObserver = class extends Observer {
+                        observe(...args) {
+                            if (!this.watching) {
+                                this.watching = true;
+                                watching += 1;
+                            }
+                            return super.observe(...args);
+                        }
+                        disconnect() {
+                            if (this.watching) {
+                                this.watching = false;
+                                watching -= 1;
+                            }
+                            return super.disconnect();
+                        }
+                    };
+                },
+            });
+            mathTextarea("#act1").focus();
+            expectStripsShown(1);
+            cy.wrap(null).should(() => expect(watching).to.equal(1));
+            cy.window().then((win) => {
+                // The pointer stops being coarse: the strip hides while the
+                // activity still reports its input focused.
+                coarse.matches = false;
+                coarse.listeners.forEach((fn) => fn());
+                expect(watching).to.equal(0);
+                const strip = win.document.querySelector(STRIP);
+                // A focusout schedules the re-check; detach before it runs, and
+                // let the pointer turn coarse again in between.
+                strip.dispatchEvent(new win.FocusEvent("focusout"));
+                win.detachStrips[0]();
+                coarse.matches = true;
+            });
+            cy.wait(100);
+            cy.get(STRIP).should("have.length", 1);
+            cy.wrap(null).should(() => expect(watching).to.equal(0));
+        });
+    },
+);
