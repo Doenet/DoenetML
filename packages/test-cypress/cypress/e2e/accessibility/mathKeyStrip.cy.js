@@ -242,13 +242,15 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
                 .closest(".mks-scroller")
                 .getBoundingClientRect();
             expect(key.top - reach, "ring top").to.be.at.least(clip.top);
-            expect(key.left - reach, "ring left").to.be.at.least(clip.left);
             expect(key.bottom + reach, "ring bottom").to.be.at.most(
                 clip.bottom,
             );
             // A key scrolled into view lands on a whole-pixel scroll
             // position while key widths are fractional: allow that rounding
             // (under a pixel), not the 4px a missing scroll padding cuts.
+            expect(key.left - reach, "ring left").to.be.at.least(
+                clip.left - 0.99,
+            );
             expect(key.right + reach, "ring right").to.be.at.most(
                 clip.right + 0.99,
             );
@@ -293,9 +295,13 @@ describe("Math key strip", { tags: ["@group5"] }, () => {
         });
 
         // Tab order is input, strip, then what follows the input; Shift+Tab
-        // from the strip goes back to the input. No trap.
+        // from the strip goes back to the input. No trap. The row has been
+        // scrolled to its end first, as a finger might, which takes "pi"
+        // out of sight: Tab brings it back into view.
+        cy.get(`${STRIP} .mks-scroller`).scrollTo("right");
         cy.get("#mi4 textarea").trigger("keydown", { ...TAB, force: true });
         cy.focused().should("have.attr", "aria-label", "pi");
+        cy.focused().should(ringIsWhole);
         cy.focused().trigger("keydown", { ...TAB, shiftKey: true });
         cy.focused().should(($el) => {
             expect($el.closest("#mi4").length).to.equal(1);

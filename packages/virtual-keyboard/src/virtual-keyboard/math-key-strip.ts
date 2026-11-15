@@ -411,7 +411,10 @@ export type MathKeyStrip = {
     contains(node: unknown): boolean;
     setTheme(theme: MathKeyStripTheme | undefined): void;
     setTranslate(translate: Translator | undefined): void;
-    /** Moves focus to the strip's tab stop (the key last focused). */
+    /**
+     * Moves focus to the strip's tab stop (the key last focused), scrolled
+     * into view.
+     */
     focus(): void;
     /** Re-place the strip and re-check that it covers nothing. */
     update(): void;
@@ -519,14 +522,20 @@ export function createMathKeyStrip(options: MathKeyStripOptions): MathKeyStrip {
         }
         e.preventDefault();
         setFocusIndex(next);
-        const button = buttons[next];
+        focusKey(buttons[next]);
+    });
+
+    // Focuses a key and scrolls the row to show it. Also needed when Tab
+    // enters the row: a finger may have scrolled the key last focused out of
+    // sight, and `preventScroll` leaves it there.
+    function focusKey(button: HTMLElement) {
         button.focus({ preventScroll: true });
         button.scrollIntoView({
             block: "nearest",
             inline: "nearest",
             behavior: prefersReducedMotion(win) ? "auto" : "smooth",
         });
-    });
+    }
 
     doc.body.appendChild(root);
 
@@ -649,7 +658,7 @@ export function createMathKeyStrip(options: MathKeyStripOptions): MathKeyStrip {
             applyLabels();
         },
         focus() {
-            buttons[focusIndex].focus({ preventScroll: true });
+            focusKey(buttons[focusIndex]);
         },
         update,
         destroy() {
