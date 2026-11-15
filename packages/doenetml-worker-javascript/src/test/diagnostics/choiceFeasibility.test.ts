@@ -876,6 +876,11 @@ describe("Feasibility is proven at load (SEL-5) @group4", () => {
                 `<selectRandomNumbers type="discreteUniform" from="1/0" exclude="1/0"/>`,
                 notANumber("selectRandomNumbers", "from"),
             ],
+            // and a step too small to change a large excluded `from`
+            [
+                `<selectRandomNumbers type="discreteUniform" from="1e17" exclude="1e17"/>`,
+                length0,
+            ],
             [
                 `<selectRandomNumbers type="discreteUniform" from="1" to="3" exclude="1 2 3"/>`,
                 length0,

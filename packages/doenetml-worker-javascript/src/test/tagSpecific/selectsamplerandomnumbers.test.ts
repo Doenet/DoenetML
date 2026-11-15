@@ -684,7 +684,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     it("discrete uniform values that would be counted without end are none, and don't freeze the document", async () => {
         // A step of 0 to a `to`, or a step of 0 or a `from` or step that
         // isn't a finite number past an excluded value (an excluded `NaN`
-        // or `Infinity` matches one), counted values without end. The
+        // or `Infinity` matches one), or a step that no longer changes an
+        // excluded value, counted values without end. The
         // sampler draws nothing, with no diagnostic, as with no value.
         for (const doenetML of [
             `<sampleRandomNumbers name="s" type="discreteUniform" from="1" to="5" step="0" />`,
@@ -693,6 +694,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             `<sampleRandomNumbers name="s" type="discreteUniform" from="1" step="x" exclude="1 x" />`,
             `<sampleRandomNumbers name="s" type="discreteUniform" from="1" step="x" exclude="x" />`,
             `<sampleRandomNumbers name="s" type="discreteUniform" from="1/0" exclude="1/0" />`,
+            // a step too small to change a large excluded `from`, or one
+            // stepping past the largest number to an excluded `Infinity`
+            `<sampleRandomNumbers name="s" type="discreteUniform" from="1e17" exclude="1e17" />`,
+            `<sampleRandomNumbers name="s" type="discreteUniform" from="1e308" step="1e308" exclude="1e308 1/0" />`,
+            `<sampleRandomNumbers name="s" type="discreteUniform" from="1e308" step="1e308" exclude="1/0" />`,
         ]) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,

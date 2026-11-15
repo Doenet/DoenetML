@@ -522,7 +522,16 @@ export default class SampleRandomNumbers extends ValueListComponent {
                         }
                     } else {
                         // make sure from isn't excluded
+                        // (stopping when a step no longer changes it, as
+                        // from a `from` too large for the step to change,
+                        // or past the largest number: stepping on would
+                        // never end, and the range has no values)
+                        let stuck = false;
                         while (exclude.includes(from)) {
+                            if (from + step === from) {
+                                stuck = true;
+                                break;
+                            }
                             from += step;
                         }
 
@@ -530,14 +539,24 @@ export default class SampleRandomNumbers extends ValueListComponent {
 
                         // make sure to isn't excluded, so that have exactly two values
                         let i = 1;
-                        while (exclude.includes(to)) {
+                        while (!stuck && exclude.includes(to)) {
+                            if (!Number.isFinite(to)) {
+                                // past the largest number, and excluded
+                                stuck = true;
+                                break;
+                            }
                             // Note: make sure calculate to using exact same sequence of operations as actual values
                             // so don't have differences due to floating point rounding
                             i++;
                             to = from + i * step;
                         }
 
-                        numDiscreteValues = 2;
+                        if (stuck) {
+                            to = from;
+                            numDiscreteValues = 0;
+                        } else {
+                            numDiscreteValues = 2;
+                        }
                     }
                 } else {
                     if (from === null) {
