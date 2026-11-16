@@ -140,7 +140,9 @@ removed.
 8. `$x.prop` is a new value. It is not the component, so it has no label, no `hide` and no
    style of its own. It is still two-way: typing into it changes x. (VAL-1, VAL-2)
 9. A reference written where a value is read (`<math>$n+1</math>`, `xMin="$n"`) acts like
-   the referent's current value written there. (VAL-3)
+   the referent's current value written there. (VAL-3) Every value a reference reaches has one
+   type, decided from the DoenetML; what the reader enters, and saved state, never change it.
+   (TYPE)
 10. An attribute is read in one of three ways:
    - plain text is parsed as the attribute's type;
    - exactly one reference *is* that reference, in both directions;

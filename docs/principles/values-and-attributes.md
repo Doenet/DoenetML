@@ -66,6 +66,47 @@ Evidence:
 
 ---
 
+### TYPE: every value a reference reaches has one type, decided from the DoenetML (Tier 1; D45)
+> **Every value a reference reaches has one type, decided from the DoenetML.** What the reader
+> enters, and saved state, never change a type.
+
+So whether `<math extend="$a.currentResponse2"/>` is allowed, and what `$x.p` gives in a
+`<math>`, is known before anyone reads the document, the same in every variant.
+
+- **TYPE-1: a property's type is fixed by its component, or worked out at load (Tier 2)** from
+  the written primitive attributes (`type`) and the tags of what is written, typed as REF-5 types
+  parts (a bare `$y` is y's tag, a list's item its entry type, branches by COMP-11's every-branch
+  rule). Never from values.
+- **TYPE-2: entries may differ in type, each decided at load (Tier 2).** An answer's responses
+  are a math and a text when its inputs are a `<mathInput>` and a `<textInput>`. A literal index
+  has its entry's type. An index that can reach several entries is typed only if they share one
+  type, the every-branch rule of COMP-11.
+- **TYPE-3: a type that can't be decided is an error at load (Tier 2),** at the component or the
+  reference that needs it. This replaces REF-5's `e0067` for properties.
+- **TYPE-4: saved state never decides a type (Tier 2).** A type is the DoenetML's, so a reload
+  gives the type the DoenetML gives (SAVE-3).
+
+**The properties whose type varies today** (`hasVariableComponentType`, D45; implementation
+#2568):
+- decided by a written `type`, already at load: a selectable type's `value` and `values`,
+  `<slider>`'s `value` and `items` (`items` holds a list but is typed as one value, #2545),
+  `<animateFromSequence>`'s `value`;
+- decided by what is written, computed at run time today:
+  - `<markers>`: text if any child is a `<text>`, else number (a mix is text, silently);
+  - `<choiceInput>`'s `selectedValues`: math if every choice holds one math, else text;
+  - `<tally>`'s `categories`: numeric when every value is a number by its tag, else text;
+    literal text by its content (`007 008 007 10` is numbers, `007 008 007 a` texts);
+  - `<answer>`'s `currentResponses`: each response's type is its input's or its component's,
+    falling back to math;
+- not decided by the DoenetML:
+  - `<answer>`'s responses from a component in a `<conditionalContent>` follow the shown case
+    **[probe]**;
+  - `<answer>`'s `submittedResponses` restores its types from saved state
+    (`submittedResponsesComponentType`);
+  - `<graph>`'s `grid` is a text or a number list by its value. It stops being public (D45).
+
+---
+
 ## 2. References read as values
 
 ### VAL-3: a reference where a value is read acts as that value written there (Tier 1)

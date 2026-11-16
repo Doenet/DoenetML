@@ -2734,3 +2734,44 @@ no way to iterate over records (a point with its label).
 While probing: a `<boolean>` written in a `<math>` (`<math>$b+1</math>`) is dropped as an invalid
 child (`w0107`), giving `+1`, though REF-5 makes a boolean `1` or `0` as a math. `<number>$b+1</number>`
 gives `1`, so it likely drops it too (#2566).
+
+## D45. Every value a reference reaches has one type, decided from the DoenetML (decided, Tier 1)
+
+**Decided** (November 2026). The principle is TYPE in
+[values-and-attributes.md](values-and-attributes.md). Implementation: #2568.
+
+**Why.** D36, REF-5, COMP-11, COLL-4 and D44 each make a type known from the DoenetML. Eleven
+properties still set their type as they compute (`hasVariableComponentType` with
+`setCreateComponentOfType`), so a reference to one can't be typed at load: REF-5 makes
+`<T extend="$x.p"/>` that depends on it an error (`e0067`). Most are decided by what is written,
+so they can be typed at load. A few aren't (listed under TYPE).
+
+**Decided:**
+1. **The Tier 1 statement and TYPE-1 to TYPE-4**, including an error at load when a type can't be
+   decided.
+2. **Each property's type is worked out at load, by one function per property** over the
+   serialized DoenetML, which the run time then reads in place of `setCreateComponentOfType`.
+   The load-time type checks, the language server and the cells core use the same result.
+   Considered and not taken: giving every property one fixed type, splitting the rest (renames
+   that break documents, and an answer's responses really differ); keeping run-time types with a
+   warning on a change (not strict).
+3. **An answer's responses may differ in type**, as long as each is decided at load: a response
+   is its input's type or its component's tag. A response from a component in a
+   `<conditionalContent>` is typed by COMP-11's every-branch rule, and cases of different types
+   are an error. `submittedResponses` has the types the DoenetML gives, not those saved (TYPE-4).
+4. **`$g.grid` is not public** until someone asks for it, since its type follows its value.
+5. **A `<tally>`'s categories are already typed by what is written:** numeric only when every
+   value is a number by its tag, and literal text by its content, at load. They move to the
+   load-time function with no change. A mix of numbers and texts by tag (`<number>1</number>
+   <text>a</text>`) counts as text today. **Open:** keep that, or make a mix an error, as COLL-4
+   does for `<sort>` (recommended, so every list operator follows one rule). `<markers>` has the
+   same question.
+
+**Correction.** The first review of these properties said a tally of a `<textInput>` switched its
+categories from number to text as the student typed. It doesn't: a `<textInput>` is a text by
+its tag, so the categories are text throughout. `<number extend="$t.category1"/>` gave `NaN` for
+`apple` because a text that isn't a number converts to `NaN` (REF-5), as it should.
+
+**Related:** a `<choiceInput>` whose choices are `<m>x^2</m>` and `cat` has text values, so its
+first value is the text `x²`, and `<math extend>` of it is blank. That follows from the type
+rule; the lost math is a display question for #2568 (a choice's value could keep its LaTeX).

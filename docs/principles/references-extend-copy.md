@@ -692,7 +692,8 @@ That is worth doing there, not retrofitting into the JavaScript core.
       descendants, including in what a copy among them copies. `<math name="go">` in one option
       and `<number name="go">` in another are two types;
     - a property, and a repeat's `valueName`, is an error, **`doenet-e0067`**, until properties
-      declare their type (D20). Under D44 a `valueName` has the one type of its `for`'s items,
+      declare their type. Under TYPE (D45) every property's type is decided at load, so this
+      goes away (#2568). Under D44 a `valueName` has the one type of its `for`'s items,
       so it will be typed like any other part once COLL-5 is implemented (#2567).
   - a type that already is the tag written counts as that tag: an `<integer>` case and a
     `<number>` else are one type for a `<number>` or a `<numberList>`, but not for an
