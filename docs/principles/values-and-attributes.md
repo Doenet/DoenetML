@@ -83,6 +83,10 @@ So whether `<math extend="$a.currentResponse2"/>` is allowed, and what `$x.p` gi
   type, the every-branch rule of COMP-11.
 - **TYPE-3: a type that can't be decided is an error at load (Tier 2),** at the component or the
   reference that needs it. This replaces REF-5's `e0067` for properties.
+- **Literal text** in a list is typed at load: by `type` when written; otherwise, in the
+  operators that compare or count (`<sort>`, `<shuffle>`, `<tally>`, …), numbers if every piece
+  reads as one and texts otherwise, and elsewhere (`<repeat for>`, `<select>`'s and `<answer>`'s
+  sugar) math (D45 decision 7).
 - **TYPE-4: saved state never decides a type (Tier 2).** A type is the DoenetML's, so a reload
   gives the type the DoenetML gives (SAVE-3).
 

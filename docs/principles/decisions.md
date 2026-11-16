@@ -2768,6 +2768,21 @@ so they can be typed at load. A few aren't (listed under TYPE).
    `<tally><number>1</number><text>a</text></tally>` counts as text and a `<markers>` with both
    shows text, silently. Literal text is not a mix: it is cut into pieces and typed at load,
    all numbers or all texts.
+7. **Literal text in a list is typed at load by one of two rules, kept as they are:**
+   - **Detected, number or text,** in the operators that compare or count values: `<sort>`,
+     `<sortIndices>`, `<shuffle>`, `<argMin>`, `<argMax>`, `<indexOf>`, `<searchSorted>`,
+     `<tally>` and `<binCounts>`. They share one function (`inferTypeFromStrings` in
+     `W/utils/listValues.js`): numbers if every piece reads as a real number, texts otherwise.
+     Detection matters here, because a number and a text behave very differently there
+     (`2 < 10`, but `"10" < "2"`).
+   - **Math unless `type` says otherwise,** where the pieces are values to show or compute
+     with: a `<repeat>`'s `for` (D44), `<select>`'s sugar and `<answer>`'s. Detecting a number
+     there would only choose between a number and a math, and reading a number as a math does
+     little harm, so it isn't worth a second detection rule.
+
+   Either way the type is decided from what is written (TYPE-1). A written `type` always wins.
+   Detection loses leading zeros once every piece is numeric (`007` is 7); write `type="text"`
+   to keep them.
 
 **Correction.** The first review of these properties said a tally of a `<textInput>` switched its
 categories from number to text as the student typed. It doesn't: a `<textInput>` is a text by
