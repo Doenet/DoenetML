@@ -2796,8 +2796,65 @@ export default class Copy extends CompositeComponent {
             // are the same errors, kept once, whatever index the extend is
             // made with.
             const errorsAtLoad = component.doenetAttributes?.extendErrorsAtLoad;
-            const errors = link
-                ? errorsAtLoad?.length > 0
+            const writtenType =
+                component.attributes._createComponentOfType?.primitive?.value;
+
+            /**
+             * The errors not marked when the document loaded, as where the
+             * DoenetML does not give the tag extended: an `extend` or a
+             * `copyWithState` of a tag that can only be copied (D42), then
+             * what an extend would change (D32), or what a `copyWithState`
+             * would change of the choices it carries (D33).
+             */
+            async function extendOrCopyWithStateErrors() {
+                if (!link && !withState) {
+                    return [];
+                }
+                const source = referenceAsWritten(
+                    await component.stateValues.originalPath,
+                    replacementSourceComponent,
+                );
+                const onlyCopied = onlyCopiedErrors({
+                    // as the author wrote it, in any case
+                    writtenType:
+                        writtenType === undefined
+                            ? undefined
+                            : (componentInfoObjects
+                                  .componentTypeLowerCaseMapping[
+                                  writtenType.toLowerCase()
+                              ] ?? writtenType),
+                    how: link ? "extend" : "copyWithState",
+                    source,
+                });
+                if (onlyCopied.length > 0) {
+                    return onlyCopied;
+                }
+                if (link) {
+                    return extendChangesContentErrors({
+                        replacementType: repl.componentType,
+                        writtenType,
+                        copyInChildren,
+                        attributeNames: Object.keys(attributesFromComposite),
+                        copyAttributeNames: Object.keys(compositeAttributesObj),
+                        children: component.serializedChildren,
+                        sourceChildren: repl.children,
+                        source,
+                        componentInfoObjects,
+                    });
+                }
+                return copyInChildren
+                    ? await copyWithStateChangesChoicesErrors({
+                          replacementType: repl.componentType,
+                          attributeNames: Object.keys(attributesFromComposite),
+                          children: component.serializedChildren,
+                          source: replacementSourceComponent,
+                          componentInfoObjects,
+                      })
+                    : [];
+            }
+
+            const errors =
+                (link || withState) && errorsAtLoad?.length > 0
                     ? errorsAtLoad.map(({ code, args }) =>
                           codedDiagnostic({
                               type: "error",
@@ -2805,33 +2862,8 @@ export default class Copy extends CompositeComponent {
                               args: { ...args },
                           }),
                       )
-                    : extendChangesContentErrors({
-                          replacementType: repl.componentType,
-                          writtenType:
-                              component.attributes._createComponentOfType
-                                  ?.primitive?.value,
-                          copyInChildren,
-                          attributeNames: Object.keys(attributesFromComposite),
-                          copyAttributeNames: Object.keys(
-                              compositeAttributesObj,
-                          ),
-                          children: component.serializedChildren,
-                          sourceChildren: repl.children,
-                          source: referenceAsWritten(
-                              await component.stateValues.originalPath,
-                              replacementSourceComponent,
-                          ),
-                          componentInfoObjects,
-                      })
-                : withState && copyInChildren
-                  ? await copyWithStateChangesChoicesErrors({
-                        replacementType: repl.componentType,
-                        attributeNames: Object.keys(attributesFromComposite),
-                        children: component.serializedChildren,
-                        source: replacementSourceComponent,
-                        componentInfoObjects,
-                    })
-                  : [];
+                    : await extendOrCopyWithStateErrors();
+
             if (errors.length > 0) {
                 // What the extend would change is what it shares with its
                 // source, and what the `copyWithState` would change is what
@@ -9191,6 +9223,48 @@ export const PARTS_OF_CHOOSING_TAGS = {
     else: "conditionalContent",
     option: "select",
 };
+
+/**
+ * The tags that can only be copied (D42), each mapped to the tag holding it,
+ * whose submissions it records. An `<award>`'s `awarded` and a `<choice>`'s `submitted` record the
+ * last submission of the answer or choice input holding it (ANS-1), so an
+ * `extend` (the same component again, sharing that record) and a
+ * `copyWithState` (a new one, starting from another submission's record) have
+ * no coherent meaning. A `copy` writes it again here (D33).
+ */
+export const TAGS_ONLY_COPIED = {
+    award: "answer",
+    choice: "choiceInput",
+};
+
+/**
+ * The error for an `extend` or a `copyWithState` written as a tag that can
+ * only be copied (`TAGS_ONLY_COPIED`, D42), decided by the tag written
+ * (`writtenType`) alone, whatever it is of. None for any other tag, and none
+ * for a bare reference (`$aw`), which has no tag written and is the value
+ * (REF-1a). `how` is `extend` or `copyWithState`, and `source` the reference
+ * as written (`$aw`).
+ */
+export function onlyCopiedErrors({ writtenType, how, source }) {
+    if (
+        writtenType === undefined ||
+        !Object.hasOwn(TAGS_ONLY_COPIED, writtenType)
+    ) {
+        return [];
+    }
+    return [
+        codedDiagnostic({
+            type: "error",
+            code: "doenet-e0078",
+            args: {
+                componentType: writtenType,
+                parentType: TAGS_ONLY_COPIED[writtenType],
+                how,
+                source,
+            },
+        }),
+    ];
+}
 
 /**
  * Seed the random choices of what a `copy` (`component`) makes of its

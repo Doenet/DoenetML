@@ -33,11 +33,13 @@ export function namesReachedThroughCopy(composite) {
  * the new `nComponents`.
  *
  * The mark is the one an `<award referencesAreResponses>` gives a reference
- * it names (`Award.js`). In an award made by `extend`, that reference is the
- * shadow of a reference in the source award, and its replacements are copies
- * of that reference's replacements, which have no mark, so it is added here,
- * both when the shadow first expands (`CompositeExpander.ts`) and when its
- * replacements are remade (`CompositeReplacementUpdater.ts`). A copy that is
+ * it names (`Award.js`). In an award inside an extend (of the `<answer>` or
+ * `<section>` holding it, or a bare `$s`; an award itself can't be extended,
+ * D42), that reference is the shadow of a reference in the source award, and
+ * its replacements are copies of that reference's replacements, which have
+ * no mark, so it is added here, both when the shadow first expands
+ * (`CompositeExpander.ts`) and when its replacements are remade
+ * (`CompositeReplacementUpdater.ts`). A copy that is
  * not a shadow resolves its attributes for its replacements itself
  * (`Copy.js`).
  *

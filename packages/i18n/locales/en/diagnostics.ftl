@@ -1018,6 +1018,13 @@ extend-module-attribute = A `<module>` makes its content from its attributes. An
 # part of: `conditionalContent` or `select`.
 extend-part-of-choosing-tag = `<{ $componentType }>` is part of a `<{ $parentType }>`, and means something only there, so it can't be extended.
 
+# An `extend` or `copyWithState` ($how) of an `<award>` or a `<choice>`
+# ($componentType), which can only be copied (D42). Its state records the last
+# submission of the `<answer>` or `<choiceInput>` ($parentType) holding it, so
+# neither sharing that record nor starting from another one means anything.
+# $source is the reference as written, as `$aw`.
+extend-award-or-choice = `<{ $componentType }>` records the submissions of the `<{ $parentType }>` holding it, so it can't be made with `{ $how }`. Use `copy` to write it again here: `<{ $componentType } copy="{ $source }"/>`.
+
 ## A reference written as a different tag
 
 # An `extend` or `copy` written as a different tag than what it is of (D26):

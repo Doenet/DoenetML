@@ -477,6 +477,19 @@ export default class Answer extends InlineComponent {
                 return false;
             }
 
+            /**
+             * The children the award `child` holds: for an `<award copy>`
+             * whose source the DoenetML gives, its source's and its own
+             * (`copiedAwards.ts`); otherwise those written in it.
+             */
+            function awardChildrenOf(child) {
+                return (
+                    child.doenetAttributes?.copiedAward?.children ??
+                    child.children ??
+                    []
+                );
+            }
+
             function addPotentialResponsesToReferenceDescendants(components) {
                 for (let component of components) {
                     if (component.componentType === "_copy") {
@@ -575,11 +588,19 @@ export default class Answer extends InlineComponent {
                 } else if (componentIsSpecifiedType(child, "award")) {
                     foundAward = true;
                     childIsWrappable.push(false);
-                    if (child.attributes?.referencesAreResponses) {
+                    // An `<award copy>` is decided as its source written
+                    // out (CPY-1), from the children it will hold
+                    // (`copiedAwards.ts`).
+                    const copiedAward = child.doenetAttributes?.copiedAward;
+                    if (
+                        child.attributes?.referencesAreResponses ||
+                        copiedAward?.referencesAreResponses
+                    ) {
                         foundResponse = true;
                     }
-                    if (child.children?.length > 0) {
-                        for (let grandChild of child.children) {
+                    const awardChildren = awardChildrenOf(child);
+                    if (awardChildren.length > 0) {
+                        for (let grandChild of awardChildren) {
                             if (typeof grandChild !== "object") {
                                 if (grandChild.trim()) {
                                     mayNeedInput = true;
@@ -648,7 +669,8 @@ export default class Answer extends InlineComponent {
                             }
                         }
                     } else {
-                        // if copied in award, it won't have children
+                        // No children, or a copy whose source the DoenetML
+                        // does not give, so it is not known what it holds.
                         mayNeedInput = true;
                     }
                 } else if (componentIsSpecifiedType(child, "mathInput")) {
@@ -739,8 +761,9 @@ export default class Answer extends InlineComponent {
                 // recurse to all descendants of awards to see if have a response
                 for (let child of matchedChildren) {
                     if (componentIsSpecifiedType(child, "award")) {
-                        if (child.children?.length > 0) {
-                            if (checkForResponseDescendant(child.children)) {
+                        const awardChildren = awardChildrenOf(child);
+                        if (awardChildren.length > 0) {
+                            if (checkForResponseDescendant(awardChildren)) {
                                 foundResponse = true;
                                 break;
                             }
@@ -752,7 +775,17 @@ export default class Answer extends InlineComponent {
                     // definitely have a case where there is not a response
                     // look inside each award and add isPotentialResponse to any reference
                     for (let child of matchedChildren) {
-                        if (componentIsSpecifiedType(child, "award")) {
+                        if (child.doenetAttributes?.copiedAward) {
+                            // Its references are made from its source's
+                            // when it is made, and marked then (`Award.js`).
+                            child.attributes ??= {};
+                            child.attributes._referencesArePotentialResponses =
+                                {
+                                    type: "unresolved",
+                                    name: "_referencesArePotentialResponses",
+                                    children: ["true"],
+                                };
+                        } else if (componentIsSpecifiedType(child, "award")) {
                             if (child.children?.length > 0) {
                                 addPotentialResponsesToReferenceDescendants(
                                     child.children,

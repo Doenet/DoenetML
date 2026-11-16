@@ -35,7 +35,7 @@ ${select}
 `);
         expect(variants).eqls(["apple", "cherry"]);
         expect(errors.length).eq(1);
-        expect(errors[0].code).eq("doenet-e0078");
+        expect(errors[0].code).eq("doenet-e0079");
         expect(errors[0].message).eq(
             "`variantsToInclude` names `grape`, which is not a variant of this document. Its 3 variants are named `apple`, `banana`, `cherry`. The name is ignored.",
         );
@@ -51,7 +51,7 @@ ${select}
 `);
         expect(variants).eqls(["a", "c"]);
         expect(errors.length).eq(1);
-        expect(errors[0].code).eq("doenet-e0078");
+        expect(errors[0].code).eq("doenet-e0079");
         expect(errors[0].message).eq(
             "`variantsToInclude` names `d`, which is not a variant of this document. Its 3 variants are named `a`, `b`, `c`. The name is ignored.",
         );
@@ -76,7 +76,7 @@ ${select}
 `);
         expect(variants).eqls(["apple", "banana", "cherry"]);
         expect(errors.length).eq(1);
-        expect(errors[0].code).eq("doenet-e0078");
+        expect(errors[0].code).eq("doenet-e0079");
         expect(errors[0].message).eq(
             "`variantsToInclude` names `grape`, which is not a variant of this document. Its 3 variants are named `apple`, `banana`, `cherry`. As `variantsToInclude` names no variant, every variant is included.",
         );
@@ -113,7 +113,7 @@ ${select}
 `);
         expect(variants).eqls(["apple", "cherry"]);
         expect(errors.length).eq(1);
-        expect(errors[0].code).eq("doenet-e0078");
+        expect(errors[0].code).eq("doenet-e0079");
         expect(errors[0].message).eq(
             "`variantsToExclude` names `grape`, which is not a variant of this document. Its 3 variants are named `apple`, `banana`, `cherry`. The name is ignored.",
         );
@@ -164,8 +164,8 @@ ${select}
 `);
         expect(variants).eqls(["a", "c"]);
         expect(errors.map((e) => e.code)).eqls([
-            "doenet-e0078",
-            "doenet-e0078",
+            "doenet-e0079",
+            "doenet-e0079",
         ]);
         expect(errors.map((e) => e.args?.attribute)).eqls([
             "variantsToInclude",

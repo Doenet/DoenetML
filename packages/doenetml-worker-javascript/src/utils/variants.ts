@@ -604,7 +604,7 @@ export function determineVariantsForSection({
     };
 }
 
-/** How many variant names `doenet-e0078` lists before it shortens the list. */
+/** How many variant names `doenet-e0079` lists before it shortens the list. */
 const MAX_VARIANT_NAMES_LISTED = 8;
 
 /**
@@ -613,7 +613,7 @@ const MAX_VARIANT_NAMES_LISTED = 8;
  * repeats, in lowercase.
  *
  * The others are left out, and named in one error diagnostic at the
- * attribute (`doenet-e0078`), each once, as it was first written, pushed to
+ * attribute (`doenet-e0079`), each once, as it was first written, pushed to
  * `infoDiagnostics`. That buffer holds every diagnostic found before Core
  * exists, not only infos: `CoreWorker` makes it Core's
  * `preliminaryDiagnostics`. This runs once per sectioning
@@ -675,7 +675,7 @@ function knownVariantNames({
         infoDiagnostics.push(
             codedDiagnostic({
                 type: "error",
-                code: "doenet-e0078",
+                code: "doenet-e0079",
                 args: {
                     attribute: attributeName,
                     names: {
