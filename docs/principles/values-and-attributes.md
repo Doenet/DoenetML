@@ -92,10 +92,12 @@ So whether `<math extend="$a.currentResponse2"/>` is allowed, and what `$x.p` gi
   `<slider>`'s `value` and `items` (`items` holds a list but is typed as one value, #2545),
   `<animateFromSequence>`'s `value`;
 - decided by what is written, computed at run time today:
-  - `<markers>`: text if any child is a `<text>`, else number (a mix is text, silently);
+  - `<markers>`: text if any child is a `<text>`, else number. A mix is text, silently; under
+    D45 it is an error at load, as in a `<tally>`;
   - `<choiceInput>`'s `selectedValues`: math if every choice holds one math, else text;
   - `<tally>`'s `categories`: numeric when every value is a number by its tag, else text;
-    literal text by its content (`007 008 007 10` is numbers, `007 008 007 a` texts);
+    literal text by its content (`007 008 007 10` is numbers, `007 008 007 a` texts). A mix of
+    numbers and texts by tag counts as text today; under D45 it is an error at load;
   - `<answer>`'s `currentResponses`: each response's type is its input's or its component's,
     falling back to math;
 - not decided by the DoenetML:

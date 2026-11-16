@@ -2762,10 +2762,12 @@ so they can be typed at load. A few aren't (listed under TYPE).
 4. **`$g.grid` is not public** until someone asks for it, since its type follows its value.
 5. **A `<tally>`'s categories are already typed by what is written:** numeric only when every
    value is a number by its tag, and literal text by its content, at load. They move to the
-   load-time function with no change. A mix of numbers and texts by tag (`<number>1</number>
-   <text>a</text>`) counts as text today. **Open:** keep that, or make a mix an error, as COLL-4
-   does for `<sort>` (recommended, so every list operator follows one rule). `<markers>` has the
-   same question.
+   load-time function with no change.
+6. **A mix of numbers and texts by tag is an error at load,** in a `<tally>` and in `<markers>`,
+   as COLL-4 makes it for `<sort>`, so every list operator follows one rule. Today
+   `<tally><number>1</number><text>a</text></tally>` counts as text and a `<markers>` with both
+   shows text, silently. Literal text is not a mix: it is cut into pieces and typed at load,
+   all numbers or all texts.
 
 **Correction.** The first review of these properties said a tally of a `<textInput>` switched its
 categories from number to text as the student typed. It doesn't: a `<textInput>` is a text by
