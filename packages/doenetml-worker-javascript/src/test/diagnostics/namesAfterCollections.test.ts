@@ -195,6 +195,25 @@ describe("A name after a collection applies to each item (D41 decision 1)", () =
         expect(diagnostics).eqls([]);
     });
 
+    it("after a group holding only a group holding only a repeat, as after the repeat (COLL-3)", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2 3" valueName="v"><point name="P">($v,3)</point></repeat>
+<group name="g"><group>$r</group></group>
+<group name="h"><group><group><repeat for="4 5" valueName="v"><point name="P">($v,3)</point></repeat></group></group></group>
+<p name="p1">$g.x</p><p name="p2">$g.numItems</p><p name="p3">$g.P.x</p><p name="p4">$h.x</p><p name="p5">$h.numItems</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        // `$g.x` and `$h.x` were `123` and `45`, with no commas.
+        expect(texts).eqls({
+            p1: "1, 2, 3",
+            p2: "3",
+            p3: "1, 2, 3",
+            p4: "4, 5",
+            p5: "2",
+        });
+        expect(diagnostics).eqls([]);
+    });
+
     it("in its own template is a cycle, found at load", async () => {
         const { diagnostics } = await both(
             `<repeat name="r" for="1 2" valueName="v"><math name="m">$r.m</math></repeat>

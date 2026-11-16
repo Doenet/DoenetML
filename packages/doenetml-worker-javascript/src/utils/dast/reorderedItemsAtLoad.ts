@@ -441,12 +441,25 @@ export function checkReorderedItemsAtLoad({
             return undefined;
         }
         const [first, second] = [...firstOfType.values()];
+        // `type` says how to read text the author wrote, as a number, math,
+        // text or boolean. It helps only when the text is beside an item
+        // of one of those: not one with no value to compare (`<p>`), a
+        // point or vector, or a group of several.
+        const isPiece = (item: Item) =>
+            item.kind === "one" && item.piece !== undefined;
+        const typeCanRead = (item: Item) =>
+            item.kind === "one" &&
+            ["math", "text", "boolean"].includes(typeClass(item.tag));
+        const suggestType =
+            (isPiece(first) && typeCanRead(second)) ||
+            (isPiece(second) && typeCanRead(first));
         return {
             code: "doenet-e0076",
             args: {
                 component: component.componentType,
                 ...describe(first, "first"),
                 ...describe(second, "second"),
+                suggestType: suggestType ? "yes" : "no",
             },
         };
     }

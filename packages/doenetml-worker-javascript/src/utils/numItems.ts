@@ -196,8 +196,8 @@ const publicVariablesByClass = new WeakMap<any, Set<string>>();
 /**
  * The properties of its own that a collection built as the composite
  * `compositeClass` has: its public state variables (`numItems`, the settings
- * every component has, and any its attributes make public, such as a
- * `<collect>`'s `maxNumber`).
+ * every component has, and any other it keeps public; a `<collect>`'s
+ * attributes, such as `maxNumber`, are not among them).
  */
 export function ownPropertiesOfComposite(compositeClass: any): Set<string> {
     let compositeVariables = publicVariablesByClass.get(compositeClass);

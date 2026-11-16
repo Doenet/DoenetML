@@ -1980,7 +1980,10 @@ copy-with-state-attribute-reaches-choice = `{ $attribute }` reaches a choice ins
 # text $firstPiece the author wrote, read as the tag $first; "group", a
 # `<group>` of $firstCount components; or "item", the items of the
 # collection $first (`repeat`, `select`, `conditionalContent`), each holding
-# $firstCount components. Likewise for $second.
+# $firstCount components. Likewise for $second. $suggestType is `yes` when
+# one of them is text the author wrote and the other a number, math, text or
+# boolean, so that `type` (how to read the text) can make them one type; it
+# can't beside a `<p>`, a point or a group.
 reorder-items-of-several-types = `<{ $component }>` takes items of one type, but it has { $firstKind ->
         [group] a `<group>` of { $firstCount } components
         [item] the items of a `<{ $first }>` (each of { $firstCount } components)
@@ -1991,12 +1994,9 @@ reorder-items-of-several-types = `<{ $component }>` takes items of one type, but
         [item] the items of a `<{ $second }>` (each of { $secondCount } components)
         [piece] `{ $secondPiece }` (read as a `<{ $second }>`)
        *[one] a `<{ $second }>`
-    }. Give each type a `<{ $component }>` of its own{ $firstKind ->
-        [piece] , or write `type` to say how to read the text
-       *[other] { $secondKind ->
-            [piece] , or write `type` to say how to read the text
-           *[other] {""}
-        }
+    }. Give each type a `<{ $component }>` of its own{ $suggestType ->
+        [yes] , or write `type` to say how to read the text
+       *[other] {""}
     }.
 
 # A `<sort>` of an item holding several components, which has nothing to be

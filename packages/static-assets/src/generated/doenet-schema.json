@@ -126869,7 +126869,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to sort bare string children as. Omit it and they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
+                    "description": "Component type to sort bare string children as. Omit it and, beside components of one type written as tags, they are read as that type; otherwise they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -127399,7 +127399,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to sort bare string children as. Omit it and they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
+                    "description": "Component type to sort bare string children as. Omit it and, beside components of one type written as tags, they are read as that type; otherwise they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
                     "highlighted": true,
                     "values": [
                         "number",
@@ -127881,7 +127881,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Component type to read bare string children as. Omit it and they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
+                    "description": "Component type to read bare string children as. Omit it and, beside components of one type written as tags, they are read as that type; otherwise they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
                     "highlighted": true,
                     "values": [
                         "number",

@@ -266,6 +266,26 @@ describe("A collection's own properties @group4", () => {
         expect(lists.diagnostics).toEqual([]);
     });
 
+    it("text a shuffle leaves out is not an item", async () => {
+        const { lists, composites } = await bothBuilds({
+            doenetML: `
+<div><shuffle name="sh"><p>a</p>, <p>b</p></shuffle></div>
+<p name="p1">$sh.numItems</p>
+<p name="p2">$sh[3].text</p>
+`,
+            names: ["p1", "p2"],
+        });
+        // `numItems` was 3, counting the `, `, while `$sh[3]` reports that
+        // the shuffle has only 2 items.
+        const expected = { p1: "2", p2: "＿" };
+        expect(lists.texts).toEqual(expected);
+        expect(composites.texts).toEqual(expected);
+        expect(lists.diagnostics).toEqual([
+            "warning doenet-w0015 line 2",
+            "warning doenet-w0181 line 4",
+        ]);
+    });
+
     it("a group holding one collection has its numItems and settings (COLL-3), built either way", async () => {
         const { lists, composites } = await bothBuilds({
             doenetML: `
@@ -501,6 +521,23 @@ describe("A collection's own properties @group4", () => {
                         `warning doenet-w0104 line ${i < 4 ? 15 : i < 8 ? 16 : 17}`,
                 ),
         );
+    });
+
+    it("how a list you write reads its maths is not a property of it", async () => {
+        // Before: `$ml.splitSymbols` was `false`, `$ml.functionSymbols` `g`.
+        const { lists, composites } = await bothBuilds({
+            doenetML: `
+<mathList name="ml" splitSymbols="false" functionSymbols="g">ab g(x)</mathList>
+<p name="p1">[$ml.splitSymbols][$ml.functionSymbols][$ml.numItems]</p>
+`,
+            names: ["p1"],
+        });
+        expect(lists.texts).toEqual({ p1: "[＿][＿][2]" });
+        expect(composites.texts).toEqual(lists.texts);
+        expect(lists.diagnostics).toEqual([
+            "warning doenet-w0104 line 3",
+            "warning doenet-w0104 line 3",
+        ]);
     });
 
     it("keeps an attribute documented as a property of a list, a tally or a sampler", async () => {

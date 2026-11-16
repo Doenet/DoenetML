@@ -81,6 +81,12 @@ export class ReplacementDependency extends Dependency {
         // left of the path (`remainingPath`) read from it.
         this.namePerItem = this.definition.namePerItem;
 
+        // A `<group>` holding one component stands for it (COLL-3), at any
+        // depth: replacements that are one group are replaced by what it
+        // holds, so that a group of one holding a group of one holding
+        // `$r` gives `$r` (or `<repeat>` written there).
+        this.throughGroupsOfOne = this.definition.throughGroupsOfOne;
+
         this.expandReplacements = true;
     }
 
@@ -227,6 +233,47 @@ export class ReplacementDependency extends Dependency {
             this.compositesFound.push(...named.itemsSearched);
         }
 
+        if (this.throughGroupsOfOne) {
+            let content = replacements.filter(
+                (x: any) => typeof x !== "string" || x.trim() !== "",
+            );
+            while (
+                content.length === 1 &&
+                content[0].componentType === "group"
+            ) {
+                const group = content[0];
+                if (!group.isExpanded) {
+                    await this.blockUntilExpanded(
+                        group.state.readyToExpandWhenResolved.isResolved
+                            ? [group.componentIdx]
+                            : [],
+                        group.state.readyToExpandWhenResolved.isResolved
+                            ? []
+                            : [group.componentIdx],
+                    );
+                    return {
+                        success: false,
+                        downstreamComponentIndices: [],
+                        downstreamComponentTypes: [],
+                    };
+                }
+                this.compositesFound.push(group.componentIdx);
+                replacements = group.replacements ?? [];
+                if (
+                    !this.includeWithheldReplacements &&
+                    group.replacementsToWithhold > 0
+                ) {
+                    replacements = replacements.slice(
+                        0,
+                        -group.replacementsToWithhold,
+                    );
+                }
+                content = replacements.filter(
+                    (x: any) => typeof x !== "string" || x.trim() !== "",
+                );
+            }
+        }
+
         if (this.stopAtWrappersOfSeveral && isWrapperOfSeveral(composite)) {
             replacements = [composite];
             remainingPaths = undefined;
@@ -244,41 +291,10 @@ export class ReplacementDependency extends Dependency {
                 result.unexpandedCompositesNotReady.length > 0 ||
                 result.unexpandedCompositesReady.length > 0
             ) {
-                for (let varName of this.upstreamVariableNames) {
-                    await this.dependencyHandler.addBlocker({
-                        blockerComponentIdx: this.upstreamComponentIdx,
-                        blockerType: "recalculateDownstreamComponents",
-                        blockerStateVariable: varName,
-                        blockerDependency: this.dependencyName,
-                        componentIdxBlocked: this.upstreamComponentIdx,
-                        typeBlocked: "stateVariable",
-                        stateVariableBlocked: varName,
-                    });
-
-                    for (let compositeIdx of [
-                        ...result.unexpandedCompositesReady,
-                        ...result.unexpandedCompositesNotReady,
-                    ]) {
-                        await this.dependencyHandler.addBlocker({
-                            blockerComponentIdx: compositeIdx,
-                            blockerType: "expandComposite",
-                            componentIdxBlocked: this.upstreamComponentIdx,
-                            typeBlocked: "recalculateDownstreamComponents",
-                            stateVariableBlocked: varName,
-                            dependencyBlocked: this.dependencyName,
-                        });
-                    }
-                }
-
-                for (let compositeIdx of result.unexpandedCompositesNotReady) {
-                    await this.dependencyHandler.addBlocker({
-                        blockerComponentIdx: compositeIdx,
-                        blockerType: "stateVariable",
-                        blockerStateVariable: "readyToExpandWhenResolved",
-                        componentIdxBlocked: compositeIdx,
-                        typeBlocked: "expandComposite",
-                    });
-                }
+                await this.blockUntilExpanded(
+                    result.unexpandedCompositesReady,
+                    result.unexpandedCompositesNotReady,
+                );
 
                 return {
                     success: false,
@@ -403,6 +419,46 @@ export class ReplacementDependency extends Dependency {
         // }
 
         return result;
+    }
+
+    /**
+     * Block this dependency until the composites given are expanded: those
+     * `ready` to expand, and those `notReady`, which wait for
+     * `readyToExpandWhenResolved`.
+     */
+    async blockUntilExpanded(ready: number[], notReady: number[]) {
+        for (let varName of this.upstreamVariableNames) {
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: this.upstreamComponentIdx,
+                blockerType: "recalculateDownstreamComponents",
+                blockerStateVariable: varName,
+                blockerDependency: this.dependencyName,
+                componentIdxBlocked: this.upstreamComponentIdx,
+                typeBlocked: "stateVariable",
+                stateVariableBlocked: varName,
+            });
+
+            for (let compositeIdx of [...ready, ...notReady]) {
+                await this.dependencyHandler.addBlocker({
+                    blockerComponentIdx: compositeIdx,
+                    blockerType: "expandComposite",
+                    componentIdxBlocked: this.upstreamComponentIdx,
+                    typeBlocked: "recalculateDownstreamComponents",
+                    stateVariableBlocked: varName,
+                    dependencyBlocked: this.dependencyName,
+                });
+            }
+        }
+
+        for (let compositeIdx of notReady) {
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: compositeIdx,
+                blockerType: "stateVariable",
+                blockerStateVariable: "readyToExpandWhenResolved",
+                componentIdxBlocked: compositeIdx,
+                typeBlocked: "expandComposite",
+            });
+        }
     }
 
     /**

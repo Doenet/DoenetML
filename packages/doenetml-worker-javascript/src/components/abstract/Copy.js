@@ -548,8 +548,9 @@ export default class Copy extends CompositeComponent {
                     };
                     // A property after a `<group>` holding one component
                     // is that component's (COLL-3): after a group holding
-                    // only `$r`, the items of `r` are shown as `$r.x`
-                    // shows them, with commas (COMP-2, #2548 item 2).
+                    // only `$r` (or a group holding only such a group), the
+                    // items of `r` are shown as `$r.x` shows them, with
+                    // commas (COMP-2, #2548 item 2).
                     if (
                         stateValues.extendedComponent.componentType ===
                             "group" &&
@@ -561,6 +562,7 @@ export default class Copy extends CompositeComponent {
                                 stateValues.extendedComponent.componentIdx,
                             variableNames: ["asList"],
                             variablesOptional: true,
+                            throughGroupsOfOne: true,
                         };
                     }
                 }

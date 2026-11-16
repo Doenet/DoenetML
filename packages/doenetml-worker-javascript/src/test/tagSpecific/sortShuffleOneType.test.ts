@@ -155,6 +155,21 @@ describe("sort and shuffle take one type @group4", () => {
         expect(result.texts.p2).eq("x, z");
     });
 
+    it("text beside components with no value to compare is read as text", async () => {
+        // It was left out, with `doenet-w0015`. No `type` reads text as a
+        // `<p>`, so the error doesn't suggest one; nor beside a point.
+        const result = await bothBuilds({
+            doenetML: `<div><shuffle><p>a</p> b</shuffle></div>
+            <point name="P">(1,2)</point><p name="p1"><sort>$P 3</sort></p>`,
+            names: ["p1"],
+        });
+        expect(result.errors).eqls([
+            "doenet-e0076: `<shuffle>` takes items of one type, but it has a `<p>` and `b` (read as a `<text>`). Give each type a `<shuffle>` of its own.",
+            "doenet-e0076: `<sort>` takes items of one type, but it has a `<point>` and `3` (read as a `<number>`). Give each type a `<sort>` of its own.",
+        ]);
+        expect(result.warnings).eqls([]);
+    });
+
     it("a mix is an error at load in content not shown", async () => {
         // decided from the DoenetML, so the same whatever is shown (DIAG-7)
         const result = await bothBuilds({

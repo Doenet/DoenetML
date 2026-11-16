@@ -96,7 +96,7 @@ export default class Shuffle extends CompositeComponent {
             highlighted: true,
             createPrimitiveOfType: "string",
             description:
-                "Component type to read bare string children as. Omit it and they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
+                "Component type to read bare string children as. Omit it and, beside components of one type written as tags, they are read as that type; otherwise they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
             validValues: [
                 {
                     value: "number",
@@ -438,8 +438,15 @@ export default class Shuffle extends CompositeComponent {
         };
 
         // The number of items, what it shuffles (COLL-2, D41 decision 2).
+        // Text it leaves out (`, ` between items, `doenet-w0015`) keeps an
+        // empty place among `originalComponentIndices`, which the order
+        // drawn for each variant counts, but it is not an item.
         stateVariableDefinitions.numItems = numItemsDefinition({
             variableName: "originalComponentIndices",
+            count: (value) =>
+                Array.isArray(value)
+                    ? value.filter((x) => x !== undefined).length
+                    : 0,
         });
 
         return stateVariableDefinitions;

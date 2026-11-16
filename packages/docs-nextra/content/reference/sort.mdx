@@ -202,6 +202,10 @@ There is no case for writing `type="number"`: a piece that names a number is alr
 as one, and one that does not becomes `NaN`. `type` applies only to bare strings — a
 referenced component carries a type of its own and keeps it.
 
+Bare strings beside components of one type written as tags are read as that type without
+`type`: in `<sort><math>d</math> a b</sort>{:dn}` the `a` and `b` are maths, so all three
+are sorted together.
+
 
 
 ---
