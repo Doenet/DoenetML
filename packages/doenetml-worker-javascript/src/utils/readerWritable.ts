@@ -757,7 +757,7 @@ function ownContext(
 }
 
 /** Whether the serialized component `node` is an unlinked copy. */
-function isUnlinkedCopy(node: any): boolean {
+export function isUnlinkedCopy(node: any): boolean {
     return (
         node.componentType === "_copy" &&
         node.attributes?._link?.primitive?.value === false

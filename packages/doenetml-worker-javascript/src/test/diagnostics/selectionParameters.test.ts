@@ -209,15 +209,72 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `to="$sec.creditAchieved"`,
         },
         {
-            tag: "<selectFromSequence to> from a section's number, with an attribute on the section from an input",
+            tag: "<selectFromSequence to> from a section's number, whether it includes its parent's from an input",
             doenetML: `<booleanInput name="b"/>
-<section name="sec" includeAutoNumber="$b"><mathInput/></section>
+<section><subsection name="sec" includeParentNumber="$b"><mathInput/></subsection></section>
 <p name="p">A <selectFromSequence name="s" to="$sec.sectionNumber"/> B</p>`,
             attribute: "to",
             componentType: "selectFromSequence",
             reference: "$sec.sectionNumber",
             changeableType: "booleanInput",
             written: `to="$sec.sectionNumber"`,
+        },
+        {
+            tag: "<selectRandomNumbers mean> from a section's number, after a section an input shows",
+            doenetML: `<booleanInput name="b"/>
+<div><conditionalContent condition="$b"><section/></conditionalContent></div>
+<section name="sec"/>
+<p name="p">A <selectRandomNumbers name="s" mean="$sec.sectionNumber"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$sec.sectionNumber",
+            changeableType: "booleanInput",
+            written: `mean="$sec.sectionNumber"`,
+        },
+        {
+            tag: "<selectRandomNumbers mean> from a section's number, after sections an input counts",
+            doenetML: `<mathInput name="n" prefill="2"/>
+<repeatForSequence length="$n"><section/></repeatForSequence>
+<section name="sec"/>
+<p name="p">A <selectRandomNumbers name="s" mean="$sec.sectionNumber"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$sec.sectionNumber",
+            changeableType: "mathInput",
+            written: `mean="$sec.sectionNumber"`,
+        },
+        {
+            tag: "<selectRandomNumbers mean> from the number of a section that includes its parent's, after a section a case shows",
+            doenetML: `<booleanInput name="b"/>
+<conditionalContent><case condition="$b"><section/></case></conditionalContent>
+<section><subsection name="sec" includeParentNumber/></section>
+<p name="p">A <selectRandomNumbers name="s" mean="$sec.sectionNumber"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$sec.sectionNumber",
+            changeableType: "booleanInput",
+            written: `mean="$sec.sectionNumber"`,
+        },
+        {
+            tag: "<selectRandomNumbers mean> from a fixed graph's axis, which an extend of it with its axes not fixed pans",
+            doenetML: `<graph name="g" fixAxes xMax="7"/>
+<graph extend="$g" fixAxes="false"/>
+<p name="p">A <selectRandomNumbers name="s" mean="$g.xMax"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$g.xMax",
+            changeableType: "graph",
+            written: `mean="$g.xMax"`,
+        },
+        {
+            tag: "<selectRandomNumbers mean> from the aspect ratio of a graph with identical axis scales, which a reader pans or zooms",
+            doenetML: `<graph name="g" identicalAxisScales/>
+<p name="p">A <selectRandomNumbers name="s" mean="$g.aspectRatio"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$g.aspectRatio",
+            changeableType: "graph",
+            written: `mean="$g.aspectRatio"`,
         },
         {
             tag: "<selectFromSequence to> from a number an action writes to",
@@ -574,6 +631,23 @@ describe("What a choice's parameter may read @group4", () => {
             doenetML: `<section name="sec"><mathInput/></section>
 <section name="sec2"><mathInput/></section>
 <p><selectRandomNumbers name="s" mean="$sec2.sectionNumber"/></p>`,
+        },
+        {
+            tag: "a section's number, with what shows sections or decides how its title looks from an input elsewhere",
+            doenetML: `<booleanInput name="b"/>
+<section name="sec" includeAutoNumber="$b"><mathInput/></section>
+<group><section><mathInput/></section></group>
+<conditionalContent condition="$b"><p>no section</p></conditionalContent>
+<blockQuote><conditionalContent condition="$b"><section/></conditionalContent></blockQuote>
+<section name="sec2"/>
+<conditionalContent condition="$b"><section/></conditionalContent>
+<p><selectRandomNumbers name="s" mean="$sec.sectionNumber" standardDeviation="$sec2.sectionNumber"/></p>`,
+        },
+        {
+            tag: "a graph's axis, with the axes fixed on what it extends",
+            doenetML: `<graph name="g0" fixAxes xMax="7"><point/></graph>
+<graph name="g" extend="$g0"/>
+<selectRandomNumbers name="s" mean="$g.xMax" standardDeviation="$g0.xMax"/>`,
         },
         {
             tag: "a number placed in a graph, which a reader drags only to place it",
