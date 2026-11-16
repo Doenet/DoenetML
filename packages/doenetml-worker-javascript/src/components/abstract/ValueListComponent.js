@@ -305,6 +305,9 @@ export default class ValueListComponent extends BaseComponent {
         if (kind === "math") {
             return MATH_ENTRY_DERIVED_PROPERTIES;
         }
+        if (kind === "boolean") {
+            return BOOLEAN_ENTRY_DERIVED_PROPERTIES;
+        }
         return kind === "number" ? NUMBER_ENTRY_DERIVED_PROPERTIES : {};
     }
 
@@ -1683,6 +1686,18 @@ const NUMBER_ENTRY_DERIVED_PROPERTIES = {
         companionsOf: "math",
         compute: (value) => numberToMathExpression(value),
         invert: (math) => entryValueOfType(math, "number"),
+    },
+};
+
+// The `math` of a `<boolean>` entry, `1` or `0` (REF-5), which an entry
+// reads as its value where a math is wanted (`$bl` in a `<math>`), as a
+// `<boolean>` adapts to its `math`. It takes no write.
+const BOOLEAN_ENTRY_DERIVED_PROPERTIES = {
+    math: {
+        from: "value",
+        componentType: "math",
+        companionsOf: "math",
+        compute: (value) => me.fromAst(value ? 1 : 0),
     },
 };
 
