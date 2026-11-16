@@ -164,7 +164,8 @@ export default class Core {
     /**
      * The components a reader drags in a graph only to place them (a
      * `<number>`, a `<math>`), which changes their `anchor` alone, found
-     * with {@link readerWritable}.
+     * with {@link readerWritable} and, like it, kept current as components
+     * are made after load (an iteration of a repeat).
      */
     readerPlaced: Set<ComponentIdx> = new Set();
     nComponentsInit: number;

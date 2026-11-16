@@ -256,6 +256,34 @@ describe("What a reader writes to can change", () => {
 <graph fixed><point name="q" extend="$n.anchor"/><circle radius="1" through="(0,0) $q"/></graph>`,
         ],
         [
+            "the anchor of a math a reader drags in a graph, in an iteration of a repeat",
+            "doenet-w0031",
+            "info",
+            `<repeat name="r" for="1 2"><graph><math name="m" anchor="(5,0)">(5,0)</math></graph></repeat>
+<graph fixed><circle radius="1" through="(0,0) $r[1].m.anchor"/></graph>`,
+        ],
+        [
+            "the anchor of a math a reader drags in a graph, read in the same iteration of a repeat",
+            "doenet-w0031",
+            "info",
+            `<repeat for="1"><graph><math name="m" anchor="(5,0)">(5,0)</math></graph>
+<graph fixed><circle radius="1" through="(0,0) $m.anchor"/></graph></repeat>`,
+        ],
+        [
+            "a math a reader drags in a graph only to place it, read in the same iteration of a repeat",
+            "doenet-w0031",
+            "warning",
+            `<repeat for="1"><graph><math name="m" anchor="(5,0)">(5,0)</math></graph>
+<graph fixed><circle radius="1" through="(0,0) $m"/></graph></repeat>`,
+        ],
+        [
+            "a math a reader drags in a graph only to place it, as a vector's displacement",
+            "doenet-w0008",
+            "warning",
+            `<graph><math name="m">(1,2,3)</math></graph>
+<graph fixed><vector tail="(1,2)" displacement="$m"/></graph>`,
+        ],
+        [
             "a math in a point in a fixed graph",
             "doenet-w0100",
             "warning",

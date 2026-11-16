@@ -60,8 +60,9 @@
  *
  * A component made after load from a serialized one keeps the index
  * current (`noteReaderWritable`, as each component is made): the index marks
- * each serialized component it finds (`readerWritable`), and a copy of one
- * with new indices, such as an iteration of a repeat, keeps the mark. A
+ * each serialized component it finds (`readerWritable`, and
+ * `readerPlaced` for `placed`), and a copy of one with new indices, such
+ * as an iteration of a repeat, keeps the mark. A
  * component serialized from one the index holds (`originalIdx`), such as
  * an unlinked copy, is added too.
  *
@@ -342,11 +343,15 @@ export function buildReaderWritableIndex(
     /**
      * Filled, when given, with the indices of the components a reader drags
      * in a graph only to place them (a `<number>`, a `<math>`), whose drag
-     * writes their `anchor`, not their value, and of what they extend.
+     * writes their `anchor`, not their value, and of what they extend. The
+     * serialized components are marked (`readerPlaced`), as for `writable`,
+     * so that what is made from them later is added as it is made.
      */
     placed?: Set<number>,
 ): Set<number> {
     const nodeByIdx = new Map<number, any>();
+    // the indices of what a placed component extends
+    const placedSources: number[] = [];
     // the serialized components a write stops at, an attribute's component
     // without an index among them
     const fixedNodes = new Set<any>();
@@ -595,10 +600,14 @@ export function buildReaderWritableIndex(
                     placed?.add(idx);
                 }
             }
+            // what is made from it later (an iteration of a repeat) is
+            // placed as it is made
+            node.readerPlaced = true;
             if (!isUnlinkedCopy(node)) {
                 // what it extends shares its `anchor`
                 for (const idx of referencesIn(node.extending)) {
                     placed?.add(idx);
+                    placedSources.push(idx);
                 }
             }
             for (const [name, attribute] of Object.entries(
@@ -645,6 +654,14 @@ export function buildReaderWritableIndex(
         }
     }
     walk(root, false, { fixed: false, fixLocation: false });
+    // what a placed component extends, found once every component is
+    // known, is placed in what is made from it later too
+    for (const idx of placedSources) {
+        const source = nodeByIdx.get(idx);
+        if (source) {
+            source.readerPlaced = true;
+        }
+    }
 
     // A write reaches a component's descendants, each visited on its own,
     // so that a fixed one stops it, and what each references itself (an
@@ -802,12 +819,15 @@ function typeMadeBy(node: any): string {
  * to `writable` (`Core.readerWritable`) when it is made from what a reader
  * can write to: a serialized component {@link buildReaderWritableIndex}
  * marked, or a copy of one with new indices (an iteration of a repeat), or
- * one serialized from a component in `writable` (`originalIdx`).
+ * one serialized from a component in `writable` (`originalIdx`). The same
+ * for `placed` (`Core.readerPlaced`), what a reader drags in a graph only
+ * to place it.
  */
 export function noteReaderWritable(
     serializedComponent: any,
     componentIdx: number,
     writable: Set<number>,
+    placed?: Set<number>,
 ) {
     if (
         serializedComponent.readerWritable ||
@@ -815,5 +835,13 @@ export function noteReaderWritable(
             writable.has(serializedComponent.originalIdx))
     ) {
         writable.add(componentIdx);
+    }
+    if (
+        placed &&
+        (serializedComponent.readerPlaced ||
+            (typeof serializedComponent.originalIdx === "number" &&
+                placed.has(serializedComponent.originalIdx)))
+    ) {
+        placed.add(componentIdx);
     }
 }

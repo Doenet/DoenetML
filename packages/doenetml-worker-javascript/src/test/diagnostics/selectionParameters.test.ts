@@ -267,6 +267,29 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `mean="$g.xMax"`,
         },
         {
+            tag: "<selectRandomNumbers mean> from the axis of a graph with its axes fixed, extending a graph a reader pans",
+            doenetML: `<graph name="g0" xMax="7"/>
+<graph name="g" extend="$g0" fixAxes/>
+<p name="p">A <selectRandomNumbers name="s" mean="$g.xMax"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$g.xMax",
+            changeableType: "graph",
+            written: `mean="$g.xMax"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a section's number, after a section an input shows: this error, not doenet-e0074",
+            doenetML: `<booleanInput name="b"/>
+<conditionalContent condition="$b"><section/></conditionalContent>
+<section name="sec"/>
+<p name="p">A <selectFromSequence name="s" to="$sec.sectionNumber"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$sec.sectionNumber",
+            changeableType: "booleanInput",
+            written: `to="$sec.sectionNumber"`,
+        },
+        {
             tag: "<selectRandomNumbers mean> from the aspect ratio of a graph with identical axis scales, which a reader pans or zooms",
             doenetML: `<graph name="g" identicalAxisScales/>
 <p name="p">A <selectRandomNumbers name="s" mean="$g.aspectRatio"/> B</p>`,
@@ -665,6 +688,21 @@ describe("What a choice's parameter may read @group4", () => {
             doenetML: `<graph name="g" fixAxes xMax="7"><point/></graph>
 <graph name="h" fixed yMin="-3"><point/></graph>
 <selectRandomNumbers name="s" mean="$g.xMax" standardDeviation="$h.yMin"/>`,
+        },
+        {
+            tag: "a graph's axis, with the graph in a fixed group",
+            doenetML: `<group fixed><graph name="h"><point/></graph></group>
+<selectRandomNumbers name="s" mean="$h.xMax"/>`,
+        },
+        {
+            tag: "a text, a label and an image placed in a graph, which a reader drags only to place them",
+            doenetML: `<graph><text name="t">3</text><label name="l">4</label><image name="i" width="3"/></graph>
+<selectRandomNumbers name="s" mean="$t" standardDeviation="$l" from="$i.width"/>`,
+        },
+        {
+            tag: "a number placed in a graph in each iteration of a repeat, read there",
+            doenetML: `<repeat for="1 2"><graph><number name="n">3</number></graph>
+<selectFromSequence name="s" to="$n"/></repeat>`,
         },
         {
             tag: "a graph's property other than its axes, with a point a reader drags in it",
