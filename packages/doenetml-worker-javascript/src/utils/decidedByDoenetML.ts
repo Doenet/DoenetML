@@ -17,17 +17,21 @@
  * select is an error only when what decides it cannot change
  * (`selectErrors.ts`).
  */
+import { isPlacementLocation } from "./readerWritable";
 
 /**
  * What {@link canChange} reads: the live components, the component classes,
  * what a reader can write to (`Core.readerWritable`, from
- * `buildReaderWritableIndex`), and the answers found so far, keyed by
- * component index and whether it was reached by a reference.
+ * `buildReaderWritableIndex`), what a reader drags in a graph only to place
+ * it, whose `anchor` alone a reader changes (`Core.readerPlaced`), and the
+ * answers found so far, keyed by component index and whether it was
+ * reached by a reference.
  */
 export type ChangeContext = {
     components: any[];
     componentInfoObjects: any;
     writable: Set<number>;
+    placed: Set<number>;
     memo: Map<string, boolean>;
 };
 
@@ -40,11 +44,13 @@ export function changeContext(core: {
     _components: any[];
     componentInfoObjects: any;
     readerWritable?: Set<number>;
+    readerPlaced?: Set<number>;
 }): ChangeContext {
     return {
         components: core._components,
         componentInfoObjects: core.componentInfoObjects,
         writable: core.readerWritable ?? new Set(),
+        placed: core.readerPlaced ?? new Set(),
         memo: new Map(),
     };
 }
@@ -230,7 +236,17 @@ function canChangeUncached(
     }
     if (component.shadows) {
         const source = ctx.components[component.shadows.componentIdx];
-        if (!source || canChange(source, ctx, true)) {
+        // a copy of a placed component's `anchor` (`$m.anchor`, `<point
+        // extend="$m.anchor"/>`) follows the drag
+        if (
+            !source ||
+            readsPlacedAnchor(
+                component.shadows.componentIdx,
+                component.shadows.propVariable,
+                ctx,
+            ) ||
+            canChange(source, ctx, true)
+        ) {
             return true;
         }
     }
@@ -601,6 +617,24 @@ export function referenceCanChange(
     }
     const source = ctx.components[refResolution.nodeIdx];
     return !source || canChange(source, ctx, true);
+}
+
+/**
+ * Whether `property` of the component `componentIdx` is the `anchor` of a
+ * component a reader drags in a graph only to place it (`ctx.placed`): the
+ * drag changes that, and nothing else of it (`$m.anchor` of a `<math>` in
+ * a graph).
+ */
+function readsPlacedAnchor(
+    componentIdx: number,
+    property: unknown,
+    ctx: ChangeContext,
+): boolean {
+    return (
+        typeof property === "string" &&
+        isPlacementLocation(property) &&
+        ctx.placed.has(componentIdx)
+    );
 }
 
 /**
