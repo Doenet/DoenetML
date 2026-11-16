@@ -256,6 +256,14 @@ describe("What a reader writes to can change", () => {
 <graph fixed><point name="q" extend="$n.anchor"/><circle radius="1" through="(0,0) $q"/></graph>`,
         ],
         [
+            "the anchor of a number a number in a graph extends through another extend",
+            "doenet-w0031",
+            "info",
+            `<number name="n0" anchor="(5,0)">3</number><number name="n4" extend="$n0"/>
+<graph><number extend="$n4"/></graph>
+<graph fixed><circle radius="1" through="(0,0) $n0.anchor"/></graph>`,
+        ],
+        [
             "the anchor of a math a reader drags in a graph, in an iteration of a repeat",
             "doenet-w0031",
             "info",

@@ -552,7 +552,7 @@ export function checkChoiceParametersAtLoad({
     ): Reached | null {
         const type = typeMadeBy(node);
         const lower = property.toLowerCase();
-        if (isPlacementLocation(property) && isPlaced(node)) {
+        if (isPlacementLocation(property) && anchorIsPlaced(node, new Set())) {
             // where a reader drags it
             return { reference, changeable: node };
         }
@@ -896,6 +896,23 @@ export function checkChoiceParametersAtLoad({
         return (
             placed.has(node.componentIdx) ||
             (created !== undefined && placed.has(created))
+        );
+    }
+
+    /**
+     * Whether a reader drags where `node` is placed (its `anchor`): it is
+     * placed in a graph, or it extends, linked, one whose `anchor` is
+     * (`<number extend="$n"/>` of a `<number>` in a graph), as an extend
+     * shares its source's `anchor`.
+     */
+    function anchorIsPlaced(node: any, seen: Set<any>): boolean {
+        if (seen.has(node)) {
+            return false;
+        }
+        seen.add(node);
+        return (
+            isPlaced(node) ||
+            linkedSourcesOf(node).some((source) => anchorIsPlaced(source, seen))
         );
     }
 

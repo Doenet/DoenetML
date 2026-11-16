@@ -655,11 +655,26 @@ export function buildReaderWritableIndex(
     }
     walk(root, false, { fixed: false, fixLocation: false });
     // what a placed component extends, found once every component is
-    // known, is placed in what is made from it later too
-    for (const idx of placedSources) {
+    // known, is placed in what is made from it later too, and so is what
+    // that extends in turn: the drag writes the `anchor` through each
+    // extend to the one it extends
+    const placedSourcesSeen = new Set<number>();
+    while (placedSources.length > 0) {
+        const idx = placedSources.pop()!;
+        if (placedSourcesSeen.has(idx)) {
+            continue;
+        }
+        placedSourcesSeen.add(idx);
         const source = nodeByIdx.get(idx);
-        if (source) {
-            source.readerPlaced = true;
+        if (!source) {
+            continue;
+        }
+        source.readerPlaced = true;
+        if (!isUnlinkedCopy(source)) {
+            for (const next of referencesIn(source.extending)) {
+                placed?.add(next);
+                placedSources.push(next);
+            }
         }
     }
 
