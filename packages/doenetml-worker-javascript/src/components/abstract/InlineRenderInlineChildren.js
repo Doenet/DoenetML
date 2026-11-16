@@ -50,6 +50,61 @@ export default class InlineRenderInlineChildren extends InlineComponent {
 
                 return { setValue: { text } };
             },
+            // A write lands on the one child that supplies the text, as in a
+            // `<text>` (`textChildValuesFromDesired`), so `<em>Hi</em>` in a
+            // `<label>` takes a new label and keeps its markup (#2537). The
+            // delimiters (a `<q>`'s quotes) are not the child's, and are
+            // dropped from the desired text when it has them. Several
+            // children, or none, refuse the write.
+            inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+            }) {
+                let desiredText = desiredStateVariableValues.text;
+                const children = dependencyValues.inlineChildren;
+                if (typeof desiredText !== "string" || children.length !== 1) {
+                    return { success: false };
+                }
+                const begin = componentClass.beginTextDelimiter;
+                const end = componentClass.endTextDelimiter;
+                if (
+                    desiredText.length >= begin.length + end.length &&
+                    desiredText.startsWith(begin) &&
+                    desiredText.endsWith(end)
+                ) {
+                    desiredText = desiredText.slice(
+                        begin.length,
+                        desiredText.length - end.length,
+                    );
+                }
+                const child = children[0];
+                if (typeof child === "string") {
+                    return {
+                        success: true,
+                        instructions: [
+                            {
+                                setDependency: "inlineChildren",
+                                desiredValue: desiredText,
+                                childIndex: 0,
+                            },
+                        ],
+                    };
+                }
+                if (typeof child.stateValues.text === "string") {
+                    return {
+                        success: true,
+                        instructions: [
+                            {
+                                setDependency: "inlineChildren",
+                                desiredValue: desiredText,
+                                childIndex: 0,
+                                variableIndex: 0, // the "text" variable
+                            },
+                        ],
+                    };
+                }
+                return { success: false };
+            },
         };
 
         return stateVariableDefinitions;

@@ -13782,4 +13782,111 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
         ).eq(5);
     });
+
+    // A boolean is `1` or `0` as a number or a math (REF-5), as a child as
+    // in an `extend`: it was dropped from a `<math>` as an invalid child
+    // (`w0107`), and a `<number>` of it alone was `NaN` (#2566)
+    it("a boolean in a math or a number is 1 or 0", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <boolean name="f">false</boolean>
+    <math name="m1">$b+1</math>
+    <math name="m2">2$b + $f x</math>
+    <math name="m3">$b</math>
+    <math name="m4" extend="$b"/>
+    <number name="n1">$b+1</number>
+    <number name="n2">$b</number>
+    <number name="n3">$f</number>
+    <integer name="i1">$b+5</integer>
+    <point name="P">($b, $f)</point>
+    <mathList name="ml">$b $f 3</mathList>
+    <numberList name="nl">$b $f 3</numberList>
+    <sum name="s">$b $b $f</sum>
+    <booleanList name="bs">true false</booleanList>
+    <math name="mbs">$bs</math>
+    <p name="pr"><repeat name="r" for="$bs" valueName="v"><math>$v+1</math> <number>$v+1</number></repeat></p>
+    <boolean name="missing">$nothing</boolean>
+    <math name="mMissing">$missing+1</math>
+    <p name="p"><text name="t">$b</text> $b</p>
+    <mathInput name="mi" bindValueTo="$m3"/>
+    `,
+        });
+
+        async function check(b: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("b")).value).eq(b === 1);
+            expect((await sv("m1")).value.tree).eqls(["+", b, 1]);
+            expect((await sv("m2")).value.tree).eqls([
+                "+",
+                ["*", 2, b],
+                ["*", 0, "x"],
+            ]);
+            expect((await sv("m3")).value.tree).eq(b);
+            expect((await sv("m4")).value.tree).eq(b);
+            expect((await sv("n1")).value).eq(b + 1);
+            expect((await sv("n2")).value).eq(b);
+            expect((await sv("n3")).value).eq(0);
+            expect((await sv("i1")).value).eq(b + 5);
+            expect((await sv("P")).xs.map((x: any) => x.tree)).eqls([b, 0]);
+            expect((await sv("ml")).maths.map((x: any) => x.tree)).eqls([
+                b,
+                0,
+                3,
+            ]);
+            expect((await sv("nl")).numbers).eqls([b, 0, 3]);
+            expect((await sv("s")).value.tree).eq(2 * b);
+            // and each entry of a list of booleans
+            expect((await sv("mbs")).value.tree).eqls(["list", 1, 0]);
+            // a missing boolean is a blank
+            expect((await sv("mMissing")).value.tree).eqls(["+", "＿", 1]);
+            // where a text is wanted, it is the word
+            expect((await sv("t")).value).eq(b === 1 ? "true" : "false");
+            expect((await sv("p")).text).eq(
+                b === 1 ? "true true" : "false false",
+            );
+        }
+
+        await check(1);
+
+        // a repeat's value that is a boolean
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pr")].stateValues.text,
+        ).eq("1 + 1 2, 0 + 1 1");
+
+        // no boolean is dropped as an invalid child
+        expect(
+            core.core!.diagnostics.filter(
+                (d: any) => d.code === "doenet-w0107",
+            ),
+        ).eqls([]);
+
+        // writing `0` or `1` sets the boolean
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check(0);
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check(1);
+
+        // any other value is refused
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check(1);
+    });
 });

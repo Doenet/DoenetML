@@ -76,7 +76,7 @@ export default class NumberComponent extends InlineComponent {
             createStateVariable: "convertBoolean",
             defaultValue: false,
             description:
-                "Whether to convert boolean inputs to 1/0 instead of NaN.",
+                "Whether to read the content as a boolean expression (with texts as `true` or `false`), giving 1 or 0. A boolean is 1 or 0 in a number either way.",
         };
         attributes.valueOnNaN = {
             createPrimitiveOfType: "number",
@@ -646,7 +646,13 @@ export default class NumberComponent extends InlineComponent {
                         }
                     }
 
-                    if (!dependencyValues.convertBoolean) {
+                    if (
+                        !dependencyValues.convertBoolean &&
+                        !isSingleBoolean(
+                            dependencyValues.allChildren,
+                            componentInfoObjects,
+                        )
+                    ) {
                         return {
                             setValue: { value: dependencyValues.valueOnNaN },
                         };
@@ -743,17 +749,14 @@ export default class NumberComponent extends InlineComponent {
                             ],
                         };
                     } else if (
-                        dependencyValues.convertBoolean &&
-                        dependencyValues.allChildren.length === 1 &&
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType:
-                                dependencyValues.allChildren[0].componentType,
-                            baseComponentType: "boolean",
-                        }) &&
+                        isSingleBoolean(
+                            dependencyValues.allChildren,
+                            componentInfoObjects,
+                        ) &&
                         (desiredValue === 0 || desiredValue === 1)
                     ) {
-                        // a boolean read as `1` or `0` (`convertBoolean`),
-                        // which is `true` or `false` written back
+                        // a boolean read as `1` or `0` (REF-5), which is
+                        // `true` or `false` written back
                         return {
                             success: true,
                             instructions: [
@@ -1128,4 +1131,20 @@ export default class NumberComponent extends InlineComponent {
             });
         }
     }
+}
+
+/**
+ * Whether a `<number>`'s only child is a boolean, which it reads as `1` or
+ * `0` (REF-5) with or without `convertBoolean`: `<number>$b</number>`.
+ * Several children are wrapped in a `<math>` (`returnSugarInstructions`),
+ * which reads a boolean the same way through its adapter.
+ */
+function isSingleBoolean(children, componentInfoObjects) {
+    return (
+        children.length === 1 &&
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: children[0].componentType,
+            baseComponentType: "boolean",
+        })
+    );
 }

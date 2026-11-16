@@ -1113,6 +1113,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -1254,6 +1281,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -1393,6 +1426,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -11678,6 +11717,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -11817,6 +11883,12 @@
                 },
                 {
                     "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "math"
@@ -11960,6 +12032,12 @@
                     "ref": "bestFitLine"
                 },
                 {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
                     "ref": "matrix"
                 },
                 {
@@ -11981,46 +12059,7 @@
                     "ref": "yLabel"
                 },
                 {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "iff"
-                },
-                {
-                    "ref": "implies"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
-                },
-                {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "hasSameFactoring"
-                },
-                {
                     "ref": "label"
-                },
-                {
-                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "booleanInput"
@@ -14258,6 +14297,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -14399,6 +14465,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -14538,6 +14610,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -14879,6 +14957,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -15020,6 +15125,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -15159,6 +15270,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -15513,6 +15630,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -15654,6 +15798,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -15793,6 +15943,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -16234,6 +16390,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -16375,6 +16558,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -16514,6 +16703,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -17179,6 +17374,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -17320,6 +17542,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -17459,6 +17687,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -18122,6 +18356,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -18263,6 +18524,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -18402,6 +18669,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -19065,6 +19338,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -19206,6 +19506,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -19345,6 +19651,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -20008,6 +20320,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -20149,6 +20488,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -20288,6 +20633,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -20945,6 +21296,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -21086,6 +21464,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -21225,6 +21609,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -21862,6 +22252,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -22003,6 +22420,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -22142,6 +22565,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -22773,6 +23202,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -22914,6 +23370,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -23053,6 +23515,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -23690,6 +24158,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -23831,6 +24326,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -23970,6 +24471,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -24607,6 +25114,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -24748,6 +25282,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -24887,6 +25427,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -25524,6 +26070,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -25665,6 +26238,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -25804,6 +26383,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -26455,6 +27040,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -26596,6 +27208,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -26735,6 +27353,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -27400,6 +28024,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -27541,6 +28192,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -27680,6 +28337,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -28352,6 +29015,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -28493,6 +29183,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -28632,6 +29328,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -29311,6 +30013,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -29452,6 +30181,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -29591,6 +30326,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -30263,6 +31004,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -30404,6 +31172,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -30543,6 +31317,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -31208,6 +31988,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -31349,6 +32156,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -31488,6 +32301,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -32153,6 +32972,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -32294,6 +33140,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -32433,6 +33285,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -33098,6 +33956,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -33239,6 +34124,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -33378,6 +34269,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -34043,6 +34940,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -34184,6 +35108,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -34323,6 +35253,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -34988,6 +35924,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -35129,6 +36092,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -35268,6 +36237,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -35941,6 +36916,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -36082,6 +37084,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -36221,6 +37229,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -36767,6 +37781,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -36908,6 +37949,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -37047,6 +38094,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -37295,6 +38348,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -37436,6 +38516,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -37575,6 +38661,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -37823,6 +38915,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -37964,6 +39083,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -38103,6 +39228,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -38351,6 +39482,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -38492,6 +39650,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -38631,6 +39795,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -38879,6 +40049,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -39020,6 +40217,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -39159,6 +40362,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -46315,6 +47524,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -46343,6 +47579,12 @@
                 },
                 {
                     "ref": "fractionInput"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "point"
@@ -46376,6 +47618,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "pointList"
@@ -47005,6 +48253,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -47033,6 +48308,12 @@
                 },
                 {
                     "ref": "fractionInput"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "point"
@@ -47066,6 +48347,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "pointList"
@@ -47488,6 +48775,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -47629,6 +48943,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -47768,6 +49088,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -48550,6 +49876,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -48691,6 +50044,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -48830,6 +50189,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -49612,6 +50977,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -49753,6 +51145,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -49892,6 +51290,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -50524,6 +51928,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -50665,6 +52096,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -50804,6 +52241,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -86161,6 +87604,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -86188,6 +87658,12 @@
                     "ref": "fractionInput"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "line"
                 },
                 {
@@ -86207,6 +87683,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 }
             ],
             "textChildrenAllowed": true,
@@ -86374,12 +87856,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The graph axis scales (x and y) used when applying this constraint."
                 },
                 {
                     "name": "constraintUsed",
@@ -86749,6 +88225,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -86890,6 +88393,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -86999,6 +88508,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -87645,6 +89160,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -87777,6 +89319,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -87880,6 +89428,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -89403,6 +90957,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -89544,6 +91125,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -89683,6 +91270,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -90204,6 +91797,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -90345,6 +91965,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -90451,6 +92077,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -98467,6 +100099,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -98608,6 +100267,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -98717,6 +100382,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -103538,6 +105209,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -103677,6 +105375,12 @@
                 },
                 {
                     "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "math"
@@ -103820,6 +105524,12 @@
                     "ref": "bestFitLine"
                 },
                 {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
                     "ref": "matrix"
                 },
                 {
@@ -103841,46 +105551,7 @@
                     "ref": "yLabel"
                 },
                 {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "iff"
-                },
-                {
-                    "ref": "implies"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
-                },
-                {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "hasSameFactoring"
-                },
-                {
                     "ref": "label"
-                },
-                {
-                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "booleanInput"
@@ -104535,6 +106206,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -104676,6 +106374,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -104815,6 +106519,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -105379,6 +107089,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -105520,6 +107257,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -105659,6 +107402,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -105970,6 +107719,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -106111,6 +107887,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -106250,6 +108032,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -106756,6 +108544,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -106784,6 +108599,12 @@
                 },
                 {
                     "ref": "fractionInput"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "point"
@@ -106817,6 +108638,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "pointList"
@@ -108498,6 +110325,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -108525,6 +110379,12 @@
                     "ref": "fractionInput"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "line"
                 },
                 {
@@ -108544,6 +110404,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 }
             ],
             "textChildrenAllowed": true,
@@ -108697,12 +110563,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The graph axis scales (x and y) used when applying this constraint."
                 },
                 {
                     "name": "constraintUsed",
@@ -109048,6 +110908,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -109189,6 +111076,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -109328,6 +111221,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -109975,6 +111874,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -110116,6 +112042,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -110225,6 +112157,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -114931,6 +116869,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -115072,6 +117037,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -115181,6 +117152,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -115812,6 +117789,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -115953,6 +117957,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -116062,6 +118072,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -116693,6 +118709,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -116825,6 +118868,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -116928,6 +118977,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -117496,6 +119551,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -117637,6 +119719,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -117746,6 +119834,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -118148,6 +120242,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "tally"
                 },
                 {
@@ -118191,6 +120312,12 @@
                 },
                 {
                     "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "numberList"
@@ -118269,6 +120396,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "latex"
@@ -118940,6 +121073,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -118967,6 +121127,12 @@
                     "ref": "fractionInput"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "line"
                 },
                 {
@@ -118986,6 +121152,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 }
             ],
             "textChildrenAllowed": true,
@@ -119746,6 +121918,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -119774,6 +121973,12 @@
                 },
                 {
                     "ref": "fractionInput"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "point"
@@ -119807,6 +122012,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "pointList"
@@ -120423,6 +122634,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -120558,6 +122796,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -120666,6 +122910,12 @@
                     "ref": "bestFitLine"
                 },
                 {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
                     "ref": "matrix"
                 },
                 {
@@ -120679,45 +122929,6 @@
                 },
                 {
                     "ref": "vectorList"
-                },
-                {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "iff"
-                },
-                {
-                    "ref": "implies"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
-                },
-                {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "hasSameFactoring"
-                },
-                {
-                    "ref": "matchesPattern"
                 }
             ],
             "textChildrenAllowed": false,
@@ -121395,6 +123606,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -121536,6 +123774,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -121647,6 +123891,12 @@
                     "ref": "bestFitLine"
                 },
                 {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
                     "ref": "matrix"
                 },
                 {
@@ -121668,46 +123918,7 @@
                     "ref": "yLabel"
                 },
                 {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "iff"
-                },
-                {
-                    "ref": "implies"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
-                },
-                {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "hasSameFactoring"
-                },
-                {
                     "ref": "label"
-                },
-                {
-                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "booleanInput"
@@ -122132,6 +124343,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -122271,6 +124509,12 @@
                 },
                 {
                     "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "math"
@@ -122414,6 +124658,12 @@
                     "ref": "bestFitLine"
                 },
                 {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
                     "ref": "matrix"
                 },
                 {
@@ -122435,46 +124685,7 @@
                     "ref": "yLabel"
                 },
                 {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "iff"
-                },
-                {
-                    "ref": "implies"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
-                },
-                {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "hasSameFactoring"
-                },
-                {
                     "ref": "label"
-                },
-                {
-                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "booleanInput"
@@ -122960,6 +125171,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -123101,6 +125339,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -123210,6 +125454,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -126730,6 +128980,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -126758,6 +129035,12 @@
                 },
                 {
                     "ref": "fractionInput"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "point"
@@ -126793,6 +129076,12 @@
                     "ref": "bestFitLine"
                 },
                 {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -126805,46 +129094,7 @@
                     "ref": "yLabel"
                 },
                 {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "iff"
-                },
-                {
-                    "ref": "implies"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
-                },
-                {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "hasSameFactoring"
-                },
-                {
                     "ref": "label"
-                },
-                {
-                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "booleanInput"
@@ -127411,6 +129661,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -127439,6 +129716,12 @@
                 },
                 {
                     "ref": "fractionInput"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "point"
@@ -127474,6 +129757,12 @@
                     "ref": "bestFitLine"
                 },
                 {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
                     "ref": "pointList"
                 },
                 {
@@ -127486,46 +129775,7 @@
                     "ref": "yLabel"
                 },
                 {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "iff"
-                },
-                {
-                    "ref": "implies"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
-                },
-                {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
-                    "ref": "hasSameFactoring"
-                },
-                {
                     "ref": "label"
-                },
-                {
-                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "booleanInput"
@@ -129445,6 +131695,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -129586,6 +131863,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -129725,6 +132008,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -131167,6 +133456,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -131308,6 +133624,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -131447,6 +133769,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -133621,7 +135949,7 @@
                 {
                     "name": "items",
                     "isArray": false,
-                    "description": "The values the slider can take."
+                    "description": "The values the slider can take, as a list, when given by its children. Empty for a slider given by `from`, `to` and `step`."
                 },
                 {
                     "name": "numItems",
@@ -134248,6 +136576,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -134387,6 +136742,12 @@
                 },
                 {
                     "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "math"
@@ -134530,6 +136891,12 @@
                     "ref": "bestFitLine"
                 },
                 {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
                     "ref": "matrix"
                 },
                 {
@@ -134573,33 +136940,6 @@
                 },
                 {
                     "ref": "mdn"
-                },
-                {
-                    "ref": "not"
-                },
-                {
-                    "ref": "and"
-                },
-                {
-                    "ref": "or"
-                },
-                {
-                    "ref": "xor"
-                },
-                {
-                    "ref": "iff"
-                },
-                {
-                    "ref": "implies"
-                },
-                {
-                    "ref": "isInteger"
-                },
-                {
-                    "ref": "isNumber"
-                },
-                {
-                    "ref": "isBetween"
                 },
                 {
                     "ref": "chart"
@@ -134782,12 +137122,6 @@
                     "ref": "p"
                 },
                 {
-                    "ref": "boolean"
-                },
-                {
-                    "ref": "booleanList"
-                },
-                {
                     "ref": "ref"
                 },
                 {
@@ -134941,9 +137275,6 @@
                     "ref": "codeEditor"
                 },
                 {
-                    "ref": "hasSameFactoring"
-                },
-                {
                     "ref": "summaryStatistics"
                 },
                 {
@@ -134951,9 +137282,6 @@
                 },
                 {
                     "ref": "label"
-                },
-                {
-                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "eigenDecomposition"
@@ -161990,6 +164318,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -162017,6 +164372,12 @@
                     "ref": "fractionInput"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "line"
                 },
                 {
@@ -162036,6 +164397,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 }
             ],
             "textChildrenAllowed": true,
@@ -162203,12 +164570,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The graph axis scales (x and y) used when applying this constraint."
                 },
                 {
                     "name": "constraintUsed",
@@ -165329,6 +167690,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -165470,6 +167858,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -165609,6 +168003,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -166220,6 +168620,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -166361,6 +168788,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -166500,6 +168933,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -169103,6 +171542,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -169235,6 +171701,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -169338,6 +171810,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -169672,6 +172150,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -169804,6 +172309,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -169907,6 +172418,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -171553,6 +174070,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -171694,6 +174238,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -171833,6 +174383,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -172368,6 +174924,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "clampFunction"
                 },
                 {
@@ -172396,6 +174979,12 @@
                 },
                 {
                     "ref": "fractionInput"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "point"
@@ -172429,6 +175018,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "pointList"
@@ -173829,6 +176424,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -173970,6 +176592,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -174109,6 +176737,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -175117,6 +177751,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -175258,6 +177919,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -175397,6 +178064,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -178516,12 +181189,6 @@
                     "type": "label",
                     "isArray": false,
                     "description": "The label rendered with this component."
-                },
-                {
-                    "name": "scales",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The graph axis scales (x and y) used when applying this constraint."
                 },
                 {
                     "name": "threshold",
@@ -181697,6 +184364,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "tally"
                 },
                 {
@@ -181737,6 +184431,12 @@
                 },
                 {
                     "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "numberList"
@@ -181806,6 +184506,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "latex"
@@ -182114,6 +184820,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "sum"
                 },
                 {
@@ -182255,6 +184988,12 @@
                     "ref": "textList"
                 },
                 {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
                     "ref": "math"
                 },
                 {
@@ -182361,6 +185100,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "matrix"
@@ -182804,6 +185549,33 @@
                     "ref": "mrow"
                 },
                 {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
                     "ref": "tally"
                 },
                 {
@@ -182847,6 +185619,12 @@
                 },
                 {
                     "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
                 },
                 {
                     "ref": "numberList"
@@ -182925,6 +185703,12 @@
                 },
                 {
                     "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "matchesPattern"
                 },
                 {
                     "ref": "latex"
