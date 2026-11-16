@@ -223,11 +223,28 @@ template leaves them out silently; a reference whose one item goes away keeps it
   wrappers with several components is an error, having nothing to compare. A wrapper with one
   component stands for it.
 - Items of more than one type (a number and a text; a math and a group of several) are an error
-  at load.
+  at load. Integer, number and math count as one type (D44).
 
 **Known violations** (#2523): `<sort><number>3</number><text>a</text></sort>` sorts across
 types (`3, a`); a `<shuffle>` of three groups of two maths flattens them and splits the pairs
 (`4, 1, 5, 6, 2, 3`).
+
+### COLL-5: a repeat's `for` holds one type, decided at load (Tier 2; D44)
+- **Items:** as in COLL-4. Literal text is cut by VAL-12, a list or collection is flattened, a
+  wrapper with one component stands for it, and a wrapper with several is one item:
+  `for="$g"` of a group of several is one iteration.
+- **One type,** found from the DoenetML by REF-5's typing of parts. A mix is an error at load.
+  Integer, number and math count as one type, and `$v` is the widest present. Wrappers of several
+  count as one type, whatever they hold.
+- **`type`** types the literals and, when written, every item.
+- So `$v` has one type in every iteration, and the template is checked at load.
+- A name after `$v` when the items are wrappers: open in D44 (recommended: COMP-11's every-item,
+  one-type rule).
+
+**Known violations** (all of it; **[probe]** on `main`, #2567): `for` takes any mix (`$a $t $P`,
+`2 $t`, a select of a math, a text and a number); a group in `for` is flattened, nested groups
+too, so a repeat over another repeat's iterations goes over their components, and `$d.P` is a
+blank with no diagnostic.
 
 ---
 

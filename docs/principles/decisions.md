@@ -2657,3 +2657,84 @@ copy then follow one rule for references, and differ only in sharing state.
 **Not implemented in the JavaScript core.** It builds an extend's internal references as shadows of
 the source's, and the change isn't worth making there. The cells core implements it; REF-6 lists
 the examples that are its tests. #2537 items 2 and 3 wait for it.
+
+## D44. A repeat's `for` holds one type, decided at load (decided, Tier 1; implementation #2567)
+
+**Decided** (November 2026). The principle is COLL-5 in
+[composites-and-lists.md](composites-and-lists.md).
+
+**Why.** The principles move toward types known from the DoenetML: a tag you write makes that tag
+(D36), a type change is allowed only between related types (REF-5), a name in branches has one
+type (COMP-11), and `<sort>` and `<shuffle>` take one type (COLL-4). `for` was left out. It is
+made as a `<group>`, so it takes anything, in any mix, and `$v` has no type until each iteration
+is built. On `main` (**[probe]**):
+
+| `for` | Result |
+|---|---|
+| `1 x hello` | three maths (`type` defaults to math), the last `h e l l o`; with `type="text"`, texts |
+| `$a $t $P` (a math, a text and a point) | allowed; `$v.x` is `x`, `＿` with `w0104`, `1` |
+| `2 $t` | a math and a text |
+| `$g`, a group of a point, a number and a `<p>` | three items, the `<p>` among them |
+| `$g`, a group holding a group of 1 and 2, and 5 | `1, 2, 5`: nested groups are flattened |
+| `$data`, a repeat whose template is a `<point name="P">` and a `<text name="L">` | four items, alternating; `$d.P` is `＿` with no diagnostic |
+| `$s`, a select of a math, a text and a number | allowed, mixed |
+
+So REF-5 can't type `$v` (`e0067`), a property `$v` lacks is found only per iteration, and there is
+no way to iterate over records (a point with its label).
+
+### Decided
+
+1. **The items of `for` follow COLL-4.** Literal text is cut into items by VAL-12. A list or a
+   collection is flattened into its items. A wrapper with one component stands for it. A wrapper
+   with several is one item, as in a `<shuffle>`: `for="$g"` of a group of several is one
+   iteration.
+2. **The items have one type, decided at load from the DoenetML,** by REF-5's typing of parts: a
+   bare `$y` is y's tag, a list's item is its entry type, a `<collect>`'s is its `componentType`,
+   and a `<select>` or `<conditionalContent>` is typed by COMP-11's every-branch rule. Items of
+   more than one type are an error at load. `$v` then has that type in every iteration, so the
+   template is checked at load like any other reference, and REF-5's `e0067` for `valueName`
+   goes away.
+3. **Integer, number and math are one type.** `$v` is the widest present (a math, if any item is
+   one). The same holds for `<sort>` and `<shuffle>` (COLL-4).
+4. **`type` types the literals, and, when written, every item.** `for="2 $t"` with `t` a `<text>`
+   is an error unless it says `type="text"`.
+5. **Wrappers of several count as one type,** whatever they hold: a `<group>`, an iteration, a
+   pick or a case. This is how a repeat goes over records:
+   ```xml
+   <repeat name="data" for="1 2 3" valueName="k">
+     <point name="P">($k, $k^2)</point><text name="L">P$k</text>
+   </repeat>
+   <repeat for="$data" valueName="d">$d.P is labelled $d.L.</repeat>
+   ```
+   A name after `$v` is the open question below.
+
+### Open: a name after `$v` when the items are wrappers
+
+- **Option 1:** every wrapper must hold the same children, with the same names and types.
+- **Option 2 (recommended):** follow COLL-2 and COMP-11. `$d.P` resolves when every item declares
+  `P`, with one type, decided at load. If an item lacks it, `$d.P` names nothing in every
+  iteration (a blank, `w0183`); two types are an error (`e0066`/`w0184`). A repeat's or a select's
+  items satisfy this by construction, since one template, or the every-option rule, declares the
+  name.
+
+Why option 2: unnamed components can't be reached from `$v` (an index after a wrapper of several
+names nothing, COLL-3), so option 1 would reject differences no reference can see, and it would be
+a second rule beside COMP-11's. Positional pairs are better written as values with entries:
+`for="(1, 2) (3, 4)"` gives tuples, and `$v[1]` is an entry.
+
+### What it costs
+
+- **Mixed graphical objects** can't share one repeat (a point and a line, for labels or
+  `$o.hide`). Write one repeat per type. COLL-2 already applies `$c.color` to each item without a
+  repeat. A common supertype ("graphical") could be added later if authors need it.
+- **`for="$g"` of a group of several** gives one iteration, where it gave one per child. Use a
+  list, a `<collect>`, or name each item in `for`. Four tests in `repeat.test.ts` do this.
+- **Mixed `for`s break.** `repeat.test.ts`'s "repeat iterates over combination of list, group,
+  sequence, components, and string" (`for="$ml $g $s $n7 $m8 9"`) keeps working under decision 3,
+  except that `$g` becomes one item. The v0.7 converter can only report a mix (#2457).
+
+### Related defect
+
+While probing: a `<boolean>` written in a `<math>` (`<math>$b+1</math>`) is dropped as an invalid
+child (`w0107`), giving `+1`, though REF-5 makes a boolean `1` or `0` as a math and a `<number>`
+already reads it so (#2566).
