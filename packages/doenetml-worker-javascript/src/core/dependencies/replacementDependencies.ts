@@ -11,6 +11,17 @@ import {
     isWrapperOfSeveral,
 } from "../../utils/wrappers";
 
+/**
+ * The collections built as composites, besides those whose items hold names
+ * (`COLLECTIONS_OF_NAMED_ITEMS`), with properties of their own (`numItems`
+ * and their settings, COLL-2).
+ */
+const COLLECTIONS_WITH_OWN_PROPERTIES = new Set([
+    "sort",
+    "shuffle",
+    "conditionalContent",
+]);
+
 export class ReplacementDependency extends Dependency {
     static dependencyType = "replacement";
 
@@ -443,6 +454,38 @@ export class ReplacementDependency extends Dependency {
                     itemsSearched: unwrapped,
                 };
             }
+            // A property the collection a group of one stands for has of
+            // its own (`$g.numItems` of `<group name="g">$r</group>`) is
+            // read from that collection, as `$r.numItems` is (COLL-3),
+            // not from each of its items.
+            const standsFor =
+                only.componentType === "_copy"
+                    ? components[
+                          only.state?.extendedComponent?.value?.componentIdx
+                      ]
+                    : only;
+            if (
+                COLLECTIONS_OF_NAMED_ITEMS.has(standsFor?.componentType) ||
+                COLLECTIONS_WITH_OWN_PROPERTIES.has(standsFor?.componentType)
+            ) {
+                const firstName = this.namePerItem?.[0]?.name;
+                const ownProperty =
+                    firstName &&
+                    !core
+                        .matchPublicStateVariables({
+                            stateVariables: [firstName],
+                            componentClass: standsFor.constructor,
+                        })[0]
+                        .startsWith("__not_public_");
+                if (ownProperty) {
+                    return {
+                        replacements: [standsFor],
+                        remainingPaths: undefined,
+                        itemsNamedIn: undefined,
+                        itemsSearched: [...unwrapped, only.componentIdx],
+                    };
+                }
+            }
             composite = only;
             unwrapped.push(only.componentIdx);
             replacements = only.replacements ?? [];
@@ -488,6 +531,38 @@ export class ReplacementDependency extends Dependency {
                 }
             }
             if (!component) {
+                // An item that is itself the component the name names (a
+                // `<collect>` of points each named `P`, `$c.P`) is named
+                // by it: what it holds does not declare its own name.
+                const [first, ...rest] = path;
+                const itemName = item.attributes?.name?.primitive?.value;
+                if (
+                    first?.name &&
+                    itemName === first.name &&
+                    !itemName.startsWith("_")
+                ) {
+                    // A name after it is one it holds (`$c.G.P`).
+                    if (
+                        !(first.index?.length > 0) &&
+                        rest[0]?.name &&
+                        nameIn(item, rest, itemIdx)
+                    ) {
+                        return true;
+                    }
+                    const remainingSelf = [
+                        ...(first.index?.length > 0
+                            ? [{ ...first, name: "" }]
+                            : []),
+                        ...rest,
+                    ];
+                    itemsSearched.push(item.componentIdx);
+                    named.push(item);
+                    remainingPaths.push(
+                        remainingSelf.length > 0 ? remainingSelf : null,
+                    );
+                    itemsNamedIn.push(itemIdx);
+                    return true;
+                }
                 return false;
             }
             itemsSearched.push(item.componentIdx);

@@ -266,6 +266,48 @@ describe("A collection's own properties @group4", () => {
         expect(lists.diagnostics).toEqual([]);
     });
 
+    it("a group holding one collection has its numItems and settings (COLL-3), built either way", async () => {
+        const { lists, composites } = await bothBuilds({
+            doenetML: `
+<repeat name="r" for="1 2" valueName="v"><point name="P">($v,0)</point></repeat>
+<group name="gp"><point>(1,2)</point><point>(3,4)</point></group>
+<collect name="c" from="$gp" componentType="point"/>
+<sort name="so"><number>3</number><number>1</number><number>2</number></sort>
+<conditionalContent name="cc"><case condition="true"><point>(5,6)</point></case></conditionalContent>
+<group name="gr">$r</group>
+<group name="gc">$c</group>
+<group name="gs">$so</group>
+<group name="gcc">$cc</group>
+<group name="gw"><repeat for="1 2 3" valueName="v"><point>($v,0)</point></repeat></group>
+<p name="p1">$gr.numItems</p>
+<p name="p2">$gc.numItems</p>
+<p name="p3">$gs.numItems</p>
+<p name="p4">$gcc.numItems</p>
+<p name="p5">$gw.numItems</p>
+<p name="p6">$gr.fixed</p>
+<p name="p7">$gr.x</p>
+<p name="p8">$gr.P.x</p>
+`,
+            names: ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"],
+        });
+        // Before: the items' `numItems` (a blank, `doenet-w0104`) and each
+        // item's `fixed`, except where the collection was built as a list.
+        const expected = {
+            p1: "2",
+            p2: "2",
+            p3: "3",
+            p4: "1",
+            p5: "3",
+            p6: "false",
+            p7: "1, 2",
+            p8: "1, 2",
+        };
+        expect(lists.texts).toEqual(expected);
+        expect(composites.texts).toEqual(expected);
+        expect(lists.diagnostics).toEqual([]);
+        expect(composites.diagnostics).toEqual([]);
+    });
+
     it("an alias a collect, sort or shuffle would inherit from a list names nothing, built either way", async () => {
         const doenetML = `
 <graph name="g">

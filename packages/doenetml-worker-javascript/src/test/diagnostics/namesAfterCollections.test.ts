@@ -501,6 +501,19 @@ describe("A name after a collect", () => {
         });
         expect(diagnostics).eqls([]);
     });
+
+    it("is each collected component's, when the components collected are each named it", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2" valueName="v"><p name="P">v=<math name="m">$v</math></p></repeat>
+<collect name="c" from="$r" componentType="p"/>
+<p name="p1">$c.P.text</p><p name="p2">$c.P.m</p><p name="p3">$c.numItems</p>`,
+            ["p1", "p2", "p3"],
+        );
+        // Before: `doenet-w0105` (ambiguous), then nothing, silently, once
+        // the name was left for each item, which does not hold its own name.
+        expect(texts).eqls({ p1: "v=1, v=2", p2: "1, 2", p3: "2" });
+        expect(diagnostics).eqls([]);
+    });
 });
 
 describe("An index then a property past the items whose count follows an input (#2548 item 7)", () => {
