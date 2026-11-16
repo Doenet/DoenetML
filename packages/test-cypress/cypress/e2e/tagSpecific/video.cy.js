@@ -120,13 +120,17 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
                 .invoke("attr", "src")
                 .then((src) => expect(src.includes(secondId)).eq(true));
 
-            // Wait for the new player to finish initializing. recordVideoReady
-            // updates duration to the new video's length, so a duration that
+            // Wait for the new player to finish initializing. The source
+            // change clears the duration, and recordVideoReady sets it to the
+            // new video's length, so a duration that is a number again and
             // differs from the pre-switch value is a clean signal that the
-            // new player has completed a handshake with the iframe and is ready to
-            // accept play/pause commands. Without this wait, playAction can
-            // race with onPlayerReady (which forces state back to "stopped").
+            // new player has completed a handshake with the iframe and is
+            // ready to accept play/pause commands. Without this wait, playAction can race
+            // with onPlayerReady (which forces state back to "stopped").
             cy.get("#duration").should((el) => {
+                const text = el.text().trim();
+                expect(text).not.to.eq("");
+                expect(Number.isFinite(Number(text))).eq(true);
                 expect(el.text()).not.to.eq(preSwitchDuration);
             });
 
@@ -613,6 +617,10 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
                 class FakePlayer {
                     constructor(id, { events }) {
                         this.state = CUED;
+                        this.currentTime = 0;
+                        // A test can report state changes as the player
+                        // would (`events.onStateChange({ data })`).
+                        win.fakeYouTube = { player: this, events };
                         setTimeout(() => events.onReady({ target: this }), 0);
                     }
                     getPlayerState() {
@@ -622,7 +630,7 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
                         return duration;
                     }
                     getCurrentTime() {
-                        return 0;
+                        return this.currentTime;
                     }
                     getPlaybackRate() {
                         return 1;
@@ -666,6 +674,7 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
   <video youtube="tJ4ypc5L6uU" name="v" />
   <p>Time: <number extend="$v.time" name="time" /></p>
   <p>Duration: <number extend="$v.duration" name="duration" /></p>
+  <p>State: <text extend="$v.state" name="state" /></p>
   <p>Change time: <mathInput bindValueTo="$v.time" name="mi" /></p>
   <callAction target="$v" actionName="playVideo" name="playAction"><label>Play</label></callAction>
   `,
@@ -726,6 +735,35 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
                 ["cueVideoById", { videoId: "tJ4ypc5L6uU", startSeconds: 60 }],
             ]);
         });
+    });
+
+    it("a youtube player that reports playing right after paused (a seek) is not paused", () => {
+        visitWithFakeYouTube({ duration: 300 });
+        cy.get("#state").should("have.text", "stopped");
+
+        const PLAYING = 1;
+        const PAUSED = 2;
+        cy.window().then((win) => {
+            win.fakeYouTube.events.onStateChange({ data: PLAYING });
+        });
+        cy.get("#state").should("have.text", "playing");
+
+        // A seek within what is loaded: PAUSED, then PLAYING at once. The
+        // pause is not settled before playing resumes, so it is no pause.
+        cy.window().then((win) => {
+            win.fakeYouTube.player.currentTime = 5;
+            win.fakeYouTube.events.onStateChange({ data: PAUSED });
+            win.fakeYouTube.events.onStateChange({ data: PLAYING });
+        });
+        // Longer than the 250 ms a pause waits to be settled.
+        cy.wait(600);
+        cy.get("#state").should("have.text", "playing");
+
+        // A pause that is not followed by playing is recorded.
+        cy.window().then((win) => {
+            win.fakeYouTube.events.onStateChange({ data: PAUSED });
+        });
+        cy.get("#state").should("have.text", "stopped");
     });
 
     it("with description", () => {
