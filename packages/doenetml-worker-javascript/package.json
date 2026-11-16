@@ -27,7 +27,8 @@
         "test:group1": "npm run test:before && vitest -t '@group1'",
         "test:group2": "npm run test:before && vitest -t '@group2'",
         "test:group3": "npm run test:before && vitest -t '@group3'",
-        "test:group4": "npm run test:before && vitest -t '^(?!.*@(?:group1|group2|group3))'",
+        "test:group4": "npm run test:before && vitest -t '^(?!.*@(?:group1|group2|group3|docsExamples))'",
+        "test:docs-examples": "npm run test:before && vitest src/test/docsExamples/",
         "build": "wireit"
     },
     "wireit": {

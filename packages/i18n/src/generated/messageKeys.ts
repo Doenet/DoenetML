@@ -335,6 +335,7 @@ export type MessageKey =
     | "invalid-variable-value"
     | "variant-index-must-be-number"
     | "variant-index-must-be-integer"
+    | "variant-name-unknown"
     | "side-by-side-absolute-widths"
     | "side-by-side-absolute-margins"
     | "side-by-side-no-block-child"
@@ -1031,6 +1032,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "invalid-variable-value",
     "variant-index-must-be-number",
     "variant-index-must-be-integer",
+    "variant-name-unknown",
     "side-by-side-absolute-widths",
     "side-by-side-absolute-margins",
     "side-by-side-no-block-child",
