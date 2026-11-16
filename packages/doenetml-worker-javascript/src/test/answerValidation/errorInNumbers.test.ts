@@ -113,8 +113,8 @@ describe("Allow error in numbers validation tests @group4", async () => {
       <award allowedErrorInNumbers="0.00001" name="aw">
         log(32x+c)
       </award>
-      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
-      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
+      <award copy="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
+      <award copy="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
     </answer>
     `;
 
@@ -139,8 +139,8 @@ describe("Allow error in numbers validation tests @group4", async () => {
       <award allowedErrorInNumbers="0.00001" allowedErrorIsAbsolute name="aw">
         log(32x+c)
       </award>
-      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
-      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
+      <award copy="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
+      <award copy="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
     </answer>
     `;
 
@@ -205,8 +205,8 @@ describe("Allow error in numbers validation tests @group4", async () => {
       <award symbolicEquality allowedErrorInNumbers="0.00001" name="aw">
         log(32x+c)
       </award>
-      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
-      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
+      <award copy="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
+      <award copy="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
     </answer>
     `;
 
@@ -231,8 +231,8 @@ describe("Allow error in numbers validation tests @group4", async () => {
       <award symbolicEquality allowedErrorInNumbers="0.00001" allowedErrorIsAbsolute name="aw">
         log(32x+c)
       </award>
-      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
-      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
+      <award copy="$aw" credit="0.8" allowedErrorInNumbers="0.0001" />
+      <award copy="$aw" credit="0.6" allowedErrorInNumbers="0.001" />
     </answer>
     `;
 
@@ -259,8 +259,8 @@ describe("Allow error in numbers validation tests @group4", async () => {
       <award allowedErrorInNumbers="0.0000001" name="aw">
         10000 exp(7x^2/(0.00003-sqrt(y)))
       </award>
-      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.000001" />
-      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.00001" />
+      <award copy="$aw" credit="0.8" allowedErrorInNumbers="0.000001" />
+      <award copy="$aw" credit="0.6" allowedErrorInNumbers="0.00001" />
     </answer>
     `;
 
@@ -283,8 +283,8 @@ describe("Allow error in numbers validation tests @group4", async () => {
       <award allowedErrorInNumbers="0.0000001" name="aw">
         10000 exp(7x^2/(0.00003-sqrt(y)))
       </award>
-      <award extend="$aw" credit="0.8" allowedErrorInNumbers="0.000001" />
-      <award extend="$aw" credit="0.6" allowedErrorInNumbers="0.00001" />
+      <award copy="$aw" credit="0.8" allowedErrorInNumbers="0.000001" />
+      <award copy="$aw" credit="0.6" allowedErrorInNumbers="0.00001" />
     </answer>
     `;
 

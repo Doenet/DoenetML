@@ -2207,14 +2207,14 @@ describe("ChoiceInput tag tests @group4", async () => {
       <choice name="cat0">cat</choice>
     </setup>
     <choiceInput name="ci1">
-      <choice extend="$cat0" name="cat1" />
+      <choice copy="$cat0" name="cat1" />
       <choice name="dog1">dog</choice>
       <choice name="monkey1">monkey</choice>
     </choiceInput>
 
     <choiceInput name="ci2">
-      <choice extend="$cat1" name="cat2" />
-      <choice extend="$dog1" name="dog2" />
+      <choice copy="$cat1" name="cat2" />
+      <choice copy="$dog1" name="dog2" />
       <choice name="monkey2">monkey</choice>
     </choiceInput>
 

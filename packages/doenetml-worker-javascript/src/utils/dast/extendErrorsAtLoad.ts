@@ -24,6 +24,14 @@
  * marked, and is decided when it is made. What is not given is never
  * guessed: an extend written as a tag that makes its content may extend
  * something else, which the run time reports another error for.
+ *
+ * An `<award>` or a `<choice>` can only be copied (D42, `doenet-e0078`), so
+ * an extend or a `copyWithState` written as one is marked here too, decided
+ * by the tag written alone, whatever it is of, unless the type check found it
+ * in error first or its reference names nothing, which is shown instead.
+ * It is the only error a
+ * `copyWithState` is marked with: what one would change of the choices it
+ * carries is decided when it is made.
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
@@ -34,6 +42,7 @@ import type { DiagnosticArgs, DiagnosticCode } from "@doenet/i18n";
 import { TAGS_OF_LIST_FORMS } from "../copy";
 import {
     extendChangesContentErrors,
+    onlyCopiedErrors,
     PARTS_OF_CHOOSING_TAGS,
 } from "../../components/abstract/Copy";
 
@@ -298,6 +307,24 @@ export function checkExtendErrorsAtLoad({
 
     const diagnostics: any[] = [];
 
+    /** Mark `errors` on `copy`, and report them now. */
+    function markErrors(
+        copy: SerializedComponent,
+        errors: ExtendErrorAtLoad[],
+    ) {
+        copy.doenetAttributes = {
+            ...copy.doenetAttributes,
+            extendErrorsAtLoad: errors,
+        };
+        diagnostics.push(
+            ...extendErrorDiagnostics(errors).map((error) => ({
+                ...error,
+                position: copy.position,
+                sourceDoc: copy.sourceDoc,
+            })),
+        );
+    }
+
     for (const copy of copies) {
         const linkAttr: any = copy.attributes?._link;
         const link = !(
@@ -305,7 +332,8 @@ export function checkExtendErrorsAtLoad({
             (linkAttr.primitive?.value === false ||
                 linkAttr.children?.join?.("").trim() === "false")
         );
-        if (!link) {
+        const withState = Boolean(copy.attributes?._copyWithState);
+        if (!link && !withState) {
             continue;
         }
         // An error found by the type check (`typeChangeAtLoad.ts`), or a
@@ -320,6 +348,23 @@ export function checkExtendErrorsAtLoad({
         }
         const ref = refOf(copy);
         if (!ref) {
+            continue;
+        }
+        // An `<award>` or a `<choice>` can only be copied (D42): an extend
+        // or a `copyWithState` written as one is an error, whatever it is
+        // of, so it is decided by the tag written alone.
+        const onlyCopied: ExtendErrorAtLoad[] = onlyCopiedErrors({
+            writtenType: writtenTypeOf(copy),
+            how: link ? "extend" : "copyWithState",
+            source: doenetMLReferenceAsWritten(ref.originalPath, sources),
+        }).map((error: any) => ({ code: error.code, args: error.args }));
+        if (onlyCopied.length > 0) {
+            markErrors(copy, onlyCopied);
+            continue;
+        }
+        if (!link) {
+            // What a `copyWithState` would change of the choices it carries
+            // is decided when it is made (`Copy.js`).
             continue;
         }
         const copyInChildrenAttr: any = copy.attributes?._copyInChildren;
@@ -386,17 +431,7 @@ export function checkExtendErrorsAtLoad({
             continue;
         }
 
-        copy.doenetAttributes = {
-            ...copy.doenetAttributes,
-            extendErrorsAtLoad: errors,
-        };
-        diagnostics.push(
-            ...extendErrorDiagnostics(errors).map((error) => ({
-                ...error,
-                position: copy.position,
-                sourceDoc: copy.sourceDoc,
-            })),
-        );
+        markErrors(copy, errors);
     }
 
     return diagnostics;

@@ -498,6 +498,7 @@ export type MessageKey =
     | "extend-choice-input-shuffle-order"
     | "extend-module-attribute"
     | "extend-part-of-choosing-tag"
+    | "extend-award-or-choice"
     | "type-change-unrelated"
     | "type-change-input-from-value"
     | "type-change-from-container"
@@ -1194,6 +1195,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "extend-choice-input-shuffle-order",
     "extend-module-attribute",
     "extend-part-of-choosing-tag",
+    "extend-award-or-choice",
     "type-change-unrelated",
     "type-change-input-from-value",
     "type-change-from-container",
