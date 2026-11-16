@@ -1059,3 +1059,57 @@ fn a_name_after_a_repeat_or_a_select_of_several_is_left_for_each_item() {
         Ok((s_idx, Some(make_path(["P"], None))))
     );
 }
+
+#[test]
+fn a_name_after_a_repeat_is_left_for_each_item_wherever_it_is_written() {
+    // Inside the repeat's own template, inside an outer repeat, and with the repeat in
+    // `<setup>`, `$r.P` still stops at the repeat named (the `which`th `<repeat>`), with `P`
+    // left for each item; `$o.r.P` stops at the outer one.
+    for (dast, path, which, unresolved) in [
+        (
+            r#"<repeat name="r" for="1 2"><point name="P" /><p /></repeat>"#,
+            vec!["r", "P"],
+            0,
+            vec!["P"],
+        ),
+        (
+            r#"<repeat name="o" for="1 2"><b><repeat name="r" for="1 2"><point name="P" /></repeat></b><p /></repeat>"#,
+            vec!["r", "P"],
+            1,
+            vec!["P"],
+        ),
+        (
+            r#"<repeat name="o" for="1 2"><repeat name="r" for="1 2"><point name="P" /></repeat></repeat><p />"#,
+            vec!["o", "r", "P"],
+            0,
+            vec!["r", "P"],
+        ),
+        (
+            r#"<setup><repeat name="r" for="1 2"><point name="P" /></repeat></setup><p />"#,
+            vec!["r", "P"],
+            0,
+            vec!["P"],
+        ),
+    ] {
+        let flat_root = FlatRoot::from_dast(&dast_root_no_position(dast));
+        let p_idx = find(&flat_root, "p").unwrap();
+        let repeat_idx = flat_root
+            .nodes
+            .iter()
+            .filter_map(|node| match node {
+                FlatNode::Element(e) if e.name == "repeat" => Some(e.idx),
+                _ => None,
+            })
+            .nth(which)
+            .unwrap();
+        let resolver = Resolver::from_flat_root(&flat_root);
+        let referent = resolver
+            .resolve(make_path(&path, None), p_idx, false)
+            .map(|r| (r.node_idx, r.unresolved_path));
+        assert_eq!(
+            referent,
+            Ok((repeat_idx, Some(make_path(&unresolved, None)))),
+            "{dast}"
+        );
+    }
+}

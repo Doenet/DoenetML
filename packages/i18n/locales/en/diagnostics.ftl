@@ -1999,13 +1999,17 @@ reorder-items-of-several-types = `<{ $component }>` takes items of one type, but
        *[other] {""}
     }.
 
-# A `<sort>` of an item holding several components, which has nothing to be
-# compared by (COLL-4, D41). The item is described by $itemKind: "group", a
-# `<group>` of $itemCount components, or "item", the items of the
-# collection $item, each holding $itemCount components. The message names
-# what to write instead: a `<collect>` of the components, or a name in each
-# item.
+# A `<sort>` or `<sortIndices>` ($component) of an item holding several
+# components, which has nothing to be compared by (COLL-4, D41). The item is
+# described by $itemKind: "group", a `<group>` of $itemCount components, or
+# "item", the items of the collection $item, each holding $itemCount
+# components. The message names what to write instead: a `<collect>` of the
+# components, of the tag $firstType of the first of them, or a name in each
+# item; and, for a `<sort>`, a `<shuffle>`, which keeps them together.
 sort-item-of-several = { $itemKind ->
-        [item] `<sort>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort one component of each, name it (`<sort>$r.n</sort>` sorts the `n` of each item of `r`), or sort a `<collect>` of the components (`<collect componentType="number" from="$r"/>`).
-       *[group] `<sort>` can't compare a `<group>` of { $itemCount } components. To sort its components, sort a `<collect>` of them (`<collect componentType="number" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group.
-    } Use `<shuffle>` to keep each item's components together.
+        [item] `<{ $component }>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort one component of each, name it (`<{ $component }>$r.n</{ $component }>` sorts the `n` of each item of `r`), or sort a `<collect>` of the components (`<collect componentType="{ $firstType }" from="$r"/>`).
+       *[group] `<{ $component }>` can't compare a `<group>` of { $itemCount } components. To sort its components, sort a `<collect>` of them (`<collect componentType="{ $firstType }" from="$g"/>` of a group `g`), or write them in the `<{ $component }>` without the group.
+    }{ $component ->
+        [sort] {" "}Use `<shuffle>` to keep each item's components together.
+       *[other] {""}
+    }

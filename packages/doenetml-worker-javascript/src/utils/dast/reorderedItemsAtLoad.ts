@@ -1,10 +1,12 @@
 /**
- * The errors of a `<sort>` or `<shuffle>` whose items are not of one type,
- * decided when the document loads (COLL-4, D41 decision 4, DIAG-7):
+ * The errors of a `<sort>`, `<sortIndices>` or `<shuffle>` whose items are
+ * not of one type, decided when the document loads (COLL-4, D41 decision 4,
+ * DIAG-7):
  *
  * - `doenet-e0076`: items of more than one type, as a `<number>` and a
  *   `<text>`, or a `<math>` and a `<group>` of several components;
- * - `doenet-e0077`: a `<sort>` of an item holding several components (a
+ * - `doenet-e0077`: a `<sort>` or `<sortIndices>` of an item holding
+ *   several components (a
  *   `<group>` of several, or the items of a `<repeat>`, `<select>` or
  *   `<conditionalContent>` that each hold several), which has nothing to be
  *   compared by.
@@ -31,11 +33,13 @@
  * of no type. A `<sort>` or `<shuffle>` that is an error is marked
  * (`doenetAttributes.reorderErrorAtLoad`), is not made a list
  * (`listForms.ts`), and shows the same error in place of its items, kept
- * once.
+ * once. A `<sortIndices>`, which sorts as a `<sort>` does but is not a
+ * composite, becomes that error itself.
  */
 import type { SerializedComponent } from "./types";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import { codedDiagnostic } from "../diagnostics";
+import { errorComponentState } from "./errors";
 import {
     type ReorderErrorAtLoad,
     reorderErrorDiagnostic,
@@ -49,11 +53,18 @@ import { sequenceEntryComponentType } from "../sequence";
 /**
  * An item of a `<sort>` or `<shuffle>`: one component, of the tag `tag`, or
  * an item holding `count` components, which is a `<group>` (`how` is
- * `"group"`) or an item of the collection `tag` (`"item"`).
+ * `"group"`) or an item of the collection `tag` (`"item"`), the first of
+ * them of the tag `first`, if known.
  */
 type Item =
     | { kind: "one"; tag: string; piece?: string }
-    | { kind: "several"; tag: string; count: number; how: "group" | "item" };
+    | {
+          kind: "several";
+          tag: string;
+          count: number;
+          how: "group" | "item";
+          first?: string;
+      };
 
 /** The items found, and whether there may be others not known. */
 type Items = { items: Item[]; unknown: boolean };
@@ -61,7 +72,14 @@ type Items = { items: Item[]; unknown: boolean };
 const NONE: Items = { items: [], unknown: false };
 const UNKNOWN: Items = { items: [], unknown: true };
 
+/** The composites that reorder their items, which are flattened. */
 const REORDERED = new Set(["sort", "shuffle"]);
+
+/** The components that take items of one type. */
+const CHECKED = new Set(["sort", "sortIndices", "shuffle"]);
+
+/** The components that compare their items, and so take no item of several. */
+const SORTS = new Set(["sort", "sortIndices"]);
 
 /**
  * Mark each `<sort>` and `<shuffle>` among `serializedComponents` whose
@@ -201,8 +219,29 @@ export function checkReorderedItemsAtLoad({
             return NONE;
         }
         if (held.length > 1) {
+            // The tag of the first component, which a `<collect>` of the
+            // components the message suggests collects (not of a piece of
+            // text, which no `<collect>` collects).
+            const firstComponent = held.find(
+                (child) => typeof child === "object",
+            );
+            const firstItem =
+                firstComponent === undefined
+                    ? undefined
+                    : itemsOf(firstComponent as SerializedComponent, seen)
+                          .items[0];
             return {
-                items: [{ kind: "several", tag, count: held.length, how }],
+                items: [
+                    {
+                        kind: "several",
+                        tag,
+                        count: held.length,
+                        how,
+                        ...(firstItem?.kind === "one"
+                            ? { first: firstItem.tag }
+                            : {}),
+                    },
+                ],
                 unknown: false,
             };
         }
@@ -414,18 +453,25 @@ export function checkReorderedItemsAtLoad({
               };
     }
 
-    /** The error of the `<sort>` or `<shuffle>` `component`, if any. */
+    /**
+     * The error of the `<sort>`, `<sortIndices>` or `<shuffle>` `component`,
+     * if any.
+     */
     function reorderError(
         component: SerializedComponent,
     ): ReorderErrorAtLoad | undefined {
         const { items } = itemsOfChildren(component.children ?? [], new Set());
-        const isSort = component.componentType === "sort";
-        if (isSort) {
+        if (SORTS.has(component.componentType)) {
             const several = items.find((item) => item.kind === "several");
-            if (several) {
+            if (several?.kind === "several") {
                 return {
                     code: "doenet-e0077",
-                    args: describe(several, "item"),
+                    args: {
+                        component: component.componentType,
+                        ...describe(several, "item"),
+                        // what the `<collect>` suggested collects
+                        firstType: several.first ?? "number",
+                    },
                 };
             }
         }
@@ -485,20 +531,36 @@ export function checkReorderedItemsAtLoad({
             }
             visit(component.children ?? []);
             if (
-                REORDERED.has(component.componentType) &&
+                CHECKED.has(component.componentType) &&
                 component.extending === undefined
             ) {
                 const mark = reorderError(component);
                 if (mark) {
-                    component.doenetAttributes = {
-                        ...component.doenetAttributes,
-                        reorderErrorAtLoad: mark,
-                    };
-                    diagnostics.push({
+                    const diagnostic = {
                         ...reorderErrorDiagnostic(mark),
                         position: component.position,
                         sourceDoc: component.sourceDoc,
-                    });
+                    };
+                    diagnostics.push(diagnostic);
+                    if (REORDERED.has(component.componentType)) {
+                        component.doenetAttributes = {
+                            ...component.doenetAttributes,
+                            reorderErrorAtLoad: mark,
+                        };
+                    } else {
+                        // A `<sortIndices>` is not a composite, to show the
+                        // error in place of its items: it becomes the
+                        // error, kept once when the `_error` is made.
+                        component.componentType = "_error";
+                        component.state = errorComponentState(
+                            diagnostic.message,
+                            diagnostic,
+                        );
+                        component.attributes = {};
+                        component.children = [];
+                        component.doenetAttributes = {};
+                        delete (component as any).variants;
+                    }
                 }
             }
         }

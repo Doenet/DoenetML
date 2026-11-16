@@ -126,7 +126,9 @@ give each type a `<sort>{:dn}` of its own.
 A `<group>{:dn}` holding one component is sorted as that component. A `<group>{:dn}`
 holding several components has nothing to be compared by, so a `<sort>{:dn}` of one is
 an error. To sort its components, sort a `<collect>{:dn}` of them
-(`<sort><collect componentType="number" from="$g"/></sort>{:dn}` for a group named `g`).
+(`<sort><collect componentType="number" from="$g"/></sort>{:dn}` for a group named `g`
+holding numbers). A [`<sortIndices>{:dn}`](sortIndices) takes items of one type in the
+same way.
 To keep components together while reordering them, use a [`<shuffle>{:dn}`](shuffle).
 
 

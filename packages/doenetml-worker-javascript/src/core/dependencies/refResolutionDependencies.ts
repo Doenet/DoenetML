@@ -1167,6 +1167,13 @@ export class RefResolutionDependency extends Dependency {
             this.dependencyHandler.componentInfoObjects,
         );
         const indexedComponent = referenced ?? newRefComponent;
+        if (indexedComponent.doenetAttributes?.reorderErrorAtLoad) {
+            // A `<sort>` or `<shuffle>` whose items are not of one type
+            // shows its error in place of them: an index into it is a
+            // reference to a component in error, which reports nothing
+            // more (DIAG-5), not the one `_error` it shows as an item.
+            return;
+        }
         const instanceKind = instanceKindOf(indexedComponent.componentType);
 
         // A composite that produces instances says how many it made
