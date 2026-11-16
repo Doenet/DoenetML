@@ -53,8 +53,8 @@ import { sequenceEntryComponentType } from "../sequence";
 /**
  * An item of a `<sort>` or `<shuffle>`: one component, of the tag `tag`, or
  * an item holding `count` components, which is a `<group>` (`how` is
- * `"group"`) or an item of the collection `tag` (`"item"`), the first of
- * them of the tag `first`, if known.
+ * `"group"`) or an item of the collection `tag` (`"item"`), whose
+ * components a `<collect>` of `first` collects, if known.
  */
 type Item =
     | { kind: "one"; tag: string; piece?: string }
@@ -219,17 +219,27 @@ export function checkReorderedItemsAtLoad({
             return NONE;
         }
         if (held.length > 1) {
-            // The tag of the first component, which a `<collect>` of the
-            // components the message suggests collects (not of a piece of
-            // text, which no `<collect>` collects).
-            const firstComponent = held.find(
-                (child) => typeof child === "object",
-            );
-            const firstItem =
-                firstComponent === undefined
-                    ? undefined
-                    : itemsOf(firstComponent as SerializedComponent, seen)
-                          .items[0];
+            // The tag a `<collect>` of the components the message suggests
+            // collects: one every component is of, where there is one (a
+            // `<number>` beside an `<integer>`, which a `<collect>` of
+            // integers would leave out), else the first component's (no
+            // `<collect>` collects a piece of text). A `<collect>` collects
+            // the components of a `<group>` inside too.
+            const tags = held.flatMap((child) => {
+                if (typeof child !== "object") {
+                    return [];
+                }
+                const item = itemsOf(child as SerializedComponent, seen)
+                    .items[0];
+                return item?.kind === "one"
+                    ? [item.tag]
+                    : item?.first !== undefined
+                      ? [item.first]
+                      : [];
+            });
+            const collected =
+                tags.find((base) => tags.every((t) => inherits(t, base))) ??
+                tags[0];
             return {
                 items: [
                     {
@@ -237,8 +247,8 @@ export function checkReorderedItemsAtLoad({
                         tag,
                         count: held.length,
                         how,
-                        ...(firstItem?.kind === "one"
-                            ? { first: firstItem.tag }
+                        ...(collected !== undefined
+                            ? { first: collected }
                             : {}),
                     },
                 ],
@@ -558,7 +568,11 @@ export function checkReorderedItemsAtLoad({
                         );
                         component.attributes = {};
                         component.children = [];
-                        component.doenetAttributes = {};
+                        // its `numItems` is a blank, with nothing more
+                        // reported (`replacementFromProp`)
+                        component.doenetAttributes = {
+                            reorderErrorAtLoad: mark,
+                        };
                         delete (component as any).variants;
                     }
                 }

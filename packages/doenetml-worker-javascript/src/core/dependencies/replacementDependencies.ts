@@ -150,11 +150,15 @@ export class ReplacementDependency extends Dependency {
         }
 
         if (this.stopIfHaveProp) {
+            // matched without regard to case, as a property of any
+            // component is (`$r.numitems`, `$s.Fixed`)
             const checkForPublic =
-                this.dependencyHandler.core.matchPublicStateVariables({
-                    stateVariables: [this.stopIfHaveProp],
-                    componentClass: composite.constructor,
-                })[0];
+                this.dependencyHandler.core.publicCaseInsensitiveAliasSubstitutions(
+                    {
+                        stateVariables: [this.stopIfHaveProp],
+                        componentClass: composite.constructor,
+                    },
+                )[0];
 
             if (!checkForPublic.startsWith("__not_public_")) {
                 // We found that the composite has a public state variable matching `stopIfHaveProp`.

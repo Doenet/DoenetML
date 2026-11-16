@@ -462,6 +462,32 @@ describe("A collection's own properties @group4", () => {
         expect(composites.diagnostics).toEqual([]);
     });
 
+    it("a collection's own properties are named without regard to case, built either way", async () => {
+        // As any property is (`$P.X`): `$s.numitems` was the sort's own as a
+        // list and named nothing after the composite, and `$s.Fixed` was the
+        // sort's own as a list and each item's after the composite.
+        const { lists, composites } = await bothBuilds({
+            doenetML: `
+<repeat name="r" for="1 2" valueName="v"><point fixed>($v, 0)</point></repeat>
+<select name="s" numToSelect="2"><option><point fixed>(1,2)</point></option><option><point fixed>(3,4)</point></option></select>
+<collect name="c" from="$r" componentType="point"/>
+<sort name="so" sortByProp="x">$c</sort>
+<shuffle name="sh"><point fixed>(1,2)</point><point fixed>(3,4)</point></shuffle>
+<p name="p1">$r.numitems $s.NUMITEMS $c.NumItems $so.numitems $sh.numitems</p>
+<p name="p2">$r.Fixed $s.FIXED $c.Fixed $so.Fixed $sh.Fixed</p>
+`,
+            names: ["p1", "p2"],
+        });
+        const expected = {
+            p1: "2 2 2 2 2",
+            p2: "false false false false false",
+        };
+        expect(lists.texts).toEqual(expected);
+        expect(composites.texts).toEqual(expected);
+        expect(lists.diagnostics).toEqual([]);
+        expect(composites.diagnostics).toEqual([]);
+    });
+
     it("a collection's attributes are not properties of its own", async () => {
         const { lists, composites } = await bothBuilds({
             doenetML: `
@@ -489,7 +515,7 @@ describe("A collection's own properties @group4", () => {
 <collect name="cm" from="$ml" componentType="math" maxNumber="5"/>
 <mathList name="ml">a b</mathList>
 <sort name="s" sortVectorsBy="angle" sortByComponent="1">$A (0,1)</sort>
-<shuffle name="sh">$A (0,1)</shuffle>
+<shuffle name="sh">$A <point>(0,1)</point></shuffle>
 <select name="sel" numToSelect="2" withReplacement><option><math>1</math></option><option><math>2</math></option></select>
 <functionIterates name="fi" function="2x" initialValue="1" numIterates="2" forceSymbolic/>
 <selectFromSequence name="sfs" from="1" to="10" numToSelect="2" sort withReplacement/>

@@ -4289,6 +4289,20 @@ async function componentInPlaceOfProp({
     };
 }
 
+/**
+ * Whether `propName` is the `numItems` of `target`, a `<sort>`, `<shuffle>`
+ * or `<sortIndices>` whose items are not of one type
+ * (`reorderedItemsAtLoad.ts`), which shows its error in place of them: a
+ * reference to a component in error, a blank that reports nothing more
+ * (DIAG-5).
+ */
+function isNumItemsOfReorderError(target, propName) {
+    return (
+        Boolean(target?.doenetAttributes?.reorderErrorAtLoad) &&
+        propName?.toLowerCase() === "numitems"
+    );
+}
+
 export async function replacementFromProp({
     component,
     components,
@@ -4340,6 +4354,57 @@ export async function replacementFromProp({
                       stateVariables: [propName],
                       componentClass: target.constructor,
                   })[0];
+    }
+
+    // A blank in place of the property: in a parent that needs a component
+    // of a type made from it (`compositesMustHaveAReplacement`: a `<math>`,
+    // or an attribute such as `x="$g.x"`), missing as that type
+    // (`missingOfWrittenType`), as a `_missing` there would be an invalid
+    // child of the parent (`doenet-w0106`).
+    function blankReplacement() {
+        const neededType =
+            !component.attributes._createComponentOfType?.primitive &&
+            component.sharedParameters?.compositesMustHaveAReplacement
+                ? component.sharedParameters.compositesDefaultReplacementType
+                : undefined;
+        if (neededType) {
+            const res = missingOfWrittenType({
+                component,
+                componentInfoObjects,
+                compositeAttributesObj,
+                nComponents,
+                stateIdInfo,
+                componentType: neededType,
+            });
+            return {
+                serializedReplacements: res.replacements,
+                propVariablesCopiedByReplacement: res.replacements.map(
+                    () => [],
+                ),
+                diagnostics,
+                nComponents: res.nComponents,
+            };
+        }
+        return {
+            serializedReplacements: [
+                missingReplacement({
+                    nComponents: nComponents++,
+                    stateIdInfo,
+                }),
+            ],
+            propVariablesCopiedByReplacement: [[]],
+            diagnostics,
+            nComponents,
+        };
+    }
+
+    if (
+        isNumItemsOfReorderError(
+            target,
+            (await component.stateValues.unresolvedPath)?.[0]?.name,
+        )
+    ) {
+        return blankReplacement();
     }
 
     if (varName === undefined || varName.slice(0, 12) === "__not_public") {
@@ -4412,41 +4477,7 @@ export async function replacementFromProp({
             // (`missingOfWrittenType`), as when a property names nothing
             // (`doenet-w0104`): a `_missing` there would be an invalid
             // child of the parent (`doenet-w0106`).
-            const neededType =
-                !component.attributes._createComponentOfType?.primitive &&
-                component.sharedParameters?.compositesMustHaveAReplacement
-                    ? component.sharedParameters
-                          .compositesDefaultReplacementType
-                    : undefined;
-            if (neededType) {
-                const res = missingOfWrittenType({
-                    component,
-                    componentInfoObjects,
-                    compositeAttributesObj,
-                    nComponents,
-                    stateIdInfo,
-                    componentType: neededType,
-                });
-                return {
-                    serializedReplacements: res.replacements,
-                    propVariablesCopiedByReplacement: res.replacements.map(
-                        () => [],
-                    ),
-                    diagnostics,
-                    nComponents: res.nComponents,
-                };
-            }
-            return {
-                serializedReplacements: [
-                    missingReplacement({
-                        nComponents: nComponents++,
-                        stateIdInfo,
-                    }),
-                ],
-                propVariablesCopiedByReplacement: [[]],
-                diagnostics,
-                nComponents,
-            };
+            return blankReplacement();
         } else if (propName !== "__prop_name_not_found") {
             diagnostics.push(
                 codedDiagnostic({
@@ -7331,6 +7362,14 @@ async function missingPropertyError({
     if (!sourceComponent) {
         return undefined;
     }
+    if (
+        isNumItemsOfReorderError(
+            sourceComponent,
+            (await component.stateValues.unresolvedPath)?.[0]?.name,
+        )
+    ) {
+        return undefined;
+    }
     const propNames = await component.stateValues.effectivePropNameBySource;
     if (
         !(propNames?.length > 0) ||
@@ -7670,7 +7709,11 @@ async function reportMissingProperty({
         : await component.stateValues.extendedComponent;
     const sourceComponent = components[extendedComponent?.componentIdx];
     const propName = (await component.stateValues.unresolvedPath)?.[0]?.name;
-    if (sourceComponent && propName) {
+    if (
+        sourceComponent &&
+        propName &&
+        !isNumItemsOfReorderError(sourceComponent, propName)
+    ) {
         const propNames = await component.stateValues.effectivePropNameBySource;
         const sources =
             (await component.stateValues.replacementSourceIdentities) ?? [];

@@ -240,8 +240,10 @@ describe("sort and shuffle take one type @group4", () => {
             <group name="h"><math>y</math><math>x</math></group>
             <p name="p4"><sort><collect componentType="math" from="$h"/></sort></p>
             <p name="p5"><sortIndices>$r.n</sortIndices></p>
-            <p name="p6"><sortIndices><collect componentType="number" from="$r"/></sortIndices></p>`,
-            names: ["p1", "p2", "p3", "p4", "p5", "p6"],
+            <p name="p6"><sortIndices><collect componentType="number" from="$r"/></sortIndices></p>
+            <group name="k"><integer>2</integer><number>1.5</number><group><number>3</number><integer>0</integer></group></group>
+            <p name="p7"><sort><collect componentType="number" from="$k"/></sort></p>`,
+            names: ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
         });
         expect(result.texts).eqls({
             p1: "1, 2, 3",
@@ -250,6 +252,7 @@ describe("sort and shuffle take one type @group4", () => {
             p4: "x, y",
             p5: "2, 3, 1",
             p6: "2, 3, 1",
+            p7: "0, 1.5, 2, 3",
         });
         expect(result.errors).eqls([]);
         expect(result.warnings).eqls([]);
@@ -273,6 +276,16 @@ describe("sort and shuffle take one type @group4", () => {
                 // through a reference to the group
                 doenetML: `<group name="g"><math>3</math><math>4</math></group><sort name="s">$g</sort>`,
                 error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="math" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
+            },
+            {
+                // a `<collect>` of integers would leave out the number
+                doenetML: `<sort name="s"><group><integer>2</integer><number>1.5</number></group><number>0</number></sort>`,
+                error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="number" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
+            },
+            {
+                // a `<collect>` collects the components of a group inside
+                doenetML: `<sort name="s"><group><group><number>2</number><number>1</number></group><integer>5</integer></group></sort>`,
+                error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="number" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
             },
         ];
         for (const { doenetML, error } of cases) {
@@ -475,6 +488,35 @@ describe("sort and shuffle take one type @group4", () => {
             "doenet-e0076",
         ]);
         expect(result.texts.p3).eq("＿ ＿ ＿ ＿");
+        expect(result.warnings).eqls([]);
+    });
+
+    it("the numItems of a sort, shuffle or sortIndices in error is a blank that reports nothing more", async () => {
+        // It shows the error in place of its items: what it would sort is
+        // not its items (DIAG-5), however the property is written or read.
+        const result = await bothBuilds({
+            doenetML: `<p name="p1"><sort name="s"><number>3</number><text>a</text></sort></p>
+            <p name="p2"><shuffle name="sh"><group><number>3</number><number>1</number></group><text>a</text></shuffle></p>
+            <p name="p3"><sortIndices name="si"><number>3</number><text>a</text></sortIndices></p>
+            <p name="p4"><sort name="s2"><group><number>3</number><number>1</number></group></sort></p>
+            <p name="p5">$s.numItems $sh.numItems $si.numItems $s2.numItems $s.NumItems</p>
+            <p name="p6"><integer extend="$s.numItems"/> <integer extend="$si.numItems"/></p>
+            <p name="p7"><math>$sh.numItems</math> <math>$si.numItems</math></p>
+            <p name="p8"><sort name="ok"><number>3</number><number>1</number></sort> $ok.numItems</p>`,
+            names: ["p5", "p6", "p7", "p8"],
+        });
+        expect(result.errors.map((e) => e.split(":")[0])).eqls([
+            "doenet-e0076",
+            "doenet-e0076",
+            "doenet-e0076",
+            "doenet-e0077",
+        ]);
+        expect(result.texts).eqls({
+            p5: "＿ ＿ ＿ ＿ ＿",
+            p6: "＿ ＿",
+            p7: "＿ ＿",
+            p8: "1, 3 2",
+        });
         expect(result.warnings).eqls([]);
     });
 });
