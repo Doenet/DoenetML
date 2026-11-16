@@ -4,6 +4,7 @@ import {
     clickComponent,
     movePoint,
     updateBooleanInputValue,
+    updateMathInputValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -854,6 +855,60 @@ describe("Fixed and fixLocation of references @group4", () => {
                 }
             });
         }
+
+        it("follows the source's fixed, and which entry is referenced, as they change", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <booleanInput name="b" prefill="true" />
+    <mathInput name="i" prefill="1" />
+    <mathList name="l"><math fixed="$b">1</math><math>2</math></mathList>
+    <mathList name="l2">$l[1] $l[2]</mathList>
+    <sort name="s">$l2</sort>
+    <mathList name="l3">$l[$i]</mathList>
+    `,
+            });
+            const components = (core as any).core._components;
+            async function check(expected: Record<string, boolean[]>) {
+                for (const [name, value] of Object.entries(expected)) {
+                    const sv =
+                        components[await resolvePathToNodeIdx(name)]
+                            .stateValues;
+                    expect(await sv.entryFixed, name).eqls(value);
+                }
+            }
+            await check({ l2: [true, false], s: [true, false], l3: [true] });
+
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            await check({ l2: [false, false], s: [false, false], l3: [false] });
+
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            await check({ l2: [true, false], s: [true, false], l3: [true] });
+
+            for (const [latex, fixed] of [
+                ["2", false],
+                ["3", false],
+                ["1", true],
+            ] as const) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("i"),
+                    core,
+                });
+                expect(
+                    await components[await resolvePathToNodeIdx("l3")]
+                        .stateValues.entryFixed,
+                    latex,
+                ).eqls([fixed]);
+            }
+        });
 
         it("a property, an entry of a sequence and an entry of a fixed list", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({

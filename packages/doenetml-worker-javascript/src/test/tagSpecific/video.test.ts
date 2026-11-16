@@ -234,10 +234,27 @@ describe("Video tag tests @group1", async () => {
         expect((await stateOf()).time).eq(0);
         expect((await stateOf()).secondsWatched).eq(0);
         expect((await stateOf()).fractionWatched).eq(0);
-        // `duration` is intentionally untouched: the new player overwrites it
-        // through `recordVideoReady`, and blanking it here would only make
-        // `fractionWatched` divide by null in the meantime.
-        expect((await stateOf()).duration).eq(300);
+        // The duration is the old video's too. A new player that reports 0
+        // when ready must not keep it (`recordVideoReady` keeps a positive
+        // duration over a 0), so the new video's duration, reported later,
+        // is the one used.
+        expect((await stateOf()).duration).eq(null);
+        for (const [actionName, args] of [
+            ["recordVideoReady", { duration: 0 }],
+            [
+                "recordVideoWatched",
+                { beginTime: 0, endTime: 60, duration: 600, rates: [] },
+            ],
+        ] as const) {
+            await core.requestAction({
+                componentIdx: videoIdx,
+                actionName,
+                args,
+                baseVariantIndex: 0,
+            });
+        }
+        expect((await stateOf()).duration).eq(600);
+        expect((await stateOf()).fractionWatched).closeTo(0.1, 1e-12);
     });
 
     describe("fractionWatched", () => {
@@ -460,6 +477,58 @@ describe("Video tag tests @group1", async () => {
                     actionName,
                 ).eq(300);
             }
+        });
+
+        it("keeps a positive duration when the player is ready with 0, also after a reload (#2539)", async () => {
+            const doenetML = `
+    <video name="v" youtube="tJ4ypc5L6uU"><shortDescription>a video</shortDescription></video>
+    <answer name="ans" type="videoWatched" video="$v" />
+            `;
+            let { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({ doenetML });
+            let videoIdx = await resolvePathToNodeIdx("v");
+            const act = async (actionName: string, args: object) =>
+                await core.requestAction({
+                    componentIdx: videoIdx,
+                    actionName,
+                    args,
+                    baseVariantIndex: 0,
+                });
+            const stateOf = async () =>
+                (await core.returnAllStateVariables(false, true))[videoIdx]
+                    .stateValues;
+
+            await act("recordVideoReady", { duration: 0 });
+            await act("recordVideoWatched", {
+                beginTime: 0,
+                endTime: 60,
+                duration: 600,
+                rates: [],
+            });
+            expect((await stateOf()).duration).eq(600);
+
+            // A ready report of 0 does not replace the positive duration.
+            await act("recordVideoReady", { duration: 0 });
+            expect((await stateOf()).duration).eq(600);
+            expect((await stateOf()).fractionWatched).closeTo(0.1, 1e-12);
+
+            // Reload: the duration taken from playback was saved, and the
+            // player's ready report of 0 keeps it.
+            await core.saveImmediately();
+            ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+                doenetML,
+                initialState: scoreState.state,
+            }));
+            videoIdx = await resolvePathToNodeIdx("v");
+            expect((await stateOf()).duration).eq(600);
+            await act("recordVideoReady", { duration: 0 });
+            expect((await stateOf()).duration).eq(600);
+            expect((await stateOf()).fractionWatched).closeTo(0.1, 1e-12);
+
+            // A different positive duration from the player replaces it.
+            await act("recordVideoReady", { duration: 300 });
+            expect((await stateOf()).duration).eq(300);
+            expect((await stateOf()).fractionWatched).closeTo(0.2, 1e-12);
         });
 
         it("does not snap the end while the player reports no duration", async () => {
