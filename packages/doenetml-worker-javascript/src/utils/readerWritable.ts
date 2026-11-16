@@ -20,14 +20,14 @@
  *   `fixLocation` written as true on it, or on an ancestor when it doesn't
  *   write its own: `fixed="false"` in a fixed graph is not fixed), which a
  *   reader can drag, and what it references, which the drag writes to
- *   through it. A component whose only location is where it is drawn (a
- *   `<number>`, `<math>`, `<text>`, `<label>` or `<image>`: its `anchor`)
- *   is dragged only to place it: the drag writes its `anchor`, not its
- *   value: what the `anchor` written on it references, or, when it writes
- *   none, the `anchor` of what it extends, in turn (an extend shares its
- *   source's `anchor`). It is left out of the index, and it and each
- *   component on the way are listed in `placed` instead, for a property
- *   reference to the `anchor`;
+ *   through it. A component whose only location is where it is drawn (its
+ *   `anchor`: a `<number>`, `<math>`, `<m>`, `<text>`, `<label>`, `<image>`,
+ *   an input or a button) is dragged only to place it: the drag writes its
+ *   `anchor`, not its value: what the `anchor` written on it references,
+ *   or, when it writes none, the `anchor` of what it extends, in turn (an
+ *   extend shares its source's `anchor`). It is left out of the index, and
+ *   it and each component on the way are listed in `placed` instead, for a
+ *   property reference to the `anchor`;
  * - a `<spreadsheet>` that is not fixed, whose cells a reader edits: an
  *   edit to a cell holding a reference (`<cell>$a</cell>`) writes to what
  *   it references.
