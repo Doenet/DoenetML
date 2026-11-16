@@ -463,9 +463,9 @@ sources) without changing the statement above.
   - a count rounded up ends at `to` exactly: 0.3, not 0.30000000000000004.
 - **SEL-6: a parameter is in an analysable form (Tier 2).** A literal; a reference SEL-1 allows,
   with a known range (a selection, a literal `<number>`, an index); and `+ − ×`, integer
-  division, `min`, `max`, `abs` of these. A `<number>` or `<integer>` whose content is in these
-  forms counts too, so `<number name="m">$a + 2</number>` and `numToSelect="$m"` is fine; an
-  error there names the `<number>` and the part that isn't analysable. Anything else is an error.
+  division, `min`, `max`, `abs` of these. A `<number>`, `<integer>` or `<math>` whose content is
+  in these forms counts too, so `<number name="m">$a + 2</number>` and `numToSelect="$m"` is
+  fine; an error there names that component and the part that isn't analysable. Anything else is an error.
   The list of forms may grow.
 
   **Done by #2555** (`e0074`, at the parameter, naming the part, and the `<number>` it is in if
@@ -478,8 +478,7 @@ sources) without changing the statement above.
 
   A boolean parameter (`withReplacement`, `coprime`) is a constant, or one reference to another
   selection. A parameter that can't keep a selection from being made, such as `selectWeight`,
-  isn't held to this rule. **`<math>` is read like `<number>`**, which D39 left out; see the open
-  question there.
+  isn't held to this rule. `<math>` is read like `<number>` (D39, decided after #2555).
 - **SEL-7: choices depending on each other form an order (Tier 2)**, with no cycle (`e0005`), and
   ranges flow forward through it. Done by #2555 for the check: a selection another reads is
   checked first, wherever it is written. The *run time* still draws in build order, which

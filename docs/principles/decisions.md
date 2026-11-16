@@ -2394,7 +2394,7 @@ but the hope is that it needn't be.
 - **Against:** arithmetic in the attribute makes it plain that only simple computations are
   allowed. A `<number>` invites content outside the forms, whose error then appears at the
   attribute, one step from the cause.
-- **Decided:** allow it, for `<number>` and `<integer>` only. The error names the `<number>` and
+- **Decided:** allow it, for `<number>` and `<integer>` only (extended to `<math>` after #2555; see the status below). The error names the `<number>` and
   the part of its content that isn't analysable (DIAG-3, DIAG-4).
 
 **SEL-5. Selections that depend on each other form an order, and are checked in it (Tier 2).** A
@@ -2450,20 +2450,16 @@ variant misses a blank another variant shows.
   info-level failures listed under "Today" are gone: every selection failure is an error. The
   leftovers are #2563, and #2553 for the run time's build order. SEL-8's warnings are part done
   (#2547), and the rest wait for the cells core (#2506).
-- **Open question from #2555: is `<math>` an intermediate like `<number>`?** The decision above
-  allows `<number>` and `<integer>` only. #2555 also allows a `<math>` whose content is in the
-  analysable forms, and `e0074`'s message lists `<math>`. It cites COMP-8's binding
-  "…initially unresolved" tests, which read `numToSelect` through `<math>`. But those tests read
-  only constants (`<math name="num2">$n3+$num3</math>` with `num3` written as 1). A parameter
-  that reads nothing from the variant is its value in any form, so they pass either way. The
-  question is only about a `<math>` holding a value from another selection, such as
-  `<math name="m">$a + 2</math>` with `numToSelect="$m"`.
-  - **For:** the value tags are treated alike. The content is analysed the same way, and a
-    `<math>` whose value isn't a number already fails, naming the value. A `type="math"`
-    sequence's parameters are maths anyway.
-  - **Against:** a `<math>` may hold a non-number, so the error comes one step from the cause.
-    D39 chose `<number>` so that "this is a number" is visible where it is written.
-  - **Recommendation:** accept it, so that the value tags behave alike.
+- **Decided after #2555: a `<math>` is an intermediate like `<number>`.** This revises the
+  decision above, which allowed `<number>` and `<integer>` only. #2555 accepts a `<math>` whose
+  content is in the analysable forms, and `e0074`'s message lists it. This only matters for a
+  `<math>` holding a value from another selection, such as `<math name="m">$a + 2</math>` with
+  `numToSelect="$m"`. A parameter that reads nothing from the variant is its value in any form.
+  - **Why:** the value tags behave alike. The content is analysed the same way, and a `<math>`
+    whose value isn't a number fails the check, naming the value. A `type="math"` sequence's
+    parameters are maths anyway.
+  - **Cost accepted:** a `<math>` may hold a non-number, so that error comes one step from the
+    cause.
 
 ## D40. Decisions from the review of open issues (November 2026)
 
