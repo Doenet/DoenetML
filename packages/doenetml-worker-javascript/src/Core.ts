@@ -161,13 +161,6 @@ export default class Core {
      * what a reader can change.
      */
     readerWritable: Set<ComponentIdx> = new Set();
-    /**
-     * The components a reader drags in a graph only to place them (a
-     * `<number>`, a `<math>`), which changes their `anchor` alone, found
-     * with {@link readerWritable} and, like it, kept current as components
-     * are made after load (an iteration of a repeat).
-     */
-    readerPlaced: Set<ComponentIdx> = new Set();
     nComponentsInit: number;
     cid: string | null;
     flags: Record<string, any>;
@@ -581,11 +574,9 @@ export default class Core {
         // content of a case not shown included, before it is dropped. It
         // marks the serialized components it finds, so a component made
         // from one later (an iteration of a repeat) is added as it is made.
-        this.readerPlaced = new Set();
         this.readerWritable = buildReaderWritableIndex(
             serializedComponents[0],
             this.componentInfoObjects,
-            this.readerPlaced,
         );
 
         // The serialized document is consumed only by the clone above;

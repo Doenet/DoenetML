@@ -430,7 +430,6 @@ export async function createIsolatedComponents({
             serializedComponent,
             componentIdx,
             core.readerWritable,
-            core.readerPlaced,
         );
 
         const createResult = await createChildrenThenComponent({
