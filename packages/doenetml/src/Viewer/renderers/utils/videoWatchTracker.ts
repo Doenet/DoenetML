@@ -177,6 +177,12 @@ export class VideoWatchTracker {
      * `endPosition` if given (the duration, when the video ended, since the
      * player reports a position a little short of it). A seek just before
      * the stop (a `BUFFERING` after one) is recorded as a seek.
+     *
+     * A pause while no segment is played (the viewer paused while the
+     * player was buffering after a seek) records where it was paused, so
+     * that starting elsewhere records a skip. Where the video was already
+     * paused is kept: a second pause, while paused, follows a seek, and
+     * what lies between the two was not watched.
      */
     stop(
         sample: VideoSample,
@@ -184,6 +190,9 @@ export class VideoWatchTracker {
         endPosition?: number,
     ): VideoWatchRecord[] {
         if (!this._segment) {
+            if (reason === "paused" && this._pausedAt === null) {
+                this._pausedAt = sample.position;
+            }
             return [];
         }
         const records = this.sample(sample);

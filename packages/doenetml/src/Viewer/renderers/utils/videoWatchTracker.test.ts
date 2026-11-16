@@ -156,6 +156,54 @@ describe("VideoWatchTracker", () => {
         ).eqls([]);
     });
 
+    it("records a skip after a pause while buffering, when started elsewhere", () => {
+        // The viewer seeks while playing (BUFFERING at the target), pauses
+        // before playback resumes, then starts the video somewhere else.
+        const tracker = new VideoWatchTracker();
+        const { wallTime } = playThrough({
+            tracker,
+            from: 0,
+            to: 30,
+            pollMs: 200,
+        });
+        expect(
+            tracker.stop(
+                { position: 400, wallTime: wallTime + 50 },
+                "buffering",
+            ),
+        ).eqls([
+            watched(0, 30),
+            { kind: "skipped", beginTime: 30, endTime: 400 },
+        ]);
+        expect(
+            tracker.stop({ position: 400, wallTime: wallTime + 500 }, "paused"),
+        ).eqls([]);
+        expect(
+            tracker.play({ position: 100, wallTime: wallTime + 5000, rate: 1 }),
+        ).eqls([{ kind: "skipped", beginTime: 400, endTime: 100 }]);
+    });
+
+    it("keeps where it was first paused through a second pause", () => {
+        // A seek while paused reports PAUSED again at the target: what lies
+        // between the two was not watched.
+        const tracker = new VideoWatchTracker();
+        const { wallTime } = playThrough({
+            tracker,
+            from: 0,
+            to: 20,
+            pollMs: 200,
+        });
+        expect(tracker.stop({ position: 20, wallTime }, "paused")).eqls([
+            watched(0, 20),
+        ]);
+        expect(
+            tracker.stop({ position: 50, wallTime: wallTime + 1000 }, "paused"),
+        ).eqls([]);
+        expect(
+            tracker.play({ position: 50, wallTime: wallTime + 2000, rate: 1 }),
+        ).eqls([{ kind: "skipped", beginTime: 20, endTime: 50 }]);
+    });
+
     it("does not count a seek forward, seen by a late poll, as watched beyond the time elapsed", () => {
         // Two seconds pass on the clock, but the video is 100 seconds on.
         const tracker = new VideoWatchTracker();

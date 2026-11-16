@@ -246,7 +246,6 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                 // PLAYING, or just PAUSED, PLAYING. So wait 250 ms: a
                 // BUFFERING or PLAYING in that time means a seek, recorded
                 // there, and no pause.
-                const lastState = lastPlayerState.current;
                 const pausedSample = currentSample();
 
                 clearTimeout(pauseTimeoutId.current);
@@ -254,12 +253,12 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                     pauseTimeoutId.current = null;
                     clearInterval(pollIntervalId.current);
 
-                    if (lastState === PlayerState.PLAYING) {
-                        recordWatching(
-                            tracker.current.stop(pausedSample, "paused"),
-                            duration,
-                        );
-                    }
+                    // Also when paused while buffering, with no segment
+                    // played: the tracker then records where it was paused.
+                    recordWatching(
+                        tracker.current.stop(pausedSample, "paused"),
+                        duration,
+                    );
                     callAction({
                         action: actions.recordVideoPaused,
                         args: {
