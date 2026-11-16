@@ -1012,11 +1012,12 @@ ${repeat}
         );
 
         // a choice added with them is still an error, also one written as a
-        // reference
-        for (const added of [
-            `<choice>d</choice>`,
-            `<choice copy="$c"/>`,
-            `<choice extend="$c"/>`,
+        // reference. A choice can only be copied (D42), so an extend of one
+        // is its own error too.
+        for (const [added, codes] of [
+            [`<choice>d</choice>`, ["doenet-e0069"]],
+            [`<choice copy="$c"/>`, ["doenet-e0069"]],
+            [`<choice extend="$c"/>`, ["doenet-e0078", "doenet-e0069"]],
         ]) {
             const withChoice = await loaded(`
 <choiceInput name="x" shuffleOrder><choice name="c">a</choice><choice>b</choice><choice>c</choice></choiceInput>
@@ -1024,8 +1025,8 @@ ${repeat}
 `);
             expect(
                 withChoice.diagnostics().errors.map((e: any) => e.code),
-                added,
-            ).eqls(["doenet-e0069"]);
+                added as string,
+            ).eqls(codes);
         }
     });
 
