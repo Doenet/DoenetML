@@ -45,6 +45,7 @@ import {
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { breakReferenceCycles } from "./referenceCycles";
+import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
@@ -645,6 +646,14 @@ export async function normalizedDastToSerializedComponents(
     //     nComponents,
     // );
 
+    // An `<answer>`'s sugar decides from its awards' children whether it
+    // needs an input, so an `<award copy>` is first given the children it
+    // will hold (CPY-1, #2531), and they are removed once read.
+    markCopiedAwards({
+        serializedComponents: expandedRoot,
+        componentInfoObjects,
+    });
+
     const sugarResult = applySugar({
         serializedComponents: expandedRoot,
         componentInfoObjects,
@@ -652,6 +661,8 @@ export async function normalizedDastToSerializedComponents(
     });
     diagnostics.push(...sugarResult.diagnostics);
     nComponents = sugarResult.nComponents;
+
+    removeCopiedAwardMarks(sugarResult.components);
 
     // console.log(
     //     "after apply sugar",
