@@ -2837,11 +2837,16 @@ author. So an `<atom>` counts as the same type as a `<p>` and an `<ion>`, while 
    several was a type of its own.
 
 **`<m>` and `<label>` are content, not values,** though authors may think of `<m>` as math. An
-`<m>` holds LaTeX to show, not a math: it has no math value, and parsing its LaTeX can fail
+`<m>` holds LaTeX to show, not a math: it has no math value, and its LaTeX may not be math
 (`\text{…}`), so reading it as a math would make its type depend on what it holds (TYPE). A
 `<label>` holds markup, and its `value` is that markup as text. Since the confusion is likely,
-the `e0076` message for a mix of `<m>` and `<math>` (or `<label>` and `<text>`) says so: "`<m>`
-shows LaTeX; it isn't a math. Write `<math>` to sort or shuffle it with other maths."
+the `e0076` message for a mix of `<m>` and a math, or of `<label>` and a text, says how to make
+it one: wrap it. "`<m>` shows LaTeX; it isn't a math. To sort or shuffle it with other maths,
+write `<math><m>…</m></math>` (or `<math>$mm</math>`), which reads its LaTeX as math." Likewise
+`<text>` around a `<label>`. **[probe]** on `main`: `<math><m>\frac{x^2}{2}</m></math>` is
+`x²/2`, `<math>$mm</math>` of an `<m>` works, and `<text>$l</text>` of a label holding
+`Speed <m>v</m>` is `Speed v`. LaTeX that isn't math gives a blank:
+`<math><m>\text{hi}</m></math>` is `＿`, with no diagnostic (#2570 item 4).
 
 **A sort.** Values compare by value; points and vectors as now. Other objects and content have
 nothing to compare, so a `<sort>` of them needs `sortByProp` naming what to compare
