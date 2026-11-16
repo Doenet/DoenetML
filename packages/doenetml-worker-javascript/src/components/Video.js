@@ -541,6 +541,30 @@ export default class Video extends BlockComponent {
         return stateVariableDefinitions;
     }
 
+    /**
+     * The instruction that records `duration`, reported by the player with a
+     * playback event, as the video's duration when the video has no positive
+     * one yet: the player can report 0 (or nothing) when it becomes ready,
+     * before the video's metadata loads, and a duration of 0 would otherwise
+     * keep `fractionWatched` at 0 for the rest of the visit (#2539). A
+     * positive duration already recorded is kept: it came from the player
+     * when it was ready, and `fractionWatched` absorbs a small difference
+     * from the one reported while playing.
+     */
+    async durationUpdateInstructions(duration) {
+        if (!(duration > 0) || (await this.stateValues.duration) > 0) {
+            return [];
+        }
+        return [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "duration",
+                value: duration,
+            },
+        ];
+    }
+
     async recordVideoStarted({
         beginTime,
         duration,
@@ -569,6 +593,7 @@ export default class Video extends BlockComponent {
                     stateVariable: "state",
                     value: "playing",
                 },
+                ...(await this.durationUpdateInstructions(duration)),
             ],
             actionId,
             sourceInformation,
@@ -659,6 +684,7 @@ export default class Video extends BlockComponent {
                     stateVariable: "segmentsWatched",
                     value: segmentsWatched,
                 },
+                ...(await this.durationUpdateInstructions(duration)),
             ],
             actionId,
             sourceInformation,
@@ -700,6 +726,7 @@ export default class Video extends BlockComponent {
                     stateVariable: "state",
                     value: "stopped",
                 },
+                ...(await this.durationUpdateInstructions(duration)),
             ],
             actionId,
             sourceInformation,
@@ -745,6 +772,7 @@ export default class Video extends BlockComponent {
                     stateVariable: "state",
                     value: "stopped",
                 },
+                ...(await this.durationUpdateInstructions(duration)),
             ],
             actionId,
             sourceInformation,

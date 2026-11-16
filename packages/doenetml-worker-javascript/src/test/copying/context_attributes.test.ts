@@ -785,4 +785,112 @@ describe("Fixed and fixLocation of references @group4", () => {
             );
         }
     });
+
+    // A reference to one entry, written among the children of a list or a
+    // `<sort>`, is an entry of it that is fixed, and fixed in place, as the
+    // entry's source is (CTX-7, #2538), for every list type, and so is an
+    // entry of a list holding that list in turn.
+    describe("a reference to one list entry among a list's children is fixed as the entry's source is (#2538)", () => {
+        for (const [list, tag, a, b] of [
+            ["mathList", "math", "1", "2"],
+            ["numberList", "number", "1", "2"],
+            ["textList", "text", "a", "b"],
+            ["booleanList", "boolean", "true", "false"],
+            ["pointList", "point", "(1,2)", "(3,4)"],
+        ]) {
+            it(list, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <${list} name="l"><${tag} fixed fixLocation>${a}</${tag}><${tag}>${b}</${tag}></${list}>
+    <${list} name="l2">$l[1] $l[2]</${list}>
+    <sort name="s">$l[1] $l[2]</sort>
+    <${list} name="l3">$l2[1] $l2[2]</${list}>
+    <${list} name="l4">$l2</${list}>
+    <sort name="s2">$l2</sort>
+    <${list} name="l5" extend="$l2"/>
+    <${list} name="l6" copy="$l2"/>
+    <${tag} name="e1" extend="$l2[1]"/><${tag} name="e2" extend="$l2[2]"/>
+    <${tag} name="e3" extend="$s[1]"/>
+    `,
+                });
+                const components = (core as any).core._components;
+                // A `<booleanList>` sorts `false` first; the others keep
+                // the order written.
+                const sorted =
+                    list === "booleanList" ? [false, true] : [true, false];
+                const expected: Record<string, boolean[]> = {
+                    l2: [true, false],
+                    s: sorted,
+                    l3: [true, false],
+                    l4: [true, false],
+                    s2: sorted,
+                    l5: [true, false],
+                    // an unlinked copy pastes the references
+                    l6: [true, false],
+                };
+                for (const [name, value] of Object.entries(expected)) {
+                    const sv =
+                        components[await resolvePathToNodeIdx(name)]
+                            .stateValues;
+                    expect(await sv.entryFixed, name).eqls(value);
+                    expect(await sv.entryFixLocation, name).eqls(value);
+                }
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                for (const [name, value] of Object.entries({
+                    e1: true,
+                    e2: false,
+                    e3: sorted[0],
+                })) {
+                    const sv =
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues;
+                    expect([sv.fixed, sv.fixLocation], name).eqls([
+                        value,
+                        value,
+                    ]);
+                }
+            });
+        }
+
+        it("a property, an entry of a sequence and an entry of a fixed list", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <point name="P" fixed>(1,2)</point>
+    <point name="Q" fixLocation>(3,4)</point>
+    <sequence name="seq" from="1" to="3"/>
+    <mathList name="ml" fixed>a b</mathList>
+    <numberList name="nl" fixed>1 2</numberList>
+    <mathList name="l">$P.x $Q.y $seq[1] $ml[2] $P.y</mathList>
+    <sort name="s">$nl</sort>
+    <mathList name="m">x $ml</mathList>
+    `,
+            });
+            const components = (core as any).core._components;
+            const expected: Record<string, [boolean[], boolean[]]> = {
+                l: [
+                    [true, false, true, true, true],
+                    [false, true, false, false, false],
+                ],
+                s: [
+                    [true, true],
+                    [false, false],
+                ],
+                m: [
+                    [false, true, true],
+                    [false, false, false],
+                ],
+            };
+            for (const [name, [fixed, fixLocation]] of Object.entries(
+                expected,
+            )) {
+                const sv =
+                    components[await resolvePathToNodeIdx(name)].stateValues;
+                expect(await sv.entryFixed, name).eqls(fixed);
+                expect(await sv.entryFixLocation, name).eqls(fixLocation);
+            }
+        });
+    });
 });

@@ -405,6 +405,63 @@ describe("Video tag tests @group1", async () => {
             expect(video.fractionWatched).eq(0);
         });
 
+        it("takes a positive duration reported after a duration of 0 (#2539)", async () => {
+            // The player reported 0 when it became ready, before the video's
+            // metadata loaded; the duration it reports while playing is used.
+            for (const readyDuration of [0, null]) {
+                const { video, credit } = await watchSegments({
+                    readyDuration,
+                    playerDuration: 600,
+                    segments: [[10, 70]],
+                });
+                expect(video.duration, String(readyDuration)).eq(600);
+                expect(video.fractionWatched).closeTo(0.1, 1e-12);
+                expect(credit).closeTo(0.1, 1e-12);
+            }
+            // A positive duration from when the player was ready is kept.
+            const { video } = await watchSegments({
+                readyDuration: 600,
+                playerDuration: 610,
+                segments: [[10, 70]],
+            });
+            expect(video.duration).eq(600);
+        });
+
+        it("takes the duration from a start, a pause or the end of playback (#2539)", async () => {
+            for (const actionName of [
+                "recordVideoStarted",
+                "recordVideoPaused",
+                "recordVideoCompleted",
+            ]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `<video name="v" youtube="tJ4ypc5L6uU"><shortDescription>a video</shortDescription></video>`,
+                });
+                const videoIdx = await resolvePathToNodeIdx("v");
+                for (const [name, args] of [
+                    ["recordVideoReady", { duration: 0 }],
+                    [
+                        actionName,
+                        { beginTime: 0, endTime: 0, duration: 300, rate: 1 },
+                    ],
+                ] as const) {
+                    await core.requestAction({
+                        componentIdx: videoIdx,
+                        actionName: name,
+                        args,
+                        baseVariantIndex: 0,
+                    });
+                }
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[videoIdx].stateValues.duration,
+                    actionName,
+                ).eq(300);
+            }
+        });
+
         it("does not snap the end while the player reports no duration", async () => {
             // Before its metadata loads, the player reports a duration of 0.
             const { video } = await watchSegments({

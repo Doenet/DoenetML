@@ -12,6 +12,10 @@ import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 import { NonInlineMediaWrapper } from "./utils/NonInlineMediaWrapper";
 import { useYouTubeApi } from "./utils/useYouTubeApi";
+import {
+    VideoWatchTracker,
+    type VideoWatchRecord,
+} from "./utils/videoWatchTracker";
 import "./video.css";
 
 interface VideoSVs {
@@ -34,13 +38,11 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
         useDoenetRenderer<VideoSVs>(props);
 
     let player = useRef<any>(null);
-    let postSkipTime = useRef<number | null>(null);
-    let preSkipTime = useRef<number | null>(null);
-    let rates = useRef<any[]>([]);
+    // The segments watched and the seeks, worked out from the player's
+    // events and the position polled while it plays.
+    let tracker = useRef(new VideoWatchTracker());
     let lastPlayerState = useRef<any>(null);
     let pauseTimeoutId = useRef<any>(null);
-    let lastPausedTime = useRef<number>(0);
-    let lastPlayedTime = useRef<number | null>(null);
     let pollIntervalId = useRef<any>(null);
     let lastSetTimeAction = useRef<number | null>(null);
 
@@ -105,45 +107,58 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
             lastSVsState.current = null;
             lastPlayerState.current = null;
             lastSetTimeAction.current = null;
-            preSkipTime.current = null;
-            postSkipTime.current = null;
-            lastPlayedTime.current = null;
-            lastPausedTime.current = 0;
-            rates.current = [];
+            tracker.current = new VideoWatchTracker();
         };
     }, [SVs.youtube, ytReady, id]);
 
+    /** The player's position now, on the clock, at its playback rate. */
+    function currentSample() {
+        return {
+            position: player.current.getCurrentTime(),
+            wallTime: performance.now(),
+            rate: player.current.getPlaybackRate(),
+        };
+    }
+
+    /** Record what the tracker found as watched segments and skips. */
+    function recordWatching(records: VideoWatchRecord[], duration: number) {
+        for (const record of records) {
+            if (record.kind === "watched") {
+                callAction({
+                    action: actions.recordVideoWatched,
+                    args: {
+                        beginTime: record.beginTime,
+                        endTime: record.endTime,
+                        duration,
+                        rates: record.rates,
+                    },
+                });
+            } else {
+                callAction({
+                    action: actions.recordVideoSkipped,
+                    args: {
+                        beginTime: record.beginTime,
+                        endTime: record.endTime,
+                        duration,
+                    },
+                });
+            }
+        }
+    }
+
+    // Polled every 200 ms while playing. The YouTube player reports no
+    // event for a seek, and one that lands in what is already loaded may
+    // not even pass through `BUFFERING`, so the tracker finds seeks from the
+    // position: one that moved further than playback explains in the time
+    // since the last poll.
     function pollCurrentTime() {
-        let currentTime = player.current.getCurrentTime();
-        let timeInterval;
+        const sample = currentSample();
+        recordWatching(
+            tracker.current.sample(sample),
+            player.current.getDuration(),
+        );
 
-        // if previously skipped a time (because the jump was too large)
-        // we need to calculate the interval from that skipped time
-        if (postSkipTime.current) {
-            timeInterval = currentTime - postSkipTime.current;
-        } else {
-            timeInterval = currentTime - (preSkipTime.current ?? 0);
-        }
-
-        // We are polling every 200 ms,
-        // hence if a jump was larger than a second (or negative),
-        // we guess that a portion of the video was skipped
-        // so don't update the current time for one cycle
-        // (which is typically long enough for the state change listener
-        // to be able to grab the current time to determine
-        // the end of the watched segment)
-        if (
-            !((preSkipTime.current ?? -1) >= 0) ||
-            (timeInterval > 0 && timeInterval < 1)
-        ) {
-            preSkipTime.current = currentTime;
-            postSkipTime.current = null;
-        } else if (timeInterval !== 0) {
-            // jump was negative or longer than a second
-            postSkipTime.current = currentTime;
-        }
-
-        let roundTime = Math.floor(currentTime);
+        let roundTime = Math.floor(sample.position);
         if (roundTime !== lastSetTimeAction.current) {
             lastSetTimeAction.current = roundTime;
             callAction({
@@ -183,72 +198,39 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
         switch (event.data) {
             case PlayerState.PLAYING:
+                if (pauseTimeoutId.current !== null) {
+                    // A pause followed this quickly by playing is the player
+                    // seeking (it reports PAUSED, then PLAYING), not the
+                    // viewer pausing: playback goes on, and the tracker
+                    // records the seek from the new position.
+                    clearTimeout(pauseTimeoutId.current);
+                    pauseTimeoutId.current = null;
+                    recordWatching(
+                        tracker.current.sample(currentSample()),
+                        duration,
+                    );
+                }
                 if (lastPlayerState.current !== event.data) {
-                    let currentTime = player.current.getCurrentTime();
+                    const sample = currentSample();
 
-                    // To correctly capture the "watched" events, we need to know the last time
-                    // of the player before the user skips to a new spot
-                    // Since the callbacks only give the time after a skip,
-                    // we poll the player for the pre-skip time every 200 ms
-                    // to record the last time before a skip
-
+                    // The player reports no event for a seek, so poll its
+                    // position every 200 ms while it plays (`pollCurrentTime`).
                     clearInterval(pollIntervalId.current);
                     pollIntervalId.current = window.setInterval(
                         pollCurrentTime,
                         200,
                     );
 
-                    if (lastPlayerState.current === PlayerState.PAUSED) {
-                        let timeSincePaused =
-                            currentTime - lastPausedTime.current;
+                    // Starting somewhere other than where it was paused is a
+                    // skip.
+                    recordWatching(tracker.current.play(sample), duration);
 
-                        // if the time has gone backward or move ahead more than a half-second,
-                        // we consider that a portion of the video was skipped
-                        // (When video is paused and immediately restarted, the time
-                        // skips forward a small amount, but less than a half-second)
-
-                        if (timeSincePaused < 0 || timeSincePaused > 0.5) {
-                            //  console.log("recordVideoSkipped",{
-                            //     beginTime: lastPausedTime.current,
-                            //     endTime: currentTime,
-                            //     duration,
-                            //   })
-
-                            callAction({
-                                action: actions.recordVideoSkipped,
-                                args: {
-                                    beginTime: lastPausedTime.current,
-                                    endTime: currentTime,
-                                    duration,
-                                },
-                            });
-                        }
-                    }
-
-                    // lastPausedTime.current = currentTime;
-                    let rate = player.current.getPlaybackRate();
-                    rates.current = [
-                        {
-                            startingPoint: currentTime,
-                            rate,
-                        },
-                    ];
-
-                    lastPlayedTime.current = currentTime;
-                    preSkipTime.current = currentTime;
-                    postSkipTime.current = null;
-
-                    // console.log("recordVideoStarted",{
-                    //     beginTime: player.current.getCurrentTime(),
-                    //     duration,
-                    //     rate,
-                    //   })
                     callAction({
                         action: actions.recordVideoStarted,
                         args: {
-                            beginTime: player.current.getCurrentTime(),
+                            beginTime: sample.position,
                             duration,
-                            rate,
+                            rate: sample.rate,
                         },
                     });
 
@@ -257,159 +239,80 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
                 break;
 
-            case PlayerState.PAUSED:
-                // When a user pauses a video, we emit two events:
-                // a watched event summarizing that segment of watching
-                // and a paused event.
-                // However, when a users skips to a new point without pausing,
-                // the player emits the state change sequence: PAUSED, BUFFERING, PLAYING
-                // To prevent the pause event, we wait 250 millisecond.
-                // If a BUFFERING event occurs, we only emit the watched event, not the paused event
+            case PlayerState.PAUSED: {
+                // When a user pauses a video, we record the segment watched
+                // and the pause. However, when a user skips to a new point
+                // without pausing, the player emits PAUSED, BUFFERING,
+                // PLAYING, or just PAUSED, PLAYING. So wait 250 ms: a
+                // BUFFERING or PLAYING in that time means a seek, recorded
+                // there, and no pause.
+                const lastState = lastPlayerState.current;
+                const pausedSample = currentSample();
 
-                let lastState = lastPlayerState.current;
-                let beginTime = lastPlayedTime.current;
-                let pausedTime = player.current.getCurrentTime();
-
+                clearTimeout(pauseTimeoutId.current);
                 pauseTimeoutId.current = setTimeout(function () {
+                    pauseTimeoutId.current = null;
                     clearInterval(pollIntervalId.current);
 
-                    if (
-                        lastState === PlayerState.PLAYING &&
-                        pausedTime > (beginTime ?? 0)
-                    ) {
-                        rates.current[rates.current.length - 1].endingPoint =
-                            pausedTime;
-
-                        // console.log("recordVideoWatched from PAUSED", {
-                        //   beginTime,
-                        //   endTime: pausedTime,
-                        //   duration,
-                        //   rates: rates.current,
-                        // })
-                        callAction({
-                            action: actions.recordVideoWatched,
-                            args: {
-                                beginTime,
-                                endTime: pausedTime,
-                                duration,
-                                rates: rates.current,
-                            },
-                        });
-
-                        // make last played time as null so that, if we getting a buffering state change,
-                        // we know not to record another watched event
-                        lastPlayedTime.current = null;
+                    if (lastState === PlayerState.PLAYING) {
+                        recordWatching(
+                            tracker.current.stop(pausedSample, "paused"),
+                            duration,
+                        );
                     }
-                    // console.log("recordVideoPaused",{
-                    //   endTime: pausedTime,
-                    //   duration,
-                    // })
                     callAction({
                         action: actions.recordVideoPaused,
                         args: {
-                            endTime: pausedTime,
+                            endTime: pausedSample.position,
                             duration,
                         },
                     });
 
-                    lastPausedTime.current = pausedTime;
                     lastPlayerState.current = event.data;
                 }, 250);
 
                 break;
+            }
 
             case PlayerState.BUFFERING:
                 clearTimeout(pauseTimeoutId.current);
-                let currentTime = player.current.getCurrentTime();
+                pauseTimeoutId.current = null;
 
-                if (lastPlayedTime.current !== null) {
-                    let beginTime: number = lastPlayedTime.current;
-
-                    if ((preSkipTime.current ?? -1) > beginTime) {
-                        rates.current[rates.current.length - 1].endingPoint =
-                            preSkipTime.current;
-
-                        // console.log("BUFFERING recordVideoWatched", {
-                        //   beginTime,
-                        //   endTime: preSkipTime.current,
-                        //   duration,
-                        //   rates: rates.current,
-                        // })
-
-                        callAction({
-                            action: actions.recordVideoWatched,
-                            args: {
-                                beginTime,
-                                endTime: preSkipTime.current,
-                                duration,
-                                rates: rates.current,
-                            },
-                        });
-
-                        beginTime = preSkipTime.current!;
-                    }
-
-                    // console.log("BUFFERING recordVideoSkipped", {
-                    //   beginTime,
-                    //   endTime: currentTime,
-                    //   duration,
-                    // })
-
-                    callAction({
-                        action: actions.recordVideoSkipped,
-                        args: {
-                            beginTime,
-                            endTime: currentTime,
-                            duration,
-                        },
-                    });
-
+                if (tracker.current.playing) {
+                    // What was played ends here, or where the video was last
+                    // seen playing if this follows a seek, which the tracker
+                    // records as a skip.
+                    recordWatching(
+                        tracker.current.stop(currentSample(), "buffering"),
+                        duration,
+                    );
                     lastPlayerState.current = event.data;
-                    lastPlayedTime.current = null;
-                    preSkipTime.current = currentTime;
-                    postSkipTime.current = null;
                 }
 
                 break;
 
-            case PlayerState.ENDED:
+            case PlayerState.ENDED: {
                 // BADBAD: We're treating ENDED as though it meant the user
                 // completed the video, even thought it
                 // doesn't necessarily mean the learner watched ALL the video
 
                 clearInterval(pollIntervalId.current);
+                clearTimeout(pauseTimeoutId.current);
+                pauseTimeoutId.current = null;
 
-                // if rates.current is empty, then never played
-                let begin = lastPlayedTime.current;
                 // The player reached the end, so the watched segment runs to
                 // the full duration, even though the current time it reports
                 // at this point is often a fraction of a second short of it.
-                let end = Math.max(player.current.getCurrentTime(), duration);
-                if (rates.current.length > 0 && begin !== null && end > begin) {
-                    rates.current[rates.current.length - 1].endingPoint = end;
+                const sample = currentSample();
+                recordWatching(
+                    tracker.current.stop(
+                        sample,
+                        "ended",
+                        Math.max(sample.position, duration),
+                    ),
+                    duration,
+                );
 
-                    // console.log("recordVideoWatched from ENDED", {
-                    //   beginTime: begin,
-                    //   endTime: end,
-                    //   duration,
-                    //   rates: rates.current,
-                    // })
-                    callAction({
-                        action: actions.recordVideoWatched,
-                        args: {
-                            beginTime: begin,
-                            endTime: end,
-                            duration,
-                            rates: rates.current,
-                        },
-                    });
-
-                    lastPlayedTime.current = null;
-                }
-
-                // console.log("recordVideoCompleted",{
-                //   duration,
-                // })
                 callAction({
                     action: actions.recordVideoCompleted,
                     args: {
@@ -420,6 +323,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                 lastPlayerState.current = event.data;
 
                 break;
+            }
 
             case PlayerState.UNSTARTED:
                 lastPlayerState.current = event.data;
@@ -429,13 +333,14 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     }
 
     function onPlaybackRateChange(event: any) {
-        let currentTime = player.current.getCurrentTime();
-
-        rates.current[rates.current.length - 1].endingPoint = currentTime;
-        rates.current.push({
-            startingPoint: currentTime,
-            rate: event.data,
-        });
+        recordWatching(
+            tracker.current.rateChanged({
+                position: player.current.getCurrentTime(),
+                wallTime: performance.now(),
+                rate: event.data,
+            }),
+            player.current.getDuration(),
+        );
     }
 
     if (player.current?.getPlayerState) {
