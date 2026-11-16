@@ -412,5 +412,8 @@ The `latex` property returns the latex code for rendering the named `<label>{:dn
 
 
 
-The `value` property returns the value stored with the named `<label>{:dn}`.
+The `value` property is the label's text, with any math kept as math: in a `<p>{:dn}`
+it is shown as a new label that renders the math, and in a `<text>{:dn}` it is the
+text form of the math. Other markup, such as `<em>{:dn}`, is dropped; to show the label
+with its markup, reference the label itself (`$label1`).
 
