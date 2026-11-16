@@ -9225,8 +9225,8 @@ export const PARTS_OF_CHOOSING_TAGS = {
 };
 
 /**
- * The tags that can only be copied (D42), each mapped to what records their
- * state. An `<award>`'s `awarded` and a `<choice>`'s `submitted` record the
+ * The tags that can only be copied (D42), each mapped to the tag holding it,
+ * whose submissions it records. An `<award>`'s `awarded` and a `<choice>`'s `submitted` record the
  * last submission of the answer or choice input holding it (ANS-1), so an
  * `extend` (the same component again, sharing that record) and a
  * `copyWithState` (a new one, starting from another submission's record) have

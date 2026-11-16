@@ -27,7 +27,9 @@
  *
  * An `<award>` or a `<choice>` can only be copied (D42, `doenet-e0078`), so
  * an extend or a `copyWithState` written as one is marked here too, decided
- * by the tag written alone, whatever it is of. It is the only error a
+ * by the tag written alone, whatever it is of, unless the type check found it
+ * in error first or its reference names nothing, which is shown instead.
+ * It is the only error a
  * `copyWithState` is marked with: what one would change of the choices it
  * carries is decided when it is made.
  */

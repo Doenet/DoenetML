@@ -100,7 +100,7 @@ describe("An award or a choice can only be copied (D42) @group4", () => {
         }
     });
 
-    it("an extend written as an award is an error whatever it is of", async () => {
+    it("an extend written as an award is an error when its source is not given at load", async () => {
         // the source's tag is not given at load: the tag written decides
         const { core } = await load(
             `<mathInput name="mi"/><repeatForSequence name="r" length="2" valueName="v"><award name="aw"><when>$mi = $v</when></award></repeatForSequence><answer><award extend="$r[1].aw"/></answer>`,
@@ -272,5 +272,46 @@ describe("An answer holding a copied award adds the input the written-out award 
             expect(stateValues.numResponses, award).eq(1);
             expect(stateValues.submittedResponses[0].tree, award).eq(2);
         }
+    });
+
+    it("the source award's referencesAreResponses counts as if written on the copy", async () => {
+        // An award with `referencesAreResponses` has its references made no
+        // potential responses. Naming a reference the award does not hold
+        // makes that visible: the award has no response at all.
+        async function responsesOf(award: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<mathInput name="mi"/><mathInput name="mi2"/>
+                <setup>
+                    <award name="src" referencesAreResponses="$mi2"><when>$mi = 2</when></award>
+                    <award name="plain"><when>$mi = 2</when></award>
+                </setup>
+                <answer name="ans">${award}</answer>`,
+            });
+            expect(getDiagnosticsByType(core).errors, award).eqls([]);
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            const ans = await resolvePathToNodeIdx("ans");
+            await submitAnswer({ componentIdx: ans, core });
+            const stateValues = (
+                await core.returnAllStateVariables(false, true)
+            )[ans].stateValues;
+            return {
+                credit: stateValues.creditAchieved,
+                numResponses: stateValues.numResponses,
+            };
+        }
+
+        const writtenOut = await responsesOf(
+            `<award referencesAreResponses="$mi2"><when>$mi = 2</when></award>`,
+        );
+        expect(await responsesOf(`<award copy="$src"/>`)).eqls(writtenOut);
+        expect(
+            await responsesOf(
+                `<award copy="$plain" referencesAreResponses="$mi2"/>`,
+            ),
+        ).eqls(writtenOut);
     });
 });
