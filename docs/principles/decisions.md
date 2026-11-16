@@ -2706,21 +2706,17 @@ no way to iterate over records (a point with its label).
    </repeat>
    <repeat for="$data" valueName="d">$d.P is labelled $d.L.</repeat>
    ```
-   A name after `$v` is the open question below.
+6. **A name after `$v` follows COLL-2 and COMP-11** (option 2, chosen over option 1 below).
+   `$d.P` resolves when every item declares `P`, with one type, decided at load. If an item lacks
+   it, `$d.P` names nothing in every iteration (a blank, `w0183`); two types are an error
+   (`e0066`/`w0184`). A repeat's or a select's items satisfy this by construction, since one
+   template, or the every-option rule, declares the name.
 
-### Open: a name after `$v` when the items are wrappers
-
-- **Option 1:** every wrapper must hold the same children, with the same names and types.
-- **Option 2 (recommended):** follow COLL-2 and COMP-11. `$d.P` resolves when every item declares
-  `P`, with one type, decided at load. If an item lacks it, `$d.P` names nothing in every
-  iteration (a blank, `w0183`); two types are an error (`e0066`/`w0184`). A repeat's or a select's
-  items satisfy this by construction, since one template, or the every-option rule, declares the
-  name.
-
-Why option 2: unnamed components can't be reached from `$v` (an index after a wrapper of several
-names nothing, COLL-3), so option 1 would reject differences no reference can see, and it would be
-a second rule beside COMP-11's. Positional pairs are better written as values with entries:
-`for="(1, 2) (3, 4)"` gives tuples, and `$v[1]` is an entry.
+   **Rejected, option 1:** every wrapper must hold the same children, with the same names and
+   types. Unnamed components can't be reached from `$v` (an index after a wrapper of several
+   names nothing, COLL-3), so it would reject differences no reference can see, and it would be a
+   second rule beside COMP-11's. Positional pairs are better written as values with entries:
+   `for="(1, 2) (3, 4)"` gives tuples, and `$v[1]` is an entry.
 
 ### What it costs
 

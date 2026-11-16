@@ -238,8 +238,10 @@ types (`3, a`); a `<shuffle>` of three groups of two maths flattens them and spl
   count as one type, whatever they hold.
 - **`type`** types the literals and, when written, every item.
 - So `$v` has one type in every iteration, and the template is checked at load.
-- A name after `$v` when the items are wrappers: open in D44 (recommended: COMP-11's every-item,
-  one-type rule).
+- **A name after `$v`** when the items are wrappers follows COLL-2 and COMP-11: `$d.P` resolves
+  when every item declares `P` with one type, decided at load. If an item lacks it, it names
+  nothing in every iteration (`w0183`); two types are an error. A repeat's iterations satisfy
+  this by construction, so a repeat over another repeat goes over records.
 
 **Known violations** (all of it; **[probe]** on `main`, #2567): `for` takes any mix (`$a $t $P`,
 `2 $t`, a select of a math, a text and a number); a group in `for` is flattened, nested groups
