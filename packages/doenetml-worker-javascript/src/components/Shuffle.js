@@ -96,7 +96,7 @@ export default class Shuffle extends CompositeComponent {
             highlighted: true,
             createPrimitiveOfType: "string",
             description:
-                "Component type to read bare string children as. Omit it and, beside components of one type written as tags, they are read as that type; otherwise they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
+                "Component type to read bare string children as. Omit it and, beside components of one type written as tags, they are read as that type where they read as it (only text with coordinates as a point or vector, only `true` or `false` as a boolean); otherwise they are read as what they look like: every piece naming a number makes them numbers, anything else makes them text.",
             validValues: [
                 {
                     value: "number",

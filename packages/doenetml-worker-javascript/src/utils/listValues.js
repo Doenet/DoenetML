@@ -838,6 +838,38 @@ function typeOfComponents(children, componentInfoObjects) {
 }
 
 /**
+ * Whether the piece of text `text`, beside components of the type `type`
+ * (`typeOfComponents`), reads as that type: a `<point>` or `<vector>` only
+ * from text with coordinates (`(3, 4)`, not `3`), and a `<boolean>` only from
+ * `true` or `false`, as a `<booleanList>` reads its text. Any text reads as a
+ * number, math or text. Text that doesn't is an item of a type of its own,
+ * read as what it looks like, so that the `<sort>` or `<shuffle>` holding it
+ * is an error (`doenet-e0076`, COLL-4).
+ */
+function textReadsAsType(text, type) {
+    if (type === "boolean") {
+        return /^(true|false)$/i.test(text.trim());
+    }
+    if (type === "point" || type === "vector") {
+        if (!delimitersBalanced(text)) {
+            return false;
+        }
+        let tree;
+        try {
+            tree = textToAst.convert(text);
+        } catch (e) {
+            return false;
+        }
+        const hasCoordinates = (tree) =>
+            Array.isArray(tree) &&
+            (["tuple", "vector"].includes(tree[0]) ||
+                tree.slice(1).some(hasCoordinates));
+        return hasCoordinates(tree);
+    }
+    return true;
+}
+
+/**
  * Sugar shared by the components that read their children as a list of typed
  * values — `<sort>`, `<sortIndices>`, `<shuffle>` and the index-returning and
  * counting operators: bare strings are split into entries by the rule for
@@ -907,13 +939,20 @@ export function returnBreakStringsIntoTypeSugarInstruction(
             type = undefined;
         }
 
+        // The type of the components the text is beside, when it is read as
+        // theirs.
+        let typeOfComponentsBeside;
         if (!type && textBesideComponents) {
             // Text beside components of one type is read as that type, as
             // an authored list reads it (`<sort><math>d</math> a</sort>`
             // reads `a` as a math, `<sort><number>$x</number> 3 1</sort>`
             // reads numbers), rather than as what it looks like, which would
-            // mix two types (COLL-4).
-            type = typeOfComponents(matchedChildren, componentInfoObjects);
+            // mix two types (COLL-4). A piece that doesn't read as that type
+            // (`3` beside `<point>`s) is read as what it looks like.
+            type = typeOfComponentsBeside = typeOfComponents(
+                matchedChildren,
+                componentInfoObjects,
+            );
         }
 
         if (!type) {
@@ -939,6 +978,14 @@ export function returnBreakStringsIntoTypeSugarInstruction(
             componentType: type,
             forceComponentType: false,
             componentNameForDiagnostics: componentName,
+            ...(typeOfComponentsBeside
+                ? {
+                      componentTypeOfText: (text) =>
+                          textReadsAsType(text, typeOfComponentsBeside)
+                              ? typeOfComponentsBeside
+                              : (inferTypeFromStrings([text]) ?? "text"),
+                  }
+                : {}),
         });
         const result = groupIntoListEntries({
             matchedChildren,

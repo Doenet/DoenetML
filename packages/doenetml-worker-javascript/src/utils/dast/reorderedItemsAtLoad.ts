@@ -443,13 +443,15 @@ export function checkReorderedItemsAtLoad({
         const [first, second] = [...firstOfType.values()];
         // `type` says how to read text the author wrote, as a number, math,
         // text or boolean. It helps only when the text is beside an item
-        // of one of those: not one with no value to compare (`<p>`), a
-        // point or vector, or a group of several.
+        // of a number, math or text, which any text reads as: not one with
+        // no value to compare (`<p>`), a point or vector, a boolean, which
+        // reads only `true` or `false` (`3` beside it is a number, and
+        // `type="boolean"` would read it as one), or a group of several.
         const isPiece = (item: Item) =>
             item.kind === "one" && item.piece !== undefined;
         const typeCanRead = (item: Item) =>
             item.kind === "one" &&
-            ["math", "text", "boolean"].includes(typeClass(item.tag));
+            ["math", "text"].includes(typeClass(item.tag));
         const suggestType =
             (isPiece(first) && typeCanRead(second)) ||
             (isPiece(second) && typeCanRead(first));

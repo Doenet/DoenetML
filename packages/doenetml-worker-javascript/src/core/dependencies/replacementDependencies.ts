@@ -82,9 +82,10 @@ export class ReplacementDependency extends Dependency {
         this.namePerItem = this.definition.namePerItem;
 
         // A `<group>` holding one component stands for it (COLL-3), at any
-        // depth: replacements that are one group are replaced by what it
-        // holds, so that a group of one holding a group of one holding
-        // `$r` gives `$r` (or `<repeat>` written there).
+        // depth: replacements that are one group, or one reference to a
+        // group (`$a`), are replaced by what it holds, so that a group of
+        // one holding a group of one holding `$r` gives `$r` (or
+        // `<repeat>` written there).
         this.throughGroupsOfOne = this.definition.throughGroupsOfOne;
 
         this.expandReplacements = true;
@@ -234,22 +235,45 @@ export class ReplacementDependency extends Dependency {
         }
 
         if (this.throughGroupsOfOne) {
-            let content = replacements.filter(
-                (x: any) => typeof x !== "string" || x.trim() !== "",
-            );
+            const nonBlank = (components: any[]) =>
+                components.filter(
+                    (x: any) => typeof x !== "string" || x.trim() !== "",
+                );
+            const shownReplacements = (component: any) => {
+                let shown = component.replacements ?? [];
+                if (
+                    !this.includeWithheldReplacements &&
+                    component.replacementsToWithhold > 0
+                ) {
+                    shown = shown.slice(0, -component.replacementsToWithhold);
+                }
+                return shown;
+            };
+            // A reference to a group of one (`$a`) gives a copy of what the
+            // group holds: pass through a reference that gives one group or
+            // one reference, and stop at the reference to the collection.
+            const passesThrough = (component: any) => {
+                const content = nonBlank(shownReplacements(component));
+                return (
+                    content.length === 1 &&
+                    ["group", "_copy"].includes(content[0].componentType)
+                );
+            };
+            let content = nonBlank(replacements);
             while (
                 content.length === 1 &&
-                content[0].componentType === "group"
+                (content[0].componentType === "group" ||
+                    (content[0].componentType === "_copy" &&
+                        (!content[0].isExpanded || passesThrough(content[0]))))
             ) {
-                const group = content[0];
-                if (!group.isExpanded) {
+                const groupOrReference = content[0];
+                if (!groupOrReference.isExpanded) {
+                    const ready =
+                        groupOrReference.state.readyToExpandWhenResolved
+                            .isResolved;
                     await this.blockUntilExpanded(
-                        group.state.readyToExpandWhenResolved.isResolved
-                            ? [group.componentIdx]
-                            : [],
-                        group.state.readyToExpandWhenResolved.isResolved
-                            ? []
-                            : [group.componentIdx],
+                        ready ? [groupOrReference.componentIdx] : [],
+                        ready ? [] : [groupOrReference.componentIdx],
                     );
                     return {
                         success: false,
@@ -257,20 +281,9 @@ export class ReplacementDependency extends Dependency {
                         downstreamComponentTypes: [],
                     };
                 }
-                this.compositesFound.push(group.componentIdx);
-                replacements = group.replacements ?? [];
-                if (
-                    !this.includeWithheldReplacements &&
-                    group.replacementsToWithhold > 0
-                ) {
-                    replacements = replacements.slice(
-                        0,
-                        -group.replacementsToWithhold,
-                    );
-                }
-                content = replacements.filter(
-                    (x: any) => typeof x !== "string" || x.trim() !== "",
-                );
+                this.compositesFound.push(groupOrReference.componentIdx);
+                replacements = shownReplacements(groupOrReference);
+                content = nonBlank(replacements);
             }
         }
 

@@ -1981,9 +1981,9 @@ copy-with-state-attribute-reaches-choice = `{ $attribute }` reaches a choice ins
 # `<group>` of $firstCount components; or "item", the items of the
 # collection $first (`repeat`, `select`, `conditionalContent`), each holding
 # $firstCount components. Likewise for $second. $suggestType is `yes` when
-# one of them is text the author wrote and the other a number, math, text or
-# boolean, so that `type` (how to read the text) can make them one type; it
-# can't beside a `<p>`, a point or a group.
+# one of them is text the author wrote and the other a number, math or text,
+# so that `type` (how to read the text) can make them one type; it can't
+# beside a `<p>`, a point, a boolean or a group.
 reorder-items-of-several-types = `<{ $component }>` takes items of one type, but it has { $firstKind ->
         [group] a `<group>` of { $firstCount } components
         [item] the items of a `<{ $first }>` (each of { $firstCount } components)
@@ -2002,8 +2002,10 @@ reorder-items-of-several-types = `<{ $component }>` takes items of one type, but
 # A `<sort>` of an item holding several components, which has nothing to be
 # compared by (COLL-4, D41). The item is described by $itemKind: "group", a
 # `<group>` of $itemCount components, or "item", the items of the
-# collection $item, each holding $itemCount components.
+# collection $item, each holding $itemCount components. The message names
+# what to write instead: a `<collect>` of the components, or a name in each
+# item.
 sort-item-of-several = { $itemKind ->
-        [item] `<sort>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components.
-       *[group] `<sort>` can't compare a `<group>` of { $itemCount } components.
-    } Sort the components themselves, or use `<shuffle>` to keep each item's components together.
+        [item] `<sort>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort one component of each, name it (`<sort>$r.n</sort>` sorts the `n` of each item of `r`), or sort a `<collect>` of the components (`<collect componentType="number" from="$r"/>`).
+       *[group] `<sort>` can't compare a `<group>` of { $itemCount } components. To sort its components, sort a `<collect>` of them (`<collect componentType="number" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group.
+    } Use `<shuffle>` to keep each item's components together.

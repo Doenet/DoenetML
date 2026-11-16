@@ -170,6 +170,34 @@ describe("sort and shuffle take one type @group4", () => {
         expect(result.warnings).eqls([]);
     });
 
+    it("text beside components is read as their type only when it reads as that type", async () => {
+        // `3` beside a `<vector>` was `(3, 0)` built as a list and `3` as a
+        // composite, and beside a `<boolean>` it was `true`. Text with
+        // coordinates reads as a point or vector, and `true` and `false` as
+        // a boolean; other text is read as what it looks like.
+        const result = await bothBuilds({
+            doenetML: `<p name="p1"><sort><vector>(1,2)</vector> 3</sort></p>
+            <p name="p2"><sort><boolean>true</boolean> 3</sort></p>
+            <p name="p3"><shuffle><point>(1,2)</point> x</shuffle></p>
+            <p name="p4"><sort><point>(5,2)</point> (3,4) (1,1)+(1,0)</sort></p>
+            <p name="p5"><sort><boolean>true</boolean> false FALSE</sort></p>`,
+            names: ["p1", "p2", "p3", "p4", "p5"],
+        });
+        expect(result.errors).eqls([
+            "doenet-e0076: `<sort>` takes items of one type, but it has a `<vector>` and `3` (read as a `<number>`). Give each type a `<sort>` of its own.",
+            "doenet-e0076: `<sort>` takes items of one type, but it has a `<boolean>` and `3` (read as a `<number>`). Give each type a `<sort>` of its own.",
+            "doenet-e0076: `<shuffle>` takes items of one type, but it has a `<point>` and `x` (read as a `<text>`). Give each type a `<shuffle>` of its own.",
+        ]);
+        expect(result.texts).eqls({
+            p1: "",
+            p2: "",
+            p3: "",
+            p4: "(2, 1), (3, 4), (5, 2)",
+            p5: "false, false, true",
+        });
+        expect(result.warnings).eqls([]);
+    });
+
     it("a mix is an error at load in content not shown", async () => {
         // decided from the DoenetML, so the same whatever is shown (DIAG-7)
         const result = await bothBuilds({
@@ -202,24 +230,38 @@ describe("sort and shuffle take one type @group4", () => {
         expect(result.errors).eqls([]);
     });
 
+    it("what the error of a sort of items holding several says to write sorts them", async () => {
+        const result = await bothBuilds({
+            doenetML: `<repeat name="r" for="3 1 2" valueName="v"><number name="n">$v</number><text>a$v</text></repeat>
+            <group name="g"><number>5</number><number>4</number></group>
+            <p name="p1"><sort>$r.n</sort></p>
+            <p name="p2"><sort><collect componentType="number" from="$r"/></sort></p>
+            <p name="p3"><sort><collect componentType="number" from="$g"/></sort></p>`,
+            names: ["p1", "p2", "p3"],
+        });
+        expect(result.texts).eqls({ p1: "1, 2, 3", p2: "1, 2, 3", p3: "4, 5" });
+        expect(result.errors).eqls([]);
+        expect(result.warnings).eqls([]);
+    });
+
     it("a sort of items holding several components is an error at load", async () => {
         const cases: { doenetML: string; error: string }[] = [
             {
                 doenetML: `<sort name="s"><group><math>3</math><math>4</math></group><math>1</math></sort>`,
-                error: "doenet-e0077: `<sort>` can't compare a `<group>` of 2 components. Sort the components themselves, or use `<shuffle>` to keep each item's components together.",
+                error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="number" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
             },
             {
                 doenetML: `<sort name="s"><group><math>3</math><math>4</math></group><group><math>1</math><math>2</math></group></sort>`,
-                error: "doenet-e0077: `<sort>` can't compare a `<group>` of 2 components. Sort the components themselves, or use `<shuffle>` to keep each item's components together.",
+                error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="number" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
             },
             {
                 doenetML: `<sort name="s"><repeat for="1 2" valueName="v"><math>$v</math><math>2$v</math></repeat></sort>`,
-                error: "doenet-e0077: `<sort>` can't compare the items of a `<repeat>`, each of 2 components. Sort the components themselves, or use `<shuffle>` to keep each item's components together.",
+                error: 'doenet-e0077: `<sort>` can\'t compare the items of a `<repeat>`, each of 2 components. To sort one component of each, name it (`<sort>$r.n</sort>` sorts the `n` of each item of `r`), or sort a `<collect>` of the components (`<collect componentType="number" from="$r"/>`). Use `<shuffle>` to keep each item\'s components together.',
             },
             {
                 // through a reference to the group
                 doenetML: `<group name="g"><math>3</math><math>4</math></group><sort name="s">$g</sort>`,
-                error: "doenet-e0077: `<sort>` can't compare a `<group>` of 2 components. Sort the components themselves, or use `<shuffle>` to keep each item's components together.",
+                error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="number" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
             },
         ];
         for (const { doenetML, error } of cases) {

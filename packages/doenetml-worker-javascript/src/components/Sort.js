@@ -217,7 +217,7 @@ export function returnSortAttributes() {
         createPrimitiveOfType: "string",
         highlighted: true,
         description:
-            "Component type to sort bare string children as. Omit it and, beside components of one type written as tags, they are read as that type; otherwise they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
+            "Component type to sort bare string children as. Omit it and, beside components of one type written as tags, they are read as that type where they read as it (only text with coordinates as a point or vector, only `true` or `false` as a boolean); otherwise they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
         validValues: [
             {
                 value: "number",

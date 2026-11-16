@@ -214,6 +214,28 @@ describe("A name after a collection applies to each item (D41 decision 1)", () =
         expect(diagnostics).eqls([]);
     });
 
+    it("after a group holding only a reference to a group holding only a collection (COLL-3)", async () => {
+        // `$a` gives what the group `a` holds, so `g` stands for `$r` and
+        // `h` for `$s`.
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2 3" valueName="v"><point name="P">($v,3)</point></repeat>
+<group name="a">$r</group><group name="g">$a</group>
+<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point></option></select>
+<group name="b">$s</group><group name="h"><group>$b</group></group>
+<p name="p1">$g.x</p><p name="p2">$g.P.x</p><p name="p3">$g.numItems</p><p name="p4">$h.x</p><p name="p5">$h.numItems</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        // `$g.x`, `$g.P.x` and `$h.x` were `123`, `123` and `13`.
+        expect(texts).eqls({
+            p1: "1, 2, 3",
+            p2: "1, 2, 3",
+            p3: "3",
+            p4: "1, 3",
+            p5: "2",
+        });
+        expect(diagnostics).eqls([]);
+    });
+
     it("in its own template is a cycle, found at load", async () => {
         const { diagnostics } = await both(
             `<repeat name="r" for="1 2" valueName="v"><math name="m">$r.m</math></repeat>
