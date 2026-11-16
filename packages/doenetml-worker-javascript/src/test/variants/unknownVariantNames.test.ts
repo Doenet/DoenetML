@@ -226,6 +226,28 @@ ${select}
         );
     });
 
+    it("one variant, and the list of nine shortened to its first six and last", async () => {
+        let { variants, errors } = await load(`
+<variantControl numVariants="1" variantsToInclude="z" />
+${select}
+`);
+        expect(variants).eqls(["a"]);
+        expect(errors.length).eq(1);
+        expect(errors[0].message).eq(
+            "`variantsToInclude` names `z`, which is not a variant of this document. Its one variant is named `a`. As `variantsToInclude` names no variant, every variant is included.",
+        );
+
+        ({ variants, errors } = await load(`
+<variantControl numVariants="9" variantsToExclude="z" />
+${select}
+`));
+        expect(variants.length).eq(9);
+        expect(errors.length).eq(1);
+        expect(errors[0].message).eq(
+            "`variantsToExclude` names `z`, which is not a variant of this document. Its 9 variants are named `a`, `b`, `c`, `d`, `e`, `f`, …, `i`. The name is ignored.",
+        );
+    });
+
     it("a name past the unique variants is not a variant", async () => {
         // two unique variants, though three are named
         const { variants, errors } = await load(`
@@ -236,6 +258,20 @@ ${select}
         expect(errors.length).eq(1);
         expect(errors[0].message).eq(
             "`variantsToInclude` names `c`, which is not a variant of this document. Its 2 variants are named `a`, `b`. As `variantsToInclude` names no variant, every variant is included.",
+        );
+    });
+
+    it("a name past the unique variants is not a variant in variantsToExclude", async () => {
+        // two unique variants, though three are named; excluding `c` did
+        // nothing, silently, before
+        const { variants, errors } = await load(`
+<variantControl numVariants="3" variantsToExclude="c" />
+<selectFromSequence name="n" from="1" to="2" />
+`);
+        expect(variants).eqls(["a", "b"]);
+        expect(errors.length).eq(1);
+        expect(errors[0].message).eq(
+            "`variantsToExclude` names `c`, which is not a variant of this document. Its 2 variants are named `a`, `b`. The name is ignored.",
         );
     });
 
@@ -289,6 +325,25 @@ ${select}
         expect(errors.length).eq(1);
         expect(errors[0].message).eq(
             "`variantsToInclude` names `w`, which is not a variant of this `<problem>`. Its 3 variants are named `x`, `y`, `z`. The name is ignored.",
+        );
+        expect(errors[0].position?.start.line).eq(4);
+    });
+
+    it("in a section beside other content", async () => {
+        const { variants, errors } = await load(
+            `
+<p>Hello!</p>
+<section name="section1">
+    <variantControl numVariants="3" variantsToExclude="b q" />
+    ${select}
+</section>
+`,
+            "section1",
+        );
+        expect(variants).eqls(["a", "c"]);
+        expect(errors.length).eq(1);
+        expect(errors[0].message).eq(
+            "`variantsToExclude` names `q`, which is not a variant of this `<section>`. Its 3 variants are named `a`, `b`, `c`. The name is ignored.",
         );
         expect(errors[0].position?.start.line).eq(4);
     });

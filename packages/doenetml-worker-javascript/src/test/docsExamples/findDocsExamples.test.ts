@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
     docsFiles,
@@ -101,15 +103,40 @@ describe("Finding the docs examples @docsExamples", () => {
     });
 
     it("the test files take every example once", () => {
+        // What each test file in this folder loads, read from its source:
+        // each `examplesOfShard(dir, shard, numShards)` it calls, and the
+        // examples outside `reference/` if it filters for them as
+        // `others.test.ts` does. So a test file deleted, or a shard number
+        // changed, leaves examples out or takes some twice.
+        const testFiles = fs
+            .readdirSync(import.meta.dirname)
+            .filter(
+                (file) =>
+                    file.endsWith(".test.ts") &&
+                    file !== "findDocsExamples.test.ts",
+            );
+        const inTestFiles = testFiles.flatMap((file) => {
+            const source = fs.readFileSync(
+                path.join(import.meta.dirname, file),
+                "utf8",
+            );
+            const shards = [
+                ...source.matchAll(
+                    /examplesOfShard\(\s*"([^"]*)",\s*(\d+),\s*(\d+)\s*,?\s*\)/g,
+                ),
+            ].flatMap(([, dir, shard, numShards]) =>
+                examplesOfShard(dir, Number(shard), Number(numShards)),
+            );
+            const others = source.includes('!file.startsWith("reference/")')
+                ? examplesInFiles(
+                      docsFiles().filter(
+                          (file) => !file.startsWith("reference/"),
+                      ),
+                  )
+                : [];
+            return [...shards, ...others].map(exampleName);
+        });
         const all = examplesInFiles(docsFiles()).map(exampleName);
-        const inTestFiles = [
-            ...[1, 2, 3, 4].flatMap((shard) =>
-                examplesOfShard("reference", shard, 4),
-            ),
-            ...examplesInFiles(
-                docsFiles().filter((file) => !file.startsWith("reference/")),
-            ),
-        ].map(exampleName);
 
         expect(all.length).toBeGreaterThan(1000);
         expect([...inTestFiles].sort()).eqls([...all].sort());
