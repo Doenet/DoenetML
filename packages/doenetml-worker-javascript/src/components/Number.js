@@ -1143,8 +1143,9 @@ export default class NumberComponent extends InlineComponent {
 /**
  * Whether a `<number>`'s only child is a boolean, which it reads as `1` or
  * `0` (REF-5) with or without `convertBoolean`: `<number>$b</number>`.
- * Several children are wrapped in a `<math>` (`returnSugarInstructions`),
- * which reads a boolean the same way through its adapter.
+ * Without `convertBoolean`, several children are wrapped in a `<math>`
+ * (`returnSugarInstructions`), which reads a boolean the same way through its
+ * adapter.
  */
 function isSingleBoolean(children, componentInfoObjects) {
     return (

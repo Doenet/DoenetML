@@ -13913,4 +13913,122 @@ describe("Math tag tests @group3", async () => {
         });
         await check(1);
     });
+    // Everything else that takes a math but not a boolean reads a boolean as
+    // `1` or `0` too (REF-5), where each warned `w0107` or `w0106` (#2566):
+    // math operators, a `<function>`, an `<interval>`, a `<matrix>`, math and
+    // number attributes, and a `<mathInput>` bound to the boolean, which
+    // writes `0` or `1` back and refuses anything else
+    it("what takes a math reads a boolean as 1 or 0", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <boolean name="f">false</boolean>
+    <booleanList name="bl">true false true</booleanList>
+    <isInteger name="ii">$b</isInteger>
+    <isNumber name="in">$b</isNumber>
+    <count name="c1">$b $f</count>
+    <count name="c2">$bl</count>
+    <max name="mx">$b $f</max>
+    <mean name="mn">$b $f</mean>
+    <function name="fn">$b x</function>
+    <interval name="iv">($f, $b)</interval>
+    <matrix name="mat"><row>$b $f</row></matrix>
+    <point name="P" x="$b" y="3"/>
+    <vector name="v">($b, $f)</vector>
+    <p name="pseq"><sequence from="$f" to="3"/></p>
+    <mathInput name="mi" bindValueTo="$b"/>
+    <math name="mbl1">$bl[1]</math>
+    <mathInput name="mibl1" bindValueTo="$mbl1"/>
+    <math name="mbl">$bl</math>
+    <mathInput name="mibl" bindValueTo="$mbl"/>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("ii")).value).eq(true);
+        expect((await sv("in")).value).eq(true);
+        expect((await sv("c1")).value.tree).eq(2);
+        expect((await sv("c2")).value.tree).eq(3);
+        expect((await sv("mx")).value.tree).eq(1);
+        expect((await sv("mn")).value.tree).eq(0.5);
+        expect((await sv("fn")).formula.tree).eqls(["*", 1, "x"]);
+        expect((await sv("iv")).value.tree).eqls([
+            "interval",
+            ["tuple", 0, 1],
+            ["tuple", false, false],
+        ]);
+        expect((await sv("mat")).value.tree).eqls([
+            "matrix",
+            ["tuple", 1, 2],
+            ["tuple", ["tuple", 1, 0]],
+        ]);
+        expect((await sv("P")).xs.map((x: any) => x.tree)).eqls([1, 3]);
+        expect((await sv("v")).displacement.map((x: any) => x.tree)).eqls([
+            1, 0,
+        ]);
+        expect((await sv("pseq")).text).eq("0, 1, 2, 3");
+        expect(
+            core.core!.diagnostics.filter((d: any) =>
+                ["doenet-w0106", "doenet-w0107"].includes(d.code),
+            ),
+        ).eqls([]);
+
+        async function check({
+            b,
+            bl,
+            mi,
+        }: {
+            b: boolean;
+            bl: boolean[];
+            mi: number;
+        }) {
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect((await sv("b")).value).eq(b);
+            expect((await sv("bl")).booleans).eqls(bl);
+            expect((await sv("mi")).value.tree).eq(mi);
+            expect((await sv("mbl1")).value.tree).eq(bl[0] ? 1 : 0);
+        }
+
+        // a `<mathInput>` bound to the boolean writes `0` or `1` back
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check({ b: false, bl: [true, false, true], mi: 0 });
+
+        // and refuses anything else, showing the boolean again
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check({ b: false, bl: [true, false, true], mi: 0 });
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check({ b: true, bl: [true, false, true], mi: 1 });
+
+        // an entry of a `<booleanList>` named alone writes back too
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("mibl1"),
+            core,
+        });
+        await check({ b: true, bl: [false, false, true], mi: 1 });
+
+        // the whole list read as maths takes no write
+        await updateMathInputValue({
+            latex: "1,1,1",
+            componentIdx: await resolvePathToNodeIdx("mibl"),
+            core,
+        });
+        await check({ b: true, bl: [false, false, true], mi: 1 });
+    });
 });
