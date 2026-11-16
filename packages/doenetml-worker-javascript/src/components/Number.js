@@ -996,10 +996,6 @@ export default class NumberComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "singleMathChild",
                 },
-                convertBoolean: {
-                    dependencyType: "stateVariable",
-                    variableName: "convertBoolean",
-                },
                 allChildren: {
                     dependencyType: "child",
                     childGroups: [
@@ -1018,10 +1014,10 @@ export default class NumberComponent extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // A boolean read as `1` or `0` (`convertBoolean`) is written
-                // back as `true` or `false` (`value`'s inverse).
+                // A boolean alone, read as `1` or `0` with or without
+                // `convertBoolean` (REF-5), is written back as `true` or
+                // `false` (`value`'s inverse).
                 const singleBooleanChild =
-                    dependencyValues.convertBoolean &&
                     dependencyValues.allChildren.length === 1 &&
                     dependencyValues.booleanChildModifiable.length === 1;
                 if (singleBooleanChild) {

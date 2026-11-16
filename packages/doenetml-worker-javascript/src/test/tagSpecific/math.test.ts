@@ -13811,6 +13811,7 @@ describe("Math tag tests @group3", async () => {
     <number name="nMissing">$missing</number>
     <p name="p"><text name="t">$b</text> $b</p>
     <mathInput name="mi" bindValueTo="$m3"/>
+    <mathInput name="miN" bindValueTo="$n2"/>
     `,
         });
 
@@ -13887,6 +13888,27 @@ describe("Math tag tests @group3", async () => {
         await updateMathInputValue({
             latex: "5",
             componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check(1);
+
+        // so does writing it into a number holding only the boolean,
+        // without `convertBoolean`
+        await updateMathInputValue({
+            latex: "0",
+            componentIdx: await resolvePathToNodeIdx("miN"),
+            core,
+        });
+        await check(0);
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("miN"),
+            core,
+        });
+        await check(0);
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("miN"),
             core,
         });
         await check(1);
