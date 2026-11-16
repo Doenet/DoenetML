@@ -167,4 +167,9 @@ instead of leaving the selection to chance.
 delivered; `variantsToExclude` does the opposite. Both take variant names,
 not indices. Without `variantNames`, the variants are named `a`, `b`, `c`, …,
 so `a c e g i` are the first, third, fifth, seventh and ninth of the ten.
-A name that is not a variant's stops the document from loading.
+Names are compared without case. A name that is not a variant's is ignored,
+with an error, and the other names are used; if `variantsToInclude` names no
+variant at all, every variant is included. With unique variants, the
+extras dropped because there are not enough distinguishable outputs are
+not variants: in the `uniqueVariants` example above, with six variants,
+`g` is not a variant's name.

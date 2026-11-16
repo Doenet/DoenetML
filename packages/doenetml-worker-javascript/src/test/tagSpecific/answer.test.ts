@@ -4190,6 +4190,50 @@ Enter any letter:
             });
         });
 
+        // #2538 item 1: a path through a `<group>`, and the math a `<select>`
+        // holds, are marked as the reference names them, in an award written
+        // out, in one made by `copy`, and in one reached through an `extend`
+        // of the answer or section holding it, whether or not the source
+        // award's references are potential responses. `$n` is in
+        // each comparison and not named, so it is not recorded.
+        it("a path through a group, and the math of a select", async () => {
+            const setup = `
+            <number name="n">3</number>
+            <group name="g"><text>a</text><point name="gp">(1,2)</point></group>
+            <group name="g2" extend="$g" />
+            <select name="s"><option><math>x</math></option></select>`;
+            const math = (submitted: any) => ({
+                atLoad: {
+                    credit: 1,
+                    numResponses: 1,
+                    submitted: [submitted],
+                    types: ["math"],
+                },
+            });
+            for (const a1HasInput of [true, false]) {
+                for (const [when, refs, expected] of [
+                    ["$g.gp.x = 1 and $n = 3", "$g.gp.x", math(1)],
+                    ["$g2.gp.x = 1 and $n = 3", "$g2.gp.x", math(1)],
+                    [
+                        "<math>$g.gp.x + 1</math> = 2 and $n = 3",
+                        "$g.gp.x",
+                        math(1),
+                    ],
+                    ["$s = x and $n = 3", "$s", math("x")],
+                    ["<math>$s</math> = x and $n = 3", "$s", math("x")],
+                    ["<math>$s + 1</math> = x + 1 and $n = 3", "$s", math("x")],
+                ] as const) {
+                    await checkAgainstWrittenOut({
+                        a1HasInput,
+                        setup,
+                        when,
+                        refs,
+                        expected,
+                    });
+                }
+            }
+        });
+
         it("only the named reference, when the source award's references are potential responses", async () => {
             // `a1` has no input, so its references are potential responses.
             await checkAgainstWrittenOut({

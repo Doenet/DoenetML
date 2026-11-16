@@ -25,13 +25,12 @@ export default class VariantControl extends BaseComponent {
 
         attributes.variantsToInclude = {
             createComponentOfType: "textListFromString",
-            description:
-                "Restrict the available variants to this list (by name or index).",
+            description: "Restrict the available variants to these, by name.",
         };
 
         attributes.variantsToExclude = {
             createComponentOfType: "textListFromString",
-            description: "Variants to exclude from those generated.",
+            description: "Variants to exclude from those generated, by name.",
         };
 
         attributes.variantNames = {
