@@ -74,6 +74,7 @@ import {
     buildReaderWritableIndex,
     isPlacementLocation,
     isUnlinkedCopy,
+    placementAttribute,
     writtenAsTrue,
 } from "../readerWritable";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
@@ -552,7 +553,10 @@ export function checkChoiceParametersAtLoad({
     ): Reached | null {
         const type = typeMadeBy(node);
         const lower = property.toLowerCase();
-        if (isPlacementLocation(property) && anchorIsPlaced(node, new Set())) {
+        if (
+            isPlacementLocation(property) &&
+            anchorIsPlaced(node, property, new Set())
+        ) {
             // where a reader drags it
             return { reference, changeable: node };
         }
@@ -900,19 +904,27 @@ export function checkChoiceParametersAtLoad({
     }
 
     /**
-     * Whether a reader drags where `node` is placed (its `anchor`): it is
-     * placed in a graph, or it extends, linked, one whose `anchor` is
-     * (`<number extend="$n"/>` of a `<number>` in a graph), as an extend
-     * shares its source's `anchor`.
+     * Whether a reader drags where `node` is placed (its `anchor`, the
+     * placement location `location`): it is placed in a graph, or it
+     * extends, linked, one whose `anchor` is (`<number extend="$n"/>` of a
+     * `<number>` in a graph) and writes no `anchor` of its own, as such an
+     * extend shares its source's `anchor`.
      */
-    function anchorIsPlaced(node: any, seen: Set<any>): boolean {
+    function anchorIsPlaced(
+        node: any,
+        location: string,
+        seen: Set<any>,
+    ): boolean {
         if (seen.has(node)) {
             return false;
         }
         seen.add(node);
         return (
             isPlaced(node) ||
-            linkedSourcesOf(node).some((source) => anchorIsPlaced(source, seen))
+            (!placementAttribute(node, location) &&
+                linkedSourcesOf(node).some((source) =>
+                    anchorIsPlaced(source, location, seen),
+                ))
         );
     }
 

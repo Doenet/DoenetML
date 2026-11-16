@@ -22,10 +22,12 @@
  *   reader can drag, and what it references, which the drag writes to
  *   through it. A component whose only location is where it is drawn (a
  *   `<number>`, `<math>`, `<text>`, `<label>` or `<image>`: its `anchor`)
- *   is dragged only to place it: the drag writes its `anchor`, and what
- *   the `anchor` written on it references, not its value. It is left out
- *   of the index, and listed in `placed` instead, for a property reference
- *   to its `anchor`;
+ *   is dragged only to place it: the drag writes its `anchor`, not its
+ *   value: what the `anchor` written on it references, or, when it writes
+ *   none, the `anchor` of what it extends, in turn (an extend shares its
+ *   source's `anchor`). It is left out of the index, and it and each
+ *   component on the way are listed in `placed` instead, for a property
+ *   reference to the `anchor`;
  * - a `<spreadsheet>` that is not fixed, whose cells a reader edits: an
  *   edit to a cell holding a reference (`<cell>$a</cell>`) writes to what
  *   it references.
@@ -304,6 +306,20 @@ export function isPlacementLocation(name: string): boolean {
 }
 
 /**
+ * The attribute written on the serialized component `node` for the
+ * placement location `location` (`anchor="$P"`), in any case, if any.
+ */
+export function placementAttribute(node: any, location: string): any {
+    const lower = location.toLowerCase();
+    for (const [name, attribute] of Object.entries(node?.attributes ?? {})) {
+        if (name.toLowerCase() === lower && attribute) {
+            return attribute;
+        }
+    }
+    return undefined;
+}
+
+/**
  * Whether a component of type `componentType` has a value that is a
  * location (a state variable with `isLocation`, other than where it is
  * placed), which its `fixLocation` keeps from being written to: a point, a
@@ -331,6 +347,36 @@ function hasLocation(componentType: string, componentInfoObjects: any) {
     return found;
 }
 
+const classPlacementLocations = new WeakMap<object, string[]>();
+
+/**
+ * The {@link PLACEMENT_LOCATIONS} a component of type `componentType` has
+ * (a `<number>` has an `anchor`, a `<mathList>` an `entryAnchor` too); all
+ * of them for a type not known here.
+ */
+function placementLocationsOf(
+    componentType: string,
+    componentInfoObjects: any,
+): string[] {
+    const componentClass =
+        componentInfoObjects?.allComponentClasses?.[componentType];
+    if (!componentClass) {
+        return [...PLACEMENT_LOCATIONS];
+    }
+    let found = classPlacementLocations.get(componentClass);
+    if (found === undefined) {
+        const definitions =
+            componentClass.returnNormalizedStateVariableDefinitions?.();
+        found = definitions
+            ? [...PLACEMENT_LOCATIONS].filter(
+                  (name) => definitions[name]?.isLocation,
+              )
+            : [...PLACEMENT_LOCATIONS];
+        classPlacementLocations.set(componentClass, found);
+    }
+    return found;
+}
+
 /**
  * The indices of the components of the serialized document `root` that a
  * reader can write to (see the top of this file). `componentInfoObjects`
@@ -341,17 +387,18 @@ export function buildReaderWritableIndex(
     root: any,
     componentInfoObjects?: any,
     /**
-     * Filled, when given, with the indices of the components a reader drags
-     * in a graph only to place them (a `<number>`, a `<math>`), whose drag
-     * writes their `anchor`, not their value, and of what they extend. The
+     * Filled, when given, with the indices of the components whose `anchor`
+     * a reader's drag writes, and not their value: those a reader drags in
+     * a graph only to place them (a `<number>`, a `<math>`), and, when one
+     * writes no `anchor` of its own, what it extends, in turn. The
      * serialized components are marked (`readerPlaced`), as for `writable`,
      * so that what is made from them later is added as it is made.
      */
     placed?: Set<number>,
 ): Set<number> {
     const nodeByIdx = new Map<number, any>();
-    // the indices of what a placed component extends
-    const placedSources: number[] = [];
+    // the components a reader drags in a graph only to place them
+    const draggedToPlace: any[] = [];
     // the serialized components a write stops at, an attribute's component
     // without an index among them
     const fixedNodes = new Set<any>();
@@ -593,34 +640,9 @@ export function buildReaderWritableIndex(
             seeds.push(node.componentIdx);
         }
         if (inGraph && !isFixed && isPlacedOnly(node)) {
-            // dragged only to place it: the drag writes its `anchor`, and
-            // what the `anchor` written on it references, not its value
-            for (const idx of [node.componentIdx, createdIdx]) {
-                if (typeof idx === "number" && idx >= 0) {
-                    placed?.add(idx);
-                }
-            }
-            // what is made from it later (an iteration of a repeat) is
-            // placed as it is made
-            node.readerPlaced = true;
-            if (!isUnlinkedCopy(node)) {
-                // what it extends shares its `anchor`
-                for (const idx of referencesIn(node.extending)) {
-                    placed?.add(idx);
-                    placedSources.push(idx);
-                }
-            }
-            for (const [name, attribute] of Object.entries(
-                node.attributes ?? {},
-            ) as [string, any][]) {
-                if (!isPlacementLocation(name)) {
-                    continue;
-                }
-                if (attribute?.component) {
-                    seeds.push(attribute.component);
-                }
-                referencesIn(attribute?.slots, seeds);
-            }
+            // dragged only to place it: the drag writes its `anchor`, not
+            // its value (`writeAnchor`, once every component is known)
+            draggedToPlace.push(node);
         } else if (inGraph && !isFixed) {
             // dragged, and so is what it references itself (an extend);
             // what its children and attributes reference is reached as
@@ -654,27 +676,83 @@ export function buildReaderWritableIndex(
         }
     }
     walk(root, false, { fixed: false, fixLocation: false });
-    // what a placed component extends, found once every component is
-    // known, is placed in what is made from it later too, and so is what
-    // that extends in turn: the drag writes the `anchor` through each
-    // extend to the one it extends
-    const placedSourcesSeen = new Set<number>();
-    while (placedSources.length > 0) {
-        const idx = placedSources.pop()!;
-        if (placedSourcesSeen.has(idx)) {
-            continue;
+    // A drag of a component placed in a graph writes where it is placed
+    // (each of `PLACEMENT_LOCATIONS` it has), not its value: what the
+    // location written on it references, or, when it writes none, the
+    // location of what it extends, linked, in turn, or, for an unlinked
+    // copy, what the location written on the first source it pastes that
+    // writes one references. Each component whose location the drag writes
+    // is `placed`, and marked, so that what is made from it later (an
+    // iteration of a repeat) is placed as it is made. This is the one
+    // place a drag's write to a location is followed; a reference that
+    // reads the location of an extend of a placed component follows the
+    // extend itself (`anchorIsPlaced` in `choiceParametersAtLoad.ts`, the
+    // shadowed `anchor` at runtime).
+    const anchorWritten = new Map<any, Set<string>>();
+    /** Write what a location attribute (`anchor="$P"`) references. */
+    function writeLocationAttribute(attribute: any) {
+        if (attribute.component) {
+            seeds.push(attribute.component);
         }
-        placedSourcesSeen.add(idx);
-        const source = nodeByIdx.get(idx);
-        if (!source) {
-            continue;
+        referencesIn(attribute.slots, seeds);
+        if (attribute.type === "unresolved") {
+            // on a `_copy` (an extend), what is written is kept unresolved
+            // for the component it makes
+            referencesIn(attribute.children, seeds);
         }
-        source.readerPlaced = true;
-        if (!isUnlinkedCopy(source)) {
-            for (const next of referencesIn(source.extending)) {
-                placed?.add(next);
-                placedSources.push(next);
+    }
+    function writeAnchor(node: any, location: string) {
+        const seen = anchorWritten.get(node) ?? new Set<string>();
+        if (seen.has(location)) {
+            return;
+        }
+        seen.add(location);
+        anchorWritten.set(node, seen);
+        for (const idx of [node.componentIdx, createdIdxOf(node)]) {
+            if (typeof idx === "number" && idx >= 0) {
+                placed?.add(idx);
             }
+        }
+        node.readerPlaced = true;
+        const written = placementAttribute(node, location);
+        if (written) {
+            writeLocationAttribute(written);
+            return;
+        }
+        if (isUnlinkedCopy(node)) {
+            // its source's DoenetML is pasted where it sits: the location
+            // written on the first source in turn that writes one is
+            // pasted, and what it references is written; no source is
+            const pastedFrom = new Set<any>([node]);
+            for (
+                let source = sourceOf(node);
+                source && !pastedFrom.has(source);
+                source = sourceOf(source)
+            ) {
+                pastedFrom.add(source);
+                const pasted = placementAttribute(source, location);
+                if (pasted) {
+                    writeLocationAttribute(pasted);
+                    return;
+                }
+            }
+            return;
+        }
+        for (const idx of referencesIn(node.extending)) {
+            const source = nodeByIdx.get(idx);
+            if (source) {
+                writeAnchor(source, location);
+            } else {
+                placed?.add(idx);
+            }
+        }
+    }
+    for (const node of draggedToPlace) {
+        for (const location of placementLocationsOf(
+            typeMadeBy(node),
+            componentInfoObjects,
+        )) {
+            writeAnchor(node, location);
         }
     }
 

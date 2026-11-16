@@ -211,6 +211,30 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `mean="$n0.anchor"`,
         },
         {
+            tag: "<selectFromSequence to> from a math the anchor of what a number in a graph extends reads, which a reader drags",
+            doenetML: `<math name="q">(3, 0)</math>
+<number name="n0" anchor="$q">1</number>
+<graph><number extend="$n0"/></graph>
+<p name="p">A <selectFromSequence name="s" to="$q"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$q",
+            changeableType: "math",
+            written: `to="$q"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a math the anchor of what a number in a graph copies reads, which a reader drags",
+            doenetML: `<math name="q">(3, 0)</math>
+<number name="n0" anchor="$q">1</number>
+<graph><number copy="$n0"/></graph>
+<p name="p">A <selectFromSequence name="s" to="$q"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$q",
+            changeableType: "math",
+            written: `to="$q"`,
+        },
+        {
             tag: "<selectFromSequence to> from a point shown in a graph by a reference, which a reader drags",
             doenetML: `<point name="P">(3, 4)</point>
 <graph>$P</graph>
@@ -699,6 +723,18 @@ describe("What a choice's parameter may read @group4", () => {
             tag: "a number placed in a graph, which a reader drags only to place it",
             doenetML: `<graph><number name="n">3</number></graph>
 <selectFromSequence name="s" to="$n"/>`,
+        },
+        {
+            tag: "the anchor of what a number placed in a graph extends, when the number writes its own anchor",
+            doenetML: `<number name="n0" anchor="(5, 0)">3</number>
+<graph><number extend="$n0" anchor="(1, 1)"/></graph>
+<selectRandomNumbers name="s" mean="$n0.anchor"/>`,
+        },
+        {
+            tag: "the anchor of an extend of a number placed in a graph, when the extend writes its own anchor",
+            doenetML: `<graph><number name="n">3</number></graph>
+<number name="n3" extend="$n" anchor="(1, 1)"/>
+<selectRandomNumbers name="s" mean="$n3.anchor"/>`,
         },
         {
             tag: "a number a math placed in a graph reads",
