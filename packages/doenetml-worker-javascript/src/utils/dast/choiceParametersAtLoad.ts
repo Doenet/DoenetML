@@ -31,10 +31,21 @@
  * reader writes to (`buildReaderWritableIndex`: what an input's
  * `bindValueTo` names, what a reader drags, an action's target), and
  * anything that reads one of these through a reference, a child or an
- * attribute. DIAG-2's state a reader sets
- * by an action (a hint, a solution or a section opened, a video played) is
- * not checked: a reference to such a component may read what no action
- * changes (`$sec.sectionNumber`), and the pass doesn't tell properties apart.
+ * attribute. DIAG-2's state a reader sets by an action (a hint, a solution
+ * or a section opened, a video played) is not checked.
+ *
+ * A reference to a property reads the component it names whole, as a
+ * reference to the component does, except for the properties a reader
+ * can't change whatever the component holds ({@link reachProperty}):
+ * - a section's `sectionNumber` is decided by where the section is, and
+ *   by the attributes written on it, not by what it holds;
+ * - a graph's properties are decided by its attributes, not by what is in
+ *   it, and its axes (`xMin`, `xMax`, `yMin`, `yMax`, `xScale`, `yScale`)
+ *   by a reader who pans or zooms, unless they are fixed (`fixAxes`, or a
+ *   `fixed` written on the graph or one holding it);
+ * - a component a reader drags in a graph only to place it (a `<number>`,
+ *   a `<math>`, `buildReaderWritableIndex`'s `placed`) has its `anchor`
+ *   changed by the drag, and nothing else.
  *
  * It errs toward allowing, since a false error is worse here than a missed
  * one: a component's label and the attributes that only display or style it
@@ -53,7 +64,11 @@
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
-import { buildReaderWritableIndex } from "../readerWritable";
+import {
+    buildReaderWritableIndex,
+    isPlacementLocation,
+    writtenAsTrue,
+} from "../readerWritable";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
@@ -195,6 +210,19 @@ const READER_ENTERED_TYPES = new Set([
     "orbitalDiagramInput",
 ]);
 
+/**
+ * The properties of a `<graph>` a reader changes by panning or zooming it,
+ * unless its axes are fixed, written in lowercase.
+ */
+const GRAPH_AXIS_PROPERTIES = new Set([
+    "xmin",
+    "xmax",
+    "ymin",
+    "ymax",
+    "xscale",
+    "yscale",
+]);
+
 /** The attributes of a repeat that decide only how many iterations it has. */
 const COUNT_ONLY_ATTRIBUTES = new Set(["to", "length"]);
 
@@ -287,7 +315,14 @@ export function checkChoiceParametersAtLoad({
         return [];
     }
 
-    const writable = buildReaderWritableIndex(document, componentInfoObjects);
+    // what a reader drags in a graph only to place it, which changes its
+    // `anchor` alone
+    const placed = new Set<number>();
+    const writable = buildReaderWritableIndex(
+        document,
+        componentInfoObjects,
+        placed,
+    );
 
     // what each component reaches, once found; `null` for nothing, and
     // while it is being found, for a cycle of references
@@ -420,7 +455,12 @@ export function checkChoiceParametersAtLoad({
             }
             if (typeof ref.nodeIdx === "number") {
                 const named = nodeByIdx.get(ref.nodeIdx);
-                const found = named && reach(named, ref, true);
+                const property = named && propertyNamedBy(named, ref);
+                const found =
+                    named &&
+                    (property
+                        ? reachProperty(named, property, ref)
+                        : reach(named, ref, true));
                 if (found) {
                     return found;
                 }
@@ -452,6 +492,126 @@ export function checkChoiceParametersAtLoad({
             }
         }
         return null;
+    }
+
+    /**
+     * The property of `named` that the reference `ref` to it reads
+     * (`sectionNumber` of `$sec.sectionNumber`), if what follows the name
+     * is one, and not a name inside it.
+     */
+    function propertyNamedBy(named: any, ref: any): string | undefined {
+        const name = ref.unresolvedPath?.[0]?.name;
+        if (typeof name !== "string") {
+            return undefined;
+        }
+        const info = (componentInfoObjects as any).publicStateVariableInfo?.[
+            typeMadeBy(named)
+        ];
+        if (!info) {
+            return undefined;
+        }
+        const lower = name.toLowerCase();
+        return [
+            ...Object.keys(info.stateVariableDescriptions ?? {}),
+            ...Object.keys(info.aliases ?? {}),
+        ].some((property) => property.toLowerCase() === lower)
+            ? name
+            : undefined;
+    }
+
+    /**
+     * What a reader can change that the property `property` of `node`,
+     * named by the reference `reference`, reaches. A property a reader
+     * can't change whatever the component holds reads only what decides
+     * it; any other reads the component whole, as a reference to it does.
+     */
+    function reachProperty(
+        node: any,
+        property: string,
+        reference: any,
+    ): Reached | null {
+        const type = typeMadeBy(node);
+        const lower = property.toLowerCase();
+        if (isPlacementLocation(property) && isPlaced(node)) {
+            // where a reader drags it
+            return { reference, changeable: node };
+        }
+        if (isA(type, "_sectioningComponent") && lower === "sectionnumber") {
+            // decided by where the section is, not by what it holds
+            return reachOwnAttributes(node, reference);
+        }
+        if (isA(type, "graph")) {
+            if (GRAPH_AXIS_PROPERTIES.has(lower) && !axesFixed(node)) {
+                // a reader pans or zooms it
+                return { reference, changeable: node };
+            }
+            // decided by its attributes, not by what is in it
+            return reachOwnAttributes(node, reference);
+        }
+        return reach(node, reference, true);
+    }
+
+    /**
+     * What a reader can change that the attributes written on `node` reach,
+     * other than those that only display or style it.
+     */
+    function reachOwnAttributes(node: any, reference: any): Reached | null {
+        if (
+            writable.has(node.componentIdx) ||
+            (createdIdxOf(node) !== undefined &&
+                writable.has(createdIdxOf(node)!))
+        ) {
+            return { reference, changeable: node };
+        }
+        if (Object.keys(node.extending ?? {}).length > 0) {
+            // an extend's properties are its source's too
+            return reach(node, reference, true);
+        }
+        for (const [name, attribute] of Object.entries(node.attributes ?? {})) {
+            if (
+                name.startsWith("_") ||
+                ATTRIBUTES_NOT_READ.has(name.toLowerCase())
+            ) {
+                continue;
+            }
+            const found = reachAttribute(attribute, reference, true);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Whether a reader can't pan or zoom the graph `node`: `fixAxes`
+     * written as true on it, or `fixed` written as true on it or, when it
+     * doesn't write its own, on the nearest component holding it that does.
+     * An extend of a graph shares its source's axes, and counts as one a
+     * reader can pan.
+     */
+    function axesFixed(node: any): boolean {
+        if (Object.keys(node.extending ?? {}).length > 0) {
+            return false;
+        }
+        if (writtenAsTrue(attributeNamed(node, "fixAxes")?.attribute)) {
+            return true;
+        }
+        for (let holder = node; holder; holder = parentOf.get(holder)) {
+            const fixed = attributeNamed(holder, "fixed");
+            if (fixed) {
+                return writtenAsTrue(fixed.attribute);
+            }
+        }
+        return false;
+    }
+
+    /** Whether a reader drags `node` in a graph only to place it. */
+    function isPlaced(node: any): boolean {
+        const created = createdIdxOf(node);
+        return (
+            placed.has(node.componentIdx) ||
+            (created !== undefined && placed.has(created))
+        );
     }
 
     /** What a reader can change that the attribute `attribute` reaches. */

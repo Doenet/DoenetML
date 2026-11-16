@@ -146,6 +146,80 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `to="$g.xMax"`,
         },
         {
+            tag: "<selectFromSequence to> from a graph's axis, with the axes fixed and the limit from an input",
+            doenetML: `<mathInput name="mi" prefill="7"/>
+<graph name="g" fixAxes xMax="$mi"/>
+<p name="p">A <selectFromSequence name="s" to="$g.xMax"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$g.xMax",
+            changeableType: "mathInput",
+            written: `to="$g.xMax"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a number in a graph that a point there reads, which a reader drags",
+            doenetML: `<graph><number name="n">3</number><point>($n, 2)</point></graph>
+<p name="p">A <selectFromSequence name="s" to="$n"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$n",
+            changeableType: "number",
+            written: `to="$n"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a number the anchor of a text in a graph reads, which a reader drags",
+            doenetML: `<number name="a">3</number>
+<graph><text anchor="($a, 1)">hi</text></graph>
+<p name="p">A <selectFromSequence name="s" to="$a"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$a",
+            changeableType: "number",
+            written: `to="$a"`,
+        },
+        {
+            tag: "<selectRandomNumbers mean> from the anchor of a number in a graph, which a reader drags",
+            doenetML: `<graph><number name="n">3</number></graph>
+<p name="p">A <selectRandomNumbers name="s" mean="$n.anchor"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$n.anchor",
+            changeableType: "number",
+            written: `mean="$n.anchor"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a point shown in a graph by a reference, which a reader drags",
+            doenetML: `<point name="P">(3, 4)</point>
+<graph>$P</graph>
+<p name="p">A <selectFromSequence name="s" to="$P.x"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$P.x",
+            changeableType: "point",
+            written: `to="$P.x"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a section's credit, which an answer in it decides",
+            doenetML: `<section name="sec"><answer><mathInput/><award>1</award></answer></section>
+<p name="p">A <selectFromSequence name="s" to="$sec.creditAchieved"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$sec.creditAchieved",
+            changeableType: "answer",
+            written: `to="$sec.creditAchieved"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a section's number, with an attribute on the section from an input",
+            doenetML: `<booleanInput name="b"/>
+<section name="sec" includeAutoNumber="$b"><mathInput/></section>
+<p name="p">A <selectFromSequence name="s" to="$sec.sectionNumber"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$sec.sectionNumber",
+            changeableType: "booleanInput",
+            written: `to="$sec.sectionNumber"`,
+        },
+        {
             tag: "<selectFromSequence to> from a number an action writes to",
             doenetML: `<number name="k">3</number>
 <updateValue target="$k" newValue="$k+1"/>
@@ -302,6 +376,50 @@ describe("A choice's parameter a reader can change is an error at load @group4",
         }
     });
 
+    it("a property of a choice in error reports nothing more", async () => {
+        // the `_error` in the choice's place has no `value`, but its error
+        // is reported already, at the parameter (DIAG-4, DIAG-5)
+        for (const doenetML of [
+            `<mathInput name="n" prefill="2"/>
+<p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p>
+<p name="q">$s.value $s.selectedIndices</p>`,
+            // written as a tag too
+            `<mathInput name="n" prefill="2"/>
+<p name="p">A <selectFromSequence name="s" to="$n"/> B</p>
+<p name="q">$s.value <number extend="$s.value"/> <number extend="$s"/></p>`,
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const { errors, warnings } = getDiagnosticsByType(core);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0070"]);
+            expect(warnings).eqls([]);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const q = stateVariables[await resolvePathToNodeIdx("q")];
+            expect(q.stateValues.text).not.toMatch(/[uvw\d]/);
+        }
+    });
+
+    it("a selectFromSequence extending a sampler or another kind of choice is an error, and the document loads", async () => {
+        for (const source of [
+            `<selectRandomNumbers name="r"/>`,
+            `<sampleRandomNumbers name="r"/>`,
+            `<samplePrimeNumbers name="r"/>`,
+            `<selectPrimeNumbers name="r"/>`,
+        ]) {
+            const { errors, p } = await load(
+                `<p name="p">${source} <selectFromSequence name="t" extend="$r"/> B</p>`,
+            );
+            // an extend of another type (REF-5)
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0071"]);
+            // the source is shown, and the rest of the document
+            expect(p).toMatch(/^\d.* B$/);
+        }
+    });
+
     it("an extend already in error is that error, not this one", async () => {
         // extending a choice and changing what it chooses from is an extend
         // error (`extendErrorsAtLoad`), reported alone
@@ -452,6 +570,34 @@ describe("What a choice's parameter may read @group4", () => {
 <selectFromSequence name="s" to="10" numToSelect="3" sort="$b"/>`,
         },
         {
+            tag: "a section's number, with an input in the section",
+            doenetML: `<section name="sec"><mathInput/></section>
+<section name="sec2"><mathInput/></section>
+<p><selectRandomNumbers name="s" mean="$sec2.sectionNumber"/></p>`,
+        },
+        {
+            tag: "a number placed in a graph, which a reader drags only to place it",
+            doenetML: `<graph><number name="n">3</number></graph>
+<selectFromSequence name="s" to="$n"/>`,
+        },
+        {
+            tag: "a number a math placed in a graph reads",
+            doenetML: `<number name="a">3</number>
+<graph><math>$a</math><text>$a</text></graph>
+<selectFromSequence name="s" to="$a"/>`,
+        },
+        {
+            tag: "a graph's axis, with the axes fixed",
+            doenetML: `<graph name="g" fixAxes xMax="7"><point/></graph>
+<graph name="h" fixed yMin="-3"><point/></graph>
+<selectRandomNumbers name="s" mean="$g.xMax" standardDeviation="$h.yMin"/>`,
+        },
+        {
+            tag: "a graph's property other than its axes, with a point a reader drags in it",
+            doenetML: `<graph name="g"><point/></graph>
+<selectRandomNumbers name="s" mean="$g.aspectRatio"/>`,
+        },
+        {
             tag: "an input inside an option, which is what is chosen",
             doenetML: `<select name="s"><option><mathInput/></option><option>x</option></select>`,
         },
@@ -463,6 +609,19 @@ describe("What a choice's parameter may read @group4", () => {
             expect(errors).eqls([]);
         });
     }
+
+    it("a section's number, or a fixed graph's axis, is allowed, though not in a form a parameter that decides whether a selection can be made can take", async () => {
+        // SEL-1 allows them; SEL-6 doesn't analyse them (`doenet-e0074`)
+        for (const doenetML of [
+            `<section name="sec"><mathInput/></section>
+<selectFromSequence name="s" to="$sec.sectionNumber"/>`,
+            `<graph name="g" fixAxes xMax="7"/>
+<selectFromSequence name="s" to="$g.xMax"/>`,
+        ]) {
+            const { errors } = await load(doenetML);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0074"]);
+        }
+    });
 });
 
 /**

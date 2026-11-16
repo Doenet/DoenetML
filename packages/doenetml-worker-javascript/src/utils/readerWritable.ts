@@ -20,7 +20,12 @@
  *   `fixLocation` written as true on it, or on an ancestor when it doesn't
  *   write its own: `fixed="false"` in a fixed graph is not fixed), which a
  *   reader can drag, and what it references, which the drag writes to
- *   through it;
+ *   through it. A component whose only location is where it is drawn (a
+ *   `<number>`, `<math>`, `<text>`, `<label>` or `<image>`: its `anchor`)
+ *   is dragged only to place it: the drag writes its `anchor`, and what
+ *   the `anchor` written on it references, not its value. It is left out
+ *   of the index, and listed in `placed` instead, for a property reference
+ *   to its `anchor`;
  * - a `<spreadsheet>` that is not fixed, whose cells a reader edits: an
  *   edit to a cell holding a reference (`<cell>$a</cell>`) writes to what
  *   it references.
@@ -61,8 +66,9 @@
  * an unlinked copy, is added too.
  *
  * It errs toward writable: a `fixed` that comes from a value (`fixed="$b"`)
- * counts as not fixed, and everything in a graph counts as draggable, a
- * label too.
+ * counts as not fixed, everything in a graph that has a location other
+ * than where it is drawn counts as draggable, and a composite or a type not
+ * known here in a graph counts as one that has.
  */
 
 /** The components whose `target` a reader's click writes to. */
@@ -172,7 +178,7 @@ function referencesIn(value: any, found: number[] = []): number[] {
  * `<boolean>` holding `$b`) or the component itself (`fixLocation="$b"`,
  * a `_ref` extending `b`).
  */
-function writtenAsTrue(attribute: any): boolean {
+export function writtenAsTrue(attribute: any): boolean {
     if (!attribute) {
         return false;
     }
@@ -286,6 +292,17 @@ const classHasLocation = new WeakMap<object, boolean>();
 const PLACEMENT_LOCATIONS = new Set(["anchor", "entryAnchor"]);
 
 /**
+ * Whether `name` names one of {@link PLACEMENT_LOCATIONS}, as an attribute or
+ * a property is written, in any case.
+ */
+export function isPlacementLocation(name: string): boolean {
+    const lower = name.toLowerCase();
+    return [...PLACEMENT_LOCATIONS].some(
+        (location) => location.toLowerCase() === lower,
+    );
+}
+
+/**
  * Whether a component of type `componentType` has a value that is a
  * location (a state variable with `isLocation`, other than where it is
  * placed), which its `fixLocation` keeps from being written to: a point, a
@@ -322,6 +339,12 @@ function hasLocation(componentType: string, componentInfoObjects: any) {
 export function buildReaderWritableIndex(
     root: any,
     componentInfoObjects?: any,
+    /**
+     * Filled, when given, with the indices of the components a reader drags
+     * in a graph only to place them (a `<number>`, a `<math>`), whose drag
+     * writes their `anchor`, not their value, and of what they extend.
+     */
+    placed?: Set<number>,
 ): Set<number> {
     const nodeByIdx = new Map<number, any>();
     // the serialized components a write stops at, an attribute's component
@@ -368,6 +391,20 @@ export function buildReaderWritableIndex(
                 componentType: typeMadeBy(node),
                 includeNonStandard: true,
             }),
+        );
+    }
+
+    /**
+     * Whether the serialized component `node` has no location other than
+     * where it is drawn (`hasLocation`), so that a reader drags it in a
+     * graph only to place it. Not a composite, whose replacements may be
+     * dragged (`$P` in a graph), nor a type not known here.
+     */
+    function isPlacedOnly(node: any): boolean {
+        return (
+            Boolean(componentInfoObjects) &&
+            !makesComposite(node) &&
+            !hasLocation(typeMadeBy(node), componentInfoObjects)
         );
     }
 
@@ -550,7 +587,32 @@ export function buildReaderWritableIndex(
             // a fixed one is stopped as the write spreads
             seeds.push(node.componentIdx);
         }
-        if (inGraph && !isFixed) {
+        if (inGraph && !isFixed && isPlacedOnly(node)) {
+            // dragged only to place it: the drag writes its `anchor`, and
+            // what the `anchor` written on it references, not its value
+            for (const idx of [node.componentIdx, createdIdx]) {
+                if (typeof idx === "number" && idx >= 0) {
+                    placed?.add(idx);
+                }
+            }
+            if (!isUnlinkedCopy(node)) {
+                // what it extends shares its `anchor`
+                for (const idx of referencesIn(node.extending)) {
+                    placed?.add(idx);
+                }
+            }
+            for (const [name, attribute] of Object.entries(
+                node.attributes ?? {},
+            ) as [string, any][]) {
+                if (!isPlacementLocation(name)) {
+                    continue;
+                }
+                if (attribute?.component) {
+                    seeds.push(attribute.component);
+                }
+                referencesIn(attribute?.slots, seeds);
+            }
+        } else if (inGraph && !isFixed) {
             // dragged, and so is what it references itself (an extend);
             // what its children and attributes reference is reached as
             // they are walked
