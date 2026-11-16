@@ -86,6 +86,7 @@
     "doenet-e0076": "reorder-items-of-several-types",
     "doenet-e0077": "sort-item-of-several",
     "doenet-e0078": "extend-award-or-choice",
+    "doenet-e0079": "variant-name-unknown",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",

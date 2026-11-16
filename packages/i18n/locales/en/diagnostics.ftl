@@ -122,6 +122,32 @@ variant-index-must-be-number = Variant index { $index } must be a number
 
 variant-index-must-be-integer = Variant index { $index } must be an integer
 
+# Translators: `variantsToInclude` and `variantsToExclude` ($attribute) are
+# attribute names and stay in English. $names lists the names written in
+# $attribute that are not variants, each already in backticks; $namesCount is
+# how many there are. $component is the tag whose variants they are
+# (`document`, `problem`, `section`, …). $numVariants is how many variants it
+# has, and $variants lists their names, each already in backticks, shortened
+# with `…` when there are many. $outcome is `allVariants` when
+# `variantsToInclude` names no variant at all, so every variant is included,
+# and `ignored` otherwise.
+variant-name-unknown = `{ $attribute }` names { $names }, which { $namesCount ->
+        [one] is not a variant
+       *[other] are not variants
+    } of this { $component ->
+        [document] document
+       *[other] `<{ $component }>`
+    }. { $numVariants ->
+        [one] Its one variant is named { $variants }.
+       *[other] Its { $numVariants } variants are named { $variants }.
+    } { $outcome ->
+        [allVariants] As `{ $attribute }` names no variant, every variant is included.
+       *[ignored] { $namesCount ->
+            [one] The name is ignored.
+           *[other] The names are ignored.
+        }
+    }
+
 ## `<sideBySide>`
 
 # $component is `sideBySide` or `sbsGroup`.

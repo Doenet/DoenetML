@@ -356,12 +356,15 @@ export function determineVariantsForSection({
         });
     }
 
-    let specifiedVariantNames: string[] = [];
+    let specifiedVariantNamesAsWritten: string[] = [];
     if (variantControlChild?.attributes.variantNames) {
-        specifiedVariantNames = serializedAttributeComponent(
+        specifiedVariantNamesAsWritten = serializedAttributeComponent(
             variantControlChild.attributes.variantNames,
-        )!.children.map((x: any) => x.toLowerCase());
+        )!.children as string[];
     }
+    let specifiedVariantNames = specifiedVariantNamesAsWritten.map((x) =>
+        x.toLowerCase(),
+    );
 
     if (
         specifiedVariantNames.length !==
@@ -401,53 +404,24 @@ export function determineVariantsForSection({
         variantNames = variantNames.slice(0, numVariantsSpecified);
     }
 
-    let variantsToInclude: string[] | undefined = serializedAttributeComponent(
-        variantControlChild?.attributes.variantsToInclude,
+    // The names written in `variantsToInclude` and `variantsToExclude`. They
+    // are compared with the variant names without case, and are checked
+    // against the variants there are once it is known how many there are,
+    // after unique variants are worked out (`knownVariantNames`).
+    const includeAttribute = variantControlChild?.attributes.variantsToInclude;
+    const variantsToIncludeAsWritten = serializedAttributeComponent(
+        includeAttribute,
     )?.children as string[] | undefined;
-    if (variantsToInclude) {
-        if (variantsToInclude.length === 0) {
-            throw Error(
-                "Cannot specify a blank variantsToInclude attribute of a variantControl",
-            );
-        }
-
-        variantsToInclude = variantsToInclude.map((x) => x.toLowerCase());
-
-        // deduplicate
-        variantsToInclude = [...new Set(variantsToInclude)];
-
-        for (let variant of variantsToInclude) {
-            if (!variantNames.includes(variant)) {
-                throw Error(
-                    `Cannot include variant ${variant} as ${variant} is a not variant name`,
-                );
-            }
-        }
-    }
-
-    let variantsToExclude: string[] =
-        (serializedAttributeComponent(
-            variantControlChild?.attributes.variantsToExclude,
-        )?.children as string[] | undefined) || [];
-    variantsToExclude = variantsToExclude.map((x) => x.toLowerCase());
-
-    for (let variant of variantsToExclude) {
-        if (!variantNames.includes(variant)) {
-            throw Error(
-                `Cannot exclude variant ${variant} as ${variant} is not a variant name`,
-            );
-        }
-    }
-
-    if (variantsToInclude) {
-        variantsToInclude = variantsToInclude.filter(
-            (x: any) => !variantsToExclude.includes(x),
-        );
-    } else {
-        variantsToInclude = [...variantNames].filter(
-            (x) => !variantsToExclude.includes(x),
+    if (variantsToIncludeAsWritten?.length === 0) {
+        throw Error(
+            "Cannot specify a blank variantsToInclude attribute of a variantControl",
         );
     }
+
+    const excludeAttribute = variantControlChild?.attributes.variantsToExclude;
+    const variantsToExcludeAsWritten =
+        (serializedAttributeComponent(excludeAttribute)?.children as
+            string[] | undefined) ?? [];
 
     // determine seeds
     let specifiedSeeds: string[] = [];
@@ -468,13 +442,6 @@ export function determineVariantsForSection({
     } else {
         variantSeeds = variantSeeds.slice(0, numVariantsSpecified);
     }
-
-    let variantsIndicesSeedsToInclude = variantsToInclude.map((variant) => {
-        // Note: this index is for the case where we have unique indices.
-        // After unique options are shuffled, use these indices
-        const index = variantNames.indexOf(variant) + 1;
-        return { variant, index, seed: variantSeeds[index - 1] };
-    });
 
     // determine if use unique variants
     // if unique variants attribute is specified as false or fail to determine number of unique variants
@@ -515,6 +482,53 @@ export function determineVariantsForSection({
             uniqueVariants = true;
         }
     }
+
+    // The variants there are. With unique variants, there are no more of them
+    // than there are unique ones, however many names there are.
+    const availableVariantNames =
+        uniqueVariants && uniqueResult
+            ? variantNames.slice(0, uniqueResult.numVariants)
+            : variantNames;
+    const variantNamesAsWritten = availableVariantNames.map(
+        (name, ind) => specifiedVariantNamesAsWritten[ind] ?? name,
+    );
+
+    // A name that is not a variant is ignored, with an error, and the other
+    // names are used (DIAG-5, DIAG-7). If `variantsToInclude` names no
+    // variant at all, every variant is included.
+    const included = variantsToIncludeAsWritten
+        ? knownVariantNames({
+              attributeName: "variantsToInclude",
+              attribute: includeAttribute,
+              namesAsWritten: variantsToIncludeAsWritten,
+              availableVariantNames,
+              variantNamesAsWritten,
+              serializedComponent,
+              variantControlChild,
+              infoDiagnostics,
+          })
+        : undefined;
+    const excluded = knownVariantNames({
+        attributeName: "variantsToExclude",
+        attribute: excludeAttribute,
+        namesAsWritten: variantsToExcludeAsWritten,
+        availableVariantNames,
+        variantNamesAsWritten,
+        serializedComponent,
+        variantControlChild,
+        infoDiagnostics,
+    });
+
+    const variantsToInclude = (
+        included && included.length > 0 ? included : availableVariantNames
+    ).filter((x) => !excluded.includes(x));
+
+    let variantsIndicesSeedsToInclude = variantsToInclude.map((variant) => {
+        // Note: this index is for the case where we have unique indices.
+        // After unique options are shuffled, use these indices
+        const index = variantNames.indexOf(variant) + 1;
+        return { variant, index, seed: variantSeeds[index - 1] };
+    });
 
     let allPossibleVariants: string[] = [];
     let allPossibleVariantUniqueIndices: number[] = [];
@@ -588,6 +602,104 @@ export function determineVariantsForSection({
         success: true,
         numVariants,
     };
+}
+
+/** How many variant names `doenet-e0079` lists before it shortens the list. */
+const MAX_VARIANT_NAMES_LISTED = 8;
+
+/**
+ * The names among `namesAsWritten` (from `variantsToInclude` or
+ * `variantsToExclude`) that are variants, compared without case, without
+ * repeats, in lowercase.
+ *
+ * The others are left out, and named in one error diagnostic at the
+ * attribute (`doenet-e0079`), each once, as it was first written, pushed to
+ * `infoDiagnostics`. That buffer holds every diagnostic found before Core
+ * exists, not only infos: `CoreWorker` makes it Core's
+ * `preliminaryDiagnostics`. This runs once per sectioning
+ * component, as `determineVariantsForSection` returns early once it has set
+ * `allPossibleVariants`.
+ */
+function knownVariantNames({
+    attributeName,
+    attribute,
+    namesAsWritten,
+    availableVariantNames,
+    variantNamesAsWritten,
+    serializedComponent,
+    variantControlChild,
+    infoDiagnostics,
+}: {
+    attributeName: "variantsToInclude" | "variantsToExclude";
+    attribute: any;
+    namesAsWritten: string[];
+    availableVariantNames: string[];
+    variantNamesAsWritten: string[];
+    serializedComponent: any;
+    variantControlChild: any;
+    infoDiagnostics?: DiagnosticRecord[];
+}): string[] {
+    const known: string[] = [];
+    const unknown: string[] = [];
+    // each unknown name as it was first written
+    const unknownAsWritten: string[] = [];
+    for (const nameAsWritten of namesAsWritten) {
+        const name = nameAsWritten.toLowerCase();
+        if (availableVariantNames.includes(name)) {
+            if (!known.includes(name)) {
+                known.push(name);
+            }
+        } else if (!unknown.includes(name)) {
+            unknown.push(name);
+            unknownAsWritten.push(nameAsWritten);
+        }
+    }
+
+    if (unknownAsWritten.length > 0 && infoDiagnostics) {
+        // A long list of variants is shown by its first few and its last,
+        // as the letters `a` to `cv` of a hundred unnamed variants.
+        const numVariants = variantNamesAsWritten.length;
+        const variantsShown =
+            numVariants <= MAX_VARIANT_NAMES_LISTED
+                ? variantNamesAsWritten.map((name) => `\`${name}\``)
+                : [
+                      ...variantNamesAsWritten
+                          .slice(0, MAX_VARIANT_NAMES_LISTED - 2)
+                          .map((name) => `\`${name}\``),
+                      "…",
+                      `\`${variantNamesAsWritten[numVariants - 1]}\``,
+                  ];
+        const allUnknown =
+            attributeName === "variantsToInclude" && known.length === 0;
+        const component = attribute?.component;
+        infoDiagnostics.push(
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0079",
+                args: {
+                    attribute: attributeName,
+                    names: {
+                        list: unknownAsWritten.map((name) => `\`${name}\``),
+                        type: "conjunction",
+                    },
+                    component: serializedComponent.componentType,
+                    numVariants,
+                    variants: { list: variantsShown, type: "unit" },
+                    outcome: allUnknown ? "allVariants" : "ignored",
+                },
+                position:
+                    component?.position ??
+                    attribute?.position ??
+                    variantControlChild?.position,
+                sourceDoc:
+                    component?.sourceDoc ??
+                    attribute?.sourceDoc ??
+                    variantControlChild?.sourceDoc,
+            }),
+        );
+    }
+
+    return known;
 }
 
 function indexToLowercaseLetters(index: number) {

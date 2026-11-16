@@ -246,7 +246,7 @@ reference in the tag: `<math>$cc</math>{:dn}`. To use one of several
 components, index what a `<repeat>`, a selector or a `<collect>` makes, such as
 `$r[1]`, or give the one you want a name and refer to it by that name.
 
-```doenet-editor-horiz
+```doenet-editor-horiz expect-error
 <booleanInput name="b"><label>Show a point</label></booleanInput>
 <conditionalContent name="cc">
   <case condition="$b"><point>(1,2)</point></case>
