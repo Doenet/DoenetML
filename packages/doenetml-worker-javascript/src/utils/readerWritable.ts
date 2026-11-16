@@ -27,7 +27,9 @@
  *   or, when it writes none, the `anchor` of what it extends, in turn (an
  *   extend shares its source's `anchor`). It is left out of the index, and
  *   it and each component on the way are listed in `placed` instead, for a
- *   property reference to the `anchor`;
+ *   property reference to the `anchor`. What it holds (`$b` in
+ *   `<math>$b</math>`) is drawn inside it, and is not dragged, unless it is
+ *   a list whose entries are placed as their sources (`<mathList>`);
  * - a `<spreadsheet>` that is not fixed, whose cells a reader edits: an
  *   edit to a cell holding a reference (`<cell>$a</cell>`) writes to what
  *   it references.
@@ -639,6 +641,19 @@ export function buildReaderWritableIndex(
             // a fixed one is stopped as the write spreads
             seeds.push(node.componentIdx);
         }
+        // what a component drawn where it is placed holds is drawn inside
+        // it, not in the graph: a drag moves the component, and nothing
+        // under it (`$b` in `<math>$b</math>`, a `<number>` in a `<text>`),
+        // except the entries of a list placed as its entries' sources
+        const drawsWhatItHolds =
+            inGraph &&
+            isPlacedOnly(node) &&
+            placementLocationsOf(
+                typeMadeBy(node),
+                componentInfoObjects,
+            ).includes("anchor") &&
+            !componentInfoObjects?.allComponentClasses?.[typeMadeBy(node)]
+                ?.listEntriesAnchoredBySources;
         if (inGraph && !isFixed && isPlacedOnly(node)) {
             // dragged only to place it: the drag writes its `anchor`, not
             // its value (`writeAnchor`, once every component is known)
@@ -669,7 +684,7 @@ export function buildReaderWritableIndex(
         for (const under of componentsUnder(node)) {
             walk(
                 under,
-                inGraph || isGraph,
+                (inGraph && !drawsWhatItHolds) || isGraph,
                 own,
                 childrenInSpreadsheet && children.has(under),
             );

@@ -775,6 +775,13 @@ describe("What a choice's parameter may read @group4", () => {
 <selectFromSequence name="s" to="$a"/>`,
         },
         {
+            tag: "a boolean a math placed in a graph reads, and a number in a text placed there",
+            doenetML: `<boolean name="b">true</boolean>
+<graph><math>$b</math><text>x is <number name="inner" anchor="(5,0)">3</number></text></graph>
+<selectRandomNumbers name="s" mean="$b"/>
+<selectRandomNumbers name="s2" mean="$inner.anchor"/>`,
+        },
+        {
             tag: "a graph's axis, with the axes fixed",
             doenetML: `<graph name="g" fixAxes xMax="7"><point/></graph>
 <graph name="h" fixed yMin="-3"><point/></graph>

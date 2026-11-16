@@ -285,6 +285,13 @@ describe("What a reader writes to can change", () => {
 <graph fixed><circle radius="1" through="(0,0) $m"/></graph></repeat>`,
         ],
         [
+            "a number a reader drags in a graph only to place it, reading the value of an iteration of a repeat",
+            "doenet-w0031",
+            "warning",
+            `<repeat name="r" for="1 2" valueName="v"><graph><number name="n" anchor="(5,0)">$v</number></graph></repeat>
+<graph fixed><circle radius="1" through="(0,0) ($r[2].n,1)"/></graph>`,
+        ],
+        [
             "a math the anchor of what a number in a graph extends reads",
             "doenet-w0031",
             "info",
