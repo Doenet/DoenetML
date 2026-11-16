@@ -2276,6 +2276,8 @@ describe("Number tag tests @group3", async () => {
         ).eqls(NaN);
     });
 
+    // A boolean is `1` or `0` as a number (REF-5), with or without
+    // `convertBoolean` (#2566); `convertBoolean` reads the content as logic
     it("convertBoolean", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -2300,16 +2302,16 @@ describe("Number tag tests @group3", async () => {
         ).eq(0);
         expect(
             stateVariables[await resolvePathToNodeIdx("n3")].stateValues.value,
-        ).eqls(NaN);
+        ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("n4")].stateValues.value,
-        ).eqls(NaN);
+        ).eq(0);
         expect(
             stateVariables[await resolvePathToNodeIdx("n5")].stateValues.value,
-        ).eqls(NaN);
+        ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("n6")].stateValues.value,
-        ).eqls(NaN);
+        ).eq(0);
     });
 
     it("a number with convertBoolean of one boolean writes 1 or 0 back as true or false", async () => {

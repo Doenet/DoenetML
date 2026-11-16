@@ -1102,14 +1102,18 @@ describe("Content-transparent composites in typed containers", () => {
     }
 
     it("Still rejects a composite with a fixed replacement type in the wrong container", async () => {
-        // `<booleanList>` expands to `boolean`, which `<math>` doesn't take.
-        // Widening the transparent composites must leave these checks intact.
-        const source = `<math><booleanList>true false</booleanList></math>`;
+        // `<booleanList>` expands to `boolean`, which `<constrainTo>` doesn't
+        // take, though it takes `<mathList>` and `<pointList>`. Widening the
+        // transparent composites must leave these checks intact. (`<math>`
+        // takes a `<booleanList>` now: a boolean is `1` or `0` as a math,
+        // REF-5, so `<math><booleanList>true false</booleanList></math>` is
+        // `1, 0`.)
+        const source = `<graph><point name="P">(1,2)<constrainTo><booleanList>true false</booleanList></constrainTo></point></graph>`;
         const ac = new AutoCompleter(source, doenetSchema.elements);
         const messages = (await ac.getSchemaViolations()).map((d) => d.message);
-        expect(messages).toContain(
-            "Element `<booleanList>` is not allowed inside of `<math>`.",
-        );
+        expect(messages).toEqual([
+            "Element `<booleanList>` is not allowed inside of `<constrainTo>`.",
+        ]);
     });
 
     it("Rejects <split> in a graphical container now that it expands to `text`", async () => {
