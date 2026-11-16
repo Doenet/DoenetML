@@ -2419,8 +2419,8 @@ describe("Answer tag tests @group4", async () => {
 Enter values that sum to <m>3x</m>:
 <mathInput name="mi1" /> <mathInput name="mi2"/>
 <answer name="answer1">
-    <award extend="$aw1" />
-    <award extend="$aw2" />
+    <award copy="$aw1" />
+    <award copy="$aw2" />
 </answer>
   `;
 
@@ -3947,24 +3947,29 @@ Enter any letter:
         });
     });
 
-    // An award made by `extend` or `copy` records the references its
+    // An award made by `copy`, or reached through an `extend` of the answer
+    // or section holding it, records the references its
     // `referencesAreResponses` names as the same award written out in full
     // does, from load and after an update, whatever kind of reference each
     // is in the source award: a value reference, a copy made at build time
     // or at run time, a reference to a whole component read through its
     // adapter (`$P` in a comparison), or a number read inside a `<math>`.
-    describe("referencesAreResponses of an award made by extend or copy", () => {
+    // An award can't itself be extended (D42).
+    describe("referencesAreResponses of an award made by copy or reached through an extend", () => {
         async function recordedResponses({
             doenetML,
             update,
+            answer = "a2",
         }: {
             doenetML: string;
             update?: { name: string; latex: string };
+            answer?: string;
         }) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
             });
-            const a2 = await resolvePathToNodeIdx("a2");
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            const a2 = await resolvePathToNodeIdx(answer);
 
             async function submitAndRead() {
                 await submitAnswer({ componentIdx: a2, core });
@@ -4001,7 +4006,8 @@ Enter any letter:
         }
 
         /**
-         * Check that `<award extend="$aw">` and `<award copy="$aw">` record
+         * Check that `<award copy="$aw">`, and an award reached through an
+         * `extend` of its `<answer>` or of a `<section>` holding it, record
          * what `<award><when>{when}</when></award>`, written out in an answer
          * of its own, records (`expected`), with `refs` as their
          * `referencesAreResponses`.
@@ -4031,13 +4037,25 @@ Enter any letter:
                 update,
             });
             expect(writtenOut).eqls(expected);
-            for (const how of ["extend", "copy"]) {
-                const made = await recordedResponses({
-                    doenetML: `${setup}${a1}<answer name="a2"><award ${how}="$aw" referencesAreResponses="${refs}" /></answer>`,
-                    update,
-                });
-                expect(made, how).eqls(expected);
-            }
+            const copied = await recordedResponses({
+                doenetML: `${setup}${a1}<answer name="a2"><award copy="$aw" referencesAreResponses="${refs}" /></answer>`,
+                update,
+            });
+            expect(copied, "copy").eqls(expected);
+
+            // The award in an extend of what holds it is a shadow of the
+            // award written out.
+            const answerExtended = await recordedResponses({
+                doenetML: `${setup}${a1}<setup><answer name="a2s"><award referencesAreResponses="${refs}"><when>${when}</when></award></answer></setup><answer name="a2" extend="$a2s" />`,
+                update,
+            });
+            expect(answerExtended, "answer extend").eqls(expected);
+            const sectionExtended = await recordedResponses({
+                doenetML: `${setup}${a1}<setup><section name="sec"><answer name="a2"><award referencesAreResponses="${refs}"><when>${when}</when></award></answer></section></setup><section name="sec2" extend="$sec" />`,
+                update,
+                answer: "sec2.a2",
+            });
+            expect(sectionExtended, "section extend").eqls(expected);
         }
 
         const definitions = `
@@ -5899,7 +5917,7 @@ Enter any letter:
         const doenetML = `
 <answer name="an">
     <award name="aw">1.1</award>
-    <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
+    <award copy="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
   `;
 
@@ -5920,7 +5938,7 @@ Enter any letter:
 <answer name="an">
     <mathInput name="mi" />
     <award name="aw"><when>$mi=1.1</when></award>
-    <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
+    <award copy="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
   `;
 

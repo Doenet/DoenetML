@@ -403,8 +403,8 @@ describe("Feedback tag tests @group1", async () => {
     </feedback>
     <p><answer name="ans2">
         <mathInput name="mi2" />
-        <award extend="$xy" name="xy2" credit="0.5" />
-        <award extend="$x" name="x2" credit="1"/>
+        <award copy="$xy" name="xy2" credit="0.5" />
+        <award copy="$x" name="x2" credit="1"/>
     </answer></p>
     <feedback name="f3" condition="$xy2">
         <p>You got award 3.</p>
@@ -771,10 +771,10 @@ describe("Feedback tag tests @group1", async () => {
 
   <p><answer name="ans2">
     <choiceInput name="ci2">
-      <choice extend="$dog1" name="dog2" credit="0.1"/>
+      <choice copy="$dog1" name="dog2" credit="0.1"/>
       <shuffle>
-        <choice extend="$cow1" name="cow2" />
-        <choice extend="$cat1" name="cat2" credit="1" />
+        <choice copy="$cow1" name="cow2" />
+        <choice copy="$cat1" name="cat2" credit="1" />
       </shuffle>
     </choiceInput>
   </answer></p>

@@ -1956,9 +1956,9 @@ describe("Unique variant tests @group1", async () => {
     <choice name="green">green</choice>
 
     <choiceInput name="ci" shuffleOrder>
-      <choice extend="$red" />
-      <choice extend="$blue" />
-      <choice extend="$green" />
+      <choice copy="$red" />
+      <choice copy="$blue" />
+      <choice copy="$green" />
     </choiceInput>
     `;
 
