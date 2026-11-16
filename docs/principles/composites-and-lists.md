@@ -175,20 +175,36 @@ Whether a tag is built as a composite or a list component never changes which ki
   index (`$c[1].numItems`). A collection's attributes are not properties, so adding one never
   shadows the items' properties.
 
-**Known violations** (#2523, **[probe]** on `main`):
-- the count is `numComponents`, and only on lists and the list form of a collect, sort or shuffle
-  (`$cp.numComponents` is `2`; `$cpp`, `$sq`, `$rp`, `$sel`, `$cc` give `w0104`);
-- a collect or sort built as a list inherits that list's aliases, which then fail
-  (`$cp.numPoints`, #2271);
-- a name after a collection names nothing (`$rmix.P`) or is ambiguous (`$s.P.x`, `w0105`), so
-  #2547's suggestions name the first item (`$r[1].P.x`) until it does;
-- an item lacking a property is dropped silently for a repeat, list, collect, sort or shuffle
-  (`$rmix.x` over a point and a text is `1, 2`); for a select or conditional, **done by #2547**:
-  each item lacking it gives its own blank, with **`doenet-w0192`** at load (`$s.x` of a math and a
-  text pick is `x, ＿`), in every parent (`(1, ＿) + 1` in a `<math>`);
-- a collection's own settings (`$s.fixed`, `$r.fixed`) still pass into each item;
-- `<point extend="$s.x"/>` of a property of several items is `(0, 0)` with no diagnostic, and
-  differs between live and a reload after a repeat goes to 0 (#2548).
+**Done by #2565** (closing #2523 and #2271):
+- `numItems` is on every collection, in both builds (`W/utils/numItems.ts`), and wins over an
+  item's property of that name.
+- A name after a collection is each item's: `$rmix.P`, `$rmix.P.x`, `$s.P.x`, `$c.P` of a collect
+  holding `P` more than once. After a select of several it follows the every-option rule at load.
+- An item lacking a property gives a blank with `w0192` at load, for repeats too (`$rmix.x` over
+  a point and a text is `1, ＿, 2`).
+- A collection's settings are its own (`$s.fixed`, `$r.fixed`).
+- A collection's attributes are not properties (`attributesAreProperties = false`): `$c.maxNumber`
+  of a collect is each item's. A collect, sort or shuffle built as a list no longer inherits that
+  list's aliases (`$cp.numPoints` names nothing).
+- A tag of a property after a collection of several is `e0064`, like a tag of the collection
+  (`<point extend="$s.x"/>` was `(0, 0)`).
+
+**Kept by #2565, for a decision (D41):**
+- the older count names on authored lists (`numComponents`, `numPoints`, …);
+- attributes that a reference page documents as properties: an authored list's `maxNumber`,
+  `unordered` and `mergeMathLists`; `<tally>`'s `categories`; a sampler's distribution (`mean`,
+  `variance`, …).
+
+**Known violations** (#2569):
+- a name each item lacks shows nothing, with no warning (`$r.P` with `P` only in a nested
+  repeat, `$r.P.nope`);
+- `$c.P` of a collect holding `P` once names that one alone, and when the collect's count
+  follows an input it latches onto one item live (a reload gives every item);
+- `<collect fixed|disabled|hide>` passes these to the collected copies, so they aren't the
+  collect's own;
+- a collection's own property spelled in another case, through a wrapper (`$g.numitems`), isn't
+  the collection's;
+- a name after a collect differs between the builds (COMP-4).
 
 ### COLL-3: a wrapper stands for its one component; with several, it is only a container (Tier 2; D41)
 A wrapper is a `<group>`, or an item a repeat, select or conditional makes: an iteration, a pick
@@ -209,12 +225,16 @@ the author wrote is a warning; when every option or case holds several, it is `w
 wrapper's own settings are its own: `$g.fixed` of a group of several is the group's (it was each
 child's run together).
 
-**Known violations** (#2548): `<group name="g">$r</group>` then `$g.x` shows its items with
-no separator (`＿＿`, where `$r.x` is `＿, ＿`); a repeat template holding several is reported only
-once an iteration is made; `$s.x` of options holding references (`<option>$m</option>`) names
-nothing with `w0104`; a property some iterations lack through a `<conditionalContent>` in the
-template leaves them out silently; a reference whose one item goes away keeps its value in a
-`<text>`, a `<math>`, an attribute or `bindValueTo` (a `<p>` and a reload show nothing).
+**Done by #2565** (#2548 items 1–5 and 7):
+- `<group name="g">$r</group>` then `$g.x` is `$r.x`, with commas;
+- a repeat whose template holds several gives `w0193` at load, also with 0 iterations;
+- an `<option>` holding only a reference counts as what it names;
+- a property some iterations lack through a `<conditionalContent>` gives a blank with `w0192`;
+- `$r[1].x` at 0 iterations gives `w0181` live as after a reload.
+
+**Known violation** (#2569, from #2548 item 6): a reference whose one item goes away keeps its
+value in a `<text>`, a `<math>`, an attribute or `bindValueTo`, where a `<p>` and a reload show
+nothing.
 
 ### COLL-4: `<sort>` and `<shuffle>` take one type, decided at load (Tier 2; D41)
 - A child that is a list or a collection is flattened into its items, so several lists sort
@@ -225,9 +245,32 @@ template leaves them out silently; a reference whose one item goes away keeps it
 - Items of more than one type (a number and a text; a math and a group of several) are an error
   at load. Integer, number and math count as one type (D44).
 
-**Known violations** (#2523): `<sort><number>3</number><text>a</text></sort>` sorts across
-types (`3, a`); a `<shuffle>` of three groups of two maths flattens them and splits the pairs
-(`4, 1, 5, 6, 2, 3`).
+**Done by #2565** (`W/utils/dast/reorderedItemsAtLoad.ts`), for `<sortIndices>` too:
+- items of more than one type are **`e0076`**, and a `<sort>` of a wrapper of several is
+  **`e0077`**, which suggests a `<collect>` or the name to sort by (`<sort>$r.n</sort>`). The sort
+  or shuffle shows one `_error`;
+- a `<shuffle>` moves a wrapper of several whole (`5 6, 1 2, 3 4`). This changes the variants of
+  documents that shuffle groups (accepted, D17);
+- blanks are kept and placed last (`<sort>$nothing 3 1</sort>` is `1, 3, ＿`; VAL-5);
+- text beside components is read as their type, where it reads as that type
+  (`<sort><math>d</math> a <math>b</math></sort>` is `a, b, d`).
+
+**How #2565 decides "one type":** by what a sort compares (`extractComparableValue`): number
+and math together, text, boolean, point, vector, and every component with no value to compare
+(`<p>`, `<feedback>`, `<atom>`) as one class. So points and vectors are now two types, an
+`<atom>` and a `<p>` are one, and an `<atom>` and a `<point>` are two. Whether that is the right
+meaning of a type is the D46 proposal (open).
+
+**Known violations** (#2569):
+- `<sort><p>b</p><p>a</p></sort>` shows nothing, silently;
+- not checked at load: a `copy` with another `type`, a wrapper of several the DoenetML doesn't
+  reveal, and items whose type isn't known at load (a `valueName`, until D44 and D45);
+- text beside a reference isn't read as its type: `<sort>$A (0,1)</sort>` with `A` a point is
+  `e0076`, where a written `<point>` works (TYPE-1 types `$A` at load);
+- `e0077`'s suggested `<collect>` names one tag, so for a group of a `<number>` and a `<math>`
+  it collects only some;
+- `<sort sortByProp="atomicNumber">$g</sort>` of a `<group asList>` of atoms is now `e0077`.
+  The fix is `<collect componentType="atom" from="$g"/>`; D46 proposes a `<list>` tag.
 
 ### COLL-5: a repeat's `for` holds one type, decided at load (Tier 2; D44)
 - **Items:** as in COLL-4. Literal text is cut by VAL-12, a list or collection is flattened, a

@@ -2517,7 +2517,8 @@ operand as not true. Comparisons stay false (`＿ = 1`), since a blank never equ
 ## D41. One thing, many things, and wrappers: what an index and a property reach (decided, Tier 1)
 
 **Decided** (November 2026). The principles are COLL-1 to COLL-4 in
-[composites-and-lists.md](composites-and-lists.md). Implementation: #2523.
+[composites-and-lists.md](composites-and-lists.md). **Implemented by #2565** (closing #2523);
+its leftovers are #2569.
 
 **Why.** What an index or a property did after a tag depended on how the current core happened
 to build it, not on anything an author would think about. On `main` (**[probe]**):
@@ -2587,11 +2588,11 @@ names nothing (D27 revised, #2518).
    - a wrapper with one component stands for it, and is sorted or shuffled as that component.
 
    A mix (a number and a text, or a math and a group of several) is an error at load.
-5. **`<functionIterates>` is a collection,** so it should render its iterates as a list, as
-   other collections do. Today it renders nothing.
+5. **`<functionIterates>` is a collection,** so it renders its iterates as a list, as other
+   collections do (a list component since #2565; it rendered nothing).
 6. **`<solveEquations>` is one thing.** It is not a value with entries, so an index after it
-   names nothing (`w0180`); the solutions are `$s.solutions[1]`. Today `$s[1]` is the first
-   solution (`variableForIndexAsProp`).
+   names nothing; the solutions are `$s.solutions[1]`. #2565 made `$s[1]` `＿` with `w0182`,
+   which suggests `$s.solutions[1]` (DIAG-3), rather than `w0180`.
 
 ### Open
 
@@ -2599,7 +2600,16 @@ names nothing (D27 revised, #2518).
   `numPoints`, `numVectors`, `numValues` and `numIntervals` are aliases on some. Keep them as
   aliases of `numItems` on those tags only, or retire them (the converter can rewrite them, since
   it knows the referent is a list). Recommendation: retire, so every collection has the same
-  set.
+  set. #2565 kept them.
+- **Attributes a reference page documents as properties.** #2565 made a collection's attributes
+  not properties, but kept these because a reference page reads them: an authored list's
+  `maxNumber`, `unordered` and `mergeMathLists`; `<tally>`'s `categories`; a sampler's
+  distribution (`type`, `from`, `to`, `mean`, `variance`, …, mostly computed, such as the
+  expected mean); `<sampleMultivariateRandomNumber>`'s `means` and `variances`. Recommendation:
+  keep the ones that describe the collection as a whole (`categories`, the distribution's
+  `mean` and `variance`), as declared own properties of that tag, and retire the echoes of an
+  attribute as written (`maxNumber`, `unordered`, `mergeMathLists`), as for the count's older
+  names. Either way, an own property must not share a name with a property its items have.
 - **`$M.x` of a matrix** gives the whole matrix. As one thing, a matrix's `x` should be what a
   math's `x` is, or name nothing.
 - **`<extrema>`** is not an author tag (`excludeFromSchema`, its `<maxima>`/`<minima>` are commented

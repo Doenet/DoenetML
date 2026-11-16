@@ -278,8 +278,11 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   - an entry of `_repeatValueList` isn't made missing: `<repeatForSequence …><number>$l[$i] +
     1</number></repeatForSequence>` shows `NaN` past the end in its list form and `＿` as a
     composite (#2544);
-  - a `<sort>` drops a child reference that names nothing (`<sort>$l[5] 3 1</sort>` is `1, 3`), and
-    `<ray through="(1,2) $nothing"/>` isn't missing (#2525, PR 14);
+  - **fixed by #2565** (closing #2525): a `<sort>` keeps a child reference that names nothing,
+    placed last (`<sort>$l[5] 3 1</sort>` is `1, 3, ＿`), and a `<ray>`, a `<circle>`'s,
+    `<regularPolygon>`'s or `<rectangle>`'s center and a `<parabola>`'s vertex that is a reference
+    naming nothing make the shape missing. Left (#2569): `<ray through="(1,2) $nothing"/>`, two
+    things in one point, isn't missing;
   - a tag of a reference past the end isn't missing: `<point>$pl[$i]</point>` is `(＿, 0)`. Making
     a point missing from its `coords` content creates a real cycle for a point and a vector
     defined from each other (#2544).
@@ -376,8 +379,7 @@ an error on a tag, which D37 reversed (#2458). Examples: `$n.nonexistent`,
    **It warns, decided at load, if any component the composite can hold lacks the property**,
    and each component that lacks it contributes a blank `＿` (decided, D40; #2452). A property
    none has is `w0104`, as before. **Done by #2547** for a select and a conditional whose options
-   or cases each hold one component (`doenet-w0192`); repeats, lists, collect, sort and shuffle
-   are #2523.
+   or cases each hold one component (`doenet-w0192`), and by #2565 for repeats.
 
 Decided with D22 (#2434 item 1). **Done by #2451** (closing #2450), including after names
 (`$x.nonexistent`) and after an index (`$s[1].nonexistent`, `$r[1].nonexistent`). On a tag it
