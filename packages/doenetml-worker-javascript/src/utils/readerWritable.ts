@@ -172,7 +172,7 @@ function referencesIn(value: any, found: number[] = []): number[] {
  * `<boolean>` holding `$b`) or the component itself (`fixLocation="$b"`,
  * a `_ref` extending `b`).
  */
-function writtenAsTrue(attribute: any): boolean {
+export function writtenAsTrue(attribute: any): boolean {
     if (!attribute) {
         return false;
     }
@@ -695,7 +695,7 @@ function ownContext(
 }
 
 /** Whether the serialized component `node` is an unlinked copy. */
-function isUnlinkedCopy(node: any): boolean {
+export function isUnlinkedCopy(node: any): boolean {
     return (
         node.componentType === "_copy" &&
         node.attributes?._link?.primitive?.value === false

@@ -831,4 +831,25 @@ $p1`;
             `<function name="f" blink="true">x^2</function>`,
         ]);
     });
+
+    it("a property of a component in error reports nothing more, though it has no such property", async () => {
+        // the component's own error is the one reported (DIAG-5), not a
+        // `doenet-w0104` for the property the `_error` in its place lacks
+        for (const [doenetML, code] of [
+            [`<foo name="x"/><p>$x.bar</p>`, "doenet-e0002"],
+            [`<foo name="x"/><p><number extend="$x.bar"/></p>`, "doenet-e0002"],
+            [
+                `<math name="a">$b</math><math name="b">$a</math><p>$a.bogus</p>`,
+                "doenet-e0005",
+            ],
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+            const { errors, warnings } = getDiagnosticsByType(core);
+            expect(warnings, doenetML).eqls([]);
+            expect([...new Set(errors.map((e) => e.code))], doenetML).eqls([
+                code,
+            ]);
+        }
+    });
 });

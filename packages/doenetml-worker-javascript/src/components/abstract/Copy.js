@@ -7391,7 +7391,10 @@ async function missingPropertyError({
     }
     const extendedComponent = await component.stateValues.extendedComponent;
     const sourceComponent = components[extendedComponent?.componentIdx];
-    if (!sourceComponent) {
+    if (!sourceComponent || sourceComponent.componentType === "_error") {
+        // A component in error has no properties, and its error is reported
+        // already, where it is (DIAG-4, DIAG-5): `$s.value` of a `<select>`
+        // in error reports nothing more.
         return undefined;
     }
     if (
@@ -7743,6 +7746,10 @@ async function reportMissingProperty({
     const propName = (await component.stateValues.unresolvedPath)?.[0]?.name;
     if (
         sourceComponent &&
+        // a component in error has no properties, and its error is reported
+        // already, where it is (DIAG-4, DIAG-5): `$s.value` of a `<select>`
+        // in error reports nothing more
+        sourceComponent.componentType !== "_error" &&
         propName &&
         !isNumItemsOfReorderError(sourceComponent, propName)
     ) {
