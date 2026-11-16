@@ -514,15 +514,15 @@ describe("A collection's own properties @group4", () => {
 <collect name="c" from="$g" componentType="point" maxNumber="5"/>
 <collect name="cm" from="$ml" componentType="math" maxNumber="5"/>
 <mathList name="ml">a b</mathList>
-<sort name="s" sortVectorsBy="angle" sortByComponent="1">$A (0,1)</sort>
+<sort name="s" sortVectorsBy="angle" sortByComponent="1">$A <point>(0,1)</point></sort>
 <shuffle name="sh">$A <point>(0,1)</point></shuffle>
 <select name="sel" numToSelect="2" withReplacement><option><math>1</math></option><option><math>2</math></option></select>
 <functionIterates name="fi" function="2x" initialValue="1" numIterates="2" forceSymbolic/>
 <selectFromSequence name="sfs" from="1" to="10" numToSelect="2" sort withReplacement/>
 <searchSorted name="ss" target="2" side="right">1 2 3</searchSorted>
-<binCounts name="bc" binEdges="0 2 4" closed="left">1 3</binCounts>
+<binCounts name="bc" bins="0 2 4" closed="left">1 3</binCounts>
 <cumulativeSum name="cs" forceNumeric>1 2</cumulativeSum>
-<sortIndices name="si" sortVectorsBy="angle">$A (0,1)</sortIndices>
+<sortIndices name="si" sortVectorsBy="angle">$A <point>(0,1)</point></sortIndices>
 <p name="p1">[$c.maxNumber][$cm.maxNumber][$s.sortVectorsBy][$s.sortByComponent]</p>
 <p name="p2">[$sel.numToSelect][$sel.withReplacement][$fi.numIterates][$fi.forceSymbolic]</p>
 <p name="p3">[$sfs.sort][$sfs.withReplacement][$sfs.numToSelect][$ss.side][$bc.closed][$cs.forceNumeric][$si.sortVectorsBy]</p>
@@ -538,6 +538,11 @@ describe("A collection's own properties @group4", () => {
         });
         expect(composites.texts).toEqual(lists.texts);
         expect(composites.diagnostics).toEqual(lists.diagnostics);
+        // No collection is in error: a property of a component in error
+        // reports nothing more (DIAG-5), so it would not test this.
+        expect(lists.diagnostics.filter((d) => d.startsWith("error"))).toEqual(
+            [],
+        );
         // Each names nothing an item has (`doenet-w0104`).
         expect(lists.diagnostics.filter((d) => d.includes("w0104"))).toEqual(
             Array(15)
