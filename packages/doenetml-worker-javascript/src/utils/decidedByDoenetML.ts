@@ -18,6 +18,10 @@
  * (`selectErrors.ts`).
  */
 import { isPlacementLocation } from "./readerWritable";
+import {
+    LIST_ENTRY_ARRAY_PREFIX,
+    LIST_ENTRY_PREFIX,
+} from "./listEntryReference";
 
 /**
  * What {@link canChange} reads: the live components, the component classes,
@@ -630,11 +634,97 @@ function readsPlacedAnchor(
     property: unknown,
     ctx: ChangeContext,
 ): boolean {
+    if (typeof property !== "string") {
+        return false;
+    }
+    if (isPlacementLocation(property)) {
+        return ctx.placed.has(componentIdx);
+    }
+    // the `anchor` of an entry of a list (`$ml[1].anchor`), which is the
+    // anchor of the component the entry is placed as
+    const location = entryPropertyOf(property);
     return (
-        typeof property === "string" &&
-        isPlacementLocation(property) &&
-        ctx.placed.has(componentIdx)
+        location !== undefined &&
+        isPlacementLocation(location) &&
+        entryAnchorIsPlaced(componentIdx, ctx, new Set())
     );
+}
+
+/**
+ * The entry property a list's per-entry variable reads (`anchor` of
+ * `__listEntry_anchor_1` or `__listEntries_anchor`), if it is one.
+ */
+function entryPropertyOf(variable: string): string | undefined {
+    if (variable.startsWith(LIST_ENTRY_ARRAY_PREFIX)) {
+        return variable.slice(LIST_ENTRY_ARRAY_PREFIX.length);
+    }
+    if (variable.startsWith(LIST_ENTRY_PREFIX)) {
+        return variable.slice(LIST_ENTRY_PREFIX.length).replace(/_\d+$/, "");
+    }
+    return undefined;
+}
+
+/**
+ * Whether a reader drags where an entry of the list `listIdx` is placed
+ * (`graphSourceOf` in `AuthoredValueList.js`): the list is placed in a
+ * graph, or an entry comes from a placed component, a child of the list or
+ * the referent of a value reference in it (`$a` in `<mathList>`), or from
+ * an entry of a list among its children or what a composite among them
+ * makes, or the list shadows one that is. Any entry counts, erring toward
+ * changeable.
+ */
+function entryAnchorIsPlaced(
+    listIdx: number,
+    ctx: ChangeContext,
+    seen: Set<number>,
+): boolean {
+    if (seen.has(listIdx)) {
+        return false;
+    }
+    seen.add(listIdx);
+    if (ctx.placed.has(listIdx)) {
+        return true;
+    }
+    const list = ctx.components[listIdx];
+    if (!list) {
+        return false;
+    }
+    if (
+        typeof list.shadows?.componentIdx === "number" &&
+        entryAnchorIsPlaced(list.shadows.componentIdx, ctx, seen)
+    ) {
+        return true;
+    }
+    // what a composite among the children makes stands for it (the copy
+    // of `ml` in `<mathList extend="$ml"/>`)
+    const entries = (list.definingChildren ?? []).flatMap((child: any) =>
+        Array.isArray(child?.replacements) ? child.replacements : [child],
+    );
+    return entries.some((child: any) => {
+        if (typeof child !== "object" || child === null) {
+            return false;
+        }
+        let source =
+            child.componentType === "_ref"
+                ? ctx.components[child.refResolution?.nodeIdx]
+                : child;
+        // an extend shares its source's anchor unless it writes its own
+        const visited = new Set<any>();
+        while (source && !visited.has(source)) {
+            visited.add(source);
+            if (
+                ctx.placed.has(source.componentIdx) ||
+                entryAnchorIsPlaced(source.componentIdx, ctx, seen)
+            ) {
+                return true;
+            }
+            if (source.attributes?.anchor) {
+                return false;
+            }
+            source = ctx.components[source.shadows?.componentIdx];
+        }
+        return false;
+    });
 }
 
 /**

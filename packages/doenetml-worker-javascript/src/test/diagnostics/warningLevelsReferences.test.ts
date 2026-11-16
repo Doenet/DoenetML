@@ -301,6 +301,35 @@ describe("What a reader writes to can change", () => {
 <graph fixed><circle radius="1" through="(0,0) $q"/></graph>`,
         ],
         [
+            "the anchor of a math an entry of a list in a graph references",
+            "doenet-w0031",
+            "info",
+            `<math name="a" anchor="(5,0)">x</math><graph><mathList>$a y</mathList></graph>
+<graph fixed><circle radius="1" through="(0,0) $a.anchor"/></graph>`,
+        ],
+        [
+            "the anchor of an entry of a list in a graph",
+            "doenet-w0031",
+            "info",
+            `<graph><mathList name="ml"><math anchor="(5,0)">x</math> y</mathList></graph>
+<graph fixed><circle radius="1" through="(0,0) $ml[1].anchor"/></graph>`,
+        ],
+        [
+            "the anchor of an entry of an extend of a list in a graph",
+            "doenet-w0031",
+            "info",
+            `<graph><mathList name="ml"><math anchor="(5,0)">x</math> y</mathList></graph>
+<mathList name="ml2" extend="$ml"/>
+<graph fixed><circle radius="1" through="(0,0) $ml2[1].anchor"/></graph>`,
+        ],
+        [
+            "the anchor of an entry of a list that references a math in a graph",
+            "doenet-w0031",
+            "info",
+            `<graph><math name="a" anchor="(5,0)">x</math></graph><mathList name="ml">$a y</mathList>
+<graph fixed><circle radius="1" through="(0,0) $ml[1].anchor"/></graph>`,
+        ],
+        [
             "a math a reader drags in a graph only to place it, as a vector's displacement",
             "doenet-w0008",
             "warning",

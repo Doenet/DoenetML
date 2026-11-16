@@ -754,6 +754,20 @@ export function buildReaderWritableIndex(
         )) {
             writeAnchor(node, location);
         }
+        // a drag of an entry of a list placed as its entries' sources (a
+        // `<mathList>`) writes the anchor of the component the entry is
+        // placed as (`graphSourceOf` in `AuthoredValueList.js`): for a value
+        // reference (`$a` in `<mathList>$a y</mathList>`), its referent
+        if (
+            componentInfoObjects?.allComponentClasses?.[typeMadeBy(node)]
+                ?.listEntriesAnchoredBySources
+        ) {
+            for (const child of node.children ?? []) {
+                if (child?.componentType === "_ref") {
+                    writeAnchor(child, "anchor");
+                }
+            }
+        }
     }
 
     // A write reaches a component's descendants, each visited on its own,

@@ -476,6 +476,14 @@ export function checkChoiceParametersAtLoad({
             }
             if (typeof ref.nodeIdx === "number") {
                 const named = nodeByIdx.get(ref.nodeIdx);
+                if (
+                    named &&
+                    readsEntryAnchor(ref) &&
+                    entryAnchorIsPlaced(named, new Set())
+                ) {
+                    // where a reader drags the entry (`$ml[1].anchor`)
+                    return { reference: ref, changeable: named };
+                }
                 const property = named && propertyNamedBy(named, ref);
                 const found =
                     named &&
@@ -925,6 +933,49 @@ export function checkChoiceParametersAtLoad({
                 linkedSourcesOf(node).some((source) =>
                     anchorIsPlaced(source, location, seen),
                 ))
+        );
+    }
+
+    /**
+     * Whether the reference `ref` reads the `anchor` of an entry of what it
+     * names (`$ml[1].anchor`): its path is indices, then a placement
+     * location.
+     */
+    function readsEntryAnchor(ref: any): boolean {
+        const path: any[] = ref.unresolvedPath ?? [];
+        const last = path[path.length - 1];
+        return (
+            path.length >= 2 &&
+            typeof last?.name === "string" &&
+            isPlacementLocation(last.name) &&
+            !(last.index?.length > 0) &&
+            path
+                .slice(0, -1)
+                .every((part) => !part?.name && part?.index?.length > 0)
+        );
+    }
+
+    /**
+     * Whether a reader drags where an entry of the list `list` is placed:
+     * the list is placed in a graph, or an entry comes from a component
+     * whose `anchor` is (`$a` in `<mathList>`, of a `<math>` in a graph,
+     * `graphSourceOf` in `AuthoredValueList.js`), or the list extends,
+     * linked, one that is. Any entry counts, erring toward changeable.
+     */
+    function entryAnchorIsPlaced(list: any, seen: Set<any>): boolean {
+        if (seen.has(list)) {
+            return false;
+        }
+        seen.add(list);
+        if (anchorIsPlaced(list, "entryAnchor", new Set())) {
+            return true;
+        }
+        return [...(list.children ?? []), ...linkedSourcesOf(list)].some(
+            (child) =>
+                typeof child === "object" &&
+                child !== null &&
+                (anchorIsPlaced(child, "anchor", new Set()) ||
+                    entryAnchorIsPlaced(child, seen)),
         );
     }
 
