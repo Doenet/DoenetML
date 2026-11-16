@@ -76,7 +76,7 @@ export default class NumberComponent extends InlineComponent {
             createStateVariable: "convertBoolean",
             defaultValue: false,
             description:
-                "Whether to read the content as a boolean expression (with texts as `true` or `false`), giving 1 or 0. A boolean is 1 or 0 in a number either way.",
+                "Whether to read the content as a boolean expression (a comparison, with texts compared as texts rather than read as numbers), giving 1 or 0. A boolean is 1 or 0 in a number either way.",
         };
         attributes.valueOnNaN = {
             createPrimitiveOfType: "number",
@@ -539,6 +539,13 @@ export default class NumberComponent extends InlineComponent {
                             ],
                             variablesOptional: true,
                         },
+                        // whether a boolean alone is missing (`isSingleBoolean`)
+                        booleanChildren: {
+                            dependencyType: "child",
+                            childGroups: ["booleans"],
+                            variableNames: ["valueMissing"],
+                            variablesOptional: true,
+                        },
                         booleanChildrenByCode: {
                             dependencyType: "stateVariable",
                             variableName: "booleanChildrenByCode",
@@ -648,10 +655,14 @@ export default class NumberComponent extends InlineComponent {
 
                     if (
                         !dependencyValues.convertBoolean &&
-                        !isSingleBoolean(
+                        (!isSingleBoolean(
                             dependencyValues.allChildren,
                             componentInfoObjects,
-                        )
+                        ) ||
+                            // a missing boolean is a blank, as in a `<math>`
+                            // (D40), so no number
+                            dependencyValues.booleanChildren[0].stateValues
+                                .valueMissing === true)
                     ) {
                         return {
                             setValue: { value: dependencyValues.valueOnNaN },

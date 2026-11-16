@@ -100257,7 +100257,7 @@
                 },
                 {
                     "name": "convertBoolean",
-                    "description": "Whether to read the content as a boolean expression (with texts as `true` or `false`), giving 1 or 0. A boolean is 1 or 0 in a number either way.",
+                    "description": "Whether to read the content as a boolean expression (a comparison, with texts compared as texts rather than read as numbers), giving 1 or 0. A boolean is 1 or 0 in a number either way.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -100784,7 +100784,7 @@
                 },
                 {
                     "name": "convertBoolean",
-                    "description": "Whether to read the content as a boolean expression (with texts as `true` or `false`), giving 1 or 0. A boolean is 1 or 0 in a number either way.",
+                    "description": "Whether to read the content as a boolean expression (a comparison, with texts compared as texts rather than read as numbers), giving 1 or 0. A boolean is 1 or 0 in a number either way.",
                     "defaultValue": false,
                     "values": [
                         "true",

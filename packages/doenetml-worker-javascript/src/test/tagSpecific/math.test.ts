@@ -13808,6 +13808,7 @@ describe("Math tag tests @group3", async () => {
     <p name="pr"><repeat name="r" for="$bs" valueName="v"><math>$v+1</math> <number>$v+1</number></repeat></p>
     <boolean name="missing">$nothing</boolean>
     <math name="mMissing">$missing+1</math>
+    <number name="nMissing">$missing</number>
     <p name="p"><text name="t">$b</text> $b</p>
     <mathInput name="mi" bindValueTo="$m3"/>
     `,
@@ -13845,6 +13846,7 @@ describe("Math tag tests @group3", async () => {
             expect((await sv("mbs")).value.tree).eqls(["list", 1, 0]);
             // a missing boolean is a blank
             expect((await sv("mMissing")).value.tree).eqls(["+", "＿", 1]);
+            expect((await sv("nMissing")).value).eqls(NaN);
             // where a text is wanted, it is the word
             expect((await sv("t")).value).eq(b === 1 ? "true" : "false");
             expect((await sv("p")).text).eq(
