@@ -2736,5 +2736,5 @@ a second rule beside COMP-11's. Positional pairs are better written as values wi
 ### Related defect
 
 While probing: a `<boolean>` written in a `<math>` (`<math>$b+1</math>`) is dropped as an invalid
-child (`w0107`), giving `+1`, though REF-5 makes a boolean `1` or `0` as a math and a `<number>`
-already reads it so (#2566).
+child (`w0107`), giving `+1`, though REF-5 makes a boolean `1` or `0` as a math. `<number>$b+1</number>`
+gives `1`, so it likely drops it too (#2566).
