@@ -2709,7 +2709,8 @@ no way to iterate over records (a point with its label).
 4. **`type` types the literals, and, when written, every item.** `for="2 $t"` with `t` a `<text>`
    is an error unless it says `type="text"`.
 5. **Wrappers of several count as one type,** whatever they hold: a `<group>`, an iteration, a
-   pick or a case. This is how a repeat goes over records:
+   pick or a case. (Revised by D46: a wrapper of several is content, one type with `<p>` and the
+   other content.) This is how a repeat goes over records:
    ```xml
    <repeat name="data" for="1 2 3" valueName="k">
      <point name="P">($k, $k^2)</point><text name="L">P$k</text>
@@ -2802,3 +2803,101 @@ its tag, so the categories are text throughout. `<number extend="$t.category1"/>
 **Related:** a `<choiceInput>` whose choices are `<m>x^2</m>` and `cat` has text values, so its
 first value is the text `x²`, and `<math extend>` of it is blank. That follows from the type
 rule; the lost math is a display question for #2568 (a choice's value could keep its LaTeX).
+
+## D46. What a type is for a list, sort, shuffle or repeat: values, objects and content (part 2 decided, part 1 open; Tier 1)
+
+**Part 2 decided** (November 2026), from the review of #2565 (PR 14 of #2509). Builds on
+COLL-1 to COLL-4 (D41), D44 and D45. Implementation: #2570.
+
+### 2. What a type is: values, objects and content (decided)
+
+**Why.** #2565 decides COLL-4's "one type" by what a sort compares (`extractComparableValue` in
+`W/utils/dast/reorderedItemsAtLoad.ts`): number and math, text, boolean, point, vector, and every
+other component as one class. That is how the code compares, not what the components are to an
+author. So an `<atom>` counts as the same type as a `<p>` and an `<ion>`, while an `<atom>` and a
+`<point>` are two types only because a point is compared and an atom isn't (**[probe]** on
+`main` after #2565). And `<sort><p>b</p><p>a</p></sort>` shows nothing, with no diagnostic.
+
+**Decided: three kinds.**
+1. **A value** stands for a value: `<math>`, `<number>`, `<integer>`, `<text>`, `<boolean>`, and
+   the inputs, which stand for what they hold (`<mathInput>`, `<textInput>`, `<booleanInput>`,
+   `<choiceInput>`, `<slider>`, …). Its type is the value's, with integer, number and math one
+   type (D44 decision 3).
+2. **An object** is one thing with an identity of its own: `<point>`, `<vector>`, `<line>`,
+   `<circle>`, `<function>`, `<interval>`, `<matrix>`, `<angle>`, `<atom>`, `<ion>`, and
+   **`<answer>`**. An answer renders its inputs, but to an author it is one thing, not the
+   content it shows. Its type is its tag, with the tags built on it (a `<triangle>` is a
+   `<polygon>`). A point and a line are two types; a common "graphical" supertype is not
+   proposed (D44).
+3. **Content** is the content it holds and shows: `<p>`, `<div>`, `<span>`, `<li>`, sections,
+   `<feedback>`, `<hint>`, `<figure>`, **`<graph>`, `<image>`, `<table>`**, **`<m>`, `<me>`,
+   `<men>`, `<label>`**, and **a wrapper of several components** (a `<group>`, an iteration, a
+   pick or a shown case). All content is one type, so `<shuffle>` of a `<p>`, a `<feedback>` and
+   a `<group>` of two paragraphs is valid. This revises D44 decision 5, where a wrapper of
+   several was a type of its own.
+
+**`<m>` and `<label>` are content, not values,** though authors may think of `<m>` as math. An
+`<m>` holds LaTeX to show, not a math: it has no math value, and parsing its LaTeX can fail
+(`\text{…}`), so reading it as a math would make its type depend on what it holds (TYPE). A
+`<label>` holds markup, and its `value` is that markup as text. Since the confusion is likely,
+the `e0076` message for a mix of `<m>` and `<math>` (or `<label>` and `<text>`) says so: "`<m>`
+shows LaTeX; it isn't a math. Write `<math>` to sort or shuffle it with other maths."
+
+**A sort.** Values compare by value; points and vectors as now. Other objects and content have
+nothing to compare, so a `<sort>` of them needs `sortByProp` naming what to compare
+(`<sort sortByProp="atomicNumber">` of atoms), and without it is an error at load that says to
+add `sortByProp`. Today such a sort shows nothing, silently.
+
+**How to mark the kinds.** No existing flag separates them:
+- the base classes don't (`<atom>` and `<text>` are inline components, `<p>` a block);
+- `renderChildren` comes close for content, but inputs, `<label>`, `<image>` and `<m>` set it,
+  and `<answer>` does too;
+- `primaryStateVariableForDefinition` puts `<feedback>` with `<atom>`, `<point>` and `<math>`;
+- `variableForImplicitProp` doesn't mark values: `<answer>`, `<award>`, `<choice>` and `<label>`
+  set it too.
+
+So **content and values are each declared** (`static isContent = true`, `static isValue =
+true`), and everything else is an object. A test lists every author tag with its kind, so a new
+component has to be placed, and compares content against `renderChildren` to catch drift.
+
+**Applies to** `<sort>`, `<sortIndices>`, `<shuffle>`, a repeat's `for` (D44) and, if it is added,
+part 1's tag. A reference's own type is still its tag (TYPE, D45): "one type" for a collection
+compares kinds, and a tag or a property after `$sh[1]` still follows the every-item rule
+(COMP-11).
+
+**What it changes:**
+- `<atom>`, `<ion>` and `<answer>` move from #2565's "no comparable value" class to objects; a
+  `<shuffle>` of an atom and a `<p>` becomes `e0076`, and of two atoms stays valid;
+- objects such as a `<line>` and a `<circle>`, one class under #2565, are two types;
+- a wrapper of several mixes with content;
+- a `<sort>` of objects or content without `sortByProp` is an error (#2569 item 10).
+
+### 1. A tag for a list of components (open)
+
+**Why.** A `<group>` is a wrapper (COLL-3): holding several components, it is one item, so a
+`<sort>` of it is `e0077` and a `<shuffle>` moves it whole. Authors who wrote a
+`<group asList>` of components to sort or index as a list have no tag for that. The typed lists
+(`<mathList>` … `<pointList>`) are for values written as text, not components with no typed list
+(`<atom>`s, `<p>`s, groups kept whole). The workaround, `<collect componentType="atom"
+from="$g"/>`, names one tag, so it gathers only some of a group of a `<number>` and a `<math>`.
+
+**Proposed:**
+- **A tag that is a collection of the components written in it** (COLL-1's many things). An index
+  picks an item, `numItems` counts them, a property or a name applies to each item (COLL-2), a
+  `<sort>` or `<shuffle>` flattens it, and it shows its items with commas.
+- **Its items have one type, decided at load,** with part 2's kinds. A `<group>` in it is one
+  item (content) when it holds several components and stands for its component when it holds
+  one, so a list of groups is how to shuffle records.
+- **No `type` attribute and no detection from text alone.** Text beside its components is read
+  as their type, as for `<sort>`. Text alone gives a warning naming the typed lists. Detection
+  from text is D45 decision 7's job.
+- **The typed lists stay** as the tags for a list written as text, not folded into one tag with
+  a `type`: which attributes are valid and which properties exist (`$pl.x`) would then depend on
+  an attribute's value, which the schema and the language server can't check.
+- **`<group asList>` stays a wrapper;** `asList` only sets commas. The converter (#2457)
+  rewrites a `<group asList>` that is sorted, shuffled or indexed as a list to the new tag, and
+  reports a mix.
+
+**Open: the name.** `<list>` is the obvious one, but authors will try `<list>1 2 3</list>`, and
+DoenetML's `<ol>`, `<ul>` and `<li>` already make "list" mean a bulleted or numbered list.
+Alternatives: `<collection>`, `<items>`.

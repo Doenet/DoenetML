@@ -244,6 +244,11 @@ nothing.
   component stands for it.
 - Items of more than one type (a number and a text; a math and a group of several) are an error
   at load. Integer, number and math count as one type (D44).
+- **What a type is** (D46): a **value** (`<math>`, `<number>`, `<text>`, `<boolean>`, an input)
+  has its value's type; an **object** (`<point>`, `<line>`, `<atom>`, `<answer>`, …) has its tag,
+  with the tags built on it; **content** (`<p>`, sections, `<feedback>`, `<graph>`, `<image>`,
+  `<table>`, `<m>`, `<label>`, and a wrapper of several) is one type. A `<sort>` of objects or
+  content needs `sortByProp`; without it, it is an error at load.
 
 **Done by #2565** (`W/utils/dast/reorderedItemsAtLoad.ts`), for `<sortIndices>` too:
 - items of more than one type are **`e0076`**, and a `<sort>` of a wrapper of several is
@@ -255,11 +260,11 @@ nothing.
 - text beside components is read as their type, where it reads as that type
   (`<sort><math>d</math> a <math>b</math></sort>` is `a, b, d`).
 
-**How #2565 decides "one type":** by what a sort compares (`extractComparableValue`): number
-and math together, text, boolean, point, vector, and every component with no value to compare
-(`<p>`, `<feedback>`, `<atom>`) as one class. So points and vectors are now two types, an
-`<atom>` and a `<p>` are one, and an `<atom>` and a `<point>` are two. Whether that is the right
-meaning of a type is the D46 proposal (open).
+**Known violation of D46** (#2570): #2565 decides "one type" by what a sort compares
+(`extractComparableValue`): number and math together, text, boolean, point, vector, and every
+component with no value to compare (`<p>`, `<feedback>`, `<atom>`, `<line>`) as one class. So an
+`<atom>` and a `<p>` count as one type, and a `<line>` and a `<circle>` too, and a `<sort>` of
+content without `sortByProp` shows nothing, silently.
 
 **Known violations** (#2569):
 - `<sort><p>b</p><p>a</p></sort>` shows nothing, silently;
@@ -277,8 +282,8 @@ meaning of a type is the D46 proposal (open).
   wrapper with one component stands for it, and a wrapper with several is one item:
   `for="$g"` of a group of several is one iteration.
 - **One type,** found from the DoenetML by REF-5's typing of parts. A mix is an error at load.
-  Integer, number and math count as one type, and `$v` is the widest present. Wrappers of several
-  count as one type, whatever they hold.
+  Integer, number and math count as one type, and `$v` is the widest present. A wrapper of
+  several is content (D46), so it may share a `for` with `<p>`s.
 - **`type`** types the literals and, when written, every item.
 - So `$v` has one type in every iteration, and the template is checked at load.
 - **A name after `$v`** when the items are wrappers follows COLL-2 and COMP-11: `$d.P` resolves
