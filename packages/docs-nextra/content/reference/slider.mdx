@@ -256,8 +256,10 @@ The attributes of `<slider>{:dn}` listed above are also accessible as properties
 
 
 
-The `items` property of `<slider>{:dn}` returns a list of all the possible values in 
-the slider's range for a `text` type `<slider>{:dn}`.
+The `items` property of `<slider>{:dn}` is the list of the values the slider can take,
+when they are given as its children: a list of texts for a `text` type `<slider>{:dn}`,
+and a list of numbers otherwise. For a slider given by `from`, `to` and `step`, it is
+empty; use `numItems`, `from`, `to` and `step` instead.
 
 
 
