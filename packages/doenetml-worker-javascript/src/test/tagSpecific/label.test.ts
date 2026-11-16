@@ -902,6 +902,10 @@ describe("Label tag tests @group2", async () => {
         ).eq("none");
     });
 
+    // `$m1` is the label itself, so it has its style and anchor. `$m1.value`
+    // is a new label made from its text (decided in #2537, CTX-11, VAL-1: a
+    // property is a new value), so it has its own: see "the value of a label
+    // is its text, with math kept".
     it("label copied by plain macro, but not value, reflects style and anchor position", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -2449,6 +2453,144 @@ describe("Label tag tests @group2", async () => {
             p1 = await inParagraph("p1");
             expect(p1.stateValues.value).eq("Bye");
             expect(p1.children).eqls([{ text: ["Bye"] }]);
+        });
+
+        // A write lands on the one child that supplies the label, through
+        // markup, so the markup is kept (#2537 item 5). Several children
+        // refuse it, as a `<text>` with several children does (INT-3,
+        // VAL-11: no one child supplies the value).
+        it("setting a label held in markup through updateValue", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<textInput name="ti"><label><em>Hello</em></label></textInput>
+<p name="p1">$ti.label</p>
+<p><updateValue name="uv" target="$ti.label" newValue="Bye" type="text" /></p>
+<textInput name="ti2"><label><q><em>Hi</em></q></label></textInput>
+<p name="p2">$ti2.label</p>
+<p><updateValue name="uv2" target="$ti2.label" newValue='"Ho"' type="text" /></p>
+<textInput name="ti3"><label>T <em>A</em></label></textInput>
+<p name="p3">$ti3.label</p>
+<p><updateValue name="uv3" target="$ti3.label" newValue="Bye" type="text" /></p>
+            `);
+
+            let p1 = await inParagraph("p1");
+            expect(p1.stateValues.value).eq("Hello");
+            expect(p1.children).eqls([{ em: ["Hello"] }]);
+            let p2 = await inParagraph("p2");
+            expect(p2.stateValues.value).eq('"Hi"');
+            expect(p2.children).eqls([{ q: [{ em: ["Hi"] }] }]);
+
+            for (const name of ["uv", "uv2", "uv3"]) {
+                await updateValue({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    core,
+                });
+            }
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                    .label,
+            ).eq("Bye");
+            p1 = await inParagraph("p1");
+            expect(p1.stateValues.value).eq("Bye");
+            expect(p1.children).eqls([{ em: ["Bye"] }]);
+
+            // a `<q>`'s quotes are its own, not its child's
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ti2")].stateValues
+                    .label,
+            ).eq('"Ho"');
+            p2 = await inParagraph("p2");
+            expect(p2.children).eqls([{ q: [{ em: ["Ho"] }] }]);
+
+            // several children: the write is refused
+            expect(
+                stateVariables[await resolvePathToNodeIdx("ti3")].stateValues
+                    .label,
+            ).eq("T A");
+            const p3 = await inParagraph("p3");
+            expect(p3.children).eqls(["T ", { em: ["A"] }]);
+        });
+
+        // `$ti2.label` of a copy of an input with no `<label>` of its own
+        // comes from its source, so it copies the source's `<label>` child,
+        // as `$ti.label` does (#2537 item 4). It was a label made from the
+        // string.
+        it("the label of a copy of an input", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<textInput name="name" prefill="A" />
+<textInput name="ti"><label>T <em>$name</em></label></textInput>
+<textInput name="ti2" extend="$ti" />
+<textInput name="ti3" extend="$ti2" />
+<textInput name="ti4" extend="$ti"><label>Own <delete>B</delete></label></textInput>
+<p name="p1">$ti.label</p>
+<p name="p2">$ti2.label</p>
+<p name="p3">$ti3.label</p>
+<p name="p4">$ti4.label</p>
+            `);
+
+            for (const letter of ["A", "C"]) {
+                if (letter !== "A") {
+                    await updateTextInputValue({
+                        text: letter,
+                        componentIdx: await resolvePathToNodeIdx("name"),
+                        core,
+                    });
+                }
+                for (const name of ["p1", "p2", "p3"]) {
+                    const p = await inParagraph(name);
+                    expect(p.componentType, name).eq("label");
+                    expect(p.stateValues.value, name).eq(`T ${letter}`);
+                    expect(p.children, name).eqls([
+                        "T ",
+                        { em: [{ _ref: [] }] },
+                    ]);
+                }
+                // a copy with a label of its own shows that one
+                const p4 = await inParagraph("p4");
+                expect(p4.stateValues.value).eq("Own B");
+                expect(p4.children).eqls(["Own ", { delete: ["B"] }]);
+            }
+        });
+
+        // `$l.value` is the label's text (#2537 item 1, CTX-11, VAL-1: a
+        // property is a new value). Math stays math: in a `<p>` it is a new
+        // label whose value holds the math as LaTeX, so it is rendered; other
+        // markup (`<em>`) is dropped. In a `<text>`, it is the text form.
+        it("the value of a label is its text, with math kept", async () => {
+            const { core, resolvePathToNodeIdx, inParagraph } = await setup(`
+<label name="l">Area <m>x^2</m> is <em>big</em></label>
+<p name="p1">$l.value</p>
+<p name="p2">$l</p>
+<p name="p3"><text name="t">$l.value</text></p>
+            `);
+
+            const p1 = await inParagraph("p1");
+            expect(p1.componentType).eq("label");
+            expect(p1.stateValues.value).eq("Area \\(x^2\\) is big");
+            expect(p1.stateValues.hasLatex).eq(true);
+            expect(p1.children).eqls([]);
+
+            // the label itself keeps its markup
+            const p2 = await inParagraph("p2");
+            expect(p2.children).eqls([
+                "Area ",
+                { m: ["x^2"] },
+                " is ",
+                { em: ["big"] },
+            ]);
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                    .value,
+            ).eq("Area x² is big");
         });
     });
 });

@@ -1807,4 +1807,27 @@ describe("Sort tag tests @group4", async () => {
         await submit("0");
         await check(["0", "1", "2", "3", "4", "5", "6"]);
     });
+
+    // `sortByComponent` is an attribute of a `<sort>`, not a property (since
+    // #2565): `$s.sortByComponent` names nothing, as any name that isn't a
+    // property does. It was a number holding the string `"1"` (#2545).
+    it("sortByComponent is not a property", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <sort name="s" sortByComponent="2">3 1 2</sort>
+    <p name="p">[$s.sortByComponent]</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿]");
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w) => [w.code, w.message])).eqls([
+            [
+                "doenet-w0104",
+                "No referent found for reference: `$s.sortByComponent`",
+            ],
+        ]);
+    });
 });

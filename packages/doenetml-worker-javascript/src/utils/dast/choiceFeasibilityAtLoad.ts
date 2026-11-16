@@ -319,8 +319,8 @@ type Expr =
      * (`choiceValuesAsRunTime.ts`). `tree` is the same value as arithmetic
      * of the atoms, in a form the bounds can be found of, or `null` when it
      * isn't arithmetic (a `<boolean>`, a `<text>`, or content with a
-     * `<boolean>` in it, which a `<number>` or a `<math>` doesn't read as a
-     * number). `caveat` is set when the component has an attribute that
+     * `<boolean>` in it, which a `<number>` or a `<math>` reads as `1` or
+     * `0`). `caveat` is set when the component has an attribute that
      * changes how it computes its value (`valueCaveatOf`).
      */
     | {
@@ -432,8 +432,8 @@ function valueCaveatOf(
 }
 
 /**
- * Whether `expr` is a boolean, which a `<number>` or a `<math>` doesn't read
- * as a number.
+ * Whether `expr` is a boolean, which a `<number>` or a `<math>` reads as `1`
+ * or `0` (REF-5), so not as the arithmetic of its atoms.
  */
 function isBooleanExpr(expr: Expr): boolean {
     if (expr.k === "named") {
@@ -1542,8 +1542,8 @@ export function checkChoiceFeasibilityAtLoad({
         }
         if (caveat || componentExprs.some(isBooleanExpr)) {
             // its arithmetic may not be its value: an attribute may change
-            // it, and a `<boolean>` in a `<number>` or a `<math>` is no
-            // number (`NaN` alone, and no part of what it is with more)
+            // it, and a `<boolean>` in a `<number>` or a `<math>` is `1` or
+            // `0` (REF-5), not the arithmetic of its atoms
             return held;
         }
         // an `<integer>` rounds what it holds
