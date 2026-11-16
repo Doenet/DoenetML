@@ -202,6 +202,18 @@ ${select}
         );
     });
 
+    it("an unknown name written more than once, in any case, is named once", async () => {
+        const { variants, errors } = await load(`
+<variantControl numVariants="3" variantsToInclude="a Grape grape GRAPE c a" />
+${select}
+`);
+        expect(variants).eqls(["a", "c"]);
+        expect(errors.length).eq(1);
+        expect(errors[0].message).eq(
+            "`variantsToInclude` names `Grape`, which is not a variant of this document. Its 3 variants are named `a`, `b`, `c`. The name is ignored.",
+        );
+    });
+
     it("without numVariants, the hundred letter names are listed by their first and last", async () => {
         const { variants, errors } = await load(`
 <variantControl variantsToInclude="b zzz" />

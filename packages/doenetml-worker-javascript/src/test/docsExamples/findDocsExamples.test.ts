@@ -1,12 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
     docsFiles,
     exampleName,
     examplesInFiles,
     examplesOfShard,
     findDocsExamples,
+    loadDocsExample,
 } from "./docsExamples";
 import { KNOWN_FAILURES } from "./knownFailures";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
 
 describe("Finding the docs examples @docsExamples", () => {
     it("finds the code blocks of the four languages, with their line and marker", () => {
@@ -74,6 +79,25 @@ describe("Finding the docs examples @docsExamples", () => {
         expect(() =>
             findDocsExamples("```doenet-example\n<p/>\n", "f.mdx"),
         ).toThrow("f.mdx:1");
+    });
+
+    it("an example fails with an error unless marked, and when marked without one", async () => {
+        const example = (source: string, meta: string[] = []) => ({
+            file: "f.mdx",
+            line: 1,
+            lang: "doenet-example",
+            meta,
+            source,
+        });
+        // `<foo />` is not a component: an error
+        await expect(loadDocsExample(example("<foo />"))).rejects.toThrow(
+            "f.mdx:1 (`doenet-example`) has an error",
+        );
+        await loadDocsExample(example("<foo />", ["expect-error"]));
+        await loadDocsExample(example("<p>hi</p>"));
+        await expect(
+            loadDocsExample(example("<p>hi</p>", ["expect-error"])),
+        ).rejects.toThrow("marked `expect-error` but has no error");
     });
 
     it("the test files take every example once", () => {

@@ -112787,12 +112787,12 @@
                 },
                 {
                     "name": "variantsToInclude",
-                    "description": "Restrict the available variants to this list (by name or index).",
+                    "description": "Restrict the available variants to these, by name.",
                     "type": "textListFromString"
                 },
                 {
                     "name": "variantsToExclude",
-                    "description": "Variants to exclude from those generated.",
+                    "description": "Variants to exclude from those generated, by name.",
                     "type": "textListFromString"
                 },
                 {

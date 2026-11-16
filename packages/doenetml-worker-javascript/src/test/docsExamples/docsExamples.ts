@@ -24,7 +24,7 @@ import { KNOWN_FAILURES } from "./knownFailures";
  * An example that shows an error on purpose says so with the word
  * `expect-error` after the language (` ```doenet-example expect-error`); the
  * docs' renderers read only the language, so the word changes nothing there.
- * Such an example must have an error.
+ * Such an example must load and have an error.
  *
  * An example that fails because of a bug in the core, not in the example, is
  * listed in `knownFailures.ts` with the issue that tracks it. It is run as a
@@ -188,8 +188,9 @@ export function exampleName(example: DocsExample) {
 
 /**
  * Load `example` and work out all its state variables. Throws, naming the
- * example, if that throws, if the document has an error and the example is
- * not marked `expect-error`, or if it has none and is.
+ * example, if that throws (marked `expect-error` or not), if the document has
+ * an error and the example is not marked `expect-error`, or if it has none
+ * and is.
  */
 export async function loadDocsExample(example: DocsExample) {
     const name = exampleName(example);
@@ -206,9 +207,7 @@ export async function loadDocsExample(example: DocsExample) {
                     `${e.code ?? "(no code)"} at line ${e.position?.start?.line ?? "?"} of the example: ${e.message}`,
             );
     } catch (e) {
-        if (expectError) {
-            return;
-        }
+        // An example that shows an error must still load (DIAG-5).
         throw Error(
             `The docs example at ${name} (\`${example.lang}\`) does not load: ${e instanceof Error ? e.message : String(e)}`,
             { cause: e },

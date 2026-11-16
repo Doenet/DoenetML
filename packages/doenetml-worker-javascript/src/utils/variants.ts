@@ -613,9 +613,10 @@ const MAX_VARIANT_NAMES_LISTED = 8;
  * repeats, in lowercase.
  *
  * The others are left out, and named in one error diagnostic at the
- * attribute (`doenet-e0078`), pushed to `infoDiagnostics`. That buffer holds
- * every diagnostic found before Core exists, not only infos: `CoreWorker`
- * makes it Core's `preliminaryDiagnostics`. This runs once per sectioning
+ * attribute (`doenet-e0078`), each once, as it was first written, pushed to
+ * `infoDiagnostics`. That buffer holds every diagnostic found before Core
+ * exists, not only infos: `CoreWorker` makes it Core's
+ * `preliminaryDiagnostics`. This runs once per sectioning
  * component, as `determineVariantsForSection` returns early once it has set
  * `allPossibleVariants`.
  */
@@ -639,6 +640,8 @@ function knownVariantNames({
     infoDiagnostics?: DiagnosticRecord[];
 }): string[] {
     const known: string[] = [];
+    const unknown: string[] = [];
+    // each unknown name as it was first written
     const unknownAsWritten: string[] = [];
     for (const nameAsWritten of namesAsWritten) {
         const name = nameAsWritten.toLowerCase();
@@ -646,7 +649,8 @@ function knownVariantNames({
             if (!known.includes(name)) {
                 known.push(name);
             }
-        } else if (!unknownAsWritten.includes(nameAsWritten)) {
+        } else if (!unknown.includes(name)) {
+            unknown.push(name);
             unknownAsWritten.push(nameAsWritten);
         }
     }
