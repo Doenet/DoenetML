@@ -337,6 +337,13 @@ describe("What a reader writes to can change", () => {
 <graph fixed><circle radius="1" through="(0,0) $ml[1].anchor"/></graph>`,
         ],
         [
+            "a point an m a reader drags in a graph only to place it holds",
+            "doenet-w0031",
+            "warning",
+            `<point name="P">(5,0)</point><graph><m>$P</m></graph>
+<graph fixed><circle radius="1" through="(0,0) $P"/></graph>`,
+        ],
+        [
             "a math a reader drags in a graph only to place it, as a vector's displacement",
             "doenet-w0008",
             "warning",

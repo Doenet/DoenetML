@@ -476,13 +476,14 @@ export function checkChoiceParametersAtLoad({
             }
             if (typeof ref.nodeIdx === "number") {
                 const named = nodeByIdx.get(ref.nodeIdx);
-                if (
-                    named &&
-                    readsEntryAnchor(ref) &&
-                    entryAnchorIsPlaced(named, new Set())
-                ) {
-                    // where a reader drags the entry (`$ml[1].anchor`)
-                    return { reference: ref, changeable: named };
+                const placedEntry =
+                    named && readsEntryAnchor(ref)
+                        ? placedEntryOf(named, new Set())
+                        : undefined;
+                if (placedEntry !== undefined) {
+                    // where a reader drags the entry (`$ml[1].anchor`): the
+                    // component the entry is placed as
+                    return { reference: ref, changeable: placedEntry };
                 }
                 const property = named && propertyNamedBy(named, ref);
                 const found =
@@ -923,17 +924,32 @@ export function checkChoiceParametersAtLoad({
         location: string,
         seen: Set<any>,
     ): boolean {
+        return placedAnchorOf(node, location, seen) !== undefined;
+    }
+
+    /**
+     * The component a reader drags whose `anchor` is where `node` is placed
+     * (see {@link anchorIsPlaced}): `node` itself, or what it extends, in
+     * turn; `undefined` when there is none.
+     */
+    function placedAnchorOf(node: any, location: string, seen: Set<any>): any {
         if (seen.has(node)) {
-            return false;
+            return undefined;
         }
         seen.add(node);
-        return (
-            isPlaced(node) ||
-            (!placementAttribute(node, location) &&
-                linkedSourcesOf(node).some((source) =>
-                    anchorIsPlaced(source, location, seen),
-                ))
-        );
+        if (isPlaced(node)) {
+            return node;
+        }
+        if (placementAttribute(node, location)) {
+            return undefined;
+        }
+        for (const source of linkedSourcesOf(node)) {
+            const found = placedAnchorOf(source, location, seen);
+            if (found !== undefined) {
+                return found;
+            }
+        }
+        return undefined;
     }
 
     /**
@@ -956,27 +972,37 @@ export function checkChoiceParametersAtLoad({
     }
 
     /**
-     * Whether a reader drags where an entry of the list `list` is placed:
-     * the list is placed in a graph, or an entry comes from a component
-     * whose `anchor` is (`$a` in `<mathList>`, of a `<math>` in a graph,
-     * `graphSourceOf` in `AuthoredValueList.js`), or the list extends,
-     * linked, one that is. Any entry counts, erring toward changeable.
+     * The component whose `anchor` a reader drags where an entry of the list
+     * `list` is placed, if any: the list, when it is placed in a graph, or
+     * a component an entry comes from whose `anchor` is (`$a` in
+     * `<mathList>`, of a `<math>` in a graph, `graphSourceOf` in
+     * `AuthoredValueList.js`), or one found so for a list it extends,
+     * linked. Any entry counts, erring toward changeable.
      */
-    function entryAnchorIsPlaced(list: any, seen: Set<any>): boolean {
+    function placedEntryOf(list: any, seen: Set<any>): any {
         if (seen.has(list)) {
-            return false;
+            return undefined;
         }
         seen.add(list);
-        if (anchorIsPlaced(list, "entryAnchor", new Set())) {
-            return true;
+        const placedList = placedAnchorOf(list, "entryAnchor", new Set());
+        if (placedList !== undefined) {
+            return placedList;
         }
-        return [...(list.children ?? []), ...linkedSourcesOf(list)].some(
-            (child) =>
-                typeof child === "object" &&
-                child !== null &&
-                (anchorIsPlaced(child, "anchor", new Set()) ||
-                    entryAnchorIsPlaced(child, seen)),
-        );
+        for (const child of [
+            ...(list.children ?? []),
+            ...linkedSourcesOf(list),
+        ]) {
+            if (typeof child !== "object" || child === null) {
+                continue;
+            }
+            const found =
+                placedAnchorOf(child, "anchor", new Set()) ??
+                placedEntryOf(child, seen);
+            if (found !== undefined) {
+                return found;
+            }
+        }
+        return undefined;
     }
 
     /** What a reader can change that the attribute `attribute` reaches. */
