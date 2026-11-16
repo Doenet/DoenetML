@@ -2452,15 +2452,18 @@ variant misses a blank another variant shows.
   (#2547), and the rest wait for the cells core (#2506).
 - **Open question from #2555: is `<math>` an intermediate like `<number>`?** The decision above
   allows `<number>` and `<integer>` only. #2555 also allows a `<math>` whose content is in the
-  analysable forms. It did so because COMP-8 keeps the "…initially unresolved" tests binding,
-  and `select.test.ts`'s "select multiple maths, initially unresolved" reads `numToSelect`
-  through a `<math>`. `e0074`'s message lists `<math>`.
-  - **For:** it treats the value tags alike, and the content is analysed the same way. A
-    `<math>` holding a symbol or another non-number already fails the check, naming the value.
-  - **Against:** the value of a `<math>` may not be a number, so the error is one step further
-    from the cause.
-  - **Recommendation:** accept it, since keeping the rule uniform across the value tags matches
-    how the other principles treat them. Otherwise, rewrite those tests to use `<number>`.
+  analysable forms, and `e0074`'s message lists `<math>`. It cites COMP-8's binding
+  "…initially unresolved" tests, which read `numToSelect` through `<math>`. But those tests read
+  only constants (`<math name="num2">$n3+$num3</math>` with `num3` written as 1). A parameter
+  that reads nothing from the variant is its value in any form, so they pass either way. The
+  question is only about a `<math>` holding a value from another selection, such as
+  `<math name="m">$a + 2</math>` with `numToSelect="$m"`.
+  - **For:** the value tags are treated alike. The content is analysed the same way, and a
+    `<math>` whose value isn't a number already fails, naming the value. A `type="math"`
+    sequence's parameters are maths anyway.
+  - **Against:** a `<math>` may hold a non-number, so the error comes one step from the cause.
+    D39 chose `<number>` so that "this is a number" is visible where it is written.
+  - **Recommendation:** accept it, so that the value tags behave alike.
 
 ## D40. Decisions from the review of open issues (November 2026)
 
