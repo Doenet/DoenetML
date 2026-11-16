@@ -2871,7 +2871,7 @@ describe("Feedback tag tests @group1", async () => {
     it("an index into a shuffle follows its items after a copy is recreated", async () => {
         // The recreated copy takes the place of the deleted one among the
         // shuffle's indices, so `$sh[n]` still refers to the nth item shown.
-        // Variant 4 shuffles both feedbacks ahead of the texts.
+        // Variant 4 shuffles both feedbacks ahead of the paragraphs.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><answer name="ans">
@@ -2879,11 +2879,11 @@ describe("Feedback tag tests @group1", async () => {
     <award name="award1" feedbackText="good"><math>x</math></award>
   </answer></p>
   <div name="d"><shuffle name="sh">
-    <text>A</text>
+    <p>A</p>
     <feedback extend="$award1.feedback" />
-    <text>B</text>
+    <p>B</p>
     <feedback extend="$award1.feedback" />
-    <text>C</text>
+    <p>C</p>
   </shuffle></div>
   <div name="d2"><shuffle name="sh2" extend="$sh" /></div>
   <div name="r">$sh[1] $sh[2] $sh[3] $sh[4] $sh[5]</div>
@@ -2906,7 +2906,7 @@ describe("Feedback tag tests @group1", async () => {
                         ? comp.stateValues.hidden
                             ? "hidden"
                             : comp.stateValues.feedbackText
-                        : comp.stateValues.value,
+                        : comp.stateValues.text,
                 );
 
             const shown = await describeItems("d");

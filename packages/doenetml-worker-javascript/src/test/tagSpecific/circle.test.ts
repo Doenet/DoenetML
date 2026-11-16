@@ -6408,4 +6408,61 @@ $c7.radius
         expect(circle.stateValues.radius.tree).eq("a");
         expect(circle.stateValues.numericalRadius).eqls(NaN);
     });
+
+    it("a circle, parabola, regular polygon or rectangle made from one missing point is missing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<pointList name="pl">(1,2) (3,4)</pointList>
+<graph>
+  <circle name="c1" center="$nothing" radius="2"/>
+  <circle name="c2" center="$pl[3]"/>
+  <circle name="c3" center="$pl[1]"/>
+  <parabola name="pa1" vertex="$nothing"/>
+  <parabola name="pa2" vertex="$pl[3]"/>
+  <parabola name="pa3" vertex="$pl[1]"/>
+  <regularPolygon name="rp1" center="$nothing"/>
+  <regularPolygon name="rp2" center="$pl[3]" numVertices="4"/>
+  <regularPolygon name="rp3" center="$pl[1]" numVertices="4"/>
+  <rectangle name="re1" center="$pl[3]"/>
+  <rectangle name="re2" center="$pl[1]"/>
+  <triangle name="t1" vertices="(1,2) $nothing (3,4)"/>
+</graph>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const missing: Record<string, boolean> = {};
+        for (const name of [
+            "c1",
+            "c2",
+            "c3",
+            "pa1",
+            "pa2",
+            "pa3",
+            "rp1",
+            "rp2",
+            "rp3",
+            "re1",
+            "re2",
+            "t1",
+        ]) {
+            missing[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.valueMissing;
+        }
+        expect(missing).eqls({
+            c1: true,
+            c2: true,
+            c3: false,
+            pa1: true,
+            pa2: true,
+            pa3: false,
+            rp1: true,
+            rp2: true,
+            rp3: false,
+            re1: true,
+            re2: false,
+            t1: true,
+        });
+    });
 });

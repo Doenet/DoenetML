@@ -1444,7 +1444,9 @@ describe("Point and vector lists as list components @group4", async () => {
             byX: "(1, 2), (2, 0), (3, 1)",
             byY: "(2, 0), (3, 1), (1, 2)",
             byProp: "(2, 0), (3, 1), (1, 2)",
-            mixed: "(1, 2), (2, 0), (2.5, 1), (3, 1)",
+            // the text beside the points is read as a point (COLL-4); it
+            // used to be left out
+            mixed: "(0, 5), (1, 2), (2, 0), (2.5, 1), (3, 1)",
             indices: "2, 3, 1",
             vByDisplacement: "(0, 5), (1, -1), (2, 3)",
             vByTail: "(1, -1), (0, 5), (2, 3)",

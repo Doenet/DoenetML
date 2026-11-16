@@ -93,3 +93,16 @@ export function hasImplicitSingleIndex(element: DastElement): boolean {
     // treats it as "nothing selected", not as if-absent.
     return getElementAttributeValue(element, attrName) === "1";
 }
+
+/**
+ * Whether a name after `element` reaches its one item as after an index:
+ * the select-family shorthand ({@link hasImplicitSingleIndex}), and a
+ * `<conditionalContent>`, a collection of at most one item, the case shown
+ * (D41), which takes an index, but whose names (`$cc.x`) are the shown
+ * case's.
+ */
+export function hasImplicitIndex(element: DastElement): boolean {
+    return (
+        element.name === "conditionalContent" || hasImplicitSingleIndex(element)
+    );
+}

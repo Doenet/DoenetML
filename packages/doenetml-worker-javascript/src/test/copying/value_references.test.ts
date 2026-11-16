@@ -445,6 +445,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 textList: `<textList name="c">a b c</textList>`,
                 booleanList: `<booleanList name="c">true false</booleanList>`,
                 intervalList: `<intervalList name="c">(1,2) [3,4]</intervalList>`,
+                functionIterates: `<functionIterates name="c" function="x+1" initialValue="0" numIterates="3"/>`,
             };
 
             let declared: string[] | undefined;
@@ -2639,7 +2640,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <textInput name="ti" />
     <answer><mathInput /><award name="aw1">1</award><award name="aw2">2</award></answer>
     <graph name="g"><point>(1,2)</point></graph>
-    <collect name="col" componentType="point" from="$g" />
+    <graph><image name="im" source="./a.png"/></graph>
 
     <boolean name="choiceEq">$ct1.selectedValue = $ct2.selectedValue</boolean>
     <boolean name="choiceBlank">$ct1.selectedValue = $ti</boolean>
@@ -2647,7 +2648,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <count name="choiceCount">$ci.selectedValue 5</count>
     <boolean name="nullEq">$aw1.feedbackText = $aw2.feedbackText</boolean>
     <boolean name="nullBlank">$aw1.feedbackText = $ti</boolean>
-    <sum name="nullSum">$col.maxNumber 5</sum>
+    <sum name="nullSum">$im.aspectRatio 5</sum>
     `,
                 });
                 const names = [
@@ -3127,8 +3128,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     </choiceInput>
     <answer><mathInput /><award name="aw">1</award></answer>
     <graph name="g"><point>(1,2)</point></graph>
-    <collect name="col" componentType="point" from="$g" />
-    <answer name="nulls"><award><when>$aw.feedbackText = hello and $col.maxNumber = 1</when></award></answer>
+    <graph><image name="im" source="./a.png"/></graph>
+    <answer name="nulls"><award><when>$aw.feedbackText = hello and $im.aspectRatio = 1</when></award></answer>
     <answer name="noValue"><award><when>$ct1.selectedValue = $ct2.selectedValue</when></award></answer>
     `,
                 });

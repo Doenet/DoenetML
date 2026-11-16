@@ -132,6 +132,9 @@ function distinctValues(values, numeric) {
 export class Tally extends CountingBaseListOperator {
     static componentType = "tally";
 
+    // The categories that turned up, documented as a property (`tally.mdx`).
+    static attributePropertiesKept = ["categories"];
+
     static componentDocs = {
         summary: "How many times each category appears in a list",
     };

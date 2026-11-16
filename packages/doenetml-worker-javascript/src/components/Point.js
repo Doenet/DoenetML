@@ -1,4 +1,5 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
+import { contentNamesNothingDefinition } from "../utils/missing";
 import me from "math-expressions";
 import { breakEmbeddedStringByCommas } from "./commonsugar/breakstrings";
 import {
@@ -419,6 +420,13 @@ export default class Point extends GraphicalComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Whether it holds only references that name nothing, as its
+        // children or its `coords` (`center="$nothing"`), which makes a shape
+        // it gives a point to missing (`BaseComponent.missingWhenPointsMissing`,
+        // D40). The point itself is not made missing by it.
+        stateVariableDefinitions.contentNamesNothing =
+            contentNamesNothingDefinition("coords");
 
         Object.assign(
             stateVariableDefinitions,

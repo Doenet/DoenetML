@@ -220,3 +220,50 @@ attributes can be used.
 
 A `<repeat>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.
 For an alternative way to do this, see the [`<repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
+
+
+---
+
+### Example: Reading a named component of every iteration
+
+
+```doenet-editor-horiz
+<repeat name="r" for="1 2 3" valueName="v">
+  <point name="P">($v, $v^2)</point>
+  <text name="t">point $v</text>
+</repeat>
+
+<p>Every <c>P</c>: $r.P</p>
+<p>The x of every <c>P</c>: $r.P.x</p>
+<p>The <c>P</c> of the second iteration: $r[2].P</p>
+<p>Every value: $r.v</p>
+```
+
+A name after a `<repeat>{:dn}` reaches the component of that name in every
+iteration, so `$r.P` is all three points and `$r.P.x` their x-coordinates.
+With an index first, `$r[2].P` is the one of the second iteration. The
+`valueName` and `indexName` are names in every iteration too: `$r.v` is the
+value of each.
+
+A property written right after the `<repeat>{:dn}`, such as `$r.x`, reads that
+property of what each iteration holds only when what is written inside the
+`<repeat>{:dn}` is one component. Here each iteration holds a point and a text,
+so `$r.x` names nothing, and you name the one you mean: `$r.P.x`.
+
+
+---
+
+## Property Examples
+
+### Property Example: numItems
+
+
+```doenet-editor-horiz
+<numberList name="values">1 2 3 4</numberList>
+<p><repeat name="r" for="$values" valueName="v"><math>$v^2</math></repeat></p>
+<p>Number of iterations: $r.numItems</p>
+```
+
+`numItems` is the number of iterations, which an index selects among
+(`$r[2]` is the second). Any other property after a repeat is that property
+of what each iteration holds.

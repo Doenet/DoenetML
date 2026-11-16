@@ -603,8 +603,10 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
 # Decided at load from every option or case. $reference is the reference as
 # written, with its `$`; $property the property and $lackingType the tag of a
 # component that lacks it, both as written. $container is the container's
-# name when $hasName is `true`, else its tag name. $branch is `option` or
-# `case`. A name in only some options or cases names nothing from outside
+# name when $hasName is `true`, else its tag name. $branch is `option`,
+# `case`, or `item` (the items of a `<repeat>`, of types that differ through
+# its `for` or a `<conditionalContent>` in it). A name in only some options
+# or cases names nothing from outside
 # (`doenet-w0183`), so the message does not suggest reading one by name.
 
 reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $hasName ->
@@ -612,12 +614,14 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
        *[other] the `<{ $container }>`
     } has no property `{ $property }`, so it gives a blank there. For a value from each, give every { $branch ->
         [option] option
+        [item] item
        *[case] case
     } a component that has `{ $property }`.
 
 # A property after a `<group>` that holds several components: `$g.x` on a
-# `<group name="g">` holding two points, `$r[1].x` after an iteration of a
-# repeat that holds two, `$s.x` after a pick that holds two, or `$cc.x` after
+# `<group name="g">` holding two points, `$r.x` or `$r[1].x` after a repeat
+# whose template holds two (said as "each item holds 2"; authors are not
+# told of iterations as groups), `$s.x` after a pick that holds two, or `$cc.x` after
 # the case a `<conditionalContent>` shows, holding two (D41). A group holding
 # one component stands for it, and the property is that component's; with
 # several, the group is only a container, and the reference names nothing
@@ -635,7 +639,7 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
 # references and attributes stay as written.
 reference-property-after-several =
     { $container ->
-        [iteration] `{ $reference }` names nothing: this iteration of a `<{ $component }>` holds { $count } components, and a property passes into an iteration only when it holds one.
+        [iteration] `{ $reference }` names nothing: what is written inside the `<{ $component }>` holds { $count } components, so each item holds { $count }, and a property applies to an item only when it is one component.
         [pick] `{ $reference }` names nothing: what the `<{ $component }>` picked holds { $count } components, and a property passes into a pick only when it holds one.
         [case] `{ $reference }` names nothing: what the `<{ $component }>` shows holds { $count } components, and a property passes into it only when it holds one.
        *[group] `{ $reference }` names nothing: the `<group>` holds { $count } components, and a property passes into a group only when it holds one.
@@ -1969,3 +1973,43 @@ copy-with-state-of-uri = `copyWithState` of `{ $uri }` carries nothing more than
 # inside it, such as a `<module>` attribute that sets a nested `numToSelect`.
 # The choices copied with the state are kept, so it changes nothing there.
 copy-with-state-attribute-reaches-choice = `{ $attribute }` reaches a choice inside this `copyWithState`, which keeps the choices it copies, so it does not change them. Use `copy` to make the choices again.
+
+# A `<sort>` or `<shuffle>` ($component) whose items are of more than one
+# type (COLL-4, D41). $first and $second are two of the items found, each
+# described by a kind: "one", a component of the tag $first; "piece", the
+# text $firstPiece the author wrote, read as the tag $first; "group", a
+# `<group>` of $firstCount components; or "item", the items of the
+# collection $first (`repeat`, `select`, `conditionalContent`), each holding
+# $firstCount components. Likewise for $second. $suggestType is `yes` when
+# one of them is text the author wrote and the other a number, math or text,
+# so that `type` (how to read the text) can make them one type; it can't
+# beside a `<p>`, a point, a boolean or a group.
+reorder-items-of-several-types = `<{ $component }>` takes items of one type, but it has { $firstKind ->
+        [group] a `<group>` of { $firstCount } components
+        [item] the items of a `<{ $first }>` (each of { $firstCount } components)
+        [piece] `{ $firstPiece }` (read as a `<{ $first }>`)
+       *[one] a `<{ $first }>`
+    } and { $secondKind ->
+        [group] a `<group>` of { $secondCount } components
+        [item] the items of a `<{ $second }>` (each of { $secondCount } components)
+        [piece] `{ $secondPiece }` (read as a `<{ $second }>`)
+       *[one] a `<{ $second }>`
+    }. Give each type a `<{ $component }>` of its own{ $suggestType ->
+        [yes] , or write `type` to say how to read the text
+       *[other] {""}
+    }.
+
+# A `<sort>` or `<sortIndices>` ($component) of an item holding several
+# components, which has nothing to be compared by (COLL-4, D41). The item is
+# described by $itemKind: "group", a `<group>` of $itemCount components, or
+# "item", the items of the collection $item, each holding $itemCount
+# components. The message names what to write instead: a `<collect>` of the
+# components, of the tag $firstType of the first of them, or a name in each
+# item; and, for a `<sort>`, a `<shuffle>`, which keeps them together.
+sort-item-of-several = { $itemKind ->
+        [item] `<{ $component }>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort one component of each, name it (`<{ $component }>$r.n</{ $component }>` sorts the `n` of each item of `r`), or sort a `<collect>` of the components (`<collect componentType="{ $firstType }" from="$r"/>`).
+       *[group] `<{ $component }>` can't compare a `<group>` of { $itemCount } components. To sort its components, sort a `<collect>` of them (`<collect componentType="{ $firstType }" from="$g"/>` of a group `g`), or write them in the `<{ $component }>` without the group.
+    }{ $component ->
+        [sort] {" "}Use `<shuffle>` to keep each item's components together.
+       *[other] {""}
+    }

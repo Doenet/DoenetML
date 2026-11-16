@@ -88,6 +88,17 @@ export default class SampleMultivariateRandomNumber extends ValueListComponent {
 
     static componentType = "sampleMultivariateRandomNumber";
 
+    // The distribution sampled from, documented as properties
+    // (`sampleMultivariateRandomNumber.mdx`).
+    static attributePropertiesKept = [
+        "type",
+        "means",
+        "variances",
+        "numTotal",
+        "numInCategories",
+        "numDraws",
+    ];
+
     static listEntryComponentType = "number";
 
     static listEntryValuesVariable = "sampledValues";

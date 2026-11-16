@@ -1605,8 +1605,8 @@ describe("Value lists as list components @group4", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <repeatForSequence name="r" length="2" valueName="v"><number name="x">10$v</number></repeatForSequence>
-    <p name="p1"><numberList name="a">0 $r.x 9</numberList> $a.numValues</p>
-    <p name="p2"><mathList>0 $r.x <math>y</math></mathList> <textList>a $r.x b</textList></p>
+    <p name="p1"><numberList name="a">0 $r[3].x 9</numberList> $a.numValues</p>
+    <p name="p2"><mathList>0 $r[3].x <math>y</math></mathList> <textList>a $r[3].x b</textList></p>
     <mathInput name="mi" bindValueTo="$a[2]"/>
     `,
         });

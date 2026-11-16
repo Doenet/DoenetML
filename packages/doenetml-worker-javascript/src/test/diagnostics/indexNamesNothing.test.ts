@@ -238,9 +238,11 @@ describe("An index that names nothing @group4", async () => {
             expect([...warnings, ...errors, ...infos], body).eqls([]);
         }
 
-        // A collect with no limit has the property `maxNumber`.
+        // A list with no limit has the property `maxNumber`. (A
+        // `<collect>`'s `maxNumber` is an attribute, not a property, D41
+        // decision 2.)
         const { warnings, errors, infos } = await shownAndReported(
-            `<collect name="c" componentType="math" from="$l"/><p name="p">[$c.maxNumber]</p>`,
+            `<mathList name="c">1 2</mathList><p name="p">[$c.maxNumber]</p>`,
         );
         expect([...warnings, ...errors, ...infos]).eqls([]);
     });

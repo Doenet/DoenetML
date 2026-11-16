@@ -9,6 +9,7 @@ import { Dependency, INITIAL_CHANGE_RECORD } from "./Dependency";
 import { gatherDescendants } from "../../utils/descendants";
 import { LIST_ENTRY_ARRAY_PREFIX } from "../../utils/listEntryReference";
 import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
+import { isWrapperOfSeveral } from "../../utils/wrappers";
 
 export class ChildDependency extends Dependency {
     static dependencyType = "child";
@@ -60,6 +61,14 @@ export class ChildDependency extends Dependency {
         // as for a parent that keys its children's text by the composite
         // the text came from.
         this.reportCompositeChanges = this.definition.reportCompositeChanges;
+
+        // Whether each composite the children are replacements of is marked
+        // as a wrapper holding several components (`wrapperOfSeveral` of
+        // `compositeReplacementRange`, `isWrapperOfSeveral`): a `<group>`, as
+        // written or made for an iteration, a pick or a case, holding
+        // several, which a `<shuffle>` moves as one item (COLL-4).
+        // A bare reference to a group (`$g`) stands for it, and is marked.
+        this.markWrappersOfSeveral = this.definition.markWrappersOfSeveral;
     }
 
     async determineDownstreamComponents() {
@@ -432,6 +441,15 @@ export class ChildDependency extends Dependency {
                             asList: compositeInfo.asList,
                             potentialListComponents:
                                 translatedPotentialListComponents,
+                            ...(this.markWrappersOfSeveral
+                                ? {
+                                      wrapperOfSeveral: isWrapperOfSeveral(
+                                          this.dependencyHandler._components[
+                                              compositeInfo.compositeIdx
+                                          ],
+                                      ),
+                                  }
+                                : {}),
                         });
                     }
                 }

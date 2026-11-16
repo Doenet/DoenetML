@@ -50,6 +50,7 @@ import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
 import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
+import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -735,7 +736,8 @@ export async function normalizedDastToSerializedComponents(
         code,
         args,
         kind,
-        firstIndex,
+        childName,
+        childReference,
     } of collectionItemWarnings) {
         const ref: any = copy.extending
             ? unwrapSource(copy.extending as any)
@@ -751,10 +753,32 @@ export async function normalizedDastToSerializedComponents(
                 kind,
                 reference,
                 normalized_root.sources,
-                firstIndex,
             );
             extra.suggestion = suggestion ?? "";
             extra.hasSuggestion = suggestion === undefined ? "false" : "true";
+        }
+        if (code === "doenet-w0193") {
+            // a property after a repeat whose template holds several: the
+            // reference with a child's name put before the property
+            const suggestion = referenceNamingTheItem(
+                ref,
+                kind,
+                reference,
+                normalized_root.sources,
+                childName,
+            );
+            extra.suggestion = suggestion ?? reference;
+            if (childName !== undefined) {
+                extra.child = "named";
+            } else if (childReference) {
+                extra.child = "reference";
+                extra.tag = `<${childReference.type} extend="${doenetMLReferenceAsWritten(
+                    childReference.originalPath,
+                    normalized_root.sources,
+                )}" name="P"/>`;
+            } else {
+                extra.child = "unnamed";
+            }
         }
         diagnostics.push(
             codedDiagnostic({
@@ -789,6 +813,18 @@ export async function normalizedDastToSerializedComponents(
             serializedComponents: sugarResult.components,
             componentInfoObjects,
             sources: normalized_root.sources,
+        }),
+    );
+
+    // A `<sort>` or `<shuffle>` takes items of one type, decided from what
+    // is written (COLL-4, D41 decision 4): one that does not is an error,
+    // marked on it and reported now, wherever it is (DIAG-7). After sugar,
+    // which splits its text into the items it reads, and before the list
+    // forms, which leave one in error a composite.
+    diagnostics.push(
+        ...checkReorderedItemsAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
         }),
     );
 
@@ -2354,15 +2390,15 @@ function getComponentType(element: FlatElement) {
  * any (`$s.P.x`, `$s[1].P[2]`, `$s[1].P.x`): what to write to read the
  * component named `P` in each option or case (`doenet-w0191`). `undefined`
  * when where to put it is not known from the positions in the DoenetML.
- * With `firstIndex`, for a `<select>` that can pick several, the first
- * pick's (`$s[1].P.x`), since `$s.P.x` then names `P` in several picks.
+ * After a `<select>` that picks several, `$s.P.x` reads `P` in each pick
+ * (D41 decision 1).
  */
 function referenceNamingTheItem(
     ref: any,
     kind: "index" | "property",
     reference: string,
     sources: readonly string[],
-    firstIndex = false,
+    name = "P",
 ) {
     const path: any[] = ref?.unresolvedPath ?? [];
     const original: any[] = ref?.originalPath ?? [];
@@ -2399,5 +2435,5 @@ function referenceNamingTheItem(
         return undefined;
     }
     const dollars = reference.slice(0, at0);
-    return `${dollars}${source.substring(start, at)}${firstIndex ? "[1]" : ""}.P${source.substring(at, end)}`;
+    return `${dollars}${source.substring(start, at)}.${name}${source.substring(at, end)}`;
 }

@@ -74,6 +74,27 @@ const point12: Values = {
     ne: "1",
 };
 
+/**
+ * The values when the items are points with these x's: a `<number>` of
+ * several is their product, and the line is through what `$R.x` and `(5,6)`
+ * give.
+ */
+function points(pL: string, ...xs: string[]): Values {
+    const list = xs.join(", ");
+    return {
+        p: list,
+        t: list,
+        m: `(${list}) + 1`,
+        ml: list,
+        nm: String(xs.reduce((a, x) => a * Number(x), 1)),
+        pQ: `((${list}), 3)`,
+        pL,
+        bv: list,
+        me: "＿",
+        ne: "NaN",
+    };
+}
+
 type Step = {
     /** the input set before checking, as `[name, value]` */
     set?: [string, string | boolean];
@@ -84,18 +105,28 @@ type Step = {
 
 const n = Object.keys(parents).length;
 const severalWarning = { "warning doenet-w0193": n };
+// A repeat's template holding several is decided at load, from the
+// template, so its warning stays at 0 iterations (#2548 item 3, DIAG-7).
 const repeat = (count: string, template: string) =>
     `<mathInput name="n" prefill="${count}"/><repeatForSequence name="r" length="$n" valueName="v">${template}</repeatForSequence>`;
 const twoPoints = `<point>($v,1)</point><point>($v,2)</point>`;
 
 const cases: {
     name: string;
+    /**
+     * Whether the collection holds several items (a select that picks two,
+     * a repeat), so that a tag made from the property (`me`, `ne`) is an
+     * error at load (#2548 item 1, REF-5), as one made from the collection
+     * itself is (`doenet-e0064`).
+     */
+    severalItems?: boolean;
     source: string;
     ref: string;
     steps: Step[];
 }[] = [
     {
         name: "picks of a select, one lacking the property",
+        severalItems: true,
         source: `<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><text>hi</text></option></select>`,
         ref: "s",
         steps: [
@@ -118,6 +149,7 @@ const cases: {
     },
     {
         name: "picks of a select, one holding several",
+        severalItems: true,
         source: `<select name="s" numToSelect="2"><option><point>(1,2)</point><point>(3,4)</point></option><option><point>(5,6)</point></option></select>`,
         ref: "s",
         steps: [
@@ -143,6 +175,7 @@ const cases: {
     },
     {
         name: "picks of a select, each having it (the shape the blanks keep)",
+        severalItems: true,
         source: `<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point></option></select>`,
         ref: "s",
         steps: [
@@ -240,6 +273,7 @@ const cases: {
     },
     {
         name: "iterations of several, 2 → 1 → 0 → 3 → 1",
+        severalItems: true,
         source: repeat("2", twoPoints),
         ref: "r",
         steps: [
@@ -249,7 +283,7 @@ const cases: {
                 values: blanks(1),
                 diagnostics: severalWarning,
             },
-            { set: ["n", "0"], values: blanks(0), diagnostics: {} },
+            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
             {
                 set: ["n", "3"],
                 values: blanks(3),
@@ -264,10 +298,11 @@ const cases: {
     },
     {
         name: "iterations of several, from 0: 0 → 1 → 2 → 0",
+        severalItems: true,
         source: repeat("0", twoPoints),
         ref: "r",
         steps: [
-            { values: blanks(0), diagnostics: {} },
+            { values: blanks(0), diagnostics: severalWarning },
             {
                 set: ["n", "1"],
                 values: blanks(1),
@@ -278,15 +313,16 @@ const cases: {
                 values: blanks(2),
                 diagnostics: severalWarning,
             },
-            { set: ["n", "0"], values: blanks(0), diagnostics: {} },
+            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
         ],
     },
     {
         name: "iterations of several, from 0: 0 → 2",
+        severalItems: true,
         source: repeat("0", twoPoints),
         ref: "r",
         steps: [
-            { values: blanks(0), diagnostics: {} },
+            { values: blanks(0), diagnostics: severalWarning },
             {
                 set: ["n", "2"],
                 values: blanks(2),
@@ -296,6 +332,7 @@ const cases: {
     },
     {
         name: "iterations of a point and a text, 2 → 1 → 0 → 2",
+        severalItems: true,
         source: repeat("2", `<point>($v,1)</point><text>a</text>`),
         ref: "r",
         steps: [
@@ -305,7 +342,7 @@ const cases: {
                 values: blanks(1),
                 diagnostics: severalWarning,
             },
-            { set: ["n", "0"], values: blanks(0), diagnostics: {} },
+            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
             {
                 set: ["n", "2"],
                 values: blanks(2),
@@ -313,15 +350,61 @@ const cases: {
             },
         ],
     },
+    {
+        // A name after a repeat reaches into each item (D41 decision 1,
+        // COLL-2): `$r.P.x` is the x of each iteration's `P`, whatever else
+        // the template holds.
+        // (Not 1: `<number extend>` of a property of the one item left is
+        // `NaN` live and `1` after a reload, #2548 item 6, as for `$r.x`.)
+        name: "a name in each iteration of several, 2 → 3",
+        severalItems: true,
+        source: repeat("2", `<point name="P">($v,1)</point><text>a</text>`),
+        ref: "r.P",
+        steps: [
+            { values: points("0 = y", "1", "2"), diagnostics: {} },
+            {
+                set: ["n", "3"],
+                values: points("0 = y", "1", "2", "3"),
+                diagnostics: {},
+            },
+        ],
+    },
+    {
+        name: "a name in each pick of several",
+        severalItems: true,
+        source: `<select name="s" numToSelect="2"><option><point name="P">(1,2)</point><text>a</text></option><option><point name="P">(2,4)</point></option></select>`,
+        ref: "s.P",
+        steps: [{ values: points("0 = y", "1", "2"), diagnostics: {} }],
+    },
 ];
+
+/**
+ * The values and diagnostics when the tags made from the property (`me`,
+ * `ne`) are in error at load: they report that error only, so each code the
+ * other parents give is given by two fewer.
+ */
+function tagsInError(step: Step) {
+    const diagnostics: Record<string, number> = {};
+    for (const [key, count] of Object.entries(step.diagnostics)) {
+        diagnostics[key] = count === n ? n - 2 : count;
+    }
+    diagnostics["error doenet-e0064"] = 2;
+    return {
+        values: { ...step.values, me: "error", ne: "error" },
+        diagnostics,
+    };
+}
 
 async function state(core: any, resolvePathToNodeIdx: any) {
     const stateVariables = await core.returnAllStateVariables(false, true);
     const values: Record<string, string> = {};
     for (const name of Object.keys(parents)) {
-        const stateValues =
-            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
-        values[name] = String(stateValues.text ?? stateValues.value);
+        const component = stateVariables[await resolvePathToNodeIdx(name)];
+        const stateValues = component.stateValues;
+        values[name] =
+            component.componentType === "_error"
+                ? "error"
+                : String(stateValues.text ?? stateValues.value);
     }
     const diagnostics: Record<string, number> = {};
     for (const d of core.core.diagnostics) {
@@ -335,7 +418,7 @@ async function state(core: any, resolvePathToNodeIdx: any) {
 }
 
 describe("A blank for each item lacking a property, in every parent (#2452, D40, D41)", () => {
-    for (const { name, source, ref, steps } of cases) {
+    for (const { name, source, ref, steps, severalItems } of cases) {
         it(name, async () => {
             const doenetML =
                 source +
@@ -362,10 +445,9 @@ describe("A blank for each item lacking a property, in every parent (#2452, D40,
                         });
                     }
                 }
-                const expected = {
-                    values: step.values,
-                    diagnostics: step.diagnostics,
-                };
+                const expected = severalItems
+                    ? tagsInError(step)
+                    : { values: step.values, diagnostics: step.diagnostics };
                 const label = `step ${ind}${step.set ? ` (${step.set.join(" = ")})` : ""}`;
                 expect(
                     await state(core, resolvePathToNodeIdx),

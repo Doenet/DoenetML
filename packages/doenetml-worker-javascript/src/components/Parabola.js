@@ -10,6 +10,10 @@ import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Parabola extends Curve {
     static componentType = "parabola";
+
+    // Missing while its vertex is a missing point (D40, VAL-5;
+    // `BaseComponent.missingWhenPointsMissing`).
+    static missingWhenPointsMissing = ["vertex"];
     // Overrides Curve's ["line", "fill"]: parabolas have no enclosed interior to fill.
     static styleOverrideCategories = ["line"];
 

@@ -3,6 +3,11 @@ import VectorListComponent from "./VectorList";
 export default class ControlVectors extends VectorListComponent {
     static componentType = "controlVectors";
 
+    // The control vectors of one point of a `<curve>`, not a collection
+    // D41 names: its `direction` and `pointNumber` stay properties
+    // (`bindValueTo="$cv.direction"`).
+    static attributesAreProperties = true;
+
     static componentDocs = {
         summary:
             "Bezier control vectors at points defining a curve (used inside `<bezierControls>`)",

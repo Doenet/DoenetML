@@ -116,3 +116,34 @@ The individual `<row>{:dn}` components within a `<table>{:dn}` can be re-ordered
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
+
+
+
+---
+
+### Example: Keep components together with `<group>{:dn}`
+
+
+```doenet-editor-horiz
+<p>
+  <shuffle>
+    <group><m>x^2</m> <text>squared</text></group>
+    <group><m>x^3</m> <text>cubed</text></group>
+    <group><m>\sqrt{x}</m> <text>square root</text></group>
+  </shuffle>
+</p>
+```
+
+
+A `<group>{:dn}` holding several components is moved as one item, so each formula
+stays next to its name. The items are separated by commas, as the items of a
+[`<repeat>{:dn}`](repeat) are, and the components of each are shown as written in the
+group. A `<group>{:dn}` holding one component is shuffled as that component.
+
+A `<shuffle>{:dn}` takes items of one type: a list among its children gives its entries
+as items, but a `<math>{:dn}` beside a `<text>{:dn}`, or beside a `<group>{:dn}` of
+several components, is an error. Give each type a `<shuffle>{:dn}` of its own.
+
+Select a new page variant from the pulldown menu at the top of the
+editor to see different variants of the document.
+

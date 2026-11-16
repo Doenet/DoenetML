@@ -88,6 +88,15 @@ export default class AuthoredValueList extends ValueListComponent {
 
     static componentType = "_authoredValueList";
 
+    // Documented as properties of an authored list (`mathList.mdx`), so they
+    // stay, though attributes (D41 decision 2 leaves the older properties of
+    // authored lists open).
+    static attributePropertiesKept = [
+        "maxNumber",
+        "unordered",
+        "mergeMathLists",
+    ];
+
     static listEntriesFixedByDefault = false;
 
     // Each display setting of each entry is an array of its own

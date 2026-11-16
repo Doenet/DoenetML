@@ -366,6 +366,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0073": "choice-not-always-possible",
     "doenet-e0074": "choice-parameter-not-analysable",
     "doenet-e0075": "choice-parameter-not-a-number",
+    "doenet-e0076": "reorder-items-of-several-types",
+    "doenet-e0077": "sort-item-of-several",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

@@ -47,6 +47,31 @@ export default class SampleRandomNumbers extends ValueListComponent {
     }
     static componentType = "sampleRandomNumbers";
 
+    // The distribution sampled from, computed from what is written (the
+    // expected `mean` of a uniform distribution), documented as properties
+    // (`sampleRandomNumbers.mdx`).
+    static attributePropertiesKept = [
+        "type",
+        "from",
+        "to",
+        "step",
+        "mean",
+        "variance",
+        "standardDeviation",
+        "logMean",
+        "logVariance",
+        "logStandardDeviation",
+        "means",
+        "variances",
+        "standardDeviations",
+        "weights",
+        "numTotal",
+        "numSuccesses",
+        "numDraws",
+        "numTrials",
+        "probability",
+    ];
+
     static listEntryComponentType = "number";
 
     static listEntryValuesVariable = "sampledValues";

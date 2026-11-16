@@ -1,4 +1,5 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
+import { contentNamesNothingDefinition } from "../utils/missing";
 import me from "math-expressions";
 import {
     breakEmbeddedStringByCommas,
@@ -353,6 +354,13 @@ export default class Vector extends GraphicalComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Whether it holds only references that name nothing, as its
+        // children or its `displacement` (`center="$nothing"`), which makes a shape
+        // it gives a point to missing (`BaseComponent.missingWhenPointsMissing`,
+        // D40). The vector itself is not made missing by it.
+        stateVariableDefinitions.contentNamesNothing =
+            contentNamesNothingDefinition("displacement");
 
         Object.assign(
             stateVariableDefinitions,

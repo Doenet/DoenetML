@@ -341,7 +341,10 @@ describe("Repeats whose template is one value @group4", () => {
                     component?.componentType === "_repeatValueList",
             ).length,
         ).toBe(2);
-        expect(texts.p.replace(/\s+/g, " ").trim()).toBe("1, 2, 3, 2, 3, 4");
+        // each iteration shows its `<functionIterates>`, a list (D41)
+        expect(texts.p.replace(/\s+/g, " ").trim()).toBe(
+            "(2, 2), (3, 4) 1, 2, 3, (3, 2), (4, 4) 2, 3, 4",
+        );
     });
 
     it("a template that is one value alone shows it with that value's display settings, as does a reference to the repeat", async () => {

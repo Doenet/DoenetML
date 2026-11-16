@@ -246,7 +246,7 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
             .filter((x: any) => x.code === "doenet-w0191")
             .map((x: any) => x.message);
         expect(messages).eqls([
-            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
+            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s.P.x`.',
             '`$s[1][2]`: an index after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
         ]);
     });
@@ -260,7 +260,7 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
         // decided at load from every option, one warning, nothing more
         // when the document runs. (Was `3, 5, 3, 5`.)
         expect(d.diagnostics().map((x: any) => x.message)).eqls([
-            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
+            '`$s.x`: a property after `s` passes into what each pick holds only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s.P.x`.',
         ]);
         expect(d.codes()).eqls(["warning doenet-w0191"]);
         expect(await d.text()).eq("[＿, ＿] [4] [3, 5]");
@@ -374,7 +374,7 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
         expect(await d.text()).eq("[＿] [＿, ＿] [＿] [false] [1] [1, 2]");
         const messages = d.diagnostics().map((x: any) => x.message);
         expect(messages).toContain(
-            '`$r[1].x` names nothing: this iteration of a `<repeat>` holds 2 components, and a property passes into an iteration only when it holds one. To read the property of a child, give it a name, such as `name="P"`, and write `$r[1].P.x`.',
+            '`$r[1].x` names nothing: what is written inside the `<repeat>` holds 2 components, so each item holds 2, and a property applies to an item only when it is one component. To read the property of a child, give it a name, such as `name="P"`, and write `$r[1].P.x`.',
         );
         expect(d.codes()).eqls([
             "warning doenet-w0193",
@@ -404,21 +404,21 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
         expect(await d.text("b")).eq("true");
     });
 
-    it("suggests the first item's child after a repeat, or a select that picks several", async () => {
-        // `$r.P.x` and `$s.P.x` (with several picks) do not name `P` of
-        // each item until D41 decision 1 (PR 14), so the warning suggests
-        // what works (DIAG-3).
+    it("suggests a name after a repeat, or a select that picks several, which reads it in each item", async () => {
+        // `$r.P.x` and `$s.P.x` (with several picks) read `P` of each item
+        // (D41 decision 1), so the warning suggests them, and they work
+        // (DIAG-3). (They suggested the first item's, `$r[1].P.x`, before.)
         const d =
             await setup(`<repeat name="r" for="1 2" valueName="v"><point name="P">($v,1)</point><point>($v,2)</point></repeat>
 <group name="g">$r</group>
 <select name="s" numToSelect="2"><option><point name="P">(1,2)</point><point>(3,5)</point></option><option><point name="P">(1,4)</point><point>(7,2)</point></option></select>
 <p name="p">[$r.x] [$g.x] [$s.x]</p>
-<p name="q">[$r[1].P.x] [$g[1].P.x] [$s[1].P.x]</p>`);
-        expect(await d.text("q")).eq("[1] [1] [1]");
+<p name="q">[$r.P.x] [$g.P.x] [$s.P.x]</p>`);
+        expect(await d.text("q")).eq("[1, 2] [1, 2] [1, 1]");
         const suggestions = d
             .diagnostics()
             .map((x: any) => x.message.match(/write `([^`]*)`\.$/)?.[1]);
-        expect(suggestions).eqls(["$g[1].P.x", "$r[1].P.x", "$s[1].P.x"]);
+        expect(suggestions).eqls(["$g.P.x", "$r.P.x", "$s.P.x"]);
         expect(d.codes()).eqls([
             "warning doenet-w0193",
             "warning doenet-w0193",

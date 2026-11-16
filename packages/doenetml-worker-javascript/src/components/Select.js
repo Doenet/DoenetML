@@ -1,4 +1,8 @@
 import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
+import {
     notANumberFailure,
     numToSelectNotANumber,
     optionSelectionFailure,
@@ -135,6 +139,9 @@ export default class Select extends CompositeComponent {
 
     static componentType = "select";
 
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
+
     static componentDocs = {
         summary:
             "Randomly selects components from a list of children to create document variants",
@@ -208,6 +215,9 @@ export default class Select extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
 
         stateVariableDefinitions.variants = {
             returnDependencies: () => ({
@@ -760,6 +770,11 @@ export default class Select extends CompositeComponent {
                 };
             },
         };
+
+        // The number of items, its picks (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "selectedIndices",
+        });
 
         return stateVariableDefinitions;
     }

@@ -123,6 +123,7 @@
  * not say (`INPUTS_READING_ONE_ENTRY`) is not found here; it is still
  * reported, or stops the document, when it is reached (Doenet/DoenetML#2515).
  */
+import { COLLECTIONS_OF_NAMED_ITEMS } from "../wrappers";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
 import type { BranchRead } from "./typeChangeAtLoad";
@@ -1290,6 +1291,33 @@ export function breakReferenceCycles({
                 return edges;
             }
             return [];
+        }
+        if (
+            target.componentType !== "_copy" &&
+            COLLECTIONS_OF_NAMED_ITEMS.has(targetType) &&
+            typeof path[0]?.name === "string" &&
+            path[0].name !== ""
+        ) {
+            // A name in each item (`$r.m`, D41 decision 1): what it names in
+            // what is written in it, as for `$r[1].m`, from which each item
+            // is made, so `$r.m` in `m` in the template is a cycle.
+            const [namePart, ...rest] = path;
+            const named = namedIn(target, namePart.name);
+            if (named.length > 0) {
+                const edges = [madeFromNode(target.componentIdx)];
+                for (const component of named) {
+                    edges.push(
+                        ...readEdges(
+                            from,
+                            component,
+                            namePart.index?.length > 0
+                                ? [{ name: "", index: namePart.index }, ...rest]
+                                : rest,
+                        ),
+                    );
+                }
+                return edges;
+            }
         }
         const [first, ...rest] = path;
         if (

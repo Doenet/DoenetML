@@ -10,6 +10,10 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<functionIterates>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
 component that evaluates a function over a specified number of iterations of its argument.
 
+It is a list of its iterates: it shows them separated by commas, an index
+selects one (`$fI[2]` is the second iterate), a property after it gives that
+property of each iterate, and `numItems` is the number of iterates.
+
 <AttrPropDisplay name='functionIterates'/>
 
 ## Examples
@@ -37,3 +41,21 @@ in the `<functionIterates>{:dn}` component in the `function` attribute.
 The `numIterates` attribute, which specifies the number of iterations to 
 perform, and the `initialValue` attribute are required.
 
+
+
+---
+
+### Example: the iterates as a list
+
+
+```doenet-editor-horiz
+<function name="f">2x</function>
+
+<p>Iterates: <functionIterates name="fI" function="$f" numIterates="4" initialValue="1"/></p>
+<p>The second iterate: $fI[2]</p>
+<p>Number of iterates: $fI.numItems</p>
+```
+
+The `<functionIterates>{:dn}` itself shows its iterates, `2, 4, 8, 16`. An
+index selects one iterate, and `numItems` counts them. The starting value is
+not one of the iterates; `allIteratesWithInitial` includes it.
