@@ -157,7 +157,7 @@ const withNextra = nextraConfig({
 const assetPrefix = basePath;
 
 const fullConfig = withNextra({
-    // Inlined into the client bundle, where `theme.config.tsx` reads them for
+    // Inlined into the client bundle, where `docs-versions.mjs` reads them for
     // the version switcher.
     env: {
         DOCS_VERSIONS: process.env.DOCS_VERSIONS ?? "",

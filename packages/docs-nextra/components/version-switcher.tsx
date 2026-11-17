@@ -52,11 +52,12 @@ export function VersionSwitcher() {
                         return;
                     }
                     // `asPath` is relative to the base path and carries the
-                    // query and hash.
-                    const [pathAndQuery, hash] = router.asPath.split("#");
-                    const [pathname, query] = pathAndQuery.split("?");
-                    const suffix =
-                        (query ? `?${query}` : "") + (hash ? `#${hash}` : "");
+                    // query and hash. The path ends at the first `?` or `#`;
+                    // the rest is kept verbatim (a query may contain `?`).
+                    const asPath = router.asPath;
+                    const end = asPath.search(/[?#]/);
+                    const pathname = end === -1 ? asPath : asPath.slice(0, end);
+                    const suffix = end === -1 ? "" : asPath.slice(end);
                     void navigateOrHome(
                         pageUrlOn(target, pathname) + suffix,
                         pageUrlOn(target, "/"),
