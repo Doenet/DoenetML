@@ -1,6 +1,7 @@
 # Rebuild docs.doenet.org after a push to this maintenance branch.
 #
-# The site serves this branch's docs at the root, beside `main`'s at `/dev/`.
+# The site serves this branch's docs at `/0.7/` (where its root redirects),
+# beside `main`'s at `/0.8/`.
 # Both are built and deployed together by `gh-pages-docs.yml` on `main`: a
 # Pages deploy replaces the whole site, and the `github-pages` environment's
 # deployment branch policy, if it is limited to `main` as GitHub recommends,

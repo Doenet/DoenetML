@@ -249,6 +249,15 @@ function isTabEnabled(
 }
 
 /**
+ * Where context help and diagnostics link to by default: this line's docs on
+ * docs.doenet.org. Each line of DoenetML links to its own versioned path, so
+ * its links keep pointing at the right docs after a newer line is released
+ * (the site's root redirects to whichever line is current). A host can
+ * override it with the `docsURL` prop.
+ */
+export const DEFAULT_DOCS_URL = "https://docs.doenet.org/0.7";
+
+/**
  * Combined DoenetML editor/viewer shell with diagnostics, responses, formatting, and variants.
  */
 export const EditorViewer = React.forwardRef<
@@ -287,7 +296,7 @@ export const EditorViewer = React.forwardRef<
         border = "1px solid",
         initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
         fetchExternalDoenetML,
-        docsURL = "https://docs.doenet.org",
+        docsURL = DEFAULT_DOCS_URL,
         initialOpenTab,
     },
     ref,
