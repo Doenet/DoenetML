@@ -2937,6 +2937,14 @@ Alternatives: `<collection>`, `<items>`.
    - A comparison of a boolean with a number (`<boolean>$b = 1</boolean>`) is a type mix, with
      the warning. `$b = true` compares booleans.
    - A boolean still shows as the word `true` or `false` in text.
+   - **`credit` on an `<award>` or `<choice>` takes a boolean,** as it did in 0.7: `true` is full
+     credit and `false` none (`credit="$b"`, `credit="$n > 2"`, `credit="$b and not $c"`,
+     `credit="true"`). No other attribute is needed: the attribute is made as a
+     `<number convertBoolean>` (`returnCreditAttributeAndStateVariableDefinition` in
+     `W/utils/answer.js`), so it is the author asking, and "credit when this is true" needs no
+     notation. **[probe]** on `main`: each of these gives credit 1, and `false` gives 0. Only a
+     comparison (`$animal=cat`) and a `<mathInput>` were pinned by tests; #2582 adds tests for a
+     boolean reference and expression, so its change can't break them.
 
    This reverses most of #2572's boolean adapter (closing #2566) and narrows REF-5's older
    rule. Options considered: **A**, keep #2572 (a boolean is `1` or `0` wherever a number is
