@@ -152,8 +152,9 @@ const withNextra = nextraConfig({
 //   });
 //
 
-// Empty except in the deploy, which builds this branch at the root of the site
-// beside `main` under `/dev`. See `docs-versions.mjs`.
+// From `DOCS_BASE_PATH`. Empty in every build of this branch, the deploy's
+// included: the deploy serves this branch at the root of the site, beside
+// `main` under `/dev`. See `docs-versions.mjs`.
 const assetPrefix = basePath;
 
 const fullConfig = withNextra({

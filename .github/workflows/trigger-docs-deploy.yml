@@ -2,21 +2,24 @@
 #
 # The site serves this branch's docs at the root, beside `main`'s at `/dev/`.
 # Both are built and deployed together by `gh-pages-docs.yml` on `main`: a
-# Pages deploy replaces the whole site, and the `github-pages` environment
-# accepts deploys only from `main`. So this branch never deploys; it asks
+# Pages deploy replaces the whole site, and the `github-pages` environment's
+# deployment branch policy, if it is limited to `main` as GitHub recommends,
+# would refuse a deploy from here. So this branch never deploys; it asks
 # `main`'s workflow to run, which builds this branch's current tip. See
 # "The docs site" in `main`'s docs/RELEASING.md.
 #
-# A workflow_dispatch made with GITHUB_TOKEN does start a run, unlike most
-# events that token causes.
+# GitHub documents workflow_dispatch as an exception to the rule that events
+# caused by GITHUB_TOKEN start no new workflow run.
 name: Trigger docs deploy
 
 on:
     push:
         branches: ["0.7"]
-        # Changesets and the version PR's bookkeeping change nothing the docs
-        # build from. (A release needs no rebuild either: the docs' examples
-        # load `@doenet/standalone@0.7` from the CDN, which follows releases.)
+        # Changesets and changelogs change nothing the docs build from. (A
+        # version PR's merge also bumps `package.json` files, so it still
+        # triggers a rebuild, though a release needs none: the docs' examples
+        # load `@doenet/standalone@0.7` from the CDN, and `publish.yml` moves
+        # `@0.7` to each new release.)
         paths-ignore:
             - ".changeset/**"
             - "**/CHANGELOG.md"
