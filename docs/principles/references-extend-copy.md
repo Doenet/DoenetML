@@ -655,8 +655,10 @@ No test pins the "last one wins" rule, for any component, either written directl
 (`extend_references.test.ts:86`). This rule should be one schema-driven sweep over every
 component with a single-child group ([testing-principles.md](testing-principles.md) §2.3).
 
-Not checked: whether an `<award>`'s `<when>` follows the rule. **[probe]**: an award that added a
-`<when>` to one it was made from gave no credit for the added condition (#2531). Enforcing the rule
+**Known violation:** an `<award>` with two `<when>` children uses the **first**, silently,
+whether written out or copied with a `<when>` added (#2571's probe; before it, an extend adding
+a `<when>` gave no credit for it, #2531). Tracked in #2580; the rule belongs in the cells core's
+shared mechanism. Enforcing the rule
 component by component leaves gaps like this one. In the cells core it should be one mechanism:
 each component declares which child groups take one child, and one shared rule picks the last.
 That is worth doing there, not retrofitting into the JavaScript core.
@@ -666,7 +668,9 @@ That is worth doing there, not retrofitting into the JavaScript core.
 `copy` and `copyWithState` (D26). The allowed cases:
 - **between value types:**
   - math, number, text and boolean, among each other. A boolean is `1` or `0` as a number or a
-    math;
+    math, also as a child of a `<math>`, `<number>`, list or operator and in a math attribute
+    (since #2572, closing #2566; a `<number>$b</number>` is `1` with or without
+    `convertBoolean`);
   - point, vector and coords, among each other;
   - math from a point, vector or coords, as the tuple of its coordinates;
   - a point, vector or coords from a math whose value is a tuple;
@@ -1025,8 +1029,11 @@ The `v07-to-v08` converter, still to come, renames existing `copy` to `copyWithS
 copies of a URI, copies of a module, and copies that change what is chosen (#2457).
 
 **Known violations:**
-- a copied `<award>` in an `<answer>` gets an extra, visible `<mathInput>` from the answer's sugar,
-  which the written-out award doesn't, because the sugar sees an award with no children (#2531);
+- **fixed by #2571** (closing #2531): an `<answer>` decides its input for an `<award copy>` from
+  the children the copy will hold, as for the award written out (`copiedAwards.ts`). **Left**
+  (#2580): a copy whose source isn't known at load (`$r[1].aw`), and an `<award copy>` written in
+  an `<answer copy>`, still get the added `<mathInput>`; `<Award copy>` (another case) isn't seen
+  as an award by the sugar, which wraps it again;
 - fixed by #2549 (closing #2477): a `copyWithState` carries a sampler's draws through a reload, and a
   module attribute reaching a nested choice through any list of values keeps the carried choices,
   with `w0186`. **Left** (#2553): a sampler or `<selectRandomNumbers>` whose parameters come from

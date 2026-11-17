@@ -560,16 +560,22 @@ which aren't choices.
 
 **Known violations** (#2508; SEL-1, SEL-3's test and SEL-4 done by #2511; SEL-5 to SEL-7 by
 #2555, whose leftovers are #2563):
-- SEL-1 errs toward an error in places, where it reads a component rather than a property:
-  - `$sec.sectionNumber` of a `<section>` holding an input is an error, though the number can't
-    change;
-  - everything in a `<graph>` that isn't `fixed` counts as draggable (#2495's index), so a
-    `<number>` placed in a graph, or `$g.xMax` of a `<graph fixAxes>`, is an error;
+- **fixed by #2573 and #2576:** SEL-1 read a component whole where a parameter named a property
+  of it. Now `$sec.sectionNumber` reads what decides the number, a graph's properties read its
+  attributes (its axes are fixed by a literal `fixAxes` or `fixed`), and a component placed in a
+  graph (a `<number>`, `<math>`, `<text>`, `<label>`, `<image>`, an input) counts as dragged only
+  in its `anchor`. Such parameters are still `e0074` where SEL-6 applies. **Left** (#2578):
+  - a placed component inside a `<group>` or `<repeat>` in a graph still counts as dragged, and a
+    reference that reads a graph whole is an error through the graph's own dynamic children;
+  - `fixAxes="$b"` counts as not fixed; `$ml[2].anchor` counts as changeable when any entry is
+    placed; a `draggable="false"` component's `anchor` counts as changeable; what a point's label
+    holds counts as dragged with the point;
+  - a `$cc` copy of a `<conditionalContent>` holding a section, written before the section, isn't
+    looked through, so a section number it changes is allowed (a missed error);
   - state a reader sets by an action (a hint opened) isn't checked at all, the other way;
-- a property of a selection in error (`$s.value`) also warns `w0104`, since the `_error` has no
-  such property;
-- `<selectFromSequence extend="$r"/>` of a sampler fails to load, as before #2511; it should be
-  an `e0070`;
+- **fixed by #2573:** a property of a selection in error (`$s.value`), and of any component in
+  error, reports nothing more (DIAG-5);
+- `<selectFromSequence extend="$r"/>` of a sampler loads with `e0071` (REF-5) since #2542;
 - `e0044`/`e0051` reject a selection once 70% of combinations are excluded, even when valid ones
   remain (SEL-4). Since #2555 this is an error rather than an info. So when the range comes from
   another selection, it is an error **only in the variants where it happens** (DIAG-7);

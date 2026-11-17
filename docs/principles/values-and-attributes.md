@@ -93,7 +93,7 @@ So whether `<math extend="$a.currentResponse2"/>` is allowed, and what `$x.p` gi
 **The properties whose type varies today** (`hasVariableComponentType`, D45; implementation
 #2568):
 - decided by a written `type`, already at load: a selectable type's `value` and `values`,
-  `<slider>`'s `value` and `items` (`items` holds a list but is typed as one value, #2545),
+  `<slider>`'s `value` and `items` (`items` a list since #2572),
   `<animateFromSequence>`'s `value`;
 - decided by what is written, computed at run time today:
   - `<markers>`: text if any child is a `<text>`, else number. A mix is text, silently; under
@@ -327,8 +327,8 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   - a tag made while a property had a value doesn't follow it back to `null`: with `<image
     aspectRatio="2">` and its bound input cleared, `<math extend="$im.aspectRatio"/>` and `<text>`
     of it read `NaN` (a bare reference and a `<number>` tag read `＿`) (#2544);
-  - `$P.scales`, `$slider.items` and `$sort.sortByComponent` are declared as numbers but hold an
-    array or a string, so they show `NaN` (#2545).
+  - **fixed by #2572** (closing #2545): `$slider.items` is a `<numberList>` or `<textList>`, and
+    `$P.scales` and `$sort.sortByComponent` are not properties (`w0104`).
 - **`<angle/>` with no measure is blank (decided, D40; #2324).** An angle whose measure nothing
   gives or determines (bare, one or two `through` points, one line) has a blank measure and draws
   nothing, not a right angle. 0.7 documents are not converted (the changeset says to add

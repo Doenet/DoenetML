@@ -2629,7 +2629,8 @@ names nothing (D27 revised, #2518).
 
 ## D42. An award or a choice can only be copied (decided, Tier 1)
 
-**Decided** (November 2026). Implementation: #2531.
+**Decided** (November 2026). **Done by #2571** (closing #2531): `extend` and `copyWithState` of
+an award or a choice are **`doenet-e0078`** at load, whose message suggests the `copy` to write.
 
 An `<award>`'s state (`awarded`) and a `<choice>`'s (`submitted`) record the last submission of
 the answer or choice input that holds them (ANS-1), and a choice's `selected` comes from its place
@@ -2744,7 +2745,7 @@ no way to iterate over records (a point with its label).
 
 While probing: a `<boolean>` written in a `<math>` (`<math>$b+1</math>`) is dropped as an invalid
 child (`w0107`), giving `+1`, though REF-5 makes a boolean `1` or `0` as a math. `<number>$b+1</number>`
-gives `1`, so it likely drops it too (#2566).
+gives `1`, so it likely drops it too (#2566). **Fixed by #2572.**
 
 ## D45. Every value a reference reaches has one type, decided from the DoenetML (decided, Tier 1)
 

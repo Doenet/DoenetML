@@ -247,7 +247,12 @@ does not count them. The common shapes are:
 - **Executable docs examples.** Add an optional fence annotation such as
   ```` ```doenet test="CPY-1" ````, or an expected-values block, plus a Vitest file that loads
   those fences through `api.ts`. Start by asserting "loads without errors" for all ~1,840
-  examples.
+  examples. **The first step is done by #2574** (closing #2530): every `doenet-example`,
+  `doenet-editor`, `doenet-editor-horiz` and `doenet-viewer` block (1,823) loads through the core
+  in CI (`W/test/docsExamples/`), and fails on a throw or an error-level diagnostic. An example
+  that shows an error on purpose carries `expect-error` after its language, and a known core bug
+  is listed in `knownFailures.ts` (empty today). Annotations that assert values are still to
+  come.
 - **`docs/PR_REVIEW_GUIDELINES.md`.** Add a "Principles" section. Proposed text:
   1. Does the change alter behavior covered by a principle id? The PR names the id. A Tier 1
      change needs a maintainer decision and a changeset.

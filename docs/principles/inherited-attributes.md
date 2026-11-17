@@ -200,6 +200,10 @@ Three problems in this area are listed in D7:
 - `<math extend="$m" fixed="false"/>` of a fixed `m` lets a bound input **change `m`**. This
   was **[probe]**d twice, and is a bug. For points and inputs the same write is refused.
 
+**Done by #2575** (closing #2538): a reference to one list entry, or to a property, written among
+a list's or a `<sort>`'s children (`<mathList>$l[1] $l[2]</mathList>`, `$P.x`, `$seq[1]`) is
+fixed as its source is (`entryFixed`, `entryFixLocation`), for every list type.
+
 **Done by #2524** (closing #2239): a reference to one list entry, its value, a property of it, a
 tag of it or an unlinked copy, reads `fixed` and `fixLocation` from the entry's source
 (`listEntryContextArrays`, `listEntrySource`). **Known violation (#2526):** a `<booleanList>` holds no
@@ -278,8 +282,11 @@ reference has no label.
   of a repeat iteration labels no input. Decided by D43 (REF-6): `for` inside an extend points to
   the extend's counterpart, and is dropped when it points outside. Postponed to the cells core;
   REF-6 lists the tests;
-- `$ti2.label` of a copy of an input is made from the string; `<updateValue>` can't set a
-  `label` whose `<label>` holds only an `<em>` or several children.
+- **fixed by #2572:** `$ti2.label` of a copy of an input copies its source's `<label>` with its
+  markup, and a write reaches a label held in markup with one child (`<label><em>Hello</em>
+  </label>` takes `Bye` as `<em>Bye</em>`). A label with several children refuses a write, as a
+  `<text>` with several children does (INT-3); the refusal is silent (D15). #2537 stays open for
+  items 2 and 3 (D43).
 
 Code: `W/utils/label.ts:369-520`.
 

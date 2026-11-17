@@ -68,7 +68,10 @@ change when it is, or reads:
 - **anything the reader can write to:** what a `bindValueTo` references; an input's value child
   (`<mathInput>$a</mathInput>` writes `a`; `prefill` and a label don't); the target of
   `<updateValue>`, `<animateFromSequence>` or `<callAction>`; everything in a `<graph>` that
-  isn't fixed, with what it references; a `<spreadsheet>` that isn't fixed. `fixed` (and
+  isn't fixed, with what it references, except that a component whose only location is its
+  `anchor` (a `<number>`, `<math>`, `<m>`, `<text>`, `<label>`, `<image>`, an input or a button)
+  is dragged only to place it, which writes its `anchor` (and what a written `anchor`
+  references), not its value (#2576); a `<spreadsheet>` that isn't fixed. `fixed` (and
   `fixLocation` for a location) stops a write;
 - state a reader sets by an action (opening a hint, solution or section; playing a video);
 - what a composite makes, when its choice can change (a case's `condition`, a repeat's `for`).
@@ -161,9 +164,19 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 **Known violations:**
 - state-variable cycles throw, and the document fails to load (D14, NAME-7);
 - a loop where no composite can be singled out still stops the document (#2425);
-- an unknown name in `variantsToInclude` or `variantsToExclude` stops the document with an
-  uncoded message (#2536). Decided: the name is ignored with a coded error, and the document loads
-  with the other names;
+- **fixed by #2574** (closing #2536): an unknown name in `variantsToInclude` or
+  `variantsToExclude` is ignored with **`doenet-e0079`** at the attribute, and the document loads
+  with the other names (every variant, if `variantsToInclude` names none). A name past the unique
+  variants is not a variant. **Left** (#2579): `<variantControl>` still throws, uncoded, before
+  the document loads, when valid names exclude every variant, when `variantNames` repeats a
+  name, when `variantsToInclude` is empty, and for a reference in `variantsToInclude`,
+  `variantsToExclude` or `variantNames`; a `<problem>`'s `<variantControl>` is ignored when the
+  document's variants aren't worked out as unique variants;
+- **fixed by #2573:** a reference to a component in error reports nothing more (no `w0104` for
+  `$x.bar` of an `_error`);
+- **known violation** (#2578): a composite beside a section whose parameter reads the section's
+  `sectionNumber` (`<selectRandomNumbers mean="$s.sectionNumber"/>`, `<sequence to=…>`) throws
+  a circular dependency, and the document fails to load;
 - fixed: `bindValueTo` of a `<subsetOfRealsInput>` (B24, #2484), `<text extend="$cc"/>` of
   bare-text cases (B23, #2447), and a reload restoring a value to a component of another type
   (B36, #2481).
