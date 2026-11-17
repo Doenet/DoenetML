@@ -12,8 +12,8 @@
 # directly, and a push to the release branch triggers it through that branch's
 # `trigger-docs-deploy.yml`, which dispatches this workflow on `main`. (A
 # workflow started by a push to the release branch would run that branch's
-# copy of the file, and could not deploy anyway: the `github-pages`
-# environment only accepts deploys from `main`.)
+# copy of the file, and the `github-pages` environment's deployment branch
+# policy, if it is limited to `main` as GitHub recommends, would refuse it.)
 #
 # When the next line is released (say 0.8.0), serve `main` at the root, move
 # the old line to its own path (`/0.7`), and list both in `DOCS_VERSIONS`.

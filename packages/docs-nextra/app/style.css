@@ -349,8 +349,6 @@ html:not(.dark) main .nextra-callout.x\:text-yellow-700 {
 }
 
 html.dark .docs-version-switcher select {
-    width: auto;
-    max-width: 12rem;
     border-color: rgb(75, 85, 99);
 }
 

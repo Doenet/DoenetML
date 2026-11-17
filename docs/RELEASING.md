@@ -281,11 +281,12 @@ cherry-picked backport touches none of them, so the lines do not contend.
   value first appeared in, but that index is derived at docs build time by
   reading the committed schema at every release tag — so cutting a tag is the
   only action needed, with nothing to regenerate or commit afterwards. Note when
-  it becomes visible, though: the Pages deploy runs on pushes to `main`, and the
-  tag is cut in step 2, *after* the version PR merges in step 1 — so the deploy
-  that merge triggered predates the tag. The new release reaches the docs on the
-  next push to `main`, or right away by running the Pages workflow manually from
-  the Actions tab. To see what a release changed, run
+  it becomes visible, though: the Pages deploy runs on pushes (see
+  [The docs site](#the-docs-site)), and the tag is cut in step 2, *after* the
+  version PR merges in step 1 — so the deploy that merge triggered predates the
+  tag. The new release reaches the docs on the next deploy (a push to `main` or
+  `0.7`), or right away by running the Pages workflow manually from the Actions
+  tab. To see what a release changed, run
   `npm run report:schema-changes -w packages/docs-nextra -- <version>`.
 
 ## The docs site
@@ -295,7 +296,7 @@ docs.doenet.org serves one build of the docs per line, side by side:
 | path | built from | examples run | notes |
 |---|---|---|---|
 | `/` | the release line's branch (`0.7`) | `doenetmlVersion="0.7"`, the newest 0.7.x | |
-| `/dev/` | `main` | the `dev` dist-tag | a banner says it is unreleased; not indexed by search engines |
+| `/dev/` | `main` | the `dev` dist-tag | a banner says it is unreleased; marked `noindex` for search engines |
 | `/demos/` | `main` | | |
 
 `gh-pages-docs.yml` on `main` builds both versions and deploys them as one
@@ -306,18 +307,20 @@ says which branch is served where (`RELEASE_BRANCH`, `DEV_BASE_PATH`), and
 build's base path comes from `DOCS_BASE_PATH`. CI and local builds set neither,
 and build an unversioned site at the root with no switcher.
 
-It runs on a push to `main`, and on a push to `0.7` through that branch's
-`trigger-docs-deploy.yml`, which dispatches it on `main`: the `github-pages`
-environment deploys only from `main`, and a workflow started by a push to `0.7`
-would run `0.7`'s copy of the file. The release branch's build is cached by its
-commit, so a push to `main` normally rebuilds only `main`'s docs.
+It runs on a push to `main`, and on a push to `0.7` (other than changesets and
+changelogs) through that branch's `trigger-docs-deploy.yml`, which dispatches
+it on `main`: a workflow started by a push to `0.7` would run `0.7`'s copy of
+the file, and the `github-pages` environment should accept deploys only from
+`main`. The release branch's build is cached by its commit, so a push to `main`
+normally rebuilds only `main`'s docs.
 
 Two consequences worth knowing:
 
 - **A page that exists in one version only** (a component added on `main`)
   is a 404 in the other. The version switcher checks first and goes to the
-  other version's home page instead. GitHub Pages answers every missing path,
-  under `/dev/` too, with the root site's `404.html`.
+  other version's home page instead. A missing path under `/dev/` most likely
+  gets the root site's `404.html`, 0.7's: GitHub documents a custom 404 page
+  only at the root of a site.
 - **The schema badges come from `main` only.** "In development" badges mark
   schema items in no release, on `/dev/`. The release line's branch has no
   schema history and shows no badges.

@@ -34,9 +34,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * The deployed versions of these docs, when the deploy built more than one
- * (see `docs-versions.mjs`). Unset in local development and CI, which then
- * show no switcher and no banner.
+ * The released version the banner on an unreleased version's pages links to:
+ * the first entry in `DOCS_VERSIONS` (see `docs-versions.mjs`) not marked
+ * `prerelease`. Local development and CI set no versions, so they show no
+ * switcher and no banner.
  */
 const releaseVersion = docsVersions.find((v) => !v.prerelease);
 

@@ -125,7 +125,8 @@ nothing to anyone. Three rules drop them:
 
 Of the ~1,800 badges left, the default view shows only the ones reading **In development** —
 in the working-tree schema, in no release. Those are the ones an author cannot act on yet,
-and the docs site deploys from every push to `main`, so they are always present. Values
+and the docs site serves `main` at `/dev/`, rebuilt on every push to it, so they are always
+present there. (The release line's docs at the root of the site carry no badges.) Values
 matter here out of proportion to their number: `type` on `<selectRandomNumbers>` is as old
 as the schema and so carries no badge of its own, which would otherwise leave its table
 listing `logNormal` as though an author could write it.

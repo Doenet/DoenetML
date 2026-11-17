@@ -11,9 +11,10 @@ export type DocsVersionOption = {
 };
 
 /**
- * The URL of the page at `pathname` on the site at `targetBase`, keeping the
- * query and hash. `pathname` is relative to this site's base path, as Next's
- * `usePathname()` returns it.
+ * The URL of the page at `pathname` on the site at `targetBase`, without a
+ * trailing slash (except a home page's). `pathname` is relative to this site's
+ * base path, as Next's `usePathname()` returns it, and has no query or hash;
+ * the switcher appends those itself.
  */
 export function pageUrlOn(targetBase: string, pathname: string): string {
     const page = pathname === "/" ? "/" : pathname.replace(/\/+$/, "");
@@ -25,9 +26,11 @@ export function pageUrlOn(targetBase: string, pathname: string): string {
  * Go to the page at `url`, or to the home page at `homeUrl` if the other
  * version has no such page (a component added or removed between versions).
  *
- * GitHub Pages answers a missing page with the root site's 404 page for every
- * version, so checking first is what keeps a switch from landing on a 404 of
- * some other version.
+ * Without the check, a switch to a page the other version lacks lands on a
+ * 404 page, and on GitHub Pages most likely the root site's `404.html` (GitHub
+ * documents a custom 404 page only at the site's root), which belongs to
+ * whichever version is served there. A check that fails (offline, say) goes
+ * to `url` anyway.
  */
 async function navigateOrHome(url: string, homeUrl: string) {
     try {
