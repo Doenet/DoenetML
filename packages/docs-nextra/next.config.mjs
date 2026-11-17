@@ -9,6 +9,7 @@ import {
 } from "./dist/index.js";
 import { createHighlighter, bundledLanguages, bundledThemes } from "shiki";
 import fs from "node:fs";
+import { basePath } from "./docs-versions.mjs";
 
 const withNextra = nextraConfig({
     defaultShowCopyCode: true,
@@ -78,8 +79,9 @@ const withNextra = nextraConfig({
     },
 });
 
-let assetPrefix = "";
-let basePath = "";
+// Empty except in the deploy, which builds `main` under `/dev` beside the
+// current release at the root. See `docs-versions.mjs`.
+const assetPrefix = basePath;
 
 const fullConfig = withNextra({
     compress: false,
