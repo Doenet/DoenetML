@@ -591,6 +591,10 @@ type DoenetEditorProps = {
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    /**
+     * Base URL for the documentation links in context help and diagnostics.
+     * Defaults to this line's docs, `https://docs.doenet.org/0.8`.
+     */
     docsURL?: string;
     /**
      * URL of the MathJax script to load when the page does not already provide

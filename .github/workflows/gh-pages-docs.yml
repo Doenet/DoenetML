@@ -1,25 +1,35 @@
 # Deploy the docs site, docs.doenet.org, to GitHub Pages.
 #
-# The site serves two builds of the docs side by side:
+# The site serves one build of the docs per line, each at a path named for
+# the line, plus redirects:
 #
-#   /        the current release line, built from the `RELEASE_BRANCH` below
-#   /dev/    `main`, the next (unreleased) line
+#   /0.7/    the 0.7 branch (the current release)
+#   /0.8/    `main` (0.8, not yet released)
 #   /demos/  the demos, built from `main`
+#   /        redirects to the current release: /reference/math → /0.7/reference/math
+#   /dev/    redirects to /0.8/ (where `main` was served at first)
+#
+# The versioned URLs are the canonical ones, and are what each line of
+# DoenetML links to (the `docsURL` default in
+# `packages/doenetml/src/EditorViewer/EditorViewer.tsx`). The redirect pages
+# and the site's 404 page are written by
+# `packages/docs-nextra/scripts/write-redirects.mjs`.
 #
 # A Pages site has a single deployment, and each deploy replaces all of it, so
-# one run of this workflow builds both versions and deploys them together. It
+# one run of this workflow builds every version and deploys them together. It
 # always runs from `main`'s copy of this file: a push to `main` triggers it
-# directly, and a push to the release branch triggers it through that branch's
+# directly, and a push to the 0.7 branch triggers it through that branch's
 # `trigger-docs-deploy.yml`, which dispatches this workflow on `main`. (A
-# workflow started by a push to the release branch would run that branch's
-# copy of the file, and the `github-pages` environment's deployment branch
-# policy, if it is limited to `main` as GitHub recommends, would refuse it.)
+# workflow started by a push to the 0.7 branch would run that branch's copy
+# of the file, and the `github-pages` environment's deployment branch policy,
+# if it is limited to `main` as GitHub recommends, would refuse it.)
 #
-# When the next line is released (say 0.8.0), serve `main` at the root, move
-# the old line to its own path (`/0.7`), and list both in `DOCS_VERSIONS`.
-# That is more than the values in `env`: `build-release` builds at the root
-# (`DOCS_BASE_PATH: ""`) and `deploy` downloads it to `site`, so both change
-# with it. See docs/RELEASING.md.
+# Opening a new line (say 0.9 on `main`, with 0.8 released from its own
+# branch): add a `build` matrix entry for the new branch, move `main`'s entry
+# to its new path, list every version in `DOCS_VERSIONS`, and update the
+# `deploy` job's downloads, trims, `--alias` and checks to match, since they
+# name each version's path. Once the new line's first stable release is out,
+# point `ROOT_VERSION_PATH` at it. See docs/RELEASING.md.
 name: Deploy docs to Pages
 
 on:
@@ -27,7 +37,7 @@ on:
     push:
         branches: ["main"]
 
-    # Run manually from the Actions tab, or from the release branch's
+    # Run manually from the Actions tab, or from the 0.7 branch's
     # `trigger-docs-deploy.yml` after a push there.
     workflow_dispatch:
 
@@ -40,105 +50,81 @@ permissions:
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 #
-# Every run builds (or restores) both versions from their branches' current
-# tips, so whichever run deploys last publishes an up-to-date pair.
+# Every run builds (or restores) every version from its branch's current
+# tip, so whichever run deploys last publishes an up-to-date set.
 concurrency:
     group: "pages"
     cancel-in-progress: false
 
 env:
-    # The release line served at the root of the site.
-    RELEASE_BRANCH: "0.7"
-    # Where `main` is served.
-    DEV_BASE_PATH: "/dev"
-    # Every deployed version, passed to both builds so each one's version
-    # switcher lists them all. `path` is the version's base path ("" is the
-    # root); `prerelease` marks an unreleased line, whose pages carry a banner
-    # pointing to the release and are marked `noindex` for search engines.
-    # Read by `packages/docs-nextra/docs-versions.mjs` on each branch.
+    # Every deployed version, passed to each build so its version switcher
+    # lists them all. `path` is the version's base path; it must match a
+    # `build` matrix entry's `base_path`. `prerelease` marks an unreleased
+    # line, whose pages carry a banner pointing to the release and are marked
+    # `noindex` for search engines. Read by
+    # `packages/docs-nextra/docs-versions.mjs` on each branch, and by
+    # `write-redirects.mjs`.
     DOCS_VERSIONS: >-
         [
-        {"label": "0.7", "path": ""},
-        {"label": "0.8 (in development)", "path": "/dev", "prerelease": true}
+        {"label": "0.7", "path": "/0.7"},
+        {"label": "0.8 (in development)", "path": "/0.8", "prerelease": true}
         ]
+    # The version the root of the site redirects to: the current release.
+    ROOT_VERSION_PATH: "/0.7"
 
 jobs:
-    # `main`'s docs, built under `DEV_BASE_PATH`, plus the demos.
-    build-dev:
+    # One build per version. `main`'s also builds the demos.
+    build:
+        name: Build docs for ${{ matrix.docs.base_path }}
         runs-on: ubuntu-latest
 
         strategy:
             matrix:
                 node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-        steps:
-            # The docs build derives the schema history index from the
-            # committed schema at every release tag, so it needs a checkout
-            # with the tags; the default is a single commit with none.
-            # `filter: blob:none` keeps that affordable — 8.2 MB rather than
-            # 298 MB, and faster overall. See the matching comment on
-            # `build-docs` in ci.yml for the measurements.
-            - uses: actions/checkout@v6
-              with:
-                  ref: main
-                  fetch-depth: 0
-                  filter: blob:none
-            - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v6
-              with:
-                  node-version: ${{ matrix.node-version }}
-                  cache: "npm"
-            - run: npm ci
-
-            - name: Build Docs
-              env:
-                  DOCS_BASE_PATH: ${{ env.DEV_BASE_PATH }}
-              run: |
-                  export NODE_OPTIONS="--max_old_space_size=6144"
-                  npm run build
-                  npm run build:docs
-            - name: Build Demos
-              # The demos depend on `doenetml:build:dev`, a second full Vite
-              # build of DoenetML that runs out of memory at Node's default
-              # heap limit.
-              run: |
-                  export NODE_OPTIONS="--max_old_space_size=6144"
-                  npm run build --workspace packages/demos
-            - name: Upload docs
-              uses: actions/upload-artifact@v7
-              with:
-                  name: docs-dev
-                  path: packages/docs-nextra/out
-                  retention-days: 1
-            - name: Upload demos
-              uses: actions/upload-artifact@v7
-              with:
-                  name: demos
-                  path: packages/demos/dist
-                  retention-days: 1
-
-    # The release branch's docs, built at the root. That branch changes
-    # rarely, so its build is cached by its commit (and by `DOCS_VERSIONS`,
-    # which the build bakes into the version switcher): most runs, triggered
-    # by pushes to `main`, restore it instead of building it again.
-    build-release:
-        runs-on: ubuntu-latest
-
-        strategy:
-            matrix:
-                node-version: [24.x]
+                docs:
+                    # `main`. Its docs derive the schema history index from
+                    # the committed schema at every release tag, so it needs
+                    # a checkout with the tags; the default is a single
+                    # commit with none. `filter: blob:none` keeps that
+                    # affordable — 8.2 MB rather than 298 MB, and faster
+                    # overall. See the matching comment on `build-docs` in
+                    # ci.yml for the measurements. It changes on every push,
+                    # so it is never cached.
+                    - ref: main
+                      base_path: /0.8
+                      artifact: docs-main
+                      full_history: true
+                      demos: true
+                      cache: false
+                    # The 0.7 branch has no schema history, so a shallow
+                    # checkout does. It changes rarely, so its build is
+                    # cached by its commit and the deploy's settings: most
+                    # runs, triggered by pushes to `main`, restore it instead
+                    # of building it again.
+                    - ref: "0.7"
+                      base_path: /0.7
+                      artifact: docs-0.7
+                      full_history: false
+                      demos: false
+                      cache: true
 
         steps:
             - uses: actions/checkout@v6
               with:
-                  ref: ${{ env.RELEASE_BRANCH }}
+                  ref: ${{ matrix.docs.ref }}
+                  fetch-depth: ${{ matrix.docs.full_history && '0' || '1' }}
+                  filter: ${{ matrix.docs.full_history && 'blob:none' || '' }}
             - name: Cache key
+              if: matrix.docs.cache
               id: key
+              env:
+                  BASE_PATH: ${{ matrix.docs.base_path }}
               run: |
-                  versions_hash=$(printf '%s' "$DOCS_VERSIONS" | sha256sum | cut -c1-16)
-                  echo "key=docs-release-$(git rev-parse HEAD)-${versions_hash}" >> "$GITHUB_OUTPUT"
+                  settings_hash=$(printf '%s\n%s' "$DOCS_VERSIONS" "$BASE_PATH" | sha256sum | cut -c1-16)
+                  echo "key=docs-${{ matrix.docs.artifact }}-$(git rev-parse HEAD)-${settings_hash}" >> "$GITHUB_OUTPUT"
             - name: Restore a build of this commit
+              if: matrix.docs.cache
               id: cache
               uses: actions/cache@v5
               with:
@@ -156,55 +142,91 @@ jobs:
             - name: Build Docs
               if: steps.cache.outputs.cache-hit != 'true'
               env:
-                  DOCS_BASE_PATH: ""
+                  DOCS_BASE_PATH: ${{ matrix.docs.base_path }}
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6144"
                   npm run build
                   npm run build:docs
+            - name: Build Demos
+              if: matrix.docs.demos
+              # The demos depend on `doenetml:build:dev`, a second full Vite
+              # build of DoenetML that runs out of memory at Node's default
+              # heap limit.
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6144"
+                  npm run build --workspace packages/demos
 
             - name: Upload docs
               uses: actions/upload-artifact@v7
               with:
-                  name: docs-release
+                  name: ${{ matrix.docs.artifact }}
                   path: packages/docs-nextra/out
+                  retention-days: 1
+            - name: Upload demos
+              if: matrix.docs.demos
+              uses: actions/upload-artifact@v7
+              with:
+                  name: demos
+                  path: packages/demos/dist
                   retention-days: 1
 
     deploy:
-        needs: [build-dev, build-release]
+        needs: [build]
         runs-on: ubuntu-latest
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
         steps:
-            - name: Download the release docs to the root
-              uses: actions/download-artifact@v8
+            # Only the redirect script, from this run's commit.
+            - uses: actions/checkout@v6
               with:
-                  name: docs-release
-                  path: site
+                  sparse-checkout: packages/docs-nextra/scripts/write-redirects.mjs
+                  sparse-checkout-cone-mode: false
+                  path: repo
             - name: Download main's docs
               uses: actions/download-artifact@v8
               with:
-                  name: docs-dev
-                  path: site${{ env.DEV_BASE_PATH }}
+                  name: docs-main
+                  path: site/0.8
+            - name: Download the 0.7 docs
+              uses: actions/download-artifact@v8
+              with:
+                  name: docs-0.7
+                  path: site/0.7
             - name: Download the demos
               uses: actions/download-artifact@v8
               with:
                   name: demos
                   path: site/demos
-            - name: Trim and check the assembled site
+            - name: Trim the builds
               run: |
                   # `out/bundle` is a copy of the standalone build (over
                   # 100 MB) that only `next dev` loads; the published docs load
-                  # DoenetML from the CDN. Leaving it out keeps two versions of
-                  # the site well inside Pages' 1 GB limit.
-                  rm -rf site/bundle "site${DEV_BASE_PATH}/bundle"
-                  for f in site/index.html "site${DEV_BASE_PATH}/index.html" site/demos/index.html; do
+                  # DoenetML from the CDN. Leaving it out keeps the site well
+                  # inside Pages' 1 GB limit.
+                  rm -rf site/0.7/bundle site/0.8/bundle
+                  # Each build's own 404 page would go unused: GitHub Pages
+                  # most likely serves the site's root 404.html, written
+                  # below, for a missing path under any version.
+                  rm -f site/0.7/404.html site/0.8/404.html
+            - name: Write the redirects and the 404 page
+              run: |
+                  node repo/packages/docs-nextra/scripts/write-redirects.mjs \
+                      --site site \
+                      --versions "$DOCS_VERSIONS" \
+                      --root "$ROOT_VERSION_PATH" \
+                      --alias /dev=/0.8 \
+                      --reserve /demos
+            - name: Check the assembled site
+              run: |
+                  for f in site/index.html site/404.html site/dev/index.html \
+                      site/0.7/index.html site/0.8/index.html site/demos/index.html; do
                       test -f "$f" || { echo "Missing $f" >&2; exit 1; }
                   done
                   # Separate calls: one `du` counts each directory once, so
-                  # given `site` first it would skip the two inside it.
+                  # given `site` first it would skip the ones inside it.
                   du -sh site
-                  du -sh "site${DEV_BASE_PATH}" site/demos
+                  du -sh site/0.7 site/0.8 site/demos
             - name: Setup Pages
               uses: actions/configure-pages@v6
             - name: Upload artifact
