@@ -99,7 +99,12 @@ jobs:
                   npm run build
                   npm run build:docs
             - name: Build Demos
-              run: npm run build --workspace packages/demos
+              # The demos depend on `doenetml:build:dev`, a second full Vite
+              # build of DoenetML that runs out of memory at Node's default
+              # heap limit.
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6144"
+                  npm run build --workspace packages/demos
             - name: Upload docs
               uses: actions/upload-artifact@v7
               with:
