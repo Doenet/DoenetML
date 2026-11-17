@@ -287,8 +287,6 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
 }
 
 html.dark .docs-version-switcher select {
-    width: auto;
-    max-width: 12rem;
     border-color: rgb(75, 85, 99);
 }
 
