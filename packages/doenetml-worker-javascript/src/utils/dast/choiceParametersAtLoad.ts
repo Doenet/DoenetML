@@ -74,6 +74,7 @@ import {
     buildReaderWritableIndex,
     isPlacementLocation,
     isUnlinkedCopy,
+    namedUnder,
     placementAttribute,
     writtenAsTrue,
 } from "../readerWritable";
@@ -477,13 +478,20 @@ export function checkChoiceParametersAtLoad({
             if (typeof ref.nodeIdx === "number") {
                 const named = nodeByIdx.get(ref.nodeIdx);
                 const placedEntry =
-                    named && readsEntryAnchor(ref)
+                    named && readsEntryAnchor(named, ref)
                         ? placedEntryOf(named, new Set())
                         : undefined;
                 if (placedEntry !== undefined) {
                     // where a reader drags the entry (`$ml[1].anchor`): the
                     // component the entry is placed as
                     return { reference: ref, changeable: placedEntry };
+                }
+                const placedInComposite =
+                    named && placedAnchorInComposite(named, ref);
+                if (placedInComposite !== undefined) {
+                    // where a reader drags a component of a composite's
+                    // DoenetML (`$r[1].n.anchor`)
+                    return { reference: ref, changeable: placedInComposite };
                 }
                 const property = named && propertyNamedBy(named, ref);
                 const found =
@@ -953,22 +961,75 @@ export function checkChoiceParametersAtLoad({
     }
 
     /**
-     * Whether the reference `ref` reads the `anchor` of an entry of what it
-     * names (`$ml[1].anchor`): its path is indices, then a placement
-     * location.
+     * Whether the reference `ref` to `named` reads the `anchor` of an entry
+     * of it: its path is indices, then a placement location
+     * (`$ml[1].anchor`), or, for a list with no such property of its own,
+     * the location alone, of every entry (`$ml.anchor`).
      */
-    function readsEntryAnchor(ref: any): boolean {
+    function readsEntryAnchor(named: any, ref: any): boolean {
         const path: any[] = ref.unresolvedPath ?? [];
         const last = path[path.length - 1];
-        return (
-            path.length >= 2 &&
-            typeof last?.name === "string" &&
-            isPlacementLocation(last.name) &&
-            !(last.index?.length > 0) &&
-            path
-                .slice(0, -1)
-                .every((part) => !part?.name && part?.index?.length > 0)
-        );
+        if (
+            typeof last?.name !== "string" ||
+            !isPlacementLocation(last.name) ||
+            last.index?.length > 0
+        ) {
+            return false;
+        }
+        if (path.length === 1) {
+            // the entries' `anchor`; an `entryAnchor` is the list's own
+            return (
+                last.name.toLowerCase() === "anchor" &&
+                (componentInfoObjects.allComponentClasses as any)[
+                    typeMadeBy(named)
+                ]?.listEntryComponentType !== undefined &&
+                propertyNamedBy(named, ref) === undefined
+            );
+        }
+        return path
+            .slice(0, -1)
+            .every((part) => !part?.name && part?.index?.length > 0);
+    }
+
+    /**
+     * The component a reader drags whose `anchor` the reference `ref` reads
+     * through what the composite `named` makes (`$r[1].n.anchor`, `$g.n.anchor`
+     * of a placed `n`), if any: the component of its DoenetML that the
+     * names of the path find, each once, as `sourceOf` in
+     * `readerWritable.ts` finds what an extend copies.
+     */
+    function placedAnchorInComposite(named: any, ref: any): any {
+        const path: any[] = ref.unresolvedPath ?? [];
+        const last = path[path.length - 1];
+        if (
+            path.length < 2 ||
+            typeof last?.name !== "string" ||
+            !isPlacementLocation(last.name) ||
+            last.index?.length > 0 ||
+            !path.slice(0, -1).some((part) => part?.name)
+        ) {
+            return undefined;
+        }
+        let node = named;
+        for (const part of path.slice(0, -1)) {
+            if (part?.name) {
+                const found = namedUnder(node, part.name);
+                if (found.length !== 1) {
+                    return undefined;
+                }
+                node = found[0];
+            }
+            if (
+                part?.index?.length > 0 &&
+                !componentInfoObjects.isCompositeComponent({
+                    componentType: typeMadeBy(node),
+                    includeNonStandard: true,
+                })
+            ) {
+                return undefined;
+            }
+        }
+        return placedAnchorOf(node, last.name, new Set());
     }
 
     /**

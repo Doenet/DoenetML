@@ -695,7 +695,9 @@ export function buildReaderWritableIndex(
     // A drag of a component placed in a graph writes where it is placed
     // (each of `PLACEMENT_LOCATIONS` it has), not its value: what the
     // location written on it references, or, when it writes none, the
-    // location of what it extends, linked, in turn, or, for an unlinked
+    // location of what it extends whole, linked, in turn (through a
+    // composite's DoenetML, `$r[1].n`; not a property, `$a.value`, whose
+    // extend has a location of its own), or, for an unlinked
     // copy, what the location written on the first source it pastes that
     // writes one references. Each component whose location the drag writes
     // is `placed`, and marked, so that what is made from it later (an
@@ -754,13 +756,45 @@ export function buildReaderWritableIndex(
             }
             return;
         }
-        for (const idx of referencesIn(node.extending)) {
-            const source = nodeByIdx.get(idx);
-            if (source) {
-                writeAnchor(source, location);
-            } else {
-                placed?.add(idx);
+        if (node.componentType !== "_copy") {
+            // a value reference an entry of a list is placed as (`$a`,
+            // `$a.value` in `<mathList>`): the anchor of what it names
+            for (const idx of referencesIn(node.extending)) {
+                const source = nodeByIdx.get(idx);
+                if (source) {
+                    writeAnchor(source, location);
+                } else {
+                    placed?.add(idx);
+                }
             }
+            return;
+        }
+        // what it extends whole (`sourceOf`), whose `anchor` it shares: a
+        // component of a composite's DoenetML too (`$r[1].n`, the repeat's
+        // `n`); an extend of a property or an entry (`$a.value`, `$ml[1]`)
+        // has an `anchor` of its own. A composite that stands for what isn't
+        // found in it is written whole, as what a drag reaches is
+        const source = sourceOf(node);
+        if (source && source !== node) {
+            if (makesComposite(source)) {
+                for (const idx of [source.componentIdx, createdIdxOf(source)]) {
+                    if (typeof idx === "number" && idx >= 0) {
+                        seeds.push(idx);
+                    }
+                }
+            } else {
+                writeAnchor(source, location);
+            }
+            return;
+        }
+        const reference = Object.values(node.extending ?? {})[0] as any;
+        if (
+            !source &&
+            typeof reference?.nodeIdx === "number" &&
+            (reference.unresolvedPath ?? []).length === 0
+        ) {
+            // what it extends isn't in the document's DoenetML
+            placed?.add(reference.nodeIdx);
         }
     }
     for (const node of draggedToPlace) {
@@ -907,7 +941,7 @@ export function isUnlinkedCopy(node: any): boolean {
 /**
  * The serialized components under `node` (not `node` itself) named `name`.
  */
-function namedUnder(node: any, name: string): any[] {
+export function namedUnder(node: any, name: string): any[] {
     const found: any[] = [];
     const toVisit = componentsUnder(node);
     while (toVisit.length > 0) {

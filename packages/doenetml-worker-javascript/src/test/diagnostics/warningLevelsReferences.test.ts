@@ -337,6 +337,21 @@ describe("What a reader writes to can change", () => {
 <graph fixed><circle radius="1" through="(0,0) $ml[1].anchor"/></graph>`,
         ],
         [
+            "the anchor of a number in a repeat that a number in a graph extends",
+            "doenet-w0031",
+            "info",
+            `<repeat name="r" for="1"><number name="n" anchor="(5,0)">3</number></repeat>
+<graph><number extend="$r[1].n"/></graph>
+<graph fixed><circle radius="1" through="(0,0) $r[1].n.anchor"/></graph>`,
+        ],
+        [
+            "the anchor of what a math in a graph extends a property of",
+            "doenet-w0031",
+            "warning",
+            `<math name="a" anchor="(5,0)">x</math><graph><math extend="$a.value"/></graph>
+<graph fixed><circle radius="1" through="(0,0) $a.anchor"/></graph>`,
+        ],
+        [
             "a point an m a reader drags in a graph only to place it holds",
             "doenet-w0031",
             "warning",

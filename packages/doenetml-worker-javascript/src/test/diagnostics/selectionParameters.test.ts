@@ -268,6 +268,50 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `mean="$ml[1].anchor"`,
         },
         {
+            tag: "<selectRandomNumbers mean> from the anchor of every entry of a list that references a math in a graph, which a reader drags",
+            doenetML: `<graph><math name="a">x</math></graph>
+<mathList name="ml">$a y</mathList>
+<p name="p">A <selectRandomNumbers name="s" mean="$ml.anchor"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$ml.anchor",
+            changeableType: "math",
+            written: `mean="$ml.anchor"`,
+        },
+        {
+            tag: "<selectRandomNumbers mean> from the anchor of a number in a repeat that a number in a graph extends, which shares the anchor a reader drags",
+            doenetML: `<repeat name="r" for="1"><number name="n">3</number></repeat>
+<graph><number extend="$r[1].n"/></graph>
+<p name="p">A <selectRandomNumbers name="s" mean="$r[1].n.anchor"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$r[1].n.anchor",
+            changeableType: "number",
+            written: `mean="$r[1].n.anchor"`,
+        },
+        {
+            tag: "<selectFromSequence to> from a math the anchor of a number in a repeat reads, which a number in a graph extends",
+            doenetML: `<math name="q">(3, 0)</math>
+<repeat name="r" for="1"><number name="n" anchor="$q">3</number></repeat>
+<graph><number extend="$r[1].n"/></graph>
+<p name="p">A <selectFromSequence name="s" to="$q"/> B</p>`,
+            attribute: "to",
+            componentType: "selectFromSequence",
+            reference: "$q",
+            changeableType: "math",
+            written: `to="$q"`,
+        },
+        {
+            tag: "<selectRandomNumbers mean> from the anchor of a number in a graph in an option, which a reader drags",
+            doenetML: `<select name="sl"><option><graph><number name="n">3</number></graph></option></select>
+<p name="p">A <selectRandomNumbers name="s" mean="$sl.n.anchor"/> B</p>`,
+            attribute: "mean",
+            componentType: "selectRandomNumbers",
+            reference: "$sl.n.anchor",
+            changeableType: "number",
+            written: `mean="$sl.n.anchor"`,
+        },
+        {
             tag: "<selectRandomNumbers mean> from the anchor of an input in a graph, which a reader drags",
             doenetML: `<graph><mathInput name="mi"/></graph>
 <p name="p">A <selectRandomNumbers name="s" mean="$mi.anchor"/> B</p>`,
@@ -822,6 +866,12 @@ describe("What a choice's parameter may read @group4", () => {
 <graph><math>$b</math><text>x is <number name="inner" anchor="(5,0)">3</number></text></graph>
 <selectRandomNumbers name="s" mean="$b"/>
 <selectRandomNumbers name="s2" mean="$inner.anchor"/>`,
+        },
+        {
+            tag: "the anchor of what a math in a graph extends a property of, and of an entry of a list one extends, which have their own anchors",
+            doenetML: `<math name="a" anchor="(5, 0)">x</math><mathList name="ml">x y</mathList>
+<graph><math extend="$a.value"/><math extend="$ml[1]"/></graph>
+<selectRandomNumbers name="s" mean="$a.anchor" standardDeviation="$ml[1].anchor"/>`,
         },
         {
             tag: "a graph's axis, with the axes fixed",
