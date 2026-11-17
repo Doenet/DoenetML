@@ -19,7 +19,7 @@ At any time there is one **current line**, developed on `main`, and at most one
 | VS Code extension | published | **not** published |
 | PyPI `doenetml-to-pretext` | published | published |
 | `@doenet/prefigure` | published from here | never |
-| docs site | deployed at `/dev/` | deployed at the root of the site |
+| docs site | deployed at `/0.8/` | deployed at `/0.7/`; the site's root redirects there |
 
 Pre-1.0, a **minor** bump is the breaking-change marker: `0.7` → `0.8` is what
 `1.0` → `2.0` will be later. Breaking changes accumulate on `main` and ship
@@ -178,11 +178,21 @@ When `main` accumulates breaking changes and you decide to ship them:
 5. **Apply the branch-local changes** (below) in a PR into the new branch.
 6. **Land the `minor` on `main`.** Usually this rides along with the first breaking
    PR rather than being its own changeset.
-7. **Move the docs.** In `gh-pages-docs.yml` on `main`, once the new line's
-   first stable release is out: serve `main` at the root, the new maintenance
-   branch at its own path, and list both in `DOCS_VERSIONS` (see
-   [The docs site](#the-docs-site)). Give the new maintenance branch the
-   `trigger-docs-deploy.yml` from the old one, with its branch name.
+7. **Point `main`'s software and docs at the next line.** In the same PR as
+   the `minor`, so that nothing built from `main` links to the line it has
+   left:
+   - `DEFAULT_DOCS_URL` in `packages/doenetml/src/EditorViewer/EditorViewer.tsx`
+     becomes the next line's path (`https://docs.doenet.org/0.9`), which is
+     where context help and diagnostics link. The new branch keeps its own
+     (`…/0.8`).
+   - In `gh-pages-docs.yml`: add a `build` matrix entry for the new branch at
+     its line's path (`/0.8`), move `main`'s entry to the next path (`/0.9`),
+     list every version in `DOCS_VERSIONS`, and update the deploy job's
+     downloads, `--alias` and checks to match. Once the new line's first
+     stable release is out, point `ROOT_VERSION_PATH` at it and drop
+     `prerelease` from its entry (see [The docs site](#the-docs-site)).
+   - Give the new branch the `trigger-docs-deploy.yml` from the old one, with
+     its branch name.
 8. **Retire the oldest line** — stop backporting, say so, and drop its branch
    from the `production` environment's policy, so the list added to in step 4
    does not accumulate branches nobody releases from.
@@ -242,6 +252,8 @@ cherry-picked backport touches none of them, so the lines do not contend.
 - `packages/docs-nextra`: examples load the line's own engine
   (`doenetmlVersion: "<line>"`, not `"dev"`), and "Edit this page" links point
   at the branch.
+- `DEFAULT_DOCS_URL` in `packages/doenetml/src/EditorViewer/EditorViewer.tsx`
+  names the line's own docs path (`https://docs.doenet.org/<line>`).
 - The branch also carries its own copies of `AGENTS.md`, this repo's changesets
   skill and `packages/vscode-extension/README.md`, each amended to say what is
   different here. Read those on the branch rather than `main`'s.
@@ -291,39 +303,56 @@ cherry-picked backport touches none of them, so the lines do not contend.
 
 ## The docs site
 
-docs.doenet.org serves one build of the docs per line, side by side:
+docs.doenet.org serves one build of the docs per line, each at a path named
+for the line. The versioned URLs are the canonical ones:
 
 | path | built from | examples run | notes |
 |---|---|---|---|
-| `/` | the release line's branch (`0.7`) | `doenetmlVersion="0.7"`, the newest 0.7.x | |
-| `/dev/` | `main` | the `dev` dist-tag | a banner says it is unreleased; marked `noindex` for search engines |
+| `/0.7/` | the `0.7` branch | `doenetmlVersion="0.7"`, the newest 0.7.x | |
+| `/0.8/` | `main` | the `dev` dist-tag | a banner says it is unreleased; marked `noindex` for search engines |
 | `/demos/` | `main` | | |
+| `/` | — | | redirects to the current release: `/reference/math` → `/0.7/reference/math` |
+| `/dev/` | — | | redirects to `/0.8/`, where `main` was served at first |
 
-`gh-pages-docs.yml` on `main` builds both versions and deploys them as one
-Pages artifact, since each Pages deploy replaces the whole site. Its `env`
-says which branch is served where (`RELEASE_BRANCH`, `DEV_BASE_PATH`), and
-`DOCS_VERSIONS` lists every version for the switcher in each site's navbar;
-`packages/docs-nextra/docs-versions.mjs` reads it on both branches. Each
-build's base path comes from `DOCS_BASE_PATH`. CI and local builds set neither,
-and build an unversioned site at the root with no switcher.
+Each line of DoenetML links to its own path: context help and diagnostics
+build their links from `DEFAULT_DOCS_URL` in
+`packages/doenetml/src/EditorViewer/EditorViewer.tsx` (a host can override it
+with the `docsURL` prop). So a 0.7 install keeps landing on the 0.7 docs after
+0.8 is released, while links to the root follow whichever line is current.
+Releases up to 0.7.29 link to the root.
+
+`gh-pages-docs.yml` on `main` builds every version (one `build` matrix entry
+each) and deploys them as one Pages artifact, since each Pages deploy replaces
+the whole site. `DOCS_VERSIONS` in its `env` lists every version for the
+switcher in each site's navbar; `packages/docs-nextra/docs-versions.mjs` reads
+it on both branches, and each build's base path comes from `DOCS_BASE_PATH`.
+CI and local builds set neither, and build an unversioned site at the root
+with no switcher. GitHub Pages has no server-side redirects, so the deploy
+writes them as pages: `packages/docs-nextra/scripts/write-redirects.mjs` adds a
+small page at the root (and under `/dev/`) for every page of the version it
+redirects to, which sends the reader on with the query and hash kept, and the
+site's `404.html`.
 
 It runs on a push to `main`, and on a push to `0.7` (other than changesets and
 changelogs) through that branch's `trigger-docs-deploy.yml`, which dispatches
 it on `main`: a workflow started by a push to `0.7` would run `0.7`'s copy of
 the file, and the `github-pages` environment should accept deploys only from
-`main`. The release branch's build is cached by its commit, so a push to `main`
-normally rebuilds only `main`'s docs.
+`main`. The 0.7 build is cached by its commit, so a push to `main` normally
+rebuilds only `main`'s docs.
 
-Two consequences worth knowing:
+Consequences worth knowing:
 
 - **A page that exists in one version only** (a component added on `main`)
   is a 404 in the other. The version switcher checks first and goes to the
-  other version's home page instead. A missing path under `/dev/` most likely
-  gets the root site's `404.html`, 0.7's: GitHub documents a custom 404 page
-  only at the root of a site.
+  other version's home page instead. The site's 404 page, which GitHub Pages
+  most likely serves for a missing path under any version (it documents a
+  custom 404 page only at the root of a site), says which version lacks the
+  page and links to the same page in the versions that have it. A root path
+  the release has no page for, such as `/reference/col`, goes through the 404
+  page to the release (`/0.7/reference/col`), and from there to that message.
 - **The schema badges come from `main` only.** "In development" badges mark
-  schema items in no release, on `/dev/`. The release line's branch has no
-  schema history and shows no badges.
+  schema items in no release, on `/0.8/`. The 0.7 branch has no schema
+  history and shows no badges.
 
 ## Where things are
 

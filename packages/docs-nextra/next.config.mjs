@@ -79,8 +79,8 @@ const withNextra = nextraConfig({
     },
 });
 
-// Empty except in the deploy, which builds `main` under `/dev` beside the
-// current release at the root. See `docs-versions.mjs`.
+// Empty except in the deploy, which builds `main` under `/0.8` beside the
+// release under `/0.7`. See `docs-versions.mjs`.
 const assetPrefix = basePath;
 
 const fullConfig = withNextra({

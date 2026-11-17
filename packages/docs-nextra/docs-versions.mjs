@@ -2,18 +2,18 @@
  * The versions of the docs site that are deployed side by side, and which one
  * this build is.
  *
- * docs.doenet.org serves more than one build of these docs: the current
- * release line at the root and `main` (the next, unreleased line) under a
- * path such as `/dev`. The deploy workflow (`.github/workflows/gh-pages-docs.yml`
+ * docs.doenet.org serves one build of these docs per line, each at a path
+ * named for the line: `/0.7` for the current release, `/0.8` for `main` (the
+ * next, unreleased line). The deploy workflow (`.github/workflows/gh-pages-docs.yml`
  * on `main`) builds each one and is the single place that says which branch
  * goes where. It passes the same list to every build, so each site's version
  * switcher lists the same versions:
  *
  *   DOCS_VERSIONS='[
- *     {"label": "0.7", "path": ""},
- *     {"label": "0.8 (in development)", "path": "/dev", "prerelease": true}
+ *     {"label": "0.7", "path": "/0.7"},
+ *     {"label": "0.8 (in development)", "path": "/0.8", "prerelease": true}
  *   ]'
- *   DOCS_BASE_PATH=/dev     # which of those this build is
+ *   DOCS_BASE_PATH=/0.8     # which of those this build is
  *
  * Both are unset for local development and for the CI build, which then build
  * an unversioned site at the root with no switcher and no banner.
@@ -25,8 +25,8 @@
 /**
  * @typedef {object} DocsVersion
  * @property {string} label What the switcher shows, e.g. `0.7`.
- * @property {string} path The site's base path: `""` for the root, or
- *   `/dev`, `/0.7`, …, with a leading slash and no trailing slash.
+ * @property {string} path The site's base path: `/0.7`, `/0.8`, …, with a
+ *   leading slash and no trailing slash (or `""` for the root).
  * @property {boolean} [prerelease] An unreleased line. Its pages carry a
  *   banner pointing to the current release, and are marked `noindex` for
  *   search engines.

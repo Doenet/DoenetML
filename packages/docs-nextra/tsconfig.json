@@ -24,6 +24,7 @@
         "**/*.ts",
         "**/*.tsx",
         "docs-versions.mjs",
+        "scripts/write-redirects.mjs",
         "next-env.d.ts",
         ".next/types/**/*.ts"
     ],
