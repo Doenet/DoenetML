@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import vm from "node:vm";
 import { afterEach, describe, expect, it } from "vitest";
 import {
     listPages,
@@ -152,7 +153,7 @@ describe("writeRedirects", () => {
         ).toThrow(/Refusing to overwrite/);
     });
 
-    it("refuses a redirect that would take a version's or reserved path", () => {
+    it("refuses a redirect that would take a reserved path", () => {
         const dir = site([
             "0.7/index.html",
             "0.7/demos/index.html",
@@ -165,6 +166,23 @@ describe("writeRedirects", () => {
                 root: "/0.7",
                 aliases: {},
                 reserved: ["/demos"],
+            }),
+        ).toThrow(/would take the place of/);
+    });
+
+    it("refuses a redirect that would take a version's path", () => {
+        const versionPath = site([
+            "0.7/index.html",
+            "0.7/0.8/index.html",
+            "0.8/index.html",
+        ]);
+        expect(() =>
+            writeRedirects({
+                site: versionPath,
+                versions: VERSIONS,
+                root: "/0.7",
+                aliases: {},
+                reserved: [],
             }),
         ).toThrow(/would take the place of/);
     });
@@ -215,6 +233,110 @@ describe("notFoundPage", () => {
         });
         expect(html).toContain('<a href="/0.7/">Docs for DoenetML 0.7</a>');
         expect(html).toContain('<meta name="robots" content="noindex">');
+    });
+
+    /**
+     * Run the page's two inline scripts against a stub `location`, DOM and
+     * `fetch`, where `existing` lists the URLs a `HEAD` request finds.
+     */
+    async function visit(url: string, existing: string[] = []) {
+        const html = notFoundPage({
+            versions: VERSIONS,
+            root: "/0.7",
+            aliases: { "/dev": "/0.8" },
+            reserved: ["/demos"],
+        });
+        const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+        expect(scripts).toHaveLength(2);
+
+        const u = new URL(url, "https://docs.example");
+        const replaced: string[] = [];
+        const elements: Record<string, any> = {
+            what: { textContent: "" },
+            elsewhere: { children: [] as any[] },
+        };
+        elements.elsewhere.appendChild = (li: any) =>
+            elements.elsewhere.children.push(li);
+        const context: Record<string, any> = {
+            location: {
+                pathname: u.pathname,
+                search: u.search,
+                hash: u.hash,
+                replace: (to: string) => replaced.push(to),
+            },
+            document: {
+                getElementById: (id: string) => elements[id],
+                createElement: () => {
+                    const element: Record<string, any> = {};
+                    element.appendChild = (child: any) =>
+                        (element.child = child);
+                    return element;
+                },
+            },
+            fetch: async (to: string, init: { method: string }) => {
+                expect(init.method).toBe("HEAD");
+                return { ok: existing.includes(to) };
+            },
+        };
+        context.window = context;
+        vm.createContext(context);
+        for (const [, code] of scripts) vm.runInContext(code, context);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        return {
+            replaced,
+            message: elements.what.textContent as string,
+            links: elements.elsewhere.children.map((li: any) => ({
+                href: li.child.href,
+                text: li.child.textContent,
+            })),
+        };
+    }
+
+    it("forwards an alias to its version, keeping the query and hash", async () => {
+        const { replaced } = await visit("/dev/reference/col?q=1#h");
+        expect(replaced).toEqual(["/0.8/reference/col?q=1#h"]);
+    });
+
+    it("forwards a path under no version to the current release", async () => {
+        const { replaced } = await visit("/reference/col?q=1#h");
+        expect(replaced).toEqual(["/0.7/reference/col?q=1#h"]);
+    });
+
+    it("leaves a reserved path alone", async () => {
+        const { replaced, message } = await visit("/demos/x");
+        expect(replaced).toEqual([]);
+        expect(message).toBe("");
+    });
+
+    it("says which version lacks the page and links to the others' copy", async () => {
+        const { replaced, message, links } = await visit(
+            "/0.7/reference/col?q=1#h",
+            ["/0.8/reference/col"],
+        );
+        expect(replaced).toEqual([]);
+        expect(message).toBe(
+            "The docs for DoenetML 0.7 have no page at this address.",
+        );
+        expect(links).toEqual([
+            {
+                href: "/0.8/reference/col?q=1#h",
+                text: "This page in the docs for DoenetML 0.8 (in development)",
+            },
+        ]);
+    });
+
+    it("goes to the page without its trailing slash when that exists", async () => {
+        const { replaced } = await visit("/0.7/reference/math/?q=1#h", [
+            "/0.7/reference/math",
+        ]);
+        expect(replaced).toEqual(["/0.7/reference/math?q=1#h"]);
+    });
+
+    it("links nothing when no version has the page", async () => {
+        const { replaced, links } = await visit("/0.8/nosuch/");
+        expect(replaced).toEqual([]);
+        expect(links).toEqual([]);
     });
 });
 

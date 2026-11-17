@@ -319,7 +319,8 @@ build their links from `DEFAULT_DOCS_URL` in
 `packages/doenetml/src/EditorViewer/EditorViewer.tsx` (a host can override it
 with the `docsURL` prop). So a 0.7 install keeps landing on the 0.7 docs after
 0.8 is released, while links to the root follow whichever line is current.
-Releases up to 0.7.29 link to the root.
+0.7 releases from before the `0.7` branch had its own `DEFAULT_DOCS_URL`
+(0.7.29 and earlier) link to the root.
 
 `gh-pages-docs.yml` on `main` builds every version (one `build` matrix entry
 each) and deploys them as one Pages artifact, since each Pages deploy replaces

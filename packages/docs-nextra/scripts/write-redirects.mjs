@@ -13,9 +13,9 @@
  *     keeping the query and hash. Old links, and DoenetML releases that link
  *     to the root, keep working, and change target when the release does.
  *   - **Aliases**, such as `/dev` → `/0.8`, get the same treatment.
- *   - **A 404 page at the root.** GitHub Pages answers a missing path with the
- *     site's root `404.html`, under every version's path as well. This one
- *     forwards a path that is under no version to the current release (so a
+ *   - **A 404 page at the root.** GitHub Pages most likely answers a missing
+ *     path with the site's root `404.html` under every version's path as well
+ *     (it documents a custom 404 page only at the root). This one forwards a path that is under no version to the current release (so a
  *     root URL the release has no page for still lands in the docs), and
  *     otherwise says which version lacks the page and links to the same page
  *     in the versions that have it.
