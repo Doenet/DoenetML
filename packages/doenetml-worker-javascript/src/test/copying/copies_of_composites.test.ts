@@ -4,6 +4,7 @@ import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
+    updateMatrixInputValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -200,6 +201,55 @@ describe("Copies of composites @group3", () => {
         expect(errors.map((e) => e.code)).eqls(["doenet-e0056"]);
         expect(await texts()).eqls({ p1: "", after: "after" });
     });
+
+    it("`type` written on a copy of a substitute reads the source's content, match and replacement as that type", async () => {
+        // #2546 item 2: the math branch read the source's text child, and
+        // the copy did not load. The source's DoenetML written with the
+        // copy's `type` reads it so (CPY-1).
+        const { texts, errors, warnings } = await load(
+            `<substitute name="t" type="text" match="x" replacement="y">x+1</substitute>
+<p name="p1"><substitute copy="$t" type="math"/></p>
+<substitute name="s" type="math" match="x" replacement="y">x+1</substitute>
+<p name="p2"><substitute copy="$s" type="text"/></p>
+<p name="p3"><substitute copy="$s" type="text" replacement="z"/></p>
+<p name="p4"><substitute type="math" match="x" replacement="y"><text>x+1</text></substitute></p>`,
+            ["p1", "p2", "p3", "p4"],
+        );
+        expect([...errors, ...warnings]).eqls([]);
+        expect(await texts()).eqls({
+            p1: "y + 1",
+            p2: "y + 1",
+            p3: "z + 1",
+            p4: "y + 1",
+        });
+    });
+
+    it("a child written on a copy of a substitute replaces its source's", async () => {
+        // #2546 item 3: the source's child was kept, silently. A substitute
+        // reads one child, so the last written wins (REF-4a), as for a
+        // `<function>`'s formula. On an extend it is `doenet-e0057` (REF-7).
+        const { texts, errors, warnings } = await load(
+            `<substitute name="s" match="x" replacement="y">x+1</substitute>
+<p name="p1"><substitute copy="$s">x+2</substitute></p>
+<p name="p2"><substitute copyWithState="$s">x+3</substitute></p>
+<substitute name="t" type="text" match="x" replacement="y">x+1</substitute>
+<p name="p3"><substitute copy="$t">x+2</substitute></p>
+<p name="p4"><substitute copy="$s" type="text">x+2</substitute></p>
+<p name="p5"><substitute extend="$s">x+2</substitute></p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        expect(warnings).eqls([]);
+        expect(errors.map((e) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0057", 7],
+        ]);
+        expect(await texts()).eqls({
+            p1: "y + 2",
+            p2: "y + 3",
+            p3: "y+2",
+            p4: "y+2",
+            p5: "",
+        });
+    });
 });
 
 /**
@@ -221,6 +271,37 @@ describe("Children a copy or extend does not use @group3", () => {
         const { errors, warnings } = getDiagnosticsByType(core);
         return { sv, errors, warnings };
     }
+
+    it("a function's formula that is a reference is its formula, on the source and on the copy", async () => {
+        // #2546 item 6: a formula written as a reference was not recognized
+        // as one, so a formula written on its copy was not applied, and on
+        // an extend was ignored with no warning.
+        const { sv, errors, warnings } = await load(
+            `<math name="m">x^2</math>
+<math name="m3">x^3</math>
+<function name="f">$m</function>
+<function name="fc" copy="$f">x^3</function>
+<function name="fr" copy="$f">$m3</function>
+<function name="fe" extend="$f">x^3</function>
+<function name="g">x^2</function>
+<function name="gr" copy="$g">$m3</function>
+<function name="h">x^4</function>
+<function name="fh" copy="$h">$f</function>
+<function name="fl" copy="$f"><label>L</label></function>`,
+        );
+        expect(errors).eqls([]);
+        expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
+            ["doenet-w0169", 6],
+        ]);
+        expect((await sv("fc")).formula.tree).eqls(["^", "x", 3]);
+        expect((await sv("fr")).formula.tree).eqls(["^", "x", 3]);
+        expect((await sv("fe")).formula.tree).eqls(["^", "x", 2]);
+        expect((await sv("gr")).formula.tree).eqls(["^", "x", 3]);
+        expect((await sv("fh")).formula.tree).eqls(["^", "x", 2]);
+        // a label is not a formula, so the source's stays
+        expect((await sv("fl")).formula.tree).eqls(["^", "x", 2]);
+        expect((await sv("fl")).label).eq("L");
+    });
 
     it("a function's or a pattern's formula written on a copy applies, and on an extend is ignored", async () => {
         const { sv, errors, warnings } = await load(
@@ -265,22 +346,120 @@ describe("Children a copy or extend does not use @group3", () => {
     });
 
     it("a matrix copy appends rows, and ignores a math beside them", async () => {
-        // `[[5,6],[7,8]]` is how a matrix's text is shown, not how one is
-        // written: on a matrix written on its own it is one entry.
         const { sv, errors, warnings } = await load(
             `<matrix name="M"><row>1 2</row><row>3 4</row></matrix>
-<matrix name="Mc" copy="$M">[[5,6],[7,8]]</matrix>
-<matrix name="Me" extend="$M">[[5,6],[7,8]]</matrix>
+<matrix name="B"><row>5 6</row><row>7 8</row></matrix>
+<matrix name="Mc" copy="$M"><math>$B</math></matrix>
+<matrix name="Me" extend="$M"><math>$B</math></matrix>
 <matrix name="Mr" copy="$M"><row>5 6</row></matrix>`,
         );
         expect(errors).eqls([]);
         expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
-            ["doenet-w0190", 2],
-            ["doenet-w0169", 3],
+            ["doenet-w0190", 3],
+            ["doenet-w0169", 4],
         ]);
         expect((await sv("Mc")).matrixSize).eqls([2, 2]);
+        expect((await sv("Mc")).text).eq("[[1, 2], [3, 4]]");
         expect((await sv("Me")).matrixSize).eqls([2, 2]);
         expect((await sv("Mr")).matrixSize).eqls([3, 2]);
+    });
+
+    it("a math written on a matrix copy replaces its source's, and on an extend is ignored", async () => {
+        // #2546 item 1: a matrix takes one `<math>` child, the last written
+        // (REF-4a), so one written on a copy replaces its source's. It was
+        // ignored with `doenet-w0190`.
+        const { sv, errors, warnings } = await load(
+            `<matrix name="A"><row>1 2</row><row>3 4</row></matrix>
+<matrix name="B"><row>5 6</row><row>7 8</row></matrix>
+<matrix name="M"><math>$A + $B</math></matrix>
+<matrix name="Mc" copy="$M"><math>$A - $B</math></matrix>
+<matrix name="written"><math>$A - $B</math></matrix>
+<matrix name="Mb" copy="$M"><math>$B</math></matrix>
+<matrix name="Mm" copy="$M">$B</matrix>
+<matrix name="Me" extend="$M"><math>$B</math></matrix>
+<matrix name="Mr" copy="$M"><row>5 6</row></matrix>`,
+        );
+        expect(errors).eqls([]);
+        expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
+            ["doenet-w0169", 8],
+        ]);
+        expect((await sv("Mc")).text).eq((await sv("written")).text);
+        expect((await sv("Mc")).text).not.eq((await sv("M")).text);
+        expect((await sv("Mb")).text).eq((await sv("B")).text);
+        expect((await sv("Mb")).matrixSize).eqls([2, 2]);
+        expect((await sv("Mm")).text).eq((await sv("B")).text);
+        expect((await sv("Me")).text).eq((await sv("M")).text);
+        // A row written on a copy of a matrix whose value is a math is
+        // added, and the rows give the copy its entries, as before.
+        expect((await sv("Mr")).text).eq("[[5, 6]]");
+    });
+
+    it("a matrix written with several math children uses the last, with a warning", async () => {
+        // #2546 item 1: they were joined into one expression, a 1×1
+        // product.
+        const { sv, errors, warnings } = await load(
+            `<matrix name="A"><row>1 2</row><row>3 4</row></matrix>
+<matrix name="B"><row>5 6</row><row>7 8</row></matrix>
+<matrix name="M2"><math>$A</math><math>$B</math></matrix>
+<matrix name="n2"><math>1</math> <math>2</math></matrix>
+<matrix name="text">1 2</matrix>
+<matrix name="joined"><math>$A</math> + <math>$B</math></matrix>
+<matrix name="beside"><row>1 2</row><math>$B</math></matrix>
+<matrixInput name="mi" bindValueTo="$n2"/>`,
+        );
+        expect(errors).eqls([]);
+        expect(
+            warnings.map((w) => [w.code, w.position?.start.line, w.message]),
+        ).eqls([
+            [
+                "doenet-w0194",
+                3,
+                "A `<matrix>` uses one `<math>` child, the last one written, so the others are ignored. To make one expression from several, write it in one `<math>`.",
+            ],
+            [
+                "doenet-w0194",
+                4,
+                "A `<matrix>` uses one `<math>` child, the last one written, so the others are ignored. To make one expression from several, write it in one `<math>`.",
+            ],
+            [
+                "doenet-w0194",
+                7,
+                "A `<math>` written beside the `<row>` or `<column>` children of a `<matrix>` is ignored: the rows or columns give the matrix its entries.",
+            ],
+        ]);
+        expect((await sv("M2")).text).eq((await sv("B")).text);
+        expect((await sv("n2")).text).eq("[[2]]");
+        // plain text is one `<math>`, and so is text between maths
+        expect((await sv("text")).text).eq("[[1 * 2]]");
+        expect((await sv("joined")).matrixSize).eqls([1, 1]);
+        expect((await sv("beside")).text).eq("[[1, 2]]");
+    });
+
+    it("a matrix written with several math children writes to the last", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<matrix name="M"><math name="a">1</math><math name="b">2</math></matrix>
+<matrixInput name="mi" bindValueTo="$M"/>`,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        await updateMatrixInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            rowInd: 0,
+            colInd: 0,
+            core,
+            stateVariables,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        const value = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.value
+                .tree;
+        expect(await value("M")).eqls([
+            "matrix",
+            ["tuple", 1, 1],
+            ["tuple", ["tuple", 7]],
+        ]);
+        expect(await value("a")).eq(1);
+        expect(await value("b")).eq(7);
     });
 
     it("a curve copy ignores functions beside its through points, and bezier controls without them", async () => {

@@ -2357,6 +2357,11 @@ export default class Copy extends CompositeComponent {
                 }
             }
         }
+        await dropErrorsBesideOthers({
+            results,
+            component: args.component,
+            componentInfoObjects: args.componentInfoObjects,
+        });
         return results;
     }
 
@@ -2539,6 +2544,7 @@ export default class Copy extends CompositeComponent {
                         stateIdInfo,
                         diagnostics,
                         link,
+                        components,
                     });
                 }
             }
@@ -2967,6 +2973,7 @@ export default class Copy extends CompositeComponent {
                 stateIdInfo,
                 diagnostics,
                 link,
+                components,
             });
         }
 
@@ -8610,6 +8617,88 @@ async function indexNamesNothing({
 }
 
 /**
+ * A component in error is missing (#2482), so beside others it is not one of
+ * what a tag written with `extend` or `copy` is made from: `<point
+ * extend="$g"/>` of a group holding a math and a `<repeat for="">` is made
+ * from the math (#2488). They are left out of the replacements made for each
+ * source of the copy `component`, so the same holds when what the source
+ * holds changes later, as when a `<conditionalContent>` in the group starts
+ * to show the repeat (#2546), and the copy's count of what each source made
+ * agrees with what it holds. Made from several sources (`$g` stands for
+ * each component the group holds), a source that makes only errors makes
+ * nothing; if every source does, the tag is missing (D37), as a tag made
+ * from nothing is. An error is one an `_error` stands for, or a
+ * `<group>` holding only such (a case of a `<conditionalContent>`). Only for
+ * a tag that makes one component, not a list or a `<group>`, which hold
+ * what they are made from; the error is reported where it is.
+ * `verifyReplacementsMatchSpecifiedType` does the same for what the copy
+ * holds as a whole.
+ */
+async function dropErrorsBesideOthers({
+    results,
+    component,
+    componentInfoObjects,
+}) {
+    const writtenValue =
+        component.attributes._createComponentOfType?.primitive?.value;
+    const writtenType =
+        writtenValue &&
+        componentInfoObjects.componentTypeLowerCaseMapping[
+            writtenValue.toLowerCase()
+        ];
+    const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
+    const replacements = results.serializedReplacements;
+    if (
+        !writtenClass ||
+        writtenClass.listEntryComponentType !== undefined ||
+        componentInfoObjects.isCompositeComponent({
+            componentType: writtenType,
+        }) ||
+        !Array.isArray(replacements) ||
+        replacements.length === 0
+    ) {
+        return;
+    }
+    // Made from several sources (`$g` of a group stands for each component
+    // it holds), the others are what the other sources make.
+    const severalSources =
+        ((await component.stateValues.replacementSourceIdentities)?.length ??
+            0) > 1;
+    const isBlank = (x) => typeof x === "string" && x.trim() === "";
+    function isError(x) {
+        if (typeof x !== "object" || x === null) {
+            return false;
+        }
+        if (x.componentType === "_error") {
+            return true;
+        }
+        if (
+            !componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: x.componentType,
+                baseComponentType: "group",
+            })
+        ) {
+            return false;
+        }
+        const content = (x.children ?? []).filter((c) => !isBlank(c));
+        return content.length > 0 && content.every(isError);
+    }
+    const keep = replacements.map((x) => !isError(x));
+    if (
+        keep.every(Boolean) ||
+        (!severalSources &&
+            !replacements.some((x, i) => keep[i] && !isBlank(x)))
+    ) {
+        return;
+    }
+    results.serializedReplacements = replacements.filter((x, i) => keep[i]);
+    if (Array.isArray(results.propVariablesCopiedByReplacement)) {
+        results.propVariablesCopiedByReplacement =
+            results.propVariablesCopiedByReplacement.filter((x, i) => keep[i]);
+    }
+}
+
+/**
  * Whether the `extend` or `copy` `component`, written as a different tag than
  * what it is of, makes something allowed (D26, D36, REF-5,
  * `utils/typeChange.js`):
@@ -8816,6 +8905,21 @@ async function typeChangeStatus({
         return null;
     }
 
+    if (
+        propName &&
+        componentInfoObjects.isCompositeComponent({
+            componentType: writtenType,
+        })
+    ) {
+        // A composite is made from its own kind only (below), and a
+        // property is a value, never a composite: `<repeat extend="$s.value"/>`
+        // could show nothing (REF-5, #2546).
+        return mismatch({
+            code: "doenet-e0071",
+            args: { makes: "content" },
+        });
+    }
+
     if (propName) {
         // A property is a value (VAL-1), checked as a math's is
         // (`<point extend="$P.x"/>`), as is the value of an input
@@ -8839,6 +8943,67 @@ async function typeChangeStatus({
                     ? value[0]
                     : value;
             });
+        if (
+            propVariable?.isArray &&
+            propTypeVaries(
+                { source: propSource, propName },
+                componentInfoObjects,
+            ) &&
+            (await component.stateValues.typeChangeValueCheck) === "value"
+        ) {
+            // Of a property whose type is its value's, made one component
+            // per entry, as the `selectedValues` of a `<choiceInput>`, a tag
+            // checked against its value (a `<point>`) is made from its one
+            // entry. With none (no choice selected) or several, it names no
+            // one thing, so the tag is missing until it does (VAL-5, D37,
+            // #2546), with an info, as its value decides. A tag not checked
+            // against its value (a `<math>`, a `<text>`) is made from the
+            // entries, as before: a blank while there are none.
+            const value = await readTypeChangeValue(
+                component,
+                async () => await propVariable.value,
+            );
+            if (Array.isArray(value) && value.length !== 1) {
+                // What its type decides comes first: with a text among the
+                // choices, a `<point>` is `doenet-e0065` whatever is
+                // selected, also when nothing is (D36).
+                // The type its entries are made of, set as its value is
+                // (`hasVariableComponentType`): a `<choiceInput>`'s
+                // `componentType`, which is a text when any choice is one.
+                // With no entries it is not set, and is read from the
+                // source's `componentType`.
+                const variableType =
+                    propVariable.shadowingInstructions?.createComponentOfType ??
+                    (propSource.state.componentType
+                        ? await propSource.stateValues.componentType
+                        : undefined);
+                const propType =
+                    typeof variableType === "string"
+                        ? variableType
+                        : propComponentType(
+                              { source: propSource, propName },
+                              componentInfoObjects,
+                          );
+                const byType =
+                    propType &&
+                    !componentInfoObjects.isCompositeComponent({
+                        componentType: propType,
+                    })
+                        ? await decide({ sourceType: propType })
+                        : null;
+                if (byType && byType.level === "error") {
+                    return byType;
+                }
+                return mismatch({
+                    level: "info",
+                    code: "doenet-i0061",
+                    args: {
+                        count: value.length,
+                        holds: value.length === 0 ? "none" : "several",
+                    },
+                });
+            }
+        }
         if (!propReplacements) {
             // Decided again as the document runs, from the type of the
             // property, when it is checked against its value
@@ -10071,6 +10236,7 @@ export function addChildrenFromComposite({
     stateIdInfo,
     diagnostics,
     link = false,
+    components,
 }) {
     let repl = replacements[0];
     if (!repl.children) {
@@ -10194,6 +10360,7 @@ export function addChildrenFromComposite({
         added: newChildren,
         link,
         componentInfoObjects,
+        components,
     });
     if (ignored.size > 0) {
         const args = { componentType: repl.componentType };
@@ -10220,19 +10387,67 @@ export function addChildrenFromComposite({
 
 /**
  * The child group of `componentClass` that `child` is matched into, if any.
+ * A reference (`$m`) is matched as what it will stand for: the tag it is
+ * written as, or the component it names, when that is known from
+ * `components` and is not a composite, which can stand for anything
+ * (`referenceType`, #2546).
  */
-function childGroupOf(componentClass, child, componentInfoObjects) {
+function childGroupOf(componentClass, child, componentInfoObjects, components) {
     if (typeof child !== "object") {
         return undefined;
     }
+    const componentType = ["_copy", "_ref"].includes(child.componentType)
+        ? referenceType(child, componentInfoObjects, components)
+        : child.componentType;
+    if (componentType === undefined) {
+        return undefined;
+    }
     return componentClass.returnChildGroups().find(({ componentTypes }) =>
-        componentTypes?.some((componentType) =>
+        componentTypes?.some((baseComponentType) =>
             componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: child.componentType,
-                baseComponentType: componentType,
+                inheritedComponentType: componentType,
+                baseComponentType,
             }),
         ),
     )?.group;
+}
+
+/**
+ * The type of the component the serialized reference `reference` (a
+ * `_copy`, or the `_ref` a reference read as a value is) stands for, if
+ * known before it is made: the tag it is written as
+ * (`<math extend="$m"/>`), or, for a bare reference that names a component
+ * itself (`$m`, not `$m.x`), that component's type, from `components`.
+ * `undefined` for a composite, which can stand for anything, or what is not
+ * known.
+ */
+function referenceType(reference, componentInfoObjects, components) {
+    const written =
+        reference.attributes?._createComponentOfType?.primitive?.value;
+    let componentType =
+        written &&
+        componentInfoObjects.componentTypeLowerCaseMapping[
+            written.toLowerCase()
+        ];
+    if (!componentType) {
+        const ref = reference.extending?.Ref;
+        if (
+            !ref ||
+            !components ||
+            (ref.unresolvedPath ?? []).length > 0 ||
+            typeof ref.nodeIdx !== "number"
+        ) {
+            return undefined;
+        }
+        componentType = components[ref.nodeIdx]?.componentType;
+    }
+    if (
+        !componentType ||
+        componentInfoObjects.isCompositeComponent({ componentType })
+    ) {
+        return undefined;
+    }
+    return componentType;
 }
 
 /**
@@ -10254,6 +10469,7 @@ function ignoredBesideSource({
     added,
     link,
     componentInfoObjects,
+    components,
 }) {
     const ignored = new Set();
     const componentClass =
@@ -10276,7 +10492,12 @@ function ignoredBesideSource({
         for (const child of addedComponents) {
             if (
                 !describing.includes(
-                    childGroupOf(componentClass, child, componentInfoObjects),
+                    childGroupOf(
+                        componentClass,
+                        child,
+                        componentInfoObjects,
+                        components,
+                    ),
                 )
             ) {
                 ignored.add(child);
@@ -10288,7 +10509,12 @@ function ignoredBesideSource({
     const readOnce = componentClass.childGroupsReadOnce ?? [];
     const inReadOnce = (child) =>
         readOnce.includes(
-            childGroupOf(componentClass, child, componentInfoObjects),
+            childGroupOf(
+                componentClass,
+                child,
+                componentInfoObjects,
+                components,
+            ),
         );
     if (
         readOnce.length > 0 &&
@@ -10308,7 +10534,8 @@ function ignoredBesideSource({
         fromSource: replacement.children,
         added: addedComponents,
         attributes: replacement.attributes ?? {},
-        groupOf: (c) => childGroupOf(componentClass, c, componentInfoObjects),
+        groupOf: (c) =>
+            childGroupOf(componentClass, c, componentInfoObjects, components),
     }) ?? []) {
         ignored.add(child);
     }

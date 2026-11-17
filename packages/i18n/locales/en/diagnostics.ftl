@@ -959,6 +959,16 @@ extend-children-ignored = Children written inside a `<{ $componentType }>` with 
 # `copy`.
 copy-children-ignored = A child written inside a `<{ $componentType }>` with `copy` is ignored: a `<{ $componentType }>` doesn't use it beside the children of what it copies.
 
+# A `<math>` child of a `<matrix>` that the matrix doesn't use (#2546). A
+# matrix uses one `<math>` child, the last one written. $reason is `several`
+# when more than one `<math>` is written, so the earlier ones are ignored, and
+# `rows` when a `<math>` is written beside `<row>` or `<column>` children,
+# which give the matrix its entries instead. Tag names stay in English.
+matrix-math-child-ignored = { $reason ->
+        [rows] A `<math>` written beside the `<row>` or `<column>` children of a `<matrix>` is ignored: the rows or columns give the matrix its entries.
+       *[several] A `<matrix>` uses one `<math>` child, the last one written, so the others are ignored. To make one expression from several, write it in one `<math>`.
+    }
+
 # An attribute the component does not have, written on a component with
 # `copy`, `copyWithState` or `extend` (#2332), including one that names
 # nothing. The component is still shown, as what it copies, or as a blank; the
@@ -1095,9 +1105,15 @@ type-change-composite-not-one =
 # attributes, such as `<sequence>` or `<sampleRandomNumbers>`. Written with
 # `extend` or `copy`, it can be made only from one component of its own type,
 # and `$source` isn't always one: it holds several, or another type, or it
-# is a property or an entry of a list. The tags and `$source` are DoenetML
-# and stay in English.
-type-change-own-type-only = A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
+# is a property or an entry of a list. $makes is `content` when
+# $componentType is a tag that makes its content itself, such as `<repeat>`,
+# `<select>` or `<collect>`, and `$source` is a property, which is a value,
+# never such a tag (#2546); otherwise it is `values`. The tags and `$source`
+# are DoenetML and stay in English.
+type-change-own-type-only = { $makes ->
+        [content] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` is a property, which is a value. To show it as it is, write `{ $source }`.
+       *[values] A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
+    }
 
 # What `$source` holds can be of more than one type, $types, a list of tags
 # already joined (`<math>`, `<number>`). $isList is "true" when
@@ -1128,6 +1144,16 @@ type-change-index-names-nothing = `{ $source }` names nothing now, so this `<{ $
 # active case holds nothing, so the tag $componentType is missing, and shown
 # as a blank, until it holds one component again.
 type-change-composite-holds-nothing = `{ $source }` holds nothing now, so this `<{ $componentType }>` is missing until it holds one component.
+
+# `$source` is a property whose value is a list of values, each of the type
+# it is, such as the selected values of a `<choiceInput>` (`$ci`), and it
+# holds no value now ($holds is `none`) or $count values, two or more
+# ($holds is `several`), so the tag $componentType, made from one of them,
+# is missing, and shown as a blank, until it holds one (#2546).
+type-change-property-not-one-value = { $holds ->
+        [none] `{ $source }` holds no value now, so this `<{ $componentType }>` is missing until it holds one.
+       *[several] `{ $source }` holds { $count } values now, so this `<{ $componentType }>` is missing until it holds one.
+    }
 
 # $value is the value of `$source` now. $valueCheck says what it would have
 # to be: a tuple, such as (1, 2), for a point, vector or coords, or true or

@@ -3026,7 +3026,7 @@ export function checkTypeChangesAtLoad({
         }
         if (decision === undefined) {
             return namesAProperty(copy) || namesAnEntry(copy)
-                ? { code: "doenet-e0071", args: {} }
+                ? { code: "doenet-e0071", args: { makes: "values" } }
                 : undefined;
         }
         if (
@@ -3037,7 +3037,7 @@ export function checkTypeChangesAtLoad({
         ) {
             return decision;
         }
-        return { code: "doenet-e0071", args: {} };
+        return { code: "doenet-e0071", args: { makes: "values" } };
     }
 
     /**

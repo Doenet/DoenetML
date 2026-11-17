@@ -320,7 +320,8 @@ a while, shown as `＿`, with an info, and none changes its type:
 * **A value that doesn't convert.** `<point extend="$m"/>{:dn}` while `m` is not
   a tuple, or `<boolean extend="$t"/>{:dn}` while `t` is not true or false, is
   missing until the value converts. So is one made from an input's value, such
-  as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`, or
+  as `<point extend="$mi"/>{:dn}` or the selected value of a `<choiceInput>`
+  (missing too while no choice, or more than one, is selected), or
   from a property, such as `<point extend="$P.x"/>{:dn}`, which is never a
   tuple, or from an entry of a list, such as `<point extend="$l[1]"/>{:dn}`.
 * **An index that names nothing.** `<math extend="$r[$i]"/>{:dn}` past the

@@ -748,8 +748,12 @@ export async function verifyReplacementsMatchSpecifiedType({
             !(replacementsToWithhold > 0) &&
             (droppedErrors ||
                 workspace.sourceIndices?.length === requiredLength ||
-                (!replacementChanges &&
-                    workspace.sourceIndices?.length > requiredLength &&
+                // Of several sources, as many made something as are
+                // required: `$g` of a group holding a math, and a case that
+                // shows an error, which makes nothing (`dropErrorsBesideOthers`
+                // in `Copy.js`). When the copy changes, the counts are those
+                // made now (`calculateReplacementChanges`).
+                (workspace.sourceIndices?.length > requiredLength &&
                     workspace.numReplacementsBySource?.filter((n) => n > 0)
                         .length === requiredLength));
 
