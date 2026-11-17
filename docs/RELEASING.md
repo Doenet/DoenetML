@@ -188,7 +188,7 @@ When `main` accumulates breaking changes and you decide to ship them:
    - In `gh-pages-docs.yml`: add a `build` matrix entry for the new branch at
      its line's path (`/0.8`), move `main`'s entry to the next path (`/0.9`),
      list every version in `DOCS_VERSIONS`, and update the deploy job's
-     downloads, `--alias` and checks to match. Once the new line's first
+     downloads, trims, `--alias` and checks to match. Once the new line's first
      stable release is out, point `ROOT_VERSION_PATH` at it and drop
      `prerelease` from its entry (see [The docs site](#the-docs-site)).
    - Give the new branch the `trigger-docs-deploy.yml` from the old one, with

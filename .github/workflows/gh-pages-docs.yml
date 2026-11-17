@@ -26,8 +26,10 @@
 #
 # Opening a new line (say 0.9 on `main`, with 0.8 released from its own
 # branch): add a `build` matrix entry for the new branch, move `main`'s entry
-# to its new path, list every version in `DOCS_VERSIONS`, and point
-# `ROOT_VERSION_PATH` at the new release. See docs/RELEASING.md.
+# to its new path, list every version in `DOCS_VERSIONS`, and update the
+# `deploy` job's downloads, trims, `--alias` and checks to match, since they
+# name each version's path. Once the new line's first stable release is out,
+# point `ROOT_VERSION_PATH` at it. See docs/RELEASING.md.
 name: Deploy docs to Pages
 
 on:
