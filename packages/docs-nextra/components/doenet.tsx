@@ -34,8 +34,10 @@ const DoenetEditorOrig = dynamic(
  * `build:pre-copy` task copies into `public/bundle/`. This lets doc examples exercise
  * features that are new in the current PR, instead of the version published off `main`.
  *
- * In a production build (`next build`, used for the published docs), keep using the
- * `dev` version from the CDN.
+ * In a production build (`next build`, used for the published docs), load this
+ * line's newest release from the CDN: `doenetmlVersion="0.7"` resolves to the
+ * newest 0.7.x. (`dev` is built from `main`, the next line, whose behavior
+ * these docs do not describe.)
  */
 const versionProps =
     process.env.NODE_ENV === "development"
@@ -43,7 +45,7 @@ const versionProps =
               standaloneUrl: "/bundle/doenet-standalone.js",
               cssUrl: "/bundle/style.css",
           }
-        : { doenetmlVersion: "dev" };
+        : { doenetmlVersion: "0.7" };
 
 /**
  * Windowed mounting for viewer examples (#1441 stream B, docs host): reuse the

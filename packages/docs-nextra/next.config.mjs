@@ -9,6 +9,7 @@ import {
 } from "./dist/index.js";
 import { getHighlighter, bundledLanguages, bundledThemes } from "shiki";
 import fs from "node:fs";
+import { basePath } from "./docs-versions.mjs";
 import path from "node:path";
 import { createRequire } from "node:module";
 
@@ -151,10 +152,17 @@ const withNextra = nextraConfig({
 //   });
 //
 
-let assetPrefix = "";
-let basePath = "";
+// Empty except in the deploy, which builds this branch at the root of the site
+// beside `main` under `/dev`. See `docs-versions.mjs`.
+const assetPrefix = basePath;
 
 const fullConfig = withNextra({
+    // Inlined into the client bundle, where `theme.config.tsx` reads them for
+    // the version switcher.
+    env: {
+        DOCS_VERSIONS: process.env.DOCS_VERSIONS ?? "",
+        DOCS_BASE_PATH: basePath,
+    },
     compress: false,
     productionBrowserSourceMaps: true,
     output: "export",
