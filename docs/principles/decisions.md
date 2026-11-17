@@ -2907,3 +2907,37 @@ from="$g"/>`, names one tag, so it gathers only some of a group of a `<number>` 
 **Open: the name.** `<list>` is the obvious one, but authors will try `<list>1 2 3</list>`, and
 DoenetML's `<ol>`, `<ul>` and `<li>` already make "list" mean a bulleted or numbered list.
 Alternatives: `<collection>`, `<items>`.
+
+## D47. Decisions from the review of #2571–#2576 (November 2026)
+
+1. **`<variantControl>` never stops the document** (#2579, DIAG-5). Each case that threw is an
+   error at its attribute, with a fallback:
+   - valid names that exclude every variant: every variant is included, as when
+     `variantsToInclude` names none;
+   - `variantNames` repeating a name (compared without case): the first is kept;
+   - an empty `variantsToInclude`: `e0072` (attribute-empty), and the attribute is ignored;
+   - a reference in `variantsToInclude`, `variantsToExclude`, `variantNames` (and, for the same
+     reason, `numVariants` and `seeds`): ignored, with one coded error. Variants are decided
+     before anything else, so a reference can't be read there.
+2. **No warning now for a second `<when>` in an `<award>`** (#2580 item 1). REF-4a's "the last one
+   written wins" for it waits for the cells core's shared one-child mechanism.
+3. **Booleans as `1` and `0`:** open.
+
+### Open: should a boolean be read as `1` or `0` without the author asking?
+
+**Why.** Reading `true` as `1` is a programming notation that authors are unlikely to know; an
+author who writes `<math>$b+1</math>` won't expect `2`. REF-5 already allowed it for a type
+change (`<number extend="$b"/>`), and #2572 (closing #2566) extended it to a boolean inside a
+`<math>`, a `<number>`, a list, a math operator and a math attribute, to `<mathInput
+bindValueTo="$b">`, and to `<number>$b</number>` without `convertBoolean`.
+
+**Options:**
+- **A. Keep #2572:** a boolean is `1` or `0` wherever a number or math is wanted.
+- **B. Only where the author asks (recommended):** `<number convertBoolean>` reads a boolean,
+  or a boolean expression, as `1` or `0`; nowhere else does. Elsewhere a boolean where a number
+  or math is wanted is a type mix: a blank in its place (VAL-5) and a warning at load that names
+  the way to ask ("`$b` is true or false, not a number. To count it as 1 or 0, write
+  `<number convertBoolean>$b</number>`"). A type change (`<math extend="$b"/>`) is a REF-5
+  error with the same suggestion. A boolean still shows as the word `true` or `false` in text.
+- **C. A lone boolean only:** `<number>$b</number>` and `<number extend="$b"/>` are `1` or `0`,
+  but not a boolean inside arithmetic. Still the same notation, with less reach.
