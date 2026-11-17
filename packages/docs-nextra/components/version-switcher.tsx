@@ -101,6 +101,17 @@ export function PrereleaseBannerContent({
             <a
                 href={releaseUrl}
                 onClick={(event) => {
+                    // Leave a modified click (open in a new tab or window)
+                    // to the browser, which follows the `href` unchecked.
+                    if (
+                        event.button !== 0 ||
+                        event.metaKey ||
+                        event.ctrlKey ||
+                        event.shiftKey ||
+                        event.altKey
+                    ) {
+                        return;
+                    }
                     event.preventDefault();
                     void navigateOrHome(
                         releaseUrl,

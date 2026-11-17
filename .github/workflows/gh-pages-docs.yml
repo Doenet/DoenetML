@@ -15,9 +15,11 @@
 # copy of the file, and could not deploy anyway: the `github-pages`
 # environment only accepts deploys from `main`.)
 #
-# When the next line is released (say 0.8.0), change only the values in `env`:
-# serve `main` at the root, move the old line to its own path (`/0.7`), and
-# list both in `DOCS_VERSIONS`. See docs/RELEASING.md.
+# When the next line is released (say 0.8.0), serve `main` at the root, move
+# the old line to its own path (`/0.7`), and list both in `DOCS_VERSIONS`.
+# That is more than the values in `env`: `build-release` builds at the root
+# (`DOCS_BASE_PATH: ""`) and `deploy` downloads it to `site`, so both change
+# with it. See docs/RELEASING.md.
 name: Deploy docs to Pages
 
 on:
