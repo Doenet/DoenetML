@@ -88,7 +88,8 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
                 .should("match", /<math>\s+\S/);
             cy.get(".help-docs-link")
                 .should("have.attr", "href")
-                .and("include", "/reference/math");
+                // The default `docsURL` names this line's docs.
+                .and("include", "https://docs.doenet.org/0.7/reference/math");
         });
     });
 
