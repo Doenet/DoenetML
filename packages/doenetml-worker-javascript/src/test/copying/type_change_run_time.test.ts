@@ -1625,6 +1625,32 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         expect(await d.typeOf("Q")).eq("_error");
     });
 
+    it("a point from a choiceInput whose choices are made later is missing, not an error, until one is selected", async () => {
+        // With no choices yet, a choiceInput's `componentType` is a text by
+        // default, which is not a text choice (D36).
+        const d = await setup(`
+<mathInput name="n" prefill="0"><label>n</label></mathInput>
+<choiceInput name="ci"><label>c</label><repeatForSequence length="$n" valueName="v"><choice><math>($v,1)</math></choice></repeatForSequence></choiceInput>
+<graph><point extend="$ci" name="Q"/></graph>
+`);
+        expect(await shown(d, ["Q"])).eqls({ Q: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0061", 4],
+        ]);
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await d.resolvePathToNodeIdx("n"),
+            core: await d.core(),
+        });
+        await updateSelectedIndices({
+            componentIdx: await d.resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core: await d.core(),
+        });
+        expect(await shown(d, ["Q"])).eqls({ Q: "(2, 1)" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
     it("a boolean from a text input, and a number and a math from a boolean input, follow and write back", async () => {
         const d = await setup(`
 <textInput name="ti" prefill="true"/>

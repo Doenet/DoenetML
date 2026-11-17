@@ -8984,7 +8984,15 @@ async function typeChangeStatus({
                               { source: propSource, propName },
                               componentInfoObjects,
                           );
+                // A `<choiceInput>` with no choices yet (made later, as by a
+                // `<repeat>` with no iterations yet) has a text
+                // `componentType` by default, not because a choice is one,
+                // so its type decides nothing yet.
+                const noChoicesYet =
+                    propSource.state.numChoices !== undefined &&
+                    (await propSource.stateValues.numChoices) === 0;
                 const byType =
+                    !noChoicesYet &&
                     propType &&
                     !componentInfoObjects.isCompositeComponent({
                         componentType: propType,
