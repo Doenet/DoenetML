@@ -1,7 +1,13 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Footer, Layout, Navbar } from "nextra-theme-docs";
+import { Banner } from "nextra/components";
 import { getPageMap } from "nextra/page-map";
+import { currentVersion, docsVersions } from "../docs-versions.mjs";
+import {
+    PrereleaseBannerContent,
+    VersionSwitcher,
+} from "../components/version-switcher";
 import "nextra-theme-docs/style.css";
 import "./nextra-theme-vars.css";
 import "./style.css";
@@ -20,7 +26,29 @@ export const metadata: Metadata = {
         default: "Doenet Documentation",
         template: "%s – Doenet Documentation",
     },
+    // An unreleased version's pages stay out of search engines, so a search
+    // leads readers to the docs for the release they can use.
+    ...(currentVersion?.prerelease
+        ? { robots: { index: false, follow: true } }
+        : {}),
 };
+
+/**
+ * The deployed versions of these docs, when the deploy built more than one
+ * (see `docs-versions.mjs`). Unset in local development and CI, which then
+ * show no switcher and no banner.
+ */
+const releaseVersion = docsVersions.find((v) => !v.prerelease);
+
+const banner =
+    currentVersion?.prerelease && releaseVersion ? (
+        <Banner
+            dismissible={false}
+            storageKey={`docs-prerelease-${currentVersion.path}`}
+        >
+            <PrereleaseBannerContent release={releaseVersion} />
+        </Banner>
+    ) : undefined;
 
 /** The `<meta name="theme-color">` tags `<Head>` from `nextra/components` emits. */
 export const viewport: Viewport = {
@@ -34,7 +62,14 @@ const navbar = (
     <Navbar
         logo={<span>Doenet Documentation</span>}
         projectLink="https://github.com/Doenet/DoenetML"
-    />
+    >
+        {currentVersion ? (
+            <VersionSwitcher
+                versions={docsVersions}
+                current={currentVersion.path}
+            />
+        ) : null}
+    </Navbar>
 );
 
 export default async function RootLayout({
@@ -52,6 +87,7 @@ export default async function RootLayout({
         >
             <body>
                 <Layout
+                    banner={banner}
                     navbar={navbar}
                     footer={<Footer />}
                     pageMap={await getPageMap()}

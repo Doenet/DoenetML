@@ -1,12 +1,32 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+# Deploy the docs site, docs.doenet.org, to GitHub Pages.
+#
+# The site serves two builds of the docs side by side:
+#
+#   /        the current release line, built from the `RELEASE_BRANCH` below
+#   /dev/    `main`, the next (unreleased) line
+#   /demos/  the demos, built from `main`
+#
+# A Pages site has a single deployment, and each deploy replaces all of it, so
+# one run of this workflow builds both versions and deploys them together. It
+# always runs from `main`'s copy of this file: a push to `main` triggers it
+# directly, and a push to the release branch triggers it through that branch's
+# `trigger-docs-deploy.yml`, which dispatches this workflow on `main`. (A
+# workflow started by a push to the release branch would run that branch's
+# copy of the file, and could not deploy anyway: the `github-pages`
+# environment only accepts deploys from `main`.)
+#
+# When the next line is released (say 0.8.0), change only the values in `env`:
+# serve `main` at the root, move the old line to its own path (`/0.7`), and
+# list both in `DOCS_VERSIONS`. See docs/RELEASING.md.
+name: Deploy docs to Pages
 
 on:
     # Runs on pushes targeting the default branch
     push:
         branches: ["main"]
 
-    # Allows you to run this workflow manually from the Actions tab
+    # Run manually from the Actions tab, or from the release branch's
+    # `trigger-docs-deploy.yml` after a push there.
     workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -17,12 +37,32 @@ permissions:
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+#
+# Every run builds (or restores) both versions from their branches' current
+# tips, so whichever run deploys last publishes an up-to-date pair.
 concurrency:
     group: "pages"
     cancel-in-progress: false
 
+env:
+    # The release line served at the root of the site.
+    RELEASE_BRANCH: "0.7"
+    # Where `main` is served.
+    DEV_BASE_PATH: "/dev"
+    # Every deployed version, passed to both builds so each one's version
+    # switcher lists them all. `path` is the version's base path ("" is the
+    # root); `prerelease` marks an unreleased line, whose pages carry a banner
+    # pointing to the release and are kept out of search engines. Read by
+    # `packages/docs-nextra/docs-versions.mjs` on each branch.
+    DOCS_VERSIONS: >-
+        [
+        {"label": "0.7", "path": ""},
+        {"label": "0.8 (in development)", "path": "/dev", "prerelease": true}
+        ]
+
 jobs:
-    build-docs:
+    # `main`'s docs, built under `DEV_BASE_PATH`, plus the demos.
+    build-dev:
         runs-on: ubuntu-latest
 
         strategy:
@@ -39,6 +79,7 @@ jobs:
             # `build-docs` in ci.yml for the measurements.
             - uses: actions/checkout@v6
               with:
+                  ref: main
                   fetch-depth: 0
                   filter: blob:none
             - name: Use Node.js ${{ matrix.node-version }}
@@ -49,20 +90,117 @@ jobs:
             - run: npm ci
 
             - name: Build Docs
+              env:
+                  DOCS_BASE_PATH: ${{ env.DEV_BASE_PATH }}
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6144"
                   npm run build
                   npm run build:docs
-                  # We also want a demos folder as a subfolder of the docs. Build the demos workspace and copy it over to docs-nextra/out/demos
-                  npm run build --workspace packages/demos
-                  cp -r packages/demos/dist packages/docs-nextra/out/demos
+            - name: Build Demos
+              run: npm run build --workspace packages/demos
+            - name: Upload docs
+              uses: actions/upload-artifact@v7
+              with:
+                  name: docs-dev
+                  path: packages/docs-nextra/out
+                  retention-days: 1
+            - name: Upload demos
+              uses: actions/upload-artifact@v7
+              with:
+                  name: demos
+                  path: packages/demos/dist
+                  retention-days: 1
+
+    # The release branch's docs, built at the root. That branch changes
+    # rarely, so its build is cached by its commit (and by `DOCS_VERSIONS`,
+    # which the build bakes into the version switcher): most runs, triggered
+    # by pushes to `main`, restore it instead of building it again.
+    build-release:
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [24.x]
+
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  ref: ${{ env.RELEASE_BRANCH }}
+            - name: Cache key
+              id: key
+              run: |
+                  versions_hash=$(printf '%s' "$DOCS_VERSIONS" | sha256sum | cut -c1-16)
+                  echo "key=docs-release-$(git rev-parse HEAD)-${versions_hash}" >> "$GITHUB_OUTPUT"
+            - name: Restore a build of this commit
+              id: cache
+              uses: actions/cache@v5
+              with:
+                  path: packages/docs-nextra/out
+                  key: ${{ steps.key.outputs.key }}
+
+            - name: Use Node.js ${{ matrix.node-version }}
+              if: steps.cache.outputs.cache-hit != 'true'
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - if: steps.cache.outputs.cache-hit != 'true'
+              run: npm ci
+            - name: Build Docs
+              if: steps.cache.outputs.cache-hit != 'true'
+              env:
+                  DOCS_BASE_PATH: ""
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6144"
+                  npm run build
+                  npm run build:docs
+
+            - name: Upload docs
+              uses: actions/upload-artifact@v7
+              with:
+                  name: docs-release
+                  path: packages/docs-nextra/out
+                  retention-days: 1
+
+    deploy:
+        needs: [build-dev, build-release]
+        runs-on: ubuntu-latest
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+            - name: Download the release docs to the root
+              uses: actions/download-artifact@v8
+              with:
+                  name: docs-release
+                  path: site
+            - name: Download main's docs
+              uses: actions/download-artifact@v8
+              with:
+                  name: docs-dev
+                  path: site${{ env.DEV_BASE_PATH }}
+            - name: Download the demos
+              uses: actions/download-artifact@v8
+              with:
+                  name: demos
+                  path: site/demos
+            - name: Trim and check the assembled site
+              run: |
+                  # `out/bundle` is a copy of the standalone build (over
+                  # 100 MB) that only `next dev` loads; the published docs load
+                  # DoenetML from the CDN. Leaving it out keeps two versions of
+                  # the site well inside Pages' 1 GB limit.
+                  rm -rf site/bundle "site${DEV_BASE_PATH}/bundle"
+                  for f in site/index.html "site${DEV_BASE_PATH}/index.html" site/demos/index.html; do
+                      test -f "$f" || { echo "Missing $f" >&2; exit 1; }
+                  done
+                  du -sh site "site${DEV_BASE_PATH}" site/demos
             - name: Setup Pages
               uses: actions/configure-pages@v6
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v5
               with:
-                  # Upload built static site
-                  path: "packages/docs-nextra/out"
+                  path: site
             - name: Deploy to GitHub Pages
               id: deployment
               uses: actions/deploy-pages@v5
