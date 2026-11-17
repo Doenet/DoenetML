@@ -20,7 +20,17 @@
  *   `fixLocation` written as true on it, or on an ancestor when it doesn't
  *   write its own: `fixed="false"` in a fixed graph is not fixed), which a
  *   reader can drag, and what it references, which the drag writes to
- *   through it;
+ *   through it. A component whose only location is where it is drawn (its
+ *   `anchor`: a `<number>`, `<math>`, `<m>`, `<text>`, `<label>`, `<image>`,
+ *   an input or a button) is dragged only to place it: the drag writes its
+ *   `anchor`, not its value: what the `anchor` written on it references,
+ *   or, when it writes none, the `anchor` of what it extends, in turn (an
+ *   extend shares its source's `anchor`). It is left out of the index, and
+ *   it and each component on the way are listed in `placed` instead, for a
+ *   property reference to the `anchor`. What it holds (`$b` in
+ *   `<math>$b</math>`) is drawn inside it, and is not dragged; a list
+ *   whose entries are placed as their sources (`<mathList>`) has no
+ *   `anchor`, and its entries are dragged as what they come from;
  * - a `<spreadsheet>` that is not fixed, whose cells a reader edits: an
  *   edit to a cell holding a reference (`<cell>$a</cell>`) writes to what
  *   it references.
@@ -55,14 +65,16 @@
  *
  * A component made after load from a serialized one keeps the index
  * current (`noteReaderWritable`, as each component is made): the index marks
- * each serialized component it finds (`readerWritable`), and a copy of one
- * with new indices, such as an iteration of a repeat, keeps the mark. A
+ * each serialized component it finds (`readerWritable`, and
+ * `readerPlaced` for `placed`), and a copy of one with new indices, such
+ * as an iteration of a repeat, keeps the mark. A
  * component serialized from one the index holds (`originalIdx`), such as
  * an unlinked copy, is added too.
  *
  * It errs toward writable: a `fixed` that comes from a value (`fixed="$b"`)
- * counts as not fixed, and everything in a graph counts as draggable, a
- * label too.
+ * counts as not fixed, everything in a graph that has a location other
+ * than where it is drawn counts as draggable, and a composite or a type not
+ * known here in a graph counts as one that has.
  */
 
 /** The components whose `target` a reader's click writes to. */
@@ -286,6 +298,31 @@ const classHasLocation = new WeakMap<object, boolean>();
 const PLACEMENT_LOCATIONS = new Set(["anchor", "entryAnchor"]);
 
 /**
+ * Whether `name` names one of {@link PLACEMENT_LOCATIONS}, as an attribute or
+ * a property is written, in any case.
+ */
+export function isPlacementLocation(name: string): boolean {
+    const lower = name.toLowerCase();
+    return [...PLACEMENT_LOCATIONS].some(
+        (location) => location.toLowerCase() === lower,
+    );
+}
+
+/**
+ * The attribute written on the serialized component `node` for the
+ * placement location `location` (`anchor="$P"`), in any case, if any.
+ */
+export function placementAttribute(node: any, location: string): any {
+    const lower = location.toLowerCase();
+    for (const [name, attribute] of Object.entries(node?.attributes ?? {})) {
+        if (name.toLowerCase() === lower && attribute) {
+            return attribute;
+        }
+    }
+    return undefined;
+}
+
+/**
  * Whether a component of type `componentType` has a value that is a
  * location (a state variable with `isLocation`, other than where it is
  * placed), which its `fixLocation` keeps from being written to: a point, a
@@ -313,6 +350,36 @@ function hasLocation(componentType: string, componentInfoObjects: any) {
     return found;
 }
 
+const classPlacementLocations = new WeakMap<object, string[]>();
+
+/**
+ * The {@link PLACEMENT_LOCATIONS} a component of type `componentType` has
+ * (a `<number>` has an `anchor`, a `<mathList>` an `entryAnchor` too); all
+ * of them for a type not known here.
+ */
+function placementLocationsOf(
+    componentType: string,
+    componentInfoObjects: any,
+): string[] {
+    const componentClass =
+        componentInfoObjects?.allComponentClasses?.[componentType];
+    if (!componentClass) {
+        return [...PLACEMENT_LOCATIONS];
+    }
+    let found = classPlacementLocations.get(componentClass);
+    if (found === undefined) {
+        const definitions =
+            componentClass.returnNormalizedStateVariableDefinitions?.();
+        found = definitions
+            ? [...PLACEMENT_LOCATIONS].filter(
+                  (name) => definitions[name]?.isLocation,
+              )
+            : [...PLACEMENT_LOCATIONS];
+        classPlacementLocations.set(componentClass, found);
+    }
+    return found;
+}
+
 /**
  * The indices of the components of the serialized document `root` that a
  * reader can write to (see the top of this file). `componentInfoObjects`
@@ -322,8 +389,19 @@ function hasLocation(componentType: string, componentInfoObjects: any) {
 export function buildReaderWritableIndex(
     root: any,
     componentInfoObjects?: any,
+    /**
+     * Filled, when given, with the indices of the components whose `anchor`
+     * a reader's drag writes, and not their value: those a reader drags in
+     * a graph only to place them (a `<number>`, a `<math>`), and, when one
+     * writes no `anchor` of its own, what it extends, in turn. The
+     * serialized components are marked (`readerPlaced`), as for `writable`,
+     * so that what is made from them later is added as it is made.
+     */
+    placed?: Set<number>,
 ): Set<number> {
     const nodeByIdx = new Map<number, any>();
+    // the components a reader drags in a graph only to place them
+    const draggedToPlace: any[] = [];
     // the serialized components a write stops at, an attribute's component
     // without an index among them
     const fixedNodes = new Set<any>();
@@ -368,6 +446,20 @@ export function buildReaderWritableIndex(
                 componentType: typeMadeBy(node),
                 includeNonStandard: true,
             }),
+        );
+    }
+
+    /**
+     * Whether the serialized component `node` has no location other than
+     * where it is drawn (`hasLocation`), so that a reader drags it in a
+     * graph only to place it. Not a composite, whose replacements may be
+     * dragged (`$P` in a graph), nor a type not known here.
+     */
+    function isPlacedOnly(node: any): boolean {
+        return (
+            Boolean(componentInfoObjects) &&
+            !makesComposite(node) &&
+            !hasLocation(typeMadeBy(node), componentInfoObjects)
         );
     }
 
@@ -550,7 +642,24 @@ export function buildReaderWritableIndex(
             // a fixed one is stopped as the write spreads
             seeds.push(node.componentIdx);
         }
-        if (inGraph && !isFixed) {
+        // what a component drawn at its `anchor` holds is drawn inside it,
+        // not in the graph: a drag moves the component, and nothing under
+        // it (`$b` in `<math>$b</math>`, a `<number>` in a `<text>`). A list
+        // placed as its entries' sources (`<mathList>`) has an
+        // `entryAnchor` and no `anchor`: its entries are dragged as the
+        // components they come from, so those stay in the graph
+        const drawsWhatItHolds =
+            inGraph &&
+            isPlacedOnly(node) &&
+            placementLocationsOf(
+                typeMadeBy(node),
+                componentInfoObjects,
+            ).includes("anchor");
+        if (inGraph && !isFixed && isPlacedOnly(node)) {
+            // dragged only to place it: the drag writes its `anchor`, not
+            // its value (`writeAnchor`, once every component is known)
+            draggedToPlace.push(node);
+        } else if (inGraph && !isFixed) {
             // dragged, and so is what it references itself (an extend);
             // what its children and attributes reference is reached as
             // they are walked
@@ -576,13 +685,140 @@ export function buildReaderWritableIndex(
         for (const under of componentsUnder(node)) {
             walk(
                 under,
-                inGraph || isGraph,
+                (inGraph && !drawsWhatItHolds) || isGraph,
                 own,
                 childrenInSpreadsheet && children.has(under),
             );
         }
     }
     walk(root, false, { fixed: false, fixLocation: false });
+    // A drag of a component placed in a graph writes where it is placed
+    // (each of `PLACEMENT_LOCATIONS` it has), not its value: what the
+    // location written on it references, or, when it writes none, the
+    // location of what it extends whole, linked, in turn (through a
+    // composite's DoenetML, `$r[1].n`; not a property, `$a.value`, whose
+    // extend has a location of its own), or, for an unlinked
+    // copy, what the location written on the first source it pastes that
+    // writes one references. Each component whose location the drag writes
+    // is `placed`, and marked, so that what is made from it later (an
+    // iteration of a repeat) is placed as it is made. This is the one
+    // place a drag's write to a location is followed; a reference that
+    // reads the location of an extend of a placed component follows the
+    // extend itself (`anchorIsPlaced` in `choiceParametersAtLoad.ts`, the
+    // shadowed `anchor` at runtime).
+    const anchorWritten = new Map<any, Set<string>>();
+    /** Write what a location attribute (`anchor="$P"`) references. */
+    function writeLocationAttribute(attribute: any) {
+        if (attribute.component) {
+            seeds.push(attribute.component);
+        }
+        referencesIn(attribute.slots, seeds);
+        if (attribute.type === "unresolved") {
+            // on a `_copy` (an extend), what is written is kept unresolved
+            // for the component it makes
+            referencesIn(attribute.children, seeds);
+        }
+    }
+    function writeAnchor(node: any, location: string) {
+        const seen = anchorWritten.get(node) ?? new Set<string>();
+        if (seen.has(location)) {
+            return;
+        }
+        seen.add(location);
+        anchorWritten.set(node, seen);
+        for (const idx of [node.componentIdx, createdIdxOf(node)]) {
+            if (typeof idx === "number" && idx >= 0) {
+                placed?.add(idx);
+            }
+        }
+        node.readerPlaced = true;
+        const written = placementAttribute(node, location);
+        if (written) {
+            writeLocationAttribute(written);
+            return;
+        }
+        if (isUnlinkedCopy(node)) {
+            // its source's DoenetML is pasted where it sits: the location
+            // written on the first source in turn that writes one is
+            // pasted, and what it references is written; no source is
+            const pastedFrom = new Set<any>([node]);
+            for (
+                let source = sourceOf(node);
+                source && !pastedFrom.has(source);
+                source = sourceOf(source)
+            ) {
+                pastedFrom.add(source);
+                const pasted = placementAttribute(source, location);
+                if (pasted) {
+                    writeLocationAttribute(pasted);
+                    return;
+                }
+            }
+            return;
+        }
+        if (node.componentType !== "_copy") {
+            // a value reference an entry of a list is placed as (`$a`,
+            // `$a.value` in `<mathList>`): the anchor of what it names
+            for (const idx of referencesIn(node.extending)) {
+                const source = nodeByIdx.get(idx);
+                if (source) {
+                    writeAnchor(source, location);
+                } else {
+                    placed?.add(idx);
+                }
+            }
+            return;
+        }
+        // what it extends whole (`sourceOf`), whose `anchor` it shares: a
+        // component of a composite's DoenetML too (`$r[1].n`, the repeat's
+        // `n`); an extend of a property or an entry (`$a.value`, `$ml[1]`)
+        // has an `anchor` of its own. A composite that stands for what isn't
+        // found in it is written whole, as what a drag reaches is
+        const source = sourceOf(node);
+        if (source && source !== node) {
+            if (makesComposite(source)) {
+                for (const idx of [source.componentIdx, createdIdxOf(source)]) {
+                    if (typeof idx === "number" && idx >= 0) {
+                        seeds.push(idx);
+                    }
+                }
+            } else {
+                writeAnchor(source, location);
+            }
+            return;
+        }
+        const reference = Object.values(node.extending ?? {})[0] as any;
+        if (
+            !source &&
+            typeof reference?.nodeIdx === "number" &&
+            (reference.unresolvedPath ?? []).length === 0
+        ) {
+            // what it extends isn't in the document's DoenetML
+            placed?.add(reference.nodeIdx);
+        }
+    }
+    for (const node of draggedToPlace) {
+        for (const location of placementLocationsOf(
+            typeMadeBy(node),
+            componentInfoObjects,
+        )) {
+            writeAnchor(node, location);
+        }
+        // a drag of an entry of a list placed as its entries' sources (a
+        // `<mathList>`) writes the anchor of the component the entry is
+        // placed as (`graphSourceOf` in `AuthoredValueList.js`): for a value
+        // reference (`$a` in `<mathList>$a y</mathList>`), its referent
+        if (
+            componentInfoObjects?.allComponentClasses?.[typeMadeBy(node)]
+                ?.listEntriesAnchoredBySources
+        ) {
+            for (const child of node.children ?? []) {
+                if (child?.componentType === "_ref") {
+                    writeAnchor(child, "anchor");
+                }
+            }
+        }
+    }
 
     // A write reaches a component's descendants, each visited on its own,
     // so that a fixed one stops it, and what each references itself (an
@@ -705,7 +941,7 @@ export function isUnlinkedCopy(node: any): boolean {
 /**
  * The serialized components under `node` (not `node` itself) named `name`.
  */
-function namedUnder(node: any, name: string): any[] {
+export function namedUnder(node: any, name: string): any[] {
     const found: any[] = [];
     const toVisit = componentsUnder(node);
     while (toVisit.length > 0) {
@@ -740,12 +976,15 @@ function typeMadeBy(node: any): string {
  * to `writable` (`Core.readerWritable`) when it is made from what a reader
  * can write to: a serialized component {@link buildReaderWritableIndex}
  * marked, or a copy of one with new indices (an iteration of a repeat), or
- * one serialized from a component in `writable` (`originalIdx`).
+ * one serialized from a component in `writable` (`originalIdx`). The same
+ * for `placed` (`Core.readerPlaced`), what a reader drags in a graph only
+ * to place it.
  */
 export function noteReaderWritable(
     serializedComponent: any,
     componentIdx: number,
     writable: Set<number>,
+    placed?: Set<number>,
 ) {
     if (
         serializedComponent.readerWritable ||
@@ -753,5 +992,13 @@ export function noteReaderWritable(
             writable.has(serializedComponent.originalIdx))
     ) {
         writable.add(componentIdx);
+    }
+    if (
+        placed &&
+        (serializedComponent.readerPlaced ||
+            (typeof serializedComponent.originalIdx === "number" &&
+                placed.has(serializedComponent.originalIdx)))
+    ) {
+        placed.add(componentIdx);
     }
 }

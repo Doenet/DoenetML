@@ -48,7 +48,10 @@
  *   `identicalAxisScales`) by a reader who pans or zooms it or a graph
  *   linked to it by an extend, unless they are fixed on each (`fixAxes`,
  *   or a `fixed` written on the graph or one holding it, or, when it
- *   writes neither, on what it extends).
+ *   writes neither, on what it extends);
+ * - a component a reader drags in a graph only to place it (a `<number>`,
+ *   a `<math>`, `buildReaderWritableIndex`'s `placed`) has its `anchor`
+ *   changed by the drag, and nothing else.
  *
  * It errs toward allowing, since a false error is worse here than a missed
  * one: a component's label and the attributes that only display or style it
@@ -69,7 +72,10 @@ import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
 import {
     buildReaderWritableIndex,
+    isPlacementLocation,
     isUnlinkedCopy,
+    namedUnder,
+    placementAttribute,
     writtenAsTrue,
 } from "../readerWritable";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
@@ -331,7 +337,14 @@ export function checkChoiceParametersAtLoad({
         return [];
     }
 
-    const writable = buildReaderWritableIndex(document, componentInfoObjects);
+    // what a reader drags in a graph only to place it, which changes its
+    // `anchor` alone
+    const placed = new Set<number>();
+    const writable = buildReaderWritableIndex(
+        document,
+        componentInfoObjects,
+        placed,
+    );
 
     // what each component reaches, once found; `null` for nothing, and
     // while it is being found, for a cycle of references
@@ -464,6 +477,22 @@ export function checkChoiceParametersAtLoad({
             }
             if (typeof ref.nodeIdx === "number") {
                 const named = nodeByIdx.get(ref.nodeIdx);
+                const placedEntry =
+                    named && readsEntryAnchor(named, ref)
+                        ? placedEntryOf(named, new Set())
+                        : undefined;
+                if (placedEntry !== undefined) {
+                    // where a reader drags the entry (`$ml[1].anchor`): the
+                    // component the entry is placed as
+                    return { reference: ref, changeable: placedEntry };
+                }
+                const placedInComposite =
+                    named && placedAnchorInComposite(named, ref);
+                if (placedInComposite !== undefined) {
+                    // where a reader drags a component of a composite's
+                    // DoenetML (`$r[1].n.anchor`)
+                    return { reference: ref, changeable: placedInComposite };
+                }
                 const property = named && propertyNamedBy(named, ref);
                 const found =
                     named &&
@@ -541,6 +570,13 @@ export function checkChoiceParametersAtLoad({
     ): Reached | null {
         const type = typeMadeBy(node);
         const lower = property.toLowerCase();
+        if (
+            isPlacementLocation(property) &&
+            anchorIsPlaced(node, property, new Set())
+        ) {
+            // where a reader drags it
+            return { reference, changeable: node };
+        }
         if (isA(type, "_sectioningComponent") && lower === "sectionnumber") {
             // decided by where the section is, not by what it holds
             return reachSectionNumber(node, reference, new Set());
@@ -873,6 +909,161 @@ export function checkChoiceParametersAtLoad({
             }
         }
         return linkedExtends;
+    }
+
+    /** Whether a reader drags `node` in a graph only to place it. */
+    function isPlaced(node: any): boolean {
+        const created = createdIdxOf(node);
+        return (
+            placed.has(node.componentIdx) ||
+            (created !== undefined && placed.has(created))
+        );
+    }
+
+    /**
+     * Whether a reader drags where `node` is placed (its `anchor`, the
+     * placement location `location`): it is placed in a graph, or it
+     * extends, linked, one whose `anchor` is (`<number extend="$n"/>` of a
+     * `<number>` in a graph) and writes no `anchor` of its own, as such an
+     * extend shares its source's `anchor`.
+     */
+    function anchorIsPlaced(
+        node: any,
+        location: string,
+        seen: Set<any>,
+    ): boolean {
+        return placedAnchorOf(node, location, seen) !== undefined;
+    }
+
+    /**
+     * The component a reader drags whose `anchor` is where `node` is placed
+     * (see {@link anchorIsPlaced}): `node` itself, or what it extends, in
+     * turn; `undefined` when there is none.
+     */
+    function placedAnchorOf(node: any, location: string, seen: Set<any>): any {
+        if (seen.has(node)) {
+            return undefined;
+        }
+        seen.add(node);
+        if (isPlaced(node)) {
+            return node;
+        }
+        if (placementAttribute(node, location)) {
+            return undefined;
+        }
+        for (const source of linkedSourcesOf(node)) {
+            const found = placedAnchorOf(source, location, seen);
+            if (found !== undefined) {
+                return found;
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Whether the reference `ref` to `named` reads the `anchor` of an entry
+     * of it: its path is indices, then a placement location
+     * (`$ml[1].anchor`), or, for a list with no such property of its own,
+     * the location alone, of every entry (`$ml.anchor`).
+     */
+    function readsEntryAnchor(named: any, ref: any): boolean {
+        const path: any[] = ref.unresolvedPath ?? [];
+        const last = path[path.length - 1];
+        if (
+            typeof last?.name !== "string" ||
+            !isPlacementLocation(last.name) ||
+            last.index?.length > 0
+        ) {
+            return false;
+        }
+        if (path.length === 1) {
+            // the entries' `anchor`; an `entryAnchor` is the list's own
+            return (
+                last.name.toLowerCase() === "anchor" &&
+                (componentInfoObjects.allComponentClasses as any)[
+                    typeMadeBy(named)
+                ]?.listEntryComponentType !== undefined &&
+                propertyNamedBy(named, ref) === undefined
+            );
+        }
+        return path
+            .slice(0, -1)
+            .every((part) => !part?.name && part?.index?.length > 0);
+    }
+
+    /**
+     * The component a reader drags whose `anchor` the reference `ref` reads
+     * through what the composite `named` makes (`$r[1].n.anchor`, `$g.n.anchor`
+     * of a placed `n`), if any: the component of its DoenetML that the
+     * names of the path find, each once, as `sourceOf` in
+     * `readerWritable.ts` finds what an extend copies.
+     */
+    function placedAnchorInComposite(named: any, ref: any): any {
+        const path: any[] = ref.unresolvedPath ?? [];
+        const last = path[path.length - 1];
+        if (
+            path.length < 2 ||
+            typeof last?.name !== "string" ||
+            !isPlacementLocation(last.name) ||
+            last.index?.length > 0 ||
+            !path.slice(0, -1).some((part) => part?.name)
+        ) {
+            return undefined;
+        }
+        let node = named;
+        for (const part of path.slice(0, -1)) {
+            if (part?.name) {
+                const found = namedUnder(node, part.name);
+                if (found.length !== 1) {
+                    return undefined;
+                }
+                node = found[0];
+            }
+            if (
+                part?.index?.length > 0 &&
+                !componentInfoObjects.isCompositeComponent({
+                    componentType: typeMadeBy(node),
+                    includeNonStandard: true,
+                })
+            ) {
+                return undefined;
+            }
+        }
+        return placedAnchorOf(node, last.name, new Set());
+    }
+
+    /**
+     * The component whose `anchor` a reader drags where an entry of the list
+     * `list` is placed, if any: the list, when it is placed in a graph, or
+     * a component an entry comes from whose `anchor` is (`$a` in
+     * `<mathList>`, of a `<math>` in a graph, `graphSourceOf` in
+     * `AuthoredValueList.js`), or one found so for a list it extends,
+     * linked. Any entry counts, erring toward changeable.
+     */
+    function placedEntryOf(list: any, seen: Set<any>): any {
+        if (seen.has(list)) {
+            return undefined;
+        }
+        seen.add(list);
+        const placedList = placedAnchorOf(list, "entryAnchor", new Set());
+        if (placedList !== undefined) {
+            return placedList;
+        }
+        for (const child of [
+            ...(list.children ?? []),
+            ...linkedSourcesOf(list),
+        ]) {
+            if (typeof child !== "object" || child === null) {
+                continue;
+            }
+            const found =
+                placedAnchorOf(child, "anchor", new Set()) ??
+                placedEntryOf(child, seen);
+            if (found !== undefined) {
+                return found;
+            }
+        }
+        return undefined;
     }
 
     /** What a reader can change that the attribute `attribute` reaches. */
