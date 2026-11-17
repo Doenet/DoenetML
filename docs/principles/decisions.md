@@ -775,6 +775,26 @@ text. Three rules then cover what the category was used to explain:
 What remains genuinely composite-specific, such as an `extend` of a repeat ignoring `for` (REF-7)
 or children on a copy of a repeat (D4), should be stated on the tag's own reference page.
 
+**Words kept out of author-facing text** (decided, November 2026). The test for a word is
+whether authors meet it in what they write: a tag or attribute name, or its plain English sense.
+A word the core uses for how it is built, which authors never write, stays out of the docs, the
+diagnostic messages, the schema's descriptions (editor hover and reference pages) and the
+language server's text:
+- **composite** (the category of `<group>`, `<repeat>`, `<select>` …): name the tags, or say what
+  they do ("a tag that holds others", "a choice");
+- **template** for what is written inside a `<repeat>`: say "what is written inside the
+  repeat". Authors don't write a `<template>` in a `<repeat>` (they did in the older `<map>`).
+  Nothing else is wrong with the word: where authors type `<template>`, or in its plain sense
+  (an editor snippet, a `pattern`), it is fine;
+- **wrapper** (a group, iteration, pick or case holding several components): say what holds them;
+- **state variable**, **prop**: say "property";
+- **replacement**, **shadow**, **sugar**, **essential**, **adapter** in their implementation
+  senses;
+- internal ids and names: `componentIdx`, `_error`, `_copy`, and other tags starting with `_`.
+
+A diagnostic locates its problem by position and by the names the author wrote, never by an
+internal id. Known violations: #2588.
+
 ## D25. A table's title and a figure's caption take the first child, not the last
 
 **Today.** Wherever a component uses one `<label>`, `<title>` or `<shortDescription>`, the last
