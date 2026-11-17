@@ -312,6 +312,12 @@ reload, and after a reload into an edited award).
 Gradebooks depend on this. ADR 0017 in the cells core instead says "credit derived … the answer
 regrades". That needs a decision (D16).
 
+Applied to `<answer type="videoWatched">` (#2539, decided): credit saved before a change to how
+watching is counted (#2532) isn't re-graded on reload. The answer submits itself each time a
+watched segment is recorded, so its credit catches up the next time the student watches. Since
+#2575, segments are kept through late polls and fast playback. **Known violation** (#2581): an
+HTML5 `<video source>` records no viewing, so its `videoWatched` answer can never give credit.
+
 Evidence: `T/tagSpecific/answer.test.ts:5214`, `:4565`, `:4634`, `:7663`, `:7875`, `:4957`,
 `:4988`.
 
