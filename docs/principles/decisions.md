@@ -2745,7 +2745,9 @@ no way to iterate over records (a point with its label).
 
 While probing: a `<boolean>` written in a `<math>` (`<math>$b+1</math>`) is dropped as an invalid
 child (`w0107`), giving `+1`, though REF-5 makes a boolean `1` or `0` as a math. `<number>$b+1</number>`
-gives `1`, so it likely drops it too (#2566). **Fixed by #2572.**
+gives `1`, so it likely drops it too (#2566). Fixed by #2572 by reading it as `1`; **revised by
+D47 decision 3:** it is a type mix with a warning, unless the author asks with
+`<number convertBoolean>`.
 
 ## D45. Every value a reference reaches has one type, decided from the DoenetML (decided, Tier 1)
 
@@ -2921,23 +2923,32 @@ Alternatives: `<collection>`, `<items>`.
      before anything else, so a reference can't be read there.
 2. **No warning now for a second `<when>` in an `<award>`** (#2580 item 1). REF-4a's "the last one
    written wins" for it waits for the cells core's shared one-child mechanism.
-3. **Booleans as `1` and `0`:** open.
+3. **A boolean is `1` or `0` only where the author asks** (option B below; implementation
+   #2582). `<number convertBoolean>` reads a boolean, or a boolean expression, as `1` or `0`;
+   nowhere else does. Reading `true` as `1` is a programming notation authors are unlikely to
+   know: an author who writes `<math>$b+1</math>` won't expect `2`.
+   - A boolean where a number or math is wanted (in a `<math>`, a `<number>` without
+     `convertBoolean`, a list, a math operator, a math attribute, `<mathInput bindValueTo>`) is a
+     type mix: a blank in its place (VAL-5) and a warning at load that names the way to ask:
+     "`$b` is true or false, not a number. To count it as 1 or 0, write
+     `<number convertBoolean>$b</number>`."
+   - A type change (`<math extend="$b"/>`, `<number extend="$b"/>`) is a REF-5 error with the
+     same suggestion.
+   - A comparison of a boolean with a number (`<boolean>$b = 1</boolean>`) is a type mix, with
+     the warning. `$b = true` compares booleans.
+   - A boolean still shows as the word `true` or `false` in text.
 
-### Open: should a boolean be read as `1` or `0` without the author asking?
+   This reverses most of #2572's boolean adapter (closing #2566) and narrows REF-5's older
+   rule. Options considered: **A**, keep #2572 (a boolean is `1` or `0` wherever a number is
+   wanted); **C**, a lone boolean only (`<number>$b</number>`), the same notation with less
+   reach.
 
-**Why.** Reading `true` as `1` is a programming notation that authors are unlikely to know; an
-author who writes `<math>$b+1</math>` won't expect `2`. REF-5 already allowed it for a type
-change (`<number extend="$b"/>`), and #2572 (closing #2566) extended it to a boolean inside a
-`<math>`, a `<number>`, a list, a math operator and a math attribute, to `<mathInput
-bindValueTo="$b">`, and to `<number>$b</number>` without `convertBoolean`.
+### Open: a number read as a boolean
 
-**Options:**
-- **A. Keep #2572:** a boolean is `1` or `0` wherever a number or math is wanted.
-- **B. Only where the author asks (recommended):** `<number convertBoolean>` reads a boolean,
-  or a boolean expression, as `1` or `0`; nowhere else does. Elsewhere a boolean where a number
-  or math is wanted is a type mix: a blank in its place (VAL-5) and a warning at load that names
-  the way to ask ("`$b` is true or false, not a number. To count it as 1 or 0, write
-  `<number convertBoolean>$b</number>`"). A type change (`<math extend="$b"/>`) is a REF-5
-  error with the same suggestion. A boolean still shows as the word `true` or `false` in text.
-- **C. A lone boolean only:** `<number>$b</number>` and `<number extend="$b"/>` are `1` or `0`,
-  but not a boolean inside arithmetic. Still the same notation, with less reach.
+The reverse is the same notation, and on `main` it applies everywhere with no warning
+(**[probe]**): `<boolean>2</boolean>` is `true`, `<boolean>$n</boolean>` and `<boolean
+extend="$n"/>` are `true` for `n` = 1, `hide="$n"` hides, `<booleanInput bindValueTo="$n"/>`
+binds to a number, and `<boolean>$m</boolean>` of the math `x` is `false`. Recommendation: the
+same rule, so a number where a boolean is wanted is a type mix with a warning that suggests the
+comparison meant (`$n != 0`, `$n = 1`), and a literal `1` or `0` in a `<boolean>` gets the same
+warning.

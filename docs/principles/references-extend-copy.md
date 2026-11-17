@@ -667,10 +667,12 @@ That is worth doing there, not retrofitting into the JavaScript core.
 `<T extend="$x"/>` with T different from x's type asks for a T made from x. The same table decides
 `copy` and `copyWithState` (D26). The allowed cases:
 - **between value types:**
-  - math, number, text and boolean, among each other. A boolean is `1` or `0` as a number or a
-    math, also as a child of a `<math>`, `<number>`, list or operator and in a math attribute
-    (since #2572, closing #2566; a `<number>$b</number>` is `1` with or without
-    `convertBoolean`);
+  - math, number and text among each other, and boolean and text. **A boolean is not a number
+    or a math** (D47 decision 3): `<math extend="$b"/>` is an error that suggests
+    `<number convertBoolean>$b</number>`, the one place a boolean is read as `1` or `0`. **Known
+    violation** (#2582): a boolean is `1` or `0` as a number or a math, also as a child of a
+    `<math>`, `<number>`, list or operator and in a math attribute (#2572), and a number is a
+    boolean (nonzero is `true`);
   - point, vector and coords, among each other;
   - math from a point, vector or coords, as the tuple of its coordinates;
   - a point, vector or coords from a math whose value is a tuple;
