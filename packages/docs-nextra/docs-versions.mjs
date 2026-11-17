@@ -27,9 +27,7 @@
  * @property {string} label What the switcher shows, e.g. `0.7`.
  * @property {string} path The site's base path: `""` for the root, or
  *   `/dev`, `/0.7`, …, with a leading slash and no trailing slash.
- * @property {boolean} [prerelease] An unreleased line. Its pages carry a
- *   banner pointing to the current release, and are kept out of search
- *   engines.
+ * @property {boolean} [prerelease] An unreleased line. Its pages carry a banner pointing to the current release, and are marked `noindex` for search engines.
  */
 
 /**
