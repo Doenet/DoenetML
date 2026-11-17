@@ -1,0 +1,38 @@
+# Rebuild docs.doenet.org after a push to this maintenance branch.
+#
+# The site serves this branch's docs at the root, beside `main`'s at `/dev/`.
+# Both are built and deployed together by `gh-pages-docs.yml` on `main`: a
+# Pages deploy replaces the whole site, and the `github-pages` environment's
+# deployment branch policy, if it is limited to `main` as GitHub recommends,
+# would refuse a deploy from here. So this branch never deploys; it asks
+# `main`'s workflow to run, which builds this branch's current tip. See
+# "The docs site" in `main`'s docs/RELEASING.md.
+#
+# GitHub documents workflow_dispatch as an exception to the rule that events
+# caused by GITHUB_TOKEN start no new workflow run.
+name: Trigger docs deploy
+
+on:
+    push:
+        branches: ["0.7"]
+        # Changesets and changelogs change nothing the docs build from. (A
+        # version PR's merge also bumps `package.json` files, so it still
+        # triggers a rebuild, though a release needs none: the docs' examples
+        # load `@doenet/standalone@0.7` from the CDN, and `publish.yml` moves
+        # `@0.7` to each new release.)
+        paths-ignore:
+            - ".changeset/**"
+            - "**/CHANGELOG.md"
+    workflow_dispatch:
+
+permissions:
+    actions: write
+
+jobs:
+    dispatch:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Run gh-pages-docs.yml on main
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: gh workflow run gh-pages-docs.yml --repo "${{ github.repository }}" --ref main
