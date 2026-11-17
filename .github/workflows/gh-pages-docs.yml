@@ -54,8 +54,8 @@ env:
     # Every deployed version, passed to both builds so each one's version
     # switcher lists them all. `path` is the version's base path ("" is the
     # root); `prerelease` marks an unreleased line, whose pages carry a banner
-    # pointing to the release and are kept out of search engines. Read by
-    # `packages/docs-nextra/docs-versions.mjs` on each branch.
+    # pointing to the release and are marked `noindex` for search engines.
+    # Read by `packages/docs-nextra/docs-versions.mjs` on each branch.
     DOCS_VERSIONS: >-
         [
         {"label": "0.7", "path": ""},
@@ -201,7 +201,10 @@ jobs:
                   for f in site/index.html "site${DEV_BASE_PATH}/index.html" site/demos/index.html; do
                       test -f "$f" || { echo "Missing $f" >&2; exit 1; }
                   done
-                  du -sh site "site${DEV_BASE_PATH}" site/demos
+                  # Separate calls: one `du` counts each directory once, so
+                  # given `site` first it would skip the two inside it.
+                  du -sh site
+                  du -sh "site${DEV_BASE_PATH}" site/demos
             - name: Setup Pages
               uses: actions/configure-pages@v6
             - name: Upload artifact
