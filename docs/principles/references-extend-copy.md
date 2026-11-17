@@ -672,7 +672,7 @@ That is worth doing there, not retrofitting into the JavaScript core.
     `<number convertBoolean>$b</number>`, the one place a boolean is read as `1` or `0`. **Known
     violation** (#2582): a boolean is `1` or `0` as a number or a math, also as a child of a
     `<math>`, `<number>`, list or operator and in a math attribute (#2572), and a number is a
-    boolean (nonzero is `true`);
+    boolean (nonzero is `true`), which D47 decision 4 also makes a type mix;
   - point, vector and coords, among each other;
   - math from a point, vector or coords, as the tuple of its coordinates;
   - a point, vector or coords from a math whose value is a tuple;

@@ -2943,12 +2943,18 @@ Alternatives: `<collection>`, `<items>`.
    wanted); **C**, a lone boolean only (`<number>$b</number>`), the same notation with less
    reach.
 
-### Open: a number read as a boolean
+4. **A number is never read as a boolean either** (the reverse of decision 3; #2582). Today a
+   nonzero number is silently `true` everywhere (**[probe]**: `<boolean>2</boolean>`,
+   `<boolean>$n</boolean>` and `<boolean extend="$n"/>` for `n` = 1, `hide="$n"`,
+   `<booleanInput bindValueTo="$n"/>`; `<boolean>$m</boolean>` of the math `x` is `false`).
+   Under the same rule:
+   - a number or math where a boolean is wanted (a `<boolean>`'s content, a boolean attribute
+     such as `hide`, a `<booleanList>`) is a type mix: a blank in its place and a warning at load
+     that suggests the comparison meant ("`$n` is a number, not true or false. To test it, write
+     a comparison such as `$n != 0`");
+   - a literal `1` or `0` in a `<boolean>` or a boolean attribute gets the same warning; `true`
+     and `false` are the way to write them;
+   - a type change (`<boolean extend="$n"/>`) is a REF-5 error with the same suggestion;
+   - `<booleanInput bindValueTo="$n">` is a type mix, with a warning.
 
-The reverse is the same notation, and on `main` it applies everywhere with no warning
-(**[probe]**): `<boolean>2</boolean>` is `true`, `<boolean>$n</boolean>` and `<boolean
-extend="$n"/>` are `true` for `n` = 1, `hide="$n"` hides, `<booleanInput bindValueTo="$n"/>`
-binds to a number, and `<boolean>$m</boolean>` of the math `x` is `false`. Recommendation: the
-same rule, so a number where a boolean is wanted is a type mix with a warning that suggests the
-comparison meant (`$n != 0`, `$n = 1`), and a literal `1` or `0` in a `<boolean>` gets the same
-warning.
+   A comparison (`$n > 0`, `$n = 1`) is how a number decides a boolean, as before.
