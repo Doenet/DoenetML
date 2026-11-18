@@ -212,8 +212,9 @@ describe("Copies of composites @group3", () => {
 <substitute name="s" type="math" match="x" replacement="y">x+1</substitute>
 <p name="p2"><substitute copy="$s" type="text"/></p>
 <p name="p3"><substitute copy="$s" type="text" replacement="z"/></p>
-<p name="p4"><substitute type="math" match="x" replacement="y"><text>x+1</text></substitute></p>`,
-            ["p1", "p2", "p3", "p4"],
+<p name="p4"><substitute type="math" match="x" replacement="y"><text>x+1</text></substitute></p>
+<p name="p5"><substitute type="text" match="x" replacement="y"><math>x+1</math></substitute></p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
         );
         expect([...errors, ...warnings]).eqls([]);
         expect(await texts()).eqls({
@@ -221,7 +222,25 @@ describe("Copies of composites @group3", () => {
             p2: "y + 1",
             p3: "z + 1",
             p4: "y + 1",
+            p5: "y + 1",
         });
+    });
+
+    it("a value written to a substitute with no match is written to its child", async () => {
+        // Nothing is substituted, so its value is its child's. The inverse
+        // threw, and the write was lost (#2546 item 2).
+        const { core, resolvePathToNodeIdx, texts } = await load(
+            `<p name="p1"><substitute name="s">x</substitute></p>
+<mathInput name="mi" bindValueTo="$s"/>`,
+            ["p1", "mi"],
+        );
+        expect(await texts()).eqls({ p1: "x", mi: "x" });
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await texts()).eqls({ p1: "y", mi: "y" });
     });
 
     it("a child written on a copy of a substitute replaces its source's", async () => {
@@ -377,7 +396,10 @@ describe("Children a copy or extend does not use @group3", () => {
 <matrix name="Mb" copy="$M"><math>$B</math></matrix>
 <matrix name="Mm" copy="$M">$B</matrix>
 <matrix name="Me" extend="$M"><math>$B</math></matrix>
-<matrix name="Mr" copy="$M"><row>5 6</row></matrix>`,
+<matrix name="Mr" copy="$M"><row>5 6</row></matrix>
+<group name="g"><math>$B</math></group>
+<matrix name="Mg" copy="$M">$g</matrix>
+<matrix name="Mt" copy="$M">5</matrix>`,
         );
         expect(errors).eqls([]);
         expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
@@ -392,6 +414,10 @@ describe("Children a copy or extend does not use @group3", () => {
         // A row written on a copy of a matrix whose value is a math is
         // added, and the rows give the copy its entries, as before.
         expect((await sv("Mr")).text).eq("[[5, 6]]");
+        // Plain text is one `<math>`, and a group holding a math is read
+        // after the source's, so is the last one (REF-4a).
+        expect((await sv("Mg")).text).eq((await sv("B")).text);
+        expect((await sv("Mt")).text).eq("[[5]]");
     });
 
     it("a matrix written with several math children uses the last, with a warning", async () => {

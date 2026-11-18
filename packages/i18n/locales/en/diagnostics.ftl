@@ -1107,11 +1107,12 @@ type-change-composite-not-one =
 # and `$source` isn't always one: it holds several, or another type, or it
 # is a property or an entry of a list. $makes is `content` when
 # $componentType is a tag that makes its content itself, such as `<repeat>`,
-# `<select>` or `<collect>`, and `$source` is a property, which is a value,
-# never such a tag (#2546); otherwise it is `values`. The tags and `$source`
-# are DoenetML and stay in English.
+# `<select>` or `<collect>`, and `$source` is a property or an entry of a
+# property or a list (`$s.value`, `$l[2]`), which is a value, never such a tag
+# (#2546); otherwise it is `values`. The tags and `$source` are DoenetML and
+# stay in English.
 type-change-own-type-only = { $makes ->
-        [content] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` is a property, which is a value. To show it as it is, write `{ $source }`.
+        [content] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` is a value. To show it as it is, write `{ $source }`.
        *[values] A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
     }
 

@@ -8912,8 +8912,9 @@ async function typeChangeStatus({
         })
     ) {
         // A composite is made from its own kind only (below), and a
-        // property is a value, never a composite: `<repeat extend="$s.value"/>`
-        // could show nothing (REF-5, #2546).
+        // property, or an entry of one or of a list (`$l[2]`), is a value,
+        // never a composite: `<repeat extend="$s.value"/>` could show
+        // nothing (REF-5, #2546).
         return mismatch({
             code: "doenet-e0071",
             args: { makes: "content" },
