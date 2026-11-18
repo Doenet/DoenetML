@@ -605,11 +605,15 @@ added, with `doenet-w0190` on a copy and `doenet-w0169` on an extend:
 
 A copy made from a value (`<point copy="$pl[1]">(7,8)</point>`) takes the written child.
 
-**Known violations** (#2546): `<substitute copy="$s">x+2</substitute>` keeps the source's
-child silently; a `<function>` whose formula is a reference (`<function name="f">$m</function>`)
-doesn't recognize it as its formula, so a formula written on its copy isn't applied, and on an
-extend is ignored with no warning; a `<math>` written on a copy of a `<matrix>` is ignored
-(`w0190`), where under REF-4a (decided, below) it replaces the source's.
+**Fixed by #2591:** a child written on a copy of a `<substitute>` replaces the source's; a
+`<function>` whose formula is a reference (`<function name="f">$m</function>`) recognizes it, so a
+formula written on its copy replaces it, and on an extend it is ignored with `w0169`; a `<math>`
+written on a copy of a `<matrix>` replaces the source's (REF-4a, below). A reference child is typed
+as what it stands for when sorting a copy's children, so `<curve copy="$c">$f</curve>` of a curve
+with `through` points ignores `$f` with `w0190`. **Left** (#2594): a `<function>` whose formula is
+a reference to a composite (`$g`) still isn't recognized, and `$g` written on its copy is kept,
+unused, with no warning; a `<row>` written on a copy of a matrix made from a `<math>` is added,
+and the source's `<math>` goes unused, with no warning.
 
 ### REF-4a: of a child a component uses only one of, the last one written wins (Tier 1)
 A component uses only one `<label>`, `<title>` or `<shortDescription>`. When more than one is
@@ -627,7 +631,7 @@ exception to REF-4; it is the same rule an author meets when writing two labels 
 | `<title>` | `<table>` | **the first** | **the source's** |
 | `<caption>` | `<figure>` | **the first** | **the source's** |
 | `<shortDescription>` | `graph`, `image` | the second | the added one |
-| `<math>` | `matrix` (decided, #2546) | **today: joined into one 1×1 product**; wanted: the second, with a warning | **today: ignored, `w0190`**; wanted: the added one |
+| `<math>` | `matrix` (done by #2591) | the second, with `w0194` | the added one; on an extend, ignored with `w0169` |
 
 Code:
 - `<label>`: one shared definition in `W/utils/label.ts:454`, which takes the last label child.
@@ -641,14 +645,16 @@ Code:
 
 `<legend>` is different on purpose: it takes one `<label>` per item.
 
-**A `<matrix>` takes one `<math>` child** (decided, #2546). Today it joins its `<math>` children
-into one expression, as a `<math>` joins its children: `<matrix><math>$A</math><math>$B</math></matrix>`
-is a 1×1 matrix holding the unevaluated product `A B`, which is almost never meant. Under the
-decision, a second `<math>` is a warning and the last one is used, and so a `<math>` written on a
-copy of a matrix replaces the source's: `<matrix copy="$M"><math>$A - $B</math></matrix>` of
+**A `<matrix>` takes one `<math>` child** (decided, #2546; done by #2591). It used to join its
+`<math>` children into one expression, as a `<math>` joins its children, so
+`<matrix><math>$A</math><math>$B</math></matrix>` was a 1×1 matrix holding the unevaluated product
+`A B`. Now a second `<math>` is warning **`doenet-w0194`** and the last one is used (a matrix reads
+it with `childIndices: [-1]`), and so a `<math>` written on a copy of a matrix replaces the
+source's: `<matrix copy="$M"><math>$A - $B</math></matrix>` of
 `<matrix name="M"><math>$A + $B</math></matrix>` is `A − B`. Plain text in a matrix is one `<math>`
-child (`<matrix>1 2</matrix>` is the 1×1 matrix `1 * 2`), so it isn't affected. A `<math>` beside
-`<row>`s or `<column>`s is still dropped, with a warning (#2542).
+child (`<matrix>1 2</matrix>` is the 1×1 matrix `1 * 2`), so it isn't affected, and neither are
+bare references (`<matrix>$A $B</matrix>`). A `<math>` beside `<row>`s or `<column>`s is dropped,
+with `w0194` (it was dropped silently on a matrix written whole).
 
 No test pins the "last one wins" rule, for any component, either written directly or through an
 `extend`. The only related test is a point's label being overridden on an extend
@@ -792,13 +798,24 @@ changes (`<point extend="$P.x"/>` is missing). `bindValueTo` of a `<subsetOfReal
   part is one sequence, and `<sequence extend="$cc"/>` is `＿` while no case is true.
 
 Known violations:
-- `<point extend="$ci"/>` of a `<choiceInput>` with no choice selected, or several, is `(0, 0)`;
-  with a text choice among its choices it is `e0065` at load even while a tuple is selected
-  (#2546);
-- a component in error is dropped from a group's content only when the copy is first made; when
-  the content changes later, it counts again (#2546);
-- a composite tag (`<repeat>`, `<select>`, `<collect>`, `<sort>`) extending a property shows
-  nothing, with no diagnostic (#2546);
+- **fixed by #2591:** a point, vector or coords made from a property holding a list of values
+  (`<point extend="$ci"/>` of a `<choiceInput>`, `$a.submittedResponses`, `$t.categories`) is
+  missing while it holds none or several, with info **`doenet-i0061`** (it was `(0, 0)`, or the
+  first). A text choice among the choices is `e0065` at load, also while nothing is selected. A
+  `<point copy>` of it is decided when it is made (CPY-1);
+- **fixed by #2591:** a component in error is dropped from a group's content whenever the content
+  changes, not only when the copy is first made;
+- **fixed by #2591:** a composite tag (`<repeat>`, `<select>`, `<collect>`, `<sort>`, …) made
+  from a property or an entry (`$s.value`, `$l[2]`) is `doenet-e0071` ("a `<repeat>` makes its
+  content itself, so it can be made only from another `<repeat>`"); it showed nothing;
+- **left** (#2594): the same mismatch has two codes: `<repeat extend="$n"/>` and `$r[1]` are
+  `e0065`, while `$n.value` and `$l[2]` are `e0071`; a tag made from a group whose only content is
+  a case that comes to show an error is still `(0, 0)`; a point from a property whose entries'
+  type appears only later (an answer's `submittedResponses` with a `<textInput>` response, a
+  `<tally>`'s categories that start empty, a `<choiceInput>` whose text choices a `<repeat>`
+  makes) is `e0065` after load (DIAG-7), which TYPE (D45, #2568) settles; a selection that names
+  no choice makes `selectedValues` `[undefined]`, and a point from it gets `i0053` naming
+  `undefined`;
 - a copy that made nothing could report a different info after a reload (B37). #2447 removed
   the run-time `e0065` of its example; whether two infos can still differ is not checked;
 - a `<select>` whose options are all written with `copy` failed to load (B39); fixed by #2468.
@@ -925,9 +942,13 @@ element written with `extend`, which fixed B12.
 `<conditionalContent>` written without `<case>` becomes the condition of the case the sugar made
 (beside written cases it is ignored with `w0079`, as on the tag written whole); a copy that writes
 `valueName` or `indexName` gets aliases for each name; `replacement` on a copy of a `<substitute>`
-is read with its `type`. **Known violations** (#2546): `<substitute copy="$t" type="math">`
-of a text substitute (and the reverse) fails to load; `<repeat copy="$r"><number>2$v</number></repeat>`
-can't read `$v` from a child written in the copy unless the copy writes `valueName`.
+is read with its `type`. **Fixed by #2591:** `<substitute copy="$t" type="math">` of a text
+substitute (and the reverse) loads and substitutes, and a substitute with no `match` passes a
+written value to its child. **Open** (#2546 item 7, a decision): `<repeat copy="$r"><number>2$v</number></repeat>`
+can't read `$v` from a child written in the copy unless the copy writes `valueName`. That is
+NAME-4 ("a child added inside a copy does not see the copied content"), which #2591 followed;
+whether a tag's own name bindings (`valueName`, `indexName`) count as copied content is the
+question.
 **[probe]** at `894d3ea`, #2218 and the copy half of #2215 look fixed. #2219
 (`styleNumber` on an extend of `<intersection>`) was fixed by #2426.
 
