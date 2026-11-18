@@ -548,8 +548,10 @@ sources) without changing the statement above.
   isn't held to this rule. `<math>` is read like `<number>` (D39, decided after #2555).
 - **SEL-7: choices depending on each other form an order (Tier 2)**, with no cycle (`e0005`), and
   ranges flow forward through it. Done by #2555 for the check: a selection another reads is
-  checked first, wherever it is written. The *run time* still draws in build order, which
-  #2553 is about.
+  checked first, wherever it is written. **Done by #2597** (closing #2553) for the run time: a
+  reference to what a composite written later holds (`$g.n` before `<group name="g">`) waits for
+  that composite to expand, so a random choice reads its parameters once they are there,
+  whatever order the document is written in.
 - **SEL-8: every option, case and iteration template is checked, picked or not (Tier 2):** its
   errors and its warnings, each at its line.
 
@@ -614,10 +616,11 @@ which aren't choices.
   warning is a warning there, not an info. **Left** (#2506): a warning a component decides is
   reported only once its content is made;
 - **fixed by #2549** (closing #2477): a `copyWithState` of a sampler carries its draws, and draws
-  made as the document loads are saved even with no update before a reload. **Left**
-  (#2553): when a sampler's parameters come from a composite written after it, the source
-  draws again at each reload, and its `copyWithState` draws its own; a `copyWithState` of a
-  `<selectRandomNumbers>` whose range comes from a group written later selected `null`. Since #2555 it is a false `e0075` in every variant;
+  made as the document loads are saved even with no update before a reload. **Fixed by #2597**
+  (closing #2553): a sampler whose parameters come from a composite written after it draws once,
+  its `copyWithState` shows those draws, and both are kept through a reload; a `copyWithState` of
+  a `<selectRandomNumbers>` or `<selectFromSequence>` whose range comes from a group written
+  later selects from that range (it was a false `e0075` or `e0036`);
 
 ### COMP-9: `conditionalContent` shows the first case whose condition is true, else the `<else>` (Tier 1)
 The single-case form `<conditionalContent condition="…">` shows its children or nothing.

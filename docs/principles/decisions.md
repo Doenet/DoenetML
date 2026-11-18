@@ -2468,7 +2468,7 @@ variant misses a blank another variant shows.
 
 - **Done:** SEL-1 and SEL-4 by #2511, SEL-3's test by #2511, and SEL-5 to SEL-7 by #2555. The
   info-level failures listed under "Today" are gone: every selection failure is an error. The
-  leftovers are #2563, and #2553 for the run time's build order. SEL-8's warnings are part done
+  leftovers are #2563, and #2553 for the run time's build order (done by #2597). SEL-8's warnings are part done
   (#2547), and the rest wait for the cells core (#2506).
 - **Decided after #2555: a `<math>` is an intermediate like `<number>`.** This revises the
   decision above, which allowed `<number>` and `<integer>` only. #2555 accepts a `<math>` whose

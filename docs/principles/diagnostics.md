@@ -174,6 +174,9 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
   document's variants aren't worked out as unique variants;
 - **fixed by #2573:** a reference to a component in error reports nothing more (no `w0104` for
   `$x.bar` of an `_error`);
+- **known violation** (#2598): a document holding a `<select>` in a group read before it is
+  written, and a later `<selectFromSequence>`, runs out of memory at load in variant 2 (the
+  example is in the issue);
 - **known violation** (#2578): a composite beside a section whose parameter reads the section's
   `sectionNumber` (`<selectRandomNumbers mean="$s.sectionNumber"/>`, `<sequence to=…>`) throws
   a circular dependency, and the document fails to load;

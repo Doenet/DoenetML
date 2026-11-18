@@ -142,8 +142,15 @@ Recent fixes show where the current representation is fragile:
   answer's `justSubmitted` hashes its dependencies by `stateId`, so the hash is the same across
   builds (old hashes needn't be kept, SAVE-3). An input keeps an edit not yet entered only while
   `value` is still what the edit was typed over (`valueUnderEdit`, a fingerprint); otherwise its
-  `immediateValue` follows `value`. **Known violation** (#2554, not run): an edit can come back
-  when the value passed through it while the input was shown, then returned while withheld.
+  `immediateValue` follows `value`. **Fixed by #2597** (closing #2554): an edit doesn't come back
+  when the value passed through it while the input was shown, then returned while withheld
+  (`valueUnderEdit` is cleared when the input follows its value; for a `<mathInput>`,
+  `<textInput>`, `<fractionInput>` and `<matrixInput>`, in the session and through a reload).
+  **Open** (#2598, a decision): an input that isn't focused can still show an edit that was
+  never entered. A graph drag doesn't blur the input, so a `copyWithState` it makes carries the
+  edit, and a condition reading `$mi.immediateValue` changes as the reader types. Recommended:
+  commit, when it is made, any input made from saved state or carried by a copy that isn't the
+  one being edited.
 - **A restored value is matched by `stateId`; since #2481 also by type** (B36). The save records
   each component's type (`__componentTypes`), and a value whose type differs from the component
   now at that `stateId` is dropped. The ids themselves can still collide across a copy's
@@ -210,6 +217,17 @@ with info **`doenet-i0060`** naming the target, and actions chained to it don't 
 reads which property it names but not its value (`withheldValuesNotRead`); a withheld answer's
 `justSubmitted` doesn't change until it is shown. An action inside withheld content doesn't fire
 (#2529, ACT-1).
+
+`i0060` is rightly an info (#2597, checked for #2554): content that is shown and then withheld
+needs a condition or a count that can change. An action on a case behind a literal `condition`,
+which is never made, has no target and gets `w0043` as a warning, decided by the DoenetML.
+
+**An action's target names one component** (#2597): `target` written as one reference to a
+`<group>` of several components, a `<repeat>` or a `<repeatForSequence>` is warning
+**`doenet-w0195`** at load, naming the target and what to write instead (`$g.a`, `$r[1].x`).
+**Known violations** (#2598): a target that is a wrapper of one component (`$g` of a group holding
+one input, `$r[1]` of an iteration holding one `<number>`) doesn't reach it, though COLL-3 says
+the wrapper stands for it; `target="$r.mi"` doesn't reach every iteration's `mi` (COLL-2).
 
 ### SAVE-5: a component's index is allocation order, and is not guaranteed to stay the same (not a guarantee)
 A component's index, and the DOM id `_id_<index>` the viewer builds from it, follow the order in
