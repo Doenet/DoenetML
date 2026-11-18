@@ -1097,7 +1097,7 @@ async function addAndLinkAliasComponents(
     const sourceIdx = sourcesChildIndices[iter];
     const wrapperIdx =
         typeof sourceIdx === "number"
-            ? wrapperOfSeveralIdx(components?.[sourceIdx])
+            ? wrapperOfSeveralIdx(components[sourceIdx], components)
             : undefined;
     const itemIsWrapperOfSeveral = wrapperIdx !== undefined;
 
@@ -1157,11 +1157,12 @@ async function addAndLinkAliasComponents(
                         children: [],
                         state: {},
                         extending: {
-                            Ref: sourceRefForIter({
-                                sourcesChildIndices,
-                                sourcesComponentIdx,
-                                iter,
-                            }),
+                            Ref: {
+                                nodeIdx: wrapperIdx,
+                                originalPath: [{ name: "", index: [] }],
+                                unresolvedPath: null,
+                                nodesInResolvedPath: [wrapperIdx],
+                            },
                         },
                     },
                 ],
@@ -1272,16 +1273,30 @@ async function addAndLinkAliasComponents(
 /**
  * The index of the wrapper of several components (`isWrapperOfSeveral`)
  * that `component` is, or that it stands for as a reference to a group with
- * nothing after the name; `undefined` if it is none.
+ * nothing after the name; `undefined` if it is none. A wrapper made by
+ * copying another (as `for="$r"` copies the iterations of `r`) is followed
+ * to the one it copies: a reference to a copied wrapper would not follow a
+ * change in what a composite inside it shows.
  */
-function wrapperOfSeveralIdx(component) {
+function wrapperOfSeveralIdx(component, components) {
     if (!isWrapperOfSeveral(component)) {
         return undefined;
     }
-    if (component.componentType === "_copy") {
-        return component.state.extendedComponent.value.componentIdx;
+    let wrapper =
+        component.componentType === "_copy"
+            ? components[component.state.extendedComponent.value.componentIdx]
+            : component;
+    while (
+        wrapper?.shadows &&
+        wrapper.shadows.propVariable === undefined &&
+        components[wrapper.shadows.componentIdx]
+    ) {
+        wrapper = components[wrapper.shadows.componentIdx];
     }
-    return component.componentIdx;
+    return (
+        wrapper?.componentIdx ??
+        component.state.extendedComponent.value.componentIdx
+    );
 }
 
 /**

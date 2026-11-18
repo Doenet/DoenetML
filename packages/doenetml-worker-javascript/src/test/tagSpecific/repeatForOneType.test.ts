@@ -264,4 +264,40 @@ describe("a repeat's for holds one type @group4", () => {
         });
         expect(await text()).eq("[1: 1], [2: 2], [3: 3]");
     });
+
+    it("the value of an item of several follows what it holds, for an item copied from another repeat", async () => {
+        // `for="$s"` copies the iterations of `s`; `$d` and `$r[2].d` must
+        // follow the case shown inside each, as `$s` does.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<mathInput name="n" prefill="1"/>
+<repeat name="s" for="1 2" valueName="k"><math name="P">$k</math><conditionalContent><case condition="$n=1"><math>9</math></case></conditionalContent></repeat>
+<p name="p"><repeat for="$s" valueName="d" name="r">[$d / $d.P]</repeat></p>
+<p name="q">$r[2].d</p>`,
+        });
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return [
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                stateVariables[await resolvePathToNodeIdx("q")].stateValues
+                    .text,
+            ];
+        }
+        expect(await texts()).eqls(["[19 / 1], [29 / 2]", "29"]);
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(await texts()).eqls(["[1 / 1], [2 / 2]", "2"]);
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(await texts()).eqls(["[19 / 1], [29 / 2]", "29"]);
+    });
 });
