@@ -790,7 +790,10 @@ language server's text:
 - **state variable**, **prop**: say "property";
 - **replacement**, **shadow**, **sugar**, **essential**, **adapter** in their implementation
   senses;
-- internal ids and names: `componentIdx`, `_error`, `_copy`, and other tags starting with `_`.
+- internal ids and names: `componentIdx`, `_error`, `_copy`, and other tags starting with `_`,
+  also as the type of an attribute or property on a reference page (`_componentWithSelectableType`,
+  `_variableName`): name what the author writes instead ("number, math, text or letters, by
+  `type`", "variable name").
 
 A diagnostic locates its problem by position and by the names the author wrote, never by an
 internal id. Known violations: #2588.
