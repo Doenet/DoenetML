@@ -2986,3 +2986,18 @@ Alternatives: `<collection>`, `<items>`.
    - `<booleanInput bindValueTo="$n">` is a type mix, with a warning.
 
    A comparison (`$n > 0`, `$n = 1`) is how a number decides a boolean, as before.
+
+## D48. Decisions from the review of #2591 (November 2026)
+
+1. **NAME-4 holds for a copy's new children, also for a repeat's `valueName`** (#2594 item 1;
+   #2546 item 7). The idea of NAME-4 is that how every reference resolves can be seen directly
+   from the DoenetML, with no logic about what a copy brings. So in
+   `<repeat copy="$r"><number>2$v</number></repeat>`, of `<repeat name="r" for="1 2"
+   valueName="v">`, `$v` doesn't see the source's `v`. `<repeat copy="$r" valueName="v">` makes
+   `$v` the copy's value: an attribute written on a copy (or an extend) overrides the source's,
+   the standard rule. #2591 already does this. Left: `w0104` for such a `$v` could suggest writing
+   `valueName="v"` on the copy (DIAG-3).
+2. **Open: one type mismatch, two codes** (#2594 item 2). A composite tag made from something not
+   its own kind is `e0065` when written as `$n` or `$r[1]`, and `e0071` as `$n.value` or `$l[2]`.
+   Recommendation: `e0071` for every one of them.
+

@@ -252,7 +252,14 @@ The examples use this document:
   Write the copy where the intended `xmin` is nearer (#2470, closing #2403; D6 kept);
 - **in a child added inside a copy:** it does not see the copied content. In
   `<section copy="$S" name="S3"><p>$h</p></section>`, `$h` is `S`'s `h`, as it would be beside
-  the copy, and `$S3.h` reaches the copied `h`.
+  the copy, and `$S3.h` reaches the copied `h`. That includes the names a source tag binds for
+  what is written inside it (D48): with `<repeat name="r" for="1 2" valueName="v">`, a child
+  written in `<repeat copy="$r">` doesn't see `v`. To use it, the copy writes its own
+  attribute, which overrides the source's as any attribute written on a copy does:
+  `<repeat copy="$r" valueName="v"><number>2$v</number></repeat>`.
+
+The point of the rule is that how a reference resolves can be seen directly from the DoenetML
+where it is written, with no logic about what a copy brings and no surprises.
 
 Before #2401, attributes on a copy resolved from the copy's parent, skipping even the children
 written inside the tag, and a child added inside a copy saw the copied content first.
@@ -960,11 +967,9 @@ element written with `extend`, which fixed B12.
 `valueName` or `indexName` gets aliases for each name; `replacement` on a copy of a `<substitute>`
 is read with its `type`. **Fixed by #2591:** `<substitute copy="$t" type="math">` of a text
 substitute (and the reverse) loads and substitutes, and a substitute with no `match` passes a
-written value to its child. **Open** (#2546 item 7, a decision): `<repeat copy="$r"><number>2$v</number></repeat>`
-can't read `$v` from a child written in the copy unless the copy writes `valueName`. That is
-NAME-4 ("a child added inside a copy does not see the copied content"), which #2591 followed;
-whether a tag's own name bindings (`valueName`, `indexName`) count as copied content is the
-question.
+written value to its child. **Decided** (D48 decision 1): a child written in a copy of a repeat
+doesn't see the source's `valueName` or `indexName` (NAME-4); the copy writes its own, which
+overrides the source's as any attribute written on a copy does.
 **[probe]** at `894d3ea`, #2218 and the copy half of #2215 look fixed. #2219
 (`styleNumber` on an extend of `<intersection>`) was fixed by #2426.
 
