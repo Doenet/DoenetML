@@ -268,8 +268,10 @@ describe("a repeat's for holds one type @group4", () => {
 <p name="p2"><repeat for="$nothing $g $b" valueName="d">[$d.P]</repeat></p>
 <p name="p3"><repeat for="$e $g $b" valueName="d">[$d.P]</repeat></p>
 <p name="p4"><repeat for="$sh" valueName="d">[$d.P]</repeat></p>
-<p name="p5"><repeat for="$g $b $sh" valueName="d">[$d.P]</repeat></p>`,
-            ["p1", "p2", "p3", "p4", "p5"],
+<p name="p5"><repeat for="$g $b $sh" valueName="d">[$d.P]</repeat></p>
+<group name="none"><conditionalContent><case condition="false"><point name="P">(1,0)</point></case></conditionalContent><conditionalContent><case condition="false"><text>a</text></case></conditionalContent></group>
+<p name="p6"><repeat for="$none $g $b" valueName="d">[$d.P]</repeat></p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6"],
         );
         expect(unplacedToo.texts).eqls({
             p1: "[＿], [＿], [＿], [＿]",
@@ -277,6 +279,9 @@ describe("a repeat's for holds one type @group4", () => {
             p3: "[＿], [＿]",
             p4: "[＿], [＿]",
             p5: "[＿], [＿], [＿], [＿]",
+            // a group written with two composites that hold nothing now
+            // is no item
+            p6: "[＿], [＿]",
         });
         const someItem =
             "doenet-w0183: `$d.P` names nothing: an item of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.";
@@ -289,6 +294,7 @@ describe("a repeat's for holds one type @group4", () => {
             someItem,
             // before the shuffle, places are known
             "doenet-w0183: `$d.P` names nothing: item 2 of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
+            someItem,
         ]);
 
         // Two tags: an error in place of the reference.

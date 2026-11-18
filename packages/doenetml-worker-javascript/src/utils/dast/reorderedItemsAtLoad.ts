@@ -621,8 +621,8 @@ export function itemReader({
         }
         const result: Items = { items: [], unknown: false };
         // An item's place is known only while each entry of `for` before it,
-        // and its own, names a group written with several components
-        // (`$g`, `namesGroupOfSeveral`): anything else may make a number of
+        // and its own, names a group written with several components, each
+        // always there (`$g`, `namesGroupOfSeveral`): anything else may make a number of
         // items, or an order, decided as the document runs (a repeat, a
         // select, a shuffle, a blank).
         let placesKnown: number | undefined = 0;
@@ -666,8 +666,8 @@ export function itemReader({
     /**
      * Whether `child`, an entry of a repeat's `for`, is a reference with
      * nothing after the name to a `<group>` written with several
-     * components, which is one item, in its place, however the document
-     * runs.
+     * components, none a reference or a composite, which is one item, in
+     * its place, however the document runs.
      */
     function namesGroupOfSeveral(child: SerializedComponent) {
         if (child.componentType !== "_copy" || !child.extending) {
@@ -678,14 +678,25 @@ export function itemReader({
             return false;
         }
         const node = componentsByIdx.get(ref.nodeIdx);
+        if (node?.componentType !== "group" || node.extending !== undefined) {
+            return false;
+        }
+        const held = (node.children ?? []).filter((child) =>
+            typeof child === "string"
+                ? child.trim() !== ""
+                : child.componentType !== "setup",
+        );
+        // each always there: not a reference or a composite, which may
+        // hold none as the document runs (a `<conditionalContent>` with no
+        // case true), so that the group stays one item
         return (
-            node?.componentType === "group" &&
-            node.extending === undefined &&
-            (node.children ?? []).filter((held) =>
-                typeof held === "string"
-                    ? held.trim() !== ""
-                    : held.componentType !== "setup",
-            ).length > 1
+            held.length > 1 &&
+            held.every(
+                (child) =>
+                    typeof child === "string" ||
+                    (child.componentType !== "_copy" &&
+                        !isComposite(child.componentType)),
+            )
         );
     }
 
