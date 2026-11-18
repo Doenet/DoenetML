@@ -267,10 +267,12 @@ a missing point isn't drawn in a graph. It is not the same as the empty tag:
 reference to it, or to a property of it, is missing too. `hide` still hides it.
 Written bare, `$nothing` shows `＿` too, with the same warning.
 
-A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}` or shape
-whose content is only a missing reference is missing in the same way:
-`<number>$nothing</number>{:dn}` shows `＿`, not `NaN`, never equals anything,
-and a `<circle>$nothing</circle>{:dn}` isn't drawn. An `<award>{:dn}` whose
+A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}`,
+`<point>{:dn}`, `<vector>{:dn}` or shape whose content is only a missing
+reference is missing in the same way: `<number>$nothing</number>{:dn}` shows
+`＿`, not `NaN`, never equals anything, and a `<circle>$nothing</circle>{:dn}`
+or a `<point>$pl[$i]</point>{:dn}` past the end of `pl` isn't drawn. So is a
+`<point>{:dn}` or `<vector>{:dn}` whose content is a blank entry of a list. An `<award>{:dn}` whose
 condition is missing gives no credit. It is made from its content again once
 the reference names something, as `<number>$l[$i]</number>{:dn}` is once `i`
 is an index of `l`, and a reference to it, or a tag of it, follows it. Where the blank is part of an expression, it takes part:
@@ -289,7 +291,9 @@ such a computation: `<boolean>$nothing = 1</boolean>{:dn}` is false, since a
 blank never equals anything. Only a number computed from values that are all
 there and still has none, such as `<number>x</number>{:dn}`, is `NaN`. A
 property that has no value, such as an `<award>{:dn}`'s `feedbackText` when it
-has none, is missing too.
+has none, is missing too, and so is a tag of it while it has none, though it
+had a value when the tag was made: `<math extend="$im.aspectRatio"/>{:dn}` is
+`＿` once the image's aspect ratio is cleared.
 
 In a list, a missing entry is a blank entry: where `l` has fewer than five
 entries, `<mathList>$l[5] 2</mathList>{:dn}` holds two entries, `＿, 2`, and so

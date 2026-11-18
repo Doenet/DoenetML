@@ -1,13 +1,15 @@
-import ValueListComponent from "./abstract/ValueListComponent";
+import ValueListComponent, { entryKind } from "./abstract/ValueListComponent";
 import MathComponent from "./Math";
 import {
     REPEAT_LIST_STATICS,
     addRepeatListAttributes,
+    entryCodeDependency,
     addRepeatListDefinitions,
     repeatTemplateEntriesDefinition,
 } from "./abstract/repeatList";
 import { mathValueForDisplay } from "../utils/valueFunctions/math";
 import { templateCanBeModified } from "../utils/repeatTemplate";
+import { holdsBlank, isMissingInput } from "../utils/missing";
 import {
     addEntryOwnDisplayArrays,
     entryOwnDisplayArrays,
@@ -28,6 +30,14 @@ const DISPLAY_SETTINGS = [
     "padZeros",
     "avoidScientificNotation",
 ];
+
+/**
+ * Whether `value`, what a template reads at one index, is missing: nothing
+ * there (an index past the end of a list), or a value holding a blank.
+ */
+function isMissingValue(value) {
+    return value === undefined || value === null || holdsBlank(value);
+}
 
 /**
  * A `<repeat>` or `<repeatForSequence>` whose template is one value, made a
@@ -88,6 +98,28 @@ export default class RepeatValueList extends ValueListComponent {
         return entryOwnDisplayArrays(this.listEntryComponentType);
     }
 
+    // Whether an entry can be missing (`entriesMissing`): a number can't
+    // hold a blank, while a math holds it (D40, #2544).
+    static get listEntriesCanBeMissing() {
+        return entryKind(this.listEntryComponentType) === "number";
+    }
+
+    // An entry of a number list is missing while it is a blank entry
+    // (`entriesMissing`), as an entry of an authored list is.
+    static buildListEntryStateVariables() {
+        const variables = super.buildListEntryStateVariables();
+        if (this.listEntriesCanBeMissing) {
+            variables.valueMissing = "entriesMissing";
+        }
+        return variables;
+    }
+
+    static get listPerEntryVariables() {
+        return this.listEntriesCanBeMissing
+            ? [...super.listPerEntryVariables, "entriesMissing"]
+            : super.listPerEntryVariables;
+    }
+
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
         addRepeatListAttributes(attributes);
@@ -119,6 +151,7 @@ export default class RepeatValueList extends ValueListComponent {
 
         const entryType = this.listEntryComponentType;
         const arrayName = this.listValuesArrayName;
+        const entryPrefix = this.listValuesEntryPrefix;
 
         addRepeatListDefinitions(stateVariableDefinitions);
 
@@ -393,6 +426,127 @@ export default class RepeatValueList extends ValueListComponent {
             arrayName,
             displayNames: DISPLAY_SETTINGS,
         });
+
+        // Whether each entry is missing (D40, VAL-5, #2544): a number can't
+        // hold a blank, so an entry of a `<number>` template whose value is
+        // `NaN` and that reads a missing input at its index is missing, as
+        // the iteration's `<number>` was (`computedFromMissing`):
+        // `<number>$l[$i] + 1</number>` past the end of `l` is `＿`, not
+        // `NaN`. A missing input is an entry past the end of a list it reads,
+        // a blank entry of it, or a value it reads at every index that is
+        // missing (`$nothing`). A `<math>` template holds the blank instead
+        // (`＿ + 1`), so a list of maths has no `entriesMissing`.
+        if (this.listEntriesCanBeMissing) {
+            stateVariableDefinitions.entriesMissing = {
+                isArray: true,
+                entryPrefixes: ["entryMissing"],
+                // A reference to the whole list reads the list's.
+                shadowVariable: true,
+                // an entry is drawn as a blank while it is missing
+                // (`RendererInstructionBuilder.childrenToRenderOf`)
+                markStale: () => ({ updateParentRenderedChildren: true }),
+                returnArraySizeDependencies: () => ({
+                    numEntries: {
+                        dependencyType: "stateVariable",
+                        variableName: "numEntries",
+                    },
+                }),
+                returnArraySize({ dependencyValues }) {
+                    return [dependencyValues.numEntries];
+                },
+                stateVariablesDeterminingDependencies: [
+                    "templateAnalysis",
+                    "entryListPrefixes",
+                ],
+                returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+                    const { templateAnalysis, entryListPrefixes } = stateValues;
+                    const top = templateAnalysis.nodes[0];
+                    if (top === undefined) {
+                        return {
+                            globalDependencies: {},
+                            dependenciesByKey: {},
+                        };
+                    }
+                    const globalDependencies = {
+                        templateAnalysis: {
+                            dependencyType: "stateVariable",
+                            variableName: "templateAnalysis",
+                        },
+                        constants: {
+                            dependencyType: "child",
+                            childGroups: ["constants"],
+                            variableNames: ["value", "valueMissing"],
+                            variablesOptional: true,
+                        },
+                    };
+                    const dependenciesByKey = {};
+                    for (const arrayKey of arrayKeys) {
+                        const index = Number(arrayKey) + 1;
+                        const dependencies = {
+                            value: {
+                                dependencyType: "stateVariable",
+                                variableName: `${entryPrefix}${index}`,
+                            },
+                        };
+                        for (const e of top.entryCodes) {
+                            dependencies[`entry${e}`] = entryCodeDependency({
+                                templateAnalysis,
+                                entryListPrefixes,
+                                e,
+                                index,
+                            });
+                            // a blank entry of the list it reads (`entryMissing`
+                            // of an authored list)
+                            dependencies[`entryMissing${e}`] = {
+                                dependencyType: "stateVariable",
+                                componentIdx: templateAnalysis.entryLists[e],
+                                variableName: `entryMissing${index}`,
+                                variablesOptional: true,
+                            };
+                        }
+                        dependenciesByKey[arrayKey] = dependencies;
+                    }
+                    return { globalDependencies, dependenciesByKey };
+                },
+                arrayDefinitionByKey({
+                    globalDependencyValues,
+                    dependencyValuesByKey,
+                    arrayKeys,
+                }) {
+                    const top =
+                        globalDependencyValues.templateAnalysis?.nodes[0];
+                    const entriesMissing = {};
+                    for (const arrayKey of arrayKeys) {
+                        const dependencyValues =
+                            dependencyValuesByKey[arrayKey];
+                        if (
+                            !top ||
+                            !dependencyValues ||
+                            !Number.isNaN(dependencyValues.value)
+                        ) {
+                            entriesMissing[arrayKey] = false;
+                            continue;
+                        }
+                        entriesMissing[arrayKey] =
+                            top.entryCodes.some(
+                                (e) =>
+                                    Boolean(
+                                        dependencyValues[`entryMissing${e}`],
+                                    ) ||
+                                    isMissingValue(
+                                        dependencyValues[`entry${e}`],
+                                    ),
+                            ) ||
+                            top.constantCodes.some((c) =>
+                                isMissingInput(
+                                    globalDependencyValues.constants?.[c],
+                                ),
+                            );
+                    }
+                    return { setValue: { entriesMissing } };
+                },
+            };
+        }
 
         if (entryType === "math") {
             // As a `<math>` shows its value: rounded, then simplified and

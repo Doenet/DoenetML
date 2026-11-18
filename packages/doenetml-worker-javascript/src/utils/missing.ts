@@ -190,11 +190,13 @@ export function missingWhenContentMissingDefinitions({
     entriesAttributes = [],
     pointAttributes = [],
     computedMissing = false,
+    contentNamesNothing = false,
 }: {
     contentMissing?: boolean;
     entriesAttributes?: string[];
     pointAttributes?: string[];
     computedMissing?: boolean;
+    contentNamesNothing?: boolean;
 } = {}) {
     return {
         ...(contentMissing
@@ -219,6 +221,18 @@ export function missingWhenContentMissingDefinitions({
                           computedFromMissing: {
                               dependencyType: "stateVariable",
                               variableName: "computedFromMissing",
+                          },
+                      }
+                    : {}),
+                // What it holds is only references that name nothing, or a
+                // blank entry of a list
+                // (`BaseComponent.missingWhenContentNamesNothing`):
+                // `<point>$pl[$i]</point>` past the end of `pl` (D40, #2544).
+                ...(contentNamesNothing
+                    ? {
+                          contentNamesNothing: {
+                              dependencyType: "stateVariable",
+                              variableName: "contentNamesNothing",
                           },
                       }
                     : {}),
@@ -279,6 +293,7 @@ export function missingWhenContentMissingDefinitions({
                         valueMissing:
                             Boolean(dependencyValues.contentMissing) ||
                             Boolean(dependencyValues.computedFromMissing) ||
+                            Boolean(dependencyValues.contentNamesNothing) ||
                             entryMissing,
                     },
                 };
@@ -341,13 +356,31 @@ export function missingWhileEntryEmptyDefinition() {
  * a component that can be missing for a while
  * (`doenetAttributes.missingWhileSourceMissing`, `BaseComponent.canBecomeMissing`):
  * `<number extend="$n.value"/>` of `<number name="n">$l[$i]</number>` is
- * missing while `n` is, as a property of a missing component is (D37).
+ * missing while `n` is, as a property of a missing component is (D37). Given
+ * `propVariable`, the property, which holds `null` for no value, it is also
+ * missing while the property holds `null` (D40, #2544): `<math
+ * extend="$im.aspectRatio"/>` made while the image had an aspect ratio, once
+ * it is cleared.
  */
-export function missingWhileSourceMissingDefinition(sourceIdx?: number) {
+export function missingWhileSourceMissingDefinition(
+    sourceIdx?: number,
+    propVariable?: string,
+) {
     return {
         // The component whose property it shadows, `sourceIdx`; a linked
-        // copy of it shadows it instead, as a whole (`shadowSource`).
+        // copy of it shadows it instead, as a whole (`shadowSource`). The
+        // property itself, `propVariable`, when it holds `null` for no value.
         returnDependencies: () => ({
+            ...(sourceIdx !== undefined && propVariable !== undefined
+                ? {
+                      property: {
+                          dependencyType: "stateVariable",
+                          componentIdx: sourceIdx,
+                          variableName: propVariable,
+                          variablesOptional: true,
+                      },
+                  }
+                : {}),
             source:
                 sourceIdx === undefined
                     ? {
@@ -364,16 +397,19 @@ export function missingWhileSourceMissingDefinition(sourceIdx?: number) {
         definition({
             dependencyValues,
         }: {
-            dependencyValues: { source: any };
+            dependencyValues: { source: any; property?: any };
         }) {
             const source = dependencyValues.source;
             return {
                 setValue: {
-                    valueMissing: Boolean(
-                        typeof source === "object" && source !== null
-                            ? source.stateValues?.valueMissing
-                            : source,
-                    ),
+                    valueMissing:
+                        ("property" in dependencyValues &&
+                            dependencyValues.property === null) ||
+                        Boolean(
+                            typeof source === "object" && source !== null
+                                ? source.stateValues?.valueMissing
+                                : source,
+                        ),
                 },
             };
         },
@@ -389,14 +425,18 @@ export function missingWhileSourceMissingDefinition(sourceIdx?: number) {
  * missing for a while (`doenetAttributes.missingWhileAdaptedMissing`,
  * `ChildMatcher`): the `<math>` a `<math>` reads of `<number
  * name="n">$l[$i]</number>` is missing while `n` is, as the adapter of a
- * missing component is missing (D37).
+ * missing component is missing (D37). With `variableName` `namesNothing`,
+ * the definition of whether it names nothing, or a blank entry of a list,
+ * while what it adapts does (`contentNamesNothingDefinition`, #2544).
  */
-export function missingWhileAdaptedMissingDefinition() {
+export function missingWhileAdaptedMissingDefinition(
+    variableName = "valueMissing",
+) {
     return {
         returnDependencies: () => ({
             adaptedMissing: {
                 dependencyType: "adapterSourceStateVariable",
-                variableName: "valueMissing",
+                variableName,
             },
         }),
         definition({
@@ -406,7 +446,7 @@ export function missingWhileAdaptedMissingDefinition() {
         }) {
             return {
                 setValue: {
-                    valueMissing: Boolean(dependencyValues.adaptedMissing),
+                    [variableName]: Boolean(dependencyValues.adaptedMissing),
                 },
             };
         },
@@ -423,11 +463,14 @@ export function missingWhileAdaptedMissingDefinition() {
  * `doenetAttributes.missingWhileListEntryMissing`, set in `ComponentBuilder`):
  * `<number extend="$a[1]"/>` of `<numberList name="a">$l[5] 2</numberList>`
  * is missing while that entry is a blank entry (D40, #2461), and holds the
- * entry's value once it is not.
+ * entry's value once it is not. With `variableName` `namesNothing`, the
+ * definition of whether it names a blank entry, which a point holding it
+ * reads (`contentNamesNothingDefinition`, #2544).
  */
 export function missingWhileListEntryMissingDefinition(
     listIdx: number,
     position: number,
+    variableName = "valueMissing",
 ) {
     return {
         returnDependencies: () => ({
@@ -445,7 +488,7 @@ export function missingWhileListEntryMissingDefinition(
         }) {
             return {
                 setValue: {
-                    valueMissing: Boolean(dependencyValues.entryMissing),
+                    [variableName]: Boolean(dependencyValues.entryMissing),
                 },
             };
         },
