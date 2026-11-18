@@ -3008,3 +3008,17 @@ Alternatives: `<collection>`, `<items>`.
    `e0065`'s naming of the source's type suggests another type might work, which is never so.
    `e0065` stays for tags made from an unrelated type (REF-5).
 
+## D49. Decisions from the review of #2595 (November 2026)
+
+1. **A point or vector is missing only when a coordinate it uses is missing** (VAL-5; #2596 item
+   6). Its value takes `x`/`y` (or `z`) first, then `coords`, then the content, coordinate by
+   coordinate. Missingness follows the same order: `<point x="3" y="4">$nothing</point>` is the
+   point `(3, 4)`, while `<point x="3">$nothing</point>` is missing, its `y` coming from the
+   content. #2595 made a point missing whenever its content names nothing, whatever its
+   attributes give.
+2. **Content that attributes override entirely is a warning.** `(5,6)` in
+   `<point x="3" y="4">(5,6)</point>`, and in `<point coords="(3,4)">(5,6)</point>`, is unused;
+   the warning, decided at load, says the attributes give every coordinate, so the content isn't
+   used (as REF-4a warns of an unused second child). The same applies to a vector whose
+   attributes give its whole value.
+
