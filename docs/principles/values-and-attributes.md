@@ -289,9 +289,13 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
     or a blank entry of a `<pointList>`, is missing and not drawn (`<point>$pl[$i]</point>` past
     the end, `<point>$nothing</point>`, `<vector displacement="$pl[2]"/>`). It reads whether the
     references name anything, not whether their sources are missing, so a point and a vector
-    defined from each other make no cycle. Content wins over attributes:
-    `<point x="3" y="4">$nothing</point>` is missing too, as a `<circle>` already was. An
-    unlinked `copy` made while such a point is missing stays missing (CPY-1). **Left** (#2596): a
+    defined from each other make no cycle. An unlinked `copy` made while such a point is missing
+    stays missing (CPY-1). **Known violation** (#2596, open): the value takes `x`/`y` first, then
+    `coords`, then the content, coordinate by coordinate (**[probe]**: `<point x="3"
+    y="4">(5,6)</point>` is `(3, 4)`, `<point x="3">(5,6)</point>` is `(3, 6)`), but missingness
+    follows the content alone, so `<point x="3" y="4">$nothing</point>` is missing though its
+    value is `(3, 4)`. Proposed: a point is missing only when a coordinate it uses comes from
+    something missing. Content that attributes override entirely is dropped with no warning. **Left** (#2596): a
     point holding a value reference to a math or number list entry past the end or blank, or to a
     missing point (`<point>$ml[3]</point>`, `<point>$Q</point>`), is drawn with `＿` coordinates;
     a vector's `tail` or `head` given a reference past the end isn't missing.
