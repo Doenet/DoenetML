@@ -3,9 +3,13 @@ import type Core from "../Core";
 /**
  * Which composite, not yet expanded, holds each component written inside it
  * in the DoenetML, by component index, as found when `core` had
- * `numComponents` components. Kept per core, and found again only once
- * components have been added since, as when a composite has expanded and
- * made the composites inside it.
+ * `numComponents` components. Kept per core, and found again when the
+ * composite recorded for a component has expanded since, which may have made
+ * a composite inside it that holds the component now, or, for a component
+ * none held, once components have been added since. A composite made by an
+ * expansion can take an index below `numComponents`, as the indices of what
+ * is written in the DoenetML are given out when it loads, so the count alone
+ * does not show that it was made.
  */
 const holdersByCore = new WeakMap<
     Core,
@@ -33,7 +37,8 @@ export function unexpandedCompositeHolding(
     if (
         found === undefined ||
         (!isUnexpanded(holder) &&
-            found.numComponents !== core._components.length)
+            (holder !== undefined ||
+                found.numComponents !== core._components.length))
     ) {
         found = {
             numComponents: core._components.length,

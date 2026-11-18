@@ -149,6 +149,24 @@ describe("Copies of a sampler @group4", () => {
                 check: (draws: number[]) => expect(draws).eqls([3, 3, 3]),
             },
             {
+                name: "a count from a group inside a group",
+                doenetML: `
+    <sampleRandomNumbers name="s" numSamples="$g.h.n" />
+    <sampleRandomNumbers name="c" copyWithState="$s" />
+    <group name="g"><group name="h"><number name="n">2</number></group></group>
+    `,
+                check: (draws: number[]) => expect(draws.length).eq(2),
+            },
+            {
+                name: "a count from a conditionalContent inside a group",
+                doenetML: `
+    <sampleRandomNumbers name="s" numSamples="$g.cc.n" />
+    <sampleRandomNumbers name="c" copyWithState="$s" />
+    <group name="g"><conditionalContent name="cc"><case condition="true"><number name="n">2</number></case></conditionalContent></group>
+    `,
+                check: (draws: number[]) => expect(draws.length).eq(2),
+            },
+            {
                 name: "type",
                 doenetML: `
     <sampleRandomNumbers name="s" numSamples="2" type="$g.t" mean="1000" />
