@@ -636,6 +636,7 @@ export type MessageKey =
     | "copy-with-state-attribute-reaches-choice"
     | "reorder-items-of-several-types"
     | "sort-needs-sort-by-prop"
+    | "repeat-for-items-of-several-types"
     | "sort-item-of-several"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
@@ -1339,6 +1340,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-with-state-attribute-reaches-choice",
     "reorder-items-of-several-types",
     "sort-needs-sort-by-prop",
+    "repeat-for-items-of-several-types",
     "sort-item-of-several",
     "editor-update-viewer",
     "editor-update-viewer-title",

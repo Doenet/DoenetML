@@ -555,26 +555,31 @@ reference-index-past-instances =
 # branch that has no $name, and $ordinal which of its kind it is (1 for the
 # first case). $container is the name of the `<conditionalContent>` or
 # `<select>` when $hasName is "true", and its tag otherwise; DoenetML, so it
-# stays in English.
+# stays in English. $branch is `item` for a name after the `valueName` of a
+# `<repeat>` whose `for` holds items of several components (COLL-5), each
+# item being a branch; $container is then the `<repeat>`.
 
 reference-name-missing-in-branch = `{ $reference }` names nothing: { $branch ->
         [else] the `<else>`
         [option] option { $ordinal }
+        [item] item { $ordinal } of the `for`
        *[case] case { $ordinal }
     } of { $hasName ->
         [true] `{ $container }`
        *[other] the `<{ $container }>`
     } has no `{ $name }`. Give it one, or use a name every { $branch ->
         [option] option
+        [item] item
        *[other] case
     } has.
 
 # As `reference-name-missing-in-branch`, where two branches declare $name with
 # different tags, $firstType and $secondType, which stay in English. $branch is
-# `case` or `option`.
+# `case`, `option` or `item`.
 
 reference-name-types-differ-in-branches = `{ $reference }` names nothing: `{ $name }` is a `<{ $firstType }>` in one { $branch ->
         [option] option
+        [item] item of the `for`
        *[other] case
     } of { $hasName ->
         [true] `{ $container }`
@@ -2098,6 +2103,37 @@ sort-needs-sort-by-prop = `<{ $component }>` can't compare its items: { $kind ->
         [yes] , as `<{ $component } sortByProp="text">` compares the text each one shows
        *[other] , as `<{ $component } sortByProp="name">` does for a property `name`
     }.
+
+# The `for` of a `<repeat>` holds items of one type (COLL-5, D44), decided
+# at load. $reason is `mix` for items of more than one type, the first two
+# described as in `reorder-items-of-several-types` ($firstKind, $first,
+# $firstCount, $firstPiece and the same for $second); or `type` when the
+# repeat says `type="$type"` and an item, described by the $first
+# arguments, is of another type. $suggestText is `yes` when text written in
+# `for` is beside a text, so `type="text"` would read the text as text.
+# `for`, `type` and the tags stay in English.
+repeat-for-items-of-several-types = { $reason ->
+        [type] This `<repeat>` says `type="{ $type }"`, so every item of its `for` is to be a { $type }, but `for` has { $firstKind ->
+            [group] a `<group>` of { $firstCount } components
+            [item] the items of a `<{ $first }>` (each of { $firstCount } components)
+            [piece] `{ $firstPiece }` (read as a `<{ $first }>`)
+           *[one] a `<{ $first }>`
+        }. Remove `type`, or give that item a `<repeat>` of its own.
+       *[mix] The `for` of a `<repeat>` holds items of one type, but it has { $firstKind ->
+            [group] a `<group>` of { $firstCount } components
+            [item] the items of a `<{ $first }>` (each of { $firstCount } components)
+            [piece] `{ $firstPiece }` (read as a `<{ $first }>`)
+           *[one] a `<{ $first }>`
+        } and { $secondKind ->
+            [group] a `<group>` of { $secondCount } components
+            [item] the items of a `<{ $second }>` (each of { $secondCount } components)
+            [piece] `{ $secondPiece }` (read as a `<{ $second }>`)
+           *[one] a `<{ $second }>`
+        }. Give each type a `<repeat>` of its own{ $suggestText ->
+            [yes] , or write `type="text"` to read the text written in `for` as text
+           *[other] {""}
+        }.
+    }
 
 # A `<sort>` or `<sortIndices>` ($component) of an item holding several
 # components, which has nothing to be compared by (COLL-4, D41). The item is

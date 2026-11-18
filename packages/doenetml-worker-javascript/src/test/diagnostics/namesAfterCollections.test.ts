@@ -344,6 +344,9 @@ describe("A property after a repeat whose template holds several is decided at l
 
 describe("An item lacking a property gives a blank, with the warning decided at load (#2452)", () => {
     it("a repeat over items of different types", async () => {
+        // A `for` holds one type (COLL-5, #2567): a point and a text are an
+        // error at load, in place of the iterations. (Before, `$rmix.x` was
+        // a blank for the text, with `doenet-w0192`.)
         const { texts, diagnostics } = await both(
             `<point name="A">(1,3)</point><text name="t">a</text><point name="B">(2,4)</point>
 <repeat name="rmix" for="$A $t $B" valueName="v">$v</repeat>
@@ -351,11 +354,13 @@ describe("An item lacking a property gives a blank, with the warning decided at 
             ["p1", "m"],
             { withMessages: true },
         );
-        // Was `1, 2`, with the text dropped silently.
-        expect(texts).eqls({ p1: "1, ＿, 2", m: "(1, ＿, 2) + 1" });
+        // (A property after it names nothing, with `doenet-w0104`, as after
+        // a `<sort>` or `<shuffle>` in error.)
+        expect(texts).eqls({ p1: "＿", m: "＿ + 1" });
         expect(diagnostics).eqls([
-            "warning doenet-w0192: `$rmix.x`: a `<text>` in `rmix` has no property `x`, so it gives a blank there. For a value from each, give every item a component that has `x`.",
-            "warning doenet-w0192: `$rmix.x`: a `<text>` in `rmix` has no property `x`, so it gives a blank there. For a value from each, give every item a component that has `x`.",
+            "error doenet-e0081: The `for` of a `<repeat>` holds items of one type, but it has a `<point>` and a `<text>`. Give each type a `<repeat>` of its own.",
+            "warning doenet-w0104: No referent found for reference: `$rmix.x`",
+            "warning doenet-w0104: No referent found for reference: `$rmix.x`",
         ]);
     });
 
