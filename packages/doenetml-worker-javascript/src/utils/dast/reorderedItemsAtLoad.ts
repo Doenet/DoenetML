@@ -559,15 +559,18 @@ export function checkReorderedItemsAtLoad({
      * The error of a `<sort>` or `<sortIndices>` `component` of items of the
      * one type `type`, first `item`, if it has nothing to compare them by:
      * content, or objects other than points and vectors, with no
-     * `sortByProp` (D46).
+     * `sortByProp`, or one written blank (D46).
      */
     function sortByPropError(
         component: SerializedComponent,
         [type, item]: [string, Item],
     ): ReorderErrorAtLoad | undefined {
+        // A `sortByProp` written blank (`sortByProp=""`) names no property,
+        // and the sort compares nothing by it, so it is as if not written.
+        const sortByProp = attributeOf(component, "sortByProp");
         if (
             item.kind !== "one" ||
-            attributeOf(component, "sortByProp") !== undefined
+            (sortByProp !== undefined && literalText(sortByProp)?.trim() !== "")
         ) {
             return undefined;
         }

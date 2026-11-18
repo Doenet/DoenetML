@@ -579,14 +579,17 @@ describe("sort and shuffle take one type @group4", () => {
             <p name="p4"><sort><interval>(1,2)</interval><interval>(0,2)</interval></sort></p>
             <p name="p5"><sort sortByProp="atomicNumber"><atom symbol="O"/><atom symbol="C"/></sort></p>
             <p name="p6"><sort sortByProp="text"><m>b</m><m>a</m></sort></p>
-            <p name="p7">$s1</p>`,
-            names: ["p2", "p3", "p4", "p5", "p6", "p7"],
+            <p name="p7">$s1</p>
+            <p name="p8"><sort sortByProp=""><atom symbol="O"/><atom symbol="C"/></sort></p>`,
+            names: ["p2", "p3", "p4", "p5", "p6", "p7", "p8"],
         });
         expect(result.errors).eqls([
             'doenet-e0080: `<sort>` can\'t compare its items: `<p>` is content, with no value to sort by. Add `sortByProp` naming the property to compare, as `<sort sortByProp="text">` compares the text each one shows.',
             'doenet-e0080: `<sort>` can\'t compare its items: `<atom>` has no value to sort by. Add `sortByProp` naming the property to compare, as `<sort sortByProp="name">` does for a property `name`.',
             'doenet-e0080: `<sortIndices>` can\'t compare its items: `<span>` is content, with no value to sort by. Add `sortByProp` naming the property to compare, as `<sortIndices sortByProp="name">` does for a property `name`.',
             'doenet-e0080: `<sort>` can\'t compare its items: `<interval>` has no value to sort by. Add `sortByProp` naming the property to compare, as `<sort sortByProp="name">` does for a property `name`.',
+            // a `sortByProp` written blank names no property
+            'doenet-e0080: `<sort>` can\'t compare its items: `<atom>` has no value to sort by. Add `sortByProp` naming the property to compare, as `<sort sortByProp="name">` does for a property `name`.',
         ]);
         expect(result.texts).eqls({
             p2: "",
@@ -595,6 +598,7 @@ describe("sort and shuffle take one type @group4", () => {
             p5: "C, O",
             p6: "a, b",
             p7: "＿",
+            p8: "",
         });
     });
 
