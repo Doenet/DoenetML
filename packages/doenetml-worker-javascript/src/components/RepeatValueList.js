@@ -434,8 +434,9 @@ export default class RepeatValueList extends ValueListComponent {
         // `<number>$l[$i] + 1</number>` past the end of `l` is `＿`, not
         // `NaN`. A missing input is an entry past the end of a list it reads,
         // a blank entry of it, or a value it reads at every index that is
-        // missing (`$nothing`). A `<math>` template holds the blank instead
-        // (`＿ + 1`), so a list of maths has no `entriesMissing`.
+        // missing (`$c` of `<number name="c">$nothing</number>`). A `<math>`
+        // template holds the blank instead (`＿ + 1`), so a list of maths has
+        // no `entriesMissing`.
         if (this.listEntriesCanBeMissing) {
             stateVariableDefinitions.entriesMissing = {
                 isArray: true,

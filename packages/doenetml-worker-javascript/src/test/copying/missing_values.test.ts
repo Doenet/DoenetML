@@ -2320,6 +2320,88 @@ describe("Missing values, round 3 (#2544) @group2", () => {
         });
     });
 
+    it("makes a point or vector given a blank entry of a pointList, as content or by an attribute, missing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pb">(1,2) $nothing</pointList>
+    <graph name="g">
+      <point name="B">$pb[2]</point>
+      <vector name="VB">$pb[2]</vector>
+      <point name="C" coords="$pb[2]"/>
+      <vector name="D" displacement="$pb[2]"/>
+      <point name="E">$pb[1]</point>
+    </graph>
+    <p name="p">[$B][$VB][$C][$D][$E]</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["B", "VB", "C", "D"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿][＿][＿][＿][(1, 2)]");
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls([
+            "_blank",
+            "_blank",
+            "_blank",
+            "_blank",
+            "point",
+        ]);
+    });
+
+    it("keeps an unlinked copy of a point made while it is missing missing, after a reload too", async () => {
+        // As a copy of a missing number is: made while `P` is missing, `C`
+        // is missing for good.
+        const doenetML = `
+    <pointList name="pl">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g"><point name="P">$pl[$i]</point><point name="C" copy="$P"/></graph>
+    <p name="p">[$P][$C]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+                drawn: rendererTypesOf(core, await resolvePathToNodeIdx("g")),
+            };
+        }
+        expect(await shown()).eqls({
+            text: "[＿][＿]",
+            drawn: ["_blank", "_blank"],
+        });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await shown()).eqls({
+            text: "[(1, 2)][＿]",
+            drawn: ["point", "_blank"],
+        });
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await shown()).eqls({
+            text: "[(1, 2)][＿]",
+            drawn: ["point", "_blank"],
+        });
+    });
+
     it("keeps a point and a vector defined from each other free of a cycle", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

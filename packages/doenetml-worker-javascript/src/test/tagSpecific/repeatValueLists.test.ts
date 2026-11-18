@@ -170,6 +170,23 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({ pd: "10, 20, ＿" });
     });
 
+    it("a number computed from a missing value outside is missing at every index", async () => {
+        // The value outside is a constant of the template; while it is
+        // missing, every entry is (`entriesMissing`, #2544), as each
+        // iteration's `<number>` is.
+        const texts = await compare({
+            doenetML: `
+<number name="c">$nothing</number>
+<math name="mc">$nothing</math>
+<p name="pn"><repeatForSequence name="r" from="1" to="2" indexName="i"><number>$i + $c</number></repeatForSequence></p>
+<p name="pm"><repeatForSequence name="r2" from="1" to="2" indexName="i"><number>$i + $mc</number></repeatForSequence></p>
+<p name="pr">[$r[2]][$r2[1]]</p>
+`,
+            names: ["pn", "pm", "pr"],
+        });
+        expect(texts).toEqual({ pn: "＿, ＿", pm: "＿, ＿", pr: "[＿][＿]" });
+    });
+
     it("an entry past the end of the list read, while the list is shorter", async () => {
         // The entry is missing only while the list it reads is too short.
         for (const [m, expected] of [

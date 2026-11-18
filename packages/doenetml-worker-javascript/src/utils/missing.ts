@@ -88,11 +88,14 @@ export function contentMissingDefinition() {
  * The definition of `contentNamesNothing`: whether what a `<math>`, a
  * `<point>` or a `<vector>` holds is only references that name nothing now
  * (`$nothing`, `$pl[3]` while `pl` has two points), each made a missing
- * component (`doenetAttributes.missing`, whose `namesNothing` is `true`).
+ * component (`doenetAttributes.missing`, whose `namesNothing` is `true`), or
+ * a blank entry of a list (`$pb[2]` of `<pointList name="pb">(1,2)
+ * $nothing</pointList>`, whose shadow and its adapter define `namesNothing`).
  * A point or vector made from an attribute (`center="$nothing"`) holds its
  * content in its `coords` or `displacement` (`attributeName`). It makes a
  * shape whose point that is missing (`BaseComponent.missingWhenPointsMissing`,
- * D40). Unlike `contentMissing`, it does not read whether a reference's
+ * D40), and a point or vector itself
+ * (`BaseComponent.missingWhenContentNamesNothing`, #2544). Unlike `contentMissing`, it does not read whether a reference's
  * source is missing, which for a reference to a property of the shape
  * (`<ray through="$(r.endpoint)">`) would read the shape again.
  */
