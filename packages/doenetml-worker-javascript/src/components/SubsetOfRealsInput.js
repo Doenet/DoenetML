@@ -19,7 +19,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
         });
     }
     static componentType = "subsetOfRealsInput";
-    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    // An input, which stands for what it holds: a `<subsetOfReals>`, an object, so it
+    // is of that object's type (COLL-4, D46; `utils/componentKinds.ts`).
     static isValue = true;
 
     static componentDocs = {

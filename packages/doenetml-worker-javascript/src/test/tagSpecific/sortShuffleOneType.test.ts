@@ -542,6 +542,11 @@ describe("sort and shuffle take one type @group4", () => {
                 error: "doenet-e0076: `<sort>` takes items of one type, but it has a `<matrix>` and a `<math>`. Give each type a `<sort>` of its own.",
             },
             {
+                // so is an `<interval>`
+                doenetML: `<sort name="s"><interval>(1,2)</interval><math>1</math></sort>`,
+                error: "doenet-e0076: `<sort>` takes items of one type, but it has a `<interval>` and a `<math>`. Give each type a `<sort>` of its own.",
+            },
+            {
                 // an input is the type of what it holds
                 doenetML: `<sort name="s"><mathInput prefill="2"/><text>a</text></sort>`,
                 error: "doenet-e0076: `<sort>` takes items of one type, but it has a `<mathInput>` and a `<text>`. Give each type a `<sort>` of its own.",

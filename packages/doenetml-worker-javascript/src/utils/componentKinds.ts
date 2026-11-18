@@ -6,9 +6,10 @@
  *   `<text>`, `<boolean>`, the tags built on them (`<sum>`, `<latex>`), and
  *   the inputs, which stand for what they hold. Its type is the value's, with
  *   integer, number and math one type (D44 decision 3): `math`, `text` or
- *   `boolean`. An input is of the type of what a reference to it is
+ *   `boolean`. An input is of the kind and type of what a reference to it is
  *   (`staticValueReferenceTarget`): a `<matrixInput>` is a `math`, as `$mi`
- *   of one is a `<math>`.
+ *   of one is a `<math>`, and a `<subsetOfRealsInput>`, holding a
+ *   `<subsetOfReals>`, is that object.
  * - **An object** is one thing with an identity of its own: `<point>`,
  *   `<line>`, `<atom>`, `<answer>`, a `<matrix>`. Its type is its tag, with
  *   the tags built on it: the first author tag its class is built on

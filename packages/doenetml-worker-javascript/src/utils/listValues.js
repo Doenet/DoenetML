@@ -854,7 +854,8 @@ function typeOfComponents(children, componentInfoObjects) {
 /**
  * The type of the value an input of `componentType` stands for (`math`,
  * `text` or `boolean`; D46, `utils/componentKinds.ts`), or `undefined` for a
- * component that isn't an input, or whose value's type isn't known at load.
+ * component that isn't an input, an input holding an object (a
+ * `<subsetOfRealsInput>`), or one whose value's type isn't known at load.
  */
 function inputValueType(componentType, componentInfoObjects) {
     const kind = kindOfComponentType(componentType, componentInfoObjects);
