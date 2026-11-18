@@ -307,21 +307,9 @@ export default class Substitute extends CompositeComponent {
                 },
             }),
             definition({ dependencyValues: dependencyValuesAsWritten }) {
-                // `match` and `replacement` are read with the substitute's
-                // `type`, as is its child (`originalValue`): on a copy that
-                // writes another `type`, they are its source's, made with its
-                // source's type (#2546).
-                const dependencyValues = {
-                    ...dependencyValuesAsWritten,
-                    match: valueAsType(
-                        dependencyValuesAsWritten.match,
-                        dependencyValuesAsWritten.type,
-                    ),
-                    replacement: valueAsType(
-                        dependencyValuesAsWritten.replacement,
-                        dependencyValuesAsWritten.type,
-                    ),
-                };
+                const dependencyValues = withMatchAsType(
+                    dependencyValuesAsWritten,
+                );
                 if (dependencyValues.originalValue === null) {
                     return {
                         setValue: { value: null },
@@ -399,17 +387,9 @@ export default class Substitute extends CompositeComponent {
                 desiredStateVariableValues,
                 dependencyValues: dependencyValuesAsWritten,
             }) {
-                const dependencyValues = {
-                    ...dependencyValuesAsWritten,
-                    match: valueAsType(
-                        dependencyValuesAsWritten.match,
-                        dependencyValuesAsWritten.type,
-                    ),
-                    replacement: valueAsType(
-                        dependencyValuesAsWritten.replacement,
-                        dependencyValuesAsWritten.type,
-                    ),
-                };
+                const dependencyValues = withMatchAsType(
+                    dependencyValuesAsWritten,
+                );
                 if (dependencyValues.originalValue === null) {
                     return { success: false };
                 }
@@ -675,6 +655,23 @@ export default class Substitute extends CompositeComponent {
             nComponents,
         };
     }
+}
+
+/**
+ * `dependencyValues` of a substitute's `value`, with its `match` and
+ * `replacement` read with its `type`, as is its child (`originalValue`): on a
+ * copy that writes another `type`, they are its source's, made with its
+ * source's type (#2546).
+ */
+function withMatchAsType(dependencyValues) {
+    return {
+        ...dependencyValues,
+        match: valueAsType(dependencyValues.match, dependencyValues.type),
+        replacement: valueAsType(
+            dependencyValues.replacement,
+            dependencyValues.type,
+        ),
+    };
 }
 
 /**

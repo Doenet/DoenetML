@@ -3,6 +3,7 @@ import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     movePoint,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
@@ -1649,6 +1650,31 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         });
         expect(await shown(d, ["Q"])).eqls({ Q: "(2, 1)" });
         expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a point from an answer's responses is missing, with an info, while it holds none or several", async () => {
+        // The same rule as a choiceInput's selected values: a property whose
+        // entries are each of the type it holds (#2546 item 8). It was
+        // `(0, 0)`, made from no value or from several.
+        const d = await setup(`
+<mathInput name="mi" prefill="(1,2)"><label>a</label></mathInput>
+<mathInput name="mi2" prefill="(3,4)"><label>b</label></mathInput>
+<answer name="a"><award><when>$mi=(1,2)</when></award></answer>
+<answer name="a2"><award><when>$mi=(1,2) and $mi2=(3,4)</when></award></answer>
+<graph><point extend="$a.submittedResponses" name="Q"/><point extend="$a2.currentResponses" name="R"/></graph>
+`);
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "＿", R: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0061", 6],
+            ["doenet-i0061", 6],
+        ]);
+        await submitAnswer({
+            componentIdx: await d.resolvePathToNodeIdx("a"),
+            core: await d.core(),
+        });
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "(1, 2)", R: "＿" });
+        await d.reload();
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "(1, 2)", R: "＿" });
     });
 
     it("a boolean from a text input, and a number and a math from a boolean input, follow and write back", async () => {
