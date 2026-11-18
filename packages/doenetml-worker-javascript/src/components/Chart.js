@@ -103,6 +103,8 @@ export default class Chart extends BlockComponent {
     }
 
     static componentType = "chart";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary:

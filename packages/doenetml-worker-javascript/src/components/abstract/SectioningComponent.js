@@ -159,6 +159,8 @@ export class SectioningComponent extends BlockComponent {
     }
 
     static componentType = "_sectioningComponent";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static renderChildren = true;
 
     static canDisplayChildErrors = true;

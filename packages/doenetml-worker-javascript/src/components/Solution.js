@@ -16,6 +16,8 @@ export class Solution extends BlockComponent {
         });
     }
     static componentType = "solution";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A solution to an exercise, shown on demand",

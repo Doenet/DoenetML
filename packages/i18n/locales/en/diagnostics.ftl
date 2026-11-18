@@ -971,6 +971,12 @@ action-target-not-one-value = { $container ->
        *[group] The `<{ $componentType }>` does nothing: its `target`, `{ $reference }`, is a `<group>` of { $count } components, which has no one value. Name the component to change.
     }
 
+# The LaTeX of an `<m>`, `<me>` or `<men>` ($component) is read as math, as a
+# `<math>` around it reads it (`<math><m>…</m></math>`, or `$mm.math`), but it
+# isn't math that can be read (`\text{hi}`), so the math is a blank (D46).
+# $latex is the LaTeX as written. The tags stay in English.
+latex-not-read-as-math = The LaTeX of this `<{ $component }>`, `{ $latex }`, can't be read as math, so the math made from it is a blank.
+
 # A `<math>` child of a `<matrix>` that the matrix doesn't use (#2546). A
 # matrix uses one `<math>` child, the last one written. $reason is `several`
 # when more than one `<math>` is written, so the earlier ones are ignored, and
@@ -2055,7 +2061,11 @@ copy-with-state-attribute-reaches-choice = `{ $attribute }` reaches a choice ins
 # $firstCount components. Likewise for $second. $suggestType is `yes` when
 # one of them is text the author wrote and the other a number, math or text,
 # so that `type` (how to read the text) can make them one type; it can't
-# beside a `<p>`, a point, a boolean or a group.
+# beside a `<p>`, a point, a boolean or a group. $wrap says how to make them
+# one type when one is content an author may take for a value (D46): `m`, an
+# `<m>` ($mTag: `m`, `me` or `men`) beside a math, which a `<math>` around it
+# reads as math; `label`, a `<label>` beside a text, which a `<text>` around it
+# reads as text; `no` otherwise. $mTag is `m` when $wrap isn't `m`.
 reorder-items-of-several-types = `<{ $component }>` takes items of one type, but it has { $firstKind ->
         [group] a `<group>` of { $firstCount } components
         [item] the items of a `<{ $first }>` (each of { $firstCount } components)
@@ -2069,6 +2079,24 @@ reorder-items-of-several-types = `<{ $component }>` takes items of one type, but
     }. Give each type a `<{ $component }>` of its own{ $suggestType ->
         [yes] , or write `type` to say how to read the text
        *[other] {""}
+    }.{ $wrap ->
+        [m] {" "}`<{ $mTag }>` shows LaTeX; it isn't a math. To sort or shuffle it with other maths, write `<math><{ $mTag }>…</{ $mTag }></math>` (or `<math>$mm</math>` for an `<{ $mTag }>` named `mm`), which reads its LaTeX as math.
+        [label] {" "}A `<label>` shows its content; it isn't a text. To sort or shuffle it with other texts, write `<text><label>…</label></text>` (or `<text>$l</text>` for a `<label>` named `l`), which reads it as text.
+       *[other] {""}
+    }
+
+# A `<sort>` or `<sortIndices>` ($component) of items with no value to
+# compare, with no `sortByProp` (COLL-4, D46): content ($kind `content`, as a
+# `<p>`), or objects other than points and vectors ($kind `object`, as an
+# `<atom>` or a `<line>`). $item is the tag of the first item. $suggestText is
+# `yes` for content with a `text` property, which `sortByProp="text"` sorts by.
+# `sortByProp` and the tags stay in English.
+sort-needs-sort-by-prop = `<{ $component }>` can't compare its items: { $kind ->
+        [content] `<{ $item }>` is content, with no value to sort by
+       *[object] `<{ $item }>` has no value to sort by
+    }. Add `sortByProp` naming the property to compare{ $suggestText ->
+        [yes] , as `<{ $component } sortByProp="text">` compares the text each one shows
+       *[other] , as `<{ $component } sortByProp="name">` does for a property `name`
     }.
 
 # A `<sort>` or `<sortIndices>` ($component) of an item holding several

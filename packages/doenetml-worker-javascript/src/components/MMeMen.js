@@ -19,6 +19,7 @@ import {
     slotToken,
 } from "../utils/embeddedMathInputs";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { levelFromSource } from "../utils/decidedByDoenetML";
 
 export class M extends InlineComponent {
     constructor(args) {
@@ -31,6 +32,8 @@ export class M extends InlineComponent {
         });
     }
     static componentType = "m";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Inline math rendered with LaTeX",
@@ -81,6 +84,7 @@ export class M extends InlineComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+        const componentType = this.componentType;
 
         let selectedStyleDefinition =
             returnSelectedStyleStateVariableDefinition();
@@ -449,6 +453,12 @@ export class M extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "latex",
                 },
+                // whether the LaTeX is what the author wrote, or comes from
+                // values that can change (DIAG-2)
+                latexDecided: {
+                    dependencyType: "decidedByDoenetML",
+                    childGroups: ["inline"],
+                },
             }),
             definition: function ({ dependencyValues }) {
                 const latexToMath = latexToMathFactory();
@@ -465,9 +475,33 @@ export class M extends InlineComponent {
                                 ),
                             ),
                         },
+                        conditionDiagnostics: [],
                     };
                 } catch (e) {
-                    return { setValue: { math: me.fromAst("\uff3f") } };
+                    // LaTeX that isn't math (`\text{hi}`), read as math, as a
+                    // `<math>` around the `<m>` reads it: a blank, said so,
+                    // so that the wrap D46 suggests doesn't fail silently.
+                    // Reported while the LaTeX is what it is (B33), and an
+                    // info when a value the reader can change decides it.
+                    const latex = dependencyValues.latex.trim();
+                    return {
+                        setValue: { math: me.fromAst("\uff3f") },
+                        conditionDiagnostics:
+                            latex === ""
+                                ? []
+                                : [
+                                      codedDiagnostic({
+                                          type: levelFromSource(
+                                              dependencyValues.latexDecided,
+                                          ),
+                                          code: "doenet-w0196",
+                                          args: {
+                                              component: componentType,
+                                              latex,
+                                          },
+                                      }),
+                                  ],
+                    };
                 }
             },
             inverseDefinition({ desiredStateVariableValues }) {

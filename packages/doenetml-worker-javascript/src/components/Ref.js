@@ -9,6 +9,8 @@ export default class Ref extends InlineComponent {
         });
     }
     static componentType = "ref";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A link to a component reference or to a URL",

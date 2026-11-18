@@ -58,6 +58,8 @@ export default class MathComponent extends InlineComponent {
         });
     }
     static componentType = "math";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     static componentDocs = {
         summary: "A math expression",

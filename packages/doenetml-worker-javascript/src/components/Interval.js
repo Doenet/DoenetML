@@ -2,6 +2,8 @@ import MathComponent from "./Math";
 
 export default class Interval extends MathComponent {
     static componentType = "interval";
+    // An object, not a value, though built on `<math>` (D46).
+    static isValue = false;
     static rendererType = "math";
 
     static componentDocs = {

@@ -43,6 +43,8 @@ export default class NumberComponent extends InlineComponent {
         });
     }
     static componentType = "number";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     // missing while its content is only missing children (D40,
     // `BaseComponent.missingWhenContentMissing`)

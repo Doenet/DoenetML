@@ -10,6 +10,8 @@ export default class BlockQuote extends BlockComponent {
         });
     }
     static componentType = "blockQuote";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static rendererType = "blockQuote";
     static renderChildren = true;
 

@@ -293,6 +293,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0193": "reference-property-after-several",
     "doenet-w0194": "matrix-math-child-ignored",
     "doenet-w0195": "action-target-not-one-value",
+    "doenet-w0196": "latex-not-read-as-math",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -373,6 +374,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0077": "sort-item-of-several",
     "doenet-e0078": "extend-award-or-choice",
     "doenet-e0079": "variant-name-unknown",
+    "doenet-e0080": "sort-needs-sort-by-prop",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

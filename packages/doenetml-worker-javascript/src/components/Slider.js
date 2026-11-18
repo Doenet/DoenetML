@@ -22,6 +22,8 @@ export default class Slider extends BaseComponent {
         });
     }
     static componentType = "slider";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
     static renderChildren = true;
 
     static componentDocs = {

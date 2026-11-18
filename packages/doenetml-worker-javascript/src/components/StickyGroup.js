@@ -19,6 +19,8 @@ const { mod } = me.math;
 
 export default class StickyGroup extends GraphicalComponent {
     static componentType = "stickyGroup";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     constructor(args) {
         super(args);

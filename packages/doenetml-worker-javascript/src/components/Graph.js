@@ -110,6 +110,8 @@ export default class Graph extends BlockComponent {
         });
     }
     static componentType = "graph";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A 2D coordinate-axis graph",

@@ -129,6 +129,8 @@ export class Placeholder extends Setup {
 
 export class Br extends InlineComponent {
     static componentType = "br";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A line break",
@@ -137,6 +139,8 @@ export class Br extends InlineComponent {
 
 export class Hr extends BlockComponent {
     static componentType = "hr";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A horizontal rule used to separate content",
