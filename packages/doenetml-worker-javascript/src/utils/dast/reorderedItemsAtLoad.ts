@@ -90,12 +90,9 @@ type Item =
       };
 
 /**
- * The items found, and whether there may be others not known. A collection
- * that shows a number of items decided as the document runs (the iterations
- * of a repeat, the picks of a select, the case shown) or a blank for a
- * reference that names nothing ends where the place of each item in it is
- * known: the first `placesKnown` items are each in their place, and those
- * after may not be (all are when it is absent).
+ * The items found, and whether there may be others not known. For the items
+ * of a repeat's `for` (`forItemsOf`), `placesKnown`: how many of the first
+ * items are known to be in their place as the document runs.
  */
 type Items = { items: Item[]; unknown: boolean; placesKnown?: number };
 
@@ -183,16 +180,8 @@ export function itemReader({
     }
 
     function merge(into: Items, more: Items) {
-        if (into.placesKnown === undefined && more.placesKnown !== undefined) {
-            into.placesKnown = into.items.length + more.placesKnown;
-        }
         into.items.push(...more.items);
         into.unknown ||= more.unknown;
-    }
-
-    /** `found`, whose items' places are not known. */
-    function placesUnknown(found: Items): Items {
-        return { ...found, placesKnown: 0 };
     }
 
     /** The items `children`, written in a collection, are together. */
@@ -350,9 +339,7 @@ export function itemReader({
         }
         if (type === "repeat" || type === "repeatForSequence") {
             // each iteration is a wrapper of the template
-            return placesUnknown(
-                wrapperItems(component.children ?? [], "item", type, seen),
-            );
+            return wrapperItems(component.children ?? [], "item", type, seen);
         }
         if (type === "select" || type === "conditionalContent") {
             // each pick or case shown is a wrapper of what it holds
@@ -402,7 +389,7 @@ export function itemReader({
                     ),
                 });
             }
-            return placesUnknown(result);
+            return result;
         }
         if (type === "collect") {
             const attribute = attributeOf(component, "componentType");
@@ -476,7 +463,7 @@ export function itemReader({
         if (ref.nodeIdx < 0) {
             // names nothing: a blank, of no type, which a repeat iterates
             // over
-            return placesUnknown(NONE);
+            return NONE;
         }
         const path = ref.unresolvedPath ?? [];
         if (path.length > 0) {
@@ -633,11 +620,28 @@ export function itemReader({
             return undefined;
         }
         const result: Items = { items: [], unknown: false };
+        // An item's place is known only while each entry of `for` before it,
+        // and its own, names a group written with several components
+        // (`$g`, `namesGroupOfSeveral`): anything else may make a number of
+        // items, or an order, decided as the document runs (a repeat, a
+        // select, a shuffle, a blank).
+        let placesKnown: number | undefined = 0;
         for (const child of children) {
             if (typeof child !== "object") {
                 continue;
             }
             const more = itemsOf(child, new Set());
+            if (
+                placesKnown !== undefined &&
+                !more.unknown &&
+                more.items.length === 1 &&
+                namesGroupOfSeveral(child)
+            ) {
+                placesKnown++;
+            } else {
+                result.placesKnown ??= placesKnown;
+                placesKnown = undefined;
+            }
             if (
                 child.componentType !== "_copy" &&
                 more.items.length === 1 &&
@@ -655,7 +659,34 @@ export function itemReader({
             }
             merge(result, more);
         }
+        result.placesKnown ??= placesKnown;
         return result;
+    }
+
+    /**
+     * Whether `child`, an entry of a repeat's `for`, is a reference with
+     * nothing after the name to a `<group>` written with several
+     * components, which is one item, in its place, however the document
+     * runs.
+     */
+    function namesGroupOfSeveral(child: SerializedComponent) {
+        if (child.componentType !== "_copy" || !child.extending) {
+            return false;
+        }
+        const ref: any = unwrapSource(child.extending as any);
+        if (!ref || ref.nodeIdx < 0 || (ref.unresolvedPath ?? []).length > 0) {
+            return false;
+        }
+        const node = componentsByIdx.get(ref.nodeIdx);
+        return (
+            node?.componentType === "group" &&
+            node.extending === undefined &&
+            (node.children ?? []).filter((held) =>
+                typeof held === "string"
+                    ? held.trim() !== ""
+                    : held.componentType !== "setup",
+            ).length > 1
+        );
     }
 
     /**

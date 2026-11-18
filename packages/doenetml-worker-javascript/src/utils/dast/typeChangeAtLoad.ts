@@ -2007,18 +2007,15 @@ export function checkTypeChangesAtLoad({
     /**
      * How the messages name each of the items `found` of a repeat's `for`,
      * which each hold several components: as the option or case it is
-     * (`part`), by its place in the `for` (`position`), or, when that is not
-     * known at load, as an item (an item after the iterations of a repeat,
-     * the picks of a select or the case shown, of which the `for` holds a
-     * number decided as the document runs, or after a reference that names
-     * nothing, which is a blank item).
+     * (`part`), by its place in the `for` (`position`) when that is known at
+     * load (`placesKnown`, `forItemsOf`), or otherwise as an item.
      */
     function placesOfItems(
         found: NonNullable<
             ReturnType<ReturnType<typeof itemReader>["forItemsOf"]>
         >,
     ) {
-        const placesKnown = found.placesKnown ?? found.items.length;
+        const placesKnown = found.placesKnown ?? 0;
         return found.items.map((item, ind) => {
             const part = item.kind === "several" ? item.part : undefined;
             return part

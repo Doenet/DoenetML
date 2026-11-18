@@ -559,8 +559,8 @@ reference-index-past-instances =
 # `<repeat>` whose `for` holds items of several components (COLL-5), each
 # item being a branch, and $ordinal the item's place in the `for`; or
 # `someItem` when that place is not known when the document loads (an item
-# after the iterations of a `<repeat>`, the picks of a `<select>`, or a
-# reference that names nothing);
+# after anything in `for` other than a reference to a `<group>`, which may
+# give a number of items, or an order, decided as the document runs);
 # $container is then the `<repeat>`. An item that is an option or a case
 # is named as one, with $container the `<select>` or `<conditionalContent>`.
 
