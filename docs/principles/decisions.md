@@ -2831,7 +2831,8 @@ rule; the lost math is a display question for #2568 (a choice's value could keep
 ## D46. What a type is for a list, sort, shuffle or repeat: values, objects and content (part 2 decided, part 1 open; Tier 1)
 
 **Part 2 decided** (November 2026), from the review of #2565 (PR 14 of #2509). Builds on
-COLL-1 to COLL-4 (D41), D44 and D45. Implementation: #2570.
+COLL-1 to COLL-4 (D41), D44 and D45. Implementation: #2570, **done by #2599** (the repeat's `for` is
+left to #2567, which uses `kindOfComponentType`).
 
 ### 2. What a type is: values, objects and content (decided)
 
@@ -3021,4 +3022,13 @@ Alternatives: `<collection>`, `<items>`.
    the warning, decided at load, says the attributes give every coordinate, so the content isn't
    used (as REF-4a warns of an unused second child). The same applies to a vector whose
    attributes give its whole value.
+
+## D50. Decisions from the review of #2597 (November 2026)
+
+1. **An input that isn't focused never shows an edit that wasn't entered** (#2598 item 5; SAVE-1).
+   The renderer commits an edit on blur, but a graph drag doesn't blur the input, and a condition
+   can read `$mi.immediateValue` as the reader types. So the core commits, when it is made, any
+   input made from saved state or carried by a copy (`copyWithState`) that isn't the input being
+   edited: its `immediateValue` becomes its `value`, and `valueUnderEdit` is cleared. This keeps
+   the rule in the core, and takes over `__componentNeedingUpdateValue`'s job at reload.
 

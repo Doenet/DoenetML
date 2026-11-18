@@ -260,14 +260,28 @@ nothing.
 - text beside components is read as their type, where it reads as that type
   (`<sort><math>d</math> a <math>b</math></sort>` is `a, b, d`).
 
-**Known violation of D46** (#2570): #2565 decides "one type" by what a sort compares
-(`extractComparableValue`): number and math together, text, boolean, point, vector, and every
-component with no value to compare (`<p>`, `<feedback>`, `<atom>`, `<line>`) as one class. So an
-`<atom>` and a `<p>` count as one type, and a `<line>` and a `<circle>` too, and a `<sort>` of
-content without `sortByProp` shows nothing, silently.
+**D46's kinds done by #2599** (closing #2570; `W/utils/componentKinds.ts`, `kindOfComponentType`):
+- each author tag declares its kind (`static isValue`, `static isContent`; everything else is an
+  object), and a test lists every author tag with its kind, so a new one must be placed;
+- **an input stands for what it holds**: a `<mathInput>` is a math, a `<textInput>` a text, a
+  `<booleanInput>` a boolean. A sort, shuffle and the list operators (`<argMin>`, `<tally>`, …)
+  compare an input by its value, where they used to drop it;
+- an object's type is the first author tag in its class chain that is still an object: a
+  `<triangle>` or `<rectangle>` is a `<polyline>`, a `<circle>` a `<curve>`. A `<matrix>`,
+  `<interval>`, `<subsetOfReals>` and `<periodicSet>` are objects, though built on `<math>`;
+- a `<sort>` or `<sortIndices>` of content, or of objects other than points and vectors, without
+  `sortByProp` is **`doenet-e0080`**, which suggests `sortByProp="text"` for content;
+- `e0076` for an `<m>` beside a math (or a `<label>` beside a text) says to wrap it in
+  `<math>` (or `<text>`), and an `<m>` whose LaTeX isn't math gives **`doenet-w0196`** when it is
+  read as math.
+
+**Known violations** (#2568, #2581): a `<slider>` and a `<choiceInput>` get their value type only
+as the document runs, so they are left out of the one-type check at load, and a `<choiceInput>`
+(text values) beside a `<number>` sorts as text (`10` before `9`); TYPE (D45) types them at load.
+A `<math>` whose own content doesn't parse (`<math>(((</math>`) is a blank with no diagnostic.
 
 **Known violations** (#2569):
-- `<sort><p>b</p><p>a</p></sort>` shows nothing, silently;
+- **fixed by #2599:** `<sort><p>b</p><p>a</p></sort>` showed nothing, silently; it is `e0080`;
 - not checked at load: a `copy` with another `type`, a wrapper of several the DoenetML doesn't
   reveal, and items whose type isn't known at load (a `valueName`, until D44 and D45);
 - text beside a reference isn't read as its type: `<sort>$A (0,1)</sort>` with `A` a point is

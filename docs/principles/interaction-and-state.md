@@ -146,11 +146,11 @@ Recent fixes show where the current representation is fragile:
   when the value passed through it while the input was shown, then returned while withheld
   (`valueUnderEdit` is cleared when the input follows its value; for a `<mathInput>`,
   `<textInput>`, `<fractionInput>` and `<matrixInput>`, in the session and through a reload).
-  **Open** (#2598, a decision): an input that isn't focused can still show an edit that was
-  never entered. A graph drag doesn't blur the input, so a `copyWithState` it makes carries the
-  edit, and a condition reading `$mi.immediateValue` changes as the reader types. Recommended:
-  commit, when it is made, any input made from saved state or carried by a copy that isn't the
-  one being edited.
+  **Decided** (D50; #2598): an input that isn't focused never shows an edit that wasn't entered.
+  The core commits, when it is made, any input made from saved state or carried by a copy that
+  isn't the one being edited. **Known violation** (#2598): a graph drag doesn't blur the input,
+  so a `copyWithState` it makes carries the edit, and a condition reading `$mi.immediateValue`
+  changes as the reader types.
 - **A restored value is matched by `stateId`; since #2481 also by type** (B36). The save records
   each component's type (`__componentTypes`), and a value whose type differs from the component
   now at that `stateId` is dropped. The ids themselves can still collide across a copy's
