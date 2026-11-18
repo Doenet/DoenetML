@@ -832,7 +832,8 @@ Known violations:
   from a property or an entry (`$s.value`, `$l[2]`) is `doenet-e0071` ("a `<repeat>` makes its
   content itself, so it can be made only from another `<repeat>`"); it showed nothing;
 - **left** (#2594): the same mismatch has two codes: `<repeat extend="$n"/>` and `$r[1]` are
-  `e0065`, while `$n.value` and `$l[2]` are `e0071`; a tag made from a group whose only content is
+  `e0065`, while `$n.value` and `$l[2]` are `e0071`. Decided (D48 decision 2): `e0071` for every
+  tag that makes its own content, made from anything but the same tag; a tag made from a group whose only content is
   a case that comes to show an error is still `(0, 0)`; a point from a property whose entries'
   type appears only later (an answer's `submittedResponses` with a `<textInput>` response, a
   `<tally>`'s categories that start empty, a `<choiceInput>` whose text choices a `<repeat>`

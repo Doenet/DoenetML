@@ -2997,7 +2997,13 @@ Alternatives: `<collection>`, `<items>`.
    `$v` the copy's value: an attribute written on a copy (or an extend) overrides the source's,
    the standard rule. #2591 already does this. Left: `w0104` for such a `$v` could suggest writing
    `valueName="v"` on the copy (DIAG-3).
-2. **Open: one type mismatch, two codes** (#2594 item 2). A composite tag made from something not
-   its own kind is `e0065` when written as `$n` or `$r[1]`, and `e0071` as `$n.value` or `$l[2]`.
-   Recommendation: `e0071` for every one of them.
+2. **One code for a tag made only from its own kind** (#2594 item 2). A `<repeat>`, `<select>`,
+   `<collect>`, `<sort>` or another tag that makes its own content, made with `extend` or `copy`
+   from anything but the same tag, is **`e0071`** ("A `<repeat>` makes its content itself, so it
+   can be made only from another `<repeat>`…"), however the source is written. #2591 gave
+   `e0071` for a property or a list entry (`$n.value`, `$s.value`, `$l[2]`), but left `e0065`
+   ("…can't be made from `$n`, which gives a `<number>`") for a component (`$n`) or an iteration
+   (`$r[1]`). The rule for these tags is "only from another of the same tag", which `e0071` says;
+   `e0065`'s naming of the source's type suggests another type might work, which is never so.
+   `e0065` stays for tags made from an unrelated type (REF-5).
 
