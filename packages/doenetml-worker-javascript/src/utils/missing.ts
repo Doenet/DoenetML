@@ -95,8 +95,9 @@ export function contentMissingDefinition() {
  * content in its `coords` or `displacement` (`attributeName`). It makes a
  * shape whose point that is missing (`BaseComponent.missingWhenPointsMissing`,
  * D40), and a point or vector itself
- * (`BaseComponent.missingWhenContentNamesNothing`, #2544). Unlike `contentMissing`, it does not read whether a reference's
- * source is missing, which for a reference to a property of the shape
+ * (`BaseComponent.missingWhenContentNamesNothing`, #2544). Unlike
+ * `contentMissing`, it does not read whether a reference's source is missing,
+ * which for a reference to a property of the shape
  * (`<ray through="$(r.endpoint)">`) would read the shape again.
  */
 export function contentNamesNothingDefinition(attributeName?: string) {
