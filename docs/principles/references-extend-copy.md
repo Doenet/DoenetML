@@ -72,7 +72,7 @@ An index is read live and rounded like an integer: `$l[$i]` follows `i`. An inde
 negative index, or one past the end names nothing. Since #2410 (B17), an index below 1 on
 something that exists gives `doenet-w0104` quoting the whole reference, literal or dynamic. Past
 the end is silent while the length can change (#1499). An index that cannot apply, such as
-`$n.value[1]`, and an index into a scalar (`$ms[1]`, `$n[1]`), give `doenet-w0100` and name
+`$n.value[1]`, and an index into a scalar (`$ms[1]` of `<math name="ms">5</math>`, `$n[1]` of a `<number>`), give `doenet-w0100` and name
 nothing (#2431). List entries (#2431) and function references (#2432) follow the same rule.
 A reference that names nothing is missing, shown as `＿`, bare or as a tag (VAL-5, D37, #2458).
 
@@ -158,7 +158,7 @@ Known violations (#2520 item 5):
 Done by #2424 (instances) and #2431 (values). Diagnostics, each quoting what was written:
 - **`doenet-w0188`:** an index after a group or instance that doesn't hold one component (#2518;
   it replaced the deprecation `w0179`, which gave the child);
-- **`doenet-w0180`:** an index on something that takes none (`$sec[2]`);
+- **`doenet-w0180`:** an index on something that takes none (`$sec[2]` of a `<section>`);
 - **`doenet-w0181`:** past the end of a repeat, select, `selectFromSequence`, shuffle, sort or
   collect that stays a composite ("the `<select>` made only 2 picks"). Past the end of a list is
   silent (#1499);
@@ -172,10 +172,10 @@ Evidence: `T/copying/indexSelectsInstances.test.ts`, `T/copying/index_into_value
 **Done by #2472** (closing #2438; B26, B27, B28, B34):
 - an extend or copy of an iteration indexes as the iteration: `$g[2]` of
   `<group name="g" extend="$r[1]"/>` is `$r[1][2]`, unless the group adds children;
-- an index past an array's dimensions names nothing with `w0100` (`$P[1][1]`, `$M[1][2][3]`,
-  `$poly.vertices[1][2][1]`). A math value is indexed at every level, so `$m[1][2]` of
-  `((1,2),(3,4))` is `2`;
-- list entries are indexed the same way, and `$l.value[2]` is `$l[2]`. `$l.coords[1]` is `＿` with
+- an index past an array's dimensions names nothing with `w0100` (`$P[1][1]` of a point,
+  `$M[1][2][3]` of a matrix, `$poly.vertices[1][2][1]`). A math value is indexed at every level,
+  so `$m[1][2]` of `((1,2),(3,4))` is `2`;
+- list entries are indexed the same way, and `$l.value[2]` is `$l[2]` of a `<mathList>` `l`. `$l.coords[1]` is `＿` with
   `w0100`, as `$P.coords[1]` is;
 - an index never reaches the `<setup>` a repeat adds;
 - an index into a scalar entry of a `<mathList>` is missing with `w0100`, and refuses a write;
@@ -185,8 +185,8 @@ Evidence: `T/copying/indexSelectsInstances.test.ts`, `T/copying/index_into_value
 
 **Done by #2518** (closing #2478): `$nl[2][1]` of a `<numberList>`, `<textList>` or
 `<booleanList>` entry, an extra index on an array entry named directly (`$line.point1[2][1]`),
-`$pl[2].xs[1][1]`, and an index into a selector's or sampler's pick give `w0100`.
-`$pl[2].value[$one]` reads as `$pl[2].value[1]`. `<group extend="$r[1]"/>` of an iteration
+`$pl[2].xs[1][1]` of a `<pointList>` `pl`, and an index into a selector's or sampler's pick give `w0100`.
+`$pl[2].value[$one]`, with `one` a `<number>` holding 1, reads as `$pl[2].value[1]`. `<group extend="$r[1]"/>` of an iteration
 missing at load follows it as it appears. Past the end, `$nl[4][1]` gives `w0100` (the entry type
 decides), while `$ml[4][1]` stays silent. An alias of an array's first entry still selects among
 the entries (`$P.x[2]`, `$P.x1[2]` is `x2`, `$ode.numericalSolution[2]`), as before.
@@ -199,7 +199,7 @@ Cost (Tier 3): `$m[i]` of a `<math>` is now a copy rather than a value reference
 component per reference (#2431).
 
 Limits:
-- **Deep property chains** (`$l.points[1].coords`, `$l.points[1].xs[1]`) are not supported
+- **Deep property chains** (`$l.points[1].coords`, `$l.points[1].xs[1]` of a `<line>` `l`) are not supported
   today. About 20 assertions are commented out with `XXX: restore` at
   `T/copying/extend_references.test.ts:4703`. Whether they are a guarantee is an open question
   ([decisions.md](decisions.md), D19).
@@ -762,7 +762,7 @@ Done by #2427 (content fixed at load) and #2436 (content made at run time). #244
 the list forms, which records `typeChangeAtLoad` on each `_copy` written as a tag. The table is
 `typeChangeRule` in `W/utils/typeChange.js`, applied only to author-written extends and copies.
 It also allows:
-- any pair an `adapter` gives, such as `<text extend="$ion"/>`;
+- any pair an `adapter` gives, such as `<text extend="$ion"/>` of an `<ion>`;
 - an angle as a math, and a label as a text.
 
 `<coords>` follows the point group, though it inherits from `<math>`.
@@ -814,7 +814,8 @@ changes (`<point extend="$P.x"/>` is missing). `bindValueTo` of a `<subsetOfReal
 
 Known violations:
 - **fixed by #2591:** a point, vector or coords made from a property holding a list of values
-  (`<point extend="$ci"/>` of a `<choiceInput>`, `$a.submittedResponses`, `$t.categories`) is
+  (`<point extend="$ci"/>` of a `<choiceInput>`, `$a.submittedResponses` of an `<answer>`,
+  `$t.categories` of a `<tally>`) is
   missing while it holds none or several, with info **`doenet-i0061`** (it was `(0, 0)`, or the
   first). A text choice among the choices is `e0065` at load, also while nothing is selected. A
   `<point copy>` of it is decided when it is made (CPY-1);
@@ -993,10 +994,13 @@ question.
 To reach into a reference, name it: `<p extend="$p" name="e"/>`, then `$e.t`.
 
 **List extends (fixed by #2393).** `$e.h` reaches e's counterpart of `h` for
-`<mathList name="e" extend="$l"/>`, as `$E.h` does for `<p name="E" extend="$P"/>`. Before #2393 a
-linked list extend had no children of its own to name (defect B10, #2376). This holds for every
-authored list, an extend of an extend (`$e2.h`), a reference written before the extend, and a
-list inside an extended component (`$E.l.h`, `$Pe.Q.h`). `$e.l` still names nothing (NAME-3).
+`<mathList name="e" extend="$l"/>` of `<mathList name="l"><math name="h">x</math> 2</mathList>`,
+as `$E.h` does for `<p name="E" extend="$P"/>` of `<p name="P"><math name="h">x</math></p>`.
+Before #2393 a linked list extend had no children of its own to name (defect B10, #2376). This
+holds for every authored list, an extend of an extend (`$e2.h`), a reference written before the
+extend, and a list inside an extended component (`$Pe.Q.h` of `<p name="Pe" extend="$P2"/>`, where
+`P2` holds a `<mathList name="Q">` with a `<math name="h">`). `$e.l` still names
+nothing (NAME-3).
 Evidence: `T/tagSpecific/listcomponentvaluelists.test.ts:753`, `:843`, `:934`, `:995`, `:1040`.
 
 Other tests: `:1626`, `:1837`, `:6408`, `:5773`.

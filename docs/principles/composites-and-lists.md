@@ -132,8 +132,8 @@ was built" assertions.
 > - **Many things** (a list, a sequence, a collect, a sort or shuffle, a repeat, a select, a
 >   conditional, the random choosers): an index picks an item, and a name or a property reaches
 >   into every item.
->   - **A name always works:** `$r.P` is the `P` from every item, as `$r[2].P` is the `P` from
->     item 2.
+>   - **A name always works:** for a `<repeat name="r">` with a `<point name="P">`
+>     written inside it, `$r.P` is the `P` from every item, as `$r[2].P` is the `P` from item 2.
 >   - **A property works when each item is one component:** every list entry, and a repeat,
 >     select or conditional where what you write inside the repeat, in each option or in each
 >     case is one component. `$r.x` is every item's `x`.
@@ -161,8 +161,8 @@ Whether a tag is built as a composite or a list component never changes which ki
 
 ### COLL-2: a collection is indexed by item, and a property or name applies to each item (Tier 2; D41)
 - **Index:** an item (NAME-2).
-- **Property:** each item's (`$pl.x` is `1, 3`). An item that lacks it gives a blank, with a
-  warning decided at load (#2452).
+- **Property:** each item's (`$pl.x` of a `<pointList>` whose points have x 1 and 3 is `1, 3`).
+  An item that lacks it gives a blank, with a warning decided at load (#2452).
 - **Name:** each item's component of that name: `$r.P` is every iteration's `P`, and `$s.P.x` each
   pick's `P`'s x. The name must be declared in every option or case, with one type (COMP-11);
   what is written inside a repeat declares it in every iteration.
@@ -185,7 +185,7 @@ Whether a tag is built as a composite or a list component never changes which ki
 - A collection's settings are its own (`$s.fixed`, `$r.fixed`).
 - A collection's attributes are not properties (`attributesAreProperties = false`): `$c.maxNumber`
   of a collect is each item's. A collect, sort or shuffle built as a list no longer inherits that
-  list's aliases (`$cp.numPoints` names nothing).
+  list's aliases (`$cp.numPoints` of a `<collect componentType="point">` names nothing).
 - A tag of a property after a collection of several is `e0064`, like a tag of the collection
   (`<point extend="$s.x"/>` was `(0, 0)`).
 
@@ -286,14 +286,14 @@ content without `sortByProp` shows nothing, silently.
   several is content (D46), so it may share a `for` with `<p>`s.
 - **`type`** types the literals and, when written, every item.
 - So `$v` has one type in every iteration, and the template is checked at load.
-- **A name after `$v`** when the items are wrappers follows COLL-2 and COMP-11: `$d.P` resolves
+- **A name after `$v`** when the items are wrappers follows COLL-2 and COMP-11: `$v.P` resolves
   when every item declares `P` with one type, decided at load. If an item lacks it, it names
   nothing in every iteration (`w0183`); two types are an error. A repeat's iterations satisfy
   this by construction, so a repeat over another repeat goes over records.
 
 **Known violations** (all of it; **[probe]** on `main`, #2567): `for` takes any mix (`$a $t $P`,
 `2 $t`, a select of a math, a text and a number); a group in `for` is flattened, nested groups
-too, so a repeat over another repeat's iterations goes over their components, and `$d.P` is a
+too, so a repeat over another repeat's iterations goes over their components, and `$v.P` is a
 blank with no diagnostic.
 
 ---
@@ -704,8 +704,9 @@ is shown again is compared again, not trusted (SAVE-1).
 - a container reached by a name after an index into a repeat (`$r[1].s.x`) isn't checked at load;
 - autocomplete follows the rule since #2469 (closing #2455) and #2522 (closing #2479): it leaves
   out a name some branch lacks or declares with another tag, lists the branch names after
-  `$rep[n].`, and offers nothing after an index on what takes none (`$v[1].head.`). Left:
-  `$ml[1].a`, `$sh[1].a` and `$vl[1].v.head.` offer a name after an index into a list, though
+  `$rep[n].`, and offers nothing after an index on what takes none (`$v[1].head.` of a `<vector>` `v`). Left:
+  `$ml[1].a` of a `<mathList>`, `$sh[1].a` of a `<shuffle>` and `$vl[1].v.head.` of a
+  `<vectorList>` offer a name after an index into a list, though
   `[n]` picks the entry and the runtime gives `＿`;
 - `<group extend="$cc.x"/>` going empty after the case changes (B40) was fixed by #2471;
 - root names, and so HTML ids, of components in the branches are unchanged: one in an unnamed

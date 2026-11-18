@@ -118,7 +118,7 @@ So whether `<math extend="$a.currentResponse2"/>` is allowed, and what `$x.p` gi
 ### VAL-3: a reference where a value is read acts as that value written there (Tier 1)
 A reference inside `<math>`, `<number>`, `<text>`, `<boolean>`, an operator or an attribute acts
 as the referent's current value written there, converted to the type the parent wants. In a
-`<p>` it shows the value.
+`<p>` it shows the value. Below, `n` is `<number name="n">5</number>`.
 
 | Written | Means |
 |---|---|
@@ -351,7 +351,8 @@ Before #2458, what it looked like depended on the parent and on the spelling (**
 | `<sum>$l[5] 3</sum>` | `3` |
 
 How a missing reference is reported follows NAME-2 since #2410, #2431 and #2432:
-`$n.value[1]`, `$ms[1]` and `$pl[2].coords[1]` name nothing; since #2458 they are missing and
+`$n.value[1]`, `$ms[1]` (of `<math name="ms">5</math>`) and `$pl[2].coords[1]` (of a
+`<pointList>`) name nothing; since #2458 they are missing and
 show `＿`. An index into a scalar entry of a
 list still gives `＿` (B34, #2438). A property with no value, such as `$c.maxNumber` with no
 limit, is missing (`＿`) since #2483 (closing #2416); since #2543 that holds for every variable
@@ -449,8 +450,8 @@ Evidence:
 Code: `W/utils/literalAttribute.ts:343`, `:449` (#2224).
 
 ### VAL-7: an attribute that is exactly one reference *is* that reference, in both directions (Tier 1 to read, Tier 2 to write)
-`hide="$b"` is b's value. A write to the attribute, for example toggling `$p.hide` from a bound
-input, is written to `b` (**[probe]**).
+`hide="$b"` on `<p name="p">`, with `b` a `<boolean>`, is b's value. A write to the attribute, for
+example toggling `$p.hide` from a bound input, is written to `b` (**[probe]**).
 
 Evidence:
 - `T/copying/attribute_values.test.ts:926` "an attribute that is one reference follows its
@@ -503,9 +504,10 @@ chosen by fixture measurements, and is not a principle.
 - It lands on the reference when the reference wrote the attribute itself.
 
 Examples:
-- `T/copying/context_attributes.test.ts:268`: a write to `$r.fixed` reaches `m`.
-- `T/copying/attribute_values.test.ts:887`: a write to `$B.fixLocation`, where B has its own
-  `fixLocation="false"`, stays on B.
+- `T/copying/context_attributes.test.ts:268`: a write to `$r.fixed`, where `r` is
+  `<math name="r" extend="$m"/>` of a `<math>` `m`, reaches `m`.
+- `T/copying/attribute_values.test.ts:887`: a write to `$B.fixLocation`, where B is
+  `<point name="B" extend="$A" fixLocation="false"/>` of a point `A`, stays on B.
 
 This is principled, but hard to explain. The `fixed` case is a problem (D7).
 
@@ -578,7 +580,8 @@ stands for its source, so the write should go to the source's `hide`, as a write
 does.
 
 Known rough edges:
-- an action naming both a child and its entry (`$A $pl[1]`) fires twice;
+- an action naming both a child and its entry (`$A $pl[1]`, where the `<pointList>` `pl` holds
+  the point `A` first) fires twice;
 - lists that are not authored (`<sequence>`, samplers, operators) take no entry click actions
   (#2203, "Not covered").
 

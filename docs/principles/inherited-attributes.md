@@ -93,8 +93,8 @@ Gap: `fixLocation` has no test at all for line, segment, ray, vector, polygon, p
 circle, curve, parabola or angle.
 
 ### CTX-3: `draggable="false"`: the reader cannot drag it; other writes still move it (Tier 1 for the first half, Tier 2 for the second)
-**[probe]** A `<point draggable="false">` refuses a drag, but `<mathInput bindValueTo="$P"/>`
-moves it.
+**[probe]** A `<point name="P" draggable="false">` refuses a drag, but
+`<mathInput bindValueTo="$P"/>` moves it.
 
 The check is repeated in each graphical class, about 15 places (`Point.js:1039`, `:1158`,
 `:1308`; `Circle.js:420`; `Line.js:1008`, …). The renderer treats `draggable="false"` like
@@ -156,8 +156,8 @@ value, and from then on it beats the container.
 The same holds for lists. A list's own attributes act on its entries as a container's do: they
 fill in what an entry's source does not set, and never override or clear it (D29). To override a
 set of components, write a reference to each, for example `<repeat for="$c" valueName="P"><point
-extend="$P" styleNumber="2"/></repeat>`. A shorter opt-in form is deferred until authors ask for
-one (D31).
+extend="$P" styleNumber="2"/></repeat>`, where `c` is a `<collect componentType="point">`. A
+shorter opt-in form is deferred until authors ask for one (D31).
 
 ### CTX-6: generated values are fixed by default (Tier 2)
 These cannot be dragged or overwritten unless `fixed="false"` is set on the generator or an

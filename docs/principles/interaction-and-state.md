@@ -161,7 +161,8 @@ Recent fixes show where the current representation is fragile:
 A rewrite should save only true sources, and recompute everything else.
 
 The diagnostics should match too. Today they can differ (#1499, comment): with
-`$r[2].r2[1].q` into a `<repeatForSequence length="$k">`, setting `k` to 1 shows nothing with no
+`$r[2].r2[1].q`, where `r` is a `<repeatForSequence length="$k">` whose iterations each hold a
+repeat `r2` whose iterations hold a `q`, setting `k` to 1 shows nothing with no
 warning, but after a save and reload the same document adds `doenet-w0104`. Loaded with one
 iteration, the index is judged past the end for good, though `k` can grow (COMP-7).
 
@@ -294,6 +295,8 @@ document order. No test pins the order of chained actions that hit the same targ
 scheduling structure.
 
 ### ACT-4: a bare `$uv` is the same button; an `extend` or `copy` is a new button that carries no triggers (Tier 2)
+Here `uv` is an action, such as `<updateValue name="uv">`.
+
 Evidence:
 - `T/tagSpecific/updatevalue.test.ts:1127` "chained updates, copies don't copy triggers", `:1693`;
 - `callAction.test.ts:1243`;
@@ -329,7 +332,8 @@ Rules:
 - A missing entry is an empty response that equals nothing (VAL-5).
 - `referencesAreResponses` holds on an award made by `copy`, and on one reached through an
   `extend` of what holds it, from load and after an update (#2529, closing #2151). An award
-  can't itself be extended (D42, done by #2571). A path through a `<group>` (`$g.gp.x`) and the
+  can't itself be extended (D42, done by #2571). A path through a `<group>` (`$g.gp.x`, a `<point name="gp">` in a
+  `<group name="g">`) and the
   math of a `<select>` are marked too; #2575 pinned it with a test (closing #2538).
 
 Evidence: `answer.test.ts:3583-3947`, `:8892-9232`; the responses section of
