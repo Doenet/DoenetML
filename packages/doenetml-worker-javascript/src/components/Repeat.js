@@ -1289,6 +1289,12 @@ function wrapperOfSeveralIdx(component, components) {
     while (
         wrapper?.shadows &&
         wrapper.shadows.propVariable === undefined &&
+        // not one that adds children to what it copies
+        // (`<group extend="$g">…</group>`), which holds more
+        !(
+            components[wrapper.shadows.compositeIdx]?.serializedChildren
+                ?.length > 0
+        ) &&
         components[wrapper.shadows.componentIdx]
     ) {
         wrapper = components[wrapper.shadows.componentIdx];

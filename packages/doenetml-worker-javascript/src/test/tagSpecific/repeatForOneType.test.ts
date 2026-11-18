@@ -300,4 +300,35 @@ describe("a repeat's for holds one type @group4", () => {
         });
         expect(await texts()).eqls(["[19 / 1], [29 / 2]", "29"]);
     });
+
+    it("an item that extends a group and adds children holds what it adds", async () => {
+        // `h` holds the components of `g` and the one it adds: `$d` shows
+        // all three, and `$d.R` names the one it adds, with no warning.
+        const result = await bothBuilds(
+            `<group name="g"><text name="P">a</text><text name="Q">b</text></group>
+<group name="h" extend="$g"><text name="R">c</text></group>
+<group name="k"><text name="R">x</text><text>y</text></group>
+<p name="p1"><repeat for="$h" valueName="d" name="r">[$d]</repeat></p>
+<p name="p2"><repeat for="$h $k" valueName="d">[$d.R]</repeat></p>
+<p name="p3">$r[1].d</p>`,
+            ["p1", "p2", "p3"],
+        );
+        expect(result.texts).eqls({
+            p1: "[abc]",
+            p2: "[c], [x]",
+            p3: "abc",
+        });
+        expect(result.errors).eqls([]);
+        expect(result.warnings).eqls([]);
+
+        // A group of one that adds one holds several: content, not a math.
+        const mixed = await bothBuilds(
+            `<group name="g"><math>1</math></group>
+<group name="h" extend="$g"><text>x</text></group>
+<p name="p"><repeat for="$h 5" valueName="d">[$d]</repeat></p>`,
+            ["p"],
+        );
+        expect(mixed.texts.p).eq("");
+        expect(mixed.errors.map((e) => e.split(":")[0])).eqls(["doenet-e0081"]);
+    });
 });

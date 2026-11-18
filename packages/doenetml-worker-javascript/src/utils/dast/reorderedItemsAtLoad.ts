@@ -410,6 +410,14 @@ export function itemReader({
                 unknown: false,
             };
         }
+        if (hasOwnChildren(copy)) {
+            // `<group extend="$g">…</group>` holds what `g` holds and the
+            // children it adds
+            const children = groupChildren(copy, seen);
+            return children === undefined
+                ? UNKNOWN
+                : wrapperItems(children, "group", "group", seen);
+        }
         const ref: any = unwrapSource(copy.extending as any);
         if (!ref) {
             return UNKNOWN;
@@ -469,6 +477,56 @@ export function itemReader({
             }
         }
         return itemsOf(node, seen);
+    }
+
+    /** Whether the copy `copy` is written with children it adds. */
+    function hasOwnChildren(copy: SerializedComponent) {
+        return (copy.children ?? []).some((child) =>
+            typeof child === "string" ? child.trim() !== "" : true,
+        );
+    }
+
+    /**
+     * What the `<group>` `node` holds, written as a group or as an `extend`
+     * or `copy` of one (with the children it adds after those of the one it
+     * copies); `undefined` if it is not one, or that isn't written.
+     */
+    function groupChildren(
+        node: SerializedComponent,
+        seen: Set<number>,
+    ): (SerializedComponent | string)[] | undefined {
+        if (node.componentType === "group" && node.extending === undefined) {
+            return node.children ?? [];
+        }
+        if (node.componentType !== "_copy" || !node.extending) {
+            return undefined;
+        }
+        const createdType = node.attributes?._createComponentOfType;
+        if (
+            createdType === undefined ||
+            canonical(literalText(createdType)) !== "group"
+        ) {
+            return undefined;
+        }
+        const ref: any = unwrapSource(node.extending as any);
+        if (
+            !ref ||
+            ref.nodeIdx < 0 ||
+            (ref.unresolvedPath ?? []).length > 0 ||
+            seen.has(ref.nodeIdx)
+        ) {
+            return undefined;
+        }
+        const target =
+            componentsByIdx.get(ref.nodeIdx) ??
+            copiesByCreatedIdx.get(ref.nodeIdx);
+        const held =
+            target === undefined
+                ? undefined
+                : groupChildren(target, new Set(seen).add(ref.nodeIdx));
+        return held === undefined
+            ? undefined
+            : [...held, ...(node.children ?? [])];
     }
 
     /** How an item is named in a message, as fluent arguments. */

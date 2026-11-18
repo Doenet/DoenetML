@@ -282,6 +282,11 @@ describe("sort and shuffle take one type @group4", () => {
                 error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="math" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
             },
             {
+                // a group of one that extends it with a child holds two
+                doenetML: `<group name="g"><math>3</math></group><group name="h" extend="$g"><math>4</math></group><sort name="s">$h</sort>`,
+                error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="math" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
+            },
+            {
                 // a `<collect>` of integers would leave out the number
                 doenetML: `<sort name="s"><group><integer>2</integer><number>1.5</number></group><number>0</number></sort>`,
                 error: 'doenet-e0077: `<sort>` can\'t compare a `<group>` of 2 components. To sort its components, sort a `<collect>` of them (`<collect componentType="number" from="$g"/>` of a group `g`), or write them in the `<sort>` without the group. Use `<shuffle>` to keep each item\'s components together.',
