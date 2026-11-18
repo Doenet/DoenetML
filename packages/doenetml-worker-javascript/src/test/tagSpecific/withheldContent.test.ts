@@ -7,6 +7,8 @@ import {
     updateBooleanInputValue,
     updateMathInputImmediateValue,
     updateMathInputValue,
+    updateMatrixInputImmediateValue,
+    updateMatrixInputValue,
     updateTextInputImmediateValue,
     updateTextInputValue,
     updateValue,
@@ -428,6 +430,63 @@ describe("Restored state in withheld content follows changes outside it @group2"
                 const w = (await h.sv("cc.w")).stateValues;
                 expect(w.value).eq("4");
                 expect(w.immediateValue).eq("4");
+            }
+        });
+
+        it(`a matrix input's edit its value replaced with the edit itself while shown is not brought back when the value returns while withheld${withElse ? ", with an else" : ""}`, async () => {
+            // As for a math input (#2554 item 1), through the matrix
+            // input's own record of the edit, and what its cell shows.
+            const doenetML = `
+    <booleanInput name="b" prefill="true"/>
+    <matrixInput name="x" numRows="1" numColumns="1" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$b"><matrixInput bindValueTo="$x" name="w"/></case>
+      ${withElse ? "<else>no</else>" : ""}
+    </conditionalContent>`;
+            const entry = (matrix: any) => matrix.tree[2][1][1];
+            for (const reload of [false, true]) {
+                const h = await setup(doenetML);
+                const cell = { rowInd: 0, colInd: 0 };
+                await updateMatrixInputValue({
+                    latex: "4",
+                    componentIdx: await h.idx("cc.w"),
+                    core: h.core(),
+                    ...cell,
+                });
+                await updateMatrixInputImmediateValue({
+                    latex: "6",
+                    componentIdx: await h.idx("cc.w"),
+                    core: h.core(),
+                    ...cell,
+                });
+                await updateMatrixInputValue({
+                    latex: "6",
+                    componentIdx: await h.idx("x"),
+                    core: h.core(),
+                    ...cell,
+                });
+                expect(
+                    entry((await h.sv("cc.w")).stateValues.immediateValue),
+                ).eq(6);
+
+                await h.setBoolean("b", false);
+                await updateMatrixInputValue({
+                    latex: "4",
+                    componentIdx: await h.idx("x"),
+                    core: h.core(),
+                    ...cell,
+                });
+                if (reload) {
+                    await h.reload();
+                }
+                await h.setBoolean("b", true);
+                const w = await h.sv("cc.w");
+                expect(entry(w.stateValues.value)).eq(4);
+                expect(entry(w.stateValues.immediateValue)).eq(4);
+                const shown = (
+                    await h.core().returnAllStateVariables(false, true)
+                )[w.activeChildren[0].componentIdx].stateValues;
+                expect(shown.rawRendererValue).eq("4");
             }
         });
     }
