@@ -39,6 +39,10 @@ export default class Point extends GraphicalComponent {
         });
     }
     static componentType = "point";
+
+    // Missing while what it holds is only references that name nothing, or
+    // a blank entry of a list (`contentNamesNothing`, D40, #2544).
+    static missingWhenContentNamesNothing = true;
     static styleOverrideCategories = ["marker"];
 
     static componentDocs = {
@@ -424,7 +428,8 @@ export default class Point extends GraphicalComponent {
         // Whether it holds only references that name nothing, as its
         // children or its `coords` (`center="$nothing"`), which makes a shape
         // it gives a point to missing (`BaseComponent.missingWhenPointsMissing`,
-        // D40). The point itself is not made missing by it.
+        // D40), and makes the point itself missing
+        // (`BaseComponent.missingWhenContentNamesNothing`, #2544).
         stateVariableDefinitions.contentNamesNothing =
             contentNamesNothingDefinition("coords");
 

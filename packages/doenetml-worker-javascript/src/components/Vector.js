@@ -43,6 +43,10 @@ export default class Vector extends GraphicalComponent {
         });
     }
     static componentType = "vector";
+
+    // Missing while what it holds is only references that name nothing, or
+    // a blank entry of a list (`contentNamesNothing`, D40, #2544).
+    static missingWhenContentNamesNothing = true;
     static styleOverrideCategories = ["line"];
 
     static componentDocs = {
@@ -358,7 +362,8 @@ export default class Vector extends GraphicalComponent {
         // Whether it holds only references that name nothing, as its
         // children or its `displacement` (`center="$nothing"`), which makes a shape
         // it gives a point to missing (`BaseComponent.missingWhenPointsMissing`,
-        // D40). The vector itself is not made missing by it.
+        // D40), and makes the vector itself missing
+        // (`BaseComponent.missingWhenContentNamesNothing`, #2544).
         stateVariableDefinitions.contentNamesNothing =
             contentNamesNothingDefinition("displacement");
 

@@ -3,7 +3,10 @@ import {
     missingWhileListEntryMissingDefinition,
     missingWhileSourceMissingDefinition,
 } from "../utils/missing";
-import { describeReferentVariable } from "../utils/referentDescription";
+import {
+    describeReferentVariable,
+    nullMeansMissing,
+} from "../utils/referentDescription";
 import { expressionAttributeDefinitions } from "../utils/expressionAttribute";
 import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
@@ -862,19 +865,37 @@ export async function createChildrenThenComponent({
                 }
 
                 const shadowedComponent = core._components[idx];
+                const propertyCanBeNull =
+                    typeof shadowInfo.propVariable === "string" &&
+                    !shadowedComponent.state.entriesMissing &&
+                    nullMeansMissing(
+                        shadowedComponent.state[shadowInfo.propVariable],
+                    ) &&
+                    !shadowedComponent.state[shadowInfo.propVariable].isArray &&
+                    !shadowedComponent.state[shadowInfo.propVariable]
+                        .isArrayEntry;
                 if (
                     shadowInfo.propVariable !== undefined &&
-                    shadowedComponent.canBecomeMissing &&
+                    (shadowedComponent.canBecomeMissing || propertyCanBeNull) &&
                     !newComponent.isMissing &&
                     !newComponent.doenetAttributes.missingWhileEntryEmpty
                 ) {
                     // A property of a component that can be missing for a
                     // while is missing while it is (D37):
                     // `<number extend="$n.value"/>` of
-                    // `<number name="n">$l[$i]</number>`.
+                    // `<number name="n">$l[$i]</number>`. So is one that
+                    // holds `null` for no value, while it does, though it had
+                    // a value when the tag was made (D40, #2544):
+                    // `<math extend="$im.aspectRatio"/>` once the image's
+                    // aspect ratio is cleared.
                     newComponent.doenetAttributes.missingWhileSourceMissing = true;
                     newComponent.state.valueMissing =
-                        missingWhileSourceMissingDefinition(idx);
+                        missingWhileSourceMissingDefinition(
+                            idx,
+                            propertyCanBeNull
+                                ? shadowInfo.propVariable
+                                : undefined,
+                        );
                 } else if (
                     shadowInfo.propVariable !== undefined &&
                     shadowedComponent.state.entriesMissing &&
@@ -894,6 +915,16 @@ export async function createChildrenThenComponent({
                             missingWhileListEntryMissingDefinition(
                                 idx,
                                 position,
+                            );
+                        // It names a blank entry, as a reference that names
+                        // nothing does (`contentNamesNothing`), so a point
+                        // holding it alone is missing (`<point>$pl[2]</point>`,
+                        // #2544) without reading through it to its source.
+                        newComponent.state.namesNothing =
+                            missingWhileListEntryMissingDefinition(
+                                idx,
+                                position,
+                                "namesNothing",
                             );
                     }
                 }

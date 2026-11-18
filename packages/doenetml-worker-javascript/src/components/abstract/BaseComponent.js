@@ -173,6 +173,10 @@ export default class BaseComponent {
             this.state.valueMissing = missingWhileSourceMissingDefinition();
         } else if (this.doenetAttributes.missingWhileAdaptedMissing) {
             this.state.valueMissing = missingWhileAdaptedMissingDefinition();
+            // it names nothing while what it adapts does: the `coords` of
+            // `<point>$pl[2]</point>` of a blank entry (#2544)
+            this.state.namesNothing =
+                missingWhileAdaptedMissingDefinition("namesNothing");
         } else if (
             this.doenetAttributes.missingWhenContentMissing &&
             !this.constructor.missingWhenContentMissing
@@ -368,6 +372,7 @@ export default class BaseComponent {
                 this.constructor.missingWhenComputedFromMissing ||
                 this.constructor.missingWhenEntriesMissing.length > 0 ||
                 this.constructor.missingWhenPointsMissing.length > 0 ||
+                this.constructor.missingWhenContentNamesNothing ||
                 Boolean(
                     this.doenetAttributes.missingWhenContentMissing ||
                     this.doenetAttributes.missingWhileEntryEmpty ||
@@ -416,6 +421,18 @@ export default class BaseComponent {
      * missing circle, as `missingWhenEntriesMissing` is for a list of points.
      */
     static missingWhenPointsMissing = [];
+
+    /**
+     * Whether a component of this type is missing while what it holds is
+     * only references that name nothing now, or a blank entry of a list
+     * (`contentNamesNothing`; D40, VAL-5, #2544): `<point>$pl[$i]</point>`
+     * while `i` is past the end of `pl` is a missing point, not `(＿, 0)`.
+     * Set on `<point>` and `<vector>`, which can't use
+     * `missingWhenContentMissing`: that reads whether a reference's source is
+     * missing, which for a point and a vector defined from each other reads
+     * each other's missingness, a real cycle.
+     */
+    static missingWhenContentNamesNothing = false;
 
     /**
      * Whether this component is missing (D37): a tag whose source is
@@ -1265,7 +1282,8 @@ export default class BaseComponent {
             this.missingWhenContentMissing ||
             this.missingWhenComputedFromMissing ||
             this.missingWhenEntriesMissing.length > 0 ||
-            this.missingWhenPointsMissing.length > 0
+            this.missingWhenPointsMissing.length > 0 ||
+            this.missingWhenContentNamesNothing
         ) {
             Object.assign(
                 stateVariableDefinitions,
@@ -1274,6 +1292,7 @@ export default class BaseComponent {
                     entriesAttributes: this.missingWhenEntriesMissing,
                     pointAttributes: this.missingWhenPointsMissing,
                     computedMissing: this.missingWhenComputedFromMissing,
+                    contentNamesNothing: this.missingWhenContentNamesNothing,
                 }),
             );
         }
