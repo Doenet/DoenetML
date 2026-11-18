@@ -275,17 +275,26 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   no longer marks the parent's rendered children on every keystroke.
 
   **Known violations:**
-  - an entry of `_repeatValueList` isn't made missing: `<repeatForSequence …><number>$l[$i] +
-    1</number></repeatForSequence>` shows `NaN` past the end in its list form and `＿` as a
-    composite (#2544);
+  - **fixed by #2595** (closing #2544): an entry of a repeat's list form of numbers is missing
+    where the composite is (`<repeatForSequence …><number>$l[$i] + 1</number></repeatForSequence>`
+    shows `11, 21, ＿` in both forms; it was `NaN` as a list). **Left** (#2596): a numeric
+    `<evaluate>` in a repeat's list form of maths is `NaN` where the composite is `＿`, and
+    `<number>$i + $nothing</number>` in a repeat is `NaN`;
   - **fixed by #2565** (closing #2525): a `<sort>` keeps a child reference that names nothing,
     placed last (`<sort>$l[5] 3 1</sort>` is `1, 3, ＿`), and a `<ray>`, a `<circle>`'s,
     `<regularPolygon>`'s or `<rectangle>`'s center and a `<parabola>`'s vertex that is a reference
     naming nothing make the shape missing. Left (#2569): `<ray through="(1,2) $nothing"/>`, two
     things in one point, isn't missing;
-  - a tag of a reference past the end isn't missing: `<point>$pl[$i]</point>` is `(＿, 0)`. Making
-    a point missing from its `coords` content creates a real cycle for a point and a vector
-    defined from each other (#2544).
+  - **fixed by #2595:** a point or vector whose content is only a reference that names nothing,
+    or a blank entry of a `<pointList>`, is missing and not drawn (`<point>$pl[$i]</point>` past
+    the end, `<point>$nothing</point>`, `<vector displacement="$pl[2]"/>`). It reads whether the
+    references name anything, not whether their sources are missing, so a point and a vector
+    defined from each other make no cycle. Content wins over attributes:
+    `<point x="3" y="4">$nothing</point>` is missing too, as a `<circle>` already was. An
+    unlinked `copy` made while such a point is missing stays missing (CPY-1). **Left** (#2596): a
+    point holding a value reference to a math or number list entry past the end or blank, or to a
+    missing point (`<point>$ml[3]</point>`, `<point>$Q</point>`), is drawn with `＿` coordinates;
+    a vector's `tail` or `head` given a reference past the end isn't missing.
 - **`null` is never shown, and a `NaN` from a missing input is missing (decided, D40; #2460).**
   `null` or `undefined` never reaches what an author sees. Where `null` means "no value", the
   value is missing (`＿`); #2483's opt-in for `maxNumber` becomes the rule for every such
@@ -324,9 +333,10 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   `[object`.
 
   **Known violations:**
-  - a tag made while a property had a value doesn't follow it back to `null`: with `<image
-    aspectRatio="2">` and its bound input cleared, `<math extend="$im.aspectRatio"/>` and `<text>`
-    of it read `NaN` (a bare reference and a `<number>` tag read `＿`) (#2544);
+  - **fixed by #2595:** a tag of a property follows it back to `null`: with `<image
+    aspectRatio="2">` and its bound input cleared, `<math extend="$im.aspectRatio"/>`, `<text>`
+    of it and a `<number>` computed from it are `＿` (they read `NaN`). An unlinked `copy` made
+    while the property had a value keeps it;
   - **fixed by #2572** (closing #2545): `$slider.items` is a `<numberList>` or `<textList>`, and
     `$P.scales` and `$sort.sortByComponent` are not properties (`w0104`).
 - **`<angle/>` with no measure is blank (decided, D40; #2324).** An angle whose measure nothing

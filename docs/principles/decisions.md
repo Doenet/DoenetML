@@ -2490,10 +2490,11 @@ decided here; the rest are listed as still open.
 1. **A component whose content holds a missing child is missing** (#2461). Exceptions: `<math>`
    and `<text>`, where the blank takes part, and containers, which show it inline. A missing
    list entry is a blank entry. An award whose condition is missing gives no credit. VAL-5.
-   Done by #2514, #2524 (lists) and #2543 (#2516); the leftovers are #2544.
+   Done by #2514, #2524 (lists), #2543 (#2516) and #2595 (#2544); the leftovers are #2596.
 2. **`null` is never shown; where it means "no value" the value is missing, and a `NaN` caused by
    a missing input is missing** (#2460). Only a computation on present inputs that has no value
-   stays `NaN`. VAL-5. Done by #2543, with the type rule below; the leftovers are #2544.
+   stays `NaN`. VAL-5. Done by #2543, with the type rule below, and #2595 (#2544); the leftovers
+   are #2596.
 3. **An `<angle>` whose measure isn't determined is blank** (#2324), for a bare `<angle/>`, one or
    two `through` points, and one line. 0.7 documents are not converted. VAL-5, D10. Done by #2543.
 4. **Names in the arguments of a function reference that names nothing are made, as if in a
