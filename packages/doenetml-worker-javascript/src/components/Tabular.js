@@ -15,6 +15,8 @@ export default class Tabular extends BlockComponent {
         });
     }
     static componentType = "tabular";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A simple tabular layout of cells",

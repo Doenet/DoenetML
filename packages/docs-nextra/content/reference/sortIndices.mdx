@@ -18,7 +18,8 @@ difference is only in what it reports.
 
 Like a `<sort>{:dn}`, it sorts items of one type: a `<number>{:dn}` beside a
 `<text>{:dn}`, or a `<group>{:dn}` holding several components, is an error, shown in
-place of the indices (see [`<sort>{:dn}`](sort#example-items-of-one-type-and-lists-sorted-together)).
+place of the indices, and so are objects other than points and vectors, or content,
+without `sortByProp` (see [`<sort>{:dn}`](sort#example-items-of-one-type-and-lists-sorted-together)).
 
 Its value comes from being combined with indexing: `$other[$perm[1]]{:dn}` reads one
 list in the order determined by another.

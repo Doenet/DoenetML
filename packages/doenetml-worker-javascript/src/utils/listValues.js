@@ -3,6 +3,7 @@ import { textToAst } from "./math";
 import { codedDiagnostic } from "./diagnostics";
 import { splitListItems } from "@doenet/parser/list-separation";
 import { returnGroupIntoListEntriesOfComponentType } from "../components/commonsugar/lists";
+import { kindOfComponentType } from "./componentKinds";
 
 /**
  * Shared machinery for components that treat their children as a list of
@@ -123,6 +124,20 @@ export function extractComparableValue({
             },
             stillNumeric: !Number.isNaN(numericalValue),
         };
+    }
+
+    // An input stands for what it holds (D46): its value, compared as a
+    // component of that type is.
+    const inputValue = valueOfInput(component, componentInfoObjects);
+    if (inputValue !== undefined) {
+        return extractComparableValue({
+            component: {
+                componentIdx: component.componentIdx,
+                componentType: inputValue.componentType,
+                stateValues: { value: inputValue.value },
+            },
+            componentInfoObjects,
+        });
     }
 
     // Points and vectors are compared by one of their coordinates. A vector
@@ -432,6 +447,8 @@ export function returnListValueStateVariableDefinitions({
                         componentIdx: cIdx,
                         variableNames: [
                             "value",
+                            // a `<choiceInput>`'s value (D46)
+                            "selectedValues",
                             `x${sortByComponent}`,
                             `tailX${sortByComponent}`,
                             ...(keepMissing
@@ -810,19 +827,16 @@ function typeOfComponents(children, componentInfoObjects) {
             // a reference, whose type is not known here
             continue;
         }
-        const kind = [
-            "number",
-            "math",
-            "text",
-            "boolean",
-            "point",
-            "vector",
-        ].find((base) =>
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: child.componentType,
-                baseComponentType: base,
-            }),
-        );
+        const kind =
+            ["number", "math", "text", "boolean", "point", "vector"].find(
+                (base) =>
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: base,
+                    }),
+            ) ??
+            // an input, which stands for what it holds (D46)
+            inputValueType(child.componentType, componentInfoObjects);
         if (kind === undefined) {
             return undefined;
         }
@@ -835,6 +849,47 @@ function typeOfComponents(children, componentInfoObjects) {
         return "math";
     }
     return undefined;
+}
+
+/**
+ * The type of the value an input of `componentType` stands for (`math`,
+ * `text` or `boolean`; D46, `utils/componentKinds.ts`), or `undefined` for a
+ * component that isn't an input, or whose value's type isn't known at load.
+ */
+function inputValueType(componentType, componentInfoObjects) {
+    const kind = kindOfComponentType(componentType, componentInfoObjects);
+    return kind?.kind === "value" ? kind.type : undefined;
+}
+
+/**
+ * The value the input `component` stands for (D46), and the type it is
+ * compared as: the type of its value known at load (`inputValueType`), or,
+ * for an input whose value's type is decided as it runs (a `<slider>`, or a
+ * `<choiceInput>`, whose values are texts), the type of the value it has.
+ * `undefined` for a component that isn't an input.
+ */
+function valueOfInput(component, componentInfoObjects) {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[component.componentType];
+    if (!componentClass?.isValue) {
+        return undefined;
+    }
+    let value = component.stateValues.value;
+    if (value === undefined && component.stateValues.selectedValues) {
+        value = component.stateValues.selectedValues.join(", ");
+    }
+    const componentType =
+        inputValueType(component.componentType, componentInfoObjects) ??
+        (typeof value === "number"
+            ? "number"
+            : typeof value === "string"
+              ? "text"
+              : typeof value === "boolean"
+                ? "boolean"
+                : value instanceof me.class
+                  ? "math"
+                  : undefined);
+    return componentType === undefined ? undefined : { componentType, value };
 }
 
 /**

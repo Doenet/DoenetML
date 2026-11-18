@@ -32,6 +32,8 @@ export default class Video extends BlockComponent {
         });
     }
     static componentType = "video";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Embeds a video player",

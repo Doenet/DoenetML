@@ -8,7 +8,7 @@ import { errorComponentState } from "./dast/errors";
 
 /** What `doenetAttributes.reorderErrorAtLoad` holds. */
 export type ReorderErrorAtLoad = {
-    code: "doenet-e0076" | "doenet-e0077";
+    code: "doenet-e0076" | "doenet-e0077" | "doenet-e0080";
     args: Record<string, string | number>;
 };
 

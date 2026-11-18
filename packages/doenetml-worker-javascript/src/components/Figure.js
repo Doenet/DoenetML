@@ -15,6 +15,8 @@ export default class Figure extends BlockComponent {
         });
     }
     static componentType = "figure";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A figure container holding graphical content with a caption",

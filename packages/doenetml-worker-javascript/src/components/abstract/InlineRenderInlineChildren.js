@@ -3,6 +3,8 @@ import InlineComponent from "./InlineComponent";
 
 export default class InlineRenderInlineChildren extends InlineComponent {
     static componentType = "_inlineRenderInlineChildren";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static renderChildren = true;
     static includeBlankStringChildren = true;
 

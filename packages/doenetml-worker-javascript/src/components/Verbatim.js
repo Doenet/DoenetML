@@ -15,6 +15,8 @@ export class Pre extends BlockComponent {
         });
     }
     static componentType = "pre";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A preformatted block preserving whitespace",
@@ -87,6 +89,8 @@ export class DisplayDoenetML extends InlineComponent {
         });
     }
     static componentType = "displayDoenetML";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static rendererType = "text";
 
     static componentDocs = {

@@ -118,10 +118,27 @@ using the `<sort>{:dn}` component.
 
 A `<sort>{:dn}` sorts items of one type. A list among its children, such as a
 `<numberList>{:dn}`, gives its entries as items, so several lists are sorted together
-with any other numbers. A `<number>{:dn}` and a `<math>{:dn}` are one type for sorting,
-as both are ordered by value. A `<number>{:dn}` beside a `<text>{:dn}`, or a
-`<point>{:dn}` beside a `<vector>{:dn}`, is an error, shown in place of the sorted list:
-give each type a `<sort>{:dn}` of its own.
+with any other numbers. What a type is depends on the kind of item:
+
+- **A value** (a `<math>{:dn}`, `<number>{:dn}`, `<text>{:dn}` or `<boolean>{:dn}`) is of
+  its value's type, and is sorted by value. A `<number>{:dn}` and a `<math>{:dn}` are one
+  type. An input stands for what it holds: a `<mathInput>{:dn}` is sorted with maths by
+  the math typed in it, and a `<textInput>{:dn}` with texts.
+- **An object** (a `<point>{:dn}`, `<line>{:dn}`, `<atom>{:dn}`, `<matrix>{:dn}`, …) is of
+  its tag, with the tags built on it: a `<triangle>{:dn}` and a `<rectangle>{:dn}` are
+  both polygons. Points and vectors are sorted by a coordinate. Other objects have no
+  value to sort by, so write `sortByProp` to name the property to compare, as
+  `<sort sortByProp="atomicNumber">{:dn}` does for atoms.
+- **Content** (a `<p>{:dn}`, `<span>{:dn}`, `<feedback>{:dn}`, `<m>{:dn}`, `<label>{:dn}`, …)
+  is all one type. It has no value to sort by either, so a `<sort>{:dn}` of it needs
+  `sortByProp`, as `sortByProp="text"`.
+
+Items of two types, such as a `<number>{:dn}` beside a `<text>{:dn}`, or a `<point>{:dn}`
+beside a `<vector>{:dn}`, are an error, shown in place of the sorted list: give each type
+a `<sort>{:dn}` of its own. So is a `<sort>{:dn}` of objects or content without
+`sortByProp`. An `<m>{:dn}` shows LaTeX and isn't a math, so to sort it with maths, write
+`<math><m>…</m></math>{:dn}`, which reads its LaTeX as math; likewise
+`<text><label>…</label></text>{:dn}` sorts a `<label>{:dn}` with texts.
 
 A `<group>{:dn}` holding one component is sorted as that component. A `<group>{:dn}`
 holding several components has nothing to be compared by, so a `<sort>{:dn}` of one is

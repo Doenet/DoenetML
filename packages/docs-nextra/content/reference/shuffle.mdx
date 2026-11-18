@@ -140,9 +140,13 @@ stays next to its name. The items are separated by commas, as the items of a
 [`<repeat>{:dn}`](repeat) are, and the components of each are shown as written in the
 group. A `<group>{:dn}` holding one component is shuffled as that component.
 
-A `<shuffle>{:dn}` takes items of one type: a list among its children gives its entries
-as items, but a `<math>{:dn}` beside a `<text>{:dn}`, or beside a `<group>{:dn}` of
-several components, is an error. Give each type a `<shuffle>{:dn}` of its own.
+A `<shuffle>{:dn}` takes items of one type, as a [`<sort>{:dn}`](sort#example-items-of-one-type-and-lists-sorted-together)
+does: a list among its children gives its entries as items. A value is of its value's
+type (a `<number>{:dn}` and a `<math>{:dn}` are one type), an object is of its tag (a
+`<line>{:dn}` and a `<circle>{:dn}` are two types), and all content is one type, so
+paragraphs, feedback and groups of several components shuffle together. A
+`<math>{:dn}` beside a `<text>{:dn}`, or beside a `<group>{:dn}` of several components,
+is an error. Give each type a `<shuffle>{:dn}` of its own.
 
 Select a new page variant from the pulldown menu at the top of the
 editor to see different variants of the document.

@@ -10,6 +10,8 @@ export default class Caption extends BlockComponent {
         });
     }
     static componentType = "caption";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static rendererType = "containerInline";
     static canDisplayChildErrors = true;
 

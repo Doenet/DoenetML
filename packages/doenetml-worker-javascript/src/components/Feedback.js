@@ -10,6 +10,8 @@ export default class Feedback extends BlockComponent {
         });
     }
     static componentType = "feedback";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Targeted feedback shown when conditions are met",

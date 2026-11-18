@@ -17,6 +17,8 @@ export default class CodeEditor extends BlockComponent {
         });
     }
     static componentType = "codeEditor";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     static componentDocs = {
         summary: "An interactive DoenetML code editor",

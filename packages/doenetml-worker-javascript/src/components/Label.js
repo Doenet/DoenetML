@@ -27,6 +27,8 @@ export default class Label extends InlineComponent {
         });
     }
     static componentType = "label";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A label for an input, answer, button, or graphical object",

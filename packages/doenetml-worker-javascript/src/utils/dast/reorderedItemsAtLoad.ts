@@ -15,22 +15,26 @@
  * flattened into its items; a wrapper (a `<group>`, an iteration, a pick, a
  * case) is not, and with one component it stands for that component.
  *
- * The type compared is the one the sort compares by (`extractComparableValue`
- * in `utils/listValues.js`): a `<number>` and a `<math>` (and the tags built
- * on them, as `<integer>`) are one type, as they are compared alike, by
- * value, and a `<text>`, a `<boolean>`, a `<point>` and a `<vector>` are each
- * a type of their own. Any other component has no value to be compared by
- * (a `<p>`, a `<feedback>`, a `<row>`), and these are one type together, so
- * that a `<shuffle>` of paragraphs and feedback is not an error. A `<shuffle>`
- * compares nothing, but takes one type all the same, so that the two agree
- * (COLL-4); for it, the items holding several components are one type
- * together.
+ * What a type is follows D46 (`utils/componentKinds.ts`): a value (a
+ * `<math>`, a `<text>`, an input) is of its value's type, with integer,
+ * number and math one type; an object (a `<point>`, a `<line>`, an `<atom>`)
+ * is of its tag, with the tags built on it; and all content (a `<p>`, a
+ * `<feedback>`, an `<m>`, a `<label>`) is one type, with an item holding
+ * several components. A `<shuffle>` compares nothing, but takes one type all
+ * the same, so that the two agree (COLL-4).
+ *
+ * A `<sort>` or `<sortIndices>` compares values by value, and points and
+ * vectors by a coordinate. Other objects, and content, have no value to be
+ * compared by, so a sort of them needs `sortByProp`, and without it is
+ * `doenet-e0080`.
  *
  * Only what the DoenetML says is read (DIAG-7). An item whose type it does
  * not say (a reference to a property of a composite, a `valueName` of a
  * `<repeat>`) is left out of the decision, so the error is reported only for
  * the types that are known; and a reference that names nothing is a blank,
- * of no type. A `<sort>` or `<shuffle>` that is an error is marked
+ * of no type; so is an item whose type is decided only as the document
+ * runs (a `<slider>` or `<choiceInput>`, until #2568). A `<sort>` or
+ * `<shuffle>` that is an error is marked
  * (`doenetAttributes.reorderErrorAtLoad`), is not made a list
  * (`listForms.ts`), and shows the same error in place of its items, kept
  * once. A `<sortIndices>`, which sorts as a `<sort>` does but is not a
@@ -49,6 +53,7 @@ import { staticValueReferenceTarget } from "../valueReference";
 import { unwrapSource } from "./convertNormalizedDast";
 import { attributeOf, literalText } from "./choiceErrorsAtLoad";
 import { sequenceEntryComponentType } from "../sequence";
+import { kindOfComponentType } from "../componentKinds";
 
 /**
  * An item of a `<sort>` or `<shuffle>`: one component, of the tag `tag`, or
@@ -114,20 +119,20 @@ export function checkReorderedItemsAtLoad({
         });
     }
 
-    /** The type a component of `tag` is compared as (see above). */
-    function typeClass(tag: string) {
-        for (const base of ["point", "vector", "boolean", "text"]) {
-            if (inherits(tag, base)) {
-                return base;
-            }
-        }
-        if (inherits(tag, "number") || inherits(tag, "math")) {
-            return "math";
-        }
-        // A component with no value to be compared by (a `<p>`, a
-        // `<feedback>`, an `<li>`), which only a `<shuffle>`, or a `<sort>`
-        // by a property, reorders.
-        return "content";
+    /**
+     * The one type an item is of (D46): a value's type (`math`, `text`,
+     * `boolean`), an object's tag, or `content`, which an item holding
+     * several components is too. `undefined` when the DoenetML doesn't say.
+     */
+    function typeOf(item: Item) {
+        return item.kind === "several"
+            ? "content"
+            : kindOfComponentType(item.tag, componentInfoObjects)?.type;
+    }
+
+    /** Whether `item` is one component of a tag built on `base`. */
+    function isOf(item: Item, base: string) {
+        return item.kind === "one" && inherits(item.tag, base);
     }
 
     function canonical(type: string | undefined) {
@@ -487,16 +492,40 @@ export function checkReorderedItemsAtLoad({
         }
         const firstOfType = new Map<string, Item>();
         for (const item of items) {
-            const key =
-                item.kind === "several" ? "several" : typeClass(item.tag);
-            if (!firstOfType.has(key)) {
+            const key = typeOf(item);
+            if (key !== undefined && !firstOfType.has(key)) {
                 firstOfType.set(key, item);
             }
         }
         if (firstOfType.size < 2) {
-            return undefined;
+            return firstOfType.size === 1 && SORTS.has(component.componentType)
+                ? sortByPropError(component, [...firstOfType.entries()][0])
+                : undefined;
         }
-        const [first, second] = [...firstOfType.values()];
+        let [[firstKey, first], [secondKey, second]] = [
+            ...firstOfType.entries(),
+        ];
+        // Content an author may take for a value (D46): an `<m>` beside a
+        // math, or a `<label>` beside a text, which a `<math>` or `<text>`
+        // around it makes one type. Name that one, and say so.
+        let wrap: "m" | "label" | "no" = "no";
+        const pair = new Set([firstKey, secondKey]);
+        for (const [tag, valueType] of [
+            ["m", "math"],
+            ["label", "text"],
+        ] as const) {
+            if (pair.has("content") && pair.has(valueType)) {
+                const wrapped = items.find((item) => isOf(item, tag));
+                if (wrapped) {
+                    wrap = tag;
+                    if (firstKey === "content") {
+                        first = wrapped;
+                    } else {
+                        second = wrapped;
+                    }
+                }
+            }
+        }
         // `type` says how to read text the author wrote, as a number, math,
         // text or boolean. It helps only when the text is beside an item
         // of a number, math or text, which any text reads as: not one with
@@ -506,8 +535,7 @@ export function checkReorderedItemsAtLoad({
         const isPiece = (item: Item) =>
             item.kind === "one" && item.piece !== undefined;
         const typeCanRead = (item: Item) =>
-            item.kind === "one" &&
-            ["math", "text"].includes(typeClass(item.tag));
+            item.kind === "one" && ["math", "text"].includes(typeOf(item)!);
         const suggestType =
             (isPiece(first) && typeCanRead(second)) ||
             (isPiece(second) && typeCanRead(first));
@@ -518,6 +546,53 @@ export function checkReorderedItemsAtLoad({
                 ...describe(first, "first"),
                 ...describe(second, "second"),
                 suggestType: suggestType ? "yes" : "no",
+                wrap,
+                mTag:
+                    wrap === "m"
+                        ? [first, second].find((item) => isOf(item, "m"))!.tag
+                        : "m",
+            },
+        };
+    }
+
+    /**
+     * The error of a `<sort>` or `<sortIndices>` `component` of items of the
+     * one type `type`, first `item`, if it has nothing to compare them by:
+     * content, or objects other than points and vectors, with no
+     * `sortByProp` (D46).
+     */
+    function sortByPropError(
+        component: SerializedComponent,
+        [type, item]: [string, Item],
+    ): ReorderErrorAtLoad | undefined {
+        if (
+            item.kind !== "one" ||
+            attributeOf(component, "sortByProp") !== undefined
+        ) {
+            return undefined;
+        }
+        const kind = kindOfComponentType(item.tag, componentInfoObjects)?.kind;
+        if (
+            kind === "value" ||
+            kind === undefined ||
+            type === "point" ||
+            type === "vector"
+        ) {
+            return undefined;
+        }
+        const info: any =
+            componentInfoObjects.publicStateVariableInfo[item.tag];
+        return {
+            code: "doenet-e0080",
+            args: {
+                component: component.componentType,
+                item: item.tag,
+                kind,
+                suggestText:
+                    kind === "content" &&
+                    info?.stateVariableDescriptions?.text !== undefined
+                        ? "yes"
+                        : "no",
             },
         };
     }

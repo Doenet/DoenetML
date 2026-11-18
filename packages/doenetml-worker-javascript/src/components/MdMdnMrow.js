@@ -65,6 +65,8 @@ export class Md extends InlineComponent {
         });
     }
     static componentType = "md";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Display math with multiple aligned rows",

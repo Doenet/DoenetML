@@ -6,6 +6,8 @@ import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Matrix extends MathComponent {
     static componentType = "matrix";
+    // An object, not a value, though built on `<math>` (D46).
+    static isValue = false;
 
     /**
      * A matrix uses one `<math>` child, the last one written (REF-4a), so a

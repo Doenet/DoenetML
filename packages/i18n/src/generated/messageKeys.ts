@@ -491,6 +491,7 @@ export type MessageKey =
     | "extend-children-ignored"
     | "copy-children-ignored"
     | "action-target-not-one-value"
+    | "latex-not-read-as-math"
     | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
     | "list-brackets-unmatched"
@@ -634,6 +635,7 @@ export type MessageKey =
     | "copy-with-state-of-uri"
     | "copy-with-state-attribute-reaches-choice"
     | "reorder-items-of-several-types"
+    | "sort-needs-sort-by-prop"
     | "sort-item-of-several"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
@@ -1192,6 +1194,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "extend-children-ignored",
     "copy-children-ignored",
     "action-target-not-one-value",
+    "latex-not-read-as-math",
     "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
     "list-brackets-unmatched",
@@ -1335,6 +1338,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-with-state-of-uri",
     "copy-with-state-attribute-reaches-choice",
     "reorder-items-of-several-types",
+    "sort-needs-sort-by-prop",
     "sort-item-of-several",
     "editor-update-viewer",
     "editor-update-viewer-title",

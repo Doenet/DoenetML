@@ -57,6 +57,8 @@ export class Ol extends BlockComponent {
         });
     }
     static componentType = "ol";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "An ordered list",
@@ -270,6 +272,8 @@ export class Li extends BaseComponent {
         });
     }
     static componentType = "li";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A list item within `<ol>` / `<ul>`",

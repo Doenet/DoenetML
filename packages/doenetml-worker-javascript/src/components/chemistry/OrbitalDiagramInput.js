@@ -20,6 +20,8 @@ export default class OrbitalDiagramInput extends BlockComponent {
     }
 
     static componentType = "orbitalDiagramInput";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     static componentDocs = {
         summary:

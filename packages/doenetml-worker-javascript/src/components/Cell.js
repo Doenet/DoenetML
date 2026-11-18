@@ -17,6 +17,8 @@ import {
 
 export default class Cell extends BaseComponent {
     static componentType = "cell";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A single cell within a tabular layout or spreadsheet",
