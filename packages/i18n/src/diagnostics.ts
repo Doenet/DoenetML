@@ -98,6 +98,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0058": "list-brackets-unmatched",
     "doenet-i0059": "list-reference-joins-entry",
     "doenet-i0060": "action-target-not-shown",
+    "doenet-i0061": "type-change-property-not-one-value",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -290,6 +291,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0191": "reference-branches-hold-several",
     "doenet-w0192": "reference-property-partly-held",
     "doenet-w0193": "reference-property-after-several",
+    "doenet-w0194": "matrix-math-child-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

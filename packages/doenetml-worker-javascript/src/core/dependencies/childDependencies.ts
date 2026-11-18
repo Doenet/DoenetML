@@ -154,7 +154,8 @@ export class ChildDependency extends Dependency {
         // if childIndices specified, filter out just those indices
         // Note: indices are relative to the selected ones
         // (not actual index in activeChildren)
-        // so filter uses the i argument, not the x argument
+        // so filter uses the i argument, not the x argument.
+        // A negative index counts from the end: `-1` is the last.
         // A list component is several children of the value, one per
         // entry, so with one among the children the indices pick from the
         // value once the lists are expanded (`expandListChildren`).
@@ -170,8 +171,11 @@ export class ChildDependency extends Dependency {
             ) {
                 this.childIndicesAfterExpansion = true;
             } else {
+                const numSelected = activeChildrenIndices.length;
                 activeChildrenIndices = activeChildrenIndices.filter(
-                    (x: any, i: number) => this.childIndices.includes(i),
+                    (x: any, i: number) =>
+                        this.childIndices.includes(i) ||
+                        this.childIndices.includes(i - numSelected),
                 );
             }
         }
@@ -1032,7 +1036,10 @@ export class ChildDependency extends Dependency {
             if (isComponent) {
                 downInd++;
             }
-            if (!this.childIndices.includes(ind)) {
+            if (
+                !this.childIndices.includes(ind) &&
+                !this.childIndices.includes(ind - expanded.length)
+            ) {
                 continue;
             }
             if (isComponent) {

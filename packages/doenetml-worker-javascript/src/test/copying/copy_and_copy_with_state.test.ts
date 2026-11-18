@@ -1375,11 +1375,12 @@ ${repeat}
         expect((await component("mic")).stateValues.value.tree).eq("y");
         expect((await component("tic")).stateValues.value).eq("y");
         expect((await component("bic")).stateValues.value).eq(true);
-        // the source's value, as the child is not read
+        // the child replaces the source's, as a substitute reads one
+        // (REF-4a, #2546)
         expect((await component("subc")).stateValues.value.tree).eqls([
             "+",
             "y",
-            1,
+            2,
         ]);
 
         const { errors, warnings } = getDiagnosticsByType(core);

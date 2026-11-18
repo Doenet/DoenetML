@@ -490,6 +490,7 @@ export type MessageKey =
     | "extend-attribute-ignored"
     | "extend-children-ignored"
     | "copy-children-ignored"
+    | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
@@ -509,6 +510,7 @@ export type MessageKey =
     | "type-change-composite-type-unknown"
     | "type-change-index-names-nothing"
     | "type-change-composite-holds-nothing"
+    | "type-change-property-not-one-value"
     | "type-change-value-not-convertible"
     | "attribute-empty"
     | "children-invalid-attribute-format"
@@ -1188,6 +1190,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "extend-attribute-ignored",
     "extend-children-ignored",
     "copy-children-ignored",
+    "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
@@ -1207,6 +1210,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "type-change-composite-type-unknown",
     "type-change-index-names-nothing",
     "type-change-composite-holds-nothing",
+    "type-change-property-not-one-value",
     "type-change-value-not-convertible",
     "attribute-empty",
     "children-invalid-attribute-format",

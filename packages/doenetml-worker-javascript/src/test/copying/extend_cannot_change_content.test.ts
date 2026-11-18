@@ -773,6 +773,60 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
     });
 
     /**
+     * A composite tag (`<repeat>`, `<select>`, `<collect>`, `<sort>`) is made
+     * only from one of its own kind, and a property, or an entry of one or of
+     * a list, is a value, never one (REF-5). An extend or copy of a property
+     * holding several values showed nothing, with no error; of one
+     * holding one value, or of an entry, it was `doenet-e0065`, naming the
+     * value's type (#2546 item 4).
+     */
+    describe("a composite tag made from a property", () => {
+        const SOURCES = `<sequence name="s" from="1" to="3"/>
+<number name="n">3</number>
+<point name="P">(1,2)</point>
+<numberList name="l">1 2</numberList>`;
+
+        for (const written of [
+            `<repeat extend="$s.value"/>`,
+            `<repeat copy="$s.value"/>`,
+            `<select extend="$n.value"/>`,
+            `<collect extend="$s.value"/>`,
+            `<sort extend="$s.value"/>`,
+            `<conditionalContent extend="$P.coords"/>`,
+            `<repeat extend="$l[2]"/>`,
+            `<select copy="$P.xs[1]"/>`,
+        ]) {
+            it(written, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${SOURCES}
+<p name="p">${written}</p>
+<p name="after">after</p>`,
+                });
+
+                const { errors, warnings } = getDiagnosticsByType(core);
+                const tag = written.match(/^<(\w+)/)![1];
+                const source = written.match(/"(.*)"/)![1];
+                expect(
+                    [...errors, ...warnings].map((d) => [
+                        d.code,
+                        d.message,
+                        d.position?.start.line,
+                    ]),
+                ).eqls([
+                    [
+                        "doenet-e0071",
+                        `A \`<${tag}>\` makes its content itself, so it can be made only from another \`<${tag}>\`, and \`${source}\` is a value. To show it as it is, write \`${source}\`.`,
+                        5,
+                    ],
+                ]);
+                expect(
+                    await textsOf(core, resolvePathToNodeIdx, ["p", "after"]),
+                ).eqls(["", "after"]);
+            });
+        }
+    });
+
+    /**
      * A composite that holds one sequence in each case or option is one
      * sequence, or nothing, so a `<sequence>` can be made from it, as on
      * `main`; one that can hold something else is `doenet-e0071`.
