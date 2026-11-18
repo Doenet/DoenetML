@@ -1954,8 +1954,8 @@ export function checkTypeChangesAtLoad({
      * item declares by it, with one tag, or nothing, in every iteration
      * (COLL-5, D44 decision 6, as COMP-11 for the options). `undefined`
      * otherwise, where what each item holds is found as the document runs.
-     * The select is marked with the repeat (`itemsOfRepeat`), for the
-     * messages.
+     * The select is marked with the repeat (`itemsOfRepeat`) and with how
+     * each item is named (`itemPlaces`), for the messages.
      */
     function repeatItemsAsBranches(placeholder: SerializedComponent) {
         if (!itemsAsBranches.has(placeholder.componentIdx)) {
@@ -2000,7 +2000,40 @@ export function checkTypeChangesAtLoad({
                 children: item.kind === "several" ? item.children : [],
             })),
             itemsOfRepeat: repeat,
+            itemPlaces: placesOfItems(found.items),
         } as unknown as SerializedComponent;
+    }
+
+    /**
+     * How the messages name each of `items`, the items of a repeat's `for`
+     * that each hold several components: as the option or case it is
+     * (`part`), by its place in the `for` (`position`), or, when that is not
+     * known at load, as an item (an item after the iterations of a repeat
+     * or the options or cases of a container, of which the `for` holds a
+     * number decided as the document runs).
+     */
+    function placesOfItems(
+        items: NonNullable<
+            ReturnType<ReturnType<typeof itemReader>["forItemsOf"]>
+        >["items"],
+    ) {
+        let placeKnown = true;
+        return items.map((item, ind) => {
+            const part = item.kind === "several" ? item.part : undefined;
+            const place = part
+                ? { part }
+                : placeKnown
+                  ? { position: ind + 1 }
+                  : {};
+            if (
+                part ||
+                item.tag === "repeat" ||
+                item.tag === "repeatForSequence"
+            ) {
+                placeKnown = false;
+            }
+            return place;
+        });
     }
 
     /**
@@ -2712,28 +2745,46 @@ export function checkTypeChangesAtLoad({
         const repeat: SerializedComponent | undefined = (
             declared.container as any
         ).itemsOfRepeat;
-        const containerName = literalText(
-            (repeat ?? declared.container).attributes?.name,
-        );
-        const hasName =
-            containerName !== undefined &&
-            containerName !== "" &&
-            !containerName.startsWith("_");
-        const container = hasName
-            ? containerName
-            : (repeat ?? declared.container).componentType;
+        function named(component: SerializedComponent) {
+            const containerName = literalText(component.attributes?.name);
+            const hasName =
+                containerName !== undefined &&
+                containerName !== "" &&
+                !containerName.startsWith("_");
+            return {
+                container: hasName ? containerName : component.componentType,
+                hasName: hasName ? "true" : "false",
+            };
+        }
         if (declared.status === "missing") {
+            // the item that lacks it, named as the option or case it is,
+            // or by its place in the `for` (`placesOfItems`)
+            const place = repeat
+                ? (declared.container as any).itemPlaces[declared.ordinal - 1]
+                : undefined;
             return {
                 code: "doenet-w0183",
                 args: {
                     name,
-                    branch: repeat ? "item" : declared.branch,
-                    ordinal: declared.ordinal,
-                    container,
-                    hasName: hasName ? "true" : "false",
+                    ...(place?.part
+                        ? {
+                              branch: place.part.branch,
+                              ordinal: place.part.ordinal,
+                              ...named(place.part.container),
+                          }
+                        : {
+                              branch: !repeat
+                                  ? declared.branch
+                                  : place?.position !== undefined
+                                    ? "item"
+                                    : "someItem",
+                              ordinal: place?.position ?? declared.ordinal,
+                              ...named(repeat ?? declared.container),
+                          }),
                 },
             };
         }
+        const { container, hasName } = named(repeat ?? declared.container);
         return {
             code: "doenet-w0184",
             args: {
@@ -2742,7 +2793,7 @@ export function checkTypeChangesAtLoad({
                 firstType: declared.firstType,
                 secondType: declared.secondType,
                 container,
-                hasName: hasName ? "true" : "false",
+                hasName,
             },
         };
     }

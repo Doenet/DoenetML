@@ -78,6 +78,15 @@ type Item =
           first?: string;
           /** what it holds, as written */
           children: (SerializedComponent | string)[];
+          /**
+           * The option or case of the `<select>` or `<conditionalContent>`
+           * `container` it is, the `ordinal`th of its kind, if it is one
+           */
+          part?: {
+              container: SerializedComponent;
+              branch: "option" | "case" | "else";
+              ordinal: number;
+          };
       };
 
 /** The items found, and whether there may be others not known. */
@@ -331,6 +340,7 @@ export function itemReader({
         if (type === "select" || type === "conditionalContent") {
             // each pick or case shown is a wrapper of what it holds
             const result: Items = { items: [], unknown: false };
+            let ordinal = 0;
             for (const part of component.children ?? []) {
                 if (typeof part !== "object") {
                     continue;
@@ -341,15 +351,39 @@ export function itemReader({
                 ) {
                     return UNKNOWN;
                 }
-                merge(
-                    result,
-                    wrapperItems(
-                        withoutSugarGroup(part.children ?? []),
-                        "item",
-                        type,
-                        seen,
-                    ),
+                const isElse =
+                    part.componentType === "case" &&
+                    attributeOf(part, "condition") === undefined;
+                if (!isElse) {
+                    ordinal++;
+                }
+                const found = wrapperItems(
+                    withoutSugarGroup(part.children ?? []),
+                    "item",
+                    type,
+                    seen,
                 );
+                merge(result, {
+                    ...found,
+                    // which part each is, for the messages of a repeat
+                    // over them
+                    items: found.items.map((item) =>
+                        item.kind === "several" && item.part === undefined
+                            ? {
+                                  ...item,
+                                  part: {
+                                      container: component,
+                                      branch: isElse
+                                          ? "else"
+                                          : type === "select"
+                                            ? "option"
+                                            : "case",
+                                      ordinal: isElse ? 1 : ordinal,
+                                  },
+                              }
+                            : item,
+                    ),
+                });
             }
             return result;
         }

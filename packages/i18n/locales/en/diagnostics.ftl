@@ -557,12 +557,17 @@ reference-index-past-instances =
 # `<select>` when $hasName is "true", and its tag otherwise; DoenetML, so it
 # stays in English. $branch is `item` for a name after the `valueName` of a
 # `<repeat>` whose `for` holds items of several components (COLL-5), each
-# item being a branch; $container is then the `<repeat>`.
+# item being a branch, and $ordinal the item's place in the `for`; or
+# `someItem` when that place is not known when the document loads (an item
+# after the iterations of a `<repeat>` or the picks of a `<select>`);
+# $container is then the `<repeat>`. An item that is an option or a case
+# is named as one, with $container the `<select>` or `<conditionalContent>`.
 
 reference-name-missing-in-branch = `{ $reference }` names nothing: { $branch ->
         [else] the `<else>`
         [option] option { $ordinal }
         [item] item { $ordinal } of the `for`
+        [someItem] an item of the `for`
        *[case] case { $ordinal }
     } of { $hasName ->
         [true] `{ $container }`
@@ -570,6 +575,7 @@ reference-name-missing-in-branch = `{ $reference }` names nothing: { $branch ->
     } has no `{ $name }`. Give it one, or use a name every { $branch ->
         [option] option
         [item] item
+        [someItem] item
        *[other] case
     } has.
 

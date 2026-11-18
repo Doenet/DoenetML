@@ -233,6 +233,26 @@ describe("a repeat's for holds one type @group4", () => {
             "doenet-w0183: `$d.P` names nothing: item 2 of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
         ]);
 
+        // An item that is an option is named as the option; an item after
+        // the iterations of a repeat, whose number is not known at load,
+        // is named by no place in the `for`.
+        const unplaced = await bothBuilds(
+            `<select name="s"><option><point name="P">(1,2)</point><text>x</text></option><option><point name="Q">(3,4)</point><text>y</text></option></select>
+<repeat name="t" for="1 2 3" valueName="k"><point name="P">($k,0)</point><text>z</text></repeat>
+<group name="b"><text name="Q">y</text><text>z</text></group>
+<p name="p1"><repeat for="$s" valueName="d">[$d.P]</repeat></p>
+<p name="p2"><repeat for="$t $b" valueName="d">[$d.P]</repeat></p>`,
+            ["p1", "p2"],
+        );
+        expect(unplaced.texts).eqls({
+            p1: "[＿]",
+            p2: "[＿], [＿], [＿], [＿]",
+        });
+        expect(unplaced.warnings).eqls([
+            "doenet-w0183: `$d.P` names nothing: option 2 of `s` has no `P`. Give it one, or use a name every option has.",
+            "doenet-w0183: `$d.P` names nothing: an item of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
+        ]);
+
         // Two tags: an error in place of the reference.
         const types = await bothBuilds(
             `<group name="a"><point name="P">(1,2)</point><text>x</text></group>
