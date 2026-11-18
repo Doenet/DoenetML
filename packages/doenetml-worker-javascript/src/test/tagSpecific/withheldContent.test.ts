@@ -8,6 +8,7 @@ import {
     updateMathInputImmediateValue,
     updateMathInputValue,
     updateTextInputImmediateValue,
+    updateTextInputValue,
     updateValue,
 } from "../utils/actions";
 
@@ -381,6 +382,53 @@ describe("Restored state in withheld content follows changes outside it @group2"
             w = (await h.sv("cc.w")).stateValues;
             expect(w.value.tree).eq(4);
             expect(w.immediateValue.tree).eq(4);
+        });
+
+        it(`a text input's edit its value replaced with the edit itself while shown is not brought back when the value returns while withheld${withElse ? ", with an else" : ""}`, async () => {
+            // As for a math input (#2554 item 1). Reading the input after
+            // its value changed is what clears the record of the edit, and
+            // hiding the case deletes the input in the next update, so that
+            // clearing is saved at the start of that update.
+            const doenetML = `
+    <booleanInput name="b" prefill="true"/>
+    <textInput name="x" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$b"><textInput bindValueTo="$x" name="w"/></case>
+      ${withElse ? "<else>no</else>" : ""}
+    </conditionalContent>`;
+            for (const reload of [false, true]) {
+                const h = await setup(doenetML);
+                await updateTextInputValue({
+                    text: "4",
+                    componentIdx: await h.idx("cc.w"),
+                    core: h.core(),
+                });
+                await updateTextInputImmediateValue({
+                    text: "6",
+                    componentIdx: await h.idx("cc.w"),
+                    core: h.core(),
+                });
+                await updateTextInputValue({
+                    text: "6",
+                    componentIdx: await h.idx("x"),
+                    core: h.core(),
+                });
+                expect((await h.sv("cc.w")).stateValues.immediateValue).eq("6");
+
+                await h.setBoolean("b", false);
+                await updateTextInputValue({
+                    text: "4",
+                    componentIdx: await h.idx("x"),
+                    core: h.core(),
+                });
+                if (reload) {
+                    await h.reload();
+                }
+                await h.setBoolean("b", true);
+                const w = (await h.sv("cc.w")).stateValues;
+                expect(w.value).eq("4");
+                expect(w.immediateValue).eq("4");
+            }
         });
     }
 
