@@ -2,7 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { setListFormsEnabled } from "../../utils/dast/listForms";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
+import {
+    updateMathInputValue,
+    updateSelectedIndices,
+    updateTextInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -710,5 +714,53 @@ describe("sort and shuffle take one type @group4", () => {
             // a slider's type is decided as it runs, and compared by it
             p5: "2 4",
         });
+    });
+
+    it("the other list operators read an input by what it holds", async () => {
+        // They share the sort's comparison. An input among their children
+        // was skipped, so `<argMin>` of a number and a smaller input named
+        // the number, and a `<tally>` of choices counted nothing.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<p name="p1"><indexOf target="2"><mathInput prefill="1"/><mathInput name="b" prefill="5"/></indexOf></p>
+            <p name="p2"><argMin><number>3</number><mathInput prefill="1"/></argMin></p>
+            <p name="p3"><searchSorted target="2.5"><mathInput prefill="1"/><mathInput prefill="2"/><mathInput prefill="3"/></searchSorted></p>
+            <p name="p4"><tally categories="a b"><textInput prefill="b"/><choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput></tally></p>
+            <p name="p5"><binCounts bins="0 2 4"><mathInput prefill="1"/><mathInput prefill="3"/><number>3</number></binCounts></p>`,
+        });
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, string> = {};
+            for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.text;
+            }
+            return result;
+        }
+        expect(await texts()).eqls({
+            p1: "0",
+            p2: "2",
+            p3: "3",
+            // a choiceInput with nothing selected holds nothing
+            p4: "0, 1",
+            p5: "1, 2",
+        });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            selectedIndices: [1],
+            core,
+        });
+        const after = await texts();
+        expect(after.p1).eq("2");
+        expect(after.p4).eq("1, 1");
     });
 });
