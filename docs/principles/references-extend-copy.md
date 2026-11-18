@@ -205,9 +205,16 @@ Limits:
   ([decisions.md](decisions.md), D19).
 
 ### NAME-3: names inside a copy or a repeat iteration are private (Tier 1)
-A copy brings its content's names into existence only beneath the copy's own name. A bare `$h`
-written next to `<section copy="$S" name="S2"/>` still means `S.h`, and makes nothing
-ambiguous. Reach the copy's `h` as `$S2.h`.
+A copy brings its content's names into existence only beneath the copy's own name:
+
+```xml
+<section name="S"><math name="h">x</math></section>
+<section copy="$S" name="S2"/>
+<p>$h, $S2.h</p>
+```
+
+The copy holds a `<math>` named `h` too, but a bare `$h` still means `S`'s `h`, and the copy makes
+nothing ambiguous. Reach the copy's `h` as `$S2.h`.
 
 - **[probe]** A bare `$h` next to one or two copies or extends of `S` resolves to `S.h` with no
   warning. Typing into `S2.h` does not change it.
@@ -226,8 +233,15 @@ ambiguous. Reach the copy's `h` as `$S2.h`.
 ### NAME-4: a reference resolves where it is written, among what is written (Tier 1; D6, done by #2401)
 A reference's first name resolves only to components written in the DoenetML. Content a copy,
 extend, repeat iteration or external document makes is reached only through the name of the
-component that made it. This holds wherever the reference is, with no rule specific to copies:
-- **beside a copy:** a bare `$h` next to `<section copy="$S" name="S2"/>` means `S.h` (NAME-3);
+component that made it. This holds wherever the reference is, with no rule specific to copies.
+The examples use this document:
+
+```xml
+<section name="S"><math name="h">x</math></section>
+<section copy="$S" name="S2"/>
+```
+
+- **beside a copy:** a bare `$h` beside `S2` means `S`'s `h`, and `$S2.h` the copy's (NAME-3);
 - **in an attribute on a copy, extend or `<module copy>`:** the attribute resolves as any
   attribute does. It sees the children written inside the tag, but not the copied content. In
   `<section copy="$orig" hide="$h"><boolean name="h">true</boolean></section>`, `$h` is the inner
@@ -236,8 +250,9 @@ component that made it. This holds wherever the reference is, with no rule speci
   `<module name="g">` at the document root puts its `<number name="xmin">` in the same scope as
   an outer `xmin`, so `$xmin` there is ambiguous (`w0105`), bare or in the copy's attribute.
   Write the copy where the intended `xmin` is nearer (#2470, closing #2403; D6 kept);
-- **in a child added inside a copy:** it does not see the copied content. `$h` resolves as it
-  would beside the copy, and `$S2.h` reaches the copied `h`.
+- **in a child added inside a copy:** it does not see the copied content. In
+  `<section copy="$S" name="S3"><p>$h</p></section>`, `$h` is `S`'s `h`, as it would be beside
+  the copy, and `$S3.h` reaches the copied `h`.
 
 Before #2401, attributes on a copy resolved from the copy's parent, skipping even the children
 written inside the tag, and a child added inside a copy saw the copied content first.

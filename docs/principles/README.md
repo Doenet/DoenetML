@@ -219,6 +219,10 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
   layer with native Vitest tags (`{ tags: principle("REF-3") }`), schema-driven sweeps that
   test every component against the cross-cutting rules, and a black-box test API that any core
   can implement.
+- **For writers.** Each principle is read on its own, often by following a link to it. So each
+  example stands alone: every name it uses is defined in the same principle, in a short
+  DoenetML block or inline (`$h` of `<section name="S"><math name="h">x</math></section>`), and
+  says what type the component is. Don't rely on an example in an earlier principle.
 
 ## Status
 
