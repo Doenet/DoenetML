@@ -89,8 +89,15 @@ type Item =
           };
       };
 
-/** The items found, and whether there may be others not known. */
-type Items = { items: Item[]; unknown: boolean };
+/**
+ * The items found, and whether there may be others not known. A collection
+ * that shows a number of items decided as the document runs (the iterations
+ * of a repeat, the picks of a select, the case shown) or a blank for a
+ * reference that names nothing ends where the place of each item in it is
+ * known: the first `placesKnown` items are each in their place, and those
+ * after may not be (all are when it is absent).
+ */
+type Items = { items: Item[]; unknown: boolean; placesKnown?: number };
 
 const NONE: Items = { items: [], unknown: false };
 const UNKNOWN: Items = { items: [], unknown: true };
@@ -176,8 +183,16 @@ export function itemReader({
     }
 
     function merge(into: Items, more: Items) {
+        if (into.placesKnown === undefined && more.placesKnown !== undefined) {
+            into.placesKnown = into.items.length + more.placesKnown;
+        }
         into.items.push(...more.items);
         into.unknown ||= more.unknown;
+    }
+
+    /** `found`, whose items' places are not known. */
+    function placesUnknown(found: Items): Items {
+        return { ...found, placesKnown: 0 };
     }
 
     /** The items `children`, written in a collection, are together. */
@@ -335,7 +350,9 @@ export function itemReader({
         }
         if (type === "repeat" || type === "repeatForSequence") {
             // each iteration is a wrapper of the template
-            return wrapperItems(component.children ?? [], "item", type, seen);
+            return placesUnknown(
+                wrapperItems(component.children ?? [], "item", type, seen),
+            );
         }
         if (type === "select" || type === "conditionalContent") {
             // each pick or case shown is a wrapper of what it holds
@@ -385,7 +402,7 @@ export function itemReader({
                     ),
                 });
             }
-            return result;
+            return placesUnknown(result);
         }
         if (type === "collect") {
             const attribute = attributeOf(component, "componentType");
@@ -457,8 +474,9 @@ export function itemReader({
             return UNKNOWN;
         }
         if (ref.nodeIdx < 0) {
-            // names nothing: a blank, of no type
-            return NONE;
+            // names nothing: a blank, of no type, which a repeat iterates
+            // over
+            return placesUnknown(NONE);
         }
         const path = ref.unresolvedPath ?? [];
         if (path.length > 0) {

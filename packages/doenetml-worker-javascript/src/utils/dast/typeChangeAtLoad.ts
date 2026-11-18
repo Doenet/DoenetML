@@ -2000,39 +2000,32 @@ export function checkTypeChangesAtLoad({
                 children: item.kind === "several" ? item.children : [],
             })),
             itemsOfRepeat: repeat,
-            itemPlaces: placesOfItems(found.items),
+            itemPlaces: placesOfItems(found),
         } as unknown as SerializedComponent;
     }
 
     /**
-     * How the messages name each of `items`, the items of a repeat's `for`
-     * that each hold several components: as the option or case it is
+     * How the messages name each of the items `found` of a repeat's `for`,
+     * which each hold several components: as the option or case it is
      * (`part`), by its place in the `for` (`position`), or, when that is not
-     * known at load, as an item (an item after the iterations of a repeat
-     * or the options or cases of a container, of which the `for` holds a
-     * number decided as the document runs).
+     * known at load, as an item (an item after the iterations of a repeat,
+     * the picks of a select or the case shown, of which the `for` holds a
+     * number decided as the document runs, or after a reference that names
+     * nothing, which is a blank item).
      */
     function placesOfItems(
-        items: NonNullable<
+        found: NonNullable<
             ReturnType<ReturnType<typeof itemReader>["forItemsOf"]>
-        >["items"],
+        >,
     ) {
-        let placeKnown = true;
-        return items.map((item, ind) => {
+        const placesKnown = found.placesKnown ?? found.items.length;
+        return found.items.map((item, ind) => {
             const part = item.kind === "several" ? item.part : undefined;
-            const place = part
+            return part
                 ? { part }
-                : placeKnown
+                : ind < placesKnown
                   ? { position: ind + 1 }
                   : {};
-            if (
-                part ||
-                item.tag === "repeat" ||
-                item.tag === "repeatForSequence"
-            ) {
-                placeKnown = false;
-            }
-            return place;
         });
     }
 

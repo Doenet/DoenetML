@@ -253,6 +253,32 @@ describe("a repeat's for holds one type @group4", () => {
             "doenet-w0183: `$d.P` names nothing: an item of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
         ]);
 
+        // So is an item after the iterations of a repeat whose template is
+        // one group, or after a reference that names nothing, a blank
+        // item; an empty group is no item.
+        const unplacedToo = await bothBuilds(
+            `<group name="g"><point name="P">(1,0)</point><text>z</text></group>
+<repeat name="t" for="1 2 3" valueName="k"><group><point name="P">($k,0)</point><text>z</text></group></repeat>
+<group name="b"><text name="Q">y</text><text>z</text></group>
+<group name="e"/>
+<p name="p1"><repeat for="$t $b" valueName="d">[$d.P]</repeat></p>
+<p name="p2"><repeat for="$nothing $g $b" valueName="d">[$d.P]</repeat></p>
+<p name="p3"><repeat for="$e $g $b" valueName="d">[$d.P]</repeat></p>`,
+            ["p1", "p2", "p3"],
+        );
+        expect(unplacedToo.texts).eqls({
+            p1: "[＿], [＿], [＿], [＿]",
+            p2: "[＿], [＿], [＿]",
+            p3: "[＿], [＿]",
+        });
+        expect(
+            unplacedToo.warnings.filter((w) => w.startsWith("doenet-w0183")),
+        ).eqls([
+            "doenet-w0183: `$d.P` names nothing: an item of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
+            "doenet-w0183: `$d.P` names nothing: an item of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
+            "doenet-w0183: `$d.P` names nothing: item 2 of the `for` of the `<repeat>` has no `P`. Give it one, or use a name every item has.",
+        ]);
+
         // Two tags: an error in place of the reference.
         const types = await bothBuilds(
             `<group name="a"><point name="P">(1,2)</point><text>x</text></group>
