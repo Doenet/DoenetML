@@ -30,9 +30,9 @@
  *
  * Only what the DoenetML says is read (DIAG-7). An item whose type it does
  * not say (a reference to a property of a composite, the `valueName` of a
- * `<repeat>` whose `for` does not decide it) is left out of the decision, so the error is reported only for
- * the types that are known; and a reference that names nothing is a blank,
- * of no type; so is an item whose type is decided only as the document
+ * `<repeat>` whose `for` does not decide it) is left out of the decision,
+ * so the error is reported only for the types that are known; and a
+ * reference that names nothing is a blank, of no type; so is an item whose type is decided only as the document
  * runs (a `<slider>` or `<choiceInput>`, until #2568). A `<sort>` or
  * `<shuffle>` that is an error is marked
  * (`doenetAttributes.reorderErrorAtLoad`), is not made a list
@@ -731,7 +731,8 @@ export function itemReader({
 
 /**
  * Mark each `<sort>` and `<shuffle>` among `serializedComponents` whose
- * items are not of one type, and return its error, to report now.
+ * items are not of one type, and each `<repeat>` whose `for` does not hold
+ * one type, and return its error, to report now.
  */
 export function checkReorderedItemsAtLoad({
     serializedComponents,

@@ -86,7 +86,7 @@ export default class Repeat extends CompositeComponent {
         attributes.type = {
             createPrimitiveOfType: "string",
             description:
-                "The type of the text written in `for` (math if not written: math, number, text or boolean). When written, every item of `for` must be of this type.",
+                "The type of the text written in `for`: math (the default), number, text or boolean. When written, every item of `for` must be of this type, with math, number and integer counting as one type.",
         };
 
         attributes.isResponse = {

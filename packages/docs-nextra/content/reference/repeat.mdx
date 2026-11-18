@@ -268,8 +268,7 @@ so `$r.x` names nothing, and you name the one you mean: `$r.P.x`.
 <p><repeat for="2 $t" type="text" valueName="w">[$w]</repeat></p>
 ```
 
-The items of `for` are read as a `<sort>{:dn}` or `<shuffle>{:dn}` reads its
-children. Text written in `for` is split at spaces into items, and a list, or
+The items of `for` are read as a `<shuffle>{:dn}` reads its children. Text written in `for` is split at spaces into items, and a list, or
 a `<repeat>{:dn}` or `<select>{:dn}` whose iterations or options each hold one
 component, gives one item for each of its entries. A `<group>{:dn}` holding
 one component stands for that component. Anything holding several components

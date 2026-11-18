@@ -121,6 +121,12 @@ describe("a repeat's for holds one type @group4", () => {
                 for: `for="2 $n" type="text"`,
                 error: 'doenet-e0081: This `<repeat>` says `type="text"`, so every item of its `for` is to be a text, but `for` has a `<number>`. Remove `type`, or give that item a `<repeat>` of its own.',
             },
+            {
+                // a reference alone, of another type than `type` says
+                setup: `<number name="n">3</number>`,
+                for: `for="$n" type="text"`,
+                error: 'doenet-e0081: This `<repeat>` says `type="text"`, so every item of its `for` is to be a text, but `for` has a `<number>`. Remove `type`, or give that item a `<repeat>` of its own.',
+            },
         ];
         for (const { setup, for: forAttr, error } of cases) {
             const result = await bothBuilds(
@@ -133,6 +139,17 @@ describe("a repeat's for holds one type @group4", () => {
             expect(result.texts.p1, forAttr).eq("");
             expect(result.texts.p2, forAttr).eq("＿");
         }
+    });
+
+    it("the error is reported once, at the `for`", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<text name="t">hi</text>
+<p><repeat valueName="v" for="2 $t">[$v]</repeat></p>`,
+        });
+        const { errors } = getDiagnosticsByType(core);
+        expect(errors.map((e) => e.code)).eqls(["doenet-e0081"]);
+        expect(errors[0].position?.start.line).eq(2);
+        expect(errors[0].position?.start.column).eq(26);
     });
 
     it("one type: integer, number and math are one, and type can say how to read the text", async () => {
@@ -233,12 +250,14 @@ describe("a repeat's for holds one type @group4", () => {
         const result = await bothBuilds(
             `<text name="t">hi</text><number name="n">3</number><integer name="k">2</integer>
 <p name="p1"><repeat for="$t" valueName="v"><point extend="$v"/></repeat></p>
-<p name="p2"><repeat for="$k $n" valueName="v"><number extend="$v"/></repeat></p>`,
-            ["p1", "p2"],
+<p name="p2"><repeat for="$k $n" valueName="v"><number extend="$v"/></repeat></p>
+<p name="p3"><repeat for="$k $n" valueName="v"><sort>$v <text>hi</text></sort></repeat></p>`,
+            ["p1", "p2", "p3"],
         );
         expect(result.texts.p2).eq("2, 3");
         expect(result.errors).eqls([
             "doenet-e0065: A `<point>` can't be made from `$v`, which gives a `<text>`. To show it as it is, write `$v`.",
+            "doenet-e0076: `<sort>` takes items of one type, but it has a `<number>` and a `<text>`. Give each type a `<sort>` of its own.",
         ]);
     });
 
