@@ -467,14 +467,20 @@ describe("Children a copy or extend does not use @group3", () => {
             `<graph><curve name="c" through="(1,2) (3,4)"/>
 <curve name="cc" copy="$c">(1,2)</curve>
 <curve name="f"><function>x^2</function></curve>
-<curve name="fc" copy="$f"><bezierControls/></curve></graph>`,
+<curve name="fc" copy="$f"><bezierControls/></curve>
+<function name="g">x^3</function>
+<curve name="cr" copy="$c">$g</curve></graph>`,
         );
         expect(errors).eqls([]);
+        // A reference is matched as what it names (`referenceType`): `$g`
+        // is a function, ignored beside through points (#2546).
         expect(warnings.map((w) => [w.code, w.position?.start.line])).eqls([
             ["doenet-w0190", 2],
             ["doenet-w0190", 4],
+            ["doenet-w0190", 6],
         ]);
         expect((await sv("cc")).curveType).eq("bezier");
+        expect((await sv("cr")).curveType).eq("bezier");
         expect((await sv("fc")).curveType).eq("function");
     });
 
