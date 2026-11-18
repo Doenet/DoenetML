@@ -267,12 +267,13 @@ a missing point isn't drawn in a graph. It is not the same as the empty tag:
 reference to it, or to a property of it, is missing too. `hide` still hides it.
 Written bare, `$nothing` shows `＿` too, with the same warning.
 
-A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}`,
-`<point>{:dn}`, `<vector>{:dn}` or shape whose content is only a missing
-reference is missing in the same way: `<number>$nothing</number>{:dn}` shows
-`＿`, not `NaN`, never equals anything, and a `<circle>$nothing</circle>{:dn}`
-or a `<point>$pl[$i]</point>{:dn}` past the end of `pl` isn't drawn. So is a
-`<point>{:dn}` or `<vector>{:dn}` whose content is a blank entry of a list. An `<award>{:dn}` whose
+A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}` or
+shape whose content is only a missing reference is missing in the same way:
+`<number>$nothing</number>{:dn}` shows `＿`, not `NaN`, never equals anything,
+and a `<circle>$nothing</circle>{:dn}` isn't drawn. So is a `<point>{:dn}` or
+`<vector>{:dn}` whose content is only a reference that names nothing, such as
+`<point>$nothing</point>{:dn}` or `<point>$pl[$i]</point>{:dn}` past the end of
+a `<pointList name="pl">{:dn}`, or a blank entry of a `<pointList>{:dn}`. An `<award>{:dn}` whose
 condition is missing gives no credit. It is made from its content again once
 the reference names something, as `<number>$l[$i]</number>{:dn}` is once `i`
 is an index of `l`, and a reference to it, or a tag of it, follows it. Where the blank is part of an expression, it takes part:
