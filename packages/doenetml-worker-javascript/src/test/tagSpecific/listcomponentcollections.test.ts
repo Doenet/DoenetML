@@ -1107,12 +1107,13 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     });
 
     it("a sort or shuffle of a type built on a value type keeps the type", async () => {
+        // An interval is an object (D46), so its sort names what to compare.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <interval name="i">(4,5)</interval>
-    <p name="ps"><sort name="s"><interval>(1,3)</interval><interval>[0,2]</interval></sort></p>
+    <p name="ps"><sort name="s" sortByProp="text"><interval>(1,3)</interval><interval>[0,2]</interval></sort></p>
     <p name="psh"><shuffle name="sh"><integer>3.2</integer><integer>1</integer></shuffle></p>
-    <p name="pr"><sort name="sr">$i <interval>[0,1)</interval></sort></p>
+    <p name="pr"><sort name="sr" sortByProp="text">$i <interval>[0,1)</interval></sort></p>
     <p name="pl">[<intervalList>$s</intervalList>]</p>
     <p name="pc">[<collect componentType="interval" from="$ps" />]</p>
     <p name="pcr">[<collect componentType="interval" from="$pr" />]</p>
