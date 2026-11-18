@@ -7,7 +7,10 @@ import {
     updateBooleanInputValue,
     updateMathInputImmediateValue,
     updateMathInputValue,
+    updateMatrixInputImmediateValue,
+    updateMatrixInputValue,
     updateTextInputImmediateValue,
+    updateTextInputValue,
     updateValue,
 } from "../utils/actions";
 
@@ -165,6 +168,24 @@ describe("Withheld content acts as missing from outside @group2", () => {
 
         await updateValue({ componentIdx: await h.idx("uv"), core: h.core() });
         expect((await h.sv("cc.mi")).stateValues.value.tree).eq(7);
+    });
+
+    it("an updateValue on a case behind a literal condition has no target, a warning", async () => {
+        // Content is withheld only once it has been shown, so only where
+        // whether it is shown can change, and `doenet-i0060` is an info
+        // (DIAG-2). A case behind a literal `condition` is never made, so
+        // the action has no target, which the DoenetML decides: a warning
+        // (#2554 item 5).
+        const h = await setup(`
+    <conditionalContent name="cc">
+      <case condition="false"><section name="s"><mathInput name="mi" prefill="1" /></section></case>
+    </conditionalContent>
+    <updateValue name="uv" target="$cc.s.mi" newValue="7" />
+    `);
+        await updateValue({ componentIdx: await h.idx("uv"), core: h.core() });
+        const { warnings, infos } = h.diagnostics();
+        expect(warnings.map((d: any) => d.code)).eqls(["doenet-w0043"]);
+        expect(infos.filter((d: any) => d.code === "doenet-i0060")).eqls([]);
     });
 
     it("an updateValue on a withheld input triggers no chained action", async () => {
@@ -326,6 +347,147 @@ describe("Restored state in withheld content follows changes outside it @group2"
             w = (await h.sv("cc.w")).stateValues;
             expect(w.value.tree).eq(4);
             expect(w.immediateValue.tree).eq(4);
+        });
+
+        it(`an edit its value replaced with the edit itself while shown is not brought back when the value returns while withheld${withElse ? ", with an else" : ""}`, async () => {
+            // The value comes to be exactly the edit, so the edit is the
+            // value, not the reader's edit any more (#2554 item 1).
+            const h = await setup(inputInCase(withElse));
+            await h.typeMath("cc.w", "4");
+            await updateMathInputImmediateValue({
+                latex: "6",
+                componentIdx: await h.idx("cc.w"),
+                core: h.core(),
+            });
+            await h.typeMath("x", "6");
+            expect((await h.sv("cc.w")).stateValues.immediateValue.tree).eq(6);
+
+            await h.setBoolean("b", false);
+            await h.typeMath("x", "4");
+            await h.setBoolean("b", true);
+            let w = (await h.sv("cc.w")).stateValues;
+            expect(w.value.tree).eq(4);
+            expect(w.immediateValue.tree).eq(4);
+            expect(w.rawRendererValue).eq("4");
+
+            // and through a reload
+            await updateMathInputImmediateValue({
+                latex: "6",
+                componentIdx: await h.idx("cc.w"),
+                core: h.core(),
+            });
+            await h.typeMath("x", "6");
+            await h.setBoolean("b", false);
+            await h.typeMath("x", "4");
+            await h.reload();
+            await h.setBoolean("b", true);
+            w = (await h.sv("cc.w")).stateValues;
+            expect(w.value.tree).eq(4);
+            expect(w.immediateValue.tree).eq(4);
+        });
+
+        it(`a text input's edit its value replaced with the edit itself while shown is not brought back when the value returns while withheld${withElse ? ", with an else" : ""}`, async () => {
+            // As for a math input (#2554 item 1). Reading the input after
+            // its value changed is what clears the record of the edit, and
+            // hiding the case deletes the input in the next update, so that
+            // clearing is saved at the start of that update.
+            const doenetML = `
+    <booleanInput name="b" prefill="true"/>
+    <textInput name="x" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$b"><textInput bindValueTo="$x" name="w"/></case>
+      ${withElse ? "<else>no</else>" : ""}
+    </conditionalContent>`;
+            for (const reload of [false, true]) {
+                const h = await setup(doenetML);
+                await updateTextInputValue({
+                    text: "4",
+                    componentIdx: await h.idx("cc.w"),
+                    core: h.core(),
+                });
+                await updateTextInputImmediateValue({
+                    text: "6",
+                    componentIdx: await h.idx("cc.w"),
+                    core: h.core(),
+                });
+                await updateTextInputValue({
+                    text: "6",
+                    componentIdx: await h.idx("x"),
+                    core: h.core(),
+                });
+                expect((await h.sv("cc.w")).stateValues.immediateValue).eq("6");
+
+                await h.setBoolean("b", false);
+                await updateTextInputValue({
+                    text: "4",
+                    componentIdx: await h.idx("x"),
+                    core: h.core(),
+                });
+                if (reload) {
+                    await h.reload();
+                }
+                await h.setBoolean("b", true);
+                const w = (await h.sv("cc.w")).stateValues;
+                expect(w.value).eq("4");
+                expect(w.immediateValue).eq("4");
+            }
+        });
+
+        it(`a matrix input's edit its value replaced with the edit itself while shown is not brought back when the value returns while withheld${withElse ? ", with an else" : ""}`, async () => {
+            // As for a math input (#2554 item 1), through the matrix
+            // input's own record of the edit, and what its cell shows.
+            const doenetML = `
+    <booleanInput name="b" prefill="true"/>
+    <matrixInput name="x" numRows="1" numColumns="1" prefill="1"/>
+    <conditionalContent name="cc">
+      <case condition="$b"><matrixInput bindValueTo="$x" name="w"/></case>
+      ${withElse ? "<else>no</else>" : ""}
+    </conditionalContent>`;
+            const entry = (matrix: any) => matrix.tree[2][1][1];
+            for (const reload of [false, true]) {
+                const h = await setup(doenetML);
+                const cell = { rowInd: 0, colInd: 0 };
+                await updateMatrixInputValue({
+                    latex: "4",
+                    componentIdx: await h.idx("cc.w"),
+                    core: h.core(),
+                    ...cell,
+                });
+                await updateMatrixInputImmediateValue({
+                    latex: "6",
+                    componentIdx: await h.idx("cc.w"),
+                    core: h.core(),
+                    ...cell,
+                });
+                await updateMatrixInputValue({
+                    latex: "6",
+                    componentIdx: await h.idx("x"),
+                    core: h.core(),
+                    ...cell,
+                });
+                expect(
+                    entry((await h.sv("cc.w")).stateValues.immediateValue),
+                ).eq(6);
+
+                await h.setBoolean("b", false);
+                await updateMatrixInputValue({
+                    latex: "4",
+                    componentIdx: await h.idx("x"),
+                    core: h.core(),
+                    ...cell,
+                });
+                if (reload) {
+                    await h.reload();
+                }
+                await h.setBoolean("b", true);
+                const w = await h.sv("cc.w");
+                expect(entry(w.stateValues.value)).eq(4);
+                expect(entry(w.stateValues.immediateValue)).eq(4);
+                const shown = (
+                    await h.core().returnAllStateVariables(false, true)
+                )[w.activeChildren[0].componentIdx].stateValues;
+                expect(shown.rawRendererValue).eq("4");
+            }
         });
     }
 

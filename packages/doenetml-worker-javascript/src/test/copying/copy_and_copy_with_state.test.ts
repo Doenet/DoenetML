@@ -455,6 +455,70 @@ describe("copy and copyWithState @group3", () => {
         });
     }
 
+    it("copyWithState of a module: a module attribute reaching a nested choice through a one-entry list whose entry is written with a space keeps the carried choices", async () => {
+        // `2x` is written `2 x`, which the list rule alone would read as two
+        // entries (#2553 item 3)
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><mathList name="ex">2x</mathList></moduleAttributes>
+    <p name="picks"><selectFromSequence name="s" type="math" from="x" step="x" length="5" numToSelect="3" exclude="$ex"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" ex="3x"/>
+`);
+        expect((await doc.sv("mw.picks")).text).eq(
+            (await doc.sv("m1.picks")).text,
+        );
+        // what it excludes is held at what the source chose with
+        const exclude = (await doc.sv("mw.s")).exclude;
+        expect(exclude.map((e: any) => e.tree)).eqls([["*", 2, "x"]]);
+        expect(exclude.map((e: any) => e.tree)).eqls(
+            (await doc.sv("m1.s")).exclude.map((e: any) => e.tree),
+        );
+        expect(
+            doc
+                .diagnostics()
+                .warnings.filter((w: any) => w.code === "doenet-w0186")
+                .map((w: any) => w.args.attribute),
+        ).eqls(["ex"]);
+        expect(
+            doc.diagnostics().errors.map((e: any) => e.code + " " + e.message),
+        ).eqls([]);
+    });
+
+    for (const tag of ["selectRandomNumbers", "selectFromSequence"]) {
+        it(`copyWithState of a section: a ${tag} whose range comes from a group written later selects once, from the range (#2553 item 2)`, async () => {
+            // The selection is made once its parameters are there, whatever
+            // order the document is written in (SEL-7), so the copy carries
+            // a selection from the range, not one made without it.
+            const doenetML = `
+<section name="sec"><${tag} name="s" from="$g.a" to="$g.b" numToSelect="2"/></section>
+<section name="sec2" copyWithState="$sec"/>
+<group name="g"><number name="a">1</number><number name="b">10</number></group>
+`;
+            for (const variant of [1, 2, 3]) {
+                const doc = await loaded(doenetML, variant);
+                async function check() {
+                    const source = (await doc.sv("s")).selectedValues;
+                    expect(source.length).eq(2);
+                    for (const x of source) {
+                        expect(x).within(1, 10);
+                    }
+                    expect((await doc.sv("sec2.s")).selectedValues).eqls(
+                        source,
+                    );
+                    return source;
+                }
+                const before = await check();
+                expect(doc.diagnostics().errors).eqls([]);
+                await doc.reload();
+                expect(await check()).eqls(before);
+            }
+        });
+    }
+
     it("copyWithState of a container keeps the draws of a copy inside it of a source inside it", async () => {
         for (const variant of [1, 2, 3]) {
             const doc = await loaded(

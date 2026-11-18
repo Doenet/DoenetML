@@ -959,6 +959,18 @@ extend-children-ignored = Children written inside a `<{ $componentType }>` with 
 # `copy`.
 copy-children-ignored = A child written inside a `<{ $componentType }>` with `copy` is ignored: a `<{ $componentType }>` doesn't use it beside the children of what it copies.
 
+# The `target` of an `<updateValue>` is a container of several things, which
+# has no one value to change (#2554, COLL-3): a `<group>` holding several
+# components ($container is `group`, and $count how many), or a `<repeat>` or
+# `<repeatForSequence>`, which makes an item for each iteration ($container is
+# `repeat`). $componentType is the action's tag name, $component the
+# container's, and $reference the target as the author wrote it, with its `$`.
+# Tag names and references stay as written.
+action-target-not-one-value = { $container ->
+        [repeat] The `<{ $componentType }>` does nothing: its `target`, `{ $reference }`, is a `<{ $component }>`, which makes an item for each iteration and has no one value. Name the component to change inside one item, as `{ $reference }[1].x` for a component named `x`.
+       *[group] The `<{ $componentType }>` does nothing: its `target`, `{ $reference }`, is a `<group>` of { $count } components, which has no one value. Name the component to change.
+    }
+
 # A `<math>` child of a `<matrix>` that the matrix doesn't use (#2546). A
 # matrix uses one `<math>` child, the last one written. $reason is `several`
 # when more than one `<math>` is written, so the earlier ones are ignored, and

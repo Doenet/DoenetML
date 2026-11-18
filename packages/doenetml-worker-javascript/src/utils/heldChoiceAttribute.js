@@ -17,9 +17,10 @@ import { splitListText } from "@doenet/parser/list-separation";
  * read by the one rule for lists (`splitListText`, #2492): at commas outside
  * brackets if there is one, at spaces otherwise. Its entries are written
  * separated by spaces, or else by commas, whichever that rule reads back as
- * the same entries. `undefined` when neither does (an entry holding a comma
- * outside brackets, or a single entry whose text holds a space, as `2x`
- * written `2 x`), and for any other value, which is then not held.
+ * the same entries; a math entry whose text holds a space is written in
+ * parentheses (`entryAsWritten`). `undefined` when neither does (a text
+ * entry holding a comma outside brackets, or a single text entry holding a
+ * space), and for any other value, which is then not held.
  */
 export async function valueAsWritten(component) {
     const value = await component?.stateValues?.value;
@@ -30,12 +31,7 @@ export async function valueAsWritten(component) {
     if (!entries) {
         return undefined;
     }
-    const texts = entries.map((entry) =>
-        (typeof entry === "object" && entry !== null
-            ? entry.toString()
-            : String(entry)
-        ).trim(),
-    );
+    const texts = entries.map((entry) => entryAsWritten(entry));
     for (const separator of [" ", ", "]) {
         const text = texts.join(separator);
         const read = splitListText(text);
@@ -48,6 +44,26 @@ export async function valueAsWritten(component) {
         }
     }
     return undefined;
+}
+
+/**
+ * The text of the list entry `entry` that reads back as it: a math whose
+ * text holds a space outside brackets (`2x`, written `2 x`) is written in
+ * parentheses, `(2 x)`, which the rule for lists keeps as one entry and which
+ * reads back as the same math (#2553 item 3).
+ */
+function entryAsWritten(entry) {
+    const text = (
+        typeof entry === "object" && entry !== null
+            ? entry.toString()
+            : String(entry)
+    ).trim();
+    const isMath =
+        typeof entry === "object" && entry !== null && "tree" in entry;
+    if (isMath && splitListText(text).entries.length > 1) {
+        return `(${text})`;
+    }
+    return text;
 }
 
 /**

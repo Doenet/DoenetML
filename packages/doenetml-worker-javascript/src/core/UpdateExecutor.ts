@@ -144,11 +144,11 @@ export class UpdateExecutor {
     /**
      * Merge the essential values definitions set since the last update
      * (`essentialValuesSavedInDefinition`) into what is saved
-     * (`cumulativeStateVariableChanges`). Done at the start of each update,
-     * and before each save (`StatePersistence.saveState`), so that values a
-     * definition drew at random, such as a sampler's, are saved even when no
-     * update has come since they were drawn, as when a reader reloads a
-     * document they have only looked at (COMP-8, #2477).
+     * (`cumulativeStateVariableChanges`). Done at the start and at the end
+     * of each update, and before each save (`StatePersistence.saveState`),
+     * so that values a definition drew at random, such as a sampler's, are
+     * saved even when no update has come since they were drawn, as when a
+     * reader reloads a document they have only looked at (COMP-8, #2477).
      */
     mergeEssentialValuesSavedInDefinition() {
         if (
@@ -455,6 +455,13 @@ export class UpdateExecutor {
 
             return;
         }
+
+        // Values definitions set since the last update, before this update
+        // can delete their component (a `<conditionalContent>` switching
+        // cases), which would drop them: an input read after its value
+        // changed clears the record of the reader's edit, and that must be
+        // saved with it (#2554 item 1).
+        this.mergeEssentialValuesSavedInDefinition();
 
         // Keyed by component-index string (the form `for...in` yields); the
         // inner record is keyed by state-variable name. Indices are coerced

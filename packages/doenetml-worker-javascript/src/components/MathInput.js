@@ -27,7 +27,7 @@ import {
     buildInputResponseEvent,
     defineSubmitAnswerExternalAction,
     immediateValueFollowsValue,
-    returnValueUnderEditDefinition,
+    valueUnderEditVariable,
     valueUnderEditRecord,
 } from "../utils/input";
 import {
@@ -630,14 +630,12 @@ export default class MathInput extends Input {
             },
         };
 
-        Object.assign(
-            stateVariableDefinitions,
-            returnValueUnderEditDefinition("valueUnderEdit"),
-        );
-
         stateVariableDefinitions.immediateValue = {
-            // the saved edit, kept only if still the last (`valueUnderEdit`)
+            // the saved edit, kept only if still the last (`valueUnderEdit`),
+            // which it defines, so that it can clear it when it follows its
+            // value (#2554 item 1)
             provideEssentialValuesInDefinition: true,
+            additionalStateVariablesDefined: [valueUnderEditVariable()],
             description:
                 "The math value reflecting the user's in-progress edits.",
             public: true,
@@ -657,12 +655,6 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "immediateValueChanged",
                     onlyToSetInInverseDefinition: true,
-                },
-                valueUnderEdit: {
-                    dependencyType: "stateVariable",
-                    variableName: "valueUnderEdit",
-                    // bookkeeping, not part of the value (`valueUnderEdit`)
-                    notInRecursiveDependencyValues: true,
                 },
             }),
             set: convertValueToMathExpression,
@@ -686,21 +678,27 @@ export default class MathInput extends Input {
                         justUpdatedForNewComponent,
                         justRestoredAtLoad,
                         value: dependencyValues.value,
-                        valueUnderEdit: dependencyValues.valueUnderEdit,
+                        valueUnderEdit: essentialValues.valueUnderEdit,
                         savedImmediateValue: essentialValues.immediateValue,
                     })
                 ) {
                     // only update to value when it changes
                     // (otherwise, let its essential value change)
                     return {
-                        setValue: { immediateValue: dependencyValues.value },
+                        setValue: {
+                            immediateValue: dependencyValues.value,
+                            valueUnderEdit: null,
+                        },
                         setEssentialValue: {
                             immediateValue: dependencyValues.value,
+                            // the value, not the reader's edit
+                            valueUnderEdit: null,
                         },
                     };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
+                            valueUnderEdit: true,
                             immediateValue: {
                                 defaultValue: dependencyValues.value,
                             },
@@ -725,8 +723,8 @@ export default class MathInput extends Input {
                         desiredValue: true,
                     },
                     {
-                        setDependency: "valueUnderEdit",
-                        desiredValue: valueUnderEditRecord({
+                        setEssentialValue: "valueUnderEdit",
+                        value: valueUnderEditRecord({
                             value: dependencyValues.value,
                             edit: desiredStateVariableValues.immediateValue,
                         }),
