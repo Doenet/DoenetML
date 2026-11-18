@@ -1677,6 +1677,58 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         expect(await shown(d, ["Q", "R"])).eqls({ Q: "(1, 2)", R: "＿" });
     });
 
+    it("a point copied from a choiceInput is decided when made, as one copied from a mathInput is", async () => {
+        // CPY-1: a copy's link is cut. Made while nothing is selected, it
+        // stays missing; on `main` it became the first selection's value.
+        const d = await setup(`
+<choiceInput name="ci" selectMultiple><label>c</label><choice><math>(1,2)</math></choice><choice><math>(3,4)</math></choice></choiceInput>
+<graph><point extend="$ci" name="Q"/><point copy="$ci.selectedValues" name="R"/></graph>
+`);
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "＿", R: "＿" });
+        expect(d.newDiagnostics().map((x) => x.code)).eqls([
+            "doenet-i0061",
+            "doenet-i0061",
+        ]);
+        await updateSelectedIndices({
+            componentIdx: await d.resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core: await d.core(),
+        });
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "(3, 4)", R: "＿" });
+        await d.reload();
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "(3, 4)", R: "＿" });
+    });
+
+    it("a point from a tally's categories is missing with none, and an error at load with several", async () => {
+        // The same rule: a tally's categories are numbers or texts, so a
+        // point is `e0065` once there are any, also several (D36). With
+        // none it is missing with `i0061`. On `main` both were `(0, 0)`.
+        const d = await setup(`
+<tally name="t">1 2 2</tally>
+<tally name="e"></tally>
+<graph><point extend="$t.categories" name="Q"/><point extend="$e.categories" name="R"/></graph>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line, x.message])).eqls(
+            [
+                [
+                    "doenet-e0065",
+                    4,
+                    "A `<point>` can't be made from `$t.categories`, which gives a `<number>`. To show it as it is, write `$t.categories`.",
+                ],
+                [
+                    "doenet-i0061",
+                    4,
+                    "`$e.categories` holds no value now, so this `<point>` is missing until it holds one.",
+                ],
+            ],
+        );
+        expect(await d.typeOf("Q")).eq("_error");
+        expect(await shown(d, ["R"])).eqls({ R: "＿" });
+        await d.reload();
+        expect(await d.typeOf("Q")).eq("_error");
+        expect(await shown(d, ["R"])).eqls({ R: "＿" });
+    });
+
     it("a boolean from a text input, and a number and a math from a boolean input, follow and write back", async () => {
         const d = await setup(`
 <textInput name="ti" prefill="true"/>
