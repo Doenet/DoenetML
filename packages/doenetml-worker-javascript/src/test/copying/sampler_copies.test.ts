@@ -115,52 +115,30 @@ describe("Copies of a sampler @group4", () => {
         expect(await draws()).eqls(before);
     });
 
-    it("a copyWithState of a sampler drawing from what is written after both draws its own", async () => {
-        // The source's draws are made when it is copied, before the group
-        // is there, from a count the group then changes, so they are not
-        // carried: the copy draws its own and keeps them through a reload.
-        // The source draws again once the group is there, as on a reload.
-        const doenetML = `
+    describe("a sampler drawing from what is written after it and its copyWithState draws once, and the copy shows its draws (#2553 item 1)", () => {
+        // The sampler's parameters are read once what they come from is
+        // there, whatever order the document is written in, so it draws
+        // once, and not again on a reload (COMP-8, SAVE-1), and the copy
+        // shows its draws (CPY-8).
+        const layouts = [
+            {
+                name: "a count from a group",
+                doenetML: `
     <sampleRandomNumbers name="s" numSamples="$g.n" />
     <sampleRandomNumbers name="c" copyWithState="$s" />
     <group name="g"><number name="n">2</number></group>
-    `;
-        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
-            doenetML,
-        });
-        async function draws() {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const result = [];
-            for (const name of ["s", "c"]) {
-                result.push(
-                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                        .sampledValues,
-                );
-            }
-            return result;
-        }
-        const before = await draws();
-        expect(before[0].length).eq(2);
-        expect(before[1].length).eq(2);
-
-        await core.saveImmediately();
-        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
-            doenetML,
-            initialState: scoreState.state,
-        }));
-        expect((await draws())[1]).eqls(before[1]);
-    });
-
-    describe("a copyWithState of a sampler whose other parameters come from what is written after both draws from them", () => {
-        // The source's draws are made when it is copied, before the group is
-        // there, from parameters the group then changes. The copy carries
-        // them only if they were made from the parameters it has, so it
-        // draws its own from what the group gives, and keeps them through a
-        // reload.
-        const layouts = [
+    `,
+                check: (draws: number[]) => expect(draws.length).eq(2),
+            },
+            {
+                name: "a count from a conditionalContent",
+                doenetML: `
+    <sampleRandomNumbers name="s" numSamples="$cc.n" />
+    <sampleRandomNumbers name="c" copyWithState="$s" />
+    <conditionalContent name="cc"><case condition="true"><number name="n">2</number></case></conditionalContent>
+    `,
+                check: (draws: number[]) => expect(draws.length).eq(2),
+            },
             {
                 name: "exclude",
                 doenetML: `
@@ -181,6 +159,20 @@ describe("Copies of a sampler @group4", () => {
                     expect(draws.length).eq(2);
                     for (const x of draws) {
                         expect(Math.abs(x - 1000)).lessThan(10);
+                    }
+                },
+            },
+            {
+                name: "a range",
+                doenetML: `
+    <sampleRandomNumbers name="s" numSamples="2" from="$g.a" to="$g.b" />
+    <sampleRandomNumbers name="c" copyWithState="$s" />
+    <group name="g"><number name="a">1000</number><number name="b">1001</number></group>
+    `,
+                check: (draws: number[]) => {
+                    expect(draws.length).eq(2);
+                    for (const x of draws) {
+                        expect(x).within(1000, 1001);
                     }
                 },
             },
@@ -213,16 +205,23 @@ describe("Copies of a sampler @group4", () => {
             it(name, async () => {
                 let { core, resolvePathToNodeIdx, scoreState } =
                     await createTestCore({ doenetML });
-                async function copyDraws() {
+                async function draws() {
                     const stateVariables = await core.returnAllStateVariables(
                         false,
                         true,
                     );
-                    return stateVariables[await resolvePathToNodeIdx("c")]
-                        .stateValues.sampledValues;
+                    const result = [];
+                    for (const name of ["s", "c"]) {
+                        result.push(
+                            stateVariables[await resolvePathToNodeIdx(name)]
+                                .stateValues.sampledValues,
+                        );
+                    }
+                    return result;
                 }
-                const before = await copyDraws();
-                check(before);
+                const before = await draws();
+                check(before[0]);
+                expect(before[1]).eqls(before[0]);
 
                 await core.saveImmediately();
                 ({ core, resolvePathToNodeIdx, scoreState } =
@@ -230,7 +229,7 @@ describe("Copies of a sampler @group4", () => {
                         doenetML,
                         initialState: scoreState.state,
                     }));
-                expect(await copyDraws()).eqls(before);
+                expect(await draws()).eqls(before);
             });
         }
     });

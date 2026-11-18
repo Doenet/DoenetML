@@ -167,6 +167,24 @@ describe("Withheld content acts as missing from outside @group2", () => {
         expect((await h.sv("cc.mi")).stateValues.value.tree).eq(7);
     });
 
+    it("an updateValue on a case behind a literal condition has no target, a warning", async () => {
+        // Content is withheld only once it has been shown, so only where
+        // whether it is shown can change, and `doenet-i0060` is an info
+        // (DIAG-2). A case behind a literal `condition` is never made, so
+        // the action has no target, which the DoenetML decides: a warning
+        // (#2554 item 5).
+        const h = await setup(`
+    <conditionalContent name="cc">
+      <case condition="false"><section name="s"><mathInput name="mi" prefill="1" /></section></case>
+    </conditionalContent>
+    <updateValue name="uv" target="$cc.s.mi" newValue="7" />
+    `);
+        await updateValue({ componentIdx: await h.idx("uv"), core: h.core() });
+        const { warnings, infos } = h.diagnostics();
+        expect(warnings.map((d: any) => d.code)).eqls(["doenet-w0043"]);
+        expect(infos.filter((d: any) => d.code === "doenet-i0060")).eqls([]);
+    });
+
     it("an updateValue on a withheld input triggers no chained action", async () => {
         const h = await setup(`
     <booleanInput name="b" prefill="true" />
@@ -319,6 +337,43 @@ describe("Restored state in withheld content follows changes outside it @group2"
 
             // and through a reload
             await h.typeMath("x", "8");
+            await h.setBoolean("b", false);
+            await h.typeMath("x", "4");
+            await h.reload();
+            await h.setBoolean("b", true);
+            w = (await h.sv("cc.w")).stateValues;
+            expect(w.value.tree).eq(4);
+            expect(w.immediateValue.tree).eq(4);
+        });
+
+        it(`an edit its value replaced with the edit itself while shown is not brought back when the value returns while withheld${withElse ? ", with an else" : ""}`, async () => {
+            // The value comes to be exactly the edit, so the edit is the
+            // value, not the reader's edit any more (#2554 item 1).
+            const h = await setup(inputInCase(withElse));
+            await h.typeMath("cc.w", "4");
+            await updateMathInputImmediateValue({
+                latex: "6",
+                componentIdx: await h.idx("cc.w"),
+                core: h.core(),
+            });
+            await h.typeMath("x", "6");
+            expect((await h.sv("cc.w")).stateValues.immediateValue.tree).eq(6);
+
+            await h.setBoolean("b", false);
+            await h.typeMath("x", "4");
+            await h.setBoolean("b", true);
+            let w = (await h.sv("cc.w")).stateValues;
+            expect(w.value.tree).eq(4);
+            expect(w.immediateValue.tree).eq(4);
+            expect(w.rawRendererValue).eq("4");
+
+            // and through a reload
+            await updateMathInputImmediateValue({
+                latex: "6",
+                componentIdx: await h.idx("cc.w"),
+                core: h.core(),
+            });
+            await h.typeMath("x", "6");
             await h.setBoolean("b", false);
             await h.typeMath("x", "4");
             await h.reload();

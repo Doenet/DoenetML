@@ -311,7 +311,7 @@ export async function expandCompositeComponent({
 }: {
     core: Core;
     component: any;
-}) {
+}): Promise<{ success: boolean; compositesExpanded?: number[] }> {
     if (!("readyToExpandWhenResolved" in component.state)) {
         throw Error(
             `Could not find state variable readyToExpandWhenResolved of composite ${component.componentIdx}`,
@@ -339,6 +339,34 @@ export async function expandCompositeComponent({
 
     core.updateInfo.compositesBeingExpanded.push(component.componentIdx);
 
+    try {
+        return await expandMarkedComposite({ core, component });
+    } catch (e) {
+        // Whatever the expansion threw, the composite is no longer being
+        // expanded: left marked, it would be taken for a cycle the next time
+        // anything expanded it (#2554 item 4).
+        const ind = core.updateInfo.compositesBeingExpanded.indexOf(
+            component.componentIdx,
+        );
+        if (ind !== -1) {
+            core.updateInfo.compositesBeingExpanded.splice(ind, 1);
+        }
+        throw e;
+    }
+}
+
+/**
+ * The expansion of `component` once it is marked as being expanded
+ * (`compositesBeingExpanded`), which `_finishExpanding` unmarks when it
+ * succeeds and `expandCompositeComponent` when it throws.
+ */
+async function expandMarkedComposite({
+    core,
+    component,
+}: {
+    core: Core;
+    component: any;
+}): Promise<{ success: boolean; compositesExpanded?: number[] }> {
     if (component.parent) {
         for (const list of [
             component.parent.unexpandedCompositesReady,

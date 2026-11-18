@@ -490,6 +490,7 @@ export type MessageKey =
     | "extend-attribute-ignored"
     | "extend-children-ignored"
     | "copy-children-ignored"
+    | "action-target-not-one-value"
     | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
     | "list-brackets-unmatched"
@@ -1190,6 +1191,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "extend-attribute-ignored",
     "extend-children-ignored",
     "copy-children-ignored",
+    "action-target-not-one-value",
     "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
     "list-brackets-unmatched",

@@ -8,6 +8,7 @@ import {
     ensureStateVariableMaterialized,
 } from "../StateVariableInitializer";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
+import { unexpandedCompositeHolding } from "../unexpandedCompositeHolding";
 import {
     changeContext,
     pathHasIndexThatCanChange,
@@ -1577,6 +1578,33 @@ export class Dependency {
                 stateVariableBlocked: vName,
             });
         }
+    }
+
+    /**
+     * When the component `componentIdx` doesn't exist yet because it is
+     * written inside a composite that hasn't expanded, as `n` of
+     * `<group name="g"><number name="n">2</number></group>` before the group
+     * expands, block this dependency on expanding that composite, so it is
+     * resolved from the component, whatever order the document is written
+     * in (#2553), rather than without it. A random choice whose parameter
+     * reads `$g.n` then draws once, from what `n` gives, not before the
+     * group is there and again after (COMP-8, SEL-7).
+     *
+     * Whether there is such a composite. Must be awaited, as
+     * {@link Dependency.addBlockerForUnexpandedComposite}.
+     */
+    async addBlockerForCompositeHolding(
+        componentIdx: number,
+    ): Promise<boolean> {
+        const composite = unexpandedCompositeHolding(
+            this.dependencyHandler.core,
+            componentIdx,
+        );
+        if (!composite) {
+            return false;
+        }
+        await this.addBlockerForUnexpandedComposite(composite);
+        return true;
     }
 
     /**

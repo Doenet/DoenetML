@@ -52,6 +52,7 @@ import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
 import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
+import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -821,6 +822,17 @@ export async function normalizedDastToSerializedComponents(
     // is not true yet: an error never first shows to a student.
     diagnostics.push(
         ...reportTypeChangesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
+
+    // An `<updateValue>` whose target is a container of several things,
+    // which has no one value (COLL-3), is a warning at load (DIAG-1), not
+    // only once it acts. After sugar, which makes a `<repeat>`'s template.
+    diagnostics.push(
+        ...checkActionTargetsAtLoad({
             serializedComponents: sugarResult.components,
             componentInfoObjects,
             sources: normalized_root.sources,

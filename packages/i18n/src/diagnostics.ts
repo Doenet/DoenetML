@@ -292,6 +292,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0192": "reference-property-partly-held",
     "doenet-w0193": "reference-property-after-several",
     "doenet-w0194": "matrix-math-child-ignored",
+    "doenet-w0195": "action-target-not-one-value",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

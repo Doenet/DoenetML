@@ -399,6 +399,10 @@ export default class UpdateValue extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "targetIdentities",
                     },
+                    targetNotOneValueAtLoad: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "targetNotOneValueAtLoad",
+                    },
                     unresolvedPath: {
                         dependencyType: "stateVariable",
                         variableName: "unresolvedPath",
@@ -534,7 +538,12 @@ export default class UpdateValue extends InlineComponent {
                             continue;
                         }
                         targets.push(target);
-                        if (Object.keys(target.stateValues)[0] === undefined) {
+                        if (
+                            Object.keys(target.stateValues)[0] === undefined &&
+                            // reported at load, as a container of several
+                            // things (`doenet-w0195`)
+                            !dependencyValues.targetNotOneValueAtLoad
+                        ) {
                             if (dependencyValues.unresolvedPath) {
                                 let prop =
                                     dependencyValues.unresolvedPath[0].name;

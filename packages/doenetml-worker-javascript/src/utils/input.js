@@ -131,33 +131,25 @@ export async function buildInputResponseEvent({
 }
 
 /**
- * The state variable, named `valueUnderEditName`, holding the reader's last
- * edit of an input (its `immediateValue`): `{ value, edit }`, fingerprints of
- * the value the edit was typed over and of the edit typed
- * (`valueUnderEditRecord`). It is saved, so that an input made again from
- * saved state after the document has loaded can tell whether its saved
- * `immediateValue` is still that edit, and its value still the one the edit
- * was typed over (`immediateValueFollowsValue`).
+ * The state variable `valueUnderEdit`, holding the reader's last edit of an
+ * input (its `immediateValue`): `{ value, edit }`, fingerprints of the value
+ * the edit was typed over and of the edit typed (`valueUnderEditRecord`), or
+ * `null` when the input shows its value rather than an edit. It is saved, so
+ * that an input made again from saved state after the document has loaded
+ * can tell whether its saved `immediateValue` is still that edit, and its
+ * value still the one the edit was typed over
+ * (`immediateValueFollowsValue`). The `immediateValue` defines it alongside
+ * itself (`additionalStateVariablesDefined`), so that it can clear it when
+ * it follows its value: an edit the value then replaced, even with the edit
+ * itself, is the reader's edit no longer (#2554 item 1).
  */
-export function returnValueUnderEditDefinition(valueUnderEditName) {
+export function valueUnderEditVariable() {
     return {
-        [valueUnderEditName]: {
-            defaultValue: null,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: { [valueUnderEditName]: true },
-            }),
-            inverseDefinition: ({ desiredStateVariableValues }) => ({
-                success: true,
-                instructions: [
-                    {
-                        setEssentialValue: valueUnderEditName,
-                        value: desiredStateVariableValues[valueUnderEditName],
-                    },
-                ],
-            }),
-        },
+        variableName: "valueUnderEdit",
+        hasEssential: true,
+        // carried with the `immediateValue` it records the edit of
+        shadowVariable: true,
+        defaultValue: null,
     };
 }
 
@@ -227,12 +219,14 @@ export function returnImmediateValueStateVariableDefinition({
     description,
     createComponentOfType = "text",
 } = {}) {
-    const stateVariableDefinitions =
-        returnValueUnderEditDefinition("valueUnderEdit");
+    const stateVariableDefinitions = {};
 
     stateVariableDefinitions.immediateValue = {
-        // the saved edit, kept only if still the last (`valueUnderEdit`)
+        // the saved edit, kept only if still the last (`valueUnderEdit`),
+        // which it defines, so that it can clear it when it follows its
+        // value (#2554 item 1)
         provideEssentialValuesInDefinition: true,
+        additionalStateVariablesDefined: [valueUnderEditVariable()],
         description,
         public: true,
         shadowingInstructions: {
@@ -251,12 +245,6 @@ export function returnImmediateValueStateVariableDefinition({
                 variableName: "immediateValueChanged",
                 onlyToSetInInverseDefinition: true,
             },
-            valueUnderEdit: {
-                dependencyType: "stateVariable",
-                variableName: "valueUnderEdit",
-                // bookkeeping, not part of the value (`valueUnderEdit`)
-                notInRecursiveDependencyValues: true,
-            },
         }),
         definition: function ({
             dependencyValues,
@@ -273,21 +261,27 @@ export function returnImmediateValueStateVariableDefinition({
                     justUpdatedForNewComponent,
                     justRestoredAtLoad,
                     value: dependencyValues.value,
-                    valueUnderEdit: dependencyValues.valueUnderEdit,
+                    valueUnderEdit: essentialValues.valueUnderEdit,
                     savedImmediateValue: essentialValues.immediateValue,
                 })
             ) {
                 // only update to value when it changes
                 // (otherwise, let its essential value change)
                 return {
-                    setValue: { immediateValue: dependencyValues.value },
+                    setValue: {
+                        immediateValue: dependencyValues.value,
+                        valueUnderEdit: null,
+                    },
                     setEssentialValue: {
                         immediateValue: dependencyValues.value,
+                        // the value, not the reader's edit
+                        valueUnderEdit: null,
                     },
                 };
             } else {
                 return {
                     useEssentialOrDefaultValue: {
+                        valueUnderEdit: true,
                         immediateValue: {
                             variablesToCheck: "immediateValue",
                             defaultValue: dependencyValues.value,
@@ -313,8 +307,8 @@ export function returnImmediateValueStateVariableDefinition({
                     desiredValue: true,
                 },
                 {
-                    setDependency: "valueUnderEdit",
-                    desiredValue: valueUnderEditRecord({
+                    setEssentialValue: "valueUnderEdit",
+                    value: valueUnderEditRecord({
                         value: dependencyValues.value,
                         edit: desiredStateVariableValues.immediateValue,
                     }),

@@ -729,6 +729,17 @@ export class RefResolutionDependency extends Dependency {
             this.addUpdateTriggerForMissingComponent(nodeIdx);
             this.missingComponentBlockers.push(nodeIdx);
 
+            // Written inside a composite that hasn't expanded (`$g.n`
+            // before `<group name="g">` is there): resolved once it has,
+            // rather than as nothing before and again after (#2553).
+            if (await this.addBlockerForCompositeHolding(nodeIdx)) {
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
             this.extendIdx = -1;
             this.unresolvedPath = this.originalPath;
 
@@ -993,6 +1004,20 @@ export class RefResolutionDependency extends Dependency {
             refResolution.unresolvedPath !== null &&
             refResolution.nodeIdx !== nodeIdx &&
             !(await this.waitForListCopies(refResolution.nodeIdx, composite))
+        ) {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        // Resolved through a composite to a component written inside a
+        // composite it made that hasn't expanded (`$cc.n` of a case holding
+        // `n`): resolved again once that one has, as above (#2553).
+        if (
+            !this.dependencyHandler._components[refResolution.nodeIdx] &&
+            (await this.addBlockerForCompositeHolding(refResolution.nodeIdx))
         ) {
             return {
                 success: false,
