@@ -2948,6 +2948,18 @@ export default class Copy extends CompositeComponent {
                 delete repl.doenetAttributes.choiceErrorAtLoad;
             }
 
+            // The types of its properties decided when the document loaded
+            // (`propertyTypes`, `propertyTypesAtLoad.ts`) are of what the
+            // tag copies and what is written in it, which may add to what
+            // decides them (a choice of its own).
+            const typesAtLoad = component.doenetAttributes?.propertyTypes;
+            if (copyInChildren && typesAtLoad) {
+                repl.doenetAttributes = {
+                    ...repl.doenetAttributes,
+                    propertyTypes: typesAtLoad,
+                };
+            }
+
             if (!link && attributesFromComposite.type) {
                 nComponents = retypeTextPieces({
                     replacement: repl,

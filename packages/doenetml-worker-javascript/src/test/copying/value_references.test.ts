@@ -612,7 +612,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
         });
 
-        it("a reference is remade when the referenced variable changes type", async () => {
+        it("a reference to a choiceInput's value keeps the type its choices decide at load (TYPE, D45)", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <boolean name="b">false</boolean>
@@ -658,20 +658,18 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 selectedIndices: [1],
                 core,
             });
-            // every choice is a math, so `selectedValue` is one: the
-            // `<number>` and the `<boolean>` take a math directly, the
-            // `<text>` would need an adapter and keeps a full copy
+            // A text choice is written, so `selectedValue` is a text from
+            // the start, before the case holding it is shown: the type is
+            // the DoenetML's, never the value's, and the references are made
+            // once, as texts (TYPE, D45).
             expect(await state()).eqls({
                 x: 1,
                 y: true,
                 w: "1",
-                presented: ["math", "math"],
+                presented: ["text", "text", "text"],
             });
 
-            // a text choice appears and `selectedValue` becomes a text: the
-            // references in the `<number>` and the `<boolean>` are remade as
-            // texts, though old and new are both `_ref`s, and the `<text>`
-            // now takes a reference directly
+            // the text choice appears: nothing changes type
             await updateBooleanInputValue({
                 boolean: true,
                 componentIdx: biIdx,
@@ -710,7 +708,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 x: 2,
                 y: false,
                 w: "2",
-                presented: ["math", "math"],
+                presented: ["text", "text", "text"],
             });
         });
 

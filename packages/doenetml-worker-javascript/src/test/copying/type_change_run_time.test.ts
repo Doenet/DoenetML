@@ -428,18 +428,11 @@ describe("A reference written as a tag of a composite is decided when the docume
             m6: "7",
             m8: "3",
         });
-        for (const p of ["p3", "p5"]) {
-            expect(await d.replacedBy(p), p).eqls(["_error"]);
-        }
+        // `$P.x` is a math, as a point declares (TYPE, D45)
+        expect(await d.texts(["p3"])).eqls({ p3: "1" });
+        expect(await d.replacedBy("p5")).eqls(["_error"]);
         expect(await d.replacedBy("p7")).eqls(["math"]);
         expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-e0067",
-                type: "error",
-                line: 16,
-                message:
-                    "A `<math>` can be made from `$g3` only when the type of what it holds is known from the DoenetML, and it holds a property, whose type isn't. To read what it holds as one value, write `<math>$g3</math>`.",
-            },
             {
                 code: "doenet-e0064",
                 type: "error",
