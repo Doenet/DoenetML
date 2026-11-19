@@ -287,6 +287,7 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "disableAfterCorrect",
             defaultValue: false,
             public: true,
+            forRenderer: true,
             groupName: "answer-grading",
             description:
                 "Whether to disable the answer after a fully correct response has been submitted.",
@@ -987,6 +988,7 @@ export function returnStandardAnswerStateVariableDefinition() {
         defaultValue: false,
         hasEssential: true,
         shadowVariable: true,
+        forRenderer: true,
         returnDependencies: () => ({
             creditAchieved: {
                 dependencyType: "stateVariable",
@@ -1061,6 +1063,49 @@ export function returnStandardAnswerStateVariableDefinition() {
                     dependencyValues.hasBeenCorrect);
 
             return { setValue: { disabled } };
+        },
+    };
+
+    stateVariableDefinitions.disabledFromCorrect = {
+        description:
+            "Whether this answer is disabled specifically because it was answered correctly with disableAfterCorrect.",
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
+        forRenderer: true,
+        returnDependencies: () => ({
+            disabled: {
+                dependencyType: "stateVariable",
+                variableName: "disabled",
+            },
+            disabledOriginal: {
+                dependencyType: "stateVariable",
+                variableName: "disabledOriginal",
+            },
+            numAttemptsLeft: {
+                dependencyType: "stateVariable",
+                variableName: "numAttemptsLeft",
+            },
+            disableAfterCorrect: {
+                dependencyType: "stateVariable",
+                variableName: "disableAfterCorrect",
+            },
+            hasBeenCorrect: {
+                dependencyType: "stateVariable",
+                variableName: "hasBeenCorrect",
+            },
+        }),
+        definition({ dependencyValues }) {
+            const disabledFromCorrect = Boolean(
+                dependencyValues.disabled &&
+                dependencyValues.disableAfterCorrect &&
+                dependencyValues.hasBeenCorrect &&
+                !dependencyValues.disabledOriginal &&
+                !(dependencyValues.numAttemptsLeft < 1),
+            );
+
+            return { setValue: { disabledFromCorrect } };
         },
     };
 

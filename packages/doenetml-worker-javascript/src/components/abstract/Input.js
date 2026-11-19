@@ -130,6 +130,10 @@ export default class Input extends InlineComponent {
                         "forceSmallCheckWorkButton",
                         "labelsForAnswer",
                         "colorInputsSeparately",
+                        "disableAfterCorrect",
+                        "hasBeenCorrect",
+                        "disabledOriginal",
+                        "disabledFromCorrect",
                     ],
                 },
             }),
@@ -712,6 +716,94 @@ export default class Input extends InlineComponent {
                     nextCreditFactor = 1;
                 }
                 return { setValue: { nextCreditFactor } };
+            },
+        };
+
+        stateVariableDefinitions.disableAfterCorrect = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let disableAfterCorrect;
+                if (dependencyValues.answerAncestor) {
+                    disableAfterCorrect = Boolean(
+                        dependencyValues.answerAncestor.stateValues
+                            .disableAfterCorrect,
+                    );
+                } else {
+                    disableAfterCorrect = false;
+                }
+                return { setValue: { disableAfterCorrect } };
+            },
+        };
+
+        stateVariableDefinitions.hasBeenCorrect = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let hasBeenCorrect;
+                if (dependencyValues.answerAncestor) {
+                    hasBeenCorrect = Boolean(
+                        dependencyValues.answerAncestor.stateValues
+                            .hasBeenCorrect,
+                    );
+                } else {
+                    hasBeenCorrect = false;
+                }
+                return { setValue: { hasBeenCorrect } };
+            },
+        };
+
+        stateVariableDefinitions.disabledOriginal = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let disabledOriginal;
+                if (dependencyValues.answerAncestor) {
+                    disabledOriginal = Boolean(
+                        dependencyValues.answerAncestor.stateValues
+                            .disabledOriginal,
+                    );
+                } else {
+                    disabledOriginal = false;
+                }
+                return { setValue: { disabledOriginal } };
+            },
+        };
+
+        stateVariableDefinitions.disabledFromCorrect = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let disabledFromCorrect;
+                if (dependencyValues.answerAncestor) {
+                    disabledFromCorrect = Boolean(
+                        dependencyValues.answerAncestor.stateValues
+                            .disabledFromCorrect,
+                    );
+                } else {
+                    disabledFromCorrect = false;
+                }
+                return { setValue: { disabledFromCorrect } };
             },
         };
 

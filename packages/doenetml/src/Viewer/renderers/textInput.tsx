@@ -70,6 +70,15 @@ export default function TextInput(props: UseDoenetRendererProps) {
         useDoenetRenderer<TextInputSVs>(props);
     const renderedLabel = useRenderedLabel({ SVs, children });
 
+    const disabledFromCorrect = Boolean(
+        SVs.disabledFromCorrect ||
+        (SVs.disabled &&
+            SVs.disableAfterCorrect &&
+            SVs.hasBeenCorrect &&
+            !SVs.disabledOriginal &&
+            !(SVs.numAttemptsLeft < 1)),
+    );
+
     // The check-work button and the validation state announced on the input
     // both follow the document's language, not the reader's — see
     // `useContentT`.
@@ -177,6 +186,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
     });
 
     function handleKeyPress(e: React.KeyboardEvent) {
+        if (disabledFromCorrect) {
+            return;
+        }
         if (e.key === "Enter") {
             valueToRevertTo.current = rendererValueRef.current;
 
@@ -658,7 +670,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         return null;
     }
 
-    let disabled = SVs.disabled;
+    let disabled = SVs.disabled && !disabledFromCorrect;
 
     const inputKey = id + "_input";
 
@@ -743,6 +755,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 id={inputKey}
                 value={rendererValue}
                 disabled={disabled}
+                readOnly={disabledFromCorrect}
+                aria-disabled={disabledFromCorrect ? true : undefined}
                 onChange={onChangeHandler}
                 onKeyPress={handleKeyPress}
                 onKeyDown={handleKeyDown}
@@ -778,6 +792,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 id={inputKey}
                 value={rendererValue}
                 disabled={disabled}
+                readOnly={disabledFromCorrect}
+                aria-disabled={disabledFromCorrect ? true : undefined}
                 onChange={onChangeHandler}
                 onKeyPress={handleKeyPress}
                 onKeyDown={handleKeyDown}

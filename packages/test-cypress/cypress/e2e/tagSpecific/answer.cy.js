@@ -1553,32 +1553,68 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
             cy.log("Type to submit incorrect answers again");
 
-            // Every other input should be disabled
+            // Every other input should be disabled or locked after correct
             cy.get("#answer1 textarea").type("{end}{backspace}y", {
                 force: true,
             });
-            cy.get("#answer2 textarea").should("be.disabled");
+            cy.get("#answer2 textarea").should("have.attr", "readonly");
+            cy.get("#answer2 textarea").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer3 textarea").type("{end}{backspace}y", {
                 force: true,
             });
-            cy.get("#answer4 textarea").should("be.disabled");
+            cy.get("#answer4 textarea").should("have.attr", "readonly");
+            cy.get("#answer4 textarea").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer1 button").click();
-            cy.get("#answer2 button").should("be.disabled");
+            cy.get("#answer2 button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer3 button").click();
-            cy.get("#answer4 button").should("be.disabled");
+            cy.get("#answer4 button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer1 button").should("contain.text", "Incorrect");
             cy.get("#answer2 button").should("contain.text", "Correct");
             cy.get("#answer3 button").should("contain.text", "Incorrect");
             cy.get("#answer4 button").should("contain.text", "Correct");
 
             cy.get("#answer5 input").clear().type("bye");
-            cy.get("#answer6 input").should("be.disabled");
+            cy.get("#answer6 input").should("have.attr", "readonly");
+            cy.get("#answer6 input").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer7 input").clear().type("bye");
-            cy.get("#answer8 input").should("be.disabled");
+            cy.get("#answer8 input").should("have.attr", "readonly");
+            cy.get("#answer8 input").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer5 button").click();
-            cy.get("#answer6 button").should("be.disabled");
+            cy.get("#answer6 button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer7 button").click();
-            cy.get("#answer8 button").should("be.disabled");
+            cy.get("#answer8 button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer5 button").should("contain.text", "Incorrect");
             cy.get("#answer6 button").should("contain.text", "Correct");
             cy.get("#answer7 button").should("contain.text", "Incorrect");
@@ -1589,9 +1625,17 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#choiceInput3").contains("no").click({ force: true });
             cy.get("#choiceInput4").contains("no").click({ force: true });
             cy.get("#choiceInput1_button").click();
-            cy.get("#choiceInput2_button").should("be.disabled");
+            cy.get("#choiceInput2_button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer11 button").click();
-            cy.get("#answer12 button").should("be.disabled");
+            cy.get("#answer12 button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
             cy.get("#choiceInput2_button").should("contain.text", "Correct");
             cy.get("#answer11 button").should("contain.text", "Incorrect");
@@ -1604,9 +1648,17 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput8 input").should("be.disabled");
             cy.get("#choiceInput5_button").click();
-            cy.get("#choiceInput6_button").should("be.disabled");
+            cy.get("#choiceInput6_button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#answer15 button").click();
-            cy.get("#answer16 button").should("be.disabled");
+            cy.get("#answer16 button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#choiceInput5_button").should("contain.text", "Incorrect");
             cy.get("#choiceInput6_button").should("contain.text", "Correct");
             cy.get("#answer15 button").should("contain.text", "Incorrect");
@@ -1618,10 +1670,16 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#_id_" + inputIndices[19] + "_input").should("be.disabled");
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").should(
-                "be.disabled",
+                "have.attr",
+                "aria-disabled",
+                "true",
             );
             cy.get("#answer19 button").click();
-            cy.get("#answer20 button").should("be.disabled");
+            cy.get("#answer20 button").should(
+                "have.attr",
+                "aria-disabled",
+                "true",
+            );
             cy.get("#_id_" + inputIndices[16] + "_button").should(
                 "contain.text",
                 "Incorrect",
@@ -1776,6 +1834,127 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
                 );
             }
         }
+    });
+
+    it("issue #2577 — keyboard focus retention and accessibility on disableAfterCorrect lock (Tests A-G)", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text name="a">a</text>
+  <p><answer name="ansA" disableAfterCorrect>2x</answer></p>
+  <p><answer name="ansB" disableAfterCorrect forceFullCheckWorkButton>3y</answer></p>
+  <p><answer name="ansD_orig" disabled>4z</answer></p>
+  <p><answer name="ansD_attempts" maxNumAttempts="1">5w</answer></p>
+  <p><answer name="ansE_incorrect" disableAfterCorrect>7u</answer></p>
+  <p><answer name="ansF_normal">8v</answer></p>
+  <p><answer name="ansG_text" type="text" disableAfterCorrect>hello</answer></p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a");
+
+        // === Test A: Enter in MathInput ===
+        // Focus first math input, enter correct answer 2x, press Enter.
+        cy.get("#ansA textarea").focus().should("have.focus");
+        cy.get("#ansA textarea").type("2x{enter}", { force: true });
+        cy.get("#ansA button").should("contain.text", "Correct");
+        // Verify answer locks with readOnly and aria-disabled rather than native disabled
+        cy.get("#ansA textarea").should("have.attr", "readonly");
+        cy.get("#ansA textarea").should("have.attr", "aria-disabled", "true");
+        cy.get("#ansA textarea").should("not.be.disabled");
+        // Verify document.activeElement is not document.body (focus is preserved)
+        cy.window().then((win) => {
+            expect(win.document.activeElement).not.to.eq(win.document.body);
+            expect(win.document.activeElement.tagName.toLowerCase()).to.eq(
+                "textarea",
+            );
+        });
+        // Verify submitted value is still reviewable
+        cy.get("#ansA .mq-root-block").should("contain.text", "2x");
+
+        // === Test B: Check Work button keyboard activation ===
+        // Navigate to input, enter correct answer, navigate to button, activate with Enter
+        cy.get("#ansB textarea").focus().type("3y", { force: true });
+        cy.get("#ansB button").focus().should("have.focus");
+        cy.get("#ansB button").type("{enter}");
+        cy.get("#ansB button").should("contain.text", "Correct");
+        // Verify button retains focus
+        cy.window().then((win) => {
+            expect(win.document.activeElement).to.eq(
+                win.document.getElementById("ansB_button"),
+            );
+        });
+        // Verify button communicates locked state accessibly
+        cy.get("#ansB button").should("have.attr", "aria-disabled", "true");
+        cy.get("#ansB button").should("not.be.disabled");
+        // Verify it cannot submit again
+        cy.get("#ansB button").click({ force: true });
+        cy.get("#ansB button").should("contain.text", "Correct");
+
+        // === Test C: Reverse navigation ===
+        // From locked ansB button, reverse-tab to input, verify it remains reachable
+        cy.get("#ansB textarea").focus().should("have.focus");
+        cy.window().then((win) => {
+            expect(win.document.activeElement).not.to.eq(win.document.body);
+        });
+        // Forward navigation to button still works
+        cy.get("#ansB button").focus().should("have.focus");
+
+        // === Test D: Other disabled conditions retain native disabled ===
+        // Authored disabled
+        cy.get("#ansD_orig textarea").should("be.disabled");
+        cy.get("#ansD_orig button").should("be.disabled");
+        // Exhausted attempts
+        cy.get("#ansD_attempts textarea").type("wrong{enter}", {
+            force: true,
+        });
+        cy.get("#ansD_attempts button").should("contain.text", "Incorrect");
+        cy.get("#ansD_attempts textarea").should("be.disabled");
+        cy.get("#ansD_attempts button").should("be.disabled");
+
+        // === Test E: Incorrect answer does not trigger lock or lose focus unexpectedly ===
+        cy.get("#ansE_incorrect textarea")
+            .focus()
+            .type("wrong{enter}", { force: true });
+        cy.get("#ansE_incorrect button").should("contain.text", "Incorrect");
+        cy.get("#ansE_incorrect textarea").should("not.be.disabled");
+        cy.get("#ansE_incorrect textarea").should("not.have.attr", "readonly");
+        cy.window().then((win) => {
+            expect(win.document.activeElement).not.to.eq(win.document.body);
+        });
+
+        // === Test F: Normal answer without disableAfterCorrect ===
+        cy.get("#ansF_normal textarea")
+            .focus()
+            .type("8v{enter}", { force: true });
+        cy.get("#ansF_normal button").should("contain.text", "Correct");
+        cy.get("#ansF_normal textarea").should("not.be.disabled");
+        cy.get("#ansF_normal textarea").should("not.have.attr", "readonly");
+        // Supports editing and repeated checking
+        cy.get("#ansF_normal textarea").type("{end}{backspace}w{enter}", {
+            force: true,
+        });
+        cy.get("#ansF_normal button").should("contain.text", "Incorrect");
+
+        // === Test G: Other input types — textInput ===
+        cy.get("#ansG_text input").focus().type("hello{enter}");
+        cy.get("#ansG_text button").should("contain.text", "Correct");
+        cy.get("#ansG_text input").should("not.be.disabled");
+        cy.get("#ansG_text input").should("have.attr", "readonly");
+        cy.get("#ansG_text input").should("have.attr", "aria-disabled", "true");
+        cy.window().then((win) => {
+            expect(win.document.activeElement).not.to.eq(win.document.body);
+        });
+        cy.get("#ansG_text button").should(
+            "have.attr",
+            "aria-disabled",
+            "true",
+        );
+        cy.get("#ansG_text button").should("not.be.disabled");
     });
 
     it("submit label", () => {
