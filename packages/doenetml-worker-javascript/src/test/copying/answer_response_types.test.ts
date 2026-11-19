@@ -93,12 +93,79 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
 `,
         });
         expect(errors(core)).eqls([
-            "doenet-e0082: An `<answer>` reads a response from this `<conditionalContent>`, but its cases hold a `<math>` and a `<text>`, and a response has one type, decided from what is written. Give every case a response of one type.",
+            "doenet-e0082: An `<answer>` reads a response from this `<conditionalContent>` that is a `<math>` in one case and a `<text>` in another, but a response has one type, decided from what is written. Give it one type in every case.",
         ]);
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("y");
+    });
+
+    it("an entry named as a property, and a group holding a response, have the entry's type at load", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<booleanInput name="b"/>
+<answer name="ans">
+  <textInput name="ti"/><mathInput name="mi"/>
+  <award><when>$mi = x and $ti = a</when></award>
+</answer>
+<group name="g">$ans.currentResponses[2]</group>
+<conditionalContent>
+  <case condition="$b">
+    <point extend="$ans.currentResponse"/>
+    <point extend="$ans.currentResponse1"/>
+    <point extend="$ans.submittedResponse2"/>
+  </case>
+</conditionalContent>
+<p name="p"><math extend="$g"/></p>
+`,
+        });
+        // a `<group>` holding a response was `doenet-e0067`
+        expect(errors(core)).eqls([
+            e0065("point", "$ans.currentResponse", "text"),
+            e0065("point", "$ans.currentResponse1", "text"),
+        ]);
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("y");
+    });
+
+    it("responses of the same types in every case, with an else, are typed by place", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<booleanInput name="b"/>
+<answer name="ans">
+  <considerAsResponses>
+    <conditionalContent>
+      <case condition="$b"><math>x</math><text>a</text></case>
+      <else><math>y</math><text>c</text></else>
+    </conditionalContent>
+    <text>z</text>
+  </considerAsResponses>
+  <award><when>true</when></award>
+</answer>
+<conditionalContent>
+  <case condition="$b"><point extend="$ans.currentResponses[2]"/></case>
+</conditionalContent>
+<p name="p">$ans.submittedResponses</p>
+`,
+        });
+        expect(errors(core)).eqls([
+            e0065("point", "$ans.currentResponses[2]", "text"),
+        ]);
+        expect((await submitted(core, resolvePathToNodeIdx, "ans")).types).eqls(
+            ["math", "text", "text"],
+        );
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("y, c, z");
     });
 
     it("a component with no value is a response of an empty text, as it is recorded", async () => {

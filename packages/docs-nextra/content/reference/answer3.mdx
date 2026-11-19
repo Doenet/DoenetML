@@ -163,12 +163,14 @@ point <m>B</m> to the third quadrant.</p>
 `currentResponses` is an array that could contain multiple values.  Individual values 
 can be obtain with square brackets.  For example, the second response can be accessed with `currentResponses[2]`.
 
-Each response has a type, decided from what is written before anything is entered: its
-input's type (a math for a `<mathInput>{:dn}`, a text for a `<textInput>{:dn}`), or the
-tag of the component it is (an empty text for a component with no value, such as a
-`<line>{:dn}`). Responses may differ in type, so `currentResponses[2]` has
-the type of the second response. Responses a `<conditionalContent>{:dn}` holds must be of
-one type in every case.
+Each response has a type: its input's type (a math for a `<mathInput>{:dn}`, a text for a
+`<textInput>{:dn}`), or the tag of the component it is (an empty text for a component with
+no value, such as a `<line>{:dn}`). Responses may differ in type, so `currentResponses[2]`
+has the type of the second response. The types are usually decided from what is written,
+before anything is entered. A few are known only once the page is in use, such as a
+response that can be missing (a `<choiceInput>{:dn}` with nothing selected), or responses
+of different types beside a list whose length can change. A response a `<conditionalContent>{:dn}`
+holds must have the same type in every case.
 
 
 
@@ -222,8 +224,8 @@ also counts as a submitted response once the user has clicked the "Check Work" b
 `submittedResponses` is an array that could contain multiple values.  Individual 
 values can be obtain with square brackets.  For example, the second response can be accessed with `submittedResponses[2]`.
 
-The submitted responses have the same types as the current responses, decided from what is
-written, also after the page is reloaded.
+Each submitted response has the type of the current response it was submitted from, also
+after the page is reloaded.
 
 
 

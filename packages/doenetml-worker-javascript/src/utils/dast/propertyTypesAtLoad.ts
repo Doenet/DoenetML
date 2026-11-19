@@ -20,7 +20,7 @@
  * | `<tally>`'s `categories` | its `type` with `categories` written (text by default), else a number when every value is a number by its tag, else a text |
  * | `<markers>`' `markers` | a text when any is a `<text>`, else a number |
  * | a selectable type's `value`, `values` | its `type`, else a number |
- * | `<answer>`'s `currentResponses`, `submittedResponses` | each response's: its input's type, or its component's tag (an empty text with no `value`) (`answerResponseTypes`) |
+ * | `<answer>`'s `currentResponses`, `submittedResponses` | each response's: its input's type, or its component's tag (an empty text with no `value` or `values`); the one type they share when their number or order is not known; not decided for some (`answerResponseTypes`) |
  *
  * What is decided is marked on the component
  * (`doenetAttributes.propertyTypes`, by variable name), and on a tag made
@@ -38,9 +38,9 @@
  * reference written as a tag of a composite that holds it is `doenet-e0067`
  * at load (TYPE-3).
  *
- * Also reported here: an `<answer>` reading responses of different types
- * from the cases of a `<conditionalContent>` (`doenet-e0082`, TYPE-2,
- * COMP-11), which becomes that error.
+ * Also reported here: an `<answer>` reading a response from a
+ * `<conditionalContent>` that is of one type in one case and of another in
+ * another (`doenet-e0082`, TYPE-2, COMP-11), which becomes that error.
  */
 import type { SerializedComponent, SerializedAttribute } from "./types";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
@@ -124,8 +124,9 @@ export function propertyTypeReader({
     referents: ReturnType<typeof documentReferents>;
 }) {
     /**
-     * Each `<conditionalContent>` an `<answer>` reads a response from whose
-     * cases hold responses of different types (TYPE-2, COMP-11), with them.
+     * Each `<conditionalContent>` an `<answer>` reads a response from that
+     * is of one type in one case and of another in another (TYPE-2,
+     * COMP-11), with the two types.
      */
     const responseCaseErrors = new Map<
         SerializedComponent,
@@ -560,7 +561,8 @@ export function propertyTypeReader({
      * The response a component `component` written as one is recorded as
      * (`Answer.js`'s `currentResponses`): an input as its value's type, a
      * reference (`$mi`, a value reference) as what it reads, a list as its
-     * entries, of any number, and any other component as its tag.
+     * entries, of any number, and any other component by what it has
+     * (`responseRead`).
      */
     function responseOf(component: SerializedComponent | string): Response {
         const response = responseRead(component);
@@ -872,46 +874,35 @@ export function propertyTypeReader({
     /**
      * The responses of the cases of a `<conditionalContent>`, by the
      * every-branch rule (COMP-11): what each case holds when every case
-     * holds responses of the same types and number, else one of their one
-     * type, of a number not known. Cases holding responses of different
-     * types are an error (`responseCaseErrors`), and their responses are
+     * holds responses of the same types and number; else, as their number
+     * is not known, one response of a number not known, of the one type
+     * they share, if they share one. A response of different types in
+     * different cases (the first a `<math>` in one case and a `<text>` in
+     * another) is an error (`responseCaseErrors`), and the responses are
      * not known. With no `<else>`, no case may be shown, holding none.
      */
     function caseResponses(
         container: SerializedComponent,
         writtenCases: { responses: Response[]; potential: Response[] }[],
     ): { responses: Response[]; potential: Response[] } {
+        // an `<else>`, which sugar makes a `<case>` with no `condition`
         const hasElse = (container.children ?? []).some(
             (child) =>
-                typeof child === "object" && child.componentType === "else",
+                typeof child === "object" &&
+                (child.componentType === "else" ||
+                    (child.componentType === "case" &&
+                        attributeOf(child, "condition") === undefined)),
         );
         const cases = hasElse
             ? writtenCases
             : [...writtenCases, { responses: [], potential: [] }];
-        const all = cases.flatMap((c) => [...c.responses, ...c.potential]);
-        if (all.length === 0) {
+        if (cases.every((c) => c.responses.length + c.potential.length === 0)) {
             return { responses: [], potential: [] };
-        }
-        const types = [
-            ...new Set(
-                all.flatMap((r) => (r.type === undefined ? [] : [r.type])),
-            ),
-        ];
-        if (types.length > 1) {
-            responseCaseErrors.set(container, {
-                firstType: types[0],
-                secondType: types[1],
-            });
-            return {
-                responses: [{ type: undefined, count: undefined }],
-                potential: [],
-            };
         }
         const signature = (r: Response[]) =>
             r.map((x) => `${x.type}:${x.count}`).join(",");
         const first = cases[0];
         if (
-            cases.length > 0 &&
             cases.every(
                 (c) =>
                     signature(c.responses) === signature(first.responses) &&
@@ -920,22 +911,68 @@ export function propertyTypeReader({
         ) {
             return first;
         }
-        // of one type, but not as many in each case
-        const unknownCount = (r: Response[]) =>
-            r.length > 0
-                ? [
-                      {
-                          type: r.some((x) => x.type === undefined)
-                              ? undefined
-                              : types[0],
-                          count: undefined,
-                      },
-                  ]
-                : [];
+        const conflict =
+            typesInCases(cases.map((c) => c.responses)) ??
+            typesInCases(cases.map((c) => c.potential));
+        if (conflict) {
+            responseCaseErrors.set(container, {
+                firstType: conflict[0],
+                secondType: conflict[1],
+            });
+            return {
+                responses: [{ type: undefined, count: undefined }],
+                potential: [],
+            };
+        }
+        // not as many in each case
+        const unknownCount = (r: Response[]) => {
+            if (r.length === 0) {
+                return [];
+            }
+            const types = new Set(r.map((x) => x.type));
+            return [
+                {
+                    type: types.size === 1 ? [...types][0] : undefined,
+                    count: undefined,
+                },
+            ];
+        };
         return {
             responses: unknownCount(cases.flatMap((c) => c.responses)),
             potential: unknownCount(cases.flatMap((c) => c.potential)),
         };
+    }
+
+    /**
+     * Two types one response has in different cases, `responsesOfCases`
+     * the responses of each case in order, or `undefined` when none has.
+     * Responses are compared by place, up to the first whose number of
+     * entries is not known (a list), after which places don't line up.
+     */
+    function typesInCases(
+        responsesOfCases: Response[][],
+    ): [string, string] | undefined {
+        for (let place = 0; ; place++) {
+            const atPlace = responsesOfCases.flatMap((r) =>
+                r.length > place ? [r[place]] : [],
+            );
+            if (atPlace.length === 0) {
+                return undefined;
+            }
+            const types = [
+                ...new Set(
+                    atPlace.flatMap((x) =>
+                        x.type === undefined ? [] : [x.type],
+                    ),
+                ),
+            ];
+            if (types.length > 1) {
+                return [types[0], types[1]];
+            }
+            if (atPlace.some((x) => x.count !== 1)) {
+                return undefined;
+            }
+        }
     }
 
     /**
@@ -1292,9 +1329,14 @@ export function propertyTypeReader({
             arrayVariable = entry.arrayVariableName;
             description = info.stateVariableDescriptions[arrayVariable];
             several = numIndices < entry.numDimensions;
-            // the entry a name such as `currentResponse2` names
+            // the entry a name such as `currentResponse2` names, of an array
+            // of one dimension, whose entries have none left
             const ending = variableName.substring(prefix.length);
-            if (/^[1-9]\d*$/.test(ending) && entry.numDimensions === 1) {
+            if (
+                /^[1-9]\d*$/.test(ending) &&
+                entry.numDimensions === 0 &&
+                (description?.numDimensions ?? 1) === 1
+            ) {
                 entryNameIndex = Number(ending);
             }
         }
@@ -1469,9 +1511,9 @@ export function markPropertyTypesAtLoad({
         };
     }
 
-    // A `<conditionalContent>` an answer reads responses of different types
-    // from, one in each case, is an error at load (TYPE-2, COMP-11), shown in
-    // place of it, as it would be in any case.
+    // A `<conditionalContent>` an answer reads a response from that is of
+    // one type in one case and of another in another is an error at load
+    // (TYPE-2, COMP-11), shown in place of it, as it would be in any case.
     for (const [container, { firstType, secondType }] of responseCaseErrors) {
         const diagnostic = {
             ...codedDiagnostic({
