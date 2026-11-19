@@ -76,6 +76,11 @@ the end is silent while the length can change (#1499). An index that cannot appl
 nothing (#2431). List entries (#2431) and function references (#2432) follow the same rule.
 A reference that names nothing is missing, shown as `＿`, bare or as a tag (VAL-5, D37, #2458).
 
+**An entry of a property is reached by index:** `$a.currentResponses[2]`, `$t.categories[1]`,
+`$line.points[1]`. A property's entries also have names of their own today
+(`$a.currentResponse2`, `$t.category1`, `$line.point1`), but those are Tier 3: the cells core
+may not keep them. Docs, examples, messages and new tests use the index form.
+
 Evidence:
 - `T/copying/extend_references.test.ts`: `:2401` "extending repetitively" (`$g12.Pa` four levels
   down), `:6408` "recursive extends", `:5773` "dot and array notation, recurse to subnames of

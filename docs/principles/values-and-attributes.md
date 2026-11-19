@@ -70,7 +70,7 @@ Evidence:
 > **Every value a reference reaches has one type, decided from the DoenetML.** What the reader
 > enters, and saved state, never change a type.
 
-So whether `<math extend="$a.currentResponse2"/>` is allowed, and what `$x.p` gives in a
+So whether `<math extend="$a.currentResponses[2]"/>` is allowed, and what `$x.p` gives in a
 `<math>`, is known before anyone reads the document, the same in every variant.
 
 - **TYPE-1: a property's type is fixed by its component, or worked out at load (Tier 2)** from

@@ -2824,7 +2824,7 @@ so they can be typed at load. A few aren't (listed under TYPE).
 
 **Correction.** The first review of these properties said a tally of a `<textInput>` switched its
 categories from number to text as the student typed. It doesn't: a `<textInput>` is a text by
-its tag, so the categories are text throughout. `<number extend="$t.category1"/>` gave `NaN` for
+its tag, so the categories are text throughout. `<number extend="$t.categories[1]"/>` gave `NaN` for
 `apple` because a text that isn't a number converts to `NaN` (REF-5), as it should.
 
 **Related:** a `<choiceInput>` whose choices are `<m>x^2</m>` and `cat` has text values, so its
