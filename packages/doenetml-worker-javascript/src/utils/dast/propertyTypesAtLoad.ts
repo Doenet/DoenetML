@@ -576,7 +576,12 @@ export function propertyTypeReader({
     /**
      * Whether the response `component` may be missing when the document
      * runs: a reference, or a tag made from one, with an index or a
-     * property, or that names nothing (marked `missing` at load).
+     * property, or that names nothing (marked `missing` at load); a
+     * reference to a `<choiceInput>`, which holds no value while nothing is
+     * selected; a component of a type that is missing while what it is made
+     * from is (`canBecomeMissing` in `BaseComponent.js`: `<number
+     * isResponse>2$mi</number>`, a polygon with a vertex `$pl[3]`), when a
+     * reference is written in it; or a reference to any of these.
      */
     function mayBeMissing(
         component: SerializedComponent | string,
@@ -587,7 +592,11 @@ export function propertyTypeReader({
         }
         if (component.componentType !== "_copy") {
             // a tag made from a reference that names nothing (D37)
-            return Boolean(component.doenetAttributes?.missing);
+            return (
+                Boolean(component.doenetAttributes?.missing) ||
+                (missingWithWhatItIsMadeFrom(component.componentType) &&
+                    holdsReference(component))
+            );
         }
         const ref = refOf(component);
         if (!ref || ref.nodeIdx < 0 || (ref.unresolvedPath ?? []).length > 0) {
@@ -600,7 +609,100 @@ export function propertyTypeReader({
         if (node === undefined || seen.has(node.componentIdx)) {
             return false;
         }
+        const nodeTag = tagOfComponent(node);
+        if (nodeTag !== undefined && inherits(nodeTag, "choiceInput")) {
+            return true;
+        }
         return mayBeMissing(node, new Set(seen).add(component.componentIdx));
+    }
+
+    /**
+     * Whether a component of `componentType` is missing while what it is
+     * made from is (the class side of `canBecomeMissing`, `BaseComponent.js`).
+     */
+    function missingWithWhatItIsMadeFrom(componentType: string) {
+        const componentClass = allClasses[componentType];
+        return Boolean(
+            componentClass &&
+            (componentClass.missingWhenContentMissing ||
+                componentClass.missingWhenComputedFromMissing ||
+                componentClass.missingWhenContentNamesNothing ||
+                componentClass.missingWhenEntriesMissing?.length > 0 ||
+                componentClass.missingWhenPointsMissing?.length > 0),
+        );
+    }
+
+    /** Whether a reference is written in `component`, or its attributes. */
+    function holdsReference(component: SerializedComponent): boolean {
+        const pieces: (SerializedComponent | string)[] = [
+            ...(component.children ?? []),
+        ];
+        for (const attribute of Object.values(component.attributes ?? {})) {
+            const attr: any = attribute;
+            if (attr.type === "component" && attr.component) {
+                pieces.push(attr.component);
+            } else if (Array.isArray(attr.children)) {
+                pieces.push(...attr.children);
+            } else if (Array.isArray(attr.references)) {
+                pieces.push(...attr.references);
+            }
+        }
+        return pieces.some(
+            (piece) =>
+                typeof piece === "object" &&
+                piece !== null &&
+                (piece.componentType === "_copy" || holdsReference(piece)),
+        );
+    }
+
+    /**
+     * Whether the property the reference `component` names is made, when
+     * the document runs, into components that wrap its entries (`$c.center`
+     * a `<point>`, `$pl.vertices` points, `$v.displacement` a `<vector>`:
+     * `returnWrappingComponents` in `Core.js`), not a component of the type
+     * its class declares.
+     */
+    function wrapsEntries(component: SerializedComponent) {
+        const ref = refOf(component);
+        const path = ref?.unresolvedPath ?? [];
+        if (!ref || ref.nodeIdx < 0 || path.length !== 1) {
+            return false;
+        }
+        const componentType = referentType(ref.nodeIdx);
+        const componentClass =
+            componentType === undefined ? undefined : allClasses[componentType];
+        const name = path[0]?.name;
+        if (!componentClass || typeof name !== "string" || name === "") {
+            return false;
+        }
+        const [variableName] = publicCaseInsensitiveAliasSubstitutions({
+            stateVariables: [name],
+            componentClass,
+            componentInfoObjects,
+        });
+        const info: any =
+            componentInfoObjects.publicStateVariableInfo[componentType!];
+        if (variableName === undefined || !info) {
+            return false;
+        }
+        const description = info.stateVariableDescriptions[variableName];
+        const prefix = description
+            ? undefined
+            : Object.keys(info.arrayEntryPrefixes ?? {})
+                  .filter((p) => variableName.startsWith(p))
+                  .sort((a, b) => b.length - a.length)[0];
+        const entry = prefix ? info.arrayEntryPrefixes[prefix] : undefined;
+        const wrapping =
+            description?.wrappingComponents ?? entry?.wrappingComponents;
+        const numDimensions = description
+            ? description.isArray
+                ? (description.numDimensions ?? 1)
+                : 0
+            : (entry?.numDimensions ?? 0);
+        return (
+            (wrapping ?? []).some((wrap: unknown[]) => wrap.length > 0) &&
+            (path[0].index ?? []).length < numDimensions
+        );
     }
 
     /** The response `component` is read as, if it is not missing. */
@@ -617,7 +719,11 @@ export function propertyTypeReader({
             const ref = refOf(component);
             if (ref && (ref.unresolvedPath ?? []).length > 0) {
                 const property = propertyOfReference(component);
-                if (!property || "undecided" in property) {
+                if (
+                    !property ||
+                    "undecided" in property ||
+                    wrapsEntries(component)
+                ) {
                     return { type: undefined, count: undefined };
                 }
                 return property.several
@@ -1299,6 +1405,23 @@ export function markPropertyTypesAtLoad({
             referents,
         });
 
+    /**
+     * Whether `component`, of `tag`, is an `<answer>` made with `extend` or
+     * `copy` that writes children of its own.
+     */
+    function answerCopyWritingChildren(
+        component: SerializedComponent,
+        tag: string,
+    ) {
+        return (
+            component.componentType === "_copy" &&
+            decidingClass(tag) === "answer" &&
+            (component.children ?? []).some(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            )
+        );
+    }
+
     const marked: [SerializedComponent, PropertyTypes][] = [];
     const seen = new Set<SerializedComponent>();
     function visit(components: (SerializedComponent | string)[]) {
@@ -1313,7 +1436,15 @@ export function markPropertyTypesAtLoad({
                     : component.componentType;
             if (tag !== undefined && decidingClass(tag) !== undefined) {
                 const types = propertyTypesOf(component);
-                if (Object.keys(types).length > 0) {
+                if (
+                    Object.keys(types).length > 0 ||
+                    answerCopyWritingChildren(component, tag)
+                ) {
+                    // Marked even with none decided for an `<answer>` made
+                    // with `extend` or `copy` that writes children of its
+                    // own, which may add responses: the types of what it
+                    // copies, which it would otherwise keep (`Copy.js`),
+                    // are not its types.
                     marked.push([component, types]);
                 }
             }

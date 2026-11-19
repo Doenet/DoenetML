@@ -211,4 +211,145 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
                 .createComponentOfType,
         ).eqls(["math", "text"]);
     });
+    /** Each answer's submitted responses after submitting it, as text, and their types. */
+    async function submitted(
+        core: any,
+        resolvePathToNodeIdx: any,
+        name: string,
+    ) {
+        const idx = await resolvePathToNodeIdx(name);
+        await submitAnswer({ componentIdx: idx, core });
+        const ans = core.core._components[idx];
+        return {
+            values: (await ans.stateValues.submittedResponses).map(String),
+            types: ans.state.submittedResponses.shadowingInstructions
+                .createComponentOfType,
+        };
+    }
+
+    it("a property whose entries are made into points or vectors is not decided as a math", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<polyline name="pl" vertices="(1,2) (3,4)"/>
+<circle name="c"/>
+<vector name="v" displacement="(1,2)"/>
+<polygon name="pg" vertices="(0,0) (1,1) (1,0)"/>
+<answer name="a1"><award><when>true</when></award><considerAsResponses>$pl.vertices</considerAsResponses></answer>
+<answer name="a2"><award><when>$c.center = (0,0)</when></award></answer>
+<answer name="a3"><award><when>$v.displacement = (1,2)</when></award></answer>
+<answer name="a4"><award><when>$pg.vertex1 = (0,0)</when></award></answer>
+<answer name="a5"><award><when>$pg.vertexX1_1 = 0</when></award></answer>
+`,
+        });
+        expect(errors(core)).eqls([]);
+        expect((await submitted(core, resolvePathToNodeIdx, "a1")).types).eqls([
+            "point",
+            "point",
+        ]);
+        expect((await submitted(core, resolvePathToNodeIdx, "a2")).types).eqls([
+            "point",
+        ]);
+        expect((await submitted(core, resolvePathToNodeIdx, "a3")).types).eqls([
+            "vector",
+        ]);
+        expect((await submitted(core, resolvePathToNodeIdx, "a4")).types).eqls([
+            "point",
+        ]);
+        expect((await submitted(core, resolvePathToNodeIdx, "a5")).types).eqls([
+            "math",
+        ]);
+    });
+
+    it("a response that may be missing is not decided, as it is recorded as a blank math", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<choiceInput name="ci"><choice>dog</choice><choice>cat</choice></choiceInput>
+<pointList name="pl">(1,2)</pointList>
+<answer name="a1"><award><when>$ci = dog</when></award><considerAsResponses>$ci</considerAsResponses></answer>
+<answer name="a2"><mathInput name="mi"/><award><when><number isResponse>2$mi</number> = 6</when></award></answer>
+<answer name="a3"><award><when><boolean isResponse>$nothing</boolean></when></award></answer>
+<answer name="a4"><award><when>true</when></award><considerAsResponses><polygon vertices="(0,0) $pl[3] (1,1)"/></considerAsResponses></answer>
+<answer name="a5"><award><when><number isResponse>5</number> = 5</when></award></answer>
+<p name="p1">$a1.submittedResponses</p>
+<p name="p2">$a2.submittedResponses</p>
+<p name="p3">$a3.submittedResponses</p>
+<p name="p4">$a4.submittedResponses</p>
+`,
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "a1")).eqls({
+            values: ["＿"],
+            types: ["math"],
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "a2")).eqls({
+            values: ["＿", "＿"],
+            types: ["math", "math"],
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "a3")).eqls({
+            values: ["＿"],
+            types: ["math"],
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "a4")).eqls({
+            values: ["＿"],
+            types: ["math"],
+        });
+        // one with nothing to be missing is decided
+        const a5 = core.core._components[await resolvePathToNodeIdx("a5")];
+        expect(a5.doenetAttributes.propertyTypes.currentResponses).eq("number");
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const [name, text] of [
+            ["p1", "＿"],
+            ["p2", "＿, ＿"],
+            ["p3", "＿"],
+            ["p4", "＿"],
+        ]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            ).eq(text);
+        }
+    });
+
+    it("an answer made with extend that writes responses of its own does not take the types of what it extends", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<answer name="ans"><mathInput name="mi"/><award><when>$mi = x</when></award></answer>
+<answer name="ans2" extend="$ans"><textInput name="ti"/></answer>
+<answer name="ans3" type="text">hello</answer>
+<answer name="ans4" extend="$ans3"><mathInput name="mi2"/></answer>
+<p name="p2">$ans2.submittedResponses</p>
+<p name="p4">$ans4.submittedResponses</p>
+`,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("ans2.mi"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "y",
+            componentIdx: await resolvePathToNodeIdx("ans2.ti"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "z",
+            componentIdx: await resolvePathToNodeIdx("ans4.mi2"),
+            core,
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "ans2")).eqls({
+            values: ["x", "y"],
+            types: ["math", "text"],
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "ans4")).eqls({
+            values: ["z"],
+            types: ["math"],
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x, y");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("z");
+    });
 });
