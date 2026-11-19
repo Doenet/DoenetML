@@ -20,7 +20,7 @@
  * | `<tally>`'s `categories` | its `type` with `categories` written (text by default), else a number when every value is a number by its tag, else a text |
  * | `<markers>`' `markers` | a text when any is a `<text>`, else a number |
  * | a selectable type's `value`, `values` | its `type`, else a number |
- * | `<answer>`'s `currentResponses`, `submittedResponses` | not yet decided here |
+ * | `<answer>`'s `currentResponses`, `submittedResponses` | each response's: its input's type, or its component's tag (`answerResponseTypes`) |
  *
  * What is decided is marked on the component
  * (`doenetAttributes.propertyTypes`, by variable name), and on a tag made
@@ -48,10 +48,15 @@ import { attributeOf, literalText } from "./choiceErrorsAtLoad";
 import { sequenceEntryComponentType } from "../sequence";
 import { kindOfComponentType } from "../componentKinds";
 import { codedDiagnostic } from "../diagnostics";
+import { errorComponentState } from "./errors";
 import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
 
-/** What `doenetAttributes.propertyTypes` holds: a type by variable name. */
-export type PropertyTypes = Record<string, string>;
+/**
+ * What `doenetAttributes.propertyTypes` holds: a type by variable name, or,
+ * for an array whose entries may differ in type (an `<answer>`'s responses,
+ * TYPE-2), the type of each entry.
+ */
+export type PropertyTypes = Record<string, string | string[]>;
 
 /** The types a `<select>`'s sugar reads its text as (`selectSugar`). */
 const SELECT_SUGAR_TYPES = ["math", "number", "text", "boolean"];
@@ -68,6 +73,21 @@ const DECIDED_HERE: Record<string, string[]> = {
     markers: ["markers"],
     _componentWithSelectableType: ["value"],
     _componentListWithSelectableType: ["values"],
+    answer: ["currentResponses", "submittedResponses"],
+};
+
+/**
+ * The type a response is recorded as of an input with a `componentType` of
+ * its own (`Answer.js`'s `currentResponses`), other than a `<choiceInput>`,
+ * whose type is decided here. Any other component is recorded as its tag.
+ */
+const INPUT_RESPONSE_TYPES: Record<string, string> = {
+    mathInput: "math",
+    textInput: "text",
+    booleanInput: "boolean",
+    codeEditor: "text",
+    fractionInput: "math",
+    matrixInput: "matrix",
 };
 
 /**
@@ -85,6 +105,13 @@ export type PropertyType =
     | { undecided: true; variableName: string };
 
 /**
+ * A response of an `<answer>` found in what is written
+ * (`answerResponseTypes`): its type, `undefined` when not known, and how
+ * many entries it gives, `undefined` when that is not known (a list).
+ */
+type Response = { type: string | undefined; count: number | undefined };
+
+/**
  * What decides the types of the properties of the components of
  * `serializedComponents` (see above), with `referents` the document's
  * (`documentReferents`, typing a repeat's `valueName`).
@@ -96,6 +123,14 @@ export function propertyTypeReader({
     componentInfoObjects: ComponentInfoObjects;
     referents: ReturnType<typeof documentReferents>;
 }) {
+    /**
+     * Each `<conditionalContent>` an `<answer>` reads a response from whose
+     * cases hold responses of different types (TYPE-2, COMP-11), with them.
+     */
+    const responseCaseErrors = new Map<
+        SerializedComponent,
+        { firstType: string; secondType: string }
+    >();
     const { componentsByIdx, copiesByCreatedIdx, referentType } = referents;
     const allClasses = componentInfoObjects.allComponentClasses as Record<
         string,
@@ -511,6 +546,487 @@ export function propertyTypeReader({
     }
 
     /**
+     * The response a component `component` written as one is recorded as
+     * (`Answer.js`'s `currentResponses`): an input as its value's type, a
+     * reference (`$mi`, a value reference) as what it reads, a list as its
+     * entries, of any number, and any other component as its tag.
+     */
+    function responseOf(component: SerializedComponent | string): Response {
+        const response = responseRead(component);
+        // A response missing when the document runs (an index past the end,
+        // a property holding no value, a reference that names nothing) is
+        // recorded as one blank math, whatever its type (`currentResponses`),
+        // so one that may be missing is decided here only as a math.
+        return response.type !== "math" && mayBeMissing(component)
+            ? { type: undefined, count: undefined }
+            : response;
+    }
+
+    /**
+     * Whether the response `component` may be missing when the document
+     * runs: a reference, or a tag made from one, with an index or a
+     * property, or that names nothing (marked `missing` at load).
+     */
+    function mayBeMissing(
+        component: SerializedComponent | string,
+        seen: Set<number> = new Set(),
+    ): boolean {
+        if (typeof component === "string" || seen.has(component.componentIdx)) {
+            return false;
+        }
+        if (component.componentType !== "_copy") {
+            // a tag made from a reference that names nothing (D37)
+            return Boolean(component.doenetAttributes?.missing);
+        }
+        const ref = refOf(component);
+        if (!ref || ref.nodeIdx < 0 || (ref.unresolvedPath ?? []).length > 0) {
+            return true;
+        }
+        // a reference to what is missing
+        const node =
+            componentsByIdx.get(ref.nodeIdx) ??
+            copiesByCreatedIdx.get(ref.nodeIdx);
+        if (node === undefined || seen.has(node.componentIdx)) {
+            return false;
+        }
+        return mayBeMissing(node, new Set(seen).add(component.componentIdx));
+    }
+
+    /** The response `component` is read as, if it is not missing. */
+    function responseRead(component: SerializedComponent | string): Response {
+        if (typeof component === "string") {
+            return { type: "text", count: 1 };
+        }
+        let tag: string | undefined;
+        let node: SerializedComponent | undefined;
+        if (
+            component.componentType === "_copy" &&
+            tagOf(component) === undefined
+        ) {
+            const ref = refOf(component);
+            if (ref && (ref.unresolvedPath ?? []).length > 0) {
+                const property = propertyOfReference(component);
+                if (!property || "undecided" in property) {
+                    return { type: undefined, count: undefined };
+                }
+                return property.several
+                    ? { type: property.type, count: undefined }
+                    : { type: property.type, count: 1 };
+            }
+            // a bare `$y` reads y's value: an input's, as its type, or a
+            // component of its tag
+            tag = tagOfComponent(component);
+            node = nodeOf(component);
+            if (
+                tag !== undefined &&
+                allClasses[tag]?.variableForImplicitProp &&
+                !inherits(tag, "choiceInput")
+            ) {
+                const valueType = valueTypeOfInput(tag, node);
+                if (valueType !== undefined) {
+                    return { type: valueType, count: 1 };
+                }
+            }
+        } else {
+            tag = tagOfComponent(component);
+            node = nodeOf(component);
+        }
+        if (tag === undefined || tag === "group" || isComposite(tag)) {
+            return { type: undefined, count: undefined };
+        }
+        const entry = allClasses[tag]?.listEntryComponentType;
+        if (entry !== undefined) {
+            return { type: entry, count: undefined };
+        }
+        if (inherits(tag, "choiceInput")) {
+            const type = node
+                ? propertyTypesOf(node).selectedValues
+                : undefined;
+            return {
+                type: typeof type === "string" ? type : undefined,
+                count: 1,
+            };
+        }
+        const inputType = Object.entries(INPUT_RESPONSE_TYPES).find(([input]) =>
+            inherits(tag!, input),
+        )?.[1];
+        return { type: inputType ?? tag, count: 1 };
+    }
+
+    /**
+     * The type of the value a bare reference to a component of `tag`
+     * (`node`) reads (its implicit property), as its class declares it or
+     * as decided here. `undefined` when not known.
+     */
+    function valueTypeOfInput(
+        tag: string,
+        node: SerializedComponent | undefined,
+    ) {
+        const variable = allClasses[tag]?.variableForImplicitProp;
+        const decided = node ? propertyTypesOf(node)[variable] : undefined;
+        if (typeof decided === "string") {
+            return decided;
+        }
+        const info: any = componentInfoObjects.publicStateVariableInfo[tag];
+        const declared =
+            info?.stateVariableDescriptions?.[variable]?.createComponentOfType;
+        return typeof declared === "string" ? declared : undefined;
+    }
+
+    /**
+     * The responses the components `components`, written in an `<award>`,
+     * hold: one marked a response (`isResponse` written, or a reference
+     * `referencesAreResponses` names, `named`), or, in `potential`, a
+     * reference the answer's sugar marked `isPotentialResponse`; and those
+     * of what they hold. Those in a `<conditionalContent>` follow COMP-11's
+     * every-branch rule (`caseResponses`).
+     */
+    function awardResponses(
+        components: (SerializedComponent | string)[],
+        named: { nodeIdx: number; path: string }[],
+        found: { responses: Response[]; potential: Response[] },
+    ) {
+        for (const component of components) {
+            if (typeof component !== "object") {
+                continue;
+            }
+            if (isMarkedResponse(component, named)) {
+                found.responses.push(responseOf(component));
+                continue;
+            }
+            if (isMarkedPotential(component)) {
+                found.potential.push(responseOf(component));
+                continue;
+            }
+            if (component.componentType === "conditionalContent") {
+                const cases: {
+                    responses: Response[];
+                    potential: Response[];
+                }[] = [];
+                for (const part of component.children ?? []) {
+                    if (typeof part !== "object") {
+                        continue;
+                    }
+                    cases.push(
+                        awardResponses(part.children ?? [], named, {
+                            responses: [],
+                            potential: [],
+                        }),
+                    );
+                }
+                const merged = caseResponses(component, cases);
+                found.responses.push(...merged.responses);
+                found.potential.push(...merged.potential);
+                continue;
+            }
+            for (const attribute of Object.values(component.attributes ?? {})) {
+                const attr: any = attribute;
+                if (attr.type === "component" && attr.component) {
+                    awardResponses([attr.component], named, found);
+                }
+            }
+            awardResponses(component.children ?? [], named, found);
+        }
+        return found;
+    }
+
+    /**
+     * The responses of the cases of a `<conditionalContent>`, by the
+     * every-branch rule (COMP-11): what each case holds when every case
+     * holds responses of the same types and number, else one of their one
+     * type, of a number not known. Cases holding responses of different
+     * types are an error (`responseCaseErrors`), and their responses are
+     * not known.
+     */
+    function caseResponses(
+        container: SerializedComponent,
+        cases: { responses: Response[]; potential: Response[] }[],
+    ): { responses: Response[]; potential: Response[] } {
+        const all = cases.flatMap((c) => [...c.responses, ...c.potential]);
+        if (all.length === 0) {
+            return { responses: [], potential: [] };
+        }
+        const types = [
+            ...new Set(
+                all.flatMap((r) => (r.type === undefined ? [] : [r.type])),
+            ),
+        ];
+        if (types.length > 1) {
+            responseCaseErrors.set(container, {
+                firstType: types[0],
+                secondType: types[1],
+            });
+            return {
+                responses: [{ type: undefined, count: undefined }],
+                potential: [],
+            };
+        }
+        const signature = (r: Response[]) =>
+            r.map((x) => `${x.type}:${x.count}`).join(",");
+        const first = cases[0];
+        if (
+            cases.length > 0 &&
+            cases.every(
+                (c) =>
+                    signature(c.responses) === signature(first.responses) &&
+                    signature(c.potential) === signature(first.potential),
+            )
+        ) {
+            return first;
+        }
+        // of one type, but not as many in each case
+        const unknownCount = (r: Response[]) =>
+            r.length > 0
+                ? [
+                      {
+                          type: r.some((x) => x.type === undefined)
+                              ? undefined
+                              : types[0],
+                          count: undefined,
+                      },
+                  ]
+                : [];
+        return {
+            responses: unknownCount(cases.flatMap((c) => c.responses)),
+            potential: unknownCount(cases.flatMap((c) => c.potential)),
+        };
+    }
+
+    /**
+     * Whether `component` is written with `isResponse` (true), or is a
+     * reference an award's `referencesAreResponses` names (`named`, as
+     * `Award.js` marks it when the document runs).
+     */
+    function isMarkedResponse(
+        component: SerializedComponent,
+        named: { nodeIdx: number; path: string }[],
+    ) {
+        const attribute = attributeOf(component, "isResponse");
+        if (attribute !== undefined) {
+            const text = literalText(attribute);
+            if (text === "" || text?.toLowerCase() === "true") {
+                return true;
+            }
+        }
+        if (component.componentType !== "_copy" || named.length === 0) {
+            return false;
+        }
+        const ref = refOf(component);
+        if (!ref) {
+            return false;
+        }
+        const path = JSON.stringify(
+            (ref.unresolvedPath ?? []).map((part: any) => part.name),
+        );
+        return named.some((n) => n.nodeIdx === ref.nodeIdx && n.path === path);
+    }
+
+    /**
+     * The children of a case, through the `<group>` with no attributes that
+     * its sugar wraps them in.
+     */
+    function withoutSugarGroup(children: (SerializedComponent | string)[]) {
+        const shown = children.filter(
+            (child) => typeof child !== "string" || child.trim() !== "",
+        );
+        const [only] = shown;
+        if (
+            shown.length === 1 &&
+            typeof only === "object" &&
+            only.componentType === "group" &&
+            Object.keys(only.attributes ?? {}).length === 0
+        ) {
+            return only.children ?? [];
+        }
+        return children;
+    }
+
+    /** Whether the answer's sugar marked `component` a potential response. */
+    function isMarkedPotential(component: SerializedComponent) {
+        const attribute = attributeOf(component, "isPotentialResponse");
+        return (
+            attribute !== undefined &&
+            literalText(attribute)?.toLowerCase() === "true"
+        );
+    }
+
+    /** The inputs written `forAnswer` the `<answer>` `answerIdx`. */
+    function inputsForAnswer(answerIdx: number) {
+        const inputs: SerializedComponent[] = [];
+        for (const component of componentsByIdx.values()) {
+            const attribute: any = attributeOf(component, "forAnswer");
+            if (attribute?.type !== "references") {
+                continue;
+            }
+            for (const reference of attribute.references ?? []) {
+                const ref =
+                    typeof reference === "object" && reference?.extending
+                        ? refOf(reference)
+                        : undefined;
+                if (
+                    ref?.nodeIdx === answerIdx &&
+                    (ref.unresolvedPath ?? []).length === 0
+                ) {
+                    inputs.push(component);
+                }
+            }
+        }
+        return inputs;
+    }
+
+    /**
+     * The references an `<award>`'s `referencesAreResponses` names, each by
+     * what it resolved to and the names after it.
+     */
+    function referencesNamed(award: SerializedComponent) {
+        const attribute: any = attributeOf(award, "referencesAreResponses");
+        if (attribute?.type !== "references") {
+            return [];
+        }
+        return (attribute.references ?? []).flatMap((reference: any) => {
+            const ref =
+                reference?.componentType === "_copy"
+                    ? refOf(reference)
+                    : undefined;
+            return ref
+                ? [
+                      {
+                          nodeIdx: ref.nodeIdx,
+                          path: JSON.stringify(
+                              (ref.unresolvedPath ?? []).map(
+                                  (part: any) => part.name,
+                              ),
+                          ),
+                      },
+                  ]
+                : [];
+        });
+    }
+
+    /**
+     * The types of an `<answer>`'s responses (`currentResponses`, TYPE-2),
+     * read from what is written as `Answer.js` reads them when the document
+     * runs: the inputs written `forAnswer` it, then, in order, the responses
+     * its awards hold, its inputs, and what its `<considerAsResponses>`
+     * holds; or, with none of those, the references its awards hold, which
+     * its sugar marked potential responses.
+     *
+     * The type of each, in order, when each gives one entry and their order
+     * is known; else the one type they share, whatever their number; else
+     * `undefined`, not decided. The input its sugar made, which it skips
+     * when its awards read other inputs (`skippedFirstInput`), is counted
+     * only among the types they share.
+     */
+    function answerResponseTypes(
+        node: SerializedComponent,
+        children: (SerializedComponent | string)[],
+    ): string | string[] | undefined {
+        if (node.componentType !== "answer") {
+            // a copy of one, whose inputs are made again
+            return undefined;
+        }
+        const responses: Response[] = [];
+        const potential: Response[] = [];
+        const uncertain: Response[] = [];
+        let orderKnown = true;
+
+        const forAnswer = inputsForAnswer(node.componentIdx);
+        if (forAnswer.length > 1) {
+            orderKnown = false;
+        }
+        responses.push(...forAnswer.map(responseOf));
+
+        let firstInput = true;
+        for (const child of children) {
+            if (typeof child !== "object") {
+                continue;
+            }
+            const tag = tagOfComponent(child);
+            if (tag === undefined) {
+                continue;
+            }
+            if (inherits(tag, "award")) {
+                if (
+                    child.componentType === "_copy" ||
+                    child.doenetAttributes?.copiedAward
+                ) {
+                    // made from another award when the document runs
+                    return undefined;
+                }
+                const found = awardResponses(
+                    child.children ?? [],
+                    referencesNamed(child),
+                    { responses: [], potential: [] },
+                );
+                responses.push(...found.responses);
+                potential.push(...found.potential);
+            } else if (inherits(tag, "_input")) {
+                const response = responseOf(child);
+                if (
+                    firstInput &&
+                    child.doenetAttributes?.createdFromSugar &&
+                    !inherits(tag, "choiceInput")
+                ) {
+                    // skipped, or not, as its awards decide when the document
+                    // runs (`skippedFirstInput`)
+                    uncertain.push(response);
+                    orderKnown = false;
+                } else {
+                    responses.push(response);
+                }
+                firstInput = false;
+            } else if (inherits(tag, "considerAsResponses")) {
+                for (const held of child.children ?? []) {
+                    if (typeof held === "string") {
+                        if (held.trim() !== "") {
+                            responses.push(responseOf(held));
+                        }
+                        continue;
+                    }
+                    if (held.componentType === "conditionalContent") {
+                        const cases = (held.children ?? [])
+                            .filter(
+                                (part): part is SerializedComponent =>
+                                    typeof part === "object",
+                            )
+                            .map((part) => ({
+                                responses: withoutSugarGroup(
+                                    part.children ?? [],
+                                )
+                                    .filter(
+                                        (c) =>
+                                            typeof c === "object" ||
+                                            c.trim() !== "",
+                                    )
+                                    .map(responseOf),
+                                potential: [],
+                            }));
+                        responses.push(...caseResponses(held, cases).responses);
+                        continue;
+                    }
+                    responses.push(responseOf(held));
+                }
+            }
+        }
+
+        const chosen =
+            responses.length > 0 || uncertain.length > 0
+                ? [...responses, ...uncertain]
+                : potential;
+        if (chosen.length === 0 || chosen.some((r) => r.type === undefined)) {
+            return undefined;
+        }
+        const types = [...new Set(chosen.map((r) => r.type!))];
+        if (types.length === 1) {
+            return types[0];
+        }
+        if (orderKnown && chosen.every((r) => r.count === 1)) {
+            return chosen.map((r) => r.type!);
+        }
+        return undefined;
+    }
+
+    /**
      * The types decided here of the properties of `node`, a component or a
      * tag made with `extend` or `copy`, by variable name (see above).
      */
@@ -547,6 +1063,14 @@ export function propertyTypeReader({
                 set("value", selectableType(attribute("type")));
             } else if (base === "_componentListWithSelectableType") {
                 set("values", selectableType(attribute("type")));
+            } else if (base === "answer") {
+                const types = answerResponseTypes(node, children);
+                if (types !== undefined) {
+                    result.currentResponses = types;
+                    // what was submitted is of the types the DoenetML gives,
+                    // never those saved (TYPE-4)
+                    result.submittedResponses = types;
+                }
             }
         }
         decided.set(idx, result);
@@ -573,11 +1097,14 @@ export function propertyTypeReader({
         node,
         name,
         numIndices,
+        index,
     }: {
         componentType: string;
         node: SerializedComponent | undefined;
         name: string;
         numIndices: number;
+        /** the index written after it, when it is a literal (`[2]`) */
+        index?: number;
     }): PropertyType | undefined {
         const componentClass = allClasses[componentType];
         if (!componentClass) {
@@ -602,6 +1129,7 @@ export function propertyTypeReader({
         let description = info.stateVariableDescriptions[variableName];
         let arrayVariable = variableName;
         let several = false;
+        let entryNameIndex: number | undefined;
         if (description) {
             several =
                 Boolean(description.isArray) &&
@@ -618,6 +1146,11 @@ export function propertyTypeReader({
             arrayVariable = entry.arrayVariableName;
             description = info.stateVariableDescriptions[arrayVariable];
             several = numIndices < entry.numDimensions;
+            // the entry a name such as `currentResponse2` names
+            const ending = variableName.substring(prefix.length);
+            if (/^[1-9]\d*$/.test(ending) && entry.numDimensions === 1) {
+                entryNameIndex = Number(ending);
+            }
         }
         if (!description?.public) {
             return undefined;
@@ -626,7 +1159,19 @@ export function propertyTypeReader({
         if (typeof declared === "string") {
             return { type: declared, several, variableName: arrayVariable };
         }
-        const type = node ? propertyTypesOf(node)[arrayVariable] : undefined;
+        const decided = node ? propertyTypesOf(node)[arrayVariable] : undefined;
+        // Of entries that may differ in type (TYPE-2), a literal index has
+        // its entry's type, and the whole, or an index that can reach several
+        // entries, the one type they share, if they share one.
+        const type = Array.isArray(decided)
+            ? index !== undefined && entryNameIndex === undefined
+                ? decided[index - 1]
+                : entryNameIndex !== undefined
+                  ? decided[entryNameIndex - 1]
+                  : new Set(decided).size === 1
+                    ? decided[0]
+                    : undefined
+            : decided;
         return type === undefined
             ? { undecided: true, variableName: arrayVariable }
             : { type, several, variableName: arrayVariable };
@@ -661,10 +1206,26 @@ export function propertyTypeReader({
             node: node?.componentType === "_placeholder" ? undefined : node,
             name: part.name,
             numIndices: (part.index ?? []).length,
+            index: literalIndex(part.index?.[0]),
         });
     }
 
+    /** The index `piece` is written as, when it is a literal (`2`). */
+    function literalIndex(piece: any): number | undefined {
+        const value = piece?.value;
+        if (
+            Array.isArray(value) &&
+            value.length === 1 &&
+            typeof value[0] === "string" &&
+            /^\s*[1-9]\d*\s*$/.test(value[0])
+        ) {
+            return Number(value[0]);
+        }
+        return undefined;
+    }
+
     return {
+        responseCaseErrors,
         propertyTypesOf,
         propertyTypeOf,
         tagOf,
@@ -692,10 +1253,11 @@ export function markPropertyTypesAtLoad({
         componentInfoObjects,
         typeRepeatValues: true,
     });
-    const { propertyTypesOf, decidingClass, tagOf } = propertyTypeReader({
-        componentInfoObjects,
-        referents,
-    });
+    const { propertyTypesOf, decidingClass, tagOf, responseCaseErrors } =
+        propertyTypeReader({
+            componentInfoObjects,
+            referents,
+        });
 
     const marked: [SerializedComponent, PropertyTypes][] = [];
     const seen = new Set<SerializedComponent>();
@@ -753,6 +1315,31 @@ export function markPropertyTypesAtLoad({
             ...component.doenetAttributes,
             propertyTypes: types,
         };
+    }
+
+    // A `<conditionalContent>` an answer reads responses of different types
+    // from, one in each case, is an error at load (TYPE-2, COMP-11), shown in
+    // place of it, as it would be in any case.
+    for (const [container, { firstType, secondType }] of responseCaseErrors) {
+        const diagnostic = {
+            ...codedDiagnostic({
+                type: "error",
+                code: "doenet-e0082",
+                args: { firstType, secondType },
+            }),
+            position: container.position,
+            sourceDoc: container.sourceDoc,
+        };
+        diagnostics.push(diagnostic);
+        const errorComponent = container as any;
+        errorComponent.componentType = "_error";
+        errorComponent.state = errorComponentState(
+            diagnostic.message,
+            diagnostic,
+        );
+        errorComponent.attributes = {};
+        errorComponent.children = [];
+        errorComponent.doenetAttributes = {};
     }
     return diagnostics;
 }

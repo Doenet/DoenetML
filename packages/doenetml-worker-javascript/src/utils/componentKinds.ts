@@ -76,7 +76,7 @@ export function kindOfComponentType(
     componentType: string,
     componentInfoObjects: ComponentInfoObjects,
     seen: Set<string> = new Set(),
-    propertyTypes?: Record<string, string>,
+    propertyTypes?: Record<string, string | string[]>,
 ): { kind: ComponentKind; type: string } | undefined {
     const componentClass: any =
         componentInfoObjects.allComponentClasses[componentType];
@@ -101,9 +101,11 @@ export function kindOfComponentType(
         });
         // A `<choiceInput>`'s value is its `selectedValues`, an array whose
         // one entry's type is decided at load.
+        const implicitType =
+            propertyTypes?.[componentClass.variableForImplicitProp];
         const decidedType =
             target?.valueComponentType ??
-            propertyTypes?.[componentClass.variableForImplicitProp];
+            (typeof implicitType === "string" ? implicitType : undefined);
         if (decidedType === undefined || decidedType === componentType) {
             return undefined;
         }

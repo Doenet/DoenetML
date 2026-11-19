@@ -2111,6 +2111,13 @@ sort-needs-sort-by-prop = `<{ $component }>` can't compare its items: { $kind ->
        *[other] , as `<{ $component } sortByProp="name">` does for a property `name`
     }.
 
+# An `<answer>` reads a response from a `<conditionalContent>` whose cases
+# hold responses of different types, $firstType and $secondType (TYPE-2,
+# COMP-11): the response would change type as the case shown changes, so it
+# is an error at load, shown in place of the `<conditionalContent>`. The tags
+# stay in English.
+answer-responses-of-several-types = An `<answer>` reads a response from this `<conditionalContent>`, but its cases hold a `<{ $firstType }>` and a `<{ $secondType }>`, and a response has one type, decided from what is written. Give every case a response of one type.
+
 # The `for` of a `<repeat>` holds items of one type (COLL-5, D44), decided
 # at load. $reason is `mix` for items of more than one type, the first two
 # described as in `reorder-items-of-several-types` ($firstKind, $first,
