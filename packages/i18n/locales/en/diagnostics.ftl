@@ -1052,6 +1052,16 @@ extend-choice-input-choices = Choices written inside an `extend` of a `<choiceIn
 
 extend-choice-input-shuffle-order = An `extend` of a `<choiceInput>` shares its selection with `{ $source }`, which counts the choices in the order `{ $source }` shows them, so it can't change `shuffleOrder`. To show the choices in a different order, use `copy`.
 
+# An `extend` of an `<answer>` shares its responses, credit and attempts
+# with its source ($source, the reference as written), so it can't change an
+# attribute that decides them ($attribute, as written) (REF-7, D32).
+extend-answer-grading-attribute = An `extend` of an `<answer>` shares its responses and credit with `{ $source }`, which grades them, so it can't change `{ $attribute }`. To grade with a different `{ $attribute }`, use `copy`.
+
+# Inputs, awards or responses written inside an `extend` of an `<answer>`,
+# which shares its responses and credit with its source ($source, the
+# reference as written) (REF-7, D32). A label or description may be written.
+extend-answer-children = What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `{ $source }`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.
+
 extend-module-attribute = A `<module>` makes its content from its attributes. An `extend` shows the same content as `{ $source }`, so it can't change `{ $attribute }`. To make the module with a different `{ $attribute }`, use `copy`.
 
 # $componentType is `case`, `else` or `option`, and $parentType the tag it is

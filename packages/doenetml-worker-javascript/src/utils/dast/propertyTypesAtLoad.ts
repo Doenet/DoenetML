@@ -1554,8 +1554,10 @@ export function markPropertyTypesAtLoad({
         });
 
     /**
-     * Whether `component`, of `tag`, is an `<answer>` made with `extend` or
-     * `copy` that writes children of its own.
+     * Whether `component`, of `tag`, is an `<answer>` made with `copy` (or
+     * `copyWithState`) that writes children of its own. (One made with
+     * `extend` that writes any is an error, `doenet-e0084`, as an extend
+     * shares its source's responses, REF-7.)
      */
     function answerCopyWritingChildren(
         component: SerializedComponent,
@@ -1589,10 +1591,10 @@ export function markPropertyTypesAtLoad({
                     answerCopyWritingChildren(component, tag)
                 ) {
                     // Marked even with none decided for an `<answer>` made
-                    // with `extend` or `copy` that writes children of its
-                    // own, which may add responses: the types of what it
-                    // copies, which it would otherwise keep (`Copy.js`),
-                    // are not its types.
+                    // with `copy` that writes children of its own, which
+                    // may add responses: the types of what it copies, which
+                    // it would otherwise keep (`Copy.js`), are not its
+                    // types.
                     marked.push([component, types]);
                 }
             }

@@ -38,7 +38,11 @@ copy.
 Writing `$p` is the same as writing `<point extend="$p"/>{:dn}`, and an
 `extend` is always the same component again: it can have its own name and look
 different, but it can't change what the component makes or what its state can
-hold, and trying to is an error that says what to write instead.
+hold, and trying to is an error that says what to write instead. For example,
+an `extend` of an `<answer>{:dn}` shares its responses and credit, so it can't be
+given another input or `<award>{:dn}`, or a grading attribute such as `weight`
+or `symbolicEquality`; it can be given a `<label>{:dn}`, or `showCorrectness`. To
+make an answer that grades differently, use `copy`.
 
 ### Making an independent copy: `copy` and `copyWithState`
 

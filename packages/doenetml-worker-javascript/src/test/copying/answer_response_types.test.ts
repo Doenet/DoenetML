@@ -377,17 +377,44 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         }
     });
 
-    it("an answer made with extend that writes responses of its own does not take the types of what it extends", async () => {
+    it("an extend of an answer can't change what it grades, and a copy that writes responses of its own has its own types", async () => {
+        // An extend shares its source's responses and credit (REF-7, D32), so
+        // writing an input, an award or a grading attribute in one is an
+        // error; a label and appearance attributes are not. A copy is an
+        // answer of its own (CPY-1), typed by what it copies and what is
+        // written in it.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
+<booleanInput name="b"/>
 <answer name="ans"><mathInput name="mi"/><award><when>$mi = x</when></award></answer>
-<answer name="ans2" extend="$ans"><textInput name="ti"/></answer>
+<answer name="e1" extend="$ans"><textInput/></answer>
+<answer name="e2" extend="$ans" weight="2"/>
+<conditionalContent><case condition="$b"><answer extend="$ans"><award><when>true</when></award></answer></case></conditionalContent>
+<answer name="e3" extend="$ans" showCorrectness="false" hide><label>Again</label></answer>
+<answer name="ans2" copy="$ans"><textInput name="ti"/></answer>
 <answer name="ans3" type="text">hello</answer>
-<answer name="ans4" extend="$ans3"><mathInput name="mi2"/></answer>
+<answer name="ans4" copy="$ans3"><mathInput name="mi2"/></answer>
 <p name="p2">$ans2.submittedResponses</p>
 <p name="p4">$ans4.submittedResponses</p>
 `,
         });
+        expect(errors(core)).eqls([
+            "doenet-e0084: What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `$ans`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.",
+            "doenet-e0083: An `extend` of an `<answer>` shares its responses and credit with `$ans`, which grades them, so it can't change `weight`. To grade with a different `weight`, use `copy`.",
+            // in a case not shown, at load
+            "doenet-e0084: What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `$ans`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.",
+        ]);
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["e1", "e2"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].componentType,
+                name,
+            ).eq("_error");
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e3")].componentType,
+        ).eq("answer");
+
         await updateMathInputValue({
             latex: "x",
             componentIdx: await resolvePathToNodeIdx("ans2.mi"),
@@ -411,7 +438,7 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             values: ["z"],
             types: ["math"],
         });
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("x, y");
