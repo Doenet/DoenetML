@@ -358,8 +358,8 @@ The `selectedValues` property renders an array of the values contained
 in all of the choices selected by the user.
 
 Their type is decided by the choices as written, before anyone selects one: maths when
-every choice holds one math (a `<math>{:dn}`, a `<number>{:dn}` or an `<m>{:dn}`), and
-texts otherwise. So `<point extend="$question1"/>{:dn}` is an error as soon as the
+every choice holds one math (a `<math>{:dn}`, a `<number>{:dn}` or an `<m>{:dn}`) and
+nothing else, not even space around it, and texts otherwise. So `<point extend="$question1"/>{:dn}` is an error as soon as the
 document loads if any choice is a text, even one a `<repeat>{:dn}` makes later.
 
 

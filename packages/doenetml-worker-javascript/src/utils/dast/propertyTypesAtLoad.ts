@@ -367,8 +367,16 @@ export function propertyTypeReader({
                 continue;
             }
             const type = tagOfComponent(child);
+            if (
+                type === "choice" &&
+                child.componentType === "_copy" &&
+                tagOf(child) === undefined
+            ) {
+                // A bare `$c` is not a choice but whether it was submitted
+                // (its `submitted`), a boolean the `<choiceInput>` ignores.
+                continue;
+            }
             if (type === "choice") {
-                // a bare `$c` is the choice it names
                 const node = nodeOf(child);
                 if (node) {
                     found.choices.push(node);
@@ -418,12 +426,14 @@ export function propertyTypeReader({
         return found;
     }
 
-    /** The content of a choice, as written, if known. */
+    /**
+     * The content of a choice, as written, if known. Blank text is kept, as
+     * the choice keeps it (`includeBlankStringChildren`): a `<math>` with
+     * space around it is not one math (`Choice.js`'s `math`), so the choice
+     * is a text.
+     */
     function choiceContent(choice: SerializedComponent) {
-        const content = written(choice)?.children;
-        return content?.filter(
-            (child) => typeof child !== "string" || child.trim() !== "",
-        );
+        return written(choice)?.children;
     }
 
     /** A `<choiceInput>`'s `selectedValues` (`ChoiceInput.js`). */
@@ -443,7 +453,8 @@ export function propertyTypeReader({
                 undecided = true;
                 continue;
             }
-            // more than one component, or none, is read as a text
+            // more than one child (blank text among them), or none, is
+            // read as a text
             const math =
                 content.length === 1 ? isMathContent(content[0]) : false;
             if (math === undefined) {

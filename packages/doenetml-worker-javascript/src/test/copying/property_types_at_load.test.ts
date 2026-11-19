@@ -134,6 +134,25 @@ describe("Every property's type is decided at load (D45) @group4", () => {
         expect(d.errors).eqls([e0065("point", "$ci2", "text")]);
     });
 
+    it("a choiceInput is typed by the choices it holds, as it reads them", async () => {
+        const d = await load(`
+<choice name="c">dog</choice>
+<choiceInput name="spaced" preselectChoice="1"><choice>
+  <math>x</math>
+</choice></choiceInput>
+<choiceInput name="bare" preselectChoice="1"><choice><math>y</math></choice>$c</choiceInput>
+<p name="p1">$spaced</p>
+<p name="p2"><point extend="$bare"/></p>
+`);
+        // A math with space around it is not one math, so the choice is a
+        // text, and its value shows (not a blank math).
+        expect((await d.shown("p1")).text).eq("\n  x\n");
+        // A bare `$c` is whether the choice was submitted, not a choice, so
+        // it doesn't make the values texts.
+        expect(d.errors).eqls([]);
+        expect(d.warnings.map((w) => w.split(":")[0])).eqls(["doenet-w0107"]);
+    });
+
     it("a slider's value is of its type, also before it is shown", async () => {
         const d = await load(`
 <booleanInput name="b"/>
