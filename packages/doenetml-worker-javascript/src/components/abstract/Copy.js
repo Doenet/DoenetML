@@ -9931,12 +9931,7 @@ const ANSWER_DESCRIBING_CHILDREN = new Set([
  * `<considerAsResponses>`, text the answer's sugar would read) is
  * `doenet-e0084`. `copy` makes an answer of its own, which may.
  */
-function extendAnswerErrors({
-    attributeNames,
-    children,
-    source,
-    componentInfoObjects,
-}) {
+function extendAnswerErrors({ attributeNames, children, source }) {
     const errors = [];
     for (const attribute of attributeNames) {
         if (ANSWER_GRADING_ATTRIBUTES.has(attribute.toLowerCase())) {
@@ -9953,17 +9948,14 @@ function extendAnswerErrors({
         if (typeof child === "string") {
             return child.trim() !== "";
         }
-        // A copy's tag is as the author wrote it, in any case.
-        const written =
+        // A copy's tag is compared as written, as the answer's sugar compares
+        // it (`componentIsSpecifiedType`, case-sensitive): it reads a
+        // `<Label copy>` as award content, adding an input and an award,
+        // and only a `<label copy>` as the answer's label.
+        const tag =
             child?.componentType === "_copy"
                 ? child.attributes?._createComponentOfType?.primitive?.value
                 : child?.componentType;
-        const tag =
-            typeof written === "string"
-                ? (componentInfoObjects.componentTypeLowerCaseMapping[
-                      written.toLowerCase()
-                  ] ?? written)
-                : written;
         return !ANSWER_DESCRIBING_CHILDREN.has(tag);
     });
     if (changing) {
@@ -10081,12 +10073,7 @@ export function extendChangesContentErrors({
             baseComponentType: "answer",
         })
     ) {
-        return extendAnswerErrors({
-            attributeNames,
-            children,
-            source,
-            componentInfoObjects,
-        });
+        return extendAnswerErrors({ attributeNames, children, source });
     }
 
     const isModule =
