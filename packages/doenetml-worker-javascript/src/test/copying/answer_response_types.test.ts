@@ -101,6 +101,69 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         ).eq("y");
     });
 
+    it("a component with no value is a response of an empty text, as it is recorded", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<line name="l" through="(1,2) (3,4)"/>
+<answer name="ans">
+  <considerAsResponses><line/></considerAsResponses>
+  <award><when>true</when></award>
+</answer>
+<answer name="ans2"><award><when>$l = $l</when></award></answer>
+<p name="p1"><text extend="$ans.currentResponse"/></p>
+<p name="p2"><line extend="$ans.currentResponse"/></p>
+<p name="p3"><text extend="$ans2.currentResponses[2]"/></p>
+`,
+        });
+        expect(errors(core)).eqls([
+            e0065("line", "$ans.currentResponse", "text"),
+        ]);
+        const ans = (core as any).core._components[
+            await resolvePathToNodeIdx("ans")
+        ];
+        expect(
+            ans.state.currentResponses.shadowingInstructions
+                .createComponentOfType,
+        ).eqls(["text"]);
+    });
+
+    it("responses from a conditionalContent with no else are not given a place, as no case may be shown", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<booleanInput name="b"/>
+<answer name="ans">
+  <considerAsResponses>
+    <conditionalContent>
+      <case condition="$b"><math>x</math></case>
+    </conditionalContent>
+    <text>a</text>
+  </considerAsResponses>
+  <award><when>true</when></award>
+</answer>
+<p name="p1"><text extend="$ans.currentResponses[1]"/></p>
+`,
+        });
+        expect(errors(core)).eqls([]);
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        const ans = (core as any).core._components[
+            await resolvePathToNodeIdx("ans")
+        ];
+        expect((await ans.stateValues.submittedResponses).map(String)).eqls([
+            "a",
+        ]);
+        expect(
+            ans.state.submittedResponses.shadowingInstructions
+                .createComponentOfType,
+        ).eqls(["text"]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("a");
+    });
+
     it("submitted responses keep the types the DoenetML gives through a reload, with no type saved", async () => {
         const doenetML = `
 <answer name="ans">

@@ -20,7 +20,7 @@
  * | `<tally>`'s `categories` | its `type` with `categories` written (text by default), else a number when every value is a number by its tag, else a text |
  * | `<markers>`' `markers` | a text when any is a `<text>`, else a number |
  * | a selectable type's `value`, `values` | its `type`, else a number |
- * | `<answer>`'s `currentResponses`, `submittedResponses` | each response's: its input's type, or its component's tag (`answerResponseTypes`) |
+ * | `<answer>`'s `currentResponses`, `submittedResponses` | each response's: its input's type, or its component's tag (an empty text with no `value`) (`answerResponseTypes`) |
  *
  * What is decided is marked on the component
  * (`doenetAttributes.propertyTypes`, by variable name), and on a tag made
@@ -661,7 +661,29 @@ export function propertyTypeReader({
         const inputType = Object.entries(INPUT_RESPONSE_TYPES).find(([input]) =>
             inherits(tag!, input),
         )?.[1];
-        return { type: inputType ?? tag, count: 1 };
+        if (inputType !== undefined) {
+            return { type: inputType, count: 1 };
+        }
+        // Any other component is recorded by what it has
+        // (`currentResponses`, as `wholeReferentResponse` in `ValueRef.js`):
+        // its `values`, each as its tag; its `value`, as its tag; else an
+        // empty text (a `<line>`, an `<m>`). One with only a `formula` (a
+        // function) is a math in an award but an empty text in a
+        // `<considerAsResponses>`, so is not decided here.
+        const info: any = componentInfoObjects.stateVariableInfo[tag];
+        const has = (name: string) =>
+            name in (info?.stateVariableDescriptions ?? {}) ||
+            name in (info?.aliases ?? {});
+        if (has("values")) {
+            return { type: tag, count: undefined };
+        }
+        if (has("value")) {
+            return { type: tag, count: 1 };
+        }
+        if (has("formula")) {
+            return { type: undefined, count: undefined };
+        }
+        return { type: "text", count: 1 };
     }
 
     /**
@@ -747,12 +769,19 @@ export function propertyTypeReader({
      * holds responses of the same types and number, else one of their one
      * type, of a number not known. Cases holding responses of different
      * types are an error (`responseCaseErrors`), and their responses are
-     * not known.
+     * not known. With no `<else>`, no case may be shown, holding none.
      */
     function caseResponses(
         container: SerializedComponent,
-        cases: { responses: Response[]; potential: Response[] }[],
+        writtenCases: { responses: Response[]; potential: Response[] }[],
     ): { responses: Response[]; potential: Response[] } {
+        const hasElse = (container.children ?? []).some(
+            (child) =>
+                typeof child === "object" && child.componentType === "else",
+        );
+        const cases = hasElse
+            ? writtenCases
+            : [...writtenCases, { responses: [], potential: [] }];
         const all = cases.flatMap((c) => [...c.responses, ...c.potential]);
         if (all.length === 0) {
             return { responses: [], potential: [] };

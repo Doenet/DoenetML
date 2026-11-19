@@ -165,7 +165,8 @@ can be obtain with square brackets.  For example, the second response can be acc
 
 Each response has a type, decided from what is written before anything is entered: its
 input's type (a math for a `<mathInput>{:dn}`, a text for a `<textInput>{:dn}`), or the
-tag of the component it is. Responses may differ in type, so `currentResponses[2]` has
+tag of the component it is (an empty text for a component with no value, such as a
+`<line>{:dn}`). Responses may differ in type, so `currentResponses[2]` has
 the type of the second response. Responses a `<conditionalContent>{:dn}` holds must be of
 one type in every case.
 
