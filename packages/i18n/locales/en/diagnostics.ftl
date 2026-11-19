@@ -1054,7 +1054,8 @@ extend-choice-input-shuffle-order = An `extend` of a `<choiceInput>` shares its 
 
 # An `extend` of an `<answer>` shares its responses, credit and attempts
 # with its source ($source, the reference as written), so it can't change an
-# attribute that decides them ($attribute, as written) (REF-7, D32).
+# attribute that decides them ($attribute, its name as the `<answer>` declares
+# it, whatever case it is written in) (REF-7, D32).
 extend-answer-grading-attribute = An `extend` of an `<answer>` shares its responses and credit with `{ $source }`, which grades them, so it can't change `{ $attribute }`. To grade with a different `{ $attribute }`, use `copy`.
 
 # Inputs, awards or responses written inside an `extend` of an `<answer>`,

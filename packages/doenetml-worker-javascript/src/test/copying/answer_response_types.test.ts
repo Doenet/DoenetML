@@ -391,6 +391,8 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
 <answer name="e2" extend="$ans" weight="2"/>
 <conditionalContent><case condition="$b"><answer extend="$ans"><award><when>true</when></award></answer></case></conditionalContent>
 <answer name="e3" extend="$ans" showCorrectness="false" hide><label>Again</label></answer>
+<label name="l">Once more</label>
+<answer name="e4" extend="$ans"><Label copy="$l"/></answer>
 <answer name="ans2" copy="$ans"><textInput name="ti"/></answer>
 <answer name="ans3" type="text">hello</answer>
 <answer name="ans4" copy="$ans3"><mathInput name="mi2"/></answer>
@@ -411,9 +413,13 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
                 name,
             ).eq("_error");
         }
-        expect(
-            stateVariables[await resolvePathToNodeIdx("e3")].componentType,
-        ).eq("answer");
+        // a label written as a copy, in any case, is a label
+        for (const name of ["e3", "e4"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].componentType,
+                name,
+            ).eq("answer");
+        }
 
         await updateMathInputValue({
             latex: "x",

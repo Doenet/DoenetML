@@ -9876,30 +9876,6 @@ async function copyWithStateChangesChoicesErrors({
 }
 
 /**
- * The errors for an `extend` that would change what its source makes (D32,
- * #2404). An extend is the same component again: it shares its source's
- * content and state. It can have its own name and look different, but it
- * cannot change what the component makes or what its state can hold.
- *
- * `$x` is the same as a bare `<T extend="$x"/>`, so a bare extend is never an
- * error, except of a part of a choosing tag, which cannot be extended at all.
- * Otherwise only what the author wrote on the extend (`copyInChildren`) is
- * checked:
- * - on a tag that makes its content (`TAGS_MAKING_THEIR_CONTENT`), an
- *   attribute its class declares beyond those an extend applies
- *   (`attributesAnExtendApplies`), which are those that only change how it
- *   looks, and any children;
- * - on a `<pretzel>`, `mode` and any problems;
- * - on a `<module>`, any module attribute: one its `<moduleAttributes>`
- *   declares, read from its serialized children (`sourceChildren`). Another
- *   attribute is no parameter of the module, so it is only ignored
- *   (`extendIgnoresAttributesAndChildren`);
- * - on a `<choiceInput>`, `shuffleOrder` and any choices, as an extend shares
- *   its selection, which indexes its source's choices in its source's order.
- *
- * `source` is the reference the extend is of, as written (`$r`).
- */
-/**
  * The attributes of an `<answer>` that decide what it records and how it
  * grades: its responses, its credit and its attempts, which an `extend`
  * shares with its source (REF-7, D32). Any other attribute of an answer only
@@ -9955,7 +9931,12 @@ const ANSWER_DESCRIBING_CHILDREN = new Set([
  * `<considerAsResponses>`, text the answer's sugar would read) is
  * `doenet-e0084`. `copy` makes an answer of its own, which may.
  */
-function extendAnswerErrors({ attributeNames, children, source }) {
+function extendAnswerErrors({
+    attributeNames,
+    children,
+    source,
+    componentInfoObjects,
+}) {
     const errors = [];
     for (const attribute of attributeNames) {
         if (ANSWER_GRADING_ATTRIBUTES.has(attribute.toLowerCase())) {
@@ -9972,10 +9953,17 @@ function extendAnswerErrors({ attributeNames, children, source }) {
         if (typeof child === "string") {
             return child.trim() !== "";
         }
-        const tag =
+        // A copy's tag is as the author wrote it, in any case.
+        const written =
             child?.componentType === "_copy"
                 ? child.attributes?._createComponentOfType?.primitive?.value
                 : child?.componentType;
+        const tag =
+            typeof written === "string"
+                ? (componentInfoObjects.componentTypeLowerCaseMapping[
+                      written.toLowerCase()
+                  ] ?? written)
+                : written;
         return !ANSWER_DESCRIBING_CHILDREN.has(tag);
     });
     if (changing) {
@@ -9990,6 +9978,33 @@ function extendAnswerErrors({ attributeNames, children, source }) {
     return errors;
 }
 
+/**
+ * The errors for an `extend` that would change what its source makes (D32,
+ * #2404). An extend is the same component again: it shares its source's
+ * content and state. It can have its own name and look different, but it
+ * cannot change what the component makes or what its state can hold.
+ *
+ * `$x` is the same as a bare `<T extend="$x"/>`, so a bare extend is never an
+ * error, except of a part of a choosing tag, which cannot be extended at all.
+ * Otherwise only what the author wrote on the extend (`copyInChildren`) is
+ * checked:
+ * - on a tag that makes its content (`TAGS_MAKING_THEIR_CONTENT`), an
+ *   attribute its class declares beyond those an extend applies
+ *   (`attributesAnExtendApplies`), which are those that only change how it
+ *   looks, and any children;
+ * - on a `<pretzel>`, `mode` and any problems;
+ * - on a `<module>`, any module attribute: one its `<moduleAttributes>`
+ *   declares, read from its serialized children (`sourceChildren`). Another
+ *   attribute is no parameter of the module, so it is only ignored
+ *   (`extendIgnoresAttributesAndChildren`);
+ * - on a `<choiceInput>`, `shuffleOrder` and any choices, as an extend shares
+ *   its selection, which indexes its source's choices in its source's order;
+ * - on an `<answer>`, a grading attribute and any children but a label or a
+ *   description (`extendAnswerErrors`), as an extend shares its responses
+ *   and credit.
+ *
+ * `source` is the reference the extend is of, as written (`$r`).
+ */
 export function extendChangesContentErrors({
     replacementType,
     writtenType,
@@ -10066,7 +10081,12 @@ export function extendChangesContentErrors({
             baseComponentType: "answer",
         })
     ) {
-        return extendAnswerErrors({ attributeNames, children, source });
+        return extendAnswerErrors({
+            attributeNames,
+            children,
+            source,
+            componentInfoObjects,
+        });
     }
 
     const isModule =
