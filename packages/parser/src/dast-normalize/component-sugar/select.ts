@@ -1,4 +1,5 @@
-import { DastElement } from "../../types";
+import { codedDastError } from "../../coded-dast-error";
+import { DastElement, DastError } from "../../types";
 import {
     groupTextAndReferencesIntoListEntries,
     listBracketsUnmatchedError,
@@ -28,6 +29,11 @@ import {
  * - an option node and
  * - a node whose componentType is determined by the select's `type` tag, defaulting to `"math"`.
  *   (Currently supported types are `"math"`, `"number"`, `"text"`, and `"boolean"`.)
+ *
+ * A `type` that isn't one of those is reported (`doenet-w0145`, as the list
+ * operators report it, D45 decision 7) when there is text to read, and the
+ * text is read as math. A `<select>` of `<option>`s, to which this sugar does
+ * not apply, ignores its `type`, so is not reported.
  */
 export function selectSugar(node: DastElement) {
     if (node.name !== "select") {
@@ -37,13 +43,15 @@ export function selectSugar(node: DastElement) {
 
     // Determine the type from the select's `type` attribute, defaulting to `"math"`
     // if the attribute is not present or is not "math", "text", "number", or "boolean".
-    // TODO: issue a warning if invalid type attribute?
     let insertType = "math";
-    if (node.attributes.type) {
-        const children = node.attributes.type.children;
+    let invalidType: string | undefined;
+    const typeAttribute = node.attributes.type;
+    if (typeAttribute) {
+        const children = typeAttribute.children;
         if (children.length === 1 && children[0].type === "text") {
             insertType = children[0].value;
             if (!["math", "text", "number", "boolean"].includes(insertType)) {
+                invalidType = insertType;
                 insertType = "math";
             }
         }
@@ -64,11 +72,24 @@ export function selectSugar(node: DastElement) {
                 source_doc: child.source_doc,
             }),
         );
-        node.children = groupResult.unmatchedBrackets
-            ? [
-                  listBracketsUnmatchedError(node, insertType === "text"),
-                  ...newChildren,
-              ]
-            : newChildren;
+        const warnings: DastError[] = [];
+        if (invalidType !== undefined && newChildren.length > 0) {
+            warnings.push(
+                codedDastError({
+                    code: "doenet-w0145",
+                    error_type: "warning",
+                    message: `Invalid type ${invalidType} for select component. Must be one of math, text, number, or boolean. Ignoring it and reading the values as though no type had been given.`,
+                    args: { type: invalidType, component: "select" },
+                    position: typeAttribute?.position ?? node.position,
+                    source_doc: typeAttribute?.source_doc ?? node.source_doc,
+                }),
+            );
+        }
+        if (groupResult.unmatchedBrackets) {
+            warnings.push(
+                listBracketsUnmatchedError(node, insertType === "text"),
+            );
+        }
+        node.children = [...warnings, ...newChildren];
     }
 }

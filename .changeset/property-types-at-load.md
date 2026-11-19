@@ -15,6 +15,6 @@ Every property's type is decided from the DoenetML when the document loads, neve
 - **A `<number>` beside a `<text>` in a `<tally>` or `<markers>` is an error at load** (`doenet-e0076`), as in a `<sort>`. Before, the tally counted them all as text, silently.
 - **A `<slider>` and a `<choiceInput>` are values of their type** in `<sort>`, `<shuffle>`, `<sortIndices>` and a repeat's `for`, so a `<choiceInput>` beside a `<number>` is `doenet-e0076` (or `doenet-e0081`) at load, where a choice `10` used to sort before a `<number>9</number>`.
 - **`$g.grid` of a `<graph>` is no longer a property,** as its type followed its value.
-- **A `<select>` whose `type` isn't `math`, `number`, `text` or `boolean`** reports `doenet-w0145`, as the list operators do, and reads its text as math, as before.
+- **A `<select>` whose `type` isn't `math`, `number`, `text` or `boolean`** reports `doenet-w0145` when it has text to read, as the list operators do, and reads that text as math, as before. A `<select>` of `<option>`s ignores its `type`, and is not reported.
 
-An `<answer>`'s `currentResponses` and `submittedResponses` are not typed at load yet: a tag that needs their type is still `doenet-e0067`.
+An `<answer>`'s `currentResponses` and `submittedResponses` are not typed at load yet: a tag made from one is still checked once the document runs, and a tag made from a composite holding one is still `doenet-e0067`.

@@ -46,7 +46,8 @@
  * `<math extend="$t.categories[1]"/>`) is decided as a tag made from a
  * component of the property's type, and one made from an input whose value's
  * type the DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>` of
- * texts) as one made from that value.
+ * texts) as one made from that value. One whose type the DoenetML doesn't
+ * decide (`$a.currentResponses[1]` of an `<answer>`) is left to run time.
  *
  * An index written as a literal into a selector whose `numToSelect` is
  * written (`<math extend="$s[2]"/>` of a one-pick `<select>`) names nothing
