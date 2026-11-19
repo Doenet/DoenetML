@@ -820,7 +820,9 @@ export function propertyTypeReader({
      * `referencesAreResponses` names, `named`), or, in `potential`, a
      * reference the answer's sugar marked `isPotentialResponse`; and those
      * of what they hold. Those in a `<conditionalContent>` follow COMP-11's
-     * every-branch rule (`caseResponses`).
+     * every-branch rule (`caseResponses`); those in another composite (a
+     * `<select>`, a `<repeat>`) are of a number not known; a reference
+     * copying a component written with `isResponse` is a response not known.
      */
     function awardResponses(
         components: (SerializedComponent | string)[],
@@ -837,6 +839,43 @@ export function propertyTypeReader({
             }
             if (isMarkedPotential(component)) {
                 found.potential.push(responseOf(component));
+                continue;
+            }
+            if (
+                component.componentType === "_copy" &&
+                copiesResponses(component)
+            ) {
+                // made, when the document runs, of copies of responses
+                // (`$g` of a `<group>` holding `<math isResponse>`), whose
+                // number and place are not known here
+                found.responses.push({ type: undefined, count: undefined });
+                continue;
+            }
+            if (
+                component.componentType !== "_copy" &&
+                component.componentType !== "conditionalContent" &&
+                component.componentType !== "group" &&
+                isComposite(component.componentType)
+            ) {
+                // a `<select>`, a `<repeat>`, …: which of the responses it
+                // holds it makes, how many times and in what order, is not
+                // known here
+                const held = awardResponses(
+                    [
+                        ...Object.values(component.attributes ?? {}).flatMap(
+                            (attribute: any) =>
+                                attribute.type === "component" &&
+                                attribute.component
+                                    ? [attribute.component]
+                                    : [],
+                        ),
+                        ...(component.children ?? []),
+                    ],
+                    named,
+                    { responses: [], potential: [] },
+                );
+                found.responses.push(...ofUnknownCount(held.responses));
+                found.potential.push(...ofUnknownCount(held.potential));
                 continue;
             }
             if (component.componentType === "conditionalContent") {
@@ -925,22 +964,82 @@ export function propertyTypeReader({
             };
         }
         // not as many in each case
-        const unknownCount = (r: Response[]) => {
-            if (r.length === 0) {
-                return [];
-            }
-            const types = new Set(r.map((x) => x.type));
-            return [
-                {
-                    type: types.size === 1 ? [...types][0] : undefined,
-                    count: undefined,
-                },
-            ];
-        };
         return {
-            responses: unknownCount(cases.flatMap((c) => c.responses)),
-            potential: unknownCount(cases.flatMap((c) => c.potential)),
+            responses: ofUnknownCount(cases.flatMap((c) => c.responses)),
+            potential: ofUnknownCount(cases.flatMap((c) => c.potential)),
         };
+    }
+
+    /**
+     * The responses `responses`, when it is not known how many of them are
+     * made or in what order: none when there are none, else one response
+     * of a number not known, of the one type they share, if they share one.
+     */
+    function ofUnknownCount(responses: Response[]): Response[] {
+        if (responses.length === 0) {
+            return [];
+        }
+        const types = new Set(responses.map((x) => x.type));
+        return [
+            {
+                type: types.size === 1 ? [...types][0] : undefined,
+                count: undefined,
+            },
+        ];
+    }
+
+    /**
+     * Whether the reference or tag made with `extend` or `copy` `component`
+     * copies a component written with `isResponse` that what it names holds
+     * (`$g` of a `<group>` holding `<math isResponse>`): the copy is a
+     * response too when the document runs.
+     */
+    function copiesResponses(
+        component: SerializedComponent,
+        seen: Set<number> = new Set(),
+    ): boolean {
+        const ref = refOf(component);
+        if (!ref || ref.nodeIdx < 0 || seen.has(ref.nodeIdx)) {
+            return false;
+        }
+        seen.add(ref.nodeIdx);
+        const node =
+            componentsByIdx.get(ref.nodeIdx) ??
+            copiesByCreatedIdx.get(ref.nodeIdx);
+        if (node === undefined) {
+            return false;
+        }
+        const holdsResponse = (
+            pieces: (SerializedComponent | string)[],
+        ): boolean =>
+            pieces.some((piece) => {
+                if (typeof piece !== "object" || piece === null) {
+                    return false;
+                }
+                if (isMarkedResponse(piece, [])) {
+                    return true;
+                }
+                if (
+                    piece.componentType === "_copy" &&
+                    copiesResponses(piece, seen)
+                ) {
+                    return true;
+                }
+                return holdsResponse([
+                    ...Object.values(piece.attributes ?? {}).flatMap(
+                        (attribute: any) =>
+                            attribute.type === "component" &&
+                            attribute.component
+                                ? [attribute.component]
+                                : [],
+                    ),
+                    ...(piece.children ?? []),
+                ]);
+            });
+        return (
+            holdsResponse(node.children ?? []) ||
+            (node.componentType === "_copy" && copiesResponses(node, seen))
+        );
     }
 
     /**

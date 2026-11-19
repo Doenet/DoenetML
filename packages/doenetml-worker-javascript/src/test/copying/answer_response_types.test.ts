@@ -419,4 +419,35 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
         ).eq("z");
     });
+
+    it("responses a select or a repeat makes, or a reference copies, in an award are not given a place", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="mi" prefill="x"/><textInput name="ti" prefill="t"/>
+<group name="g" hide><math isResponse>$mi</math></group>
+<answer name="a1"><award><when>
+  <select><option><text isResponse>$ti</text></option><option><text isResponse>$ti</text></option></select>
+  <math isResponse>$mi</math>
+</when></award></answer>
+<answer name="a2"><award><when>
+  <repeat for="1 2" valueName="v"><math isResponse>$v$mi</math></repeat>
+  <text isResponse>$ti</text>
+</when></award></answer>
+<answer name="a3"><award><when>$g = x</when></award><award><when><text isResponse>$ti</text> = t</when></award></answer>
+`,
+        });
+        expect(errors(core)).eqls([]);
+        expect(await submitted(core, resolvePathToNodeIdx, "a1")).eqls({
+            values: ["t", "x"],
+            types: ["text", "math"],
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "a2")).eqls({
+            values: ["1 x", "2 x", "t"],
+            types: ["math", "math", "text"],
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "a3")).eqls({
+            values: ["x", "t"],
+            types: ["math", "text"],
+        });
+    });
 });
