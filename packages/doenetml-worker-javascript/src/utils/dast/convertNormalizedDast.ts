@@ -53,6 +53,7 @@ import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
+import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -670,6 +671,17 @@ export async function normalizedDastToSerializedComponents(
     //     JSON.parse(JSON.stringify(sugarResult.components)),
     //     nComponents,
     // );
+
+    // The type of each property its component doesn't declare, decided from
+    // what is written (TYPE, D45), marked on the component for the checks
+    // below and the run time. After sugar, which splits a `<tally>`'s text
+    // into the values it counts.
+    diagnostics.push(
+        ...markPropertyTypesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        }),
+    );
 
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag

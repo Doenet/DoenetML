@@ -4,7 +4,11 @@
  * DIAG-7):
  *
  * - `doenet-e0076`: items of more than one type, as a `<number>` and a
- *   `<text>`, or a `<math>` and a `<group>` of several components;
+ *   `<text>`, or a `<math>` and a `<group>` of several components. Of a
+ *   `<tally>` or `<markers>` too, whose categories or markers are of one
+ *   type (D45 decision 6): there each component a wrapper holds is read,
+ *   so only components of different types are an error, and the tag
+ *   becomes the error, as a `<sortIndices>` does;
  * - `doenet-e0077`: a `<sort>` or `<sortIndices>` of an item holding
  *   several components (a
  *   `<group>` of several, or the items of a `<repeat>`, `<select>` or
@@ -32,8 +36,9 @@
  * not say (a reference to a property of a composite, the `valueName` of a
  * `<repeat>` whose `for` does not decide it) is left out of the decision,
  * so the error is reported only for the types that are known; and a
- * reference that names nothing is a blank, of no type; so is an item whose type is decided only as the document
- * runs (a `<slider>` or `<choiceInput>`, until #2568). A `<sort>` or
+ * reference that names nothing is a blank, of no type. A `<slider>` or a
+ * `<choiceInput>` is of the type of its value, decided from what is written
+ * (`propertyTypesAtLoad.ts`, TYPE, D45). A `<sort>` or
  * `<shuffle>` that is an error is marked
  * (`doenetAttributes.reorderErrorAtLoad`), is not made a list
  * (`listForms.ts`), and shows the same error in place of its items, kept
@@ -69,7 +74,17 @@ import { kindOfComponentType } from "../componentKinds";
  * components a `<collect>` of `first` collects, if known.
  */
 type Item =
-    | { kind: "one"; tag: string; piece?: string }
+    | {
+          kind: "one";
+          tag: string;
+          piece?: string;
+          /**
+           * The types of its properties decided from what is written
+           * (`doenetAttributes.propertyTypes`), which give an input's
+           * value its type (a `<slider>`, a `<choiceInput>`)
+           */
+          propertyTypes?: Record<string, string>;
+      }
     | {
           kind: "several";
           tag: string;
@@ -102,11 +117,18 @@ const UNKNOWN: Items = { items: [], unknown: true };
 /** The composites that reorder their items, which are flattened. */
 const REORDERED = new Set(["sort", "shuffle"]);
 
-/** The components that take items of one type. */
-const CHECKED = new Set(["sort", "sortIndices", "shuffle"]);
+/**
+ * The components that take items of one type: those that reorder them, and
+ * a `<tally>` and `<markers>`, whose categories or markers are of one type
+ * (D45 decision 6).
+ */
+const CHECKED = new Set(["sort", "sortIndices", "shuffle", "tally", "markers"]);
 
 /** The types a `<repeat>`'s `type` gives the text in its `for` (the sugar's). */
 const REPEAT_TYPES = ["math", "text", "number", "boolean"];
+
+/** The components that order their items (the message speaks of sorting). */
+const ORDERS = new Set(["sort", "sortIndices", "shuffle"]);
 
 /** The components that compare their items, and so take no item of several. */
 const SORTS = new Set(["sort", "sortIndices"]);
@@ -152,7 +174,12 @@ export function itemReader({
     function typeOf(item: Item) {
         return item.kind === "several"
             ? "content"
-            : kindOfComponentType(item.tag, componentInfoObjects)?.type;
+            : kindOfComponentType(
+                  item.tag,
+                  componentInfoObjects,
+                  undefined,
+                  item.propertyTypes,
+              )?.type;
     }
 
     /** Whether `item` is one component of a tag built on `base`. */
@@ -418,6 +445,7 @@ export function itemReader({
         // A component made from a piece of text the author wrote (`z` of
         // `<sort>$m z</sort>`) is named by that text.
         const piece = component.doenetAttributes?.textPiece;
+        const propertyTypes = component.doenetAttributes?.propertyTypes;
         return {
             items: [
                 {
@@ -426,6 +454,7 @@ export function itemReader({
                     ...(typeof piece === "string" && piece !== ""
                         ? { piece }
                         : {}),
+                    ...(propertyTypes ? { propertyTypes } : {}),
                 },
             ],
             unknown: false,
@@ -443,8 +472,17 @@ export function itemReader({
         );
         if (written !== undefined && !isComposite(written)) {
             const entry = allClasses[written]?.listEntryComponentType;
+            const propertyTypes = copy.doenetAttributes?.propertyTypes;
             return {
-                items: [{ kind: "one", tag: entry ?? written }],
+                items: [
+                    {
+                        kind: "one",
+                        tag: entry ?? written,
+                        ...(propertyTypes && entry === undefined
+                            ? { propertyTypes }
+                            : {}),
+                    },
+                ],
                 unknown: false,
             };
         }
@@ -480,6 +518,12 @@ export function itemReader({
                 targetClass,
                 unresolvedPath: path,
                 componentInfoObjects,
+                // a property whose type the DoenetML decides
+                // (`$s.value` of a `<slider>`)
+                propertyTypes: (
+                    componentsByIdx.get(ref.nodeIdx) ??
+                    copiesByCreatedIdx.get(ref.nodeIdx)
+                )?.doenetAttributes?.propertyTypes,
             });
             return target
                 ? {
@@ -826,7 +870,8 @@ export function itemReader({
 /**
  * Mark each `<sort>` and `<shuffle>` among `serializedComponents` whose
  * items are not of one type, and each `<repeat>` whose `for` does not hold
- * one type, and return its error, to report now.
+ * one type, make each `<sortIndices>`, `<tally>` or `<markers>` whose items
+ * are not of one type its error, and return the error, to report now.
  */
 export function checkReorderedItemsAtLoad({
     serializedComponents,
@@ -871,6 +916,11 @@ export function checkReorderedItemsAtLoad({
         }
         const firstOfType = new Map<string, Item>();
         for (const item of items) {
+            if (!ORDERS.has(component.componentType) && item.kind !== "one") {
+                // A `<tally>` or `<markers>` reads each component a wrapper
+                // holds, so a wrapper of several is not one item of its own.
+                continue;
+            }
             const key = typeOf(item);
             if (key !== undefined && !firstOfType.has(key)) {
                 firstOfType.set(key, item);
@@ -893,7 +943,11 @@ export function checkReorderedItemsAtLoad({
             ["m", "math"],
             ["label", "text"],
         ] as const) {
-            if (pair.has("content") && pair.has(valueType)) {
+            if (
+                ORDERS.has(component.componentType) &&
+                pair.has("content") &&
+                pair.has(valueType)
+            ) {
                 const wrapped = items.find((item) => isOf(item, tag));
                 if (wrapped) {
                     wrap = tag;
@@ -953,7 +1007,12 @@ export function checkReorderedItemsAtLoad({
         ) {
             return undefined;
         }
-        const kind = kindOfComponentType(item.tag, componentInfoObjects)?.kind;
+        const kind = kindOfComponentType(
+            item.tag,
+            componentInfoObjects,
+            undefined,
+            item.propertyTypes,
+        )?.kind;
         if (
             kind === "value" ||
             kind === undefined ||
@@ -1040,9 +1099,10 @@ export function checkReorderedItemsAtLoad({
                             reorderErrorAtLoad: mark,
                         };
                     } else {
-                        // A `<sortIndices>` is not a composite, to show the
-                        // error in place of its items: it becomes the
-                        // error, kept once when the `_error` is made.
+                        // A `<sortIndices>`, `<tally>` or `<markers>` is not
+                        // a composite, to show the error in place of its
+                        // items: it becomes the error, kept once when the
+                        // `_error` is made.
                         component.componentType = "_error";
                         component.state = errorComponentState(
                             diagnostic.message,

@@ -693,8 +693,16 @@ export default class Choiceinput extends Input {
             },
         };
 
+        // The type of its values, decided from what is written when the
+        // document loaded (TYPE, D45, `propertyTypesAtLoad.ts`): a math when
+        // every choice holds one math, else a text. Worked out from the
+        // choices only where the DoenetML doesn't decide it.
         stateVariableDefinitions.componentType = {
             returnDependencies: () => ({
+                propertyTypes: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "propertyTypes",
+                },
                 choiceChildren: {
                     dependencyType: "child",
                     childGroups: ["choices"],
@@ -702,6 +710,10 @@ export default class Choiceinput extends Input {
                 },
             }),
             definition({ dependencyValues }) {
+                const atLoad = dependencyValues.propertyTypes?.selectedValues;
+                if (atLoad !== undefined) {
+                    return { setValue: { componentType: atLoad } };
+                }
                 let componentType = "text";
                 if (
                     dependencyValues.choiceChildren.length > 0 &&
@@ -1136,12 +1148,17 @@ export default class Choiceinput extends Input {
 
                 for (let arrayKey of arrayKeys) {
                     if (componentType === "math") {
+                        // A choice whose LaTeX doesn't parse has no math,
+                        // and is a blank one. (A selection naming no choice
+                        // is left as it is, #2594 item 7.)
+                        const ind =
+                            globalDependencyValues.selectedIndices[arrayKey] -
+                            1;
                         selectedValues[arrayKey] =
-                            globalDependencyValues.choiceMaths[
-                                globalDependencyValues.selectedIndices[
-                                    arrayKey
-                                ] - 1
-                            ];
+                            ind in globalDependencyValues.choiceMaths
+                                ? (globalDependencyValues.choiceMaths[ind] ??
+                                  me.fromAst("\uff3f"))
+                                : undefined;
                     } else {
                         selectedValues[arrayKey] =
                             globalDependencyValues.choiceTexts[

@@ -37,6 +37,12 @@ export default class Markers extends BaseComponent {
                 createComponentOfType: "text",
             },
             returnDependencies: () => ({
+                // decided from what is written when the document loaded
+                // (TYPE, D45, `propertyTypesAtLoad.ts`)
+                propertyTypes: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "propertyTypes",
+                },
                 textChildren: {
                     dependencyType: "child",
                     childGroups: ["texts"],
@@ -48,7 +54,14 @@ export default class Markers extends BaseComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let markerType;
-                if (dependencyValues.textChildren.length > 0) {
+                const atLoad = dependencyValues.propertyTypes?.markers;
+                if (
+                    atLoad !== undefined &&
+                    (dependencyValues.textChildren.length > 0 ||
+                        dependencyValues.numberChildren.length > 0)
+                ) {
+                    markerType = atLoad;
+                } else if (dependencyValues.textChildren.length > 0) {
                     markerType = "text";
                 } else if (dependencyValues.numberChildren.length > 0) {
                     markerType = "number";

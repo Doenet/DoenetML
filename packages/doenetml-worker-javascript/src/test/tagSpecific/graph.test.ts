@@ -846,29 +846,22 @@ describe("Graph tag tests @group2", async () => {
             doenetML: `
 
     <graph name="g1"/>
-    <p>Graph 1 has grid: <text extend="$g1.grid" name="sg1" /></p>
 
     <graph name="g2" grid="none"/>
-    <p>Graph 2 has grid: <text extend="$g2.grid" name="sg2" /></p>
 
     <graph name="g3" grid/>
-    <p>Graph 3 has grid: <text extend="$g3.grid" name="sg3" /></p>
 
     <graph name="g4" grid="medium"/>
-    <p>Graph 4 has grid: <text extend="$g4.grid" name="sg4" /></p>
 
     <graph name="g5" grid="dense"/>
-    <p>Graph 5 has grid: <text extend="$g5.grid" name="sg5" /></p>
 
 
     <p>Show grid: <booleanInput name="bi" /></p>
     <graph name="g6" grid="$bi"/>
-    <p>Graph 6 has grid: <text extend="$g6.grid" name="sg6" /></p>
 
 
     <p>Show grid: <textInput name="ti" /></p>
     <graph name="g7" grid="$ti"/>
-    <p>Graph 7 has grid: <text extend="$g7.grid" name="sg7" /></p>
 
     `,
         });
@@ -877,25 +870,25 @@ describe("Graph tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg1")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues.grid,
         ).eq("none");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg2")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.grid,
         ).eq("none");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg3")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
         ).eq("medium");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg4")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g4")].stateValues.grid,
         ).eq("medium");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg5")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g5")].stateValues.grid,
         ).eq("dense");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg6")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g6")].stateValues.grid,
         ).eq("none");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7")].stateValues.grid,
         ).eq("none");
 
         await updateBooleanInputValue({
@@ -905,7 +898,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg6")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g6")].stateValues.grid,
         ).eq("medium");
 
         await updateTextInputValue({
@@ -915,7 +908,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7")].stateValues.grid,
         ).eq("medium");
 
         await updateTextInputValue({
@@ -925,7 +918,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7")].stateValues.grid,
         ).eq("none");
 
         await updateTextInputValue({
@@ -935,7 +928,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7")].stateValues.grid,
         ).eq("dense");
 
         await updateTextInputValue({
@@ -945,7 +938,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7")].stateValues.grid,
         ).eq("none");
 
         await updateTextInputValue({
@@ -955,7 +948,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7")].stateValues.grid,
         ).eq("medium");
 
         await updateTextInputValue({
@@ -965,7 +958,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg7")].stateValues.value,
+            stateVariables[await resolvePathToNodeIdx("g7")].stateValues.grid,
         ).eq("none");
     });
 
@@ -1133,51 +1126,41 @@ describe("Graph tag tests @group2", async () => {
             doenetML: `
 
     <graph name="g1" grid="1 pi/2" displayDigits="4" />
-    <p>Graph 1 has grid: <numberList extend="$g1.grid" name="sg1" /></p>
 
     <p>grid x: <mathInput name="g2x" /></p>
     <p>grid y: <mathInput name="g2y" /></p>
     <graph name="g2" grid="$g2x $g2y" />
-    <p>Graph 2 has grid: <numberList extend="$g2.grid" name="sg2" /></p>
 
     <p>grid x: <mathInput name="g3x" /> <number name="g3xa" hide>$g3x</number></p>
     <p>grid y: <mathInput name="g3y" /> <number name="g3ya" hide>$g3y</number></p>
     <graph name="g3" grid="$g3xa $g3ya" />
-    <p>Graph 3 has grid: <numberList extend="$g3.grid" name="sg3" /></p>
 
     <p>grid x: <mathInput name="g4x" prefill="1" /></p>
     <p>grid y: <mathInput name="g4y" prefill="1" /></p>
     <graph name="g4" grid="2$g4x 3$g4y" displayDecimals="2" />
-    <p>Graph 4 has grid: <numberList extend="$g4.grid" name="sg4" /></p>
 
     <p>grid x: <mathInput name="g5x" prefill="1" /> <number name="g5xa">$g5x</number></p>
     <p>grid y: <mathInput name="g5y" prefill="1" /> <number name="g5ya">$g5y</number></p>
     <graph name="g5" grid="2$g5xa 3$g5ya" displayDecimals="2" />
-    <p>Graph 5 has grid: <numberList extend="$g5.grid" name="sg5" /></p>
 
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg1")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues.grid,
         ).eqls([1, Math.PI / 2]);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg2")].stateValues
-                .numbers,
-        ).eqls([NaN]);
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.grid,
+        ).eq("none");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg3")].stateValues
-                .numbers,
-        ).eqls([NaN]);
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
+        ).eq("none");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg4")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g4")].stateValues.grid,
         ).eqls([2, 3]);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg5")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g5")].stateValues.grid,
         ).eqls([2, 3]);
 
         await updateMathInputValue({
@@ -1192,8 +1175,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg2")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.grid,
         ).eqls([3, 1.5]);
 
         await updateMathInputValue({
@@ -1208,8 +1190,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg3")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
         ).eqls([3, 1.5]);
 
         await updateMathInputValue({
@@ -1224,8 +1205,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg4")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g4")].stateValues.grid,
         ).eqls([3 * 2, 1.5 * 3]);
 
         await updateMathInputValue({
@@ -1240,8 +1220,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg5")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g5")].stateValues.grid,
         ).eqls([3 * 2, 1.5 * 3]);
 
         await updateMathInputValue({
@@ -1256,8 +1235,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg2")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues.grid,
         ).eqls([(3 * Math.E) / 2, 1.5 * Math.PI]);
 
         await updateMathInputValue({
@@ -1272,8 +1250,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg3")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g3")].stateValues.grid,
         ).eqls([(3 * Math.E) / 2, 1.5 * Math.PI]);
 
         await updateMathInputValue({
@@ -1288,8 +1265,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg4")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g4")].stateValues.grid,
         ).eqls([((3 * Math.PI) / 5) * 2, ((1.5 * Math.E) / 6) * 3]);
 
         await updateMathInputValue({
@@ -1304,8 +1280,7 @@ describe("Graph tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("sg5")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g5")].stateValues.grid,
         ).eqls([((3 * Math.PI) / 5) * 2, ((1.5 * Math.E) / 6) * 3]);
     });
 
@@ -1530,54 +1505,37 @@ describe("Graph tag tests @group2", async () => {
         );
     });
 
-    it("correctly shadow references to number list grid", async () => {
+    it("a graph's grid is kept by a copy of what holds it, and is not a property (D45)", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <section name="sec">
         <graph grid="1 2" name="g" />
-
-        <p>Grid: <numberList extend="$g.grid" name="gr" /></p>
-        <p>Grid2: <number extend="$gr[1]" name="gr2a" /> <number extend="$gr[2]" name="gr2b" /></p>
-        <p>Grid3: <numberList extend="$gr" name="gr3" /></p>
     </section>
 
     <section extend="$sec" name="sec2" />
+    <p name="p">$g.grid</p>
     `,
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("gr")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues.grid,
         ).eqls([1, 2]);
         expect(
-            stateVariables[await resolvePathToNodeIdx("gr2a")].stateValues
-                .value,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("gr2b")].stateValues
-                .value,
-        ).eq(2);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("gr3")].stateValues
-                .numbers,
+            stateVariables[await resolvePathToNodeIdx("sec2.g")].stateValues
+                .grid,
         ).eqls([1, 2]);
+
+        // Its type would follow its value (a text or a list of numbers), so
+        // it is not a property until someone asks for it (D45 decision 4).
         expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.gr")].stateValues
-                .numbers,
-        ).eqls([1, 2]);
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("＿");
         expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.gr2a")].stateValues
-                .value,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.gr2b")].stateValues
-                .value,
-        ).eq(2);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("sec2.gr3")].stateValues
-                .numbers,
-        ).eqls([1, 2]);
+            (core as any).core.diagnostics
+                .filter((d: any) => d.type !== "accessibility")
+                .map((d: any) => d.code),
+        ).eqls(["doenet-w0104"]);
     });
 
     // check for bug in placeholder adapter

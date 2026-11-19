@@ -102070,11 +102070,6 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Scale used along the y axis (yMax − yMin)."
-                },
-                {
-                    "name": "grid",
-                    "isArray": false,
-                    "description": "Grid line spacing on the graph."
                 }
             ],
             "top": true,

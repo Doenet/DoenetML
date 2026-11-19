@@ -224,7 +224,14 @@ export default class AnimateFromSequence extends BaseComponent {
                             dependencyValues.selectedIndex - 1
                         ],
                     },
-                    setCreateComponentOfType: { value: dependencyValues.type },
+                    // `letters` is a way of writing text, not a component
+                    // type, as for a `<sequence>` (`sequenceEntryComponentType`)
+                    setCreateComponentOfType: {
+                        value:
+                            dependencyValues.type === "letters"
+                                ? "text"
+                                : dependencyValues.type,
+                    },
                 };
             },
             async inverseDefinition({

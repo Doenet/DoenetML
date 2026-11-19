@@ -7337,7 +7337,6 @@ describe("Extend and references tests @group2", async () => {
             for (const [componentType, empty] of [
                 ["integer", "NaN"],
                 ["intComma", ""],
-                ["md", "\uff3f"],
             ] as [string, string][]) {
                 const { text } = await run(`
     <point name="P">(1,2)</point>
@@ -7348,6 +7347,21 @@ describe("Extend and references tests @group2", async () => {
                 const bare = await run(`<${componentType} name="q" />`);
                 expect(bare.text, `bare <${componentType}>`).eq(empty);
             }
+        });
+
+        it("is decided by the entry's type, whether or not the entry is there (TYPE, D45)", async () => {
+            // `x3` of a point is a math, as `x1` is, though this point has no
+            // third coordinate: an `<md>` can't be made from a math, so it is
+            // an error at load, as `<md extend="$P.x" />` is.
+            const { core } = await createTestCore({
+                doenetML: `
+    <point name="P">(1,2)</point>
+    <md name="q" extend="$P.x3" />
+                `,
+            });
+            expect(
+                getDiagnosticsByType(core).errors.map((e: any) => e.code),
+            ).eqls(["doenet-e0065"]);
         });
 
         it("renders an index into an array that is empty for now, and fills it in later", async () => {
