@@ -450,4 +450,29 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             types: ["math", "text"],
         });
     });
+
+    it("isResponse written with no value on a tag made with extend, or on a collect, is read as true", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="mi" prefill="x"/><textInput name="ti" prefill="t"/>
+<group name="g" hide><math>$mi</math></group>
+<answer name="a1"><award><when><math extend="$mi" isResponse/> = x and <text isResponse>$ti</text> = t</when></award></answer>
+<answer name="a2"><award><when><collect from="$g" componentType="math" isResponse/> = x and <text isResponse>$ti</text> = t</when></award></answer>
+<answer name="a3"><award><when><math extend="$mi" isResponse=" "/> = x and <text isResponse>$ti</text> = t</when></award></answer>
+`,
+        });
+        expect(errors(core)).eqls([]);
+        expect(await submitted(core, resolvePathToNodeIdx, "a1")).eqls({
+            values: ["x", "t"],
+            types: ["math", "text"],
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "a2")).eqls({
+            values: ["x", "t"],
+            types: ["math", "text"],
+        });
+        expect(await submitted(core, resolvePathToNodeIdx, "a3")).eqls({
+            values: ["t"],
+            types: ["text"],
+        });
+    });
 });

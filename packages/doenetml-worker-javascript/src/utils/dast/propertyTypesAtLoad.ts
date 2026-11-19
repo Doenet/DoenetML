@@ -1083,10 +1083,18 @@ export function propertyTypeReader({
         component: SerializedComponent,
         named: { nodeIdx: number; path: string }[],
     ) {
-        const attribute = attributeOf(component, "isResponse");
+        const attribute: any = attributeOf(component, "isResponse");
         if (attribute !== undefined) {
-            const text = literalText(attribute);
-            if (text === "" || text?.toLowerCase() === "true") {
+            // read as the document reads the boolean it is made into
+            // (`createPrimitiveFromAttribute`): written with no value, or
+            // as `true` in any case. A tag made with `extend`, a
+            // `<collect>`, a `<module>` and a `<repeat>` hold it as written.
+            if (
+                (attribute.type !== "primitive" &&
+                    Array.isArray(attribute.children) &&
+                    attribute.children.length === 0) ||
+                literalText(attribute)?.toLowerCase() === "true"
+            ) {
                 return true;
             }
         }
