@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { updateBooleanInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateSelectedIndices,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -132,6 +135,21 @@ describe("Every property's type is decided at load (D45) @group4", () => {
 <p name="p2"><point extend="$ci2"/></p>
 `);
         expect(d.errors).eqls([e0065("point", "$ci2", "text")]);
+
+        // and so is its value, the text of the choice written in it
+        await updateSelectedIndices({
+            componentIdx: await d.resolvePathToNodeIdx("ci2"),
+            selectedIndices: [2],
+            core: d.core,
+        });
+        const stateVariables = await d.core.returnAllStateVariables(
+            false,
+            true,
+        );
+        expect(
+            stateVariables[await d.resolvePathToNodeIdx("ci2")].stateValues
+                .selectedValues,
+        ).eqls(["dog"]);
     });
 
     it("a choiceInput is typed by the choices it holds, as it reads them", async () => {
@@ -151,6 +169,21 @@ describe("Every property's type is decided at load (D45) @group4", () => {
         // it doesn't make the values texts.
         expect(d.errors).eqls([]);
         expect(d.warnings.map((w) => w.split(":")[0])).eqls(["doenet-w0107"]);
+    });
+
+    it("a choiceInput of maths whose choice's LaTeX doesn't parse has a blank math for it", async () => {
+        const d = await load(`
+<choiceInput name="ci" preselectChoice="1"><choice><m>\\frac{</m></choice><choice><math>x</math></choice></choiceInput>
+<p name="p">$ci</p>
+`);
+        const stateVariables = await d.core.returnAllStateVariables(
+            false,
+            true,
+        );
+        const ci = stateVariables[await d.resolvePathToNodeIdx("ci")];
+        expect(ci.stateValues.componentType).eq("math");
+        expect(ci.stateValues.selectedValues[0].tree).eq("\uff3f");
+        expect((await d.shown("p")).text).eq("\uff3f");
     });
 
     it("a slider's value is of its type, also before it is shown", async () => {
@@ -203,6 +236,15 @@ describe("Every property's type is decided at load (D45) @group4", () => {
         // its tag decides (TYPE-1).
         expect((await d.shown("p2")).text).eq("1, 2");
         expect((await d.shown("p3")).text).eq("7, 8");
+        // held as texts, though counted by value
+        const stateVariables = await d.core.returnAllStateVariables(
+            false,
+            true,
+        );
+        expect(
+            stateVariables[await d.resolvePathToNodeIdx("maths")].stateValues
+                .categories,
+        ).eqls(["1", "2"]);
         expect(d.errors).eqls([
             e0065("point", "$numbers.categories[1]", "number"),
             e0065("point", "$maths.categories[1]", "text"),
@@ -251,12 +293,23 @@ describe("Every property's type is decided at load (D45) @group4", () => {
 
     it("a select whose type its text can't be read as reports it, and reads the text as math (D45 decision 7)", async () => {
         const d = await load(`
-<select name="s" type="banana">x+x</select>
+<select name="s" type="banana" numToSelect="2">x+x y</select>
 <p name="p">$s</p>
 `);
         expect(d.warnings).eqls([
             "doenet-w0145: Invalid type banana for select component. Must be one of math, text, number, or boolean. Ignoring it and reading the values as though no type had been given.",
         ]);
+        // both options are picked, as maths
+        expect(["x + x, y", "y, x + x"]).toContain((await d.shown("p")).text);
+    });
+
+    it("a select of options, which its type doesn't change, is not reported for it", async () => {
+        const d = await load(`
+<select name="s" type="banana"><option><math>x+x</math></option></select>
+<select name="empty" type="banana"/>
+<p name="p">$s</p>
+`);
+        expect(d.warnings).eqls([]);
         expect((await d.shown("p")).text).eq("x + x");
     });
 });

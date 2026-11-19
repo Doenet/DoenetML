@@ -6,8 +6,9 @@
  * - `doenet-e0076`: items of more than one type, as a `<number>` and a
  *   `<text>`, or a `<math>` and a `<group>` of several components. Of a
  *   `<tally>` or `<markers>` too, whose categories or markers are of one
- *   type (D45 decision 6): there each component a wrapper holds is read,
- *   so only components of different types are an error, and the tag
+ *   type (D45 decision 6): there a wrapper of several components, whose
+ *   components a tally counts each, is left out, so only items that are
+ *   one component each, of different types, are an error, and the tag
  *   becomes the error, as a `<sortIndices>` does;
  * - `doenet-e0077`: a `<sort>` or `<sortIndices>` of an item holding
  *   several components (a
@@ -38,7 +39,8 @@
  * so the error is reported only for the types that are known; and a
  * reference that names nothing is a blank, of no type. A `<slider>` or a
  * `<choiceInput>` is of the type of its value, decided from what is written
- * (`propertyTypesAtLoad.ts`, TYPE, D45). A `<sort>` or
+ * (`propertyTypesAtLoad.ts`, TYPE, D45), and left out when what is written
+ * doesn't decide it. A `<sort>` or
  * `<shuffle>` that is an error is marked
  * (`doenetAttributes.reorderErrorAtLoad`), is not made a list
  * (`listForms.ts`), and shows the same error in place of its items, kept

@@ -186,6 +186,25 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expectRoundTrip(errors);
     });
 
+    it("select sugar with a type it can't read its text as", () => {
+        const errors = [
+            ...normalizedErrors(`<select type="banana">x y</select>`),
+            // reported once, with the brackets that don't match
+            ...normalizedErrors(`<select type="Math">a) b</select>`),
+            // `type` is not read: options, or no text at all
+            ...normalizedErrors(
+                `<select type="banana"><option><math>x</math></option></select>`,
+            ),
+            ...normalizedErrors(`<select type="banana" />`),
+        ];
+        expect(codedErrors(errors).map((error) => error.code)).toEqual([
+            "doenet-w0145",
+            "doenet-w0145",
+            "doenet-i0058",
+        ]);
+        expectRoundTrip(errors);
+    });
+
     it("an answer whose name is not plain text", () => {
         // Driven through `answerSugar` rather than the whole normalization,
         // because the name-validation pass rejects `name="$x"` first and this

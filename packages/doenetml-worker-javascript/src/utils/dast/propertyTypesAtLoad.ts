@@ -33,11 +33,14 @@
  *
  * A type that can't be decided from the DoenetML (a choice holding a
  * reference to what the DoenetML doesn't type, a `<group>` in a `<tally>`)
- * is not marked. The run time then works it out as before, and a reference
- * written as a tag that needs it is `doenet-e0067` at load (TYPE-3).
+ * is not marked. The run time then works it out as before: a tag made from
+ * it (`<point extend="$ci"/>`) is checked once the document runs, and a
+ * reference written as a tag of a composite that holds it is `doenet-e0067`
+ * at load (TYPE-3).
  *
- * Also reported here: a `<select>` whose `type` isn't one its sugar reads
- * (`doenet-w0145`, as the list operators report it, D45 decision 7).
+ * Also reported here: an `<answer>` reading responses of different types
+ * from the cases of a `<conditionalContent>` (`doenet-e0082`, TYPE-2,
+ * COMP-11), which becomes that error.
  */
 import type { SerializedComponent, SerializedAttribute } from "./types";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
@@ -57,9 +60,6 @@ import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableName
  * TYPE-2), the type of each entry.
  */
 export type PropertyTypes = Record<string, string | string[]>;
-
-/** The types a `<select>`'s sugar reads its text as (`selectSugar`). */
-const SELECT_SUGAR_TYPES = ["math", "number", "text", "boolean"];
 
 /**
  * The components with a property whose type is decided here, by the class
@@ -1383,8 +1383,7 @@ export function propertyTypeReader({
 /**
  * Mark each component of `serializedComponents` with a property whose type
  * is decided here, and each tag made with `extend` or `copy` of one, with
- * the types decided (`doenetAttributes.propertyTypes`), and return what is
- * reported now (see above).
+ * the types decided (`doenetAttributes.propertyTypes`).
  */
 export function markPropertyTypesAtLoad({
     serializedComponents,
@@ -1446,24 +1445,6 @@ export function markPropertyTypesAtLoad({
                     // copies, which it would otherwise keep (`Copy.js`),
                     // are not its types.
                     marked.push([component, types]);
-                }
-            }
-            if (component.componentType === "select") {
-                const typeAttribute = attributeOf(component, "type");
-                const type =
-                    typeAttribute === undefined
-                        ? undefined
-                        : literalText(typeAttribute);
-                if (type !== undefined && !SELECT_SUGAR_TYPES.includes(type)) {
-                    diagnostics.push({
-                        ...codedDiagnostic({
-                            type: "warning",
-                            code: "doenet-w0145",
-                            args: { type, component: "select" },
-                        }),
-                        position: component.position,
-                        sourceDoc: component.sourceDoc,
-                    });
                 }
             }
             for (const attribute of Object.values(component.attributes ?? {})) {
