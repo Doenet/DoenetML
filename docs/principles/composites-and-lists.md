@@ -305,10 +305,28 @@ A `<math>` whose own content doesn't parse (`<math>(((</math>`) is a blank with 
   nothing in every iteration (`w0183`); two types are an error. A repeat's iterations satisfy
   this by construction, so a repeat over another repeat goes over records.
 
-**Known violations** (all of it; **[probe]** on `main`, #2567): `for` takes any mix (`$a $t $P`,
-`2 $t`, a select of a math, a text and a number); a group in `for` is flattened, nested groups
-too, so a repeat over another repeat's iterations goes over their components, and `$v.P` is a
-blank with no diagnostic.
+**Done by #2600** (closing #2567):
+- a `for` of more than one type is **`doenet-e0081`** at load, at the `for`, shown in place of
+  the iterations; the types are D46's kinds (`kindOfComponentType`), read by the same
+  `itemReader` as `<sort>` and `<shuffle>`;
+- a wrapper of several in `for` is one item, so a repeat over another repeat's iterations goes
+  over records: `$d.P is labelled $d.L.` works (it was six blanks). `$d` follows the wrapper as
+  what it holds changes;
+- `type`, when written, applies to every item: `for="2 $t"` with `t` a `<text>`, and
+  `<repeat type="text" for="$n">`, are `e0081`;
+- `$v` is typed for the checks at load: `<point extend="$v"/>` over texts is `e0065`, and a
+  `<sort>` of `$v` beside a `<text>` in a repeat over maths is `e0076`;
+- a name after `$v` follows the every-item rule: an item lacking it is `w0183` and a blank in
+  every iteration, two tags are `w0184`, each naming the item ("item 2 of the `for`") where its
+  place is fixed;
+- a `<group>` written as an `extend` or `copy` of another, with children of its own, holds the
+  other's children and its own (REF-4), also in a `<sort>` or `<shuffle>`.
+
+**Known violations** (#2569): `$r[2].d.P` (a name after the value, from outside the iteration)
+names nothing, and its `w0193` suggests `$r[2].d.P.P`, which names nothing either; a property
+after a repeat in error (`$rmix.x`) adds `w0104` (DIAG-5); the `item` wording of `w0183` and
+`w0184` is English only; a `<slider>` or `<choiceInput>` in `for` is left out of the check until
+TYPE types them (#2568).
 
 ---
 

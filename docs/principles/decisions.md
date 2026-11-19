@@ -2693,7 +2693,7 @@ copy then follow one rule for references, and differ only in sharing state.
 the source's, and the change isn't worth making there. The cells core implements it; REF-6 lists
 the examples that are its tests. #2537 items 2 and 3 wait for it.
 
-## D44. A repeat's `for` holds one type, decided at load (decided, Tier 1; implementation #2567)
+## D44. A repeat's `for` holds one type, decided at load (decided, Tier 1; done by #2600, closing #2567)
 
 **Decided** (November 2026). The principle is COLL-5 in
 [composites-and-lists.md](composites-and-lists.md).
@@ -2834,8 +2834,8 @@ rule; the lost math is a display question for #2568 (a choice's value could keep
 ## D46. What a type is for a list, sort, shuffle or repeat: values, objects and content (part 2 decided, part 1 open; Tier 1)
 
 **Part 2 decided** (November 2026), from the review of #2565 (PR 14 of #2509). Builds on
-COLL-1 to COLL-4 (D41), D44 and D45. Implementation: #2570, **done by #2599** (the repeat's `for` is
-left to #2567, which uses `kindOfComponentType`).
+COLL-1 to COLL-4 (D41), D44 and D45. Implementation: #2570, **done by #2599**, and for a repeat's
+`for` by #2600.
 
 ### 2. What a type is: values, objects and content (decided)
 
