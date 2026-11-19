@@ -253,6 +253,45 @@ so `$r.x` names nothing, and you name the one you mean: `$r.P.x`.
 
 ---
 
+### Example: What `for` holds, and one type
+
+
+```doenet-editor-horiz
+<repeat name="data" for="1 2 3" valueName="k">
+  <point name="P">($k, $k^2)</point>
+  <text name="L">P$k</text>
+</repeat>
+
+<p><repeat for="$data" valueName="d">$d.P is labelled $d.L. </repeat></p>
+
+<text name="t">hello</text>
+<p><repeat for="2 $t" type="text" valueName="w">[$w]</repeat></p>
+```
+
+The items of `for` are read as a `<shuffle>{:dn}` reads its children. Text written in `for` is split at spaces into items, and a list, or
+a `<repeat>{:dn}` or `<select>{:dn}` whose iterations or options each hold one
+component, gives one item for each of its entries. A `<group>{:dn}` holding
+one component stands for that component. Anything holding several components
+is one item: a `<group>{:dn}` of several, or an iteration of a
+`<repeat>{:dn}` that holds several. So the second repeat above goes once for
+each iteration of `data`, and `$d.P` and `$d.L` are the point and the text
+named in that iteration.
+
+The items of `for` are all of one type, which you can tell from the DoenetML:
+a `<math>{:dn}`, a `<number>{:dn}` or an `<integer>{:dn}` (which count as one
+type), a `<text>{:dn}`, a `<boolean>{:dn}`, one kind of graphical object such
+as `<point>{:dn}`, or content such as `<p>{:dn}` and anything holding several
+components. An input counts as what it holds. Items of more than one type are
+an error, reported when the document loads, and the `<repeat>{:dn}` shows the
+error in place of its iterations.
+
+Text written in `for` is read as math unless `type` says otherwise, so
+`for="2 $t"`, with `t` a `<text>{:dn}`, is an error until it says
+`type="text"`, as above. When `type` is written, every item of `for` must be
+of that type.
+
+---
+
 ## Property Examples
 
 ### Property Example: numItems

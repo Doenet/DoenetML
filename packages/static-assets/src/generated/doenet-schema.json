@@ -109996,12 +109996,12 @@
                 },
                 {
                     "name": "for",
-                    "description": "The collection of items to iterate over when generating repeats.",
+                    "description": "The items to iterate over, all of one type. A list is one item per entry; anything holding several components is one item.",
                     "type": "group"
                 },
                 {
                     "name": "type",
-                    "description": "Component type used to wrap each item in the source.",
+                    "description": "The type of the text written in `for`: math (the default), number, text or boolean. When written, every item of `for` must be of this type, with math, number and integer counting as one type.",
                     "type": "text"
                 },
                 {

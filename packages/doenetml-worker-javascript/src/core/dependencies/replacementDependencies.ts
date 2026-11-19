@@ -72,6 +72,14 @@ export class ReplacementDependency extends Dependency {
         // not passed into it (D41 decision 3).
         this.stopAtWrappersOfSeveral = this.definition.stopAtWrappersOfSeveral;
 
+        // The composite is a collection whose items are sought, as a
+        // repeat's `for` (COLL-5): a wrapper holding several among its
+        // replacements, at any depth, is one item and is returned itself,
+        // though the composite, which is no wrapper of the author's, is
+        // still recursed into.
+        this.wrappersOfSeveralAsItems =
+            this.definition.wrappersOfSeveralAsItems;
+
         this.includeWithheldReplacements =
             this.definition.includeWithheldReplacements;
 
@@ -731,7 +739,9 @@ export class ReplacementDependency extends Dependency {
                     ...options,
                     replacements,
                     stopIfHaveProp: this.stopIfHaveProp,
-                    stopAtWrappersOfSeveral: this.stopAtWrappersOfSeveral,
+                    stopAtWrappersOfSeveral:
+                        this.stopAtWrappersOfSeveral ||
+                        this.wrappersOfSeveralAsItems,
                 }),
                 remainingPaths: undefined,
                 itemsNamedIn: undefined,

@@ -29,16 +29,23 @@
  * `doenet-e0080`.
  *
  * Only what the DoenetML says is read (DIAG-7). An item whose type it does
- * not say (a reference to a property of a composite, a `valueName` of a
- * `<repeat>`) is left out of the decision, so the error is reported only for
- * the types that are known; and a reference that names nothing is a blank,
- * of no type; so is an item whose type is decided only as the document
+ * not say (a reference to a property of a composite, the `valueName` of a
+ * `<repeat>` whose `for` does not decide it) is left out of the decision,
+ * so the error is reported only for the types that are known; and a
+ * reference that names nothing is a blank, of no type; so is an item whose type is decided only as the document
  * runs (a `<slider>` or `<choiceInput>`, until #2568). A `<sort>` or
  * `<shuffle>` that is an error is marked
  * (`doenetAttributes.reorderErrorAtLoad`), is not made a list
  * (`listForms.ts`), and shows the same error in place of its items, kept
  * once. A `<sortIndices>`, which sorts as a `<sort>` does but is not a
  * composite, becomes that error itself.
+ *
+ * A `<repeat>`'s `for` holds one type too (COLL-5, D44), read as a
+ * `<shuffle>`'s children are: `doenet-e0081`, reported at the `for`, for
+ * items of more than one type, or, with `type` written, an item of another
+ * type than it says. The repeat is marked as a `<sort>` is, and shows the
+ * error in place of its iterations. The same reading gives the type of the
+ * repeat's `valueName` (`repeatValueType`, read by `documentReferents`).
  */
 import type { SerializedComponent } from "./types";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
@@ -69,10 +76,25 @@ type Item =
           count: number;
           how: "group" | "item";
           first?: string;
+          /** what it holds, as written */
+          children: (SerializedComponent | string)[];
+          /**
+           * The option or case of the `<select>` or `<conditionalContent>`
+           * `container` it is, the `ordinal`th of its kind, if it is one
+           */
+          part?: {
+              container: SerializedComponent;
+              branch: "option" | "case" | "else";
+              ordinal: number;
+          };
       };
 
-/** The items found, and whether there may be others not known. */
-type Items = { items: Item[]; unknown: boolean };
+/**
+ * The items found, and whether there may be others not known. For the items
+ * of a repeat's `for` (`forItemsOf`), `placesKnown`: how many of the first
+ * items are known to be in their place as the document runs.
+ */
+type Items = { items: Item[]; unknown: boolean; placesKnown?: number };
 
 const NONE: Items = { items: [], unknown: false };
 const UNKNOWN: Items = { items: [], unknown: true };
@@ -83,23 +105,26 @@ const REORDERED = new Set(["sort", "shuffle"]);
 /** The components that take items of one type. */
 const CHECKED = new Set(["sort", "sortIndices", "shuffle"]);
 
+/** The types a `<repeat>`'s `type` gives the text in its `for` (the sugar's). */
+const REPEAT_TYPES = ["math", "text", "number", "boolean"];
+
 /** The components that compare their items, and so take no item of several. */
 const SORTS = new Set(["sort", "sortIndices"]);
 
 /**
- * Mark each `<sort>` and `<shuffle>` among `serializedComponents` whose
- * items are not of one type, and return its error, to report now.
+ * What the items of a collection are, read from the DoenetML (COLL-4,
+ * COLL-5), with `referents` the document's (`documentReferents`): the
+ * reading a `<sort>`, `<shuffle>` and a repeat's `for` share.
  */
-export function checkReorderedItemsAtLoad({
-    serializedComponents,
+export function itemReader({
     componentInfoObjects,
+    referents,
 }: {
-    serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
+    referents: ReturnType<typeof documentReferents>;
 }) {
-    const diagnostics: ReturnType<typeof codedDiagnostic>[] = [];
     const { componentsByIdx, copiesByCreatedIdx, referentType, referentClass } =
-        documentReferents({ serializedComponents, componentInfoObjects });
+        referents;
     const allClasses = componentInfoObjects.allComponentClasses as Record<
         string,
         any
@@ -255,6 +280,7 @@ export function checkReorderedItemsAtLoad({
                         ...(collected !== undefined
                             ? { first: collected }
                             : {}),
+                        children: held,
                     },
                 ],
                 unknown: false,
@@ -304,6 +330,13 @@ export function checkReorderedItemsAtLoad({
                 seen,
             );
         }
+        if (
+            type === "repeat" &&
+            component.doenetAttributes?.reorderErrorAtLoad
+        ) {
+            // its `for` in error: it shows the error
+            return UNKNOWN;
+        }
         if (type === "repeat" || type === "repeatForSequence") {
             // each iteration is a wrapper of the template
             return wrapperItems(component.children ?? [], "item", type, seen);
@@ -311,6 +344,7 @@ export function checkReorderedItemsAtLoad({
         if (type === "select" || type === "conditionalContent") {
             // each pick or case shown is a wrapper of what it holds
             const result: Items = { items: [], unknown: false };
+            let ordinal = 0;
             for (const part of component.children ?? []) {
                 if (typeof part !== "object") {
                     continue;
@@ -321,15 +355,39 @@ export function checkReorderedItemsAtLoad({
                 ) {
                     return UNKNOWN;
                 }
-                merge(
-                    result,
-                    wrapperItems(
-                        withoutSugarGroup(part.children ?? []),
-                        "item",
-                        type,
-                        seen,
-                    ),
+                const isElse =
+                    part.componentType === "case" &&
+                    attributeOf(part, "condition") === undefined;
+                if (!isElse) {
+                    ordinal++;
+                }
+                const found = wrapperItems(
+                    withoutSugarGroup(part.children ?? []),
+                    "item",
+                    type,
+                    seen,
                 );
+                merge(result, {
+                    ...found,
+                    // which part each is, for the messages of a repeat
+                    // over them
+                    items: found.items.map((item) =>
+                        item.kind === "several" && item.part === undefined
+                            ? {
+                                  ...item,
+                                  part: {
+                                      container: component,
+                                      branch: isElse
+                                          ? "else"
+                                          : type === "select"
+                                            ? "option"
+                                            : "case",
+                                      ordinal: isElse ? 1 : ordinal,
+                                  },
+                              }
+                            : item,
+                    ),
+                });
             }
             return result;
         }
@@ -390,12 +448,21 @@ export function checkReorderedItemsAtLoad({
                 unknown: false,
             };
         }
+        if (hasOwnChildren(copy)) {
+            // `<group extend="$g">…</group>` holds what `g` holds and the
+            // children it adds
+            const children = groupChildren(copy, seen);
+            return children === undefined
+                ? UNKNOWN
+                : wrapperItems(children, "group", "group", seen);
+        }
         const ref: any = unwrapSource(copy.extending as any);
         if (!ref) {
             return UNKNOWN;
         }
         if (ref.nodeIdx < 0) {
-            // names nothing: a blank, of no type
+            // names nothing: a blank, of no type, which a repeat iterates
+            // over
             return NONE;
         }
         const path = ref.unresolvedPath ?? [];
@@ -451,6 +518,56 @@ export function checkReorderedItemsAtLoad({
         return itemsOf(node, seen);
     }
 
+    /** Whether the copy `copy` is written with children it adds. */
+    function hasOwnChildren(copy: SerializedComponent) {
+        return (copy.children ?? []).some((child) =>
+            typeof child === "string" ? child.trim() !== "" : true,
+        );
+    }
+
+    /**
+     * What the `<group>` `node` holds, written as a group or as an `extend`
+     * or `copy` of one (with the children it adds after those of the one it
+     * copies); `undefined` if it is not one, or that isn't written.
+     */
+    function groupChildren(
+        node: SerializedComponent,
+        seen: Set<number>,
+    ): (SerializedComponent | string)[] | undefined {
+        if (node.componentType === "group" && node.extending === undefined) {
+            return node.children ?? [];
+        }
+        if (node.componentType !== "_copy" || !node.extending) {
+            return undefined;
+        }
+        const createdType = node.attributes?._createComponentOfType;
+        if (
+            createdType === undefined ||
+            canonical(literalText(createdType)) !== "group"
+        ) {
+            return undefined;
+        }
+        const ref: any = unwrapSource(node.extending as any);
+        if (
+            !ref ||
+            ref.nodeIdx < 0 ||
+            (ref.unresolvedPath ?? []).length > 0 ||
+            seen.has(ref.nodeIdx)
+        ) {
+            return undefined;
+        }
+        const target =
+            componentsByIdx.get(ref.nodeIdx) ??
+            copiesByCreatedIdx.get(ref.nodeIdx);
+        const held =
+            target === undefined
+                ? undefined
+                : groupChildren(target, new Set(seen).add(ref.nodeIdx));
+        return held === undefined
+            ? undefined
+            : [...held, ...(node.children ?? [])];
+    }
+
     /** How an item is named in a message, as fluent arguments. */
     function describe(item: Item, prefix: string) {
         return item.kind === "one"
@@ -467,6 +584,268 @@ export function checkReorderedItemsAtLoad({
                   [`${prefix}Piece`]: "",
               };
     }
+
+    /**
+     * The `type` written on the `<repeat>` `repeat`, which types the text
+     * written in its `for` (`math`, `number`, `text` or `boolean`, as the
+     * sugar reads it), `undefined` if not written, or `null` if written as
+     * other than one of those, which the sugar reads as `math`.
+     */
+    function typeWrittenOn(repeat: SerializedComponent) {
+        const attribute = attributeOf(repeat, "type");
+        if (attribute === undefined) {
+            return undefined;
+        }
+        // as the sugar reads it (`repeatSugar` in the parser)
+        const type = literalText(attribute);
+        return type !== undefined && REPEAT_TYPES.includes(type) ? type : null;
+    }
+
+    /**
+     * The items of the `for` of the `<repeat>` `repeat` (COLL-5), as for a
+     * `<shuffle>`: a list or collection flattened, a wrapper of one
+     * standing for it, a wrapper of several one item. A component the sugar
+     * made from text written in `for` is named by that text. `undefined` if
+     * it has no `for` written as a component.
+     */
+    function forItemsOf(repeat: SerializedComponent): Items | undefined {
+        const forAttribute: any = attributeOf(repeat, "for");
+        const children: (SerializedComponent | string)[] | undefined =
+            forAttribute?.type === "component"
+                ? forAttribute.component?.children
+                : forAttribute?.type === "unresolved"
+                  ? forAttribute.children
+                  : undefined;
+        if (!Array.isArray(children)) {
+            return undefined;
+        }
+        const result: Items = { items: [], unknown: false };
+        // An item's place is known only while each entry of `for` before it,
+        // and its own, names a group written with several components, each
+        // always there (`$g`, `namesGroupOfSeveral`): anything else may make a number of
+        // items, or an order, decided as the document runs (a repeat, a
+        // select, a shuffle, a blank).
+        let placesKnown: number | undefined = 0;
+        for (const child of children) {
+            if (typeof child !== "object") {
+                continue;
+            }
+            const more = itemsOf(child, new Set());
+            if (
+                placesKnown !== undefined &&
+                !more.unknown &&
+                more.items.length === 1 &&
+                namesGroupOfSeveral(child)
+            ) {
+                placesKnown++;
+            } else {
+                result.placesKnown ??= placesKnown;
+                placesKnown = undefined;
+            }
+            if (
+                child.componentType !== "_copy" &&
+                more.items.length === 1 &&
+                more.items[0].kind === "one" &&
+                (child.children ?? []).every(
+                    (piece) => typeof piece === "string",
+                )
+            ) {
+                // text written in `for`, which the sugar made a component
+                // of the repeat's `type`
+                more.items[0] = {
+                    ...more.items[0],
+                    piece: (child.children as string[]).join("").trim(),
+                };
+            }
+            merge(result, more);
+        }
+        result.placesKnown ??= placesKnown;
+        return result;
+    }
+
+    /**
+     * Whether `child`, an entry of a repeat's `for`, is a reference with
+     * nothing after the name to a `<group>` written with several
+     * components, none a reference or a composite, which is one item, in
+     * its place, however the document runs.
+     */
+    function namesGroupOfSeveral(child: SerializedComponent) {
+        if (child.componentType !== "_copy" || !child.extending) {
+            return false;
+        }
+        const ref: any = unwrapSource(child.extending as any);
+        if (!ref || ref.nodeIdx < 0 || (ref.unresolvedPath ?? []).length > 0) {
+            return false;
+        }
+        const node = componentsByIdx.get(ref.nodeIdx);
+        if (node?.componentType !== "group" || node.extending !== undefined) {
+            return false;
+        }
+        const held = (node.children ?? []).filter((child) =>
+            typeof child === "string"
+                ? child.trim() !== ""
+                : child.componentType !== "setup",
+        );
+        // each always there: not a reference or a composite, which may
+        // hold none as the document runs (a `<conditionalContent>` with no
+        // case true), so that the group stays one item
+        return (
+            held.length > 1 &&
+            held.every(
+                (child) =>
+                    typeof child === "string" ||
+                    (child.componentType !== "_copy" &&
+                        !isComposite(child.componentType)),
+            )
+        );
+    }
+
+    /**
+     * The error of the `<repeat>` `repeat` whose `for` does not hold items
+     * of one type (COLL-5, D44): `doenet-e0081`, for items of more than
+     * one type, or, with `type` written, an item of another type. Text
+     * written in `for` is of the repeat's `type` (`math` if not written).
+     * Only the types the DoenetML gives are compared (DIAG-7).
+     */
+    function repeatForError(
+        repeat: SerializedComponent,
+    ): ReorderErrorAtLoad | undefined {
+        const found = forItemsOf(repeat);
+        if (!found) {
+            return undefined;
+        }
+        const written = typeWrittenOn(repeat);
+        const writtenKey =
+            typeof written === "string"
+                ? kindOfComponentType(written, componentInfoObjects)?.type
+                : undefined;
+        if (writtenKey !== undefined) {
+            const other = found.items.find((item) => {
+                const key = typeOf(item);
+                return key !== undefined && key !== writtenKey;
+            });
+            if (other) {
+                return {
+                    code: "doenet-e0081",
+                    args: {
+                        reason: "type",
+                        type: written as string,
+                        ...describe(other, "first"),
+                        ...describe(other, "second"),
+                        suggestText: "no",
+                    },
+                };
+            }
+            return undefined;
+        }
+        const firstOfType = new Map<string, Item>();
+        for (const item of found.items) {
+            const key = typeOf(item);
+            if (key !== undefined && !firstOfType.has(key)) {
+                firstOfType.set(key, item);
+            }
+        }
+        if (firstOfType.size < 2) {
+            return undefined;
+        }
+        const [[, first], [, second]] = [...firstOfType.entries()];
+        // Text beside a text is read as a math unless `type="text"` says
+        // otherwise (D44 decision 4).
+        const isPiece = (item: Item) =>
+            item.kind === "one" && item.piece !== undefined;
+        const suggestText =
+            (isPiece(first) && typeOf(second) === "text") ||
+            (isPiece(second) && typeOf(first) === "text");
+        return {
+            code: "doenet-e0081",
+            args: {
+                reason: "mix",
+                type: "",
+                ...describe(first, "first"),
+                ...describe(second, "second"),
+                suggestText: suggestText ? "yes" : "no",
+            },
+        };
+    }
+
+    /**
+     * The tag `$v` is, for `v` the `valueName` of the `<repeat>` `repeat`,
+     * decided from its `for` (COLL-5, D44 decisions 2 and 3): the tag its
+     * items share, or, for values of one type, the widest (integer, then
+     * number, then math), and for objects of tags built on one, that one.
+     * `undefined` when the DoenetML doesn't decide it: an item whose type
+     * it doesn't give, a `for` in error, items of several components or
+     * content of several tags.
+     */
+    function repeatValueType(repeat: SerializedComponent): string | undefined {
+        const found = forItemsOf(repeat);
+        if (
+            !found ||
+            found.unknown ||
+            found.items.length === 0 ||
+            repeatForError(repeat) !== undefined
+        ) {
+            return undefined;
+        }
+        const tags = new Set<string>();
+        for (const item of found.items) {
+            if (item.kind !== "one" || typeOf(item) === undefined) {
+                return undefined;
+            }
+            tags.add(item.tag);
+        }
+        if (tags.size === 1) {
+            return [...tags][0];
+        }
+        const key = typeOf(found.items[0])!;
+        if (key === "math") {
+            for (const widest of ["integer", "number"]) {
+                if ([...tags].every((tag) => inherits(tag, widest))) {
+                    return widest;
+                }
+            }
+            return "math";
+        }
+        return key === "content" ? undefined : key;
+    }
+
+    return {
+        itemsOf,
+        itemsOfChildren,
+        typeOf,
+        isOf,
+        inherits,
+        canonical,
+        describe,
+        forItemsOf,
+        repeatForError,
+        repeatValueType,
+    };
+}
+
+/**
+ * Mark each `<sort>` and `<shuffle>` among `serializedComponents` whose
+ * items are not of one type, and each `<repeat>` whose `for` does not hold
+ * one type, and return its error, to report now.
+ */
+export function checkReorderedItemsAtLoad({
+    serializedComponents,
+    componentInfoObjects,
+}: {
+    serializedComponents: (SerializedComponent | string)[];
+    componentInfoObjects: ComponentInfoObjects;
+}) {
+    const diagnostics: ReturnType<typeof codedDiagnostic>[] = [];
+    const referents = documentReferents({
+        serializedComponents,
+        componentInfoObjects,
+        typeRepeatValues: true,
+    });
+    const { itemsOfChildren, typeOf, isOf, describe, repeatForError } =
+        itemReader({
+            componentInfoObjects,
+            referents,
+        });
 
     /**
      * The error of the `<sort>`, `<sortIndices>` or `<shuffle>` `component`,
@@ -618,6 +997,31 @@ export function checkReorderedItemsAtLoad({
                 }
             }
             visit(component.children ?? []);
+            if (
+                component.componentType === "repeat" &&
+                component.extending === undefined
+            ) {
+                // A repeat's `for` holds one type (COLL-5): one that does
+                // not is an error at the `for`, shown in place of the
+                // iterations.
+                const mark = repeatForError(component);
+                if (mark) {
+                    const forAttribute: any = attributeOf(component, "for");
+                    mark.position =
+                        forAttribute?.position ??
+                        forAttribute?.component?.position ??
+                        component.position;
+                    diagnostics.push({
+                        ...reorderErrorDiagnostic(mark),
+                        position: mark.position,
+                        sourceDoc: component.sourceDoc,
+                    });
+                    component.doenetAttributes = {
+                        ...component.doenetAttributes,
+                        reorderErrorAtLoad: mark,
+                    };
+                }
+            }
             if (
                 CHECKED.has(component.componentType) &&
                 component.extending === undefined

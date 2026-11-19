@@ -26,6 +26,7 @@ import {
     staticValueReferenceTarget,
 } from "../valueReference";
 import { sequenceEntryComponentType } from "../sequence";
+import { itemReader } from "./reorderedItemsAtLoad";
 
 /**
  * Turn, in place, every `_copy` that can be a value reference into a `_ref`.
@@ -644,14 +645,24 @@ function forEachReference(
  * The referent's type is read from the document: the component under
  * `nodeIdx`, the type an `extend` or `copy` will make for the component it
  * names (`_createComponentIdx`), or, for the placeholder a
- * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
+ * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`, and
+ * for the one a `<repeat>` makes, with `typeRepeatValues`, the type its
+ * `for` holds (COLL-5, `itemReader`'s `repeatValueType`).
  */
 export function documentReferents({
     serializedComponents,
     componentInfoObjects,
+    typeRepeatValues = false,
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
+    /**
+     * Whether the value of a `<repeat>` has the type its `for` decides
+     * (COLL-5), for the checks at load of what a reference is made into
+     * (REF-5, COLL-4). The passes that make references into value
+     * references or a repeat into a list read it as untyped, as it is made.
+     */
+    typeRepeatValues?: boolean;
 }) {
     const componentsByIdx = new Map<number, SerializedComponent>();
     const parentByIdx = new Map<number, SerializedComponent | undefined>();
@@ -689,6 +700,9 @@ export function documentReferents({
                 setup?.componentType === "_repeatSetup"
                     ? parentByIdx.get(setup.componentIdx)
                     : undefined;
+            if (repeat?.componentType === "repeat") {
+                return typeRepeatValues ? repeatValueType(repeat) : undefined;
+            }
             if (repeat?.componentType !== "repeatForSequence") {
                 return undefined;
             }
@@ -729,6 +743,23 @@ export function documentReferents({
         return componentClass.classForSerializedComponent(node);
     }
 
+    // The type of the value of each `<repeat>`, as its `for` decides it
+    // (COLL-5), by the repeat's index; `null` while it is being decided, so
+    // that a `for` reaching its own value is not decided.
+    const repeatValueTypes = new Map<number, string | undefined | null>();
+    let reader: ReturnType<typeof itemReader> | undefined;
+    function repeatValueType(repeat: SerializedComponent) {
+        const idx = repeat.componentIdx;
+        if (repeatValueTypes.has(idx)) {
+            return repeatValueTypes.get(idx) ?? undefined;
+        }
+        repeatValueTypes.set(idx, null);
+        reader ??= itemReader({ componentInfoObjects, referents });
+        const type = reader.repeatValueType(repeat);
+        repeatValueTypes.set(idx, type);
+        return type;
+    }
+
     function typeMadeByCopy(copy: SerializedComponent | undefined) {
         const typeAttribute = copy?.attributes._createComponentOfType;
         if (typeAttribute?.type !== "primitive") {
@@ -739,13 +770,14 @@ export function documentReferents({
         ];
     }
 
-    return {
+    const referents = {
         componentsByIdx,
         parentByIdx,
         copiesByCreatedIdx,
         referentType,
         referentClass,
     };
+    return referents;
 }
 
 /**

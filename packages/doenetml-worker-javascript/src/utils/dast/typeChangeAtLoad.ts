@@ -60,6 +60,7 @@
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedAttribute } from "./types";
 import { documentReferents } from "./valueReferences";
+import { itemReader } from "./reorderedItemsAtLoad";
 import { unwrapSource } from "./convertNormalizedDast";
 import { typeChangeRule } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
@@ -476,7 +477,11 @@ export function checkTypeChangesAtLoad({
     const referents = documentReferents({
         serializedComponents,
         componentInfoObjects,
+        typeRepeatValues: true,
     });
+    // What the items of a collection are (COLL-4, COLL-5), made when first
+    // needed
+    let reader: ReturnType<typeof itemReader> | undefined;
 
     /**
      * What each composite or copy a reference names holds
@@ -1941,6 +1946,87 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The items of the `for` of the `<repeat>` whose `valueName` is the
+     * placeholder `placeholder`, as the options of a `<select>` that picks
+     * one, when every item holds several components and what each holds is
+     * written in the DoenetML (a `<group>`, the template of a repeat, the
+     * options of a select): a name after the value (`$d.P`) names what every
+     * item declares by it, with one tag, or nothing, in every iteration
+     * (COLL-5, D44 decision 6, as COMP-11 for the options). `undefined`
+     * otherwise, where what each item holds is found as the document runs.
+     * The select is marked with the repeat (`itemsOfRepeat`) and with how
+     * each item is named (`itemPlaces`), for the messages.
+     */
+    function repeatItemsAsBranches(placeholder: SerializedComponent) {
+        if (!itemsAsBranches.has(placeholder.componentIdx)) {
+            itemsAsBranches.set(
+                placeholder.componentIdx,
+                findRepeatItemsAsBranches(placeholder),
+            );
+        }
+        return itemsAsBranches.get(placeholder.componentIdx);
+    }
+    const itemsAsBranches = new Map<number, SerializedComponent | undefined>();
+    function findRepeatItemsAsBranches(placeholder: SerializedComponent) {
+        const setup = referents.parentByIdx.get(placeholder.componentIdx);
+        const repeat =
+            setup?.componentType === "_repeatSetup"
+                ? referents.parentByIdx.get(setup.componentIdx)
+                : undefined;
+        if (repeat?.componentType !== "repeat") {
+            return undefined;
+        }
+        reader ??= itemReader({ componentInfoObjects, referents });
+        const found = reader.forItemsOf(repeat);
+        if (
+            !found ||
+            found.unknown ||
+            found.items.length === 0 ||
+            found.items.some((item) => item.kind !== "several") ||
+            reader.repeatForError(repeat) !== undefined
+        ) {
+            return undefined;
+        }
+        return {
+            componentType: "select",
+            componentIdx: placeholder.componentIdx,
+            attributes: {},
+            doenetAttributes: {},
+            children: found.items.map((item, ind) => ({
+                componentType: "option",
+                componentIdx: -1 - ind,
+                attributes: {},
+                doenetAttributes: {},
+                children: item.kind === "several" ? item.children : [],
+            })),
+            itemsOfRepeat: repeat,
+            itemPlaces: placesOfItems(found),
+        } as unknown as SerializedComponent;
+    }
+
+    /**
+     * How the messages name each of the items `found` of a repeat's `for`,
+     * which each hold several components: as the option or case it is
+     * (`part`), by its place in the `for` (`position`) when that is known at
+     * load (`placesKnown`, `forItemsOf`), or otherwise as an item.
+     */
+    function placesOfItems(
+        found: NonNullable<
+            ReturnType<ReturnType<typeof itemReader>["forItemsOf"]>
+        >,
+    ) {
+        const placesKnown = found.placesKnown ?? 0;
+        return found.items.map((item, ind) => {
+            const part = item.kind === "several" ? item.part : undefined;
+            return part
+                ? { part }
+                : ind < placesKnown
+                  ? { position: ind + 1 }
+                  : {};
+        });
+    }
+
+    /**
      * The kind of branch `component` holds, if it is a branch container: a
      * `<conditionalContent>` shows one of its cases (`case`), and a
      * `<select>` whose `numToSelect` is written as `1` or left out shows one
@@ -2501,7 +2587,13 @@ export function checkTypeChangesAtLoad({
         if (typeof first?.name !== "string" || first.name === "") {
             return undefined;
         }
-        const container = branchContainerAt(ref.nodeIdx, indexed);
+        const placeholder = referents.componentsByIdx.get(ref.nodeIdx);
+        const container =
+            branchContainerAt(ref.nodeIdx, indexed) ??
+            (placeholder?.componentType === "_placeholder" &&
+            !isIndexIntoPicks(path)
+                ? repeatItemsAsBranches(placeholder)
+                : undefined);
         if (!container) {
             return undefined;
         }
@@ -2639,35 +2731,59 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         const name = declared.name;
-        const containerName = literalText(declared.container.attributes?.name);
-        const hasName =
-            containerName !== undefined &&
-            containerName !== "" &&
-            !containerName.startsWith("_");
-        const container = hasName
-            ? containerName
-            : declared.container.componentType;
+        // the items of a repeat's `for` (`repeatItemsAsBranches`)
+        const repeat: SerializedComponent | undefined = (
+            declared.container as any
+        ).itemsOfRepeat;
+        function named(component: SerializedComponent) {
+            const containerName = literalText(component.attributes?.name);
+            const hasName =
+                containerName !== undefined &&
+                containerName !== "" &&
+                !containerName.startsWith("_");
+            return {
+                container: hasName ? containerName : component.componentType,
+                hasName: hasName ? "true" : "false",
+            };
+        }
         if (declared.status === "missing") {
+            // the item that lacks it, named as the option or case it is,
+            // or by its place in the `for` (`placesOfItems`)
+            const place = repeat
+                ? (declared.container as any).itemPlaces[declared.ordinal - 1]
+                : undefined;
             return {
                 code: "doenet-w0183",
                 args: {
                     name,
-                    branch: declared.branch,
-                    ordinal: declared.ordinal,
-                    container,
-                    hasName: hasName ? "true" : "false",
+                    ...(place?.part
+                        ? {
+                              branch: place.part.branch,
+                              ordinal: place.part.ordinal,
+                              ...named(place.part.container),
+                          }
+                        : {
+                              branch: !repeat
+                                  ? declared.branch
+                                  : place?.position !== undefined
+                                    ? "item"
+                                    : "someItem",
+                              ordinal: place?.position ?? declared.ordinal,
+                              ...named(repeat ?? declared.container),
+                          }),
                 },
             };
         }
+        const { container, hasName } = named(repeat ?? declared.container);
         return {
             code: "doenet-w0184",
             args: {
                 name,
-                branch: declared.branch,
+                branch: repeat ? "item" : declared.branch,
                 firstType: declared.firstType,
                 secondType: declared.secondType,
                 container,
-                hasName: hasName ? "true" : "false",
+                hasName,
             },
         };
     }
@@ -3848,7 +3964,13 @@ export function checkTypeChangesAtLoad({
             }
         } else if (
             one.componentType === "_copy" &&
-            repeat.componentType === "repeat"
+            repeat.componentType === "repeat" &&
+            // a `for` not of one type is an error in place of the
+            // iterations (COLL-5)
+            !(reader ??= itemReader({
+                componentInfoObjects,
+                referents,
+            })).repeatForError(repeat)
         ) {
             const valueName = literalText(attributeOf(repeat, "valueName"));
             const ref = refOf(one);
