@@ -202,8 +202,9 @@ Whether a tag is built as a composite or a list component never changes which ki
   follows an input it latches onto one item live (a reload gives every item);
 - `<collect fixed|disabled|hide>` passes these to the collected copies, so they aren't the
   collect's own;
-- a collection's own property spelled in another case, through a wrapper (`$g.numitems`), isn't
-  the collection's;
+- a collection's own property spelled in another case is the collection's when written directly
+  (`$r.numitems`) and `w0104` through a wrapper (`$g.numitems`), or each item's (`$g.Fixed`).
+  Under D51 (NAME-0, #2605) every one of them names nothing, with a suggestion of `numItems`;
 - a name after a collect differs between the builds (COMP-4).
 
 ### COLL-3: a wrapper stands for its one component; with several, it is only a container (Tier 2; D41)
