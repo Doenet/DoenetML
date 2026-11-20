@@ -4,6 +4,7 @@ import {
     movePoint,
     updateMathInputImmediateValue,
     updateMathInputValue,
+    updateFractionInputImmediateValue,
     updateMatrixInputImmediateValue,
     updateTextInputImmediateValue,
 } from "../utils/actions";
@@ -225,6 +226,26 @@ describe("An input that isn't focused shows no edit not entered @group2", () => 
         expect(await h.shown("mi")).eq("4 / 4");
         expect(await h.shown("ti")).eq('"b" / "b"');
         expect(await h.shown("mi2")).eq("5 / 5");
+    });
+
+    it("a reload enters the edit of a code editor and of a fraction input's part", async () => {
+        const h = await setup(`
+    <codeEditor name="ce" prefill="a"/>
+    <fractionInput name="fi" prefillNumerator="1" prefillDenominator="2"/>
+    <mathInput name="mi" prefill="1"/>`);
+        await h.editText("ce", "b");
+        await updateFractionInputImmediateValue({
+            latex: "3",
+            componentIdx: await h.idx("fi"),
+            part: "numerator",
+            core: h.core(),
+        });
+        // the input edited last, which a reload entered before (#2598)
+        await h.editMath("mi", "4");
+        await h.reload();
+        expect(await h.shown("ce")).eq('"b" / "b"');
+        expect(await h.shown("fi")).eq('["/",3,2] / ["/",3,2]');
+        expect(await h.shown("mi")).eq("4 / 4");
     });
 
     it("a copyWithState of a matrix input made by a drag enters the edit it carries", async () => {
