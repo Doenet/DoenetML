@@ -29,6 +29,7 @@ function queueWithLog() {
             log.push(`end ${actionName}`);
         },
         reportDocumentStopped: () => log.push("stopped"),
+        commitUnenteredEdits: async () => {},
     } as unknown as Core;
     return { queue: new ProcessQueue({ core }), log, release: held.resolve };
 }

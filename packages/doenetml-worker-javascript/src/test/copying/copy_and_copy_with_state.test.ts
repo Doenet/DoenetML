@@ -488,6 +488,47 @@ describe("copy and copyWithState @group3", () => {
         ).eqls([]);
     });
 
+    it("copyWithState of a module: a module attribute reaching a nested choice through a one-entry text list whose entry holds a space keeps the carried choices", async () => {
+        // No text written as a list by the rule reads back as one text entry
+        // holding a space, so the list is held with its entries split at
+        // commas (`_listSplitting`, #2598 item 4). `a b` is not a letter, so
+        // the source excludes nothing; read as two entries, the copy would
+        // exclude `a` and `b`.
+        const doenetML = `
+<setup>
+  <module name="m">
+    <moduleAttributes><textList name="ex"><text>a b</text></textList></moduleAttributes>
+    <p name="picks"><selectFromSequence name="s" type="letters" from="a" to="e" numToSelect="5" exclude="$ex"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" ex="c"/>
+`;
+        for (const variant of [1, 2, 3]) {
+            const doc = await loaded(doenetML, variant);
+            async function check() {
+                const source = (await doc.sv("m1.s")).selectedValues;
+                expect([...source].sort()).eqls(["a", "b", "c", "d", "e"]);
+                expect((await doc.sv("mw.s")).selectedValues).eqls(source);
+                // what it excludes is held at what the source chose with
+                expect((await doc.sv("mw.s")).exclude).eqls(
+                    (await doc.sv("m1.s")).exclude,
+                );
+                return source;
+            }
+            const before = await check();
+            expect(
+                doc
+                    .diagnostics()
+                    .warnings.filter((w: any) => w.code === "doenet-w0186")
+                    .map((w: any) => w.args.attribute),
+            ).eqls(["ex"]);
+            expect(doc.diagnostics().errors).eqls([]);
+            await doc.reload();
+            expect(await check()).eqls(before);
+        }
+    });
+
     for (const tag of ["selectRandomNumbers", "selectFromSequence"]) {
         it(`copyWithState of a section: a ${tag} whose range comes from a group written later selects once, from the range (#2553 item 2)`, async () => {
             // The selection is made once its parameters are there, whatever

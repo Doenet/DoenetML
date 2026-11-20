@@ -1025,6 +1025,12 @@ export async function createChildrenThenComponent({
         componentIdx,
     });
 
+    // an edit not entered it was made with, from saved state or carried by a
+    // `copyWithState`, is committed once the update is over (D50)
+    if (componentClass.holdsUnenteredEdit) {
+        core.inputsToCommit.add(componentIdx);
+    }
+
     // Other components' dependencies may be blocked on this component's
     // identity, so that resolution stays eager. The former per-state-variable
     // resolve pass is gone: state variables now resolve on first demand.

@@ -7,6 +7,7 @@
  */
 import { deepClone } from "@doenet/utils";
 import { splitListText } from "@doenet/parser/list-separation";
+import { listSplittingAttributeValue } from "../components/commonsugar/lists";
 
 /**
  * The value of the attribute component `component` as text it reads back
@@ -21,27 +22,59 @@ import { splitListText } from "@doenet/parser/list-separation";
  * parentheses (`entryAsWritten`). `undefined` when neither does (a text
  * entry holding a comma outside brackets, or a single text entry holding a
  * space), and for any other value, which is then not held.
+ *
+ * Where the value is held as a list written with that text
+ * (`holdAttributeComponentAt`), use {@link heldValueAsWritten}, which also
+ * holds a single text entry holding a space.
  */
 export async function valueAsWritten(component) {
+    const held = await heldValueAsWritten(component);
+    return held && held.listSplitting === undefined ? held.text : undefined;
+}
+
+/**
+ * The value of the attribute component `component` as text, as
+ * {@link valueAsWritten} gives it, for a value held as a list written with
+ * that text (`holdAttributeComponentAt`), which can also record how its text
+ * is split (`listSplitting`, the value of the list's hidden `_listSplitting`
+ * attribute). When neither spaces nor the rule's commas read back as the
+ * entries, they are written separated by commas, read as commas whatever
+ * the text holds (`listSplitting` `"comma"`): so a single text entry holding
+ * a space (`a b`) is held as one entry (#2598 item 4). `undefined` when that
+ * fails too (a text entry holding a comma outside brackets), and for any
+ * other value, which is then not held.
+ */
+export async function heldValueAsWritten(component) {
     const value = await component?.stateValues?.value;
     if (value !== undefined && value !== null) {
-        return typeof value === "object" ? value.toString() : String(value);
+        return {
+            text: typeof value === "object" ? value.toString() : String(value),
+        };
     }
     const entries = await listEntriesOf(component);
     if (!entries) {
         return undefined;
     }
     const texts = entries.map((entry) => entryAsWritten(entry));
-    for (const separator of [" ", ", "]) {
-        const text = texts.join(separator);
-        const read = splitListText(text);
-        if (
+    /** Whether `text` read as `splitting` gives the entries. */
+    function readsBack(text, splitting) {
+        const read = splitListText(text, splitting);
+        return (
             !read.unmatchedBrackets &&
             read.entries.length === texts.length &&
             read.entries.every((entry, ind) => entry.trim() === texts[ind])
-        ) {
-            return text;
+        );
+    }
+    for (const separator of [" ", ", "]) {
+        const text = texts.join(separator);
+        if (readsBack(text)) {
+            return { text };
         }
+    }
+    const commas = { separator: "comma", bracketsGroup: true };
+    const text = texts.join(", ");
+    if (texts.length > 0 && readsBack(text, commas)) {
+        return { text, listSplitting: listSplittingAttributeValue(commas) };
     }
     return undefined;
 }
@@ -136,12 +169,15 @@ async function listEntriesOf(component) {
  * written is kept (`authoredComponent`), which a `copy` of it, writing its
  * DoenetML again, is given in place of the value (`serialize`,
  * `withoutReaderState`), so it computes it from what it is given.
+ * `listSplitting`, from {@link heldValueAsWritten}, is how the list `text`
+ * is written in splits it (its hidden `_listSplitting` attribute).
  */
 export function holdAttributeComponentAt({
     attribute,
     text,
     componentInfoObjects,
     listType,
+    listSplitting,
 }) {
     attribute.authoredComponent = deepClone(attribute.component);
     delete attribute.keepSourceIterationValue;
@@ -194,6 +230,28 @@ export function holdAttributeComponentAt({
               ),
           )
         : {};
+    // how the text is split, given to the list that reads it
+    const splittingAttributes =
+        listSplitting === undefined
+            ? {}
+            : {
+                  _listSplitting: {
+                      type: "primitive",
+                      name: "_listSplitting",
+                      primitive: { type: "string", value: listSplitting },
+                  },
+              };
+    if (
+        !isListWrapper &&
+        listSplitting !== undefined &&
+        "_listSplitting" in
+            (componentInfoObjects.allComponentClasses[
+                attributeComponent.componentType
+            ]?.createAttributesObject?.() ?? {})
+    ) {
+        // a list written as a tag (`<textList>`), which takes it
+        Object.assign(attributeComponent.attributes, splittingAttributes);
+    }
     attributeComponent.state = {};
     // A list of a selectable type reads its children with sugar, which has
     // been applied, so the text is given as a list of its entries' type,
@@ -213,7 +271,7 @@ export function holdAttributeComponentAt({
                   componentIdx: firstComponent.componentIdx,
                   stateId: firstComponent.stateId,
                   sourceDoc: firstComponent.sourceDoc,
-                  attributes: {},
+                  attributes: { ...splittingAttributes },
                   doenetAttributes: {},
                   state: {},
                   children: [text],

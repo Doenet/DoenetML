@@ -534,6 +534,7 @@ export async function mathComponentInputUpdateValue({
                 },
                 {
                     updateType: "unsetComponentNeedingUpdateValue",
+                    componentIdx: this.componentIdx,
                 },
             ];
 

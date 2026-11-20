@@ -564,13 +564,20 @@ export class UpdateExecutor {
             } else if (
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
-                this.core.cumulativeStateVariableChanges.__componentNeedingUpdateValue =
-                    this.core._components[instruction.componentIdx!]!.stateId;
+                // the input the reader is editing, whose edit is not
+                // committed when it is made (D50, `commitUnenteredEdits`)
+                this.core.componentBeingEdited = instruction.componentIdx!;
             } else if (
                 instruction.updateType === "unsetComponentNeedingUpdateValue"
             ) {
-                delete this.core.cumulativeStateVariableChanges
-                    .__componentNeedingUpdateValue;
+                // the input's edit is entered: it is not being edited, unless
+                // the reader is editing another
+                if (
+                    instruction.componentIdx === undefined ||
+                    instruction.componentIdx === this.core.componentBeingEdited
+                ) {
+                    this.core.componentBeingEdited = null;
+                }
             }
         }
 
