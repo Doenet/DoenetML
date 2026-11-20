@@ -393,8 +393,9 @@ export class UpdateExecutor {
      *     post-loop submission-event recording (and triggers an
      *     immediate save).
      *   - `setComponentNeedingUpdateValue` /
-     *     `unsetComponentNeedingUpdateValue`: flag bookkeeping for
-     *     downstream answer-submission detection.
+     *     `unsetComponentNeedingUpdateValue`: record which input the reader
+     *     is editing (`Core.componentBeingEdited`), whose edit not entered
+     *     `Core.commitUnenteredEdits` leaves alone.
      *
      * After the loop, `executeUpdateStateVariables` runs once more on
      * any leftover `newStateVariableValues`. Unless
