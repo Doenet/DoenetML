@@ -336,6 +336,9 @@ export type MessageKey =
     | "variant-index-must-be-number"
     | "variant-index-must-be-integer"
     | "variant-name-unknown"
+    | "variant-control-reference"
+    | "variant-name-repeated"
+    | "variants-all-excluded"
     | "side-by-side-absolute-widths"
     | "side-by-side-absolute-margins"
     | "side-by-side-no-block-child"
@@ -1043,6 +1046,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "variant-index-must-be-number",
     "variant-index-must-be-integer",
     "variant-name-unknown",
+    "variant-control-reference",
+    "variant-name-repeated",
+    "variants-all-excluded",
     "side-by-side-absolute-widths",
     "side-by-side-absolute-margins",
     "side-by-side-no-block-child",
