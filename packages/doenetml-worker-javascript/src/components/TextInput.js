@@ -27,6 +27,10 @@ export default class Textinput extends Input {
         defineSubmitAnswerExternalAction(this);
     }
     static componentType = "textInput";
+    // An edit not yet entered (`immediateValue`) is committed when the input
+    // is made, or shown again, unless it is the input the reader is editing
+    // (`Core.commitUnenteredEdits`, D50).
+    static holdsUnenteredEdit = true;
 
     static componentDocs = {
         summary: "An interactive text input",
