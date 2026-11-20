@@ -40,7 +40,7 @@ import {
     returnSequenceItemDefinitions,
     returnSequenceStartDefinition,
     sequenceNumberDependencies,
-    sequenceNumberFromParent,
+    numberInSequence,
 } from "../../utils/sequenceNumbering";
 import {
     childRendersSomething,
@@ -392,9 +392,9 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        // How this section numbers the children that are its list items,
-        // counting through any `<cascade>` among them. (It numbers the
-        // divisions among its children as every block does; see
+        // This section numbers the children that are its list items from 1,
+        // counting through any `<cascade>` or `<page>` among them. (It numbers
+        // the divisions among its children as every block does; see
         // `BlockComponent` and `utils/sequenceNumbering.js`.)
         stateVariableDefinitions.listItemOffset =
             returnSequenceStartDefinition(LIST_ITEM_SEQUENCE);
@@ -450,13 +450,12 @@ export class SectioningComponent extends BlockComponent {
                     variableNames: ["enumeration"],
                 },
             }),
-            definition({ dependencyValues, componentInfoObjects }) {
+            definition({ dependencyValues }) {
                 if (dependencyValues.isListItem) {
-                    const listItemNumber = sequenceNumberFromParent({
+                    const listItemNumber = numberInSequence({
                         sequence: LIST_ITEM_SEQUENCE,
                         dependencyValues,
                         componentType,
-                        componentInfoObjects,
                     });
                     return {
                         setValue: {
@@ -1781,15 +1780,14 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                         : DIVISION_SEQUENCE,
                 ),
             }),
-            definition({ dependencyValues, componentInfoObjects }) {
+            definition({ dependencyValues }) {
                 let enumeration = [];
                 if (dependencyValues.isListItem) {
                     enumeration.push(
-                        sequenceNumberFromParent({
+                        numberInSequence({
                             sequence: LIST_ITEM_SEQUENCE,
                             dependencyValues,
                             componentType,
-                            componentInfoObjects,
                         }),
                     );
                 } else {
@@ -1803,11 +1801,10 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                         );
                     }
                     enumeration.push(
-                        sequenceNumberFromParent({
+                        numberInSequence({
                             sequence: DIVISION_SEQUENCE,
                             dependencyValues,
                             componentType,
-                            componentInfoObjects,
                         }),
                     );
                 }

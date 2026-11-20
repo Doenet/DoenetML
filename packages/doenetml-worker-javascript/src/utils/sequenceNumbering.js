@@ -53,8 +53,9 @@
  * more; after a pass-through, the counters have advanced by the items it holds
  * (`…Counts`). An item's number is its counter after it; a pass-through's
  * offset is its counters before it, so nested pass-throughs continue one
- * sequence. In a parent that numbers no children (one with no offset), the
- * count starts at zero and a pass-through doesn't advance it.
+ * sequence. In a parent that numbers no children (one with no offset, such
+ * as a `<span>`), the count starts at zero and a pass-through doesn't advance
+ * it.
  *
  * A number depends only on what comes before it, never on the siblings after
  * it. So a composite after a section can read the section's number in a
@@ -425,7 +426,7 @@ export function sequenceNumberDependencies(sequence) {
  *
  * @param {Sequence} sequence
  */
-export function sequenceNumberFromParent({
+export function numberInSequence({
     sequence,
     dependencyValues,
     componentType,
