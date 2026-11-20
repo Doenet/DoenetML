@@ -676,10 +676,14 @@ export async function normalizedDastToSerializedComponents(
     // what is written (TYPE, D45), marked on the component for the checks
     // below and the run time. After sugar, which splits a `<tally>`'s text
     // into the values it counts.
-    markPropertyTypesAtLoad({
-        serializedComponents: sugarResult.components,
-        componentInfoObjects,
-    });
+    // An answer's responses of different types from the cases of a
+    // `<conditionalContent>` are an error, reported now (`doenet-e0082`).
+    diagnostics.push(
+        ...markPropertyTypesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        }),
+    );
 
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag

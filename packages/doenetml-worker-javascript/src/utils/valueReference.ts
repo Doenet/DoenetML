@@ -445,7 +445,7 @@ export function staticValueReferenceTarget({
      * (`doenetAttributes.propertyTypes`, `propertyTypesAtLoad.ts`), by
      * variable name. Without them, such a property is not worked out.
      */
-    propertyTypes?: Record<string, string>;
+    propertyTypes?: Record<string, string | string[]>;
 }):
     | {
           referentComponentType: string;

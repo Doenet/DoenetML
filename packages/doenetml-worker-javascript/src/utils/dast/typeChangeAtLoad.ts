@@ -839,10 +839,17 @@ export function checkTypeChangesAtLoad({
         node: SerializedComponent | undefined,
     ): Holding {
         const variable = allClasses[componentType]?.variableForImplicitProp;
-        const valueType =
+        const decided =
             node && variable && node.componentType !== "_placeholder"
                 ? properties.propertyTypesOf(node)[variable]
                 : undefined;
+        // of entries that may differ in type (an `<answer>`'s responses),
+        // the one type they share, if they share one
+        const valueType = Array.isArray(decided)
+            ? new Set(decided).size === 1
+                ? decided[0]
+                : undefined
+            : decided;
         return {
             types: new Set([componentType]),
             ...(valueType !== undefined && {

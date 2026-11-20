@@ -574,17 +574,6 @@ export default class Pretzel extends BlockScoredComponent {
                 return { globalDependencies };
             },
             arrayDefinitionByKey({ globalDependencyValues }) {
-                let componentType = [];
-
-                if (globalDependencyValues.submittedResponsesComponentType) {
-                    componentType.push(
-                        ...globalDependencyValues.submittedResponsesComponentType.slice(
-                            0,
-                            globalDependencyValues.numSubmittedResponses,
-                        ),
-                    );
-                }
-
                 let essentialSubmittedResponses = {};
 
                 for (

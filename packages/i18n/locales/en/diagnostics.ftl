@@ -1052,6 +1052,17 @@ extend-choice-input-choices = Choices written inside an `extend` of a `<choiceIn
 
 extend-choice-input-shuffle-order = An `extend` of a `<choiceInput>` shares its selection with `{ $source }`, which counts the choices in the order `{ $source }` shows them, so it can't change `shuffleOrder`. To show the choices in a different order, use `copy`.
 
+# An `extend` of an `<answer>` shares its responses, credit and attempts
+# with its source ($source, the reference as written), so it can't change an
+# attribute that decides them ($attribute, its name as the `<answer>` declares
+# it, whatever case it is written in) (REF-7, D32).
+extend-answer-grading-attribute = An `extend` of an `<answer>` shares its responses and credit with `{ $source }`, which grades them, so it can't change `{ $attribute }`. To grade with a different `{ $attribute }`, use `copy`.
+
+# Inputs, awards or responses written inside an `extend` of an `<answer>`,
+# which shares its responses and credit with its source ($source, the
+# reference as written) (REF-7, D32). A label or description may be written.
+extend-answer-children = What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `{ $source }`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.
+
 extend-module-attribute = A `<module>` makes its content from its attributes. An `extend` shows the same content as `{ $source }`, so it can't change `{ $attribute }`. To make the module with a different `{ $attribute }`, use `copy`.
 
 # $componentType is `case`, `else` or `option`, and $parentType the tag it is
@@ -2110,6 +2121,13 @@ sort-needs-sort-by-prop = `<{ $component }>` can't compare its items: { $kind ->
         [yes] , as `<{ $component } sortByProp="text">` compares the text each one shows
        *[other] , as `<{ $component } sortByProp="name">` does for a property `name`
     }.
+
+# An `<answer>` reads a response from a `<conditionalContent>` that is of
+# one type, $firstType, in one case and of another, $secondType, in another
+# (TYPE-2, COMP-11): the response would change type as the case shown
+# changes, so it is an error at load, shown in place of the
+# `<conditionalContent>`. The tags stay in English.
+answer-responses-of-several-types = An `<answer>` reads a response from this `<conditionalContent>` that is a `<{ $firstType }>` in one case and a `<{ $secondType }>` in another, but a response has one type, decided from what is written. Give it one type in every case.
 
 # The `for` of a `<repeat>` holds items of one type (COLL-5, D44), decided
 # at load. $reason is `mix` for items of more than one type, the first two

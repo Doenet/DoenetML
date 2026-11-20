@@ -9876,6 +9876,99 @@ async function copyWithStateChangesChoicesErrors({
 }
 
 /**
+ * The attributes of an `<answer>` that decide what it records and how it
+ * grades: its responses, its credit and its attempts, which an `extend`
+ * shares with its source (REF-7, D32). Any other attribute of an answer only
+ * changes how it looks or behaves for the reader (`showCorrectness`,
+ * `submitLabel`, `inline`, …), as `hide` or `disabled` does.
+ */
+const ANSWER_GRADING_ATTRIBUTES = new Set(
+    [
+        "type",
+        "weight",
+        "handGraded",
+        "matchPartial",
+        "maxNumAttempts",
+        "creditByAttempt",
+        "symbolicEquality",
+        "simplifyOnCompare",
+        "expandOnCompare",
+        "unorderedCompare",
+        "matchByExactPositions",
+        "numAwardsCredited",
+        "allowedErrorInNumbers",
+        "includeErrorInNumberExponents",
+        "allowedErrorIsAbsolute",
+        "numSignErrorsMatched",
+        "numPeriodicSetMatchesRequired",
+        "caseInsensitiveMatch",
+        "matchBlanks",
+        "selectMultiple",
+        "shuffleOrder",
+        "preserveLastChoice",
+        "splitSymbols",
+        "parseScientificNotation",
+        "video",
+    ].map((name) => name.toLowerCase()),
+);
+
+/**
+ * The children an `extend` of an `<answer>` may write: what labels or
+ * describes it, which changes how it looks, not what it grades.
+ */
+const ANSWER_DESCRIBING_CHILDREN = new Set([
+    "label",
+    "shortDescription",
+    "description",
+]);
+
+/**
+ * The errors of an `extend` of an `<answer>` that would change what it
+ * records or how it grades (REF-7, D32): an `extend` shares its source's
+ * responses, credit and attempts, so an attribute that decides them
+ * (`ANSWER_GRADING_ATTRIBUTES`) is `doenet-e0083`, and anything written
+ * inside it but a label or a description (an input, an `<award>`, a
+ * `<considerAsResponses>`, text the answer's sugar would read) is
+ * `doenet-e0084`. `copy` makes an answer of its own, which may.
+ */
+function extendAnswerErrors({ attributeNames, children, source }) {
+    const errors = [];
+    for (const attribute of attributeNames) {
+        if (ANSWER_GRADING_ATTRIBUTES.has(attribute.toLowerCase())) {
+            errors.push(
+                codedDiagnostic({
+                    type: "error",
+                    code: "doenet-e0083",
+                    args: { attribute, source },
+                }),
+            );
+        }
+    }
+    const changing = (children ?? []).some((child) => {
+        if (typeof child === "string") {
+            return child.trim() !== "";
+        }
+        // A copy's tag is compared as written: tag names are case-sensitive,
+        // as the answer's sugar compares them (`componentIsSpecifiedType`).
+        const tag =
+            child?.componentType === "_copy"
+                ? child.attributes?._createComponentOfType?.primitive?.value
+                : child?.componentType;
+        return !ANSWER_DESCRIBING_CHILDREN.has(tag);
+    });
+    if (changing) {
+        errors.push(
+            codedDiagnostic({
+                type: "error",
+                code: "doenet-e0084",
+                args: { source },
+            }),
+        );
+    }
+    return errors;
+}
+
+/**
  * The errors for an `extend` that would change what its source makes (D32,
  * #2404). An extend is the same component again: it shares its source's
  * content and state. It can have its own name and look different, but it
@@ -9895,7 +9988,10 @@ async function copyWithStateChangesChoicesErrors({
  *   attribute is no parameter of the module, so it is only ignored
  *   (`extendIgnoresAttributesAndChildren`);
  * - on a `<choiceInput>`, `shuffleOrder` and any choices, as an extend shares
- *   its selection, which indexes its source's choices in its source's order.
+ *   its selection, which indexes its source's choices in its source's order;
+ * - on an `<answer>`, a grading attribute and any children but a label or a
+ *   description (`extendAnswerErrors`), as an extend shares its responses
+ *   and credit.
  *
  * `source` is the reference the extend is of, as written (`$r`).
  */
@@ -9967,6 +10063,15 @@ export function extendChangesContentErrors({
             );
         }
         return errors;
+    }
+
+    if (
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: replacementType,
+            baseComponentType: "answer",
+        })
+    ) {
+        return extendAnswerErrors({ attributeNames, children, source });
     }
 
     const isModule =
