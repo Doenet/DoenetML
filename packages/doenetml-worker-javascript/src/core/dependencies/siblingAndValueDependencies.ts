@@ -2,8 +2,8 @@
  * Dependency subclasses driven by sibling / value lookups:
  *  - `CountAmongSiblings` — index of a component among siblings of the
  *    same type
- *  - `PrecedingSiblings` — the siblings before a component, waiting only
- *    for the composites among them to expand
+ *  - `NearestPrecedingSibling` — the nearest sibling before a component of
+ *    given types, waiting only for the composites between them to expand
  *  - `Value` / `Flag` — return a literal value (Flag pulls from
  *    `Core.flags`)
  */
@@ -373,30 +373,33 @@ export class CountAmongSiblingsDependency extends Dependency {
 }
 
 /**
- * The children of the component's parent that come before it, with their
- * `variableNames`. Primitive children are left out.
+ * The nearest child of the component's parent before it whose type is, or
+ * inherits from, one of `componentTypes`, with its `variableNames`: a list of
+ * one, or of none when there is no such child before it.
  *
  * Unlike a `child` dependency of the parent, it waits only for the
- * composites written before the component to expand, not for every composite
- * among the children. So a composite after the component can read what this
- * dependency decides (a section's number, which depends only on what comes
- * before the section) in the parameters it needs before it can expand, such
- * as `<sequence to="$s.sectionNumber"/>` after the section `s`. Read through
- * the parent's children, that was a circular dependency, and the document
- * failed to load (DIAG-5, #2578 item 1).
+ * composites between the component and that sibling to expand, not for every
+ * composite among the children. So a composite after the component can read
+ * what this dependency decides (a section's number, which depends only on
+ * what comes before the section) in the parameters it needs before it can
+ * expand, such as `<sequence to="$s.sectionNumber"/>` after the section `s`.
+ * Read through the parent's children, that was a circular dependency, and
+ * the document failed to load (DIAG-5, #2578 item 1). And since it reads one
+ * sibling, not all of them, a numbering that reads the sibling's own count in
+ * turn costs one dependency per item rather than one per item and sibling
+ * before it.
  *
- * A composite before the component that has not expanded is waited for:
- * what it will make may be among the siblings. So is one given a type and
- * standing in its parent's children as a placeholder for the one component
- * it will make, unless the definition names, in `placeholderTypesToWaitFor`,
- * the base types whose placeholders matter to it, and the placeholder's type
- * is none of them (nor a composite). Such a placeholder is left out of the
- * siblings. So a section's number need not wait for a `<text>` before it,
- * which can't change the count, and that text can read the number
- * (`<text extend="$s.sectionNumber"/>` before `s`).
+ * A composite between them that has not expanded is waited for: what it will
+ * make may be of those types. So is a composite given a type and standing in
+ * its parent's children as a placeholder for the one component it will make,
+ * when that type is a composite or one of `componentTypes`. A placeholder of
+ * any other type is passed over, as is any other child. So a section's number
+ * need not wait for a `<text>` before it, which can't change the count, and
+ * that text can read the number (`<text extend="$s.sectionNumber"/>` before
+ * `s`).
  */
-export class PrecedingSiblingsDependency extends Dependency {
-    static dependencyType = "precedingSiblings";
+export class NearestPrecedingSiblingDependency extends Dependency {
+    static dependencyType = "nearestPrecedingSibling";
 
     setUpParameters() {
         this.componentIdx = this.upstreamComponentIdx;
@@ -413,27 +416,26 @@ export class PrecedingSiblingsDependency extends Dependency {
             this.originalDownstreamVariableNames = [];
         }
 
-        this.placeholderTypesToWaitFor =
-            this.definition.placeholderTypesToWaitFor;
+        if (!Array.isArray(this.definition.componentTypes)) {
+            throw Error(
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: componentTypes must be an array`,
+            );
+        }
+        this.componentTypes = this.definition.componentTypes;
     }
 
-    /**
-     * Whether a placeholder of type `componentType` must be waited for: when
-     * the definition names no types, or the type is a composite or inherits
-     * from one of the types named.
-     */
-    waitsForPlaceholderOfType(componentType: string | undefined) {
-        if (!this.placeholderTypesToWaitFor || componentType === undefined) {
-            return true;
+    /** Whether `componentType` is, or inherits from, one of `baseTypes`. */
+    isOfTypes(componentType: string | undefined, baseTypes: string[]) {
+        if (componentType === undefined) {
+            return false;
         }
         const componentInfoObjects =
             this.dependencyHandler.componentInfoObjects;
-        return ["_composite", ...this.placeholderTypesToWaitFor].some(
-            (baseComponentType: string) =>
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: componentType,
-                    baseComponentType,
-                }),
+        return baseTypes.some((baseComponentType: string) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: componentType,
+                baseComponentType,
+            }),
         );
     }
 
@@ -485,8 +487,9 @@ export class PrecedingSiblingsDependency extends Dependency {
         );
 
         if (position === -1) {
-            // Not among its parent's children yet: wait for the parent to
-            // place it, as a `child` dependency of the parent would.
+            // Not among its parent's children (yet, or any more): wait for
+            // the parent to place it, as a `child` dependency of the parent
+            // would.
             for (const varName of this.upstreamVariableNames) {
                 await this.dependencyHandler.addBlocker({
                     blockerComponentIdx: this.parentIdx,
@@ -519,27 +522,29 @@ export class PrecedingSiblingsDependency extends Dependency {
             this.dependencyHandler.componentInfoObjects.allComponentClasses
                 ._composite;
 
-        const downstreamComponentIndices: number[] = [];
-        const downstreamComponentTypes: string[] = [];
-
-        for (const child of activeChildren.slice(0, position)) {
+        for (let ind = position - 1; ind >= 0; ind--) {
+            const child = activeChildren[ind];
             if (typeof child !== "object" || child === null) {
-                continue;
-            }
-            if (
-                child.componentIdx === undefined &&
-                !this.waitsForPlaceholderOfType(child.componentType)
-            ) {
                 continue;
             }
             // A placeholder for a composite given a type, or a composite
             // left among the children because it has not expanded.
-            const unexpandedIdx =
-                child.componentIdx === undefined
-                    ? child.fromComposite
-                    : child instanceof compositeClass && !child.isExpanded
-                      ? child.componentIdx
-                      : undefined;
+            let unexpandedIdx: number | undefined;
+            if (child.componentIdx === undefined) {
+                // One of a type that is known and can't matter is passed over.
+                if (
+                    child.componentType !== undefined &&
+                    !this.isOfTypes(child.componentType, [
+                        "_composite",
+                        ...this.componentTypes,
+                    ])
+                ) {
+                    continue;
+                }
+                unexpandedIdx = child.fromComposite;
+            } else if (child instanceof compositeClass && !child.isExpanded) {
+                unexpandedIdx = child.componentIdx;
+            }
             if (unexpandedIdx !== undefined) {
                 const composite =
                     this.dependencyHandler._components[unexpandedIdx];
@@ -552,14 +557,19 @@ export class PrecedingSiblingsDependency extends Dependency {
                     downstreamComponentTypes: [],
                 };
             }
-            downstreamComponentIndices.push(child.componentIdx);
-            downstreamComponentTypes.push(child.componentType);
+            if (this.isOfTypes(child.componentType, this.componentTypes)) {
+                return {
+                    success: true,
+                    downstreamComponentIndices: [child.componentIdx],
+                    downstreamComponentTypes: [child.componentType],
+                };
+            }
         }
 
         return {
             success: true,
-            downstreamComponentIndices,
-            downstreamComponentTypes,
+            downstreamComponentIndices: [],
+            downstreamComponentTypes: [],
         };
     }
 

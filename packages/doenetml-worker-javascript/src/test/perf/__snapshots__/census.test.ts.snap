@@ -56,10 +56,10 @@ exports[`component census of the micro-documents > collect numbers x4 1`] = `
   },
   "components": 10,
   "copies": 1,
-  "dependencies": 867,
+  "dependencies": 868,
   "shadows": 0,
-  "stateVariables": 596,
-  "stateVariablesResolved": 369,
+  "stateVariables": 598,
+  "stateVariablesResolved": 370,
 }
 `;
 

@@ -41,7 +41,7 @@ import {
 import { ReferentDependency } from "./referentDependency";
 import {
     CountAmongSiblingsDependency,
-    PrecedingSiblingsDependency,
+    NearestPrecedingSiblingDependency,
     ValueDependency,
     DecidedByDoenetMLDependency,
     ContentDecidedByDoenetMLDependency,
@@ -109,7 +109,7 @@ export const dependencyTypeClasses: ReadonlyArray<DependencyClass> = [
     AdapterSourceStateVariableDependency,
     AdapterSourceDependency,
     CountAmongSiblingsDependency,
-    PrecedingSiblingsDependency,
+    NearestPrecedingSiblingDependency,
     ValueDependency,
     DecidedByDoenetMLDependency,
     ContentDecidedByDoenetMLDependency,

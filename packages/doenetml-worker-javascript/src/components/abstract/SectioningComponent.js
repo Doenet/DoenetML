@@ -37,6 +37,7 @@ import {
     DIVISION_SEQUENCE,
     LIST_CONTAINER_TYPES,
     LIST_ITEM_SEQUENCE,
+    returnSequenceItemDefinitions,
     returnSequenceStartDefinition,
     sequenceNumberDependencies,
     sequenceNumberFromParent,
@@ -397,6 +398,13 @@ export class SectioningComponent extends BlockComponent {
         // `BlockComponent` and `utils/sequenceNumbering.js`.)
         stateVariableDefinitions.listItemOffset =
             returnSequenceStartDefinition(LIST_ITEM_SEQUENCE);
+
+        // Every sectioning component is an item among the list items beside
+        // it, whether or not it is itself numbered as one.
+        Object.assign(
+            stateVariableDefinitions,
+            returnSequenceItemDefinitions(LIST_ITEM_SEQUENCE, componentType),
+        );
 
         // The numbering of a container: a sectioning component that shows no
         // number of its own, such as the wrapper a copy from an external URI
@@ -1731,6 +1739,12 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
         // The tag of the class this is called for (a `<section>`, an
         // `<example>`, …), which advances its counter in a sequence.
         const componentType = this.componentType;
+
+        // A numbered division is an item among the divisions beside it.
+        Object.assign(
+            stateVariableDefinitions,
+            returnSequenceItemDefinitions(DIVISION_SEQUENCE, componentType),
+        );
 
         stateVariableDefinitions.enumeration = {
             additionalStateVariablesDefined: [
