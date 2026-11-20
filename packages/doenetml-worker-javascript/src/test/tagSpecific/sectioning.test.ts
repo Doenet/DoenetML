@@ -3292,4 +3292,47 @@ describe("Section heading color accessibility diagnostics @group3", async () => 
             }),
         ).rejects.toThrow("Circular dependency involving these components");
     });
+
+    // A copy given a type stands in its parent's children as a placeholder
+    // for the one component it will make. One that is neither a division nor
+    // a container the numbering passes through can't change the count, so a
+    // section's number doesn't wait for it, and it can read that number. It
+    // failed with a circular dependency. A placeholder for a division, a
+    // pass-through such as a `<div>`, or a composite still waits, as does a
+    // composite with no type (the test above).
+    it("a text before a section reads the section's number", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi"/>
+    <text name="t1" extend="$s.sectionNumber"/>
+    <div>
+      <number name="n1" extend="$s.sectionNumber"/>
+      <conditionalContent condition="$bi"><section/></conditionalContent>
+      <section name="s"/>
+    </div>
+    <problem><text name="t2" extend="$a.sectionNumber"/><part name="a"/></problem>
+    `,
+        });
+        async function check(sNumber: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("s")).sectionNumber).eq(sNumber);
+            expect((await sv("t1")).value).eq(sNumber);
+            expect((await sv("n1")).value).eq(Number(sNumber));
+            expect((await sv("a")).sectionNumber).eq("1");
+            expect((await sv("t2")).value).eq("1");
+        }
+        await check("1");
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await check("2");
+    });
 });

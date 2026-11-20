@@ -107,9 +107,8 @@ const DIVISION_PASS_THROUGH_TYPES = [
  *   numbers them start from: for a pass-through, the counts of the items
  *   before it.
  * @property {string} itemComponentType - the base type of the items.
- * @property {(componentType: string, componentInfoObjects: object) => boolean}
- *   isPassThrough - whether the sequence passes through a component of this
- *   type.
+ * @property {string[]} passThroughComponentTypes - the base types of the
+ *   components the sequence passes through.
  * @property {(componentType: string) => string} counterOf - the counter an
  *   item of this type advances.
  */
@@ -120,10 +119,7 @@ export const DIVISION_SEQUENCE = {
     counts: "divisionCounts",
     offset: "divisionOffset",
     itemComponentType: "_sectioningComponentNumberWithSiblings",
-    isPassThrough: (componentType, componentInfoObjects) =>
-        DIVISION_PASS_THROUGH_TYPES.some((baseComponentType) =>
-            inherits(componentType, baseComponentType, componentInfoObjects),
-        ),
+    passThroughComponentTypes: DIVISION_PASS_THROUGH_TYPES,
     // One sequence across the types of division.
     counterOf: () => "division",
 };
@@ -135,12 +131,18 @@ export const LIST_ITEM_SEQUENCE = {
     offset: "listItemOffset",
     // Every sectioning child counts, whether or not it is itself a list item.
     itemComponentType: "_sectioningComponent",
-    isPassThrough: (componentType, componentInfoObjects) =>
-        ["cascade", "page"].some((baseComponentType) =>
-            inherits(componentType, baseComponentType, componentInfoObjects),
-        ),
+    passThroughComponentTypes: ["cascade", "page"],
     counterOf: () => "listItem",
 };
+
+/**
+ * Whether `sequence` passes through a component of type `componentType`.
+ */
+function isPassThrough(sequence, componentType, componentInfoObjects) {
+    return sequence.passThroughComponentTypes.some((baseComponentType) =>
+        inherits(componentType, baseComponentType, componentInfoObjects),
+    );
+}
 
 /**
  * The children a list renders besides its `<introduction>` and `<conclusion>`:
@@ -170,7 +172,9 @@ function countChildren({
         if (typeof child !== "object" || child === null) {
             continue;
         }
-        if (sequence.isPassThrough(child.componentType, componentInfoObjects)) {
+        if (
+            isPassThrough(sequence, child.componentType, componentInfoObjects)
+        ) {
             if (countThroughPassThroughs) {
                 for (const [counter, count] of Object.entries(
                     child.stateValues?.[sequence.counts] ?? {},
@@ -289,6 +293,11 @@ function countersBeforeDependencies(sequence) {
             dependencyType: "precedingSiblings",
             variableNames: [sequence.counts],
             variablesOptional: true,
+            // A placeholder of any other type can't change the count.
+            placeholderTypesToWaitFor: [
+                sequence.itemComponentType,
+                ...sequence.passThroughComponentTypes,
+            ],
         },
     };
 }

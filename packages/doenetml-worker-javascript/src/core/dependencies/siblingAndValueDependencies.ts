@@ -385,9 +385,15 @@ export class CountAmongSiblingsDependency extends Dependency {
  * the parent's children, that was a circular dependency, and the document
  * failed to load (DIAG-5, #2578 item 1).
  *
- * A composite before the component that has not expanded, including one
- * given a type and standing in its parent's children as a placeholder, is
- * waited for: what it will make may be among the siblings.
+ * A composite before the component that has not expanded is waited for:
+ * what it will make may be among the siblings. So is one given a type and
+ * standing in its parent's children as a placeholder for the one component
+ * it will make, unless the definition names, in `placeholderTypesToWaitFor`,
+ * the base types whose placeholders matter to it, and the placeholder's type
+ * is none of them (nor a composite). Such a placeholder is left out of the
+ * siblings. So a section's number need not wait for a `<text>` before it,
+ * which can't change the count, and that text can read the number
+ * (`<text extend="$s.sectionNumber"/>` before `s`).
  */
 export class PrecedingSiblingsDependency extends Dependency {
     static dependencyType = "precedingSiblings";
@@ -406,6 +412,29 @@ export class PrecedingSiblingsDependency extends Dependency {
         } else {
             this.originalDownstreamVariableNames = [];
         }
+
+        this.placeholderTypesToWaitFor =
+            this.definition.placeholderTypesToWaitFor;
+    }
+
+    /**
+     * Whether a placeholder of type `componentType` must be waited for: when
+     * the definition names no types, or the type is a composite or inherits
+     * from one of the types named.
+     */
+    waitsForPlaceholderOfType(componentType: string | undefined) {
+        if (!this.placeholderTypesToWaitFor || componentType === undefined) {
+            return true;
+        }
+        const componentInfoObjects =
+            this.dependencyHandler.componentInfoObjects;
+        return ["_composite", ...this.placeholderTypesToWaitFor].some(
+            (baseComponentType: string) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: componentType,
+                    baseComponentType,
+                }),
+        );
     }
 
     async determineDownstreamComponents() {
@@ -495,6 +524,12 @@ export class PrecedingSiblingsDependency extends Dependency {
 
         for (const child of activeChildren.slice(0, position)) {
             if (typeof child !== "object" || child === null) {
+                continue;
+            }
+            if (
+                child.componentIdx === undefined &&
+                !this.waitsForPlaceholderOfType(child.componentType)
+            ) {
                 continue;
             }
             // A placeholder for a composite given a type, or a composite
