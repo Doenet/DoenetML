@@ -123,7 +123,9 @@ with any other numbers. What a type is depends on the kind of item:
 - **A value** (a `<math>{:dn}`, `<number>{:dn}`, `<text>{:dn}` or `<boolean>{:dn}`) is of
   its value's type, and is sorted by value. A `<number>{:dn}` and a `<math>{:dn}` are one
   type. An input stands for what it holds: a `<mathInput>{:dn}` is sorted with maths by
-  the math typed in it, and a `<textInput>{:dn}` with texts.
+  the math typed in it, and a `<textInput>{:dn}` with texts. A `<slider>{:dn}` is of its
+  `type` (a number unless `type="text"`), and a `<choiceInput>{:dn}` is a math when every
+  choice holds one math, and a text otherwise.
 - **An object** (a `<point>{:dn}`, `<line>{:dn}`, `<atom>{:dn}`, `<matrix>{:dn}`, …) is of
   its tag, with the tags built on it: a `<triangle>{:dn}` and a `<rectangle>{:dn}` are
   both polygons. Points and vectors are sorted by a coordinate. Other objects have no

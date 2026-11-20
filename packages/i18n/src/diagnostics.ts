@@ -376,6 +376,9 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0079": "variant-name-unknown",
     "doenet-e0080": "sort-needs-sort-by-prop",
     "doenet-e0081": "repeat-for-items-of-several-types",
+    "doenet-e0082": "answer-responses-of-several-types",
+    "doenet-e0083": "extend-answer-grading-attribute",
+    "doenet-e0084": "extend-answer-children",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

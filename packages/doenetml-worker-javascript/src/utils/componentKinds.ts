@@ -68,12 +68,15 @@ function baseValueType(
  * (see above): for a value, `math`, `text` or `boolean`; for an object, the
  * first author tag its class is built on; for content, `content`.
  * `undefined` for a tag not known, or for an input whose value's type isn't
- * known at load.
+ * known at load. The type of a `<slider>`'s or `<choiceInput>`'s value is
+ * not its tag's but its own, decided from the DoenetML when it loads
+ * (`propertyTypes`, its `doenetAttributes.propertyTypes`, TYPE, D45).
  */
 export function kindOfComponentType(
     componentType: string,
     componentInfoObjects: ComponentInfoObjects,
     seen: Set<string> = new Set(),
+    propertyTypes?: Record<string, string | string[]>,
 ): { kind: ComponentKind; type: string } | undefined {
     const componentClass: any =
         componentInfoObjects.allComponentClasses[componentType];
@@ -94,15 +97,20 @@ export function kindOfComponentType(
             targetComponentType: componentType,
             unresolvedPath: null,
             componentInfoObjects,
+            propertyTypes,
         });
-        if (
-            target === undefined ||
-            target.valueComponentType === componentType
-        ) {
+        // A `<choiceInput>`'s value is its `selectedValues`, an array whose
+        // one entry's type is decided at load.
+        const implicitType =
+            propertyTypes?.[componentClass.variableForImplicitProp];
+        const decidedType =
+            target?.valueComponentType ??
+            (typeof implicitType === "string" ? implicitType : undefined);
+        if (decidedType === undefined || decidedType === componentType) {
             return undefined;
         }
         return kindOfComponentType(
-            target.valueComponentType,
+            decidedType,
             componentInfoObjects,
             new Set(seen).add(componentType),
         );

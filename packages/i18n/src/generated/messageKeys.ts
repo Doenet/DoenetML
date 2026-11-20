@@ -500,6 +500,8 @@ export type MessageKey =
     | "extend-children-change-content"
     | "extend-choice-input-choices"
     | "extend-choice-input-shuffle-order"
+    | "extend-answer-grading-attribute"
+    | "extend-answer-children"
     | "extend-module-attribute"
     | "extend-part-of-choosing-tag"
     | "extend-award-or-choice"
@@ -636,6 +638,7 @@ export type MessageKey =
     | "copy-with-state-attribute-reaches-choice"
     | "reorder-items-of-several-types"
     | "sort-needs-sort-by-prop"
+    | "answer-responses-of-several-types"
     | "repeat-for-items-of-several-types"
     | "sort-item-of-several"
     | "editor-update-viewer"
@@ -1204,6 +1207,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "extend-children-change-content",
     "extend-choice-input-choices",
     "extend-choice-input-shuffle-order",
+    "extend-answer-grading-attribute",
+    "extend-answer-children",
     "extend-module-attribute",
     "extend-part-of-choosing-tag",
     "extend-award-or-choice",
@@ -1340,6 +1345,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-with-state-attribute-reaches-choice",
     "reorder-items-of-several-types",
     "sort-needs-sort-by-prop",
+    "answer-responses-of-several-types",
     "repeat-for-items-of-several-types",
     "sort-item-of-several",
     "editor-update-viewer",

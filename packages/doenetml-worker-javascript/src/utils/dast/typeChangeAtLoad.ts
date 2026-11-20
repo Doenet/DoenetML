@@ -21,7 +21,10 @@
  *   composite whose content is made rather than written, can hold any number;
  * - a bare string is a text, a bare `$y` holds y's tag (looked through when
  *   y is a composite), a tag `<U extend="$y"/>` is a `U`, and a property
- *   `$P.x` has a type the DoenetML does not give.
+ *   `$P.x` of a component that is not a composite has the type of the
+ *   property, which its component declares or the DoenetML decides
+ *   (`propertyTypesAtLoad.ts`, TYPE, D45); one the DoenetML does not decide
+ *   (an `<answer>`'s responses) is `doenet-e0067` (TYPE-3).
  *
  * Different types that could each become a `T` are an error too: the author
  * wraps the reference, `<math>$cc</math>`, to read whatever it holds as one
@@ -38,6 +41,13 @@
  * `entryCountByValue`, and a tag of it is missing, with an info, while it
  * does not hold one (DIAG-2). A `<module>` tag (`<module extend="$q"/>`) is
  * made only from a module (`moduleTypeError`).
+ *
+ * A tag made from a property of a component (`<point extend="$n.value"/>`,
+ * `<math extend="$t.categories[1]"/>`) is decided as a tag made from a
+ * component of the property's type, and one made from an input whose value's
+ * type the DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>` of
+ * texts) as one made from that value. One whose type the DoenetML doesn't
+ * decide (`$a.currentResponses[1]` of an `<answer>`) is left to run time.
  *
  * An index written as a literal into a selector whose `numToSelect` is
  * written (`<math extend="$s[2]"/>` of a one-pick `<select>`) names nothing
@@ -75,6 +85,7 @@ import {
 import { TAGS_MAKING_THEIR_CONTENT } from "../../components/abstract/Copy";
 import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
 import { COLLECTIONS_OF_NAMED_ITEMS, ownSettingOfWrapper } from "../wrappers";
+import { propertyTypeReader } from "./propertyTypesAtLoad";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
 export type TypeChangeAtLoadError = {
@@ -273,6 +284,13 @@ type Holding = {
     /** what of it has a type the DoenetML does not give */
     unknown?: "property" | "reference";
     skip?: boolean;
+    /**
+     * For a type among `types` that is an input whose value's type is
+     * decided from what is written (`<choiceInput>`, `<slider>`,
+     * `propertyTypesAtLoad.ts`), the type of that value, which a tag made
+     * from it reads (`readsImplicitProp`).
+     */
+    valueTypes?: Record<string, string>;
     /**
      * When it is exactly one component of a tag that makes its list of
      * values itself (`isSelfMadeList`, a `<sequence>`), that tag: a tag of
@@ -482,6 +500,8 @@ export function checkTypeChangesAtLoad({
     // What the items of a collection are (COLL-4, COLL-5), made when first
     // needed
     let reader: ReturnType<typeof itemReader> | undefined;
+    // The type of each property, from its component or the DoenetML (TYPE)
+    const properties = propertyTypeReader({ componentInfoObjects, referents });
 
     /**
      * What each composite or copy a reference names holds
@@ -787,6 +807,81 @@ export function checkTypeChangesAtLoad({
         return h.notOne?.reason === "count" && h.notOne.count === 0;
     }
 
+    /**
+     * The `valueTypes` of two holdings together: an input of one type whose
+     * value's type differs between them is not decided (left out).
+     */
+    function mergedValueTypes(
+        a: Holding["valueTypes"],
+        b: Holding["valueTypes"],
+    ): Holding["valueTypes"] {
+        if (!a || !b) {
+            return a ?? b;
+        }
+        const result: Record<string, string> = { ...a };
+        for (const [type, valueType] of Object.entries(b)) {
+            if (type in result && result[type] !== valueType) {
+                result[type] = "";
+            } else {
+                result[type] ??= valueType;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * One component `node` of the type `componentType`, which is not a
+     * composite, with the type of its value when it is an input whose
+     * value's type is decided from what is written (`valueTypes`).
+     */
+    function componentHolding(
+        componentType: string,
+        node: SerializedComponent | undefined,
+    ): Holding {
+        const variable = allClasses[componentType]?.variableForImplicitProp;
+        const decided =
+            node && variable && node.componentType !== "_placeholder"
+                ? properties.propertyTypesOf(node)[variable]
+                : undefined;
+        // of entries that may differ in type (an `<answer>`'s responses),
+        // the one type they share, if they share one
+        const valueType = Array.isArray(decided)
+            ? new Set(decided).size === 1
+                ? decided[0]
+                : undefined
+            : decided;
+        return {
+            types: new Set([componentType]),
+            ...(valueType !== undefined && {
+                valueTypes: { [componentType]: valueType },
+            }),
+        };
+    }
+
+    /**
+     * What a reference to a property (`$P.x`, `$t.categories[1]`) holds:
+     * one component of the property's type, which its component declares
+     * or the DoenetML decides (`propertyTypesAtLoad.ts`). A property of a
+     * composite (of each of its items, COLL-2), or of several values, or a
+     * list, is not decided here; one whose type the DoenetML does not
+     * decide is `unknown` (TYPE-3).
+     */
+    function propertyHolding(copy: SerializedComponent): Holding {
+        const property = properties.propertyOfReference(copy);
+        if (!property || "undecided" in property) {
+            return { types: new Set(), unknown: "property" };
+        }
+        if (
+            property.several ||
+            isHolder(property.type) ||
+            property.type === "group" ||
+            allClasses[property.type]?.listEntryComponentType !== undefined
+        ) {
+            return { types: new Set(), skip: true };
+        }
+        return { types: new Set([property.type]) };
+    }
+
     function eitherOf(holdings: Holding[]): Holding {
         if (holdings.length === 1) {
             return holdings[0];
@@ -794,6 +889,7 @@ export function checkTypeChangesAtLoad({
         const types = new Set<string>();
         let unknown: Holding["unknown"];
         let notOneOf: Holding | undefined;
+        let valueTypes: Holding["valueTypes"];
         for (const holding of holdings) {
             if (holding.skip) {
                 return { types, skip: true };
@@ -801,6 +897,7 @@ export function checkTypeChangesAtLoad({
             holding.types.forEach((type) => types.add(type));
             unknown ??= holding.unknown;
             notOneOf = preferredNotOne(notOneOf, holding);
+            valueTypes = mergedValueTypes(valueTypes, holding.valueTypes);
         }
         return {
             ...(notOneOf && {
@@ -809,6 +906,7 @@ export function checkTypeChangesAtLoad({
             }),
             types,
             unknown,
+            ...(valueTypes && { valueTypes }),
         };
     }
 
@@ -896,7 +994,7 @@ export function checkTypeChangesAtLoad({
                 // not decided here.
                 return { types: new Set(), skip: true };
             }
-            return { types: new Set([componentType]) };
+            return componentHolding(componentType, item);
         });
     }
 
@@ -940,7 +1038,7 @@ export function checkTypeChangesAtLoad({
                 return { types: new Set(), skip: true };
             }
             if (named.length === 0) {
-                return { types: new Set(), unknown: "property" };
+                return propertyHolding(copy);
             }
             return eitherOf(
                 named.map((n) =>
@@ -998,7 +1096,7 @@ export function checkTypeChangesAtLoad({
                 // (`itemHolding`)
                 return { types: new Set(), skip: true };
             }
-            return { types: new Set([referentType]) };
+            return componentHolding(referentType, node ?? undefined);
         });
     }
 
@@ -1695,10 +1793,24 @@ export function checkTypeChangesAtLoad({
             // a part of a choosing tag, which can't be extended at all
             // (`doenet-e0061`, `extendChangesContentErrors` in `Copy.js`)
             ["case", "else", "option"].includes(sourceType) ||
-            ["case", "else", "option"].includes(writtenType) ||
-            readsImplicitProp(sourceType, writtenType)
+            ["case", "else", "option"].includes(writtenType)
         ) {
             return undefined;
+        }
+        if (readsImplicitProp(sourceType, writtenType)) {
+            // A tag made from the value of an input whose value's type the
+            // DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>`
+            // of texts) is made from that value, as a tag made from a
+            // component of its type. One whose value's type isn't decided
+            // is left to run time.
+            const valueType = held.valueTypes?.[sourceType];
+            if (!valueType || valueType === writtenType) {
+                return undefined;
+            }
+            const rule = becomes(valueType, writtenType);
+            return rule.allowed || rule.kind !== "unrelated"
+                ? undefined
+                : { code: "doenet-e0065", args: { sourceType: valueType } };
         }
         const rule = becomes(sourceType, writtenType);
         if (rule.allowed) {
@@ -3298,6 +3410,24 @@ export function checkTypeChangesAtLoad({
         return { ...error, args: { ...error.args, indexSelectsOne: "false" } };
     }
 
+    /**
+     * The error for the scalar tag `writtenType` made from the property the
+     * reference `copy` names (`<point extend="$n.value"/>`), as from a
+     * component of the property's type (`propertyHolding`). A property of
+     * several values, of a composite, or whose type isn't decided, is left
+     * to run time, as is a composite tag (`doenet-e0071`).
+     */
+    function propertyTagError(
+        copy: SerializedComponent,
+        writtenType: string,
+    ): TypeChangeAtLoadError | undefined {
+        if (isHolder(writtenType) || writtenType === "group") {
+            return undefined;
+        }
+        const held = propertyHolding(copy);
+        return held.unknown ? undefined : fixedTypeError(held, writtenType);
+    }
+
     function decideTag(copy: SerializedComponent) {
         const ref = refOf(copy);
         if (!ref || ref.nodeIdx < 0) {
@@ -3486,6 +3616,11 @@ export function checkTypeChangesAtLoad({
                 ...path.slice(0, -1),
                 { ...last, index: [] },
             ]);
+            if (named && named.length === 0 && !isList) {
+                // a property (`$n.value`, `$t.categories[1]`), of the type
+                // its component declares or the DoenetML decides
+                return propertyTagError(copy, writtenType!);
+            }
             if (!named || named.length === 0) {
                 return undefined;
             }

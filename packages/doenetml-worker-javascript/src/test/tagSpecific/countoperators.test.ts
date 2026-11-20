@@ -1229,35 +1229,42 @@ describe("Counting operator tag tests @group4", async () => {
     });
 
     describe("malformed numbers and boundary bins", async () => {
-        it("a malformed number is no category even when the list is compared as text", async () => {
-            // `<number>x</number>` is numeric by type but `NaN` by value. In a
-            // text-compared list it would otherwise survive as the text `NaN`.
+        it("a number beside a text is an error at load, so no list of them is compared as text (D45 decision 6)", async () => {
+            // `<number>x</number>` is numeric by type but `NaN` by value.
+            // Beside a `<text>`, it once survived as the text `NaN` in a list
+            // compared as text. Numbers and texts by tag are now an error at
+            // load, as in a `<sort>`, so the tally is that error.
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <p name="p"><tally type="text"><number>x</number><text>fig</text><text>fig</text></tally></p>
-    <tally name="t" type="text"><number>x</number><text>fig</text><text>fig</text></tally>
-    <p name="pCat">$t.categories</p>
     `,
             });
 
-            await expectText({
-                core,
-                resolvePathToNodeIdx,
-                name: "p",
-                text: "2",
-            });
-            await expectText({
-                core,
-                resolvePathToNodeIdx,
-                name: "pCat",
-                text: "fig",
-            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const p = stateVariables[await resolvePathToNodeIdx("p")];
+            expect(
+                stateVariables[p.activeChildren[0].componentIdx].componentType,
+            ).eq("_error");
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => [
+                    e.code,
+                    e.message,
+                ]),
+            ).eqls([
+                [
+                    "doenet-e0076",
+                    "`<tally>` takes items of one type, but it has a `<number>` and a `<text>`. Give each type a `<tally>` of its own.",
+                ],
+            ]);
         });
 
         it("a declared category spelled NaN does not catch a malformed number", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <p name="p"><tally type="text" categories="NaN fig"><number>x</number><text>fig</text></tally></p>
+    <p name="p"><tally type="text" categories="NaN 1"><number>x</number><number>1</number></tally></p>
     `,
             });
 
