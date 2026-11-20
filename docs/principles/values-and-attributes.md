@@ -86,8 +86,9 @@ So whether `<math extend="$a.currentResponses[2]"/>` is allowed, and what `$x.p`
   see the known violations below.)
 - **Literal text** in a list is typed at load: by `type` when written; otherwise, in the
   operators that compare or count (`<sort>`, `<shuffle>`, `<tally>`, …), numbers if every piece
-  reads as one and texts otherwise, and elsewhere (`<repeat for>`, `<select>`'s and `<answer>`'s
-  sugar) math (D45 decision 7).
+  reads as one and texts otherwise, and elsewhere (`<repeat for>`, `<select>`'s sugar) math
+  (D45 decision 7). In an `<answer>`'s awards it is the answer's type, which its input decides
+  (ANS-4, D55), and math only when nothing decides it.
 - **TYPE-4: saved state never decides a type (Tier 2).** A type is the DoenetML's, so a reload
   gives the type the DoenetML gives (SAVE-3).
 

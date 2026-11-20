@@ -3118,3 +3118,26 @@ repeat it.
    from examples.
 5. A target whose type the DoenetML doesn't decide is TYPE-3's error at the `target` (#2606).
 6. An update that can't be applied gives a diagnostic, never silence or a throw.
+
+## D55. An answer's type comes from its input (decided, Tier 1; November 2026)
+
+`<answer><textInput/>hello there</answer>` earned no credit without `type="text"`: the answer's
+sugar worked out a type but never gave it to the awards, which read plain text as math (#2608).
+
+**Decided** (ANS-4 in [interaction-and-state.md](interaction-and-state.md)):
+1. The input written inside the answer decides its type; an award's content is compared with that
+   input.
+2. With no input inside, the awards' typed content decides it, references included (typed at
+   load), and so decides the input the answer adds.
+3. Plain text in every award of the answer is read as that type. For answers, this replaces D45
+   decision 7's "math unless `type`".
+4. `type` is needed only when nothing else decides; a `type` that disagrees with the input is an
+   error at load. `type="videoWatched"` is a different use and stays.
+5. Award content of another type than the input is a type-mix warning at load.
+6. With more than one input, an award with content and no `<when>` is compared with nothing: a
+   warning at load.
+7. An answer with a `forAnswer` input whose award has content and no `<when>` adds an input of its
+   own: a warning at load.
+
+Not part of the type: `<considerAsResponses>` (what is recorded), `referencesAreResponses` (what a
+`<when>` reads), and a `forAnswer` input (reached only through a `<when>`).

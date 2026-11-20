@@ -383,6 +383,38 @@ Rules:
 Evidence: `answer.test.ts:3583-3947`, `:8892-9232`; the responses section of
 `T/copying/value_references.test.ts`.
 
+### ANS-4: an answer's type comes from its input (Tier 1; D55)
+An award's content is compared with the input written inside the answer, so that input's type is
+the answer's type. Plain text in every award of the answer is read as that type. With no input
+inside, the awards' typed content decides it, references included, and so decides the input the
+answer adds. Authors write `type` only when nothing else decides it.
+
+```xml
+<answer><textInput/>hello there</answer>               <!-- a text: "hello there" earns credit -->
+<answer><booleanInput/>true</answer>                   <!-- a boolean -->
+<answer><award><text>hello</text></award><award credit="0.5">hi</award></answer>
+                                                       <!-- a text input; "hi" is a text too -->
+<text name="t">hello</text> <answer>$t</answer>        <!-- a text input, since $t is a text -->
+<answer type="text">hello there</answer>               <!-- nothing else decides: type is needed -->
+```
+
+- A written `type` that disagrees with the input is an error at load.
+- Award content of another type than the input (`<textInput/>` with `<math>2</math>`) can never
+  earn credit: a type-mix warning at load.
+- With more than one input, an award with content and no `<when>` is compared with nothing: a
+  warning at load suggesting a `<when>`.
+- A `forAnswer` input is reached only through a `<when>`. An answer with one, whose award has
+  content and no `<when>`, adds an input of its own: a warning at load suggesting moving the input
+  inside, or a `<when>`.
+- `<considerAsResponses>` and `referencesAreResponses` decide what is recorded and what a
+  `<when>` reads; they don't decide the type. A `<when>` reads its literal text by detection
+  (D45 decision 7).
+
+**Known violations** (#2608): plain text in an award is a math unless `type` is written, whatever
+the input. So `<answer><textInput/>hello there</answer>`, `<answer><booleanInput/>true</answer>`
+and the second award above earn no credit. `<answer>$t</answer>` adds a `<mathInput>`. None of the
+warnings are given; each case is a silent 0.
+
 ### ANS-3: `maxNumAttempts` and `disableAfterCorrect` stop submission (Tier 1)
 See CTX-12. Code: `effectiveMaxNumAttempts`, `invertMaxNumAttempts`, and the `maxNumAttempts` and
 `numAttemptsLeft` definitions in `W/utils/answer.js`.
