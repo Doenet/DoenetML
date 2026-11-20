@@ -34,6 +34,7 @@ import { DependencyHandler } from "./core/dependencies";
 import { ActionTriggerScheduler } from "./core/ActionTriggerScheduler";
 import { AutoSubmitManager } from "./core/AutoSubmitManager";
 import { addComponents } from "./core/ComponentBuilder";
+import { hasUnenteredEdit } from "./utils/input";
 import { CompositeReplacementUpdater } from "./core/CompositeReplacementUpdater";
 import {
     DiagnosticsManager,
@@ -262,6 +263,22 @@ export default class Core {
      */
     readerTouchedStateIds!: Set<string>;
     definitionSetStateIds!: Set<string>;
+    /**
+     * The input the reader is editing: the last to receive an edit not yet
+     * entered (`setComponentNeedingUpdateValue`), until it is entered, or is
+     * withheld or deleted (`inputNoLongerFocused`), which it can't be while
+     * focused. Kept only in memory: after a reload nothing is being
+     * edited (D50).
+     */
+    componentBeingEdited: number | null = null;
+    /**
+     * Inputs made, or shown again, since unentered edits were last committed
+     * (`commitUnenteredEdits`, D50), and the input an `extend` withheld or
+     * deleted while edited extends (`inputNoLongerFocused`): each of those
+     * that shows an edit not entered, other than the edit of the input being
+     * edited, is committed.
+     */
+    inputsToCommit: Set<number> = new Set();
     /**
      * What an update has written to each `stateId` but not yet merged into
      * `cumulativeStateVariableChanges`, which it does at its end
@@ -519,8 +536,8 @@ export default class Core {
 
         // Everything restored from a previous session was saved as the
         // reader's work, so it stays theirs now — otherwise re-saving would
-        // quietly drop it. `__componentNeedingUpdateValue` is a reserved
-        // sentinel rather than a component's entry (see `UpdateExecutor`), and
+        // quietly drop it. A `__`-prefixed key (`__componentTypes`) is
+        // reserved, rather than a component's entry, and
         // `buildDocStatePayload` carries every `__` key across regardless.
         this.readerTouchedStateIds = new Set(
             Object.keys(this.cumulativeStateVariableChanges).filter(
@@ -660,6 +677,8 @@ export default class Core {
         // Reset the process queue (see ProcessQueue.ts) so a previous
         // run does not leak into this document.
         this.processQueue.reset();
+        this.componentBeingEdited = null;
+        this.inputsToCommit = new Set();
 
         this.dependencies = new DependencyHandler({
             _components: this._components,
@@ -755,17 +774,9 @@ export default class Core {
             serializedComponentsReplacer,
         );
 
-        if (this.cumulativeStateVariableChanges.__componentNeedingUpdateValue) {
-            await this.performAction({
-                actionName: "updateValue",
-                componentIdx:
-                    this.componentIdxByStateId[
-                        this.cumulativeStateVariableChanges
-                            .__componentNeedingUpdateValue
-                    ],
-                args: { doNotIgnore: true },
-            });
-        }
+        // An input restored with an edit not entered shows it no longer
+        // (D50): nothing is being edited after a reload.
+        await this.commitUnenteredEdits();
 
         if (!this.receivedStateVariableChanges) {
             // TODO: find a way to delay this until after sending the result.
@@ -1231,6 +1242,85 @@ export default class Core {
 
     async performUpdate(args: any): Promise<any> {
         return this.updateExecutor.performUpdate(args);
+    }
+
+    /**
+     * Commit the edit not entered of each input made, or shown again, since
+     * this was last run (`inputsToCommit`), other than the input being edited
+     * (`componentBeingEdited`): its `immediateValue` becomes its `value`, as
+     * when the reader enters it (its `updateValue` action), so an input that
+     * isn't focused never shows an edit that wasn't entered (D50, SAVE-1).
+     * Such an input was made from saved state (at load, or in a case shown
+     * again), carried by a `copyWithState` of an input with an edit not
+     * entered, or withheld while the reader edited it; or it is extended by
+     * an input withheld or deleted while the reader edited it.
+     *
+     * Run at the end of load and after each update or action request
+     * (`ProcessQueue`), never during an update. Skipped: an input withheld
+     * (committed when shown again), a disabled one (`hasUnenteredEdit`), and
+     * an input showing the edit of the input being edited, with the same
+     * source (`sourceOfInput`): the input itself, what it extends, or an
+     * `extend` of either.
+     */
+    async commitUnenteredEdits(): Promise<void> {
+        while (this.inputsToCommit.size > 0) {
+            const candidates = [...this.inputsToCommit];
+            this.inputsToCommit.clear();
+            const edited =
+                this.componentBeingEdited === null
+                    ? null
+                    : this.sourceOfInput(this.componentBeingEdited);
+            for (const componentIdx of candidates) {
+                const component = this._components[componentIdx];
+                if (
+                    !component ||
+                    this.sourceOfInput(componentIdx) === edited ||
+                    (await component.stateValues
+                        .isInactiveCompositeReplacement) ||
+                    !(await hasUnenteredEdit(component))
+                ) {
+                    continue;
+                }
+                await this.performAction({
+                    componentIdx,
+                    actionName: "updateValue",
+                    args: {},
+                });
+            }
+        }
+    }
+
+    /**
+     * The input whose edit the input `componentIdx` shows: the input it
+     * shadows (an `extend`), at any depth, or itself.
+     */
+    sourceOfInput(componentIdx: number): number {
+        let component = this._components[componentIdx];
+        while (component?.shadows) {
+            const source = this._components[component.shadows.componentIdx];
+            if (!source) {
+                break;
+            }
+            component = source;
+        }
+        return component?.componentIdx ?? componentIdx;
+    }
+
+    /**
+     * The input `componentIdx` is withheld or deleted, and so isn't focused:
+     * if it is the input being edited, nothing is, and the input whose edit
+     * it showed (`sourceOfInput`, an input it extends, which may still be
+     * shown) is committed (D50, `commitUnenteredEdits`).
+     */
+    inputNoLongerFocused(componentIdx: number): void {
+        if (this.componentBeingEdited !== componentIdx) {
+            return;
+        }
+        this.componentBeingEdited = null;
+        const source = this.sourceOfInput(componentIdx);
+        if (source !== componentIdx) {
+            this.inputsToCommit.add(source);
+        }
     }
 
     // → actionTriggerScheduler (cont.)
