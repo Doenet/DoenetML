@@ -535,19 +535,10 @@ ${select}
         expect(errors[0].code).eq("doenet-e0079");
     });
 
-    it("a problem's variants are unique in a document with too many variants to be unique", async () => {
-        // The document's variants are counted, but there are too many of
-        // them for unique variants, so the problem isn't handed its
-        // subvariants with its variant.
-        const nByVariant: Record<string, Set<number>> = {};
-        for (let ind = 1; ind <= 8; ind++) {
-            const {
-                variants,
-                variantName,
-                stateVariables,
-                resolvePathToNodeIdx,
-            } = await load(
-                `
+    it.each([
+        [
+            "too many variants to be unique",
+            `
 <selectFromSequence length="100000" />
 <selectFromSequence length="100000" />
 <problem name="p">
@@ -556,46 +547,89 @@ ${select}
     <number name="nn">$n</number>
 </problem>
 `,
-                { componentName: "p", requestedVariantIndex: ind },
-            );
-            expect(variants).eqls(["a", "b", "c"]);
-            const n =
-                stateVariables[await resolvePathToNodeIdx("nn")].stateValues
-                    .value;
-            (nByVariant[variantName] ??= new Set()).add(n);
-        }
-        const ns = Object.values(nByVariant).map((s) => [...s]);
-        expect(ns.length).greaterThan(1);
-        expect(ns.every((s) => s.length === 1)).eq(true);
-        expect(new Set(ns.flat()).size).eq(ns.length);
-    });
+        ],
+        [
+            "a selection after the problem whose variants can't be counted",
+            `
+<problem name="p">
+    <variantControl numVariants="3" />
+    <selectFromSequence name="n" from="1" to="3" />
+    <number name="nn">$n</number>
+</problem>
+<number name="k">5</number>
+<selectFromSequence name="m" from="1" to="$k" />
+`,
+        ],
+    ])(
+        "a problem's variants are unique in a document without unique variants: %s",
+        async (_, doenetML) => {
+            // The count of the document's variants reaches the problem, so
+            // its `<variantControl>` was followed before #2579, but the
+            // document's variants aren't unique, so the problem isn't handed
+            // its subvariants with its variant.
+            const nByVariant: Record<string, Set<number>> = {};
+            for (let ind = 1; ind <= 8; ind++) {
+                const {
+                    variants,
+                    variantName,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                } = await load(doenetML, {
+                    componentName: "p",
+                    requestedVariantIndex: ind,
+                });
+                expect(variants).eqls(["a", "b", "c"]);
+                const n =
+                    stateVariables[await resolvePathToNodeIdx("nn")].stateValues
+                        .value;
+                (nByVariant[variantName] ??= new Set()).add(n);
+            }
+            const ns = Object.values(nByVariant).map((s) => [...s]);
+            expect(ns.length).greaterThan(1);
+            expect(ns.every((s) => s.length === 1)).eq(true);
+            expect(new Set(ns.flat()).size).eq(ns.length);
+        },
+    );
 
-    it("a problem's variantControl, in a section without unique variants", async () => {
-        // The document's variants are unique, but the section's aren't, so
-        // the count stops at the section and the problem isn't handed its
-        // subvariants. Before #2579 its `<variantControl>` was ignored, and
-        // the problem took the section's variant names.
-        const { stateVariables: unique, resolvePathToNodeIdx: resolve } =
-            await load(`
+    it.each([
+        [
+            "uniqueVariants is false",
+            `<variantControl numVariants="4" uniqueVariants="false" />`,
+        ],
+        [
+            "a selection before the problem whose variants can't be counted",
+            `<variantControl numVariants="4" />
+    <number name="k">5</number>
+    <selectFromSequence name="m" from="1" to="$k" />`,
+        ],
+    ])(
+        "a problem's variantControl, in a section without unique variants: %s",
+        async (_, sectionStart) => {
+            // The document's variants are unique, but the section's aren't, so
+            // the count stops in the section before the problem, and the problem
+            // isn't handed its subvariants. Before #2579 its `<variantControl>`
+            // was ignored, and the problem took the section's variant names.
+            const { stateVariables: unique, resolvePathToNodeIdx: resolve } =
+                await load(`
 <problem name="p">
     <variantControl numVariants="3" variantsToInclude="a" />
     <selectFromSequence name="n" from="1" to="3" />
     <number name="nn">$n</number>
 </problem>
 `);
-        const nOfA = unique[await resolve("nn")].stateValues.value;
+            const nOfA = unique[await resolve("nn")].stateValues.value;
 
-        const variantNames = new Set<string>();
-        for (let ind = 1; ind <= 4; ind++) {
-            const {
-                variants,
-                variantName,
-                stateVariables,
-                resolvePathToNodeIdx,
-            } = await load(
-                `
+            const variantNames = new Set<string>();
+            for (let ind = 1; ind <= 4; ind++) {
+                const {
+                    variants,
+                    variantName,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                } = await load(
+                    `
 <section>
-    <variantControl numVariants="4" uniqueVariants="false" />
+    ${sectionStart}
     <problem name="p">
         <variantControl numVariants="3" variantsToExclude="b c" />
         <selectFromSequence name="n" from="1" to="3" />
@@ -603,17 +637,18 @@ ${select}
     </problem>
 </section>
 `,
-                { componentName: "p", requestedVariantIndex: ind },
-            );
-            expect(variants).eqls(["a"]);
-            variantNames.add(variantName);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("nn")].stateValues
-                    .value,
-            ).eq(nOfA);
-        }
-        expect([...variantNames]).eqls(["a"]);
-    });
+                    { componentName: "p", requestedVariantIndex: ind },
+                );
+                expect(variants).eqls(["a"]);
+                variantNames.add(variantName);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("nn")].stateValues
+                        .value,
+                ).eq(nOfA);
+            }
+            expect([...variantNames]).eqls(["a"]);
+        },
+    );
 
     it("a problem's error is reported once in a document with unique variants", async () => {
         const { variants, errors } = await load(
