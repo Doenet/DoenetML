@@ -124,15 +124,18 @@ A tag made from it is checked once the document runs, and one made from a group 
 `e0067`. These cases are:
 - a response that may be missing as the document runs (an index past the end, a reference
   naming nothing, a `<choiceInput>` with nothing selected). The run time records it as a blank
-  math whatever its type (D52 decision 1);
+  math whatever its type; decided (D52 decision 1): it has its entry's type;
 - a property whose entries are made into points or vectors (`$c.center`, `$pl.vertices`,
-  `$v.displacement`), which its class declares a math (D52 decision 2);
+  `$v.displacement`), which its class declares a math; decided (D52 decision 2): the class
+  declares the point or vector type it gives;
 - in an `<answer>`: the input its sugar makes, when that may be skipped; a list response beside
   responses of another type; cases holding different numbers of responses; a function as a
   response; several inputs of different types written `forAnswer` it; a composite written
   `isResponse`; responses a `<select>` or `<repeat>` makes in an award; an answer made with `copy`
   that writes children of its own;
-- a choice holding a reference to an answer's response, and a `<group>` in a `<tally>`.
+- a choice holding a reference to an answer's response, and a `<group>` in a `<tally>`;
+- a `<group>` in a `<tally>` isn't checked for a mix (D45 decision 6): a `<number>` and a `<text>`
+  in one group, or a group of numbers beside a `<text>`, count as texts with no error.
 
 `hasVariableComponentType` stays until these are decided or made errors.
 

@@ -3070,23 +3070,23 @@ A suggestion in the message gives the forgiveness without hiding the mistake.
 wrong-case attributes and property names, and fix them. If there are many in course content, a
 first release may give a warning and still apply the attribute.
 
-## D52. Decisions from the review of #2603 (open, November 2026)
+## D52. Decisions from the review of #2603 (decided, November 2026)
 
 #2602 and #2603 type every property and an answer's responses at load where the DoenetML decides
 it. What's left of TYPE-3 (#2606) mostly follows from these three:
 
-1. **A missing response has its entry's type** (recommended). An answer whose response is
+1. **A missing response has its entry's type** (decided). An answer whose response is
    `$l[3]` of a two-entry `<mathList>`, or a `<choiceInput>` with nothing selected, records it as
    one blank math whatever its type; the run-time tests pin that ("a missing entry is recorded and
    compared as an empty response"). TYPE says a response has its entry's type, and VAL-5 says a
    missing T is still a T (D37). So `$l[3]` of a `<textList>` is a missing text, and the type is
    known at load. A blank never equals anything (VAL-5), so credit doesn't change.
-2. **A property made into points or vectors declares that type** (recommended). `$c.center`,
+2. **A property made into points or vectors declares that type** (decided). `$c.center`,
    `$pl.vertices`, `$l.points[1]` and `$v.displacement` are points or vectors when read, but their
    classes declare a math, so they can't be typed at load. Declare what they give (point,
-   vector), as for any other property (TYPE-1).
+   vector), as for any other property (TYPE-1). Decided.
 3. **`<answer copyWithState="$a">` with children of its own** (an `<award>`, an input). D32
-   decides only `extend` (`e0083`/`e0084`). Recommended: allowed, as for `copy`. A
+   decides only `extend` (`e0083`/`e0084`). Decided: allowed, as for `copy`. A
    `copyWithState` is its own answer that starts from a snapshot (CPY-2). Its saved credit is
    the source's until the reader submits again, as for any snapshot.
 

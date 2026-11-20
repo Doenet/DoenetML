@@ -1003,8 +1003,8 @@ the document renders.
 - **Known violations** (#2606): an extend of a composite holding the tag
   (`<answer extend="$cc" weight="2"/>` of a `<conditionalContent>` holding an answer, and the same
   for a `<choiceInput>`'s `e0058`/`e0059`) gets no error, at load or once the case is shown.
-  `<answer copyWithState="$a">` with an `<award>` added is allowed, with no decision yet
-  (D52 decision 3).
+  `<answer copyWithState="$a">` with an `<award>` added is allowed (D52 decision 3): it is its own
+  answer starting from a snapshot (CPY-2), as `copy` makes one.
 
 Evidence: `T/copying/extend_cannot_change_content.test.ts` (91 tests, #2409): bare, named and
 appearance-only extends of 18 tags, display settings taking effect, a named extend reaching
