@@ -431,6 +431,11 @@ interface MathInputSVs {
     [key: string]: any;
     hidden: boolean;
     disabled: boolean;
+    disabledOriginal?: boolean;
+    disableAfterCorrect?: boolean;
+    hasBeenCorrect?: boolean;
+    disabledFromCorrect?: boolean;
+    numAttemptsLeft?: number;
     fixed: boolean;
     fixLocation: boolean;
     draggable: boolean;
@@ -548,6 +553,19 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     const rendererValue = useRef(SVs.rawRendererValue);
 
+    const disabledFromCorrect = Boolean(
+        SVs.disabledFromCorrect ||
+        (SVs.disabled &&
+            SVs.disableAfterCorrect &&
+            SVs.hasBeenCorrect &&
+            !SVs.disabledOriginal &&
+            !(SVs.numAttemptsLeft < 1)),
+    );
+    const disabledFromCorrectRef = useRef(disabledFromCorrect);
+    disabledFromCorrectRef.current = disabledFromCorrect;
+    const SVsDisabledRef = useRef(SVs.disabled);
+    SVsDisabledRef.current = SVs.disabled;
+
     // Keep this in a ref so `handlePressEnter` always sees current state.
     const showCheckWork = useRef(SVs.showCheckWork);
     showCheckWork.current = SVs.showCheckWork;
@@ -650,6 +668,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
         if (!mathFieldRef.current) {
             return;
         }
+        if (disabledFromCorrectRef.current || SVsDisabledRef.current) {
+            return;
+        }
         // The "Enter" key was pressed
         callAction({
             action: actions.updateValue,
@@ -703,8 +724,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
             legacyKeyboardTray.current.announced = true;
         }
 
-        if (!mathField || !claimsVirtualKeyboardKeys(mathField.el())) {
-            // These keys belong to a different input, or to none.
+        if (
+            !mathField ||
+            !claimsVirtualKeyboardKeys(mathField.el()) ||
+            SVs.disabled
+        ) {
+            // These keys belong to a different input, to none, or the input is locked/disabled.
             return;
         }
         for (const event of virtualKeyboardEvents) {
@@ -1243,13 +1268,34 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // here makes dark mode match: #3a3a3a border on #3a3a3a background.
         mathInputStyle.borderColor = "var(--revealButtonSurface)";
         mathInputStyle.backgroundColor = "var(--revealButtonSurface)";
-        mathInputStyle.pointerEvents = "none";
         mathInputWrapperCursor = "not-allowed";
+        if (!disabledFromCorrect) {
+            mathInputStyle.pointerEvents = "none";
+        }
     }
 
-    if (textareaRef.current && textareaRef.current.disabled !== SVs.disabled) {
-        // Update the mathInput ref's disabled state
-        textareaRef.current.disabled = SVs.disabled;
+    if (textareaRef.current) {
+        if (disabledFromCorrect) {
+            if (textareaRef.current.disabled) {
+                textareaRef.current.disabled = false;
+            }
+            if (!textareaRef.current.readOnly) {
+                textareaRef.current.readOnly = true;
+            }
+            if (textareaRef.current.getAttribute("aria-disabled") !== "true") {
+                textareaRef.current.setAttribute("aria-disabled", "true");
+            }
+        } else {
+            if (textareaRef.current.disabled !== Boolean(SVs.disabled)) {
+                textareaRef.current.disabled = Boolean(SVs.disabled);
+            }
+            if (textareaRef.current.readOnly) {
+                textareaRef.current.readOnly = false;
+            }
+            if (textareaRef.current.hasAttribute("aria-disabled")) {
+                textareaRef.current.removeAttribute("aria-disabled");
+            }
+        }
     }
 
     let label: React.ReactNode = SVs.label;
@@ -1328,6 +1374,57 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const ariaDescription =
         hasExplicitLabel && shortDescription ? shortDescription : undefined;
 
+    const handleMathKeystroke = React.useCallback((key: string) => {
+        if (disabledFromCorrectRef.current || SVsDisabledRef.current) {
+            const allowedNavigationKeys = [
+                "Left",
+                "Right",
+                "Up",
+                "Down",
+                "Home",
+                "End",
+                "PageUp",
+                "PageDown",
+                "Tab",
+                "Shift-Tab",
+                "Ctrl-A",
+                "Meta-A",
+                "Ctrl-C",
+                "Meta-C",
+            ];
+            if (allowedNavigationKeys.includes(key) && mathFieldRef.current) {
+                mathFieldRef.current.keystroke(key);
+            }
+            return;
+        }
+        mathFieldRef.current?.keystroke(key);
+    }, []);
+
+    const handleMathTypedText = React.useCallback((text: string) => {
+        if (disabledFromCorrectRef.current || SVsDisabledRef.current) {
+            return;
+        }
+        mathFieldRef.current?.typedText(text);
+    }, []);
+
+    React.useEffect(() => {
+        if (mathField) {
+            mathField.config({
+                overrideKeystroke: disabledFromCorrect
+                    ? handleMathKeystroke
+                    : undefined,
+                overrideTypedText: disabledFromCorrect
+                    ? handleMathTypedText
+                    : undefined,
+            });
+        }
+    }, [
+        disabledFromCorrect,
+        mathField,
+        handleMathKeystroke,
+        handleMathTypedText,
+    ]);
+
     // The MathQuill field, shared verbatim by the inline and in-graph branches
     // so both paths carry identical config, a11y wiring, and change handling.
     const mathFieldElement = (
@@ -1350,13 +1447,28 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 autoCommands:
                     "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
                 autoOperatorNames,
+                overrideKeystroke: disabledFromCorrect
+                    ? handleMathKeystroke
+                    : undefined,
+                overrideTypedText: disabledFromCorrect
+                    ? handleMathTypedText
+                    : undefined,
                 handlers: {
                     enter: handlePressEnter,
                 },
                 substituteTextarea: function () {
                     textareaRef.current = document.createElement("textarea");
                     textareaRef.current.id = inputKey;
-                    textareaRef.current.disabled = SVs.disabled;
+                    if (disabledFromCorrect) {
+                        textareaRef.current.disabled = false;
+                        textareaRef.current.readOnly = true;
+                        textareaRef.current.setAttribute(
+                            "aria-disabled",
+                            "true",
+                        );
+                    } else {
+                        textareaRef.current.disabled = Boolean(SVs.disabled);
+                    }
                     // MathQuill puts these on the textarea it would have built
                     // itself, so a substitute has to repeat them. They matter
                     // most on phones, whose keyboards would otherwise
@@ -1376,6 +1488,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 },
             }}
             onChange={(mField: any) => {
+                if (disabledFromCorrectRef.current || SVsDisabledRef.current) {
+                    if (mField.latex() !== rendererValue.current) {
+                        mField.latex(rendererValue.current);
+                    }
+                    return;
+                }
                 // The field has already been redrawn at its new size.
                 slotEditingRef.current.resized();
                 onChangeHandler(mField.latex());

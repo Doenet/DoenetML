@@ -118,9 +118,22 @@ export function createCheckWorkComponent(
 
     const buttonClassNames = ["check-work"];
 
+    // An answer locked specifically after correctness with disableAfterCorrect
+    // retains keyboard focus and reviewability instead of native disabling (issue #2577).
+    const disabledFromCorrect = Boolean(
+        SVs.disabledFromCorrect ||
+        (SVs.disabled &&
+            SVs.disableAfterCorrect &&
+            SVs.hasBeenCorrect &&
+            !SVs.disabledOriginal &&
+            !(SVs.numAttemptsLeft < 1)),
+    );
+
     // Disable the button when the component is disabled or when the (section-wide
-    // or per-answer) attempts have been exhausted.
-    const buttonDisabled = Boolean(SVs.disabled) || SVs.numAttemptsLeft < 1;
+    // or per-answer) attempts have been exhausted, unless locked after correctness.
+    const buttonDisabled =
+        (Boolean(SVs.disabled) || SVs.numAttemptsLeft < 1) &&
+        !disabledFromCorrect;
 
     const tabIndex = buttonDisabled ? -1 : 0;
 
@@ -234,14 +247,31 @@ export function createCheckWorkComponent(
         );
     }
 
+    const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (disabledFromCorrect || buttonDisabled || isPending) {
+            e.preventDefault();
+            return;
+        }
+        submitAnswer();
+    };
+
+    const handleButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (disabledFromCorrect || buttonDisabled || isPending) {
+            if (e.key === " " || e.key === "Enter") {
+                e.preventDefault();
+            }
+        }
+    };
+
     let button = (
         <button
             className={buttonClassNames.join(" ")}
             id={id + "_button"}
             tabIndex={tabIndex}
             disabled={buttonDisabled}
-            aria-disabled={isPending ? true : undefined}
-            onClick={submitAnswer}
+            aria-disabled={isPending || disabledFromCorrect ? true : undefined}
+            onClick={handleButtonClick}
+            onKeyDown={handleButtonKeyDown}
         >
             {buttonContent}
             <span className="visually-hidden">
