@@ -3,7 +3,7 @@ import BaseComponent from "./abstract/BaseComponent";
 import { textFromChildren } from "../utils/text";
 import {
     DIVISION_SEQUENCE,
-    returnSequenceNumbersOfChildrenDefinition,
+    returnSequenceStartDefinition,
 } from "../utils/sequenceNumbering";
 import {
     returnScoredSectionAttributes,
@@ -314,8 +314,8 @@ export class Li extends BaseComponent {
         // A list item numbers the divisions among its children from 1,
         // counting through any `<div>` or `<cascade>` among them. See
         // `utils/sequenceNumbering.js`.
-        stateVariableDefinitions.divisionNumbersOfChildren =
-            returnSequenceNumbersOfChildrenDefinition(DIVISION_SEQUENCE);
+        stateVariableDefinitions.divisionOffset =
+            returnSequenceStartDefinition(DIVISION_SEQUENCE);
 
         stateVariableDefinitions.item = {
             forRenderer: true,

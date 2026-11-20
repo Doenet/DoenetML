@@ -37,7 +37,7 @@ import {
     DIVISION_SEQUENCE,
     LIST_CONTAINER_TYPES,
     LIST_ITEM_SEQUENCE,
-    returnSequenceNumbersOfChildrenDefinition,
+    returnSequenceStartDefinition,
     sequenceNumberDependencies,
     sequenceNumberFromParent,
 } from "../../utils/sequenceNumbering";
@@ -318,6 +318,9 @@ export class SectioningComponent extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+        // The tag of the class this is called for (a `<section>`, an
+        // `<example>`, …), which advances its counter in a sequence.
+        const componentType = this.componentType;
 
         let componentClass = this;
 
@@ -392,8 +395,8 @@ export class SectioningComponent extends BlockComponent {
         // counting through any `<cascade>` among them. (It numbers the
         // divisions among its children as every block does; see
         // `BlockComponent` and `utils/sequenceNumbering.js`.)
-        stateVariableDefinitions.listItemNumbersOfChildren =
-            returnSequenceNumbersOfChildrenDefinition(LIST_ITEM_SEQUENCE);
+        stateVariableDefinitions.listItemOffset =
+            returnSequenceStartDefinition(LIST_ITEM_SEQUENCE);
 
         // The numbering of a container: a sectioning component that shows no
         // number of its own, such as the wrapper a copy from an external URI
@@ -439,12 +442,13 @@ export class SectioningComponent extends BlockComponent {
                     variableNames: ["enumeration"],
                 },
             }),
-            definition({ dependencyValues, componentIdx }) {
+            definition({ dependencyValues, componentInfoObjects }) {
                 if (dependencyValues.isListItem) {
                     const listItemNumber = sequenceNumberFromParent({
                         sequence: LIST_ITEM_SEQUENCE,
                         dependencyValues,
-                        componentIdx,
+                        componentType,
+                        componentInfoObjects,
                     });
                     return {
                         setValue: {
@@ -1703,6 +1707,9 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+        // The tag of the class this is called for (a `<section>`, an
+        // `<example>`, …), which advances its counter in a sequence.
+        const componentType = this.componentType;
 
         stateVariableDefinitions.enumeration = {
             additionalStateVariablesDefined: [
@@ -1739,14 +1746,15 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                         : DIVISION_SEQUENCE,
                 ),
             }),
-            definition({ dependencyValues, componentIdx }) {
+            definition({ dependencyValues, componentInfoObjects }) {
                 let enumeration = [];
                 if (dependencyValues.isListItem) {
                     enumeration.push(
                         sequenceNumberFromParent({
                             sequence: LIST_ITEM_SEQUENCE,
                             dependencyValues,
-                            componentIdx,
+                            componentType,
+                            componentInfoObjects,
                         }),
                     );
                 } else {
@@ -1763,7 +1771,8 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                         sequenceNumberFromParent({
                             sequence: DIVISION_SEQUENCE,
                             dependencyValues,
-                            componentIdx,
+                            componentType,
+                            componentInfoObjects,
                         }),
                     );
                 }

@@ -2,6 +2,8 @@
  * Dependency subclasses driven by sibling / value lookups:
  *  - `CountAmongSiblings` — index of a component among siblings of the
  *    same type
+ *  - `PrecedingSiblings` — the siblings before a component, waiting only
+ *    for the composites among them to expand
  *  - `Value` / `Flag` — return a literal value (Flag pulls from
  *    `Core.flags`)
  */
@@ -367,6 +369,185 @@ export class CountAmongSiblingsDependency extends Dependency {
         // don't need changes, as it is changed directly from core
         // and then upstream variables are marked as changed
         return { value, changes: {} };
+    }
+}
+
+/**
+ * The children of the component's parent that come before it, with their
+ * `variableNames`. Primitive children are left out.
+ *
+ * Unlike a `child` dependency of the parent, it waits only for the
+ * composites written before the component to expand, not for every composite
+ * among the children. So a composite after the component can read what this
+ * dependency decides (a section's number, which depends only on what comes
+ * before the section) in the parameters it needs before it can expand, such
+ * as `<sequence to="$s.sectionNumber"/>` after the section `s`. Read through
+ * the parent's children, that was a circular dependency, and the document
+ * failed to load (DIAG-5, #2578 item 1).
+ *
+ * A composite before the component that has not expanded, including one
+ * given a type and standing in its parent's children as a placeholder, is
+ * waited for: what it will make may be among the siblings.
+ */
+export class PrecedingSiblingsDependency extends Dependency {
+    static dependencyType = "precedingSiblings";
+
+    setUpParameters() {
+        this.componentIdx = this.upstreamComponentIdx;
+
+        if (this.definition.variableNames) {
+            if (!Array.isArray(this.definition.variableNames)) {
+                throw Error(
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentIdx}, dependency ${this.dependencyName}: variableNames must be an array`,
+                );
+            }
+            this.originalDownstreamVariableNames =
+                this.definition.variableNames;
+        } else {
+            this.originalDownstreamVariableNames = [];
+        }
+    }
+
+    async determineDownstreamComponents() {
+        const component = this.dependencyHandler._components[this.componentIdx];
+
+        if (component?.parentIdx == undefined) {
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        this.parentIdx = component.parentIdx;
+        const parent: any = this.dependencyHandler._components[this.parentIdx];
+
+        if (!parent) {
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        // Recalculated whenever the parent's children change.
+        let childDependencies =
+            this.dependencyHandler.updateTriggers.childDependenciesByParent[
+                this.parentIdx
+            ];
+        if (!childDependencies) {
+            childDependencies =
+                this.dependencyHandler.updateTriggers.childDependenciesByParent[
+                    this.parentIdx
+                ] = [];
+        }
+        if (!childDependencies.includes(this)) {
+            childDependencies.push(this);
+        }
+
+        const activeChildren: any[] = parent.activeChildren ?? [];
+        const position = activeChildren.findIndex(
+            (child) =>
+                typeof child === "object" &&
+                child?.componentIdx === this.componentIdx,
+        );
+
+        if (position === -1) {
+            // Not among its parent's children yet: wait for the parent to
+            // place it, as a `child` dependency of the parent would.
+            for (const varName of this.upstreamVariableNames) {
+                await this.dependencyHandler.addBlocker({
+                    blockerComponentIdx: this.parentIdx,
+                    blockerType: "childMatches",
+                    blockerStateVariable: varName,
+                    componentIdxBlocked: this.upstreamComponentIdx,
+                    typeBlocked: "recalculateDownstreamComponents",
+                    stateVariableBlocked: varName,
+                    dependencyBlocked: this.dependencyName,
+                });
+
+                await this.dependencyHandler.addBlocker({
+                    blockerComponentIdx: this.upstreamComponentIdx,
+                    blockerType: "recalculateDownstreamComponents",
+                    blockerStateVariable: varName,
+                    blockerDependency: this.dependencyName,
+                    componentIdxBlocked: this.upstreamComponentIdx,
+                    typeBlocked: "stateVariable",
+                    stateVariableBlocked: varName,
+                });
+            }
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
+        const compositeClass =
+            this.dependencyHandler.componentInfoObjects.allComponentClasses
+                ._composite;
+
+        const downstreamComponentIndices: number[] = [];
+        const downstreamComponentTypes: string[] = [];
+
+        for (const child of activeChildren.slice(0, position)) {
+            if (typeof child !== "object" || child === null) {
+                continue;
+            }
+            // A placeholder for a composite given a type, or a composite
+            // left among the children because it has not expanded.
+            const unexpandedIdx =
+                child.componentIdx === undefined
+                    ? child.fromComposite
+                    : child instanceof compositeClass && !child.isExpanded
+                      ? child.componentIdx
+                      : undefined;
+            if (unexpandedIdx !== undefined) {
+                const composite =
+                    this.dependencyHandler._components[unexpandedIdx];
+                if (composite) {
+                    await this.addBlockerForUnexpandedComposite(composite);
+                }
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+            downstreamComponentIndices.push(child.componentIdx);
+            downstreamComponentTypes.push(child.componentType);
+        }
+
+        return {
+            success: true,
+            downstreamComponentIndices,
+            downstreamComponentTypes,
+        };
+    }
+
+    deleteFromUpdateTriggers() {
+        const childDeps =
+            this.dependencyHandler.updateTriggers.childDependenciesByParent[
+                this.parentIdx
+            ];
+        if (childDeps) {
+            const ind = childDeps.indexOf(this);
+            if (ind !== -1) {
+                childDeps.splice(ind, 1);
+            }
+        }
+        const dependenciesMissingParent =
+            this.dependencyHandler.updateTriggers
+                .dependenciesMissingComponentBySpecifiedName[this.parentIdx];
+        if (dependenciesMissingParent) {
+            const ind = dependenciesMissingParent.indexOf(this);
+            if (ind !== -1) {
+                dependenciesMissingParent.splice(ind, 1);
+            }
+        }
     }
 }
 

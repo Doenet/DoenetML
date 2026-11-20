@@ -1,7 +1,7 @@
 import BaseComponent from "./BaseComponent";
 import {
     DIVISION_SEQUENCE,
-    returnSequenceNumbersOfChildrenDefinition,
+    returnSequenceStartDefinition,
 } from "../../utils/sequenceNumbering";
 
 export default class BlockComponent extends BaseComponent {
@@ -15,8 +15,8 @@ export default class BlockComponent extends BaseComponent {
         // children from 1, counting through any `<div>` or `<cascade>` among
         // them. So does a section. A block the sequence passes through
         // replaces this. See `utils/sequenceNumbering.js`.
-        stateVariableDefinitions.divisionNumbersOfChildren =
-            returnSequenceNumbersOfChildrenDefinition(DIVISION_SEQUENCE);
+        stateVariableDefinitions.divisionOffset =
+            returnSequenceStartDefinition(DIVISION_SEQUENCE);
 
         return stateVariableDefinitions;
     }
