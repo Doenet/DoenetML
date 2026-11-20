@@ -3035,3 +3035,36 @@ Alternatives: `<collection>`, `<items>`.
    edited: its `immediateValue` becomes its `value`, and `valueUnderEdit` is cleared. This keeps
    the rule in the core, and takes over `__componentNeedingUpdateValue`'s job at reload.
 
+
+## D51. Tag, attribute and property names are case-sensitive (decided, Tier 1; November 2026)
+
+From the review of #2603, which found #2605. Tag names were case-sensitive (`<MATH>` is
+`doenet-e0002`), names were case-sensitive (`$mm` doesn't find `name="Mm"`), but attribute and
+property names were matched without case. Some attributes were still matched exactly (`name`,
+`for`, `valueName`, `indexName`), and a tag with `copy`/`extend` was matched without case.
+
+**Decided:**
+1. **Tag, attribute and property names are matched exactly** (NAME-0), like the names an author gives
+   components. A name in another case is an unknown name:
+   - a tag is `doenet-e0002`, as now;
+   - an attribute is `doenet-e0004`, as a misspelled one is now;
+   - a property names nothing, as a misspelled one does now.
+
+   Each message suggests the name the written one differs from only in case.
+2. **A tag written with `copy` or `extend` follows the same rule** (#2605). That settles #2580 item 3
+   (`<Award copy>` in an `<answer>`) as an error, with no change to the answer's sugar.
+3. **Keywords in attribute values stay case-insensitive** (`simplify="FULL"`, `hide="True"`), since a
+   value can come from what a reader types.
+
+**Why not make tags case-insensitive instead?**
+- Names can't be: `$Mm` and `$mm` are different.
+- Matching without case would require every comparison of a tag to go through a lowercase table, and
+  each one that forgets is a bug (#2605).
+- The Rust core matches exactly.
+- The schema, autocomplete and docs use one spelling.
+
+A suggestion in the message gives the forgiveness without hiding the mistake.
+
+**Migration.** Before the switch, scan the tests, docs, Cypress specs and available course content for
+wrong-case attributes and property names, and fix them. If there are many in course content, a
+first release may give a warning and still apply the attribute.

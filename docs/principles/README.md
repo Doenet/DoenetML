@@ -61,6 +61,12 @@ else in these documents either refines one of them or is an exception that shoul
 removed.
 
 **Names**
+
+Every name is exact: a tag, an attribute, a property, and the `name` you give a component.
+`<math>` and `simplify` work; `<MATH>` and `SIMPLIFY` are errors that suggest the right name.
+A keyword in an attribute's value, such as `"full"` or `"true"`, can be written in any case.
+(NAME-0; D51)
+
 1. `$x` means the nearest `x` around where it is written. `$a.b` is the `b` inside `a`, and
    `$r[2]` is the second item of `r`. If the nearest scope has two `x`s, the reference is
    ambiguous: it reports a warning and shows a blank, `＿`. (NAME-1, NAME-2)

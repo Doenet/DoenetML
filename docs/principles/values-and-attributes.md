@@ -446,6 +446,9 @@ Evidence:
 An attribute's value is written in one of three forms. Each form has a different rule, and
 authors can learn all three.
 
+An attribute's **name** is matched exactly (NAME-0, D51). A keyword in its **value** is
+read without case: `simplify="FULL"` and `hide="True"` work.
+
 ### VAL-6: plain text is parsed as the attribute's type (Tier 1); a reader's write over it is kept (Tier 2)
 | Written | Value |
 |---|---|

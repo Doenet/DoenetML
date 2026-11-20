@@ -26,6 +26,37 @@ Everything below refines this table.
 
 ## 1. Name resolution
 
+### NAME-0: every name is matched exactly, as written (Tier 1; D51)
+A tag, an attribute, a property and a component's name are each matched with their case as
+written. `<math>`, `simplify`, `$P.x` and `$Mm` (of `name="Mm"`) work; `<MATH>`,
+`SIMPLIFY`, `$P.X` and `$mm` don't. A name written in a different case is
+an unknown name. It gets the same error as a misspelling, with a suggestion of the
+name it differs from only in case:
+
+```xml
+<MATH>x</MATH>                           <!-- error: no <MATH> tag; did you mean <math>? -->
+<math SIMPLIFY="full">x+x</math>         <!-- error: no SIMPLIFY attribute; did you mean simplify? -->
+<math extend="$m" Simplify="full"/>      <!-- the same error, on an extend -->
+<Label copy="$l"/>                       <!-- error: no <Label> tag; did you mean <label>? -->
+```
+
+The rule is the same whether the tag is written alone or with `copy` or `extend`, and for
+every attribute (`name`, `for` and `valueName` included). An author learns one rule for
+everything they type: names in DoenetML are exact, as `$x` always was.
+
+**Values are words, not names.** An attribute's value is read without case where it is a
+keyword: `simplify="FULL"`, `hide="True"`, `<boolean>TRUE</boolean>`. The value can come
+from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't be held to a case.
+
+**Known violations (#2605).** On `main` after #2603, tag and attribute names are matched without case in
+most places, but not all:
+- a tag with `copy` or `extend` is accepted in any case (`<MATH extend="$m"/>`, `<Label copy="$l"/>`);
+  written alone, `<MATH>` is `doenet-e0002`;
+- most attributes are accepted in any case (`SIMPLIFY`, `Extend`, `COPY`, `Prefill`,
+  `NumToSelect`, `Hide`), but `Name="t"` is `doenet-e0003` ("Cannot repeat attribute name") and
+  names nothing, and `<repeat For="1 2" ValueName="v" IndexName="i">` silently makes no `$v` or `$i`;
+- property names are matched without case (`$P.X` is `$P.x`).
+
 ### NAME-1: nearest match wins; a tie is an error, not a guess (Tier 1)
 `$x` means the `x` in the nearest enclosing scope that contains one. If that scope contains two,
 the reference is ambiguous: it reports `doenet-w0105` "Multiple referents" and is missing, shown
