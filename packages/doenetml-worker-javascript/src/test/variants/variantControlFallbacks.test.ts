@@ -404,6 +404,68 @@ ${select}
         });
     });
 
+    it("a saved attempt still shows the content it was saved with", async () => {
+        // SAVE-1. Before #2579, the problem's `<variantControl>` was ignored
+        // in this document, and its selection was made at random: the
+        // document's variant `h` was saved with the problem as its variant
+        // `h` (from the document's variants) and `n` as 1. The problem's own
+        // variants now read that index 8 as its variant `b`, which selects
+        // `n` as 3, but a saved attempt carries what each selection was, so
+        // it still shows `n` as 1.
+        const doenetML = `
+<variantControl numVariants="30" uniqueVariants="false" />
+<selectFromSequence name="m" from="1" to="2" />
+<problem name="p">
+    <variantControl numVariants="3" />
+    <selectFromSequence name="n" from="1" to="3" />
+    <number name="nn">$n</number>
+</problem>
+`;
+        const nOf = async (requestedVariant?: Record<string, any>) => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex: 8,
+                requestedVariant,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                n: stateVariables[await resolvePathToNodeIdx("nn")].stateValues
+                    .value,
+                generatedVariantInfo:
+                    stateVariables[await resolvePathToNodeIdx("_document1")]
+                        .stateValues.generatedVariantInfo,
+            };
+        };
+
+        const savedBefore = {
+            index: 8,
+            name: "h",
+            meta: { createdBy: 0 },
+            subvariants: [
+                { indices: [1], meta: { createdBy: 2 } },
+                {
+                    index: 8,
+                    name: "h",
+                    meta: { createdBy: 3 },
+                    subvariants: [{ indices: [1], meta: { createdBy: 5 } }],
+                },
+            ],
+        };
+        expect((await nOf()).n).not.eq(1);
+        expect((await nOf(savedBefore)).n).eq(1);
+
+        // and one saved now comes back the same
+        const now = await nOf();
+        const reloaded = await nOf(
+            JSON.parse(JSON.stringify(now.generatedVariantInfo)),
+        );
+        expect(reloaded.n).eq(now.n);
+        expect(reloaded.generatedVariantInfo).eqls(now.generatedVariantInfo);
+    });
+
     it("a problem's variantControl after a selection whose variants can't be counted", async () => {
         // The selection's `to` is a reference, so the document's unique
         // variants can't be counted, and the count stopped before the
