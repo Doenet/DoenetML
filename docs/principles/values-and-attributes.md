@@ -572,7 +572,9 @@ grid, variant names) is split the same way:
   `<mathList>x y z</mathList>` three, and `<mathList>x y, z</mathList>` is `x y` (a product) and
   `z`;
 - **brackets** `( [ {` and `) ] }` keep their contents together, any closer closing any opener:
-  `(1, 2], [3, 4)` is two intervals. If they don't balance, they are ignored for the whole list,
+  `(1, 2], [3, 4)` is two intervals. The vector brackets `⟨ ⟩` do too (D53): `⟨1,2⟩ ⟨0,3⟩` is two
+  vectors. **Known violation** (#2569 item 16): `⟨ ⟩` aren't brackets yet, so
+  `<vectorList>⟨1,2⟩ ⟨0,3⟩</vectorList>` is `＿, ＿, ＿`. If they don't balance, they are ignored for the whole list,
   with **`doenet-i0058`**: a warning, since #2495, except in a list of texts (`type="text"`, a
   `<textList>`), where it is an info because such text is valid and often meant
   (`a) apple, b) banana`; DIAG-1, DIAG-2);

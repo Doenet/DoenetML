@@ -292,6 +292,8 @@ so a `<choiceInput>` of text choices beside a `<number>` is `e0076` at load (it 
   it collects only some;
 - `<sort sortByProp="atomicNumber">$g</sort>` of a `<group asList>` of atoms is now `e0077`.
   The fix is `<collect componentType="atom" from="$g"/>`; D46 proposes a `<list>` tag.
+- points of different dimensions in a sort are `(1, 2, 0)` as a list and `(1, 2)` as a
+  composite. Decided (D53): each point keeps its own dimension, since a sort only reorders.
 
 ### COLL-5: a repeat's `for` holds one type, decided at load (Tier 2; D44)
 - **Items:** as in COLL-4. Literal text is cut by VAL-12, a list or collection is flattened, a

@@ -3092,3 +3092,13 @@ it. What's left of TYPE-3 (#2606) mostly follows from these three:
 
 With these settled, each remaining undecided case in #2606 is either typed at load or an error at
 the reference that needs it (TYPE-3), and `hasVariableComponentType` can be removed.
+
+## D53. Decisions from the review of #2569 (PR 23; decided, November 2026)
+
+1. **A sort, shuffle or sortIndices doesn't change its items** (#2569 item 9; COLL-4, COMP-4).
+   Points of different dimensions keep their own: `(1, 2)` stays `(1, 2)` beside `(3, 4, 5)`. The
+   composite build already does this; the list build pads to `(1, 2, 0)` and must match it.
+2. **`⟨ ⟩` are brackets in VAL-12** (#2569 item 16), as `( )`, `[ ]` and `{ }` are. A comma
+   inside them doesn't split a list: `<vectorList>⟨1,2⟩ ⟨0,3⟩</vectorList>` is two vectors, and
+   `⟨1,2⟩` beside `<vector>`s in a `<sort>` is one vector. As for the others, any closer closes any
+   opener, so there is still one rule.
