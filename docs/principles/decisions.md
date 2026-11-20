@@ -2776,7 +2776,8 @@ D47 decision 3:** it is a type mix with a warning, unless the author asks with
 ## D45. Every value a reference reaches has one type, decided from the DoenetML (decided, Tier 1)
 
 **Decided** (November 2026). The principle is TYPE in
-[values-and-attributes.md](values-and-attributes.md). Implementation: #2568.
+[values-and-attributes.md](values-and-attributes.md). Implementation: #2568, done by #2602 and #2603
+except for the cases the DoenetML doesn't yet decide (#2606, D52).
 
 **Why.** D36, REF-5, COMP-11, COLL-4 and D44 each make a type known from the DoenetML. Eleven
 properties still set their type as they compute (`hasVariableComponentType` with
@@ -3068,3 +3069,26 @@ A suggestion in the message gives the forgiveness without hiding the mistake.
 **Migration.** Before the switch, scan the tests, docs, Cypress specs and available course content for
 wrong-case attributes and property names, and fix them. If there are many in course content, a
 first release may give a warning and still apply the attribute.
+
+## D52. Decisions from the review of #2603 (open, November 2026)
+
+#2602 and #2603 type every property and an answer's responses at load where the DoenetML decides
+it. What's left of TYPE-3 (#2606) mostly follows from these three:
+
+1. **A missing response has its entry's type** (recommended). An answer whose response is
+   `$l[3]` of a two-entry `<mathList>`, or a `<choiceInput>` with nothing selected, records it as
+   one blank math whatever its type; the run-time tests pin that ("a missing entry is recorded and
+   compared as an empty response"). TYPE says a response has its entry's type, and VAL-5 says a
+   missing T is still a T (D37). So `$l[3]` of a `<textList>` is a missing text, and the type is
+   known at load. A blank never equals anything (VAL-5), so credit doesn't change.
+2. **A property made into points or vectors declares that type** (recommended). `$c.center`,
+   `$pl.vertices`, `$l.points[1]` and `$v.displacement` are points or vectors when read, but their
+   classes declare a math, so they can't be typed at load. Declare what they give (point,
+   vector), as for any other property (TYPE-1).
+3. **`<answer copyWithState="$a">` with children of its own** (an `<award>`, an input). D32
+   decides only `extend` (`e0083`/`e0084`). Recommended: allowed, as for `copy`. A
+   `copyWithState` is its own answer that starts from a snapshot (CPY-2). Its saved credit is
+   the source's until the reader submits again, as for any snapshot.
+
+With these settled, each remaining undecided case in #2606 is either typed at load or an error at
+the reference that needs it (TYPE-3), and `hasVariableComponentType` can be removed.

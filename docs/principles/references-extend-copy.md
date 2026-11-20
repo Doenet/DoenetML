@@ -761,10 +761,9 @@ That is worth doing there, not retrofitting into the JavaScript core.
     - a name inside a composite (`$s.go`) is each component of that name in its written
       descendants, including in what a copy among them copies. `<math name="go">` in one option
       and `<number name="go">` in another are two types;
-    - a property, and a repeat's `valueName`, is an error, **`doenet-e0067`**, until properties
-      declare their type. Under TYPE (D45) every property's type is decided at load, so this
-      goes away (#2568). Since #2600 (D44) a `valueName` has the one type of its `for`'s items,
-      so the checks at load type it like any other part.
+    - a property is typed at load (TYPE, D45; done by #2602 and #2603), and a repeat's
+      `valueName` has the one type of its `for`'s items (D44, #2600). Only a property whose type
+      the DoenetML doesn't yet decide is **`doenet-e0067`** (TYPE's known violations, #2606).
   - a type that already is the tag written counts as that tag: an `<integer>` case and a
     `<number>` else are one type for a `<number>` or a `<numberList>`, but not for an
     `<integer>` or a `<math>`.
@@ -820,7 +819,7 @@ Diagnostics:
   **`doenet-i0055`** while no case of a `<conditionalContent>` with no `<else>` is true;
 - **`doenet-e0065`:** any other pair;
 - **`doenet-e0066`:** different types, suggesting `<T>$x</T>`, for a scalar or a list tag;
-- **`doenet-e0067`:** a property or a repeat's value, whose type isn't known at load;
+- **`doenet-e0067`:** a property whose type isn't decided at load (TYPE's known violations, #2606);
 - **`doenet-i0053`:** an info for a value that does not allow the tag (a point from a non-tuple,
   a boolean from a math that is not true or false). The tag is missing (D37, #2458);
 - **`doenet-i0054`:** an info for an index that names nothing now (REF-0).
@@ -873,7 +872,7 @@ Known violations:
   a case that comes to show an error is still `(0, 0)`; a point from a property whose entries'
   type appears only later (an answer's `submittedResponses` with a `<textInput>` response, a
   `<tally>`'s categories that start empty, a `<choiceInput>` whose text choices a `<repeat>`
-  makes) is `e0065` after load (DIAG-7), which TYPE (D45, #2568) settles; a selection that names
+  makes) was `e0065` after load (DIAG-7); **fixed by #2602 and #2603**, it is `e0065` at load; a selection that names
   no choice makes `selectedValues` `[undefined]`, and a point from it gets `i0053` naming
   `undefined`;
 - a copy that made nothing could report a different info after a reload (B37). #2447 removed
@@ -977,7 +976,20 @@ the document renders.
   - on a `<choiceInput>`, choices written inside, `doenet-e0058`, and `shuffleOrder`,
     `doenet-e0059`;
   - any extend of `case`, `else` or `option`, `doenet-e0061`, including a bare `$c` (REF-1's one
-    exception). `<case copy="$c"/>` still works.
+    exception). `<case copy="$c"/>` still works;
+  - on an `<answer>` (D32, done by #2603): an attribute that decides what it records or how it
+    grades (`type`, `weight`, `handGraded`, `matchPartial`, `maxNumAttempts`, `creditByAttempt`,
+    the comparison and choice attributes, …) is `doenet-e0083`, and anything written inside but
+    a `<label>`, `<shortDescription>` or `<description>` (an input, an `<award>`, text the sugar
+    would read) is `doenet-e0084`. An appearance attribute (`showCorrectness`, `submitLabel`, …) is
+    allowed, and `<answer copy>` makes an answer of its own, which may add anything.
+
+  ```xml
+  <answer name="a"><mathInput name="mi"/><award><when>$mi = x</when></award></answer>
+  <answer extend="$a" weight="2"/>                 <!-- error: weight changes how it grades -->
+  <answer extend="$a"><award><when>$mi = y</when></award></answer>  <!-- error -->
+  <answer extend="$a" showCorrectness="false"/>    <!-- allowed -->
+  ```
 - **The message** names the tag, what it makes, why an extend can't change it, and what to write
   instead, citing the reference: "A `<repeat>` makes its content from `for`. An `extend` shows
   the same content as `$r2`, so it can't change `for`. To show the content of `$r2` again, remove
@@ -988,6 +1000,11 @@ the document renders.
   effect there instead.
 - **A reference to an errored extend** (`$e`, `<repeat copy="$e"/>`) shows the error again and
   reports it again at its own location.
+- **Known violations** (#2606): an extend of a composite holding the tag
+  (`<answer extend="$cc" weight="2"/>` of a `<conditionalContent>` holding an answer, and the same
+  for a `<choiceInput>`'s `e0058`/`e0059`) gets no error, at load or once the case is shown.
+  `<answer copyWithState="$a">` with an `<award>` added is allowed, with no decision yet
+  (D52 decision 3).
 
 Evidence: `T/copying/extend_cannot_change_content.test.ts` (91 tests, #2409): bare, named and
 appearance-only extends of 18 tags, display settings taking effect, a named extend reaching

@@ -275,10 +275,11 @@ nothing.
   `<math>` (or `<text>`), and an `<m>` whose LaTeX isn't math gives **`doenet-w0196`** when it is
   read as math.
 
-**Known violations** (#2568, #2581): a `<slider>` and a `<choiceInput>` get their value type only
-as the document runs, so they are left out of the one-type check at load, and a `<choiceInput>`
-(text values) beside a `<number>` sorts as text (`10` before `9`); TYPE (D45) types them at load.
-A `<math>` whose own content doesn't parse (`<math>(((</math>`) is a blank with no diagnostic.
+**Fixed by #2602** (TYPE): a `<slider>` and a `<choiceInput>` are values of their load-time type,
+so a `<choiceInput>` of text choices beside a `<number>` is `e0076` at load (it sorted `10` before
+`9`).
+
+**Known violation** (#2581): a `<math>` whose own content doesn't parse (`<math>(((</math>`) is a blank with no diagnostic.
 
 **Known violations** (#2569):
 - **fixed by #2599:** `<sort><p>b</p><p>a</p></sort>` showed nothing, silently; it is `e0080`;
@@ -325,8 +326,8 @@ A `<math>` whose own content doesn't parse (`<math>(((</math>`) is a blank with 
 **Known violations** (#2569): `$r[2].d.P` (a name after the value, from outside the iteration)
 names nothing, and its `w0193` suggests `$r[2].d.P.P`, which names nothing either; a property
 after a repeat in error (`$rmix.x`) adds `w0104` (DIAG-5); the `item` wording of `w0183` and
-`w0184` is English only; a `<slider>` or `<choiceInput>` in `for` is left out of the check until
-TYPE types them (#2568).
+`w0184` is English only. **Fixed by #2602:** a `<slider>` or `<choiceInput>` in `for` is checked at
+load with its type.
 
 ---
 

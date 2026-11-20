@@ -82,7 +82,8 @@ So whether `<math extend="$a.currentResponses[2]"/>` is allowed, and what `$x.p`
   has its entry's type. An index that can reach several entries is typed only if they share one
   type, the every-branch rule of COMP-11.
 - **TYPE-3: a type that can't be decided is an error at load (Tier 2),** at the component or the
-  reference that needs it. This replaces REF-5's `e0067` for properties.
+  reference that needs it. This replaces REF-5's `e0067` for properties. (Not yet complete:
+  see the known violations below.)
 - **Literal text** in a list is typed at load: by `type` when written; otherwise, in the
   operators that compare or count (`<sort>`, `<shuffle>`, `<tally>`, …), numbers if every piece
   reads as one and texts otherwise, and elsewhere (`<repeat for>`, `<select>`'s and `<answer>`'s
@@ -90,26 +91,50 @@ So whether `<math extend="$a.currentResponses[2]"/>` is allowed, and what `$x.p`
 - **TYPE-4: saved state never decides a type (Tier 2).** A type is the DoenetML's, so a reload
   gives the type the DoenetML gives (SAVE-3).
 
-**The properties whose type varies today** (`hasVariableComponentType`, D45; implementation
-#2568):
-- decided by a written `type`, already at load: a selectable type's `value` and `values`,
-  `<slider>`'s `value` and `items` (`items` a list since #2572),
-  `<animateFromSequence>`'s `value`;
-- decided by what is written, computed at run time today:
-  - `<markers>`: text if any child is a `<text>`, else number. A mix is text, silently; under
-    D45 it is an error at load, as in a `<tally>`;
-  - `<choiceInput>`'s `selectedValues`: math if every choice holds one math, else text;
-  - `<tally>`'s `categories`: numeric when every value is a number by its tag, else text;
-    literal text by its content (`007 008 007 10` is numbers, `007 008 007 a` texts). A mix of
-    numbers and texts by tag counts as text today; under D45 it is an error at load;
-  - `<answer>`'s `currentResponses`: each response's type is its input's or its component's,
-    falling back to math;
-- not decided by the DoenetML:
-  - `<answer>`'s responses from a component in a `<conditionalContent>` follow the shown case
-    **[probe]**;
-  - `<answer>`'s `submittedResponses` restores its types from saved state
-    (`submittedResponsesComponentType`);
-  - `<graph>`'s `grid` is a text or a number list by its value. It stops being public (D45).
+**Done by #2602 and #2603** (#2568). Every property whose component doesn't declare its type
+is typed from the DoenetML when the document loads. A tag made from one is checked at load, also
+in a case not shown (DIAG-7):
+- `<slider>`'s `value` and `items`, `<animateFromSequence>`'s `value`, and a selectable type's
+  `value`/`values` are typed by their `type`;
+- `<choiceInput>`'s `selectedValues` is a math when every choice holds one math, else a text,
+  also when a `<repeat>` makes the choices;
+- `<tally>`'s `categories` are typed by `categories` when written, else number when every value
+  is a `<number>` by its tag, else text. A `<math>`'s category is now a text: by tag, not value;
+- `<markers>` is text if any marker is a `<text>`, else number;
+- a `<number>` beside a `<text>` in a `<tally>` or `<markers>` is `doenet-e0076` (D45 decision 6);
+- an `<answer>`'s responses each have their own type (TYPE-2): `$a.currentResponses[2]` with a
+  `<mathInput>` and a `<textInput>` is a text. A response from a `<conditionalContent>` follows
+  COMP-11 by place: a response of one type in one case and another type in another is
+  **`doenet-e0082`**, shown in place of the `<conditionalContent>`;
+- `submittedResponses` takes the types the DoenetML gives, not the saved ones (TYPE-4);
+- `$g.grid` is no longer a property (D45 decision 4);
+- `<select type="banana">` with text to read is `doenet-w0145`, as in the list operators.
+
+```xml
+<answer name="a">
+  <mathInput name="mi"/> <textInput name="ti"/>
+  <award><when>$mi = x and $ti = hi</when></award>
+</answer>
+<point extend="$a.currentResponses[2]"/>  <!-- error at load: a text can't make a point -->
+```
+
+**Known violations** (#2606). TYPE-3 isn't complete yet. When the type of a response or property
+can't be decided at load, it is worked out as the document runs, as before. It is not an error at load.
+A tag made from it is checked once the document runs, and one made from a group holding it is still
+`e0067`. These cases are:
+- a response that may be missing as the document runs (an index past the end, a reference
+  naming nothing, a `<choiceInput>` with nothing selected). The run time records it as a blank
+  math whatever its type (D52 decision 1);
+- a property whose entries are made into points or vectors (`$c.center`, `$pl.vertices`,
+  `$v.displacement`), which its class declares a math (D52 decision 2);
+- in an `<answer>`: the input its sugar makes, when that may be skipped; a list response beside
+  responses of another type; cases holding different numbers of responses; a function as a
+  response; several inputs of different types written `forAnswer` it; a composite written
+  `isResponse`; responses a `<select>` or `<repeat>` makes in an award; an answer made with `copy`
+  that writes children of its own;
+- a choice holding a reference to an answer's response, and a `<group>` in a `<tally>`.
+
+`hasVariableComponentType` stays until these are decided or made errors.
 
 ---
 
