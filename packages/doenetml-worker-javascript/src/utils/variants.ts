@@ -29,10 +29,12 @@ export function getVariantsForDescendantsForUniqueVariants({
         (x: any) => x.variants.numVariants,
     );
 
-    let indices = combinationAtIndex({
-        numberOfOptionsByIndex: numVariantsByDescendant,
-        index: variantIndex - 1,
-    });
+    // No descendants with variants means no indices, and no subvariants.
+    let indices =
+        combinationAtIndex({
+            numberOfOptionsByIndex: numVariantsByDescendant,
+            index: variantIndex - 1,
+        }) ?? [];
 
     let desiredVariants = [];
     for (let [ind, comp] of descendantVariantComponents.entries()) {

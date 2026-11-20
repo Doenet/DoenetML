@@ -302,7 +302,10 @@ export function combinationAtIndex({
     }
 
     if (numberOfIndices === 2) {
-        const computedLcm = lcm(...numberOfOptionsByIndex);
+        const computedLcm = lcm(
+            numberOfOptionsByIndex[0],
+            numberOfOptionsByIndex[1],
+        );
         if (index >= maxGCD * computedLcm) {
             return undefined;
         }
