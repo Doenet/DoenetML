@@ -424,6 +424,41 @@ ${select}
         expect(errors[0].code).eq("doenet-e0079");
     });
 
+    it("a problem's variants are unique in a document with too many variants to be unique", async () => {
+        // The document's variants are counted, but there are too many of
+        // them for unique variants, so the problem isn't handed its
+        // subvariants with its variant.
+        const nByVariant: Record<string, Set<number>> = {};
+        for (let ind = 1; ind <= 8; ind++) {
+            const {
+                variants,
+                variantName,
+                stateVariables,
+                resolvePathToNodeIdx,
+            } = await load(
+                `
+<selectFromSequence length="100000" />
+<selectFromSequence length="100000" />
+<problem name="p">
+    <variantControl numVariants="3" />
+    <selectFromSequence name="n" from="1" to="3" />
+    <number name="nn">$n</number>
+</problem>
+`,
+                { componentName: "p", requestedVariantIndex: ind },
+            );
+            expect(variants).eqls(["a", "b", "c"]);
+            const n =
+                stateVariables[await resolvePathToNodeIdx("nn")].stateValues
+                    .value;
+            (nByVariant[variantName] ??= new Set()).add(n);
+        }
+        const ns = Object.values(nByVariant).map((s) => [...s]);
+        expect(ns.length).greaterThan(1);
+        expect(ns.every((s) => s.length === 1)).eq(true);
+        expect(new Set(ns.flat()).size).eq(ns.length);
+    });
+
     it("a problem's error is reported once in a document with unique variants", async () => {
         const { variants, errors } = await load(
             `
