@@ -149,10 +149,12 @@ variant-name-unknown = `{ $attribute }` names { $names }, which { $namesCount ->
     }
 
 # Translators: $attribute is an attribute of `<variantControl>`
-# (`numVariants`, `variantNames`, `seeds`, …), which stays in English. A
+# (`numVariants`, `variantNames`, `seeds`, …), which stays in English. Each
 # reference (`$n`) written in it is ignored, since a document's variants are
-# decided before anything in it, so before a reference can be read.
-variant-control-reference = `{ $attribute }` of `<variantControl>` holds a reference, which is ignored. A document's variants are decided before anything else in it, so a reference can't be read there. Write the value itself.
+# decided before anything in it, so before a reference can be read; what is
+# written beside a reference is kept. Reported once for the attribute,
+# however many references it holds.
+variant-control-reference = `{ $attribute }` of `<variantControl>` holds a reference. A document's variants are decided before anything else in it, so references can't be read there and are ignored. Write the value itself.
 
 # Translators: `variantNames` stays in English. $names lists the names
 # written again, each already in backticks, as written the second time;

@@ -199,7 +199,7 @@ ${select}
 
     describe("a reference is ignored", () => {
         const message = (attribute: string) =>
-            `\`${attribute}\` of \`<variantControl>\` holds a reference, which is ignored. A document's variants are decided before anything else in it, so a reference can't be read there. Write the value itself.`;
+            `\`${attribute}\` of \`<variantControl>\` holds a reference. A document's variants are decided before anything else in it, so references can't be read there and are ignored. Write the value itself.`;
 
         it("variantsToInclude", async () => {
             let { variants, errors } = await load(`
@@ -311,6 +311,18 @@ ${select}
             expect(errors.every((e) => e.code === "doenet-e0085")).eq(true);
         });
 
+        it("two references in one attribute, one error", async () => {
+            const { variants, errors } = await load(`
+<variantControl numVariants="3" variantsToInclude="$v $w c" />
+<text name="v">a</text>
+<text name="w">b</text>
+${select}
+`);
+            expect(variants).eqls(["c"]);
+            expect(errors.length).eq(1);
+            expect(errors[0].message).eq(message("variantsToInclude"));
+        });
+
         it("in a problem", async () => {
             const { variants, errors } = await load(
                 `
@@ -327,6 +339,24 @@ ${select}
             expect(errors.length).eq(1);
             expect(errors[0].code).eq("doenet-e0085");
             expect(errors[0].position?.start.line).eq(4);
+        });
+
+        it("in a problem in a module, naming a module attribute", async () => {
+            const { variants, errors } = await load(
+                `
+<module name="m">
+    <moduleAttributes><text name="nm">x</text></moduleAttributes>
+    <problem name="p">
+        <variantControl numVariants="2" variantNames="$nm y" />
+        ${select}
+    </problem>
+</module>
+`,
+                { componentName: "m.p" },
+            );
+            expect(variants).eqls(["y", "b"]);
+            expect(errors.length).eq(1);
+            expect(errors[0].message).eq(message("variantNames"));
         });
     });
 
@@ -361,6 +391,25 @@ ${select}
             expect(errors[0].message).eq(
                 "`variantsToInclude` names `q`, which is not a variant of this `<problem>`. Its 3 variants are named `a`, `b`, `c`. As `variantsToInclude` names no variant, every variant is included.",
             );
+        });
+
+        it("a section's is followed too, with its errors", async () => {
+            const { variants, errors } = await load(
+                `
+<variantControl numVariants="30" uniqueVariants="false" />
+<selectFromSequence name="m" from="1" to="2" />
+<section name="s">
+    <variantControl numVariants="3" variantNames="x X y" variantsToInclude="y q" />
+    <selectFromSequence name="n" from="1" to="3" />
+</section>
+`,
+                { componentName: "s" },
+            );
+            expect(variants).eqls(["y"]);
+            expect(errors.map((e) => e.code)).eqls([
+                "doenet-e0086",
+                "doenet-e0079",
+            ]);
         });
 
         it("its variants are unique, and the same as in a document with unique variants", async () => {
