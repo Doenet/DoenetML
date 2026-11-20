@@ -3187,4 +3187,48 @@ describe("Section heading color accessibility diagnostics @group3", async () => 
         expect(await sectionNumber("sp1")).eq("1");
         expect(await sectionNumber("sp2")).eq("2");
     });
+    it("a section is renumbered when the sections before it change at runtime", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="b"/>
+    <mathInput name="n" prefill="1"/>
+    $later
+    <conditionalContent condition="$b"><section name="c1"/><section name="c2"/></conditionalContent>
+    <div><repeatForSequence to="$n"><section/></repeatForSequence></div>
+    <section name="s"/>
+    <cascade><div><section name="t"/></div></cascade>
+    <section name="later"/>
+    `,
+        });
+        async function sectionNumbers() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const numbers: Record<string, string> = {};
+            for (const name of ["s", "t", "later"]) {
+                numbers[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.sectionNumber;
+            }
+            return numbers;
+        }
+        // the copy of `later` written first is section 1
+        expect(await sectionNumbers()).eqls({ s: "3", t: "4", later: "5" });
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await sectionNumbers()).eqls({ s: "5", t: "6", later: "7" });
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(await sectionNumbers()).eqls({ s: "7", t: "8", later: "9" });
+    });
 });
