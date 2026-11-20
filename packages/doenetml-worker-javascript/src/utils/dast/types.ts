@@ -368,6 +368,14 @@ export type AttributeDefinition<T> = {
      * its component by index.
      */
     literalWhenNumeric?: boolean;
+    /**
+     * The attribute is read before references can be (a `<variantControl>`'s,
+     * read to decide the document's variants before anything in it is made):
+     * a reference written in it is ignored, with `doenet-e0085` at the
+     * attribute, and the rest of what is written is kept. An attribute that
+     * holds nothing else is left out, as if not written (D47 decision 1).
+     */
+    readBeforeReferences?: boolean;
     /** Create an attribute of type "component" with componentType `createComponentOfType` */
     createComponentOfType?: string;
     /** Create an attribute of type "primitive" with primitive type determined by `createPrimitiveOfType` */

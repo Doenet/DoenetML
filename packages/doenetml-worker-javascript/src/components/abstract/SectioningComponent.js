@@ -1604,10 +1604,31 @@ export class SectioningComponent extends BlockComponent {
         // console.log("Selected seed: " + variantControlChild.stateValues.selectedSeed);
         // console.log("Variant name for " + this.componentType + ": " + sharedParameters.variantName);
 
+        // The variants of the descendants. A section with unique variants
+        // is handed them with its variant when what holds it has unique
+        // variants too. When not (a `<problem>` with a `<variantControl>` in
+        // a document with `uniqueVariants="false"`), they are worked out here
+        // from its variant, so that its variants are unique as its
+        // `<variantControl>` says (#2579 item 5).
+        let subvariants = desiredVariant?.subvariants;
+        if (
+            subvariants === undefined &&
+            serializedComponent.variants.uniqueVariants
+        ) {
+            const result = this.getUniqueVariant({
+                serializedComponent,
+                variantIndex,
+                componentInfoObjects: core.componentInfoObjects,
+            });
+            if (result.success) {
+                subvariants = result.desiredVariant.subvariants;
+            }
+        }
+
         // if subvariants were specified, add those the corresponding descendants
-        if (desiredVariant?.subvariants && descendantVariantComponents) {
-            for (let ind in desiredVariant.subvariants) {
-                let subvariant = desiredVariant.subvariants[ind];
+        if (subvariants && descendantVariantComponents) {
+            for (let ind in subvariants) {
+                let subvariant = subvariants[ind];
                 let variantComponent = descendantVariantComponents[ind];
                 if (variantComponent === undefined) {
                     break;
