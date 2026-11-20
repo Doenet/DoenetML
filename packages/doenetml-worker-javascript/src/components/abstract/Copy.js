@@ -9948,10 +9948,8 @@ function extendAnswerErrors({ attributeNames, children, source }) {
         if (typeof child === "string") {
             return child.trim() !== "";
         }
-        // A copy's tag is compared as written, as the answer's sugar compares
-        // it (`componentIsSpecifiedType`, case-sensitive): it reads a
-        // `<Label copy>` as award content, adding an input and an award,
-        // and only a `<label copy>` as the answer's label.
+        // A copy's tag is compared as written: tag names are case-sensitive,
+        // as the answer's sugar compares them (`componentIsSpecifiedType`).
         const tag =
             child?.componentType === "_copy"
                 ? child.attributes?._createComponentOfType?.primitive?.value

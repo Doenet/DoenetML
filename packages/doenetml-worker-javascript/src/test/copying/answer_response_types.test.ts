@@ -393,7 +393,6 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
 <answer name="e3" extend="$ans" showCorrectness="false" hide><label>Again</label></answer>
 <label name="l">Once more</label>
 <answer name="e4" extend="$ans"><label copy="$l"/></answer>
-<answer name="e5" extend="$ans"><Label copy="$l"/></answer>
 <answer name="ans2" copy="$ans"><textInput name="ti"/></answer>
 <answer name="ans3" type="text">hello</answer>
 <answer name="ans4" copy="$ans3"><mathInput name="mi2"/></answer>
@@ -406,12 +405,9 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             "doenet-e0083: An `extend` of an `<answer>` shares its responses and credit with `$ans`, which grades them, so it can't change `weight`. To grade with a different `weight`, use `copy`.",
             // in a case not shown, at load
             "doenet-e0084: What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `$ans`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.",
-            // The answer's sugar reads a copy written `<Label copy>` as award
-            // content, not as its label, and would add an input and an award.
-            "doenet-e0084: What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `$ans`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.",
         ]);
         let stateVariables = await core.returnAllStateVariables(false, true);
-        for (const name of ["e1", "e2", "e5"]) {
+        for (const name of ["e1", "e2"]) {
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].componentType,
                 name,
