@@ -3069,10 +3069,10 @@ describe("Sectioning tag tests @group3", async () => {
         await check("2");
     });
 
-    // A copy given the type of a division or of a container the numbering
-    // passes through stands in its parent's children as a placeholder, and a
-    // section after it waits for it to be made, then is numbered after what
-    // it holds. Each document failed with a circular dependency through the
+    // A section or `<div>` that extends one written later, or one in a
+    // `<repeatForSequence>`, is made in place as a section or `<div>` (not a
+    // placeholder), and a section after it is numbered after what it holds.
+    // Each document failed on `main` with a circular dependency through the
     // sequence after `s`.
     it("a section after a copy of a later section, of a repeated section or of a div is numbered after it", async () => {
         for (const [doenetML, numbers, seq] of [
