@@ -1343,9 +1343,7 @@ export async function changeInactiveComponentAndDescendants({
         if (component.constructor.holdsUnenteredEdit) {
             if (inactive) {
                 // a withheld input isn't focused
-                if (core.componentBeingEdited === component.componentIdx) {
-                    core.componentBeingEdited = null;
-                }
+                core.inputNoLongerFocused(component.componentIdx);
             } else {
                 // shown again: an edit it holds is committed (D50)
                 core.inputsToCommit.add(component.componentIdx);

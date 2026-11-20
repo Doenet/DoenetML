@@ -13,6 +13,7 @@ An action reaches what its `target` stands for, an input that isn't focused neve
 - **An input that isn't focused never shows an edit that wasn't entered** (D50). Dragging a point in a graph doesn't take focus from an input, and a condition can read `$mi.immediateValue` as the reader types, so the edit wasn't always entered. Now an input enters its edit when it is made or shown again, unless it is the input the reader is editing:
   - a `<mathInput copyWithState="$mi"/>` that a drag or typing shows, made while `mi` has an edit not entered, shows the edit entered, not value `1` with `4` typed over it;
   - an input in a case a drag hides while the reader edits it enters the edit when shown again;
+  - an `extend` of an input, in a case a drag hides while the reader edits it, enters the edit in the input it extends, which stays shown;
   - a reload enters the edit of every input, not only of the last one edited.
 
   An input made again with an edit that its value has since replaced (through `bindValueTo`) still shows its value.

@@ -174,6 +174,44 @@ describe("An input that isn't focused shows no edit not entered @group2", () => 
         });
     }
 
+    for (const withElse of [false, true]) {
+        it(`an edit typed into an extend a drag hides is entered in its source${withElse ? ", with an else" : ""}`, async () => {
+            // The extend shows its source's edit, which the source, still
+            // shown and not focused, would otherwise keep showing.
+            const h = await setup(`
+    <mathInput name="a" prefill="1"/>
+    <graph><point name="P">(0,0)</point></graph>
+    <conditionalContent name="cc">
+      <case condition="$P.x < 1"><mathInput name="e" extend="$a"/></case>
+      ${withElse ? "<else>no</else>" : ""}
+    </conditionalContent>`);
+            await h.editMath("cc.e", "4");
+            expect(await h.shown("a")).eq("1 / 4");
+            await h.drag("P", 2);
+            expect(await h.shown("a")).eq("4 / 4");
+            await h.drag("P", 0);
+            expect(await h.shown("a")).eq("4 / 4");
+            expect(await h.shown("cc.e")).eq("4 / 4");
+        });
+    }
+
+    it("an extend made, or shown again, leaves the edit of the input typed into, through another extend", async () => {
+        const h = await setup(`
+    <mathInput name="a" prefill="1"/>
+    <mathInput name="e" extend="$a"/>
+    <graph><point name="P">(0,0)</point></graph>
+    <conditionalContent name="cc">
+      <case condition="$P.x > 1"><mathInput name="f" extend="$a"/></case>
+    </conditionalContent>`);
+        await h.editMath("e", "4");
+        await h.drag("P", 2);
+        expect(await h.shown("a")).eq("1 / 4");
+        expect(await h.shown("cc.f")).eq("1 / 4");
+        await h.drag("P", 0);
+        await h.drag("P", 2);
+        expect(await h.shown("e")).eq("1 / 4");
+    });
+
     it("a reload enters the edit of every input, not only the last edited", async () => {
         const h = await setup(`
     <mathInput name="mi" prefill="1"/>

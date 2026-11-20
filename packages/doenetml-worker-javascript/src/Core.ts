@@ -266,8 +266,8 @@ export default class Core {
     /**
      * The input the reader is editing: the last to receive an edit not yet
      * entered (`setComponentNeedingUpdateValue`), until it is entered, or is
-     * withheld (`changeInactiveComponentAndDescendants`), which it can't be
-     * while focused. Kept only in memory: after a reload nothing is being
+     * withheld or deleted (`inputNoLongerFocused`), which it can't be while
+     * focused. Kept only in memory: after a reload nothing is being
      * edited (D50).
      */
     componentBeingEdited: number | null = null;
@@ -1254,19 +1254,22 @@ export default class Core {
      *
      * Run at the end of load and after each request (`ProcessQueue`), never
      * during an update. Skipped: an input withheld (committed when shown
-     * again), and a shadow (`extend`), which shows its source's edit, the
-     * source's to commit.
+     * again), and an input showing the edit of the input being edited: an
+     * `extend` of it, or what it extends (`sourceOfInput`).
      */
     async commitUnenteredEdits(): Promise<void> {
         while (this.inputsToCommit.size > 0) {
             const candidates = [...this.inputsToCommit];
             this.inputsToCommit.clear();
+            const edited =
+                this.componentBeingEdited === null
+                    ? null
+                    : this.sourceOfInput(this.componentBeingEdited);
             for (const componentIdx of candidates) {
                 const component = this._components[componentIdx];
                 if (
                     !component ||
-                    componentIdx === this.componentBeingEdited ||
-                    component.shadows ||
+                    this.sourceOfInput(componentIdx) === edited ||
                     (await component.stateValues
                         .isInactiveCompositeReplacement) ||
                     !(await hasUnenteredEdit(component))
@@ -1279,6 +1282,39 @@ export default class Core {
                     args: {},
                 });
             }
+        }
+    }
+
+    /**
+     * The input whose edit the input `componentIdx` shows: the input it
+     * shadows (an `extend`), at any depth, or itself.
+     */
+    sourceOfInput(componentIdx: number): number {
+        let component = this._components[componentIdx];
+        while (component?.shadows) {
+            const source = this._components[component.shadows.componentIdx];
+            if (!source) {
+                break;
+            }
+            component = source;
+        }
+        return component?.componentIdx ?? componentIdx;
+    }
+
+    /**
+     * The input `componentIdx` is withheld or deleted, and so isn't focused:
+     * if it is the input being edited, nothing is, and the input whose edit
+     * it showed (`sourceOfInput`, an input it extends, which may still be
+     * shown) is committed (D50, `commitUnenteredEdits`).
+     */
+    inputNoLongerFocused(componentIdx: number): void {
+        if (this.componentBeingEdited !== componentIdx) {
+            return;
+        }
+        this.componentBeingEdited = null;
+        const source = this.sourceOfInput(componentIdx);
+        if (source !== componentIdx) {
+            this.inputsToCommit.add(source);
         }
     }
 

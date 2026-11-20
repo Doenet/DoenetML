@@ -89,7 +89,7 @@ export async function deleteComponents({
         core.componentBeingEdited !== null &&
         core.componentBeingEdited in componentsToDelete
     ) {
-        core.componentBeingEdited = null;
+        core.inputNoLongerFocused(core.componentBeingEdited);
     }
 
     // Only the components made from the DoenetML of `components` are made
