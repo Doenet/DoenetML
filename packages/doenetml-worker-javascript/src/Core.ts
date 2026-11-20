@@ -273,8 +273,10 @@ export default class Core {
     componentBeingEdited: number | null = null;
     /**
      * Inputs made, or shown again, since unentered edits were last committed
-     * (`commitUnenteredEdits`, D50): each of those that isn't the input being
-     * edited and shows an edit not entered is committed.
+     * (`commitUnenteredEdits`, D50), and the input an `extend` withheld or
+     * deleted while edited extends (`inputNoLongerFocused`): each of those
+     * that shows an edit not entered, other than the edit of the input being
+     * edited, is committed.
      */
     inputsToCommit: Set<number> = new Set();
     /**
@@ -1250,12 +1252,15 @@ export default class Core {
      * isn't focused never shows an edit that wasn't entered (D50, SAVE-1).
      * Such an input was made from saved state (at load, or in a case shown
      * again), carried by a `copyWithState` of an input with an edit not
-     * entered, or withheld while the reader edited it.
+     * entered, or withheld while the reader edited it; or it is extended by
+     * an input withheld or deleted while the reader edited it.
      *
-     * Run at the end of load and after each request (`ProcessQueue`), never
-     * during an update. Skipped: an input withheld (committed when shown
-     * again), and an input showing the edit of the input being edited: an
-     * `extend` of it, or what it extends (`sourceOfInput`).
+     * Run at the end of load and after each update or action request
+     * (`ProcessQueue`), never during an update. Skipped: an input withheld
+     * (committed when shown again), a disabled one (`hasUnenteredEdit`), and
+     * an input showing the edit of the input being edited, with the same
+     * source (`sourceOfInput`): the input itself, what it extends, or an
+     * `extend` of either.
      */
     async commitUnenteredEdits(): Promise<void> {
         while (this.inputsToCommit.size > 0) {

@@ -83,10 +83,11 @@ export function compositeTargetsDependency({
 
 /**
  * The targets among `identities`, the components a
- * {@link compositeTargetsDependency} gives: not the blank text between
- * them, nor the `<setup>` a repeat adds to an iteration for its names,
- * neither of which is something an author targets. A component it holds
- * that is text (not blank) stays, and is reported as having no value.
+ * {@link compositeTargetsDependency} gives: not the text written among
+ * them (a string, blank or not), nor the `<setup>` a repeat adds to an
+ * iteration for its names, neither of which is something an author targets.
+ * A wrapper holding only text so has no target (`doenet-w0043`), as an
+ * empty one; a `<text>` component it holds is a target like any other.
  */
 export function targetsAmongReplacements(identities: any[]) {
     return identities.filter(

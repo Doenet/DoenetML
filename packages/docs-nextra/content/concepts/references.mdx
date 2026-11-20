@@ -60,7 +60,9 @@ from another and then changes on its own, use `copy` or `copyWithState`.
   given variant and kept through a reload.
 - `<T copyWithState="$x"/>{:dn}` is a copy that also starts with `x`'s current
   state: what the reader has entered or moved, and the random choices of `x`
-  and of everything inside it. It keeps that snapshot through a reload.
+  and of everything inside it. It keeps that snapshot through a reload. A
+  copy of an input the reader has typed into but not yet entered starts with
+  what was typed, entered.
 
 Below, type in the first input and drag the point, then check the box. The
 `copy` starts at the prefill and where the point was written, while the

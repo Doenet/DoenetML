@@ -15,11 +15,12 @@ vi.mock("hyperformula");
 /**
  * An input that isn't focused never shows an edit that wasn't entered (D50,
  * SAVE-1; #2598 item 5). The renderer enters an edit when the input loses
- * focus, but a graph drag doesn't take focus from it, and a condition can
+ * focus, but a graph drag may not take focus from it, and a condition can
  * read `$mi.immediateValue` as the reader types. So the core enters, when it
  * is made or shown again, the edit of any input made from saved state,
- * carried by a `copyWithState`, or withheld while the reader edited it, other
- * than the input the reader is editing.
+ * carried by a `copyWithState`, or withheld while the reader edited it (for
+ * an `extend`, in the input it extends), other than the input the reader is
+ * editing. A drag here is a core request, which takes focus from nothing.
  */
 
 /**
@@ -89,7 +90,7 @@ describe("An input that isn't focused shows no edit not entered @group2", () => 
       <case condition="$P.x > 1"><mathInput name="c" copyWithState="$mi"/></case>
     </conditionalContent>`);
         await h.editMath("mi", "4");
-        // the drag doesn't take focus from `mi`
+        // a drag that doesn't take focus from `mi`
         await h.drag("P", 2);
         expect(await h.shown("mi")).eq("1 / 4");
         expect(await h.shown("cc.c")).eq("4 / 4");

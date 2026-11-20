@@ -169,8 +169,8 @@ async function listEntriesOf(component) {
  * written is kept (`authoredComponent`), which a `copy` of it, writing its
  * DoenetML again, is given in place of the value (`serialize`,
  * `withoutReaderState`), so it computes it from what it is given.
- * `listSplitting`, from {@link heldValueAsWritten}, is how the list `text`
- * is written in splits it (its hidden `_listSplitting` attribute).
+ * `listSplitting`, from {@link heldValueAsWritten}, is how the list that
+ * `text` is written in splits it (its hidden `_listSplitting` attribute).
  */
 export function holdAttributeComponentAt({
     attribute,
