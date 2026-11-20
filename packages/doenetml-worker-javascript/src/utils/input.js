@@ -296,6 +296,13 @@ export function returnImmediateValueStateVariableDefinition({
             initialChange,
             shadowedVariable,
         }) {
+            // Both inputs that use this hold text: a value of another type,
+            // such as the math an `<updateValue>` without `type="text"`
+            // sends, is refused rather than stored (DIAG-5, #2607).
+            if (typeof desiredStateVariableValues.immediateValue !== "string") {
+                return { success: false };
+            }
+
             // value is essential; give it the desired value
             let instructions = [
                 {

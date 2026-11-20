@@ -14,7 +14,7 @@ import { instanceOfAttribute } from "../utils/indexInstances";
 import {
     deepClone,
     enumerateSelectionCombinations,
-    enumerateCombinations,
+    combinationAtIndex,
 } from "@doenet/utils";
 import {
     gatherVariantComponents,
@@ -1266,12 +1266,12 @@ export default class Select extends CompositeComponent {
         let selectedCombination = combinations[combinationIndexSelected];
         // console.log("selectedCombination: ", selectedCombination)
 
-        let indicesForEachChild = enumerateCombinations({
+        let indicesForEachChild = combinationAtIndex({
             numberOfOptionsByIndex: selectedCombination.map(
                 (x) => numVariantsByChild[x],
             ),
-            maxNumber: variantIndexOfSelected,
-        })[variantIndexOfSelected - 1].map((x) => x + 1);
+            index: variantIndexOfSelected - 1,
+        }).map((x) => x + 1);
 
         // console.log("indicesForEachChild: " + indicesForEachChild)
 

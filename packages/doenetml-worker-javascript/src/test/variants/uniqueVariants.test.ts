@@ -3303,4 +3303,39 @@ describe("Unique variant tests @group1", async () => {
                 .sharedParameters.allPossibleVariants.length,
         ).eq(100);
     });
+
+    it("a variant far into millions of unique variants loads (#2598 item 3)", async () => {
+        // 9 × 970,200 unique variants: under the ten million there can be
+        // before variants are picked independently. Variant 2 is unique
+        // variant 7,042,939, and finding it built every combination before
+        // it, which ran the worker out of memory.
+        const doenetML = `
+<group name="g"><number name="n">$h.k+1</number></group>
+<group name="h"><number name="k">5</number><select name="sel">1 2 3 4 5 6 7 8 9</select></group>
+<p name="p3">$h.sel</p>
+<selectFromSequence name="last" to="100" numToSelect="3" />
+`;
+        for (const requestedVariantIndex of [1, 2]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
+            ).eq(6);
+            const selected =
+                stateVariables[await resolvePathToNodeIdx("last")].stateValues
+                    .selectedValues;
+            expect(selected.length).eq(3);
+            expect(new Set(selected).size).eq(3);
+            for (const value of selected) {
+                expect(value).gte(1).lte(100);
+            }
+        }
+    });
 });

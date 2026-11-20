@@ -1,5 +1,5 @@
 import { serializedAttributeComponent } from "../utils/literalAttribute";
-import { enumerateSelectionCombinations } from "@doenet/utils";
+import { selectionCombinationAtIndex } from "@doenet/utils";
 import {
     extractConstantSortAttribute,
     pushVariantInfo,
@@ -582,12 +582,12 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             };
         }
 
-        let numbers = enumerateSelectionCombinations({
+        let numbers = selectionCombinationAtIndex({
             numberOfIndices: numToSelect,
             numberOfOptions: primes.length,
-            maxNumber: variantIndex,
             withReplacement,
-        })[variantIndex - 1];
+            index: variantIndex - 1,
+        });
         let values = numbers.map((x) => primes[x]);
         return { success: true, desiredVariant: { values } };
     }

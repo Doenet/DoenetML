@@ -301,6 +301,13 @@ export default class CodeEditor extends BlockComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
+                // A code editor holds text. A value of another type, such as
+                // the math an `<updateValue>` without `type="text"` sends,
+                // is refused rather than stored (DIAG-5, #2607).
+                if (typeof desiredStateVariableValues.value !== "string") {
+                    return { success: false };
+                }
+
                 let instructions = [
                     {
                         setDependency: "valueChanged",

@@ -1,7 +1,7 @@
 import { serializedAttributeComponent } from "./literalAttribute";
 import {
     numberToLetters,
-    enumerateCombinations,
+    combinationAtIndex,
     codedDiagnostic,
 } from "@doenet/utils";
 import type { DiagnosticRecord } from "@doenet/utils";
@@ -29,10 +29,10 @@ export function getVariantsForDescendantsForUniqueVariants({
         (x: any) => x.variants.numVariants,
     );
 
-    let indices = enumerateCombinations({
+    let indices = combinationAtIndex({
         numberOfOptionsByIndex: numVariantsByDescendant,
-        maxNumber: variantIndex,
-    })[variantIndex - 1];
+        index: variantIndex - 1,
+    });
 
     let desiredVariants = [];
     for (let [ind, comp] of descendantVariantComponents.entries()) {

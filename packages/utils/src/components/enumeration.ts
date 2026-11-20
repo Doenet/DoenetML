@@ -253,3 +253,257 @@ export function enumeratePermutations({
 
     return result;
 }
+
+// The functions below give one entry of the enumerations above, the one at
+// `index` (counting from 0), without building the entries before it. A
+// variant is found by its index among the unique variants, and a document
+// can have up to ten million of them (`determineVariantsForSection`), so
+// building every entry up to it can run out of memory (#2598).
+// Each gives exactly the entry the matching enumeration has at `index`,
+// and `undefined` where the enumeration has none.
+
+/**
+ * The combination `enumerateCombinations({ numberOfOptionsByIndex })` has
+ * at `index`, worked out directly.
+ */
+export function combinationAtIndex({
+    numberOfOptionsByIndex,
+    index,
+}: {
+    numberOfOptionsByIndex: number[];
+    index: number;
+}): number[] | undefined {
+    const numberOfIndices = numberOfOptionsByIndex.length;
+
+    if (numberOfIndices === 0 || !Number.isInteger(index) || index < 0) {
+        return undefined;
+    }
+
+    const gcds: number[][] = [];
+    for (let ind1 = 0; ind1 < numberOfIndices; ind1++) {
+        const g: number[] = [];
+        for (let ind2 = 0; ind2 < ind1; ind2++) {
+            g.push(
+                gcd(numberOfOptionsByIndex[ind1], numberOfOptionsByIndex[ind2]),
+            );
+        }
+        gcds.push(g);
+    }
+    const maxGCD = gcds.flat().reduce((a, c) => Math.max(a, c), 1);
+
+    if (maxGCD === 1) {
+        const totalCombinations = numberOfOptionsByIndex.reduce(
+            (a, c) => a * c,
+        );
+        if (index >= totalCombinations) {
+            return undefined;
+        }
+        return numberOfOptionsByIndex.map((x) => index % x);
+    }
+
+    if (numberOfIndices === 2) {
+        const computedLcm = lcm(...numberOfOptionsByIndex);
+        if (index >= maxGCD * computedLcm) {
+            return undefined;
+        }
+        const offset = Math.floor(index / computedLcm);
+        const ind = index % computedLcm;
+        return [
+            ind % numberOfOptionsByIndex[0],
+            (ind + offset) % numberOfOptionsByIndex[1],
+        ];
+    }
+
+    // Combine the same pair `enumerateCombinations` does: the first pair,
+    // lowest index first, whose gcd is more than one and whose lcm is the
+    // smallest.
+    let minLCM = Infinity;
+    let matchInds: number[] = [];
+    for (let ind1 = 0; ind1 < numberOfIndices; ind1++) {
+        for (let ind2 = 0; ind2 < ind1; ind2++) {
+            if (gcds[ind1][ind2] > 1) {
+                const m = lcm(
+                    numberOfOptionsByIndex[ind1],
+                    numberOfOptionsByIndex[ind2],
+                );
+                if (m < minLCM) {
+                    minLCM = m;
+                    matchInds = [ind2, ind1];
+                }
+            }
+        }
+    }
+
+    const n0 = numberOfOptionsByIndex[matchInds[0]];
+    const n1 = numberOfOptionsByIndex[matchInds[1]];
+
+    const outerOptions = [...numberOfOptionsByIndex];
+    outerOptions[matchInds[0]] = n0 * n1;
+    outerOptions.splice(matchInds[1], 1);
+
+    const result = combinationAtIndex({
+        numberOfOptionsByIndex: outerOptions,
+        index,
+    });
+    if (result === undefined) {
+        return undefined;
+    }
+    const inner = combinationAtIndex({
+        numberOfOptionsByIndex: [n0, n1],
+        index: result[matchInds[0]],
+    })!;
+    result.splice(matchInds[0], 1, inner[0]);
+    result.splice(matchInds[1], 0, inner[1]);
+
+    return result;
+}
+
+/**
+ * The combinations `enumerateSelectionCombinations` gives, one at a time,
+ * in the same order, without a `maxNumber`.
+ */
+function* selectionCombinations({
+    numberOfIndices,
+    numberOfOptions,
+    withReplacement,
+    skipZero,
+}: {
+    numberOfIndices: number;
+    numberOfOptions: number;
+    withReplacement: boolean;
+    skipZero: boolean;
+}): Generator<number[]> {
+    if (numberOfIndices <= 0) {
+        yield [];
+        return;
+    }
+    if (numberOfIndices === 1) {
+        for (let x = 1; x < numberOfOptions; x++) {
+            yield [x];
+        }
+        if (!skipZero) {
+            yield [0];
+        }
+        return;
+    }
+    for (const offsets of selectionCombinations({
+        numberOfIndices: numberOfIndices - 1,
+        numberOfOptions,
+        withReplacement,
+        skipZero: !withReplacement,
+    })) {
+        for (let ind0 = 1; ind0 <= numberOfOptions; ind0++) {
+            const combination = [
+                ind0 % numberOfOptions,
+                ...offsets.map((x) => (ind0 + x) % numberOfOptions),
+            ];
+            if (skipZero && combination.includes(0)) {
+                continue;
+            }
+            yield combination;
+        }
+    }
+}
+
+/**
+ * The combination `enumerateSelectionCombinations({ numberOfIndices,
+ * numberOfOptions, withReplacement })` has at `index`, found without keeping
+ * the combinations before it.
+ *
+ * Each combination of offsets gives `numberOfOptions` combinations in a row,
+ * so only the combinations of offsets before the one wanted are stepped
+ * through.
+ */
+export function selectionCombinationAtIndex({
+    numberOfIndices,
+    numberOfOptions,
+    withReplacement,
+    index,
+}: {
+    numberOfIndices: number;
+    numberOfOptions: number;
+    withReplacement: boolean;
+    index: number;
+}): number[] | undefined {
+    if (!Number.isInteger(index) || index < 0) {
+        return undefined;
+    }
+    if (numberOfIndices <= 1) {
+        let i = 0;
+        for (const combination of selectionCombinations({
+            numberOfIndices,
+            numberOfOptions,
+            withReplacement,
+            skipZero: false,
+        })) {
+            if (i === index) {
+                return combination;
+            }
+            i++;
+        }
+        return undefined;
+    }
+    if (numberOfOptions <= 0) {
+        return undefined;
+    }
+
+    // At the top level no combination is skipped, so the offsets are the
+    // `index / numberOfOptions`-th combination of offsets.
+    const offsetsIndex = Math.floor(index / numberOfOptions);
+    const ind0 = (index % numberOfOptions) + 1;
+
+    let i = 0;
+    for (const offsets of selectionCombinations({
+        numberOfIndices: numberOfIndices - 1,
+        numberOfOptions,
+        withReplacement,
+        skipZero: !withReplacement,
+    })) {
+        if (i === offsetsIndex) {
+            return [
+                ind0 % numberOfOptions,
+                ...offsets.map((x) => (ind0 + x) % numberOfOptions),
+            ];
+        }
+        i++;
+    }
+    return undefined;
+}
+
+/**
+ * The permutation `enumeratePermutations({ values })` has at `index`,
+ * worked out directly: the permutations are in the order of the positions
+ * picked from `values`, so `index` written in the factorial number system
+ * gives the position to pick at each step.
+ */
+export function permutationAtIndex<T>({
+    values,
+    index,
+}: {
+    values: T[];
+    index: number;
+}): T[] | undefined {
+    if (!Number.isInteger(index) || index < 0) {
+        return undefined;
+    }
+    const n = values.length;
+
+    // factorials[k] is k!
+    const factorials = [1];
+    for (let k = 1; k <= n; k++) {
+        factorials.push(factorials[k - 1] * k);
+    }
+    if (index >= factorials[n]) {
+        return undefined;
+    }
+
+    const remaining = [...values];
+    const result: T[] = [];
+    let rest = index;
+    for (let k = n - 1; k >= 0; k--) {
+        const pick = Math.floor(rest / factorials[k]);
+        rest %= factorials[k];
+        result.push(remaining.splice(pick, 1)[0]);
+    }
+    return result;
+}
