@@ -570,6 +570,51 @@ ${select}
         expect(new Set(ns.flat()).size).eq(ns.length);
     });
 
+    it("a problem's variantControl, in a section without unique variants", async () => {
+        // The document's variants are unique, but the section's aren't, so
+        // the count stops at the section and the problem isn't handed its
+        // subvariants. Before #2579 its `<variantControl>` was ignored, and
+        // the problem took the section's variant names.
+        const { stateVariables: unique, resolvePathToNodeIdx: resolve } =
+            await load(`
+<problem name="p">
+    <variantControl numVariants="3" variantsToInclude="a" />
+    <selectFromSequence name="n" from="1" to="3" />
+    <number name="nn">$n</number>
+</problem>
+`);
+        const nOfA = unique[await resolve("nn")].stateValues.value;
+
+        const variantNames = new Set<string>();
+        for (let ind = 1; ind <= 4; ind++) {
+            const {
+                variants,
+                variantName,
+                stateVariables,
+                resolvePathToNodeIdx,
+            } = await load(
+                `
+<section>
+    <variantControl numVariants="4" uniqueVariants="false" />
+    <problem name="p">
+        <variantControl numVariants="3" variantsToExclude="b c" />
+        <selectFromSequence name="n" from="1" to="3" />
+        <number name="nn">$n</number>
+    </problem>
+</section>
+`,
+                { componentName: "p", requestedVariantIndex: ind },
+            );
+            expect(variants).eqls(["a"]);
+            variantNames.add(variantName);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("nn")].stateValues
+                    .value,
+            ).eq(nOfA);
+        }
+        expect([...variantNames]).eqls(["a"]);
+    });
+
     it("a problem's error is reported once in a document with unique variants", async () => {
         const { variants, errors } = await load(
             `
