@@ -184,8 +184,8 @@ export class StatePersistence {
      * component's mirror of the state of another component it shadows. See
      * `_isNonPropShadow`.
      *
-     * `__`-prefixed keys are reserved sentinels rather than components' entries
-     * (`__componentNeedingUpdateValue`), and are always carried.
+     * `__`-prefixed keys are reserved rather than components' entries
+     * (`__componentTypes`), and are always carried.
      */
     _readerStateToSave(): Record<string, any> {
         const cumulative = this.core.cumulativeStateVariableChanges;

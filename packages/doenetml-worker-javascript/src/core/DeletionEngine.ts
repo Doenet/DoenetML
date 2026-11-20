@@ -83,6 +83,15 @@ export async function deleteComponents({
         componentsToDelete,
     });
 
+    // An input deleted isn't being edited, and one made again with its index
+    // (a case shown again) enters its edit (D50, `commitUnenteredEdits`).
+    if (
+        core.componentBeingEdited !== null &&
+        core.componentBeingEdited in componentsToDelete
+    ) {
+        core.inputNoLongerFocused(core.componentBeingEdited);
+    }
+
     // Only the components made from the DoenetML of `components` are made
     // again with their `stateId`s. A shadow elsewhere, such as an `extend` of
     // a component in a case, is made again as a shadow of whatever it then

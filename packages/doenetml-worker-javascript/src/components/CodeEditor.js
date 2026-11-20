@@ -17,6 +17,10 @@ export default class CodeEditor extends BlockComponent {
         });
     }
     static componentType = "codeEditor";
+    // An edit not yet entered (`immediateValue`) is committed when the input
+    // is made, or shown again, unless it is the input the reader is editing
+    // (`Core.commitUnenteredEdits`, D50).
+    static holdsUnenteredEdit = true;
     // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
     static isValue = true;
 

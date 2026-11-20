@@ -294,7 +294,10 @@ describe("Restored state in withheld content follows changes outside it @group2"
             expect(w.rawRendererValue).eq("8");
         });
 
-        it(`an input's edit not yet entered is kept while its value is unchanged${withElse ? ", with an else" : ""}`, async () => {
+        it(`an input's edit not yet entered, its value unchanged, is entered when shown again${withElse ? ", with an else" : ""}`, async () => {
+            // An input that isn't focused shows no edit not entered (D50):
+            // the edit was kept while withheld, and is entered when the
+            // input is shown again, through `bindValueTo`.
             const h = await setup(inputInCase(withElse));
             await updateMathInputImmediateValue({
                 latex: "4",
@@ -304,17 +307,24 @@ describe("Restored state in withheld content follows changes outside it @group2"
             await h.setBoolean("b", false);
             await h.setBoolean("b", true);
             let w = (await h.sv("cc.w")).stateValues;
-            expect(w.value.tree).eq(1);
+            expect(w.value.tree).eq(4);
             expect(w.immediateValue.tree).eq(4);
             expect(w.rawRendererValue).eq("4");
+            expect((await h.sv("x")).stateValues.value.tree).eq(4);
 
+            await updateMathInputImmediateValue({
+                latex: "6",
+                componentIdx: await h.idx("cc.w"),
+                core: h.core(),
+            });
             await h.setBoolean("b", false);
             await h.reload();
             await h.setBoolean("b", true);
             w = (await h.sv("cc.w")).stateValues;
-            expect(w.value.tree).eq(1);
-            expect(w.immediateValue.tree).eq(4);
-            expect(w.rawRendererValue).eq("4");
+            expect(w.value.tree).eq(6);
+            expect(w.immediateValue.tree).eq(6);
+            expect(w.rawRendererValue).eq("6");
+            expect((await h.sv("x")).stateValues.value.tree).eq(6);
         });
 
         it(`an edit its value replaced while shown is not brought back when the value returns while withheld${withElse ? ", with an else" : ""}`, async () => {
@@ -491,7 +501,7 @@ describe("Restored state in withheld content follows changes outside it @group2"
         });
     }
 
-    it("a text input's edit not yet entered is kept through another case and back", async () => {
+    it("a text input's edit not yet entered is entered when shown again through another case and back", async () => {
         const h = await setup(`
     <booleanInput name="b" prefill="true"/>
     <conditionalContent name="cc">
@@ -505,8 +515,9 @@ describe("Restored state in withheld content follows changes outside it @group2"
         });
         await h.setBoolean("b", false);
         await h.setBoolean("b", true);
+        // made again from saved state, it shows no edit not entered (D50)
         const t = (await h.sv("cc.t")).stateValues;
-        expect(t.value).eq("a");
+        expect(t.value).eq("zz");
         expect(t.immediateValue).eq("zz");
     });
 
@@ -527,7 +538,8 @@ describe("Restored state in withheld content follows changes outside it @group2"
         const saved = first.scoreState.state as string;
         expect(saved.split(edit.trim()).length - 1).eq(1);
 
-        // and it is still kept, shown again after a reload
+        // and it is not lost through reloads: entered at the first, as
+        // nothing is being edited after a reload (D50), and shown again
         const second = await createTestCore({
             doenetML,
             initialState: saved,
@@ -550,6 +562,7 @@ describe("Restored state in withheld content follows changes outside it @group2"
         const t = (await third.core.returnAllStateVariables(false, true))[
             await third.resolvePathToNodeIdx("cc.t")
         ].stateValues;
+        expect(t.value).eq(edit);
         expect(t.immediateValue).eq(edit);
     });
 

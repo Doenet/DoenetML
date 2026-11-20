@@ -889,6 +889,10 @@ export default class FractionComponentInput extends BaseComponent {
     }
 
     static componentType = "_fractionInputComponent";
+    // An edit not yet entered (`immediateValue`) is committed when the input
+    // is made, or shown again, unless it is the input the reader is editing
+    // (`Core.commitUnenteredEdits`, D50).
+    static holdsUnenteredEdit = true;
     static rendererType = "mathInput";
 
     static variableForImplicitProp = "value";
