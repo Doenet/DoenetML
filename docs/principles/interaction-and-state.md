@@ -301,6 +301,32 @@ silently does nothing. A counter `newValue="$n+1"` clicked twice and then reload
 
 Evidence: `T/tagSpecific/updatevalue.test.ts:272-400`, `:3404`, `:3455`, `:3512`.
 
+### ACT-2a: `newValue` is read as the target's type (Tier 1; D54)
+An `<updateValue>` sets its target to `newValue`, read as the target's type. The type is decided at
+load, as for any reference (TYPE): a bare `$b` is b's tag, an input is what it holds, and a
+property has its type. Authors don't write `type`.
+
+```xml
+<boolean name="b">false</boolean>
+<updateValue target="$b" newValue="true"/>       <!-- b becomes true -->
+<textInput name="ti" prefill="hi"/>
+<updateValue target="$ti" newValue="bye now"/>   <!-- ti becomes "bye now" -->
+```
+
+- A `newValue` of a related type converts as REF-5 allows (a math into a text target writes its
+  text). Booleans and numbers stay apart (D47): `newValue="true"` on a number target is a type
+  mix, with a warning.
+- Targets of more than one type are an error at load: `newValue` is one value, read one way.
+- A written `type` that agrees with the target is allowed but unneeded. One that disagrees is an
+  error at load naming the target's type.
+- An update that can't be applied is reported, never silent, and never throws.
+
+**Known violations** (#2607): `type` defaults to math, whatever the target.
+- With `type` left out, `newValue="true"` leaves a `<boolean>` false. `newValue="false"` only seems
+  to work, because a math that isn't `true` reads as false.
+- A `<booleanInput>` or a `<text>` target is unchanged, with no diagnostic.
+- A `<textInput>` target throws in the core (DIAG-5).
+
 ### ACT-3: actions run one after another, and each sees the result of the previous one (Tier 2)
 - A `<triggerSet>` doing `$n+10`, then `$n+100`, from n=3 gives 113.
 - A chain in which `a` doubles n, then `b` and `c` (both `triggerWith="$a"`) do `n+1` and `10n`,

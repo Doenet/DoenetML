@@ -3102,3 +3102,19 @@ the reference that needs it (TYPE-3), and `hasVariableComponentType` can be remo
    inside them doesn't split a list: `<vectorList>⟨1,2⟩ ⟨0,3⟩</vectorList>` is two vectors, and
    `⟨1,2⟩` beside `<vector>`s in a `<sort>` is one vector. As for the others, any closer closes any
    opener, so there is still one rule.
+
+## D54. `<updateValue>` reads `newValue` as its target's type (decided, Tier 1; November 2026)
+
+Authors had to write `type="boolean"` for `<updateValue target="$b" newValue="true"/>` to work,
+and without `type`, a text target was unchanged and a `<textInput>` target crashed the core
+(#2607). The target's type is known from the DoenetML (TYPE, D45), so the author shouldn't
+repeat it.
+
+**Decided** (ACT-2a in [interaction-and-state.md](interaction-and-state.md)):
+1. `newValue` is read as the target's type, decided at load.
+2. A related type converts as REF-5 allows; booleans and numbers stay apart (D47).
+3. Targets of more than one type are an error at load.
+4. A written `type` that agrees is allowed; one that disagrees is an error at load. The docs drop it
+   from examples.
+5. A target whose type the DoenetML doesn't decide is TYPE-3's error at the `target` (#2606).
+6. An update that can't be applied gives a diagnostic, never silence or a throw.
