@@ -3231,4 +3231,65 @@ describe("Section heading color accessibility diagnostics @group3", async () => 
         });
         expect(await sectionNumbers()).eqls({ s: "7", t: "8", later: "9" });
     });
+
+    // The same for the items numbered as a list, and for a section in a list
+    // item: each failed with a circular dependency through its parent.
+    it("a composite after a part, a problem among problems, or a section in a list item reads its number", async () => {
+        for (const [doenetML, first, second] of [
+            [
+                `<problem><part name="a"/><sequence name="seq" to="$a.sectionNumber"/><part name="b"/></problem>`,
+                "a",
+                "b",
+            ],
+            [
+                `<problems><problem name="a"/><sequence name="seq" to="$a.sectionNumber"/><problem name="b"/></problems>`,
+                "a",
+                "b",
+            ],
+            [
+                `<ol><li><section name="a"/><sequence name="seq" to="$a.sectionNumber"/><section name="b"/></li></ol>`,
+                "a",
+                "b",
+            ],
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${doenetML}<p name="p">$seq</p>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx(first)].stateValues
+                    .sectionNumber,
+                doenetML,
+            ).eq("1");
+            expect(
+                stateVariables[await resolvePathToNodeIdx(second)].stateValues
+                    .sectionNumber,
+                doenetML,
+            ).eq("2");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                doenetML,
+            ).eq("1");
+        }
+    });
+
+    // A composite before a section may make sections, so the section's number
+    // waits for it to expand. One that reads that number to expand is a
+    // genuine cycle, and still stops the document (D14), as before. Not
+    // waiting would number the section before the sections the composite
+    // makes, and the count would run away.
+    it("a composite before a section that reads the section's number still stops the document", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `
+    <repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence>
+    <section name="s"/>
+    `,
+            }),
+        ).rejects.toThrow("Circular dependency involving these components");
+    });
 });

@@ -4036,8 +4036,9 @@ describe("UpdateValue tag tests @group1", async () => {
 
     it("an update of a text input or code editor without type does not throw (#2607)", async () => {
         // Without `type`, `newValue` is read as a math, which a text input
-        // or code editor holds no more than a `<text>` does: each is left as
-        // it was. Before, a text input stored the math as its value, and its
+        // or code editor refuses, as a `<text>` written with content does
+        // (an empty `<text/>` takes the math's text): each is left as it
+        // was. Before, a text input stored the math as its value, and its
         // word count threw. Reading `newValue` as the target's type is D54.
         for (const [tag, target] of [
             ["textInput", "$ti"],
