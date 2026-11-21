@@ -1,5 +1,19 @@
 # @doenet/doenetml
 
+## 0.7.31
+
+### Patch Changes
+
+- 5794e56: Draw functions, curves, and `<regionBetweenCurves>` whose formulas use `pi`, absolute value, or inverse trig functions in a graph with the PreFigure renderer, which includes printed documents. These were left out of the graph, with no warning. Formulas using inverse hyperbolic functions, `arcsec`, `arccsc`, `arccot` (or `asec`, `acsc`, `acot`), `sech`, `csch`, `coth`, or factorial, which were dropped the same way, are drawn too. A formula that still cannot be drawn, such as one using `sign` or an undefined parameter, now gives a warning naming what PreFigure cannot evaluate.
+- 46c4b07: Draw `<text>`, `<number>`, `<math>`, `<m>`, `<md>`, and `<label>` placed in a graph with the PreFigure renderer, which includes printed documents, along with components built on them such as `<integer>`, `<mdn>`, and `<evaluate>`, and each entry of a `<textList>`, `<numberList>`, or `<mathList>`. These were left out of the graph, with no warning. Each is drawn at its `anchor`, on the side its `positionFromAnchor` names, in its style's text color, and an `<annotation>` can refer to it. On 0.7, a `<text>`, `<number>`, or `<math>` authored inside a list is drawn at the origin, centered, rather than at its own `anchor`.
+- c343f46: Draw `<slopeField>` and `<vectorField>` in a graph with the PreFigure renderer, which includes printed documents. They were left out of the graph with a warning that the renderer did not support them. Each is drawn as PreFigure's own slope or vector field, so an `<annotation>` can refer to it, on the lattice the interactive graph draws at its axis limits: `dx`, `dy`, `xoffset`, `yoffset` and `maxMarks` are honored, and lattice points outside the function's `domain` are left out. A vector field's longest arrow is `markLength` pixels long, or every arrow with `normalize`.
+
+    What PreFigure cannot draw is reported as a warning: a slope field's `markLength`, since PreFigure sizes slope marks from the lattice spacing; `normalize` on unequally scaled axes, where the arrows' lengths then vary with their direction; a dashed or dotted `lineStyle`; a function not given by a formula, which is not drawn; and a function such as `sqrt` or `log` that is undefined at a lattice point, or a vector field that divides by a function such as `sin(x)` where it is zero, either of which can keep PreFigure from drawing the field at all.
+
+    In both renderers, a field whose lattice cannot be walked now draws nothing instead of hanging the page: one whose `dx` or `dy` is so small, or whose `xoffset` or `yoffset` is so large, that its lattice points cannot be counted, and one with a very small `dx` or `dy` while no lattice line along the other axis is in view.
+
+- 116a6a5: With the PreFigure renderer, which includes printed documents, draw a `<vector>` whose `lineWidth`, set on it or in its style, is fractional or zero. Such a vector, and everything drawn after it in the graph, used to be left out with no warning. Its line width is now rounded to a whole number of pixels, at least 1, and a vector with a line width of 0 draws only its label, as in the interactive graph.
+
 ## 0.7.30
 
 ### Patch Changes
