@@ -373,6 +373,11 @@ The `collapsible` attribute makes a `<section>{:dn}` collapsible — clicking th
 banner toggles the section open or closed. By default a collapsible section starts
 expanded; set `startOpen="false"` to have it start collapsed.
 
+The title banner holds a button, so a keyboard user can reach it with Tab and
+open or close the section with Enter or Space, and a screen reader announces the
+title as a button that is collapsed or expanded. The heading keeps its level in
+the document outline.
+
 (`<aside>{:dn}` and `<proof>{:dn}` are collapsible and start collapsed by default
 without setting this attribute.)
 
