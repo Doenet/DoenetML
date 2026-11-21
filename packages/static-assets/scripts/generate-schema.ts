@@ -41,7 +41,8 @@ const tagEntries: [string, string[]][] = [
 ];
 const attributeNames: string[] = [];
 const indexOfName = new Map<string, number>();
-const tags: Record<string, number[]> = {};
+// Without a prototype, so that no tag name can be read as one of its keys.
+const tags: Record<string, number[]> = Object.create(null);
 for (const [tag, names] of tagEntries) {
     tags[tag] = names.map((name) => {
         let index = indexOfName.get(name);
