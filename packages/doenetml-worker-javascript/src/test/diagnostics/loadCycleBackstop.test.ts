@@ -220,6 +220,21 @@ ${copy}
                 "$m.hidden",
             );
         }
+        // the same with the copy in a repeat's template: the reference that
+        // made it is an instance of the one written
+        for (const copy of [
+            `<number extend="$n" name="m" hide="$s.hidden"/>`,
+            `<number copy="$n" name="m" hide="$s.hidden"/>`,
+        ]) {
+            await expectBlamed(
+                `<p name="p">hi</p>
+<section name="s" hide="$r[1].m.hidden"/>
+<number name="n" hide="$s.sectionNumber=5">1</number>
+<repeatForSequence name="r" to="1">${copy}</repeatForSequence>
+<section/>`,
+                "$r[1].m.hidden",
+            );
+        }
     });
 
     // With no reference among the components the cycle reports, the first

@@ -130,8 +130,9 @@ function authoredComponents(document: SerializedComponent) {
  * The authored nodes a component on the cycle stands for: itself, if written
  * in the DoenetML; else what it was copied from (`madeFromIdx`: what is
  * written in a repeat's template, or what an `extend`, `copy` or `$n` is
- * of), and the composite that made it or the
- * component it is in, each traced the same way to one that was written.
+ * of), and the composite that made it (`replacementOf`), else the component
+ * it shadows, else the component it is in, each traced the same way to one
+ * that was written.
  */
 function authoredNodesOf(
     componentIdx: number,
@@ -187,8 +188,9 @@ function isOfAttributeWritten(component: SerializedComponent, varName: string) {
  * That is the component itself, if written in the DoenetML, else, for a
  * copy (`madeFromIdx`: what is written in a repeat's template, or what an
  * `extend`, `copy` or `$n` is of), what it was copied from, traced the same
- * way. But a copy made by an authored reference (`replacementOf` a `_copy`)
- * that writes the variable's attribute itself
+ * way. But a copy made by an authored reference (`replacementOf` a `_copy`
+ * written in the DoenetML, or an instance of one made from a repeat's
+ * template) that writes the variable's attribute itself
  * (`<number extend="$n" name="m" hide="$s.hidden"/>`) takes the variable
  * from the reference, not from what it copies, so it is the reference's.
  * The composite that made a component, or the component it is in, does not
@@ -209,7 +211,21 @@ function authoredOwnerOf(
         }
         seen.add(idx);
         const component = components[idx];
-        const reference = authored.get(component?.replacementOf?.componentIdx);
+        // the authored reference that made it, also through an instance of
+        // one made from a repeat's template (`madeFromIdx`)
+        let referenceIdx: number | undefined =
+            component?.replacementOf?.componentIdx;
+        const referencesSeen = new Set<number>();
+        while (
+            referenceIdx !== undefined &&
+            !authored.has(referenceIdx) &&
+            !referencesSeen.has(referenceIdx)
+        ) {
+            referencesSeen.add(referenceIdx);
+            referenceIdx = components[referenceIdx]?.madeFromIdx;
+        }
+        const reference =
+            referenceIdx === undefined ? undefined : authored.get(referenceIdx);
         if (
             reference?.componentType === "_copy" &&
             component?.madeFromIdx !== undefined &&
@@ -226,6 +242,7 @@ function authoredOwnerOf(
             if (copied.owner !== undefined) {
                 passed.push(copied.owner);
             }
+            passed.push(...copied.passed);
             return { owner: reference.componentIdx, passed };
         }
         idx = component?.madeFromIdx;
