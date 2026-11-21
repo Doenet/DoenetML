@@ -330,6 +330,11 @@ impl Document {
                 Some(&e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
                 _ => out.push_str(&format_number(value(pi).unwrap_or(f64::NAN))),
             },
+            Some(TextKind::Delimited(before, after)) => {
+                out.push_str(before);
+                self.push_children_text(c, out);
+                out.push_str(after);
+            }
             None if ty
                 .gate_prop()
                 .is_some_and(|active| value(active) != Some(1.0)) => {}
@@ -338,13 +343,15 @@ impl Document {
                     .prop_index("hide")
                     .and_then(value)
                     .is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
-            None => {
-                for ch in self.children(c) {
-                    match ch {
-                        Child::Text(t) => out.push_str(t),
-                        Child::Component(k) => self.push_text(k, out),
-                    }
-                }
+            None => self.push_children_text(c, out),
+        }
+    }
+
+    fn push_children_text(&self, c: CompIdx, out: &mut String) {
+        for ch in self.children(c) {
+            match ch {
+                Child::Text(t) => out.push_str(t),
+                Child::Component(k) => self.push_text(k, out),
             }
         }
     }

@@ -696,6 +696,34 @@ export const CONTRACTS: Record<string, Contract> = {
             return { label: `${position + 1}.` };
         },
     },
+    // Text markup, characters and plain blocks: no props, each drawn by its
+    // own tag, except where the other cores draw it as another's.
+    em: {},
+    alert: {},
+    term: { name: () => "alert" },
+    q: {},
+    sq: {},
+    c: {},
+    attr: {},
+    span: {},
+    tag: {},
+    tagc: {},
+    // The prototype has no self-closing tag of its own: it draws a `<tage>`
+    // as the current core sends it, a `<tag>` with `selfClosed`.
+    tage: { name: () => "tag", props: () => ({ selfClosed: true }) },
+    ndash: { noChildren: true },
+    mdash: { noChildren: true },
+    nbsp: { noChildren: true },
+    ellipsis: { noChildren: true },
+    lq: { noChildren: true },
+    rq: { noChildren: true },
+    lsq: { noChildren: true },
+    rsq: { noChildren: true },
+    br: { noChildren: true },
+    hr: { noChildren: true },
+    div: {},
+    pre: {},
+    blockQuote: {},
 };
 
 /** Component types that stand as their children. */
@@ -740,6 +768,10 @@ export const BLOCKS = new Set([
     "aside",
     "hint",
     "md",
+    "div",
+    "pre",
+    "blockQuote",
+    "hr",
 ]);
 
 /** Component types with no view of their own. */

@@ -539,4 +539,69 @@ describe("step 3 components", () => {
         });
         expect(props("tuple").latex).toBe("\\left( 1, 2, 3 \\right)");
     });
+
+    it("draws text markup, characters and plain blocks by their tags", async () => {
+        const { root, all, props } =
+            await open(`<p><em>a</em><alert>b</alert><term>c</term><q>d</q><sq>e</sq><c>f</c><attr>g</attr><span>h</span><tag>i</tag><tagc>j</tagc><tage>k</tage></p>
+<p>1<ndash/>2<mdash/>3<nbsp/><ellipsis/><lq/><rq/><lsq/><rsq/><br/></p>
+<hr/><div>x</div><pre>  y  z</pre><blockQuote>w</blockQuote>
+<ol><li>one</li><li>two</li></ol>`);
+        const names = (id: number): string[] => {
+            const e = root.elements[id] as any;
+            return [
+                e.name,
+                ...e.children.flatMap((c: any) =>
+                    typeof c === "string" ? [] : names(c.id),
+                ),
+            ];
+        };
+        const [doc] = all("document");
+        expect(names(doc.data.id).slice(1)).toEqual([
+            "p",
+            "em",
+            "alert",
+            "alert",
+            "q",
+            "sq",
+            "c",
+            "attr",
+            "span",
+            "tag",
+            "tagc",
+            "tag",
+            "p",
+            "ndash",
+            "mdash",
+            "nbsp",
+            "ellipsis",
+            "lq",
+            "rq",
+            "lsq",
+            "rsq",
+            "br",
+            "hr",
+            "div",
+            "pre",
+            "blockQuote",
+            "ol",
+            "li",
+            "li",
+        ]);
+        // An element with no props has none; a `<tage>` is a self-closed tag.
+        expect(props("em")).toEqual({});
+        expect(all("tag").map((e) => (e.data as any).props)).toEqual([
+            {},
+            { selfClosed: true },
+        ]);
+        expect(all("tag")[1].children).toEqual(["k"]);
+        expect(all("ndash")[0].children).toEqual([]);
+        // Preformatted text keeps its whitespace.
+        expect(all("pre")[0].children).toEqual(["  y  z"]);
+        // The items of an `<ol>` are numbered.
+        expect(all("li").map((e) => (e.data as any).props)).toEqual([
+            { label: "1." },
+            { label: "2." },
+        ]);
+        expect(props("ol")).toEqual({ listDepth: { Ol: 1 } });
+    });
 });

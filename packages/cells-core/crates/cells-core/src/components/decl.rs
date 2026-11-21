@@ -371,6 +371,10 @@ pub enum TextKind {
     /// The expression's text (`expr`, the first), or the number (`value`)
     /// when there is no expression.
     Math(usize, usize),
+    /// The children's text between two fixed strings: a `<q>`'s quotes, a
+    /// `<tag>`'s angle brackets, or, with no children, a single character
+    /// (`<mdash/>` is `Delimited("—", "")`).
+    Delimited(&'static str, &'static str),
 }
 
 /// What a component changes about where its descendants are (ADR 0038):
