@@ -25,9 +25,12 @@ import { codedDastError } from "../coded-dast-error";
  * An attribute is the component's when the schema lists it, or it is one every
  * tag takes (`extend`, `copy`, `copyWithState`), or, on a tag written with one
  * of those, one of the copy's own (`asList`, `removeEmptyArrayEntries`). A tag
- * that is not a component type as written (an error, `doenet-e0002`), a
- * `<module>`, which takes attributes its definition declares, and a namespaced
- * attribute (`xmlns:…`) are left alone. An attribute also written in the
+ * that is not a component type as written (an error, `doenet-e0002`) and a
+ * namespaced attribute (`xmlns:…`) are left alone. On a `<module>`, only its
+ * own attributes are corrected (`Copy`, `Name`, `Hide`): one its definition
+ * declares (`<moduleAttributes>`) is not in the schema, so it is left as
+ * written, and a declared one that differs only in case from the module's own
+ * is not used as one anyway (`doenet-w0075`). An attribute also written in the
  * component's spelling (`xMin="1" xmin="2"`) is left as written, an unknown
  * attribute, as a misspelling is.
  */
@@ -94,9 +97,6 @@ function attributesOf(tag: string): string[] | undefined {
 }
 
 function correctAttributes(node: DastElement, warnings: DastError[]) {
-    if (node.name === "module") {
-        return;
-    }
     const declared = attributesOf(node.name);
     if (!declared) {
         return;

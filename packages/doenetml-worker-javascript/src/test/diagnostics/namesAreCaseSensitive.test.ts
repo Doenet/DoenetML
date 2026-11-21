@@ -248,6 +248,29 @@ describe("Names are case-sensitive (D51) @group4", async () => {
                 suggestion: "condition",
                 componentType: "conditionalContent",
             },
+            // A module's own attributes, which it takes besides those its
+            // definition declares
+            {
+                doenetML: `<module name="mod"><moduleAttributes><math name="a">1</math></moduleAttributes><math name="q">$a</math></module><module Copy="$mod" a="5" name="m2"/><p name="p">$m2.q</p>`,
+                text: "5",
+                written: "Copy",
+                suggestion: "copy",
+                componentType: "module",
+            },
+            {
+                doenetML: `<module name="mod"><moduleAttributes><math name="a">1</math></moduleAttributes><math name="q">$a</math></module><module copy="$mod" a="5" Name="m2"/><p name="p">$m2.q</p>`,
+                text: "5",
+                written: "Name",
+                suggestion: "name",
+                componentType: "module",
+            },
+            {
+                doenetML: `<module name="mod"><moduleAttributes><math name="a">1</math></moduleAttributes><math name="q">$a</math></module><p name="p"><module copy="$mod" a="5" Hide/>b</p>`,
+                text: "b",
+                written: "Hide",
+                suggestion: "hide",
+                componentType: "module",
+            },
         ];
         for (const c of cases) {
             const { text, errors, warnings } = await load(c.doenetML);
