@@ -1139,8 +1139,9 @@ copies of a URI, copies of a module, and copies that change what is chosen (#245
   module attribute reaching a nested choice through any list of values keeps the carried choices,
   with `w0186`. **Fixed by #2597** (closing #2553): a sampler or selection whose parameters come
   from a composite written after it draws once, and its copy carries those draws; a one-entry
-  math list whose entry's text holds a space (`2x`) is held, with `w0186`. **Left** (#2598): a
-  one-entry `<textList>` whose entry holds a space isn't held;
+  math list whose entry's text holds a space (`2x`) is held, with `w0186`. **Fixed by #2611:** a
+  one-entry `<textList>` whose entry holds a space is held (written with comma splitting). A
+  `copyWithState` of an input with an edit not entered starts with the edit entered (D50);
 - #2476 was not a defect: `condition` on a `<conditionalContent>` with an `<else>` is ignored with a
   warning, and the blank came from a name declared twice. #2481 made `<conditionalContent copy>`
   a new `<conditionalContent>` that decides its own case, also through a reload.

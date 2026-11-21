@@ -2938,7 +2938,7 @@ Alternatives: `<collection>`, `<items>`.
 
 ## D47. Decisions from the review of #2571–#2576 (November 2026)
 
-1. **`<variantControl>` never stops the document** (#2579, DIAG-5). Each case that threw is an
+1. **`<variantControl>` never stops the document** (#2579, DIAG-5; done by #2610). Each case that threw is an
    error at its attribute, with a fallback:
    - valid names that exclude every variant: every variant is included, as when
      `variantsToInclude` names none;
@@ -3029,7 +3029,8 @@ Alternatives: `<collection>`, `<items>`.
 
 ## D50. Decisions from the review of #2597 (November 2026)
 
-1. **An input that isn't focused never shows an edit that wasn't entered** (#2598 item 5; SAVE-1).
+1. **An input that isn't focused never shows an edit that wasn't entered** (#2598 item 5; SAVE-1;
+   done by #2611, leftovers #2614).
    The renderer commits an edit on blur, but a graph drag doesn't blur the input, and a condition
    can read `$mi.immediateValue` as the reader types. So the core commits, when it is made, any
    input made from saved state or carried by a copy (`copyWithState`) that isn't the input being

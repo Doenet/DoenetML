@@ -167,19 +167,28 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 - **fixed by #2574** (closing #2536): an unknown name in `variantsToInclude` or
   `variantsToExclude` is ignored with **`doenet-e0079`** at the attribute, and the document loads
   with the other names (every variant, if `variantsToInclude` names none). A name past the unique
-  variants is not a variant. **Left** (#2579): `<variantControl>` still throws, uncoded, before
-  the document loads, when valid names exclude every variant, when `variantNames` repeats a
-  name, when `variantsToInclude` is empty, and for a reference in `variantsToInclude`,
-  `variantsToExclude` or `variantNames`; a `<problem>`'s `<variantControl>` is ignored when the
-  document's variants aren't worked out as unique variants;
+  variants is not a variant. **Fixed by #2610** (closing #2579, D47 decision 1): `<variantControl>`
+  never stops the document. Valid names that exclude every variant are **`doenet-e0087`** (every
+  variant is included); a repeated name in `variantNames` is **`doenet-e0086`** (the first is
+  kept); an empty `variantsToInclude` is `e0072` (ignored); a reference in any of its attributes
+  is **`doenet-e0085`** (the reference is ignored, the text beside it kept); a `<problem>`'s
+  `<variantControl>` is followed, with unique variants, whether or not the document's variants
+  are unique. **Left** (#2614): `numVariants=""` silently gives one variant, and
+  `<variantControl extend="$vc"/>` is ignored silently;
 - **fixed by #2573:** a reference to a component in error reports nothing more (no `w0104` for
   `$x.bar` of an `_error`);
-- **known violation** (#2598): a document holding a `<select>` in a group read before it is
-  written, and a later `<selectFromSequence>`, runs out of memory at load in variant 2 (the
-  example is in the issue);
-- **known violation** (#2578): a composite beside a section whose parameter reads the section's
-  `sectionNumber` (`<selectRandomNumbers mean="$s.sectionNumber"/>`, `<sequence to=…>`) throws
-  a circular dependency, and the document fails to load;
+- **fixed by #2609:** a document with millions of unique variants loads in any variant (it ran out
+  of memory in variant 2: each unique variant is now computed at its index, not by listing every
+  one before it); a composite after a section reading the section's `sectionNumber`
+  (`<selectRandomNumbers mean="$s.sectionNumber"/>`, `<sequence to=…>`), and a tag extending a
+  section's number written before the section, load (a number depends only on what comes before
+  it); an `<updateValue>` on a `<textInput>` without `type` no longer throws (the update is still
+  silent: D54, #2607);
+- **known violations** (#2614): a `<document>` with an attribute it doesn't expect
+  (`<document uniqueVariants="false">`) fails to load; a composite *before* a section whose
+  expansion reads that section's number stops the document with a circular dependency, even one
+  that makes no sections (`<conditionalContent condition="$s.sectionNumber > 1">`), where a real
+  cycle should be an error at the composite (NAME-7, D14);
 - fixed: `bindValueTo` of a `<subsetOfRealsInput>` (B24, #2484), `<text extend="$cc"/>` of
   bare-text cases (B23, #2447), and a reload restoring a value to a component of another type
   (B36, #2481).

@@ -148,9 +148,14 @@ Recent fixes show where the current representation is fragile:
   `<textInput>`, `<fractionInput>` and `<matrixInput>`, in the session and through a reload).
   **Decided** (D50; #2598): an input that isn't focused never shows an edit that wasn't entered.
   The core commits, when it is made, any input made from saved state or carried by a copy that
-  isn't the one being edited. **Known violation** (#2598): a graph drag doesn't blur the input,
-  so a `copyWithState` it makes carries the edit, and a condition reading `$mi.immediateValue`
-  changes as the reader types.
+  isn't the one being edited. **Done by #2611:** the core keeps the input being edited, and after
+  load and after each update or action enters the edit of every other input made, carried by a
+  copy, or shown again (its own `updateValue`, with an `answered` event, as a blur does). So a
+  `copyWithState` made by a drag shows the edit entered, an input a drag hides enters its edit
+  when shown again, and a reload enters every input's edit; `__componentNeedingUpdateValue` is
+  gone. **Known violations** (#2614): an input disabled while holding an edit keeps showing it,
+  also after it is enabled; under `readOnly`, a reload shows the edit; a `<fractionInput
+  copyWithState>` has no parts and shows `＿`.
 - **A restored value is matched by `stateId`; since #2481 also by type** (B36). The save records
   each component's type (`__componentTypes`), and a value whose type differs from the component
   now at that `stateId` is dropped. The ids themselves can still collide across a copy's
@@ -225,9 +230,12 @@ which is never made, has no target and gets `w0043` as a warning, decided by the
 **An action's target names one component** (#2597): `target` written as one reference to a
 `<group>` of several components, a `<repeat>` or a `<repeatForSequence>` is warning
 **`doenet-w0195`** at load, naming the target and what to write instead (`$g.a`, `$r[1].x`).
-**Known violations** (#2598): a target that is a wrapper of one component (`$g` of a group holding
-one input, `$r[1]` of an iteration holding one `<number>`) doesn't reach it, though COLL-3 says
-the wrapper stands for it; `target="$r.mi"` doesn't reach every iteration's `mi` (COLL-2).
+**Done by #2611** (COLL-2, COLL-3): a target that is a wrapper of one component (`$g` of a group
+holding one input, `$r[1]` of an iteration holding one `<number>`, a pick, a shown case) reaches
+it, at any depth, for `<updateValue>` and `<animateFromSequence>`; `target="$r.mi"` reaches every
+iteration's `mi`, and `$r.mi.value` each one's value. A wrapper of several is still only a
+container (`w0044` when acted on). `w0044` is an info when what a composite holds can change
+(DIAG-2), a warning otherwise.
 
 ### SAVE-5: a component's index is allocation order, and is not guaranteed to stay the same (not a guarantee)
 A component's index, and the DOM id `_id_<index>` the viewer builds from it, follow the order in
@@ -325,7 +333,7 @@ property has its type. Authors don't write `type`.
 - With `type` left out, `newValue="true"` leaves a `<boolean>` false. `newValue="false"` only seems
   to work, because a math that isn't `true` reads as false.
 - A `<booleanInput>` or a `<text>` target is unchanged, with no diagnostic.
-- A `<textInput>` target throws in the core (DIAG-5).
+- A `<textInput>` target is unchanged, with no diagnostic (it threw in the core until #2609).
 
 ### ACT-3: actions run one after another, and each sees the result of the previous one (Tier 2)
 - A `<triggerSet>` doing `$n+10`, then `$n+100`, from n=3 gives 113.

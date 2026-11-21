@@ -172,8 +172,10 @@ Whether a tag is built as a composite or a list component never changes which ki
 - **Own properties, a fixed set:** `numItems` (entries, iterations, picks; 0 or 1 for a
   conditional), and the settings every component has (`hide`, `fixed`, `disabled`). They win
   over the items' properties of the same name; an item that is itself a collection is reached by
-  index (`$c[1].numItems`). A collection's attributes are not properties, so adding one never
-  shadows the items' properties.
+  index (`$c[1].numItems`). They also win over an item's component of that name: with
+  `<number name="fixed"/>` in each iteration, `$r.fixed` is the repeat's own `fixed`, and the
+  item's is `$r[1].fixed` (#2611; an action's target agrees). A collection's attributes are not
+  properties, so adding one never shadows the items' properties.
 
 **Done by #2565** (closing #2523 and #2271):
 - `numItems` is on every collection, in both builds (`W/utils/numItems.ts`), and wins over an
