@@ -3046,6 +3046,24 @@ describe("Sectioning tag tests @group3", async () => {
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
             ],
+            // in a group: the group waits for what it holds to expand
+            [
+                `<group><conditionalContent condition="$s.sectionNumber = 2"><section/></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.sectionNumber",
+            ],
+            // in the template of a repeat
+            [
+                `<repeat for="1 2"><repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence></repeat>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.sectionNumber",
+            ],
+            // in a group after `s`, copied before it
+            [
+                `$g<section name="s"><p name="p">hi</p></section>
+<group name="g"><conditionalContent condition="$s.sectionNumber = 2"><section/></conditionalContent></group>`,
+                "$s.sectionNumber",
+            ],
             // a title is made from the number
             [
                 `<conditionalContent condition="$s.title = 'Section 1'"><section/></conditionalContent>
@@ -3169,6 +3187,39 @@ describe("Sectioning tag tests @group3", async () => {
         expect((await sv("c")).sectionNumber).eq("1");
         expect((await sv("s")).sectionNumber).eq("2");
         expect((await sv("after")).sectionNumber).eq("3");
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+
+    // A section's number waits for a composite before it to expand, not for
+    // the values of what it makes. So a section, made by a composite before
+    // `s`, that shows the number or title of `s` (a forward reference, as
+    // "see Section 3") is no cycle; nor is one in a group copied before `s`,
+    // or in a div extended before it. Finding the cycle at load through what
+    // the composite holds reported each of these as `doenet-e0005`.
+    it("a section made by a composite before a section can show that section's number", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeat for="1 2" valueName="v"><section><title>Part $v of $s.title</title></section></repeat>
+    <group><section name="g"><p name="pg">see $s.sectionNumber</p></section></group>
+    <conditionalContent condition="true"><section name="c"><p name="pc">see $s.title</p></section></conditionalContent>
+    <select><option><section name="o"><title>Before $s.title</title></section></option></select>
+    $h
+    <div extend="$d"/>
+    <section name="s"><title>Summary</title></section>
+    <group name="h"><section><p name="ph">see $s.sectionNumber</p></section></group>
+    <div name="d"><section><p name="pd">see $s.sectionNumber</p></section></div>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("s")).sectionNumber).eq("8");
+        expect((await sv("g")).sectionNumber).eq("3");
+        expect((await sv("pg")).text).eq("see 8");
+        expect((await sv("pc")).text).eq("see Summary");
+        expect((await sv("o")).title).eq("Before Summary");
+        expect((await sv("ph")).text).eq("see 8");
+        expect((await sv("pd")).text).eq("see 8");
         expect(getDiagnosticsByType(core).errors).eqls([]);
     });
 

@@ -19,8 +19,10 @@
  *   one without being waited for.
  * - **A composite that can is a cycle, found at load.** A reference to the
  *   number of a section (its `sectionNumber`, `enumeration` or `title`) reads
- *   each composite its numbering waits for (`compositesNumberingWaitsFor`),
- *   an edge of the graph `breakReferenceCycles` searches. So
+ *   what each composite its numbering waits for (`compositesNumberingWaitsFor`)
+ *   reads to expand, not the values of what it makes: edges of the graph
+ *   `breakReferenceCycles` searches. So `$s.title` in a section a `<repeat>`
+ *   before `s` makes is no cycle, while
  *   `<repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence>`
  *   before `s` is `doenet-e0005` at the reference, and the rest renders.
  *
@@ -344,6 +346,64 @@ export function markCompositesMakingNoSectioning({
 }
 
 /**
+ * The composites among `components` that a numbering of sections waits for
+ * when they are before a section: each composite, unless marked as making no
+ * section (`makesNoSectioning`), and each reference written as a container a
+ * numbering passes through (`<div extend="$d"/>`), and those among the
+ * children of each container a numbering passes through (a `<div>`) and of
+ * each `<case>` and `<option>`, at any depth. Not those in a section, which
+ * numbers its own children, nor a reference written as a section, which is
+ * counted as one, nor a `<setup>`, which makes nothing.
+ */
+export function compositesWaitedForIn(
+    components: (SerializedComponent | string)[],
+    componentInfoObjects: ComponentInfoObjects,
+): SerializedComponent[] {
+    const { isComposite, isPassThrough, writtenType } =
+        typeHelpers(componentInfoObjects);
+
+    const found: SerializedComponent[] = [];
+
+    function visit(component: SerializedComponent | string) {
+        if (typeof component !== "object" || component === null) {
+            return;
+        }
+        const componentType = component.componentType;
+        if (componentType === "setup" || componentType === "_repeatSetup") {
+            return;
+        }
+        if (componentType === "_copy") {
+            const written = writtenType(component);
+            if (written !== undefined && !isComposite(written)) {
+                // a tag that is no composite: one section, counted, or a
+                // tag the numbering passes over, or a container it passes
+                // through, whose count is waited for
+                if (isPassThrough(written)) {
+                    found.push(component);
+                }
+                return;
+            }
+        }
+        if (isComposite(componentType)) {
+            if (!component.doenetAttributes?.[MAKES_NO_SECTIONING]) {
+                found.push(component);
+            }
+            return;
+        }
+        if (
+            isPassThrough(componentType) ||
+            BRANCH_TYPES.includes(componentType)
+        ) {
+            for (const child of component.children ?? []) {
+                visit(child);
+            }
+        }
+    }
+    components.forEach(visit);
+    return found;
+}
+
+/**
  * The composites the number of the section `section` waits for, which a
  * reference to its number reads (`NUMBER_PROPERTIES`, `breakReferenceCycles`):
  * each composite written before it among the components it is numbered
@@ -371,40 +431,10 @@ export function compositesNumberingWaitsFor({
     parentOf: Map<number, SerializedComponent>;
     componentInfoObjects: ComponentInfoObjects;
 }): SerializedComponent[] {
-    const { inherits, isComposite, isPassThrough, writtenType } =
+    const { inherits, isComposite, isPassThrough } =
         typeHelpers(componentInfoObjects);
 
     const found: SerializedComponent[] = [];
-
-    function visitBefore(component: SerializedComponent | string) {
-        if (typeof component !== "object" || component === null) {
-            return;
-        }
-        const componentType = component.componentType;
-        if (componentType === "_copy") {
-            const written = writtenType(component);
-            if (written !== undefined && !isComposite(written)) {
-                // a tag that is no composite: one section, counted, or a
-                // tag the numbering passes over, or a container it passes
-                // through, whose count is waited for
-                if (isPassThrough(written)) {
-                    found.push(component);
-                }
-                return;
-            }
-        }
-        if (isComposite(componentType)) {
-            if (!component.doenetAttributes?.[MAKES_NO_SECTIONING]) {
-                found.push(component);
-            }
-            return;
-        }
-        if (isPassThrough(componentType)) {
-            for (const child of component.children ?? []) {
-                visitBefore(child);
-            }
-        }
-    }
 
     /** Whether the children of a component of this type are its parent's. */
     function isTransparent(componentType: string) {
@@ -423,12 +453,14 @@ export function compositesNumberingWaitsFor({
         if (!parent) {
             break;
         }
-        for (const sibling of parent.children ?? []) {
-            if (sibling === node) {
-                break;
-            }
-            visitBefore(sibling);
-        }
+        const siblings = parent.children ?? [];
+        const position = siblings.indexOf(node);
+        found.push(
+            ...compositesWaitedForIn(
+                position === -1 ? siblings : siblings.slice(0, position),
+                componentInfoObjects,
+            ),
+        );
         if (isTransparent(parent.componentType)) {
             node = parent;
             continue;

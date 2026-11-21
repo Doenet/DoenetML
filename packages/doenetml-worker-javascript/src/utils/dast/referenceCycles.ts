@@ -133,6 +133,7 @@ import type { DiagnosticRecord } from "@doenet/utils";
 import { collectIsListFormAsWritten } from "./listForms";
 import {
     compositesNumberingWaitsFor,
+    compositesWaitedForIn,
     NUMBER_PROPERTIES,
 } from "./sectionNumberingAtLoad";
 import {
@@ -864,6 +865,18 @@ export function breakReferenceCycles({
     }
 
     /**
+     * The node for the expansion of the composite `idx`: what it reads to
+     * make its components (`expansionEdges`), which is what the number of a
+     * section after it waits for, apart from the composite, whose edges are
+     * to the values of what is written in it too. Negative, apart from
+     * `madeFromNode` and `responsesNode`.
+     */
+    const EXPANSION = 2 * RESPONSES;
+    function expansionNode(idx: number) {
+        return -EXPANSION - idx;
+    }
+
+    /**
      * The edges from the responses of the `<answer>` `answer`: to its
      * awards, which it reads every value written in to find its responses,
      * to what it takes as responses, and to its inputs.
@@ -1337,12 +1350,13 @@ export function breakReferenceCycles({
             NUMBER_PROPERTIES.has(property)
         ) {
             // its number, which waits for the composites before it that may
-            // make a section (#2614 item 2)
+            // make a section to expand, not for the values of what they make
+            // (#2614 item 2)
             return compositesNumberingWaitsFor({
                 section: target,
                 parentOf,
                 componentInfoObjects,
-            }).map((composite) => composite.componentIdx);
+            }).map((composite) => expansionNode(composite.componentIdx));
         }
         if (
             entryFor(PROPERTIES_READ, targetType)?.includes(property) ||
@@ -1521,13 +1535,87 @@ export function breakReferenceCycles({
         return edges;
     }
 
+    /**
+     * The edges from the expansion of the composite (or the reference
+     * written as a container a numbering passes through) `composite`
+     * (`expansionNode`): to what it is made from (`madeFromNode`), to the
+     * components in the index of a reference and to the expansion of what it
+     * is of, and to the expansion of each composite written in it that a
+     * numbering would wait for (`compositesWaitedForIn`). Not to the values
+     * of what is written in it, which the number of a section after it does
+     * not read: a reference to the section's number in a section a
+     * `<repeat>` before it makes is no cycle (#2614 item 2). A reference to
+     * a name the branches declare, to a property or to itself is read as
+     * for its value.
+     */
+    function expansionEdges(composite: SerializedComponent): number[] {
+        const type = composite.componentType;
+        const edges: number[] = [];
+        if (type === "_copy") {
+            if (
+                typeof composite.doenetAttributes?.typeChangeAtLoad === "object"
+            ) {
+                return [];
+            }
+            const reference = referenceOf(composite);
+            const target = targetOf(composite);
+            if (branchReads.has(composite) || target === composite) {
+                return edgesOf(composite);
+            }
+            edges.push(
+                ...indexComponents(reference?.unresolvedPath).map(
+                    (index) => index.componentIdx,
+                ),
+            );
+            if (target && !indexThroughCopy(reference!)) {
+                if (reference!.unresolvedPath?.length) {
+                    edges.push(
+                        ...readEdges(
+                            composite,
+                            target,
+                            reference!.unresolvedPath,
+                        ),
+                    );
+                }
+                // a composite, or a container a numbering passes through,
+                // copied with what is written in it
+                edges.push(
+                    ...compositesWaitedForIn(
+                        [target],
+                        componentInfoObjects,
+                    ).map((found) => expansionNode(found.componentIdx)),
+                );
+            }
+            const written = writtenType(composite);
+            if (written !== undefined && madeFromAttributes(written)) {
+                edges.push(madeFromNode(composite.componentIdx));
+            }
+        } else if (madeFromAttributes(type)) {
+            edges.push(madeFromNode(composite.componentIdx));
+        } else if (
+            collectIsListFormAsWritten(composite, componentInfoObjects)
+        ) {
+            return edgesOf(composite);
+        }
+        edges.push(
+            ...compositesWaitedForIn(
+                composite.children ?? [],
+                componentInfoObjects,
+            ).map((found) => expansionNode(found.componentIdx)),
+        );
+        return edges;
+    }
+
     const edgesByIdx = new Map<number, number[]>();
     const onCycle = new Set<number>();
 
     function edges(idx: number) {
         let result = edgesByIdx.get(idx);
         if (result === undefined) {
-            if (idx <= -RESPONSES) {
+            if (idx <= -EXPANSION) {
+                const composite = componentsByIdx.get(-idx - EXPANSION);
+                result = composite ? expansionEdges(composite) : [];
+            } else if (idx <= -RESPONSES) {
                 const answer = componentsByIdx.get(-idx - RESPONSES);
                 result = answer ? responsesEdges(answer) : [];
             } else if (idx < 0) {
