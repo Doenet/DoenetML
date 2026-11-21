@@ -99,7 +99,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
     <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
       <conditionalContent condition="$show"><pegboard/></conditionalContent>
     </graph>
-    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xMax" /></p>
     `);
 
         // A 9x9 lattice: the unit-spaced pegs from -4 to 4. Those at ±5 fall
@@ -126,7 +126,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
     <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
       <pegboard/>
     </graph>
-    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xMax" /></p>
     `);
 
         expectPegs(81, "pegs on first render");
@@ -149,7 +149,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
     <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
       <pegboard dx="$dxInput" />
     </graph>
-    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xMax" /></p>
     `);
 
         expectPegs(81, "pegs on first render");
@@ -180,7 +180,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
     <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
       <pegboard dx="2" dy="0.5" xoffset="0.25" yoffset="-0.125" />
     </graph>
-    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xMax" /></p>
     `);
 
         // Columns at x = 2 i + 0.25 for i in -2..1, rows at y = j/2 - 0.125
