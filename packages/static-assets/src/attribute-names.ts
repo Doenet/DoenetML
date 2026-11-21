@@ -16,7 +16,7 @@ const cache = new Map<string, string[]>();
 
 /** The attribute names the schema lists for `tag`, or `undefined` if it lists no such tag. */
 export function attributeNamesOfTag(tag: string): string[] | undefined {
-    if (!Object.hasOwn(data.tags, tag)) {
+    if (!Object.prototype.hasOwnProperty.call(data.tags, tag)) {
         return undefined;
     }
     let names = cache.get(tag);
