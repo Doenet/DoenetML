@@ -4034,6 +4034,61 @@ describe("UpdateValue tag tests @group1", async () => {
         });
     });
 
+    it("an update of a text input or code editor without type does not throw (#2607)", async () => {
+        // Without `type`, `newValue` is read as a math, which a text input
+        // or code editor refuses, as a `<text>` written with content does
+        // (an empty `<text/>` takes the math's text): each is left as it
+        // was. Before, a text input stored the math as its value, and its
+        // word count threw. Reading `newValue` as the target's type is D54.
+        for (const [tag, target] of [
+            ["textInput", "$ti"],
+            ["textInput", "$ti.value"],
+            ["textInput", "$ti.immediateValue"],
+            ["codeEditor", "$ti"],
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <${tag} name="ti" prefill="hi"/>
+    <updateValue name="uv" target="${target}" newValue="bye"/>
+    <p name="p">$ti.value</p>
+    `,
+            });
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx("uv"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const ti =
+                stateVariables[await resolvePathToNodeIdx("ti")].stateValues;
+            expect(ti.value, `${tag} ${target}`).eq("hi");
+            expect(ti.immediateValue, `${tag} ${target}`).eq("hi");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("hi");
+        }
+
+        // with type="text", the update is made
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <textInput name="ti" prefill="hi"/>
+    <updateValue name="uv" target="$ti" newValue="bye now" type="text"/>
+    `,
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const ti = stateVariables[await resolvePathToNodeIdx("ti")].stateValues;
+        expect(ti.value).eq("bye now");
+        expect(ti.immediateValue).eq("bye now");
+        expect(ti.numWords).eq(2);
+    });
+
     describe("a target reaches the component a wrapper stands for, and each item's (#2598 items 1 and 2)", () => {
         // A wrapper holding one component stands for it (COLL-3), and a name
         // or a property after a collection applies to each item (COLL-2): an

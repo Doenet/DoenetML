@@ -291,6 +291,14 @@ export default class Textinput extends Input {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
+                // A text input holds text. A value of another type, such as
+                // the math an `<updateValue>` without `type="text"` sends,
+                // is refused rather than stored, where reading it as text
+                // would throw (DIAG-5, #2607).
+                if (typeof desiredStateVariableValues.value !== "string") {
+                    return { success: false };
+                }
+
                 let instructions = [
                     {
                         setDependency: "valueChanged",

@@ -9,7 +9,7 @@ import {
 } from "../../utils/missing";
 import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefinitionFactory";
 import { flattenDeep, mapDeep } from "@doenet/utils";
-import { deepClone, enumerateCombinations } from "@doenet/utils";
+import { deepClone, combinationAtIndex } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
 import { variableRefSnapshot } from "../../utils/variableRefAttribute";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
@@ -2618,10 +2618,10 @@ export default class BaseComponent {
         let subvariants = [];
 
         if (descendantVariantComponents.length > 0) {
-            let indicesForEachDescendant = enumerateCombinations({
+            let indicesForEachDescendant = combinationAtIndex({
                 numberOfOptionsByIndex: numVariantsByDescendant,
-                maxNumber: variantIndex,
-            })[variantIndex - 1].map((x) => x + 1);
+                index: variantIndex - 1,
+            }).map((x) => x + 1);
 
             // for each descendant, get unique variant corresponding
             // to the selected variant number and include that as a subvariant
