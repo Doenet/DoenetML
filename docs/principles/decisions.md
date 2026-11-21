@@ -3036,11 +3036,12 @@ Alternatives: `<collection>`, `<items>`.
    input made from saved state or carried by a copy (`copyWithState`) that isn't the input being
    edited: its `immediateValue` becomes its `value`, and `valueUnderEdit` is cleared. This keeps
    the rule in the core, and takes over `__componentNeedingUpdateValue`'s job at reload.
-2. **A disabled input enters its edit when it becomes disabled** (#2614 item 4; decided November 2026).
+2. **A disabled input enters its edit when it becomes disabled** (#2614 item 4; decided November 2026;
+   done by #2616).
    A disabled input can't be focused, so it is treated as a withheld one is: an unentered edit is
    entered when the input becomes disabled, or when it is made disabled, as at a reload. The entry
    records the `answered` event a blur would.
-3. **Read-only enters the edit without an event** (#2614 item 5). Under `readOnly`, an unentered
+3. **Read-only enters the edit without an event** (#2614 item 5; done by #2616). Under `readOnly`, an unentered
    edit is entered so the input shows its value, and nothing is saved or reported.
 
 
@@ -3078,8 +3079,8 @@ today. So under D51, `<math SIMPLIFY="full">x+x</math>` shows an error in place 
 the math with a message. Before the switch, scan the tests, docs, Cypress specs and available
 course content for wrong-case attributes and property names, and fix them. If there are many in
 course content, a first release may give a warning and still apply the attribute. The scan
-decides. `<document>` must not be replaced by an error first (#2614 item 1, PR 36): until then,
-a wrong-case attribute on it would stop the document.
+decides. `<document>` is not replaced by an error (#2614 item 1, done by #2618), so a wrong-case
+attribute on it is reported and ignored.
 
 ## D52. Decisions from the review of #2603 (decided, November 2026)
 

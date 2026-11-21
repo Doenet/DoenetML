@@ -407,6 +407,27 @@ reading each other are now `e0005` at load.
 A section whose title is on a cycle shows its default title. A v0.6 document holding one of these
 cycles in a case not shown keeps its `<copy>` tags in the converter.
 
+**Done by #2618** (#2614 item 2): a section's number waits for the composites before it that may
+make a section (a composite that, by the DoenetML, can make none is marked and passed over). So a
+reference to a section's `sectionNumber`, `enumeration`, `title` or `titlePrefix` has an edge to
+the *expansion* of each composite its numbering waits for: what the composite is made from, not
+the values of what it holds. A cycle through it is `e0005` at the reference, and the rest renders:
+
+```xml
+<repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence>   <!-- e0005 at $s.sectionNumber -->
+<conditionalContent condition="$s.sectionNumber = 1"><p>first</p></conditionalContent>  <!-- loads -->
+<section name="s"/>
+```
+
+**Known violations** (#2623): the load check predicts what the run time waits for, fitted to
+probes rather than derived from it. Some shapes still stop the document with a circular dependency:
+a path whose value reads the number (`$r[1].x` of a point reading `$s.sectionNumber`), `$g` of a
+group holding a section and a composite reading the number, a name reached through an inner
+`<conditionalContent>` whose condition reads `s`, and a `<collect>` of sections from a `<p>` that
+holds such a composite. Others stop it for reasons outside the numbering: a composite in a section
+reading that section's own `$s.title`, `$cc.q.title` of a section in a branch, and a `<collect>`
+inside the group it collects from.
+
 Known violations:
 - **fixed by #2547** (#2515's eight items, #2521 item 4), each `e0005` at load, with the attributes
   and properties that count found by running every one: an attribute a value is made from

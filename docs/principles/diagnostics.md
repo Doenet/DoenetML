@@ -173,8 +173,10 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
   kept); an empty `variantsToInclude` is `e0072` (ignored); a reference in any of its attributes
   is **`doenet-e0085`** (the reference is ignored, the text beside it kept); a `<problem>`'s
   `<variantControl>` is followed, with unique variants, whether or not the document's variants
-  are unique. **Left** (#2614): `numVariants=""` silently gives one variant, and
-  `<variantControl extend="$vc"/>` is ignored silently;
+  are unique. **Fixed by #2616:** `numVariants=""` is `e0072` (ignored), and a `<variantControl>`
+  made with `extend`, `copy` or `copyWithState` is **`doenet-e0088`**. **Left** (#2623):
+  `numVariants="abc"` silently gives 100 variants, and a numeric character reference in an
+  attribute (`&#x33;`) isn't decoded;
 - **fixed by #2573:** a reference to a component in error reports nothing more (no `w0104` for
   `$x.bar` of an `_error`);
 - **fixed by #2609:** a document with millions of unique variants loads in any variant (it ran out
@@ -184,11 +186,11 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
   section's number written before the section, load (a number depends only on what comes before
   it); an `<updateValue>` on a `<textInput>` without `type` no longer throws (the update is still
   silent: D54, #2607);
-- **known violations** (#2614): a `<document>` with an attribute it doesn't expect
-  (`<document uniqueVariants="false">`) fails to load; a composite *before* a section whose
-  expansion reads that section's number stops the document with a circular dependency, even one
-  that makes no sections (`<conditionalContent condition="$s.sectionNumber > 1">`), where a real
-  cycle should be an error at the composite (NAME-7, D14);
+- **fixed by #2618** (#2614 items 1–2): a `<document>` with an attribute it doesn't have loads,
+  with `e0004` (or `e0003`) at the attribute, which is ignored; a composite before a section can
+  read the section's number when, by the DoenetML, it can make no section, and a genuine cycle is
+  `e0005` at load (NAME-7). **Left** (#2623): shapes the load check doesn't predict still stop the
+  document with a circular dependency (NAME-7's known violations);
 - fixed: `bindValueTo` of a `<subsetOfRealsInput>` (B24, #2484), `<text extend="$cc"/>` of
   bare-text cases (B23, #2447), and a reload restoring a value to a component of another type
   (B36, #2481).
