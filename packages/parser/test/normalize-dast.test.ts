@@ -640,6 +640,27 @@ describe("Normalize dast", async () => {
         ]);
     });
 
+    it("corrects the case of name, extend, copy and copyWithState on a tag the schema doesn't list", () => {
+        // D51: every tag has these four, and the resolver reads them before
+        // the core could correct them. Other attributes of such a tag are
+        // left as written, for the core.
+        const source = `<h Name="a" Copy="$b" Hide /><foo Extend="$c" CopyWithState="$d" />`;
+        const normalized = normalizeDocumentDast(lezerToDast(source));
+
+        expect(toXml(normalized)).toEqual(
+            '<document><h name="a" copy="$b" Hide="true" /><foo extend="$c" copyWithState="$d" /></document>',
+        );
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings.map((w) => w.code)).toEqual([
+            "doenet-w0197",
+            "doenet-w0197",
+            "doenet-w0197",
+            "doenet-w0197",
+        ]);
+    });
+
     it("Sugars in repeat template and _repeatSetup children", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;

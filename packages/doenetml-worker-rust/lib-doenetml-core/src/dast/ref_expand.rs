@@ -496,8 +496,9 @@ fn referent_tag(flat_root: &FlatRoot, resolver: &Resolver, idx: Index) -> Option
 
 /// Whether `name` is one of the attributes that make an element from a
 /// reference: `extend`, `copy` or `copyWithState`, matched exactly, as every
-/// attribute name is (D51). `Extend` is an attribute the element does not
-/// have, which the JavaScript core reports (`doenet-e0004`).
+/// attribute name is (D51). One written in another case (`Extend`) was given
+/// this spelling, with a warning, by the parser (`attribute-name-case.ts`),
+/// on any tag, for now.
 pub fn is_extend_or_copy_attribute(name: &str) -> bool {
     matches!(name, "extend" | "copy" | "copyWithState")
 }

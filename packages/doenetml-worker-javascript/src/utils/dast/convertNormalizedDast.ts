@@ -237,10 +237,11 @@ export async function normalizedDastToSerializedComponents(
      * sugar and the checks at load read the unflattened components. Not
      * `name`, `extend`, `copy` or `copyWithState`, which every class
      * declares: the reference resolver has read them already, as written,
-     * so one in another case would not be applied, and is left as an
-     * attribute the component doesn't have (`doenet-e0004`, which suggests
-     * the spelling). Nor on a class that accepts any attribute, as
-     * `<module>`.
+     * so the parser corrects those on every tag, listed or not; one still
+     * in another case here was written beside its spelling
+     * (`copy="$a" Copy="$b"`), and is an attribute the tag doesn't have
+     * (`doenet-w0187`, which suggests the spelling). Nor on a class that
+     * accepts any attribute, as `<module>`.
      */
     const correctedNodes = new Set<number>();
     function correctAttributeNameCase(
@@ -507,7 +508,21 @@ export async function normalizedDastToSerializedComponents(
                         const isUnresolvedReference =
                             codeAndArgs.code === "doenet-w0104" ||
                             codeAndArgs.code === "doenet-w0105";
-                        if (!isUnresolvedReference) {
+                        if (
+                            codeAndArgs.code === "doenet-w0197" &&
+                            typeof codeAndArgs.args?.componentType ===
+                                "string" &&
+                            componentInfoObjects.componentTypeAsWritten(
+                                codeAndArgs.args.componentType,
+                            ) === undefined
+                        ) {
+                            // The parser corrected `name`, `extend`, `copy`
+                            // or `copyWithState` on a tag the schema doesn't
+                            // list, not knowing if it is a component type.
+                            // One that is not is an error (`doenet-e0002`),
+                            // so nothing is applied, and the warning that
+                            // it is would be false.
+                        } else if (!isUnresolvedReference) {
                             diagnostics.push({
                                 type: node.errorType,
                                 message: node.message,

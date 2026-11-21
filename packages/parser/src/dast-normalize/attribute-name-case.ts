@@ -11,28 +11,33 @@ import { codedDastError } from "../coded-dast-error";
  * `xMin`, `SIMPLIFY`, `Extend`, `Name`) is still applied: it is renamed to the
  * component's spelling here, with a warning that it will be an error
  * (`doenet-w0197`). This is the migration D51 allows. The scan for wrong-case
- * names found `xmin`, `xmax`, `ymin` and `ymax` on most of the documentation's
- * graphs, so authors have copied them widely.
+ * names found `xmin`, `xmax`, `ymin` and `ymax` on every one of the
+ * documentation's graphs that set its extents, so authors have copied them
+ * widely.
  *
  * It runs first among the plugins that read attributes, so that everything
  * after it matches attribute names exactly: the checks of names
  * (`enforce-valid-names.ts`), the sugar, the reference resolver (`name`,
  * `extend`, `copy`, `copyWithState`, a repeat's `for`, `valueName` and
- * `indexName`) and the JavaScript core. It knows only what the schema lists:
- * an attribute the schema hides (`<subsetOfRealsInput xmin>`), and any
- * attribute of a tag it hides (`<h Hide>`), is renamed, with the same warning,
+ * `indexName`) and the JavaScript core. It knows only what the schema lists,
+ * so on a tag the schema doesn't list (`<h>`, `<panel>`, `<embed>`) it
+ * corrects only `name`, `extend`, `copy` and `copyWithState`, which every tag
+ * has and the resolver reads; any other attribute the schema hides
+ * (`<subsetOfRealsInput xmin>`, `<h Hide>`) is renamed, with the same warning,
  * by the JavaScript core (`correctAttributeNameCase` in
- * `convertNormalizedDast.ts`), before it reads attributes; there, `name`,
- * `extend`, `copy` and `copyWithState` are not, as the resolver has read them
- * already. Making it an error in a later release is a change in these two
- * places: without the rename, the attribute is one the component doesn't
- * have (`doenet-e0004`, which suggests the spelling).
+ * `convertNormalizedDast.ts`), before it reads attributes. Not knowing which
+ * unlisted tags are component types, it corrects those four on any tag; on
+ * one that is not (`<foo Extend="$m"/>`, an error, `doenet-e0002`), the core
+ * drops the warning, as nothing is applied. Making it an error in a later
+ * release is a change in these two places: without the rename, the attribute
+ * is one the component doesn't have (`doenet-e0004`, which suggests the
+ * spelling).
  *
- * An attribute is the component's when the schema lists it, or it is one every
- * tag takes (`extend`, `copy`, `copyWithState`), or, on a tag written with one
- * of those, one of the copy's own (`asList`, `removeEmptyArrayEntries`). A tag
- * that is not a component type as written (an error, `doenet-e0002`) and a
- * namespaced attribute (`xmlns:…`) are left alone. On a `<module>`, only its
+ * On a tag the schema lists, an attribute is the component's when the schema
+ * lists it, or it is one every tag takes (`extend`, `copy`, `copyWithState`),
+ * or, on a tag written with one of those, one of the copy's own (`asList`,
+ * `removeEmptyArrayEntries`). A namespaced attribute (`xmlns:…`) is left
+ * alone. On a `<module>`, only its
  * own attributes are corrected (`Copy`, `Name`, `Hide`): one its definition
  * declares (`<moduleAttributes>`) is not in the schema, so it is left as
  * written, and a declared one that differs only in case from the module's own
@@ -104,18 +109,19 @@ function attributesOf(tag: string): string[] | undefined {
 
 function correctAttributes(node: DastElement, warnings: DastError[]) {
     const declared = attributesOf(node.name);
-    if (!declared) {
-        return;
-    }
     const written = Object.keys(node.attributes);
     const madeFromAnother = ATTRIBUTES_OF_EVERY_TAG.some((name) =>
         written.some((w) => w.toLowerCase() === name.toLowerCase()),
     );
-    const known = [
-        ...declared,
-        ...ATTRIBUTES_OF_EVERY_TAG,
-        ...(madeFromAnother ? ATTRIBUTES_OF_A_COPY : []),
-    ];
+    // On a tag the schema doesn't list, only the attributes every tag has,
+    // which the resolver reads before the core could correct them.
+    const known = declared
+        ? [
+              ...declared,
+              ...ATTRIBUTES_OF_EVERY_TAG,
+              ...(madeFromAnother ? ATTRIBUTES_OF_A_COPY : []),
+          ]
+        : ["name", ...ATTRIBUTES_OF_EVERY_TAG];
     const knownSet = new Set(known);
     const byLowerCase = new Map<string, string | null>();
     for (const name of known) {

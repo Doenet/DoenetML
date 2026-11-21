@@ -17,9 +17,9 @@ vi.mock("hyperformula");
  *   with a warning (`doenet-w0197`), as D51's migration allows: the docs had
  *   taught `<graph xmin>` and the rest, so authors have written them widely.
  *   The parser renames it before anything reads it, so this holds for every
- *   attribute the schema lists, `name`, `extend` and `copy` included; the
- *   core renames one the schema hides, or of a tag it hides, but for those
- *   four, which the resolver has read before it.
+ *   attribute the schema lists, and for `name`, `extend`, `copy` and
+ *   `copyWithState` on every tag; the core renames any other the schema
+ *   hides, or of a tag it hides.
  *
  * A keyword in an attribute's value stays case-insensitive.
  */
@@ -365,17 +365,61 @@ describe("Names are case-sensitive (D51) @group4", async () => {
                 'Invalid attribute "xmin" for a component of type `<subsetOfRealsInput>`. Did you mean "xMin"?',
             );
         }
+    });
+
+    it("name, extend, copy and copyWithState in another case are applied on a tag the schema hides too", async () => {
+        // The parser corrects these four on any tag, as the resolver reads
+        // them before the core could.
+        function message(written: string, suggestion: string, tag: string) {
+            return `Attribute names are case-sensitive: write \`${suggestion}\`, not \`${written}\`, on a \`<${tag}>\`. It is applied for now, but will be an error in a later release.`;
+        }
         {
-            // `copy` of a tag the schema hides was read, as written, before
-            // the core: it is not applied, so not said to be
+            const { text, errors, warnings } = await load(
+                `<p name="p"><h name="x">hi</h><h Copy="$x"/><h Extend="$x" Hide/><h CopyWithState="$x"/></p>`,
+            );
+            expect(errors).toHaveLength(0);
+            expect(warnings.map((w) => w.message).sort()).toEqual(
+                [
+                    message("Copy", "copy", "h"),
+                    message("Extend", "extend", "h"),
+                    message("Hide", "hide", "h"),
+                    message("CopyWithState", "copyWithState", "h"),
+                ].sort(),
+            );
+            expect(await text("p")).eq("hihihi");
+        }
+        {
+            const { text, errors, warnings } = await load(
+                `<h Name="t">hi</h><p name="p">$t</p>`,
+            );
+            expect(errors).toHaveLength(0);
+            expect(warnings.map((w) => w.message)).toEqual([
+                message("Name", "name", "h"),
+            ]);
+            expect(await text("p")).eq("hi");
+        }
+        {
+            // a tag that is no component type: the error only, as nothing
+            // is applied
             const { errors, warnings } = await load(
-                `<p name="p"><h name="x">hi</h><h Copy="$x"/></p>`,
+                `<math name="m">1</math><foo Extend="$m"/><foo Name="f"/>`,
             );
             expect(warnings).toHaveLength(0);
-            expect(errors.map((e) => e.code)).toEqual(["doenet-e0004"]);
-            expect(errors[0].message).eq(
-                'Invalid attribute "Copy" for a component of type `<h>`. Did you mean "copy"?',
+            expect(errors.map((e) => e.code)).toEqual([
+                "doenet-e0002",
+                "doenet-e0002",
+            ]);
+        }
+        {
+            // written twice, in two cases: the second is an attribute the
+            // copy doesn't have
+            const { errors, warnings } = await load(
+                `<p name="p"><h name="x">hi</h><h copy="$x" Copy="$x"/></p>`,
             );
+            expect(errors).toHaveLength(0);
+            expect(warnings.map((w) => w.message)).toEqual([
+                "The `Copy` attribute is ignored: a `<h>` has no such attribute. Did you mean `copy`?",
+            ]);
         }
     });
 
