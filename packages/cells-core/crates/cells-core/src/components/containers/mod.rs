@@ -5,6 +5,8 @@ use super::define::*;
 
 pub mod section;
 
+pub(crate) mod blocks;
+
 pub use section::SECTION_TAGS;
 
 /// `<document>`: the root, and the credit of everything scored in it.
@@ -255,8 +257,10 @@ pub(crate) mod aside {
 
     component! {
         /// `<aside>`: a collapsible block whose `<title>` is the summary.
+        /// The renderer reads `startOpen`; the parser, `postponeRendering`.
         tags: ["aside"],
         flags: [container],
+        presentation { startOpen, postponeRendering }
         planner: Props,
     }
 }

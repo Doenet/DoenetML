@@ -200,6 +200,16 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     answer: {
         submitAnswer: (_t, c) => ({ kind: "submit", answer: c }),
     },
+    solution: {
+        revealSolution: (t, c) => ({
+            kind: "request",
+            pairs: [[cellOf(t, c, "open"), 1]],
+        }),
+        closeSolution: (t, c) => ({
+            kind: "request",
+            pairs: [[cellOf(t, c, "open"), 0]],
+        }),
+    },
     triggerSet: {
         triggerActions: (_t, c) => ({ kind: "trigger", component: c }),
     },

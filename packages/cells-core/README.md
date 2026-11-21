@@ -29,7 +29,12 @@ pick), `hint`, `group` (and `label`), literal `text`, the sections
 `functionIterates`, `repeat` (over a function's iterates), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers
 `title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside`, `sideBySide`,
-`stack`, `tabular`, `spreadsheet`, `row`, `cell` and `legend`. A `<math>` tuple of three or more entries is a tuple
+`stack`, `tabular`, `spreadsheet`, `row`, `cell` and `legend`, the other
+divisions (`question`, `activity`, `definition`, `note`, `theorem`,
+`paragraphs`, `objectives`, `part`, `task`, `problems`, `exercises`,
+numbered with the sections) and the unnumbered `proof`, and the blocks
+`solution`, `introduction`, `conclusion`, `statement`, `figure` (with
+`caption`; unnumbered) and `footnote` (unnumbered). A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

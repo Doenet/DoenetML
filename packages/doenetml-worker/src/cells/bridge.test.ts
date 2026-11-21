@@ -540,3 +540,127 @@ describe("step 3 components", () => {
         expect(props("tuple").latex).toBe("\\left( 1, 2, 3 \\right)");
     });
 });
+
+describe("sectioning and document-structure blocks", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const props = (name: string, i = 0) => (all(name)[i].data as any).props;
+        const ids = (name: string) => all(name).map((e) => e.data.id);
+        const childIds = (name: string, i = 0) =>
+            (all(name)[i].children as any[])
+                .filter((c) => typeof c !== "string")
+                .map((c) => c.id);
+        return { bridge, all, props, ids, childIds };
+    }
+
+    it("draws every division as a division of its kind, numbered among its siblings", async () => {
+        const { all } = await open(`<section><title>S</title>
+<theorem><title>Pythagoras</title><statement><p>a</p></statement></theorem>
+<introduction><subsection/></introduction>
+<objectives><p>learn</p></objectives>
+<problems><problem><part><p>a</p></part><part><p>b</p></part></problem></problems>
+<question/><definition/><note/><paragraphs/><activity/><exercises/>
+</section>`);
+        const divisions = all("division").map((e) => {
+            const p = (e.data as any).props;
+            return [p.divisionType, p.xrefLabel.label, p.codeNumber, p.boxed];
+        });
+        expect(divisions).toEqual([
+            ["section", "Section", "1", false],
+            ["theorem", "Theorem", "1", false],
+            ["subsection", "Section", "1.2", false],
+            ["objectives", "Objectives", "3", true],
+            ["problems", "Problems", "4", false],
+            ["problem", "Problem", "1", false],
+            ["part", "Part", "1", false],
+            ["part", "Part", "2", false],
+            ["question", "Question", "5", false],
+            ["definition", "Definition", "6", false],
+            ["note", "Note", "7", false],
+            ["paragraphs", "Paragraphs", "8", false],
+            ["activity", "Activity", "9", false],
+            ["exercises", "Exercises", "10", false],
+        ]);
+        // A statement and an introduction are elements of their own.
+        expect(all("statement")).toHaveLength(1);
+        expect(all("introduction")).toHaveLength(1);
+    });
+
+    it("draws a proof as an unnumbered division that starts closed", async () => {
+        const { props, ids, childIds } = await open(`<theorem/>
+<proof><p>Clear.</p></proof>
+<proof startOpen boxed><title>Why</title><p>Because.</p></proof>
+<theorem/>`);
+        expect(props("proof")).toMatchObject({
+            title: null,
+            codeNumber: "",
+            divisionType: "proof",
+            xrefLabel: { label: "Proof" },
+            collapsible: true,
+            boxed: false,
+            open: false,
+        });
+        const [title] = ids("title");
+        expect(props("proof", 1)).toMatchObject({
+            title,
+            xrefLabel: { label: "" },
+            boxed: true,
+            open: true,
+        });
+        expect(childIds("proof", 1)).not.toContain(title);
+        expect(props("division", 1).codeNumber).toBe("2");
+    });
+
+    it("reveals and closes a solution", async () => {
+        const { bridge, all, props, ids, childIds } = await open(
+            `<solution><p>It is 2.</p></solution>`,
+        );
+        expect(props("solution")).toEqual({
+            open: false,
+            canBeClosed: true,
+            sectionName: "Solution",
+            hide: false,
+        });
+        // The parser's wrapper around its content is spliced away.
+        expect(childIds("solution")).toEqual(ids("p"));
+        const id = all("solution")[0].data.id;
+        const send = (actionName: string) =>
+            (
+                bridge.dispatch({
+                    component: "solution",
+                    actionName,
+                    componentIdx: id,
+                    args: {},
+                }).payload as Record<number, ElementUpdate>
+            )[id]?.changedState;
+        expect(send("revealSolution")).toEqual({ open: true });
+        expect(send("closeSolution")).toEqual({ open: false });
+    });
+
+    it("draws a figure's caption from a prop, and a footnote's text", async () => {
+        const { props, ids, childIds } = await open(`<figure>
+<caption>A graph</caption><graph/></figure>
+<figure suppressFigureNameInCaption><graph/></figure>
+<p>Claim.<footnote>See page 3.</footnote></p>`);
+        const [caption] = ids("caption");
+        expect(props("figure")).toEqual({
+            caption: "",
+            captionChild: caption,
+            figureName: "Figure",
+            figureNamePrefix: "Figure: ",
+            suppressFigureNameInCaption: false,
+        });
+        expect(childIds("figure")).not.toContain(caption);
+        expect(props("figure", 1)).toMatchObject({
+            captionChild: null,
+            suppressFigureNameInCaption: true,
+        });
+        expect(props("footnote")).toEqual({
+            footnoteTag: "",
+            text: "See page 3.",
+        });
+        expect(childIds("footnote")).toEqual([]);
+    });
+});
