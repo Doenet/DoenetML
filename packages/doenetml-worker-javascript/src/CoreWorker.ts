@@ -440,6 +440,7 @@ export class PublicDoenetMLCore {
         }
         const blame = blameLoadCycle({
             componentIndices: error.componentIndices,
+            stateVariables: error.stateVariables,
             components: failedCore._components,
             document: serializedDocument,
             componentInfoObjects: coreArgs.componentInfoObjects,

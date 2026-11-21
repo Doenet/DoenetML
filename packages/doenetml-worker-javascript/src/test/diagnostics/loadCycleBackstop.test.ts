@@ -188,6 +188,21 @@ $cc.hidden
 <repeatForSequence to="1"><p name="q" hide="$q.text='1'">$t.sectionNumber</p></repeatForSequence>`,
             "$q.text",
         );
+        // the number of `s`, on the cycle, read in an attribute the cycle
+        // doesn't run through (`displayDigits`): the reference that makes
+        // the cycle is blamed, not it
+        await expectBlamed(
+            `<p name="p">hi</p>
+<section name="s" hide="$n.hidden"/>
+<number name="n" hide="$s.hidden" displayDigits="$s.sectionNumber">1</number>`,
+            "$n.hidden",
+        );
+        await expectBlamed(
+            `<p name="p">hi</p>
+<section name="s" hide="$r[1].n.hidden"/>
+<repeatForSequence name="r" to="1"><number name="n" hide="$s.hidden" displayDigits="$s.sectionNumber">1</number></repeatForSequence>`,
+            "$r[1].n.hidden",
+        );
     });
 
     // With no reference among the components the cycle reports, the first

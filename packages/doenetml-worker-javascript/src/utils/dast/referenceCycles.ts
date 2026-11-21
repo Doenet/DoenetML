@@ -677,6 +677,12 @@ function referenceOf(copy: SerializedComponent) {
 export type LoadCycle = {
     blamed: number;
     onCycle: Set<number>;
+    /**
+     * The state variables the cycle runs through, lower case, of the
+     * authored nodes on it the run time named (or copies of them), when the
+     * check that found the cycle knew them.
+     */
+    variablesOnCycle?: Map<number, Set<string>>;
     made?: number;
 };
 
@@ -904,9 +910,19 @@ export function breakReferenceCycles({
     /**
      * The first reference to the number of a section in `onCycle`, in
      * document order, among the components `onCycle` and the references
-     * written in their attributes (D57, rule 1), if there is one.
+     * written in their attributes (D57, rule 1), if there is one. Of a
+     * component whose state variables on the cycle are known
+     * (`variablesOnCycle`), only the attributes the cycle runs through, those
+     * with a state variable on it (`a`, or `__a_…` of an expression
+     * attribute, `expressionAttributePrefix`): a reference in another
+     * attribute (`displayDigits="$s.sectionNumber"` of a `<number>` whose
+     * `hide` makes the cycle) is not where the cycle is, and the error there
+     * would tell the author so.
      */
-    function referenceToNumberOnCycle(onCycle: Set<number>) {
+    function referenceToNumberOnCycle(
+        onCycle: Set<number>,
+        variablesOnCycle?: Map<number, Set<string>>,
+    ) {
         const references: SerializedComponent[] = [];
         for (const idx of onCycle) {
             const component = componentsByIdx.get(idx);
@@ -916,12 +932,28 @@ export function breakReferenceCycles({
             if (component.componentType === "_copy") {
                 references.push(component);
             }
-            for (const attribute of Object.values(component.attributes ?? {})) {
+            const variables = variablesOnCycle?.get(idx);
+            for (const [name, attribute] of Object.entries(
+                component.attributes ?? {},
+            )) {
+                const lower = name.toLowerCase();
+                if (
+                    variables &&
+                    !variables.has(lower) &&
+                    ![...variables].some((variable) =>
+                        variable.startsWith(`__${lower}_`),
+                    )
+                ) {
+                    continue;
+                }
                 for (const one of componentsOfAttribute(attribute)) {
                     if (one.componentType === "_copy") {
                         references.push(one);
                     }
-                    const inside: { copy: SerializedComponent }[] = [];
+                    const inside: {
+                        copy: SerializedComponent;
+                        depth: number;
+                    }[] = [];
                     gatherCopiesIn(one, new Set(), inside);
                     references.push(...inside.map(({ copy }) => copy));
                 }
@@ -2021,7 +2053,10 @@ export function breakReferenceCycles({
     const forcedCycleMembers = new Set<number>();
     if (loadCycle) {
         const blamed = componentsByIdx.get(loadCycle.blamed);
-        const toNumber = referenceToNumberOnCycle(loadCycle.onCycle);
+        const toNumber = referenceToNumberOnCycle(
+            loadCycle.onCycle,
+            loadCycle.variablesOnCycle,
+        );
         if (toNumber) {
             forcedCycleMembers.add(toNumber.componentIdx);
             loadCycle.made = toNumber.componentIdx;

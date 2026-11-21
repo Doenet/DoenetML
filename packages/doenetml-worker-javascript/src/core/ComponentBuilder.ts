@@ -682,6 +682,9 @@ export async function createChildrenThenComponent({
                                 serializedComponent.componentIdx,
                                 ...madeIn(ancestors, componentsReplacementOf),
                             ],
+                            e instanceof CircularDependencyError
+                                ? e.stateVariables
+                                : [],
                         );
                     } else {
                         throw e;

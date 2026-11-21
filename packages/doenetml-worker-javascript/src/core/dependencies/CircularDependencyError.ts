@@ -18,11 +18,23 @@ export class CircularDependencyError extends Error {
      * one the author wrote (D57, `blameLoadCycle`).
      */
     componentIndices: number[];
+    /**
+     * The state variables on the cycle, `[componentIdx, varName]`, when the
+     * check that found it knows them (the two in `DependencyHandler`), so
+     * that the blame can tell which attributes of a component the cycle runs
+     * through (`blameLoadCycle`'s `attributesOnCycle`).
+     */
+    stateVariables: [number, string][];
 
-    constructor(message: string, componentIndices: number[] = []) {
+    constructor(
+        message: string,
+        componentIndices: number[] = [],
+        stateVariables: [number, string][] = [],
+    ) {
         super(message);
         this.name = "CircularDependencyError";
         this.componentIndices = componentIndices;
+        this.stateVariables = stateVariables;
     }
 }
 

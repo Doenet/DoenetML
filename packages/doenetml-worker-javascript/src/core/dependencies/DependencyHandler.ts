@@ -1035,6 +1035,12 @@ export class DependencyHandler {
                     ),
                 ),
                 this._circularPathComponents.slice(start),
+                this._circularPathComponents
+                    .slice(start)
+                    .map((idx, i) => [
+                        idx,
+                        this._circularPathVarNames[start + i],
+                    ]),
             );
         }
         if (mark === PASSED) {
@@ -2083,14 +2089,18 @@ export class DependencyHandler {
             { type: blockerType, code: blockerCode },
         );
         if (cycle) {
-            const cycleIndices = cycle.map(({ code }) =>
-                Number(code.split("|")[0]),
-            );
+            // each code is the component's index, then, but for a composite
+            // to expand, the state variable
+            const codes = cycle.map(({ code }) => code.split("|"));
+            const cycleIndices = codes.map((parts) => Number(parts[0]));
             throw new CircularDependencyError(
                 this.getCircularDependencyMessage(
                     cycleIndices.map((idx) => this.components[idx]),
                 ),
                 cycleIndices,
+                codes
+                    .filter((parts) => parts[1] !== undefined)
+                    .map((parts) => [Number(parts[0]), parts[1]]),
             );
         }
 

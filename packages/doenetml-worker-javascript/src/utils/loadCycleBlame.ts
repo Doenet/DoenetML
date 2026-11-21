@@ -25,8 +25,10 @@
  * time's cycle names the component it is in, not it:
  * - rule 1 also counts a reference to the number of a section on the cycle
  *   written in an attribute of a node on it (`hide="$s.sectionNumber=1"`
- *   of a `<conditionalContent>` read by `$cc.hidden`), and the first such,
- *   in document order, is made the error in place of the node blamed here;
+ *   of a `<conditionalContent>` read by `$cc.hidden`), in an attribute the
+ *   cycle runs through when the run time says (`variablesOnCycle`), and the
+ *   first such, in document order, is made the error in place of the node
+ *   blamed here;
  * - else, when the node blamed is no reference, a reference written in it,
  *   to it or to another node on the cycle, is made the error in its place,
  *   if there is one (`$P.x` in `<point name="P">($P.x+1, 2)</point>`).
@@ -164,6 +166,29 @@ function authoredNodesOf(
 }
 
 /**
+ * The authored node `componentIdx` is, or was copied from (`madeFromIdx`,
+ * such as what is written in a repeat's template), if any: one whose state
+ * variables are those of the authored node, unlike the composite that made
+ * it or the component it is in.
+ */
+function authoredSelfOf(
+    componentIdx: number,
+    authored: Map<number, SerializedComponent>,
+    components: any[],
+): number | undefined {
+    const seen = new Set<number>();
+    let idx: number | undefined = componentIdx;
+    while (idx !== undefined && !seen.has(idx)) {
+        if (authored.has(idx)) {
+            return idx;
+        }
+        seen.add(idx);
+        idx = components[idx]?.madeFromIdx;
+    }
+    return undefined;
+}
+
+/**
  * The authored node to blame for the cycle on `componentIndices`, thrown
  * while the document `document` loaded, given the components the load made
  * (`components`), and the authored nodes on the cycle (`onCycle`), or
@@ -171,11 +196,13 @@ function authoredNodesOf(
  */
 export function blameLoadCycle({
     componentIndices,
+    stateVariables = [],
     components,
     document,
     componentInfoObjects,
 }: {
     componentIndices: number[];
+    stateVariables?: [number, string][];
     components: any[];
     document: SerializedComponent;
     componentInfoObjects: ComponentInfoObjects;
@@ -188,6 +215,21 @@ export function blameLoadCycle({
                 candidates.add(idx);
             }
         }
+    }
+    // the state variables the cycle runs through of each authored node it
+    // is, or was copied from, lower case
+    const variablesOnCycle = new Map<number, Set<string>>();
+    for (const [componentIdx, varName] of stateVariables) {
+        const idx = authoredSelfOf(componentIdx, byIdx, components);
+        if (idx === undefined || typeof varName !== "string") {
+            continue;
+        }
+        let vars = variablesOnCycle.get(idx);
+        if (!vars) {
+            vars = new Set();
+            variablesOnCycle.set(idx, vars);
+        }
+        vars.add(varName.toLowerCase());
     }
     const inOrder = [...candidates].sort(
         (a, b) => order.get(a)! - order.get(b)!,
@@ -240,7 +282,7 @@ export function blameLoadCycle({
         isReferenceToNumber(byIdx.get(idx)!),
     );
     if (toNumber !== undefined) {
-        return { blamed: toNumber, onCycle: candidates };
+        return { blamed: toNumber, onCycle: candidates, variablesOnCycle };
     }
     const composite = inOrder.find(
         (idx) =>
@@ -251,10 +293,10 @@ export function blameLoadCycle({
             }),
     );
     if (composite !== undefined) {
-        return { blamed: composite, onCycle: candidates };
+        return { blamed: composite, onCycle: candidates, variablesOnCycle };
     }
     if (inOrder.length === 0) {
         return undefined;
     }
-    return { blamed: inOrder[0], onCycle: candidates };
+    return { blamed: inOrder[0], onCycle: candidates, variablesOnCycle };
 }
