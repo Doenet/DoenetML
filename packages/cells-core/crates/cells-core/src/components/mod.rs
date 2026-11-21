@@ -16,6 +16,7 @@ mod decl;
 pub(crate) mod define;
 pub(crate) mod geometry;
 pub(crate) mod inputs;
+pub(crate) mod operators;
 pub mod prop;
 pub(crate) mod structure;
 #[cfg(test)]
@@ -160,6 +161,34 @@ component_types! {
     Triangle => geometry::triangle::DEFINITION,
     ConstrainTo => geometry::constrain_to::DEFINITION,
     ConstrainToGrid => geometry::constrain_to_grid::DEFINITION,
+    Abs => operators::abs::DEFINITION,
+    Sign => operators::sign::DEFINITION,
+    Floor => operators::floor::DEFINITION,
+    Ceil => operators::ceil::DEFINITION,
+    Round => operators::round::DEFINITION,
+    SetSmallToZero => operators::set_small_to_zero::DEFINITION,
+    WrapNumberPeriodic => operators::wrap_number_periodic::DEFINITION,
+    Sum => operators::fold::DEFINITION,
+    Product => operators::fold::PRODUCT,
+    Mean => operators::fold::MEAN,
+    Median => operators::fold::MEDIAN,
+    Min => operators::fold::MIN,
+    Max => operators::fold::MAX,
+    Mod => operators::fold::MOD,
+    Gcd => operators::fold::GCD,
+    Lcm => operators::fold::LCM,
+    Count => operators::fold::COUNT,
+    Variance => operators::variance::DEFINITION,
+    StandardDeviation => operators::variance::STANDARD_DEVIATION,
+    And => operators::logic::DEFINITION,
+    Or => operators::logic::OR,
+    Xor => operators::logic::XOR,
+    Iff => operators::logic::IFF,
+    Implies => operators::logic::IMPLIES,
+    Not => operators::not::DEFINITION,
+    IsInteger => operators::is_integer::DEFINITION,
+    IsNumber => operators::is_number::DEFINITION,
+    IsBetween => operators::is_between::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

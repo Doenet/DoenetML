@@ -20,7 +20,7 @@ prop table (`Props`) or a function of the element's record (`Plan`).
 A component type is one [`component!`](crate::components::define::component)
 block ([`components::define`](crate::components::define)) in one of the
 family directories under `components/`: `containers/`, `geometry/`,
-`inputs/`, `structure/` or `values/`.
+`inputs/`, `operators/`, `structure/` or `values/`.
 
 **A type built entirely from its prop table** (attributes, children,
 defaults, and operators over its own props) goes in an inline module of the

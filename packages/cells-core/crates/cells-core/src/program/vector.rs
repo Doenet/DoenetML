@@ -30,6 +30,9 @@
 //! | `SequencePick{m}`        | (draw, from, step, to, m excludes) →  | none: what the seed chose does not move (ADR 0037)                   | none              |
 //! |                          | a value of the sequence, less the     |                                                                      |                   |
 //! |                          | excludes, the draw indexes            |                                                                      |                   |
+//! | `Reduce{op, n}`          | n inputs → one value: a sum, a        | none: an operator component's result is not set by a request, as in  | none              |
+//! |                          | statistic or a connective             | the current core                                                     |                   |
+//! | `Wrap`                   | (x, lo, hi) → x wrapped into [lo, hi) | projection: the requested value wrapped, written to x                | x                 |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
@@ -181,6 +184,202 @@ pub enum VecOp {
         /// How many excluded values follow `to`.
         n_exclude: u8,
     },
+    /// One value of `n` inputs ([`Reduction`]): an operator component's
+    /// sum, statistic or connective. No inverse.
+    Reduce {
+        /// What it computes.
+        op: Reduction,
+        /// How many inputs.
+        n: u8,
+    },
+    /// Input 0 wrapped periodically into the interval between inputs 1
+    /// and 2 ([`wrap_periodic`]). A request writes input 0 wrapped.
+    Wrap,
+}
+
+/// What a [`VecOp::Reduce`] computes of its inputs, as the current core's
+/// operator components do over their operands. A NaN operand makes a
+/// numeric result NaN; a connective passes over it, as a missing operand
+/// (ADR 0041).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Reduction {
+    /// The sum.
+    Sum,
+    /// The product.
+    Product,
+    /// The mean.
+    Mean,
+    /// The median: the middle value, or the mean of the two middle ones.
+    Median,
+    /// The variance of inputs 1 on: a population's when input 0 holds,
+    /// else a sample's.
+    Variance,
+    /// The square root of [`Reduction::Variance`].
+    StandardDeviation,
+    /// The least.
+    Min,
+    /// The greatest.
+    Max,
+    /// The first mod the second ([`modulo`](crate::program::scalar::modulo));
+    /// NaN unless there are two.
+    Mod,
+    /// The greatest common divisor; NaN unless every input is an integer.
+    Gcd,
+    /// The least common multiple; NaN unless every input is an integer.
+    Lcm,
+    /// 1 when every input holds (nonzero).
+    All,
+    /// 1 when some input holds.
+    Any,
+    /// 1 when exactly one input holds.
+    Xor,
+    /// 1 when every input holds as the first does.
+    Iff,
+    /// None: 1; one: its negation; two: the first implies the second;
+    /// more: 0.
+    Implies,
+    /// Inputs (x, lim1, lim2, strict): 1 when x lies between the limits,
+    /// strictly when `strict` holds.
+    Between,
+}
+
+impl Reduction {
+    /// Its value over `inp`, as the current core computes it.
+    pub fn eval(self, inp: &[f64]) -> f64 {
+        let n = inp.len() as f64;
+        let bit = |b: bool| if b { 1.0 } else { 0.0 };
+        // A connective's operands: a NaN is a missing one, passed over.
+        let truths = || inp.iter().filter(|v| !v.is_nan()).map(|&v| v != 0.0);
+        match self {
+            Reduction::Sum => inp.iter().sum(),
+            Reduction::Product => inp.iter().product(),
+            Reduction::Mean => inp.iter().sum::<f64>() / n,
+            Reduction::Median => {
+                if inp.is_empty() || inp.iter().any(|v| v.is_nan()) {
+                    return f64::NAN;
+                }
+                let mut v = inp.to_vec();
+                v.sort_by(f64::total_cmp);
+                let m = v.len() / 2;
+                if v.len() % 2 == 1 {
+                    v[m]
+                } else {
+                    (v[m - 1] + v[m]) / 2.0
+                }
+            }
+            Reduction::Variance => variance(inp),
+            Reduction::StandardDeviation => variance(inp).sqrt(),
+            Reduction::Min => inp.iter().fold(f64::INFINITY, |a, &c| {
+                if a.is_nan() || c.is_nan() {
+                    f64::NAN
+                } else {
+                    a.min(c)
+                }
+            }),
+            Reduction::Max => inp.iter().fold(f64::NEG_INFINITY, |a, &c| {
+                if a.is_nan() || c.is_nan() {
+                    f64::NAN
+                } else {
+                    a.max(c)
+                }
+            }),
+            Reduction::Mod => match *inp {
+                [a, b] => crate::program::scalar::modulo(a, b),
+                _ => f64::NAN,
+            },
+            Reduction::Gcd | Reduction::Lcm
+                if !inp.iter().all(|v| v.is_finite() && v.fract() == 0.0) =>
+            {
+                f64::NAN
+            }
+            Reduction::Gcd => gcd(inp),
+            Reduction::Lcm => {
+                // As the current core: the product over the gcd of the
+                // products of the others.
+                let prod: f64 = inp.iter().product();
+                let others: Vec<f64> = inp.iter().map(|v| prod / v).collect();
+                (prod / gcd(&others)).abs()
+            }
+            Reduction::All => bit(truths().all(|t| t)),
+            Reduction::Any => bit(truths().any(|t| t)),
+            Reduction::Xor => bit(truths().filter(|&t| t).count() == 1),
+            Reduction::Iff => {
+                let mut it = truths();
+                let first = it.next();
+                bit(it.all(|t| Some(t) == first))
+            }
+            Reduction::Implies => {
+                let v: Vec<bool> = truths().collect();
+                bit(match v[..] {
+                    [] => true,
+                    [a] => !a,
+                    [a, b] => !a || b,
+                    _ => false,
+                })
+            }
+            Reduction::Between => match *inp {
+                [x, l1, l2, strict] => {
+                    let strict = strict != 0.0 && !strict.is_nan();
+                    let (lo, hi) = if l1 < l2 || (!strict && l1 == l2) {
+                        (l1, l2)
+                    } else if l2 < l1 {
+                        (l2, l1)
+                    } else {
+                        return 0.0;
+                    };
+                    bit(if strict {
+                        x > lo && x < hi
+                    } else {
+                        x >= lo && x <= hi
+                    })
+                }
+                _ => f64::NAN,
+            },
+        }
+    }
+}
+
+/// The variance of `inp[1..]` as the current core computes it: the sum of
+/// squares less the squared sum over the count, over the count when
+/// `inp[0]` holds (a population's), else over one less.
+fn variance(inp: &[f64]) -> f64 {
+    let Some((&population, xs)) = inp.split_first() else {
+        return f64::NAN;
+    };
+    let n = xs.len() as f64;
+    let (sum, squares) = xs.iter().fold((0.0, 0.0), |(s, q), &x| (s + x, q + x * x));
+    let spread = squares - sum * sum / n;
+    if population != 0.0 && !population.is_nan() {
+        spread / n
+    } else {
+        spread / (n - 1.0)
+    }
+}
+
+/// The greatest common divisor of integers, by Euclid's algorithm as the
+/// current core runs it: never negative, 0 when every input is 0.
+fn gcd(inp: &[f64]) -> f64 {
+    inp.iter().fold(0.0, |mut x: f64, &v| {
+        let mut y = v;
+        while y != 0.0 {
+            (x, y) = (y, x % y);
+        }
+        x.abs()
+    })
+}
+
+/// `x` wrapped periodically into the interval between `lo` and `hi`
+/// (either order), as the current core's `<wrapNumberPeriodic>`: `lo` when
+/// they are equal, NaN when `x` is not finite.
+pub(super) fn wrap_periodic(x: f64, lo: f64, hi: f64) -> f64 {
+    if !x.is_finite() || lo.is_nan() || hi.is_nan() {
+        return f64::NAN;
+    }
+    if lo == hi {
+        return lo;
+    }
+    let (lo, hi) = if lo > hi { (hi, lo) } else { (lo, hi) };
+    lo + crate::program::scalar::modulo(x - lo, hi - lo)
 }
 
 /// How many values `from, from + step, ..., to` holds, as a pick counts
@@ -289,6 +488,8 @@ impl VecOp {
             VecOp::Clamp => 3,
             VecOp::Centroid { n } => 2 * n as usize,
             VecOp::SequencePick { n_exclude } => 4 + n_exclude as usize,
+            VecOp::Reduce { n, .. } => n as usize,
+            VecOp::Wrap => 3,
         }
     }
 
@@ -304,9 +505,12 @@ impl VecOp {
             VecOp::PolarDirection { .. } => 0b11100,
             VecOp::LinePointsFromCoeffs => 0b111,
             VecOp::ProjectCircle | VecOp::ProjectLine => 0b11,
-            VecOp::First { .. } | VecOp::WeightedMean { .. } | VecOp::SequencePick { .. } => 0,
+            VecOp::First { .. }
+            | VecOp::WeightedMean { .. }
+            | VecOp::SequencePick { .. }
+            | VecOp::Reduce { .. } => 0,
             VecOp::Choose { n } => first(n as usize + 1) & !1,
-            VecOp::Clamp => 1,
+            VecOp::Clamp | VecOp::Wrap => 1,
             VecOp::Centroid { n } => first(2 * n as usize),
         }
     }
@@ -367,7 +571,9 @@ impl VecOp {
             VecOp::First { .. }
             | VecOp::Choose { .. }
             | VecOp::Clamp
-            | VecOp::SequencePick { .. } => 1,
+            | VecOp::SequencePick { .. }
+            | VecOp::Reduce { .. }
+            | VecOp::Wrap => 1,
             VecOp::WeightedMean { .. } | VecOp::Centroid { .. } => 2,
         }
     }
@@ -464,6 +670,8 @@ impl VecOp {
                     &inp[4..4 + n_exclude as usize],
                 );
             }
+            VecOp::Reduce { op, n } => out[0] = op.eval(&inp[..n as usize]),
+            VecOp::Wrap => out[0] = wrap_periodic(inp[0], inp[1], inp[2]),
         }
     }
 
@@ -588,7 +796,10 @@ impl VecOp {
                 out.write(inputs[1], y);
                 true
             }
-            VecOp::First { .. } | VecOp::WeightedMean { .. } | VecOp::SequencePick { .. } => false,
+            VecOp::First { .. }
+            | VecOp::WeightedMean { .. }
+            | VecOp::SequencePick { .. }
+            | VecOp::Reduce { .. } => false,
             VecOp::Choose { n } => match (active_branch(inp[0], n), desired[0]) {
                 (Some(k), Some(d)) => {
                     out.write(inputs[k], d);
@@ -602,6 +813,13 @@ impl VecOp {
                     true
                 }
                 None => false,
+            },
+            VecOp::Wrap => match desired[0].map(|d| wrap_periodic(d, inp[1], inp[2])) {
+                Some(x) if !x.is_nan() => {
+                    out.write(inputs[0], x);
+                    true
+                }
+                _ => false,
             },
             VecOp::Centroid { n } => {
                 let (dx, dy) = (want(0) - cur[0], want(1) - cur[1]);
@@ -938,6 +1156,19 @@ mod writes {
             VecOp::Centroid { n: 3 },
             VecOp::SequencePick { n_exclude: 0 },
             VecOp::SequencePick { n_exclude: 2 },
+            VecOp::Reduce {
+                op: Reduction::Sum,
+                n: 3,
+            },
+            VecOp::Reduce {
+                op: Reduction::Variance,
+                n: 4,
+            },
+            VecOp::Reduce {
+                op: Reduction::Between,
+                n: 4,
+            },
+            VecOp::Wrap,
         ]
     }
 
@@ -1047,7 +1278,9 @@ mod writes {
             | VecOp::Choose { .. }
             | VecOp::WeightedMean { .. }
             | VecOp::Clamp
-            | VecOp::SequencePick { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
+            | VecOp::SequencePick { .. }
+            | VecOp::Reduce { .. }
+            | VecOp::Wrap => (0..op.n_out()).map(|k| vec![k]).collect(),
         }
     }
 

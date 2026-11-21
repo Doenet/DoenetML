@@ -1,0 +1,3 @@
+into [0, 1) by default: cells 10 · essential 0 · constant 10 · instrs 0 · components 4
+between bounds of its own (either order), and math over a reference: cells 15 · essential 0 · constant 15 · instrs 0 · components 7
+a request writes the asked value wrapped: cells 7 · essential 1 · constant 5 · instrs 1 · components 5

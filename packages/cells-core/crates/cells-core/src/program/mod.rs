@@ -18,7 +18,7 @@ pub use instr::{
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{
-    MAX_VEC_IN, Pivot, Produced, RigidOpts, VecOp, fewest_in_sequence, sequence_count,
+    MAX_VEC_IN, Pivot, Produced, Reduction, RigidOpts, VecOp, fewest_in_sequence, sequence_count,
     sequence_index,
 };
 
