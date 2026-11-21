@@ -527,6 +527,35 @@ describe("step 3 components", () => {
         });
     });
 
+    it("draws operators as math notation and booleans, without their operands", async () => {
+        const { all, props, send, changed } = await open(`
+<numberInput name="n" value="-4"/>
+<abs>$n</abs> <round numDecimals="1">2.25</round> <sum>1 2 $n</sum>
+<mean>2 3 5 7</mean> <max>$n 3</max>
+<and>true false</and> <or>true $b</or> <not>true</not>
+<isBetween limits="1 5">3</isBetween> <booleanInput name="b"/>
+<count name="c">x y</count><m>k = $c</m>`);
+        expect(props("abs")).toEqual({ latex: "4", renderMode: "inline" });
+        expect(props("round").latex).toBe("2.3");
+        expect(props("sum").latex).toBe("-1");
+        expect(props("mean").latex).toBe("4.25");
+        expect(props("max").latex).toBe("3");
+        for (const name of ["abs", "sum", "and"]) {
+            expect(all(name)[0].children).toEqual([]);
+        }
+        expect(props("and")).toEqual({ value: false });
+        expect(props("or")).toEqual({ value: true });
+        expect(props("not")).toEqual({ value: false });
+        expect(props("isBetween")).toEqual({ value: true });
+        // Math notation refers to an operator by its value.
+        expect(props("m").latex).toBe("k = 2");
+
+        const payload = send("numberInput", "updateValue", { value: 6 });
+        expect(changed(payload, "abs")).toEqual({ latex: "6" });
+        expect(changed(payload, "sum")).toEqual({ latex: "9" });
+        expect(changed(payload, "max")).toEqual({ latex: "6" });
+    });
+
     it("writes math notation with the values it refers to", async () => {
         const { all, props } = await open(`<number name="n">3</number>
 <m>x^{$n}</m><md><mrow>a</mrow><mrow>b</mrow></md>

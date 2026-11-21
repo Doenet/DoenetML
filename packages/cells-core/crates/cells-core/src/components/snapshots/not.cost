@@ -1,0 +1,3 @@
+of literals: cells 7 · essential 0 · constant 7 · instrs 0 · components 4
+of a boolean input, which a request on it cannot change: cells 4 · essential 1 · constant 2 · instrs 1 · components 6
+of a condition: cells 7 · essential 1 · constant 3 · instrs 3 · components 4

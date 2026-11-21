@@ -267,6 +267,26 @@ const NUMBER_TYPES = new Set([
     "sequenceValue",
     "numberInput",
     "slider",
+    // The numeric operators.
+    "abs",
+    "sign",
+    "floor",
+    "ceil",
+    "round",
+    "setSmallToZero",
+    "wrapNumberPeriodic",
+    "sum",
+    "product",
+    "mean",
+    "median",
+    "variance",
+    "standardDeviation",
+    "count",
+    "min",
+    "max",
+    "mod",
+    "gcd",
+    "lcm",
 ]);
 
 /** A component's value as LaTeX, where math notation refers to it. */
@@ -331,6 +351,17 @@ function sizes(table: CellsTable, c: number, name: string): string[] {
 /** A number shown as math notation (the renderer draws it with `M`). */
 const MATH_VALUE: Contract = {
     props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
+};
+
+/** A numeric operator: its value as math notation. Its children are its
+ * operands, never drawn. */
+const OPERATOR_VALUE: Contract = { ...MATH_VALUE, noChildren: true };
+
+/** A boolean operator: its value. Its children are its operands, never
+ * drawn. */
+const BOOLEAN_OPERATOR: Contract = {
+    props: (r, c) => ({ value: r.bool(c, "value") }),
+    noChildren: true,
 };
 
 /** A function's or a derivative's curve: in a graph, a polyline through
@@ -813,6 +844,36 @@ export const CONTRACTS: Record<string, Contract> = {
         }),
         noChildren: true,
     },
+    // The operators (`components/operators` in the core): a number drawn
+    // as math notation, a boolean as `true` or `false`.
+    abs: OPERATOR_VALUE,
+    sign: OPERATOR_VALUE,
+    floor: OPERATOR_VALUE,
+    ceil: OPERATOR_VALUE,
+    round: OPERATOR_VALUE,
+    setSmallToZero: OPERATOR_VALUE,
+    wrapNumberPeriodic: OPERATOR_VALUE,
+    sum: OPERATOR_VALUE,
+    product: OPERATOR_VALUE,
+    mean: OPERATOR_VALUE,
+    median: OPERATOR_VALUE,
+    variance: OPERATOR_VALUE,
+    standardDeviation: OPERATOR_VALUE,
+    count: OPERATOR_VALUE,
+    min: OPERATOR_VALUE,
+    max: OPERATOR_VALUE,
+    mod: OPERATOR_VALUE,
+    gcd: OPERATOR_VALUE,
+    lcm: OPERATOR_VALUE,
+    and: BOOLEAN_OPERATOR,
+    or: BOOLEAN_OPERATOR,
+    xor: BOOLEAN_OPERATOR,
+    iff: BOOLEAN_OPERATOR,
+    implies: BOOLEAN_OPERATOR,
+    not: BOOLEAN_OPERATOR,
+    isInteger: BOOLEAN_OPERATOR,
+    isNumber: BOOLEAN_OPERATOR,
+    isBetween: BOOLEAN_OPERATOR,
 };
 
 /** Component types that stand as their children. */

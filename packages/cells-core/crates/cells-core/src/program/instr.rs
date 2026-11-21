@@ -284,6 +284,11 @@ mod arity {
             OpSpec::Vec(VecOp::Clamp),
             OpSpec::Vec(VecOp::Centroid { n: 3 }),
             OpSpec::Vec(VecOp::SequencePick { n_exclude: 1 }),
+            OpSpec::Vec(VecOp::Reduce {
+                op: crate::program::Reduction::Sum,
+                n: 3,
+            }),
+            OpSpec::Vec(VecOp::Wrap),
             OpSpec::Sym(SymKind::Instantiate {
                 template: Handle::new(0),
                 post: Post::None,
@@ -320,9 +325,11 @@ mod arity {
                 VecOp::Clamp => 12,
                 VecOp::Centroid { .. } => 13,
                 VecOp::SequencePick { .. } => 14,
+                VecOp::Reduce { .. } => 15,
+                VecOp::Wrap => 16,
             },
             OpSpec::Sym(k) => {
-                15 + match k {
+                17 + match k {
                     SymKind::Instantiate { .. } => 0,
                     SymKind::Evaluate => 1,
                     SymKind::EvalAt => 2,
@@ -336,7 +343,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 23;
+    const N_TAGS: usize = 25;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

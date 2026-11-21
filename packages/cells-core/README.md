@@ -35,9 +35,14 @@ and `tage`, the characters `ndash`, `mdash`, `nbsp`, `ellipsis`, `lq`, `rq`,
 `lsq` and `rsq`, `br`, `hr`, the blocks `div`, `pre`, `blockQuote` and
 `ol`, the other divisions (`question`, `activity`, `definition`, `note`,
 `theorem`, `paragraphs`, `objectives`, `part`, `task`, `problems`,
-`exercises`, numbered with the sections) and the unnumbered `proof`, and the
+`exercises`, numbered with the sections) and the unnumbered `proof`, the
 blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
-`caption`; unnumbered) and `footnote` (unnumbered). A `<math>` tuple of three or more entries is a tuple
+`caption`; unnumbered) and `footnote` (unnumbered), the numeric operators
+`abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
+`wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
+`standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
+from text and references) and the boolean ones `and`, `or`, `xor`, `iff`,
+`implies`, `not`, `isInteger`, `isNumber` and `isBetween`. A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

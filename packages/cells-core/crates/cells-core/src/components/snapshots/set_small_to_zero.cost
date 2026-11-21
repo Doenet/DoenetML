@@ -1,0 +1,3 @@
+below the default threshold, and above it: cells 9 · essential 0 · constant 9 · instrs 0 · components 4
+a threshold of its own: cells 7 · essential 0 · constant 7 · instrs 0 · components 3
+a request writes the asked value, a small one as 0: cells 6 · essential 1 · constant 4 · instrs 1 · components 5
