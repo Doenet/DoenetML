@@ -1626,7 +1626,10 @@ describe("Answer tag tests @group4", async () => {
         );
     });
 
-    it("award depending on current response throws error", async () => {
+    // The answer reads every value written in its awards to find its
+    // responses, so an award reading them is a cycle, found at load
+    // (Doenet/DoenetML#2515): an error at the reference, and the rest renders.
+    it("award depending on current response is an error at load", async () => {
         const doenetMLs = [
             `<answer name="ans"><mathInput /><award><when>$ans.currentResponse=5</when></award></answer>`,
             `<answer name="ans"><mathInput /><award><when>$ans.currentResponse1=5</when></award></answer>`,
@@ -1635,9 +1638,9 @@ describe("Answer tag tests @group4", async () => {
         ];
 
         for (let doenetML of doenetMLs) {
-            await expect(createTestCore({ doenetML })).rejects.toThrow(
-                "Circular dependency",
-            );
+            const { core } = await createTestCore({ doenetML });
+            const errors = getDiagnosticsByType(core).errors;
+            expect(errors.map((error) => error.code)).eqls(["doenet-e0005"]);
         }
     });
 
@@ -2416,8 +2419,8 @@ describe("Answer tag tests @group4", async () => {
 Enter values that sum to <m>3x</m>:
 <mathInput name="mi1" /> <mathInput name="mi2"/>
 <answer name="answer1">
-    <award extend="$aw1" />
-    <award extend="$aw2" />
+    <award copy="$aw1" />
+    <award copy="$aw2" />
 </answer>
   `;
 
@@ -3709,9 +3712,9 @@ Enter any letter:
         async function submitAndGetResponses(index: string) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <p name="inputs"><mathInput name="mi1" /> <mathInput name="mi2" /></p>
         <setup>
-          <group name="mis">$mi1 $mi2</group>
+          <collect name="mis" componentType="mathInput" from="$inputs" />
           <number name="k">1</number>
           <number name="j">2</number>
         </setup>
@@ -3776,9 +3779,9 @@ Enter any letter:
     it("referencesAreResponses recognizes an index reference written two ways", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <p name="inputs"><mathInput name="mi1" /> <mathInput name="mi2" /></p>
         <setup>
-          <group name="mis">$mi1 $mi2</group>
+          <collect name="mis" componentType="mathInput" from="$inputs" />
           <group name="holder"><number name="k">1</number></group>
         </setup>
         <answer name="ans">
@@ -3812,9 +3815,9 @@ Enter any letter:
         ) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-        <mathInput name="mi1" /> <mathInput name="mi2" />
+        <p name="inputs"><mathInput name="mi1" /> <mathInput name="mi2" /></p>
         <setup>
-          <group name="mis">$mi1 $mi2</group>
+          <collect name="mis" componentType="mathInput" from="$inputs" />
           <number name="k">1</number>
           <number name="j">2</number>
         </setup>
@@ -3878,7 +3881,7 @@ Enter any letter:
     it("referencesAreResponses recognizes a repeat's iteration value as an index", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-        <setup><group name="inputs"><mathInput name="a" /><mathInput name="b" /></group></setup>
+        <setup><group name="ig"><mathInput name="a" /><mathInput name="b" /></group><collect name="inputs" componentType="mathInput" from="$ig" /></setup>
         <repeat name="r" for="1 2" valueName="i">
           <answer name="ans">
             <award referencesAreResponses="$inputs[$i]"><when>$inputs[$i] = 1</when></award>
@@ -3941,6 +3944,322 @@ Enter any letter:
                 { latex: "y", credit: 0.9 },
                 { latex: "z", credit: 0.8 },
             ],
+        });
+    });
+
+    // An award made by `copy`, or reached through an `extend` of the answer
+    // or section holding it, records the references its
+    // `referencesAreResponses` names as the same award written out in full
+    // does, from load and after an update, whatever kind of reference each
+    // is in the source award: a value reference, a copy made at build time
+    // or at run time, a reference to a whole component read through its
+    // adapter (`$P` in a comparison), or a number read inside a `<math>`.
+    // An award can't itself be extended (D42).
+    describe("referencesAreResponses of an award made by copy or reached through an extend", () => {
+        async function recordedResponses({
+            doenetML,
+            update,
+            answer = "a2",
+        }: {
+            doenetML: string;
+            update?: { name: string; latex: string };
+            answer?: string;
+        }) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            const a2 = await resolvePathToNodeIdx(answer);
+
+            async function submitAndRead() {
+                await submitAnswer({ componentIdx: a2, core });
+                const stateValues = (
+                    await core.returnAllStateVariables(false, true)
+                )[a2].stateValues;
+                return {
+                    credit: stateValues.creditAchieved,
+                    numResponses: stateValues.numResponses,
+                    submitted: stateValues.submittedResponses.map((x: any) =>
+                        x instanceof me.class ? x.tree : x,
+                    ),
+                    types: stateValues.submittedResponsesComponentType,
+                };
+            }
+
+            if (doenetML.includes(`name="mi"`)) {
+                await updateMathInputValue({
+                    latex: "x",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            }
+            const atLoad = await submitAndRead();
+            if (!update) {
+                return { atLoad };
+            }
+            await updateMathInputValue({
+                latex: update.latex,
+                componentIdx: await resolvePathToNodeIdx(update.name),
+                core,
+            });
+            return { atLoad, afterUpdate: await submitAndRead() };
+        }
+
+        /**
+         * Check that `<award copy="$aw">`, and an award reached through an
+         * `extend` of its `<answer>` or of a `<section>` holding it, record
+         * what `<award><when>{when}</when></award>`, written out in an answer
+         * of its own, records (`expected`), with `refs` as their
+         * `referencesAreResponses`.
+         */
+        async function checkAgainstWrittenOut({
+            setup,
+            when,
+            refs,
+            expected,
+            update,
+            a1HasInput = true,
+        }: {
+            setup: string;
+            when: string;
+            refs: string;
+            expected: Awaited<ReturnType<typeof recordedResponses>>;
+            update?: { name: string; latex: string };
+            a1HasInput?: boolean;
+        }) {
+            // An input of `a1`'s own, unless `a1HasInput` is false, makes the
+            // references in its award not potential responses. (One outside it,
+            // with `forAnswer`, does not.)
+            const input = a1HasInput ? `<mathInput name="dummy" />` : "";
+            const a1 = `<answer name="a1">${input}<award name="aw"><when>${when}</when></award></answer>`;
+            const writtenOut = await recordedResponses({
+                doenetML: `${setup}${a1}<answer name="a2"><award referencesAreResponses="${refs}"><when>${when}</when></award></answer>`,
+                update,
+            });
+            expect(writtenOut).eqls(expected);
+            const copied = await recordedResponses({
+                doenetML: `${setup}${a1}<answer name="a2"><award copy="$aw" referencesAreResponses="${refs}" /></answer>`,
+                update,
+            });
+            expect(copied, "copy").eqls(expected);
+
+            // The award in an extend of what holds it is a shadow of the
+            // award written out.
+            const answerExtended = await recordedResponses({
+                doenetML: `${setup}${a1}<setup><answer name="a2s"><award referencesAreResponses="${refs}"><when>${when}</when></award></answer></setup><answer name="a2" extend="$a2s" />`,
+                update,
+            });
+            expect(answerExtended, "answer extend").eqls(expected);
+            const sectionExtended = await recordedResponses({
+                doenetML: `${setup}${a1}<setup><section name="sec"><answer name="a2"><award referencesAreResponses="${refs}"><when>${when}</when></award></answer></section></setup><section name="sec2" extend="$sec" />`,
+                update,
+                answer: "sec2.a2",
+            });
+            expect(sectionExtended, "section extend").eqls(expected);
+        }
+
+        const definitions = `
+            <number name="n">3</number>
+            <mathInput name="mi" />
+            <point name="P">(1,2)</point>`;
+
+        it("a value reference to an input", async () => {
+            await checkAgainstWrittenOut({
+                setup: definitions,
+                when: "$n = 3 and $mi = x and $P = (1,2)",
+                refs: "$mi",
+                expected: {
+                    atLoad: {
+                        credit: 1,
+                        numResponses: 1,
+                        submitted: ["x"],
+                        types: ["math"],
+                    },
+                },
+            });
+        });
+
+        it("a value reference to a number", async () => {
+            await checkAgainstWrittenOut({
+                setup: definitions,
+                when: "$n = 3 and $mi = x and $P = (1,2)",
+                refs: "$n",
+                expected: {
+                    atLoad: {
+                        credit: 1,
+                        numResponses: 1,
+                        submitted: [3],
+                        types: ["number"],
+                    },
+                },
+            });
+        });
+
+        it("a number read inside a math", async () => {
+            await checkAgainstWrittenOut({
+                setup: definitions,
+                when: "<math>$n</math> = 3 and $mi = x",
+                refs: "$n",
+                expected: {
+                    atLoad: {
+                        credit: 1,
+                        numResponses: 1,
+                        submitted: [3],
+                        types: ["number"],
+                    },
+                },
+            });
+        });
+
+        it("a whole point read through its adapter", async () => {
+            for (const when of [
+                "$n = 3 and $mi = x and $P = (1,2)",
+                "<math>$P</math> = (1,2)",
+            ]) {
+                await checkAgainstWrittenOut({
+                    setup: definitions,
+                    when,
+                    refs: "$P",
+                    expected: {
+                        atLoad: {
+                            credit: 1,
+                            numResponses: 1,
+                            submitted: [["vector", 1, 2]],
+                            types: ["point"],
+                        },
+                    },
+                });
+            }
+        });
+
+        it("a copy made at build time", async () => {
+            await checkAgainstWrittenOut({
+                setup: definitions,
+                when: `<math extend="$mi" simplify /> = x`,
+                refs: "$mi",
+                expected: {
+                    atLoad: {
+                        credit: 1,
+                        numResponses: 1,
+                        submitted: ["x"],
+                        types: ["math"],
+                    },
+                },
+            });
+        });
+
+        it("copies made at run time, before and after one is remade", async () => {
+            const runTimeDefinitions = `
+            <mathInput name="i" prefill="1" />
+            <repeatForSequence name="r" length="3" valueName="v"><point name="q">($v,2)</point></repeatForSequence>
+            <select name="s"><option><point>(1,2)</point></option></select>`;
+            for (const ref of ["$r[1].q.x", "$s.x"]) {
+                await checkAgainstWrittenOut({
+                    setup: runTimeDefinitions,
+                    when: `${ref} = 1`,
+                    refs: ref,
+                    expected: {
+                        atLoad: {
+                            credit: 1,
+                            numResponses: 1,
+                            submitted: [1],
+                            types: ["math"],
+                        },
+                    },
+                });
+            }
+            await checkAgainstWrittenOut({
+                setup: runTimeDefinitions,
+                when: "$r[$i].q.x = 1",
+                refs: "$r[$i].q.x",
+                update: { name: "i", latex: "2" },
+                expected: {
+                    atLoad: {
+                        credit: 1,
+                        numResponses: 1,
+                        submitted: [1],
+                        types: ["math"],
+                    },
+                    afterUpdate: {
+                        credit: 0,
+                        numResponses: 1,
+                        submitted: [2],
+                        types: ["math"],
+                    },
+                },
+            });
+        });
+
+        // #2538 item 1: a path through a `<group>`, and the math a `<select>`
+        // holds, are marked as the reference names them, in an award written
+        // out, in one made by `copy`, and in one reached through an `extend`
+        // of the answer or section holding it, whether or not the source
+        // award's references are potential responses. `$n` is in
+        // each comparison and not named, so it is not recorded.
+        it("a path through a group, and the math of a select", async () => {
+            const setup = `
+            <number name="n">3</number>
+            <group name="g"><text>a</text><point name="gp">(1,2)</point></group>
+            <group name="g2" extend="$g" />
+            <select name="s"><option><math>x</math></option></select>`;
+            const math = (submitted: any) => ({
+                atLoad: {
+                    credit: 1,
+                    numResponses: 1,
+                    submitted: [submitted],
+                    types: ["math"],
+                },
+            });
+            for (const a1HasInput of [true, false]) {
+                for (const [when, refs, expected] of [
+                    ["$g.gp.x = 1 and $n = 3", "$g.gp.x", math(1)],
+                    ["$g2.gp.x = 1 and $n = 3", "$g2.gp.x", math(1)],
+                    [
+                        "<math>$g.gp.x + 1</math> = 2 and $n = 3",
+                        "$g.gp.x",
+                        math(1),
+                    ],
+                    ["$s = x and $n = 3", "$s", math("x")],
+                    ["<math>$s</math> = x and $n = 3", "$s", math("x")],
+                    ["<math>$s + 1</math> = x + 1 and $n = 3", "$s", math("x")],
+                ] as const) {
+                    await checkAgainstWrittenOut({
+                        a1HasInput,
+                        setup,
+                        when,
+                        refs,
+                        expected,
+                    });
+                }
+            }
+        });
+
+        it("only the named reference, when the source award's references are potential responses", async () => {
+            // `a1` has no input, so its references are potential responses.
+            await checkAgainstWrittenOut({
+                a1HasInput: false,
+                setup: `
+            <numberList name="l">4 5 6</numberList>
+            <mathInput name="i" prefill="1" />
+            <mathInput name="m" />`,
+                when: "$l[$i] = $m",
+                refs: "$l[$i]",
+                update: { name: "i", latex: "2" },
+                expected: {
+                    atLoad: {
+                        credit: 0,
+                        numResponses: 1,
+                        submitted: [4],
+                        types: ["number"],
+                    },
+                    afterUpdate: {
+                        credit: 0,
+                        numResponses: 1,
+                        submitted: [5],
+                        types: ["number"],
+                    },
+                },
+            });
         });
     });
 
@@ -5329,7 +5648,7 @@ Enter any letter:
     <mathInput name="mi" />
     <award>1</award>
   </answer>
-  <conditionalContent condition="$ans.justSubmitted" name="cond"><p>The answer was just submitted.</p></conditionalContent>
+  <conditionalContent condition="$ans.justSubmitted" name="cond"><p name="note">The answer was just submitted.</p></conditionalContent>
    `,
         });
 
@@ -5368,7 +5687,7 @@ Enter any letter:
         ).eq(0);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("cond[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("cond.note")].stateValues
                 .text,
         ).eq("The answer was just submitted.");
         expect(
@@ -5433,7 +5752,7 @@ Enter any letter:
                 .replacementsToWithhold,
         ).eq(0);
         expect(
-            stateVariables[await resolvePathToNodeIdx("cond[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("cond.note")].stateValues
                 .text,
         ).eq("The answer was just submitted.");
         expect(
@@ -5642,7 +5961,7 @@ Enter any letter:
         const doenetML = `
 <answer name="an">
     <award name="aw">1.1</award>
-    <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
+    <award copy="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
   `;
 
@@ -5663,7 +5982,7 @@ Enter any letter:
 <answer name="an">
     <mathInput name="mi" />
     <award name="aw"><when>$mi=1.1</when></award>
-    <award extend="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
+    <award copy="$aw" name="aw2" credit="0.5" allowedErrorInNumbers="0.001" />
 </answer>
   `;
 
@@ -7601,7 +7920,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer
   >Current response: <math extend="$default.currentResponse" name="default_cr" />
-  Submitted response: <math extend="$default.SubmittedResponse" name="default_sr" />
+  Submitted response: <math extend="$default.submittedResponse" name="default_sr" />
   
   </p>
 
@@ -7610,7 +7929,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer>
   >Current response: <math extend="$short.currentResponse" name="short_cr" />
-  Submitted response: <math extend="$short.SubmittedResponse" name="short_sr" />
+  Submitted response: <math extend="$short.submittedResponse" name="short_sr" />
   </p>
 `;
 
@@ -7685,7 +8004,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer
   >Current response: <number extend="$default.currentResponse" name="default_cr" />
-  Submitted response: <number extend="$default.SubmittedResponse" name="default_sr" />
+  Submitted response: <number extend="$default.submittedResponse" name="default_sr" />
   
   </p>
 
@@ -7694,7 +8013,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer>
   >Current response: <number extend="$short.currentResponse" name="short_cr" />
-  Submitted response: <number extend="$short.SubmittedResponse" name="short_sr" />
+  Submitted response: <number extend="$short.submittedResponse" name="short_sr" />
   </p>
 `;
 

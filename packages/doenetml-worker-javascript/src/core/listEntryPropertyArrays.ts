@@ -2,6 +2,7 @@
  * The arrays a list component (`listEntryComponentType`) is given when a
  * reference reads a property of its entries (`utils/listEntryReference.ts`).
  */
+import me from "math-expressions";
 import { getClassStateVariableDefinitions } from "./StateVariableDefinitionFactory";
 import {
     addStateVariablePlaceholder,
@@ -58,6 +59,27 @@ export function ensureListEntryPropertyArray({
               )
             : undefined;
 
+    const propertyType = listEntryPropertyType(
+        listClass,
+        entryProperty,
+        core.componentInfoObjects,
+    );
+    // A property the list computes from an entry's value is, for a blank
+    // entry (`entriesMissing`, D40), the blank of its type, not what it
+    // computes from the blank value: `$pl.y` of a `<pointList>` whose second
+    // entry is blank is `6, ＿`, not `6, 0`. A reference to one entry's
+    // property is missing then too (`valueMissingDefinition`).
+    // So is the text or LaTeX of a blank entry: `$nl.text` of
+    // `<numberList>1 $nothing 3</numberList>` is `1, ＿, 3`, not `1, NaN, 3`,
+    // and of a `<booleanList>`, `＿`, not `false` (D40, #2460).
+    const blankOfProperty =
+        "entriesMissing" in component.state &&
+        (derived || entryProperty === "text" || entryProperty === "latex")
+            ? blankPropertyValue(
+                  entryProperty === "latex" ? "latex" : propertyType,
+              )
+            : undefined;
+
     const definition = {
         isArray: true,
         entryPrefixes: [`${LIST_ENTRY_PREFIX}${entryProperty}_`],
@@ -67,11 +89,7 @@ export function ensureListEntryPropertyArray({
         // (its length) as no change to it.
         recursiveDependencyBoundary: true,
         shadowingInstructions: {
-            createComponentOfType: listEntryPropertyType(
-                listClass,
-                entryProperty,
-                core.componentInfoObjects,
-            ),
+            createComponentOfType: propertyType,
             ...withCopiedAttributes(
                 entryCompanions(
                     core,
@@ -110,17 +128,30 @@ export function ensureListEntryPropertyArray({
                           },
                       }
                     : {};
+            const dependenciesByKey: Record<string, any> = {};
+            for (const arrayKey of arrayKeys) {
+                dependenciesByKey[arrayKey] = {
+                    ...(listArray
+                        ? {
+                              value: {
+                                  dependencyType: "stateVariable",
+                                  variableName: `${listArray.entryPrefixes[0]}${Number(arrayKey) + 1}`,
+                                  variablesOptional: true,
+                              },
+                          }
+                        : {}),
+                    ...(blankOfProperty === undefined
+                        ? {}
+                        : {
+                              entryMissing: {
+                                  dependencyType: "stateVariable",
+                                  variableName: `entryMissing${Number(arrayKey) + 1}`,
+                                  variablesOptional: true,
+                              },
+                          }),
+                };
+            }
             if (listArray) {
-                const dependenciesByKey: Record<string, any> = {};
-                for (const arrayKey of arrayKeys) {
-                    dependenciesByKey[arrayKey] = {
-                        value: {
-                            dependencyType: "stateVariable",
-                            variableName: `${listArray.entryPrefixes[0]}${Number(arrayKey) + 1}`,
-                            variablesOptional: true,
-                        },
-                    };
-                }
                 return { globalDependencies, dependenciesByKey };
             }
             return {
@@ -131,6 +162,7 @@ export function ensureListEntryPropertyArray({
                         variableName: listVariable,
                     },
                 },
+                dependenciesByKey,
             };
         },
         arrayDefinitionByKey({
@@ -148,8 +180,11 @@ export function ensureListEntryPropertyArray({
                           : perEntry
                             ? (globalDependencyValues.value[arrayKey] ?? null)
                             : globalDependencyValues.value;
-                values[arrayKey] =
-                    derived && value !== null ? derived.compute(value) : value;
+                values[arrayKey] = dependencyValuesByKey[arrayKey]?.entryMissing
+                    ? blankOfProperty
+                    : derived && value !== null
+                      ? derived.compute(value)
+                      : value;
             }
             return { setValue: { [arrayName]: values } };
         },
@@ -241,6 +276,40 @@ export function ensureListEntryPropertyArray({
         stateVariable: arrayName,
         definition: Object.create(definition),
     });
+}
+
+/**
+ * The value of an entry property of type `componentType` that a blank entry
+ * has (as `blankValue` in `AuthoredValueList.js`): `＿` for a math or a
+ * point's `coords`, `NaN` for a number, `""` for a text and `false` for a
+ * boolean, and one blank for a `mathList` (a point's `xs`). `undefined`
+ * for any other type, which is computed from the blank value.
+ */
+function blankPropertyValue(componentType: string | undefined) {
+    switch (componentType) {
+        case "math":
+        case "coords":
+            return me.fromAst("＿");
+        case "number":
+        case "integer":
+            return NaN;
+        case "text":
+            // a missing text shows as a blank (D37)
+            return "＿";
+        case "latex":
+            return "＿";
+        case "boolean":
+            return false;
+        case "mathList":
+            // one blank, as a list tag of an index that names nothing holds
+            return [me.fromAst("＿")];
+        case "numberList":
+            // one blank, as for a `mathList`: `matrixSize` of a blank entry
+            // is `＿`, not the `1, 1` of the blank value (D40, #2460)
+            return [NaN];
+        default:
+            return undefined;
+    }
 }
 
 /**

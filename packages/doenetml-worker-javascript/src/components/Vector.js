@@ -1,4 +1,5 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
+import { contentNamesNothingDefinition } from "../utils/missing";
 import me from "math-expressions";
 import {
     breakEmbeddedStringByCommas,
@@ -42,6 +43,10 @@ export default class Vector extends GraphicalComponent {
         });
     }
     static componentType = "vector";
+
+    // Missing while what it holds is only references that name nothing, or
+    // a blank entry of a list (`contentNamesNothing`, D40, #2544).
+    static missingWhenContentNamesNothing = true;
     static styleOverrideCategories = ["line"];
 
     static componentDocs = {
@@ -353,6 +358,14 @@ export default class Vector extends GraphicalComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // Whether it holds only references that name nothing, as its
+        // children or its `displacement` (`center="$nothing"`), which makes a shape
+        // it gives a point to missing (`BaseComponent.missingWhenPointsMissing`,
+        // D40), and makes the vector itself missing
+        // (`BaseComponent.missingWhenContentNamesNothing`, #2544).
+        stateVariableDefinitions.contentNamesNothing =
+            contentNamesNothingDefinition("displacement");
 
         Object.assign(
             stateVariableDefinitions,
@@ -2783,10 +2796,13 @@ export default class Vector extends GraphicalComponent {
                 // if not based on head
                 // then update displacement instead of head
 
+                // Only the coordinates the drag gives: a drag in a graph of
+                // a vector in three dimensions gives two, and the rest of
+                // the displacement keeps what it is, symbolic or not (#2179).
                 if (tailcoords == undefined) {
                     tailcoords = (await this.stateValues.numericalEndpoints)[0];
                 }
-                let displacement = tailcoords.map((x, i) => headcoords[i] - x);
+                let displacement = headcoords.map((x, i) => x - tailcoords[i]);
                 updateInstructions.push({
                     updateType: "updateValue",
                     componentIdx: this.componentIdx,

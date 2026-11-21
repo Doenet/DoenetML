@@ -11,7 +11,7 @@ describe("Endpoint tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
-      <endpoint name="A" open switchAble>(4,0)</endpoint>
+      <endpoint name="A" open switchable>(4,0)</endpoint>
       <endpoint name="B">(7,0)</endpoint>
       <lineSegment endpoints="$A $B" />
       <endpoint name="C" open="$b1" styleNumber="2">(-9,0)</endpoint>

@@ -97,6 +97,26 @@ describe("Video tag tests @group1", async () => {
         }
     });
 
+    it("aspectRatio is a number, by default 16/9 (#2521)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <video name="v1" youtube="B7UmUX68KtE"><shortDescription>A video</shortDescription></video>
+    <video name="v2" youtube="B7UmUX68KtE" aspectRatio="4/3"><shortDescription>A video</shortDescription></video>
+    <p name="p1">$v1.aspectRatio</p>
+    <p name="p2">$v2.aspectRatio</p>
+    <number name="n1" extend="$v1.aspectRatio" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("v1")).aspectRatio).closeTo(16 / 9, 1e-12);
+        expect((await sv("v2")).aspectRatio).closeTo(4 / 3, 1e-12);
+        expect((await sv("n1")).value).closeTo(16 / 9, 1e-12);
+        expect((await sv("p1")).text).eq("1.78");
+        expect((await sv("p2")).text).eq("1.33");
+    });
+
     it("horizontal align", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -214,10 +234,314 @@ describe("Video tag tests @group1", async () => {
         expect((await stateOf()).time).eq(0);
         expect((await stateOf()).secondsWatched).eq(0);
         expect((await stateOf()).fractionWatched).eq(0);
-        // `duration` is intentionally untouched: the new player overwrites it
-        // through `recordVideoReady`, and blanking it here would only make
-        // `fractionWatched` divide by null in the meantime.
-        expect((await stateOf()).duration).eq(300);
+        // The duration is the old video's too. A new player that reports 0
+        // when ready must not keep it (`recordVideoReady` keeps a positive
+        // duration over a 0), so the new video's duration, reported later,
+        // is the one used.
+        expect((await stateOf()).duration).eq(null);
+        for (const [actionName, args] of [
+            ["recordVideoReady", { duration: 0 }],
+            [
+                "recordVideoWatched",
+                { beginTime: 0, endTime: 60, duration: 600, rates: [] },
+            ],
+        ] as const) {
+            await core.requestAction({
+                componentIdx: videoIdx,
+                actionName,
+                args,
+                baseVariantIndex: 0,
+            });
+        }
+        expect((await stateOf()).duration).eq(600);
+        expect((await stateOf()).fractionWatched).closeTo(0.1, 1e-12);
+    });
+
+    describe("fractionWatched", () => {
+        // Record the given watched segments of a 600-second video, in order,
+        // and return the video's state and the credit of an
+        // `<answer type="videoWatched">`, which submits itself each time a
+        // segment is recorded.
+        async function watchSegments({
+            segments,
+            readyDuration = 600,
+            playerDuration = readyDuration,
+        }: {
+            segments: [number, number][];
+            readyDuration?: number | null;
+            playerDuration?: number;
+        }) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <video name="v" youtube="tJ4ypc5L6uU"><shortDescription>a video</shortDescription></video>
+    <answer name="ans" type="videoWatched" video="$v" />
+            `,
+            });
+
+            const videoIdx = await resolvePathToNodeIdx("v");
+            const answerIdx = await resolvePathToNodeIdx("ans");
+
+            if (readyDuration !== null) {
+                await core.requestAction({
+                    componentIdx: videoIdx,
+                    actionName: "recordVideoReady",
+                    args: { duration: readyDuration },
+                    baseVariantIndex: 0,
+                });
+            }
+            for (const [beginTime, endTime] of segments) {
+                await core.requestAction({
+                    componentIdx: videoIdx,
+                    actionName: "recordVideoWatched",
+                    args: {
+                        beginTime,
+                        endTime,
+                        duration: playerDuration,
+                        rates: [],
+                    },
+                    baseVariantIndex: 0,
+                });
+            }
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                video: stateVariables[videoIdx].stateValues,
+                credit: stateVariables[answerIdx].stateValues.creditAchieved,
+            };
+        }
+
+        it("is 1 after watching the whole video in one go", async () => {
+            // The player reports a start just after 0 and an end just before
+            // the duration. Both ends must snap, not only the start.
+            const { video, credit } = await watchSegments({
+                segments: [[0.3, 599.6]],
+            });
+            expect(video.segmentsWatched).eqls([[0, 600]]);
+            expect(video.fractionWatched).eq(1);
+            expect(credit).eq(1);
+        });
+
+        it("is 1 after watching the whole video with a pause", async () => {
+            const { video, credit } = await watchSegments({
+                segments: [
+                    [0.3, 200],
+                    [200.4, 599.6],
+                ],
+            });
+            expect(video.segmentsWatched).eqls([[0, 600]]);
+            expect(video.fractionWatched).eq(1);
+            expect(credit).eq(1);
+        });
+
+        it("is 1 when a small gap is left unwatched", async () => {
+            // 1.5 seconds missing in the middle: within 2 seconds and 1% of
+            // the duration.
+            const { video, credit } = await watchSegments({
+                segments: [
+                    [0, 200],
+                    [201.5, 600],
+                ],
+            });
+            expect(video.secondsWatched).eq(598.5);
+            expect(video.fractionWatched).eq(1);
+            expect(credit).eq(1);
+        });
+
+        it("is below 1 when a larger gap is left unwatched", async () => {
+            // 2.5 seconds missing exceeds the 2-second margin.
+            const { video, credit } = await watchSegments({
+                segments: [
+                    [0, 200],
+                    [202.5, 600],
+                ],
+            });
+            expect(video.secondsWatched).eq(597.5);
+            expect(video.fractionWatched).closeTo(597.5 / 600, 1e-12);
+            expect(credit).closeTo(597.5 / 600, 1e-12);
+        });
+
+        it("margin is at most 1% of a short video", async () => {
+            // For a 60-second video the margin is 0.6 seconds, not 2.
+            let { video } = await watchSegments({
+                readyDuration: 60,
+                segments: [
+                    [0, 30],
+                    [31.5, 60],
+                ],
+            });
+            expect(video.fractionWatched).closeTo(58.5 / 60, 1e-12);
+
+            // The player's duration at ready time (60.4) is longer than the
+            // one it reports while playing (60), so the end snaps to 60 and
+            // 0.4 seconds, within 0.604, are left over.
+            ({ video } = await watchSegments({
+                readyDuration: 60.4,
+                playerDuration: 60,
+                segments: [[0.2, 59.8]],
+            }));
+            expect(video.segmentsWatched).eqls([[0, 60]]);
+            expect(video.fractionWatched).eq(1);
+        });
+
+        it("partial viewing is unchanged", async () => {
+            const { video, credit } = await watchSegments({
+                segments: [[10, 70]],
+            });
+            expect(video.segmentsWatched).eqls([[10, 70]]);
+            expect(video.fractionWatched).closeTo(0.1, 1e-12);
+            expect(credit).closeTo(0.1, 1e-12);
+        });
+
+        it("does not exceed 1 when the player reports a longer duration", async () => {
+            // When the duration the player reports while playing is longer
+            // than the one at ready time, the end snaps to the longer one and
+            // secondsWatched exceeds the video's duration.
+            const { video, credit } = await watchSegments({
+                readyDuration: 600,
+                playerDuration: 610,
+                segments: [
+                    [0, 300],
+                    [300, 609],
+                ],
+            });
+            expect(video.secondsWatched).eq(610);
+            expect(video.fractionWatched).eq(1);
+            expect(credit).eq(1);
+        });
+
+        it("is 0 until the duration is known", async () => {
+            const { video } = await watchSegments({
+                readyDuration: null,
+                segments: [[0, 5]],
+            });
+            expect(video.duration).eq(null);
+            expect(video.secondsWatched).eq(5);
+            expect(video.fractionWatched).eq(0);
+        });
+
+        it("takes a positive duration reported after a duration of 0 (#2539)", async () => {
+            // The player reported 0 when it became ready, before the video's
+            // metadata loaded; the duration it reports while playing is used.
+            for (const readyDuration of [0, null]) {
+                const { video, credit } = await watchSegments({
+                    readyDuration,
+                    playerDuration: 600,
+                    segments: [[10, 70]],
+                });
+                expect(video.duration, String(readyDuration)).eq(600);
+                expect(video.fractionWatched).closeTo(0.1, 1e-12);
+                expect(credit).closeTo(0.1, 1e-12);
+            }
+            // A positive duration from when the player was ready is kept.
+            const { video } = await watchSegments({
+                readyDuration: 600,
+                playerDuration: 610,
+                segments: [[10, 70]],
+            });
+            expect(video.duration).eq(600);
+        });
+
+        it("takes the duration from a start, a pause or the end of playback (#2539)", async () => {
+            for (const actionName of [
+                "recordVideoStarted",
+                "recordVideoPaused",
+                "recordVideoCompleted",
+            ]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `<video name="v" youtube="tJ4ypc5L6uU"><shortDescription>a video</shortDescription></video>`,
+                });
+                const videoIdx = await resolvePathToNodeIdx("v");
+                for (const [name, args] of [
+                    ["recordVideoReady", { duration: 0 }],
+                    [
+                        actionName,
+                        { beginTime: 0, endTime: 0, duration: 300, rate: 1 },
+                    ],
+                ] as const) {
+                    await core.requestAction({
+                        componentIdx: videoIdx,
+                        actionName: name,
+                        args,
+                        baseVariantIndex: 0,
+                    });
+                }
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[videoIdx].stateValues.duration,
+                    actionName,
+                ).eq(300);
+            }
+        });
+
+        it("keeps a positive duration when the player is ready with 0, also after a reload (#2539)", async () => {
+            const doenetML = `
+    <video name="v" youtube="tJ4ypc5L6uU"><shortDescription>a video</shortDescription></video>
+    <answer name="ans" type="videoWatched" video="$v" />
+            `;
+            let { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({ doenetML });
+            let videoIdx = await resolvePathToNodeIdx("v");
+            const act = async (actionName: string, args: object) =>
+                await core.requestAction({
+                    componentIdx: videoIdx,
+                    actionName,
+                    args,
+                    baseVariantIndex: 0,
+                });
+            const stateOf = async () =>
+                (await core.returnAllStateVariables(false, true))[videoIdx]
+                    .stateValues;
+
+            await act("recordVideoReady", { duration: 0 });
+            await act("recordVideoWatched", {
+                beginTime: 0,
+                endTime: 60,
+                duration: 600,
+                rates: [],
+            });
+            expect((await stateOf()).duration).eq(600);
+
+            // A ready report of 0 does not replace the positive duration.
+            await act("recordVideoReady", { duration: 0 });
+            expect((await stateOf()).duration).eq(600);
+            expect((await stateOf()).fractionWatched).closeTo(0.1, 1e-12);
+
+            // Reload: the duration taken from playback was saved, and the
+            // player's ready report of 0 keeps it.
+            await core.saveImmediately();
+            ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+                doenetML,
+                initialState: scoreState.state,
+            }));
+            videoIdx = await resolvePathToNodeIdx("v");
+            expect((await stateOf()).duration).eq(600);
+            await act("recordVideoReady", { duration: 0 });
+            expect((await stateOf()).duration).eq(600);
+            expect((await stateOf()).fractionWatched).closeTo(0.1, 1e-12);
+
+            // A different positive duration from the player replaces it.
+            await act("recordVideoReady", { duration: 300 });
+            expect((await stateOf()).duration).eq(300);
+            expect((await stateOf()).fractionWatched).closeTo(0.2, 1e-12);
+        });
+
+        it("does not snap the end while the player reports no duration", async () => {
+            // Before its metadata loads, the player reports a duration of 0.
+            const { video } = await watchSegments({
+                readyDuration: null,
+                playerDuration: 0,
+                segments: [[0, 5]],
+            });
+            expect(video.segmentsWatched).eqls([[0, 5]]);
+            expect(video.secondsWatched).eq(5);
+            expect(video.fractionWatched).eq(0);
+        });
     });
 
     it("accessibility diagnostic if no short description specified", async () => {

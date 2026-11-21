@@ -83,6 +83,16 @@ export class RendererInstructionBuilder {
     core: Core;
     componentsToRender: Record<number, { children: any[] }>;
     componentsWithChangedChildrenToRender: Set<number>;
+    /**
+     * The components that can be drawn as a blank for a while
+     * (`BaseComponent.canBecomeMissing`) whose `valueMissing` was marked
+     * stale since the last batch (`markStale` returning `checkDrawnMissing`).
+     * Each one whose `valueMissing` no longer matches how it is drawn
+     * (`drawnMissing`) has its parent redraw its children
+     * (`checkDrawnMissing`), and no other does: typing in `x` with
+     * `<number>$x</number>` drawn redraws nothing (#2516).
+     */
+    componentsToCheckDrawnMissing: Set<number>;
     rendererState: Record<number, any>;
     /** Pending timer for `scheduleDeferredRendererUpdate`, if any. */
     _deferredRendererTimeout: ReturnType<typeof setTimeout> | null;
@@ -125,11 +135,18 @@ export class RendererInstructionBuilder {
      * the index of its node in the resolver.
      */
     listEntryIndexContent: Map<number, string>;
+    /**
+     * Whether the renderer of each list entry, by its renderer index, draws
+     * it as a blank, as an entry for a reference that names nothing is
+     * (D40, `entriesMissing`).
+     */
+    listEntryDrawnMissing: Map<number, boolean>;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set();
+        this.componentsToCheckDrawnMissing = new Set();
         this.rendererState = {};
         this._deferredRendererTimeout = null;
         this._deferredRendererArgs = { sourceInformation: {} };
@@ -141,6 +158,7 @@ export class RendererInstructionBuilder {
         this.listEntryOfRendererIdx = new Map();
         this.listEntryNodesInResolver = new Set();
         this.listEntryIndexContent = new Map();
+        this.listEntryDrawnMissing = new Map();
     }
 
     /**
@@ -157,6 +175,7 @@ export class RendererInstructionBuilder {
         this.listEntryOfRendererIdx = new Map();
         this.listEntryNodesInResolver = new Set();
         this.listEntryIndexContent = new Map();
+        this.listEntryDrawnMissing = new Map();
     }
 
     /**
@@ -228,6 +247,8 @@ export class RendererInstructionBuilder {
         // update that changed the value is done, so the batch carries it
         // (`DiagnosticsManager.refreshWatchedConditions`).
         await this.core.diagnosticsManager.refreshWatchedConditions();
+
+        await this.checkDrawnMissing();
 
         let deletedRenderers: any[] = [];
 
@@ -313,11 +334,16 @@ export class RendererInstructionBuilder {
                         )
                     ).items.entries()) {
                         if (item.listEntry) {
+                            // and whether the entry is drawn as a blank (D40)
                             currentChildIdentifiers.push(
                                 `nameType:${this.rendererIdxForListEntry(
                                     item.listEntry.list,
                                     item.listEntry.entryIndex,
-                                )};${item.listEntry.list.constructor.listEntryComponentType}`,
+                                )};${item.listEntry.list.constructor.listEntryComponentType}${blankSuffix(
+                                    item.listEntry.missing
+                                        ? BLANK_RENDERER_TYPE
+                                        : undefined,
+                                )}`,
                             );
                         } else if (item.child === null) {
                             currentChildIdentifiers.push("");
@@ -435,15 +461,20 @@ export class RendererInstructionBuilder {
                 const list = this.core._components[componentIdx];
                 for (const [entryIndex, entryIdx] of listEntryIndices) {
                     if (list && entryIdx in this.componentsToRender) {
+                        const missing =
+                            this.listEntryDrawnMissing.get(entryIdx) ?? false;
                         const stateValues = await this.listEntryRendererState(
                             list,
                             entryIndex,
+                            missing,
                         );
                         this.rendererState[entryIdx] = { stateValues };
                         rendererStatesToUpdate.push({
                             componentIdx: entryIdx,
                             stateValues,
-                            rendererType: list.rendererType,
+                            rendererType: missing
+                                ? BLANK_RENDERER_TYPE
+                                : list.rendererType,
                         });
                     }
                 }
@@ -735,6 +766,12 @@ export class RendererInstructionBuilder {
             } else if (this.isListComponent(child)) {
                 const numEntries = await child.stateValues.numEntries;
                 const entriesHidden = await this.listEntriesHidden(child);
+                // an entry for a reference that names nothing is drawn as a
+                // blank (D40, `entriesMissing`)
+                const entriesMissing =
+                    "entriesMissing" in child.state
+                        ? await child.stateValues.entriesMissing
+                        : undefined;
                 for (
                     let entryIndex = 0;
                     entryIndex < numEntries;
@@ -743,7 +780,15 @@ export class RendererInstructionBuilder {
                     items.push(
                         entriesHidden?.[entryIndex]
                             ? { child: null }
-                            : { listEntry: { list: child, entryIndex } },
+                            : {
+                                  listEntry: {
+                                      list: child,
+                                      entryIndex,
+                                      missing: Boolean(
+                                          entriesMissing?.[entryIndex],
+                                      ),
+                                  },
+                              },
                     );
                 }
             } else {
@@ -755,26 +800,81 @@ export class RendererInstructionBuilder {
     }
 
     /**
+     * Mark the nearest ancestor of `component` that is not a composite to
+     * redraw its children, if it renders them.
+     */
+    markParentRenderedChildrenChanged(component: any): void {
+        for (const ancestorObj of component.ancestors) {
+            if (
+                !this.core.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
+                    ancestorObj.componentClass,
+                )
+            ) {
+                if (ancestorObj.componentClass.renderChildren) {
+                    this.componentsWithChangedChildrenToRender.add(
+                        ancestorObj.componentIdx,
+                    );
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * For each component in `componentsToCheckDrawnMissing`, have its parent
+     * redraw its children when whether it is missing (`valueMissing`) no
+     * longer matches how it was drawn (`drawnMissing`, `updateDrawnMissing`).
+     * One not drawn yet, or no longer there, is skipped: its parent decides
+     * when it draws it.
+     */
+    async checkDrawnMissing(): Promise<void> {
+        const toCheck = this.componentsToCheckDrawnMissing;
+        this.componentsToCheckDrawnMissing = new Set();
+        for (const componentIdx of toCheck) {
+            const component = this.core._components[componentIdx];
+            if (!component || component.drawnMissing === undefined) {
+                continue;
+            }
+            if (
+                Boolean(await component.stateValues.valueMissing) !==
+                component.drawnMissing
+            ) {
+                this.markParentRenderedChildrenChanged(component);
+            }
+        }
+    }
+
+    /**
      * Record on `child`, when it is a drawn value reference, whether it has
      * nothing to read now (`valueMissing`), so it is
      * drawn as a blank while it has nothing (D37, `ValueRef.rendererType`).
      * Its `hidden` reads `valueMissing`, so a change to it updates the
-     * children its parent renders, which calls this again.
+     * children its parent renders, which calls this again. So too for a
+     * component that can be missing for a while
+     * (`BaseComponent.canBecomeMissing`, D40): `<number>$l[$i]</number>` while
+     * `i` is past the end of `l`. Once its `valueMissing` is marked stale,
+     * its parent redraws its children only if it changed
+     * (`checkDrawnMissing`).
      */
     async updateDrawnMissing(child: any): Promise<void> {
-        if (
-            typeof child !== "object" ||
-            child === null ||
-            !child.rendererConstants ||
-            child.rendererType === undefined
+        if (typeof child !== "object" || child === null) {
+            return;
+        }
+        if (child.rendererConstants) {
+            if (child.rendererType === undefined) {
+                return;
+            }
+            addOnDemandStateVariables({
+                core: this.core,
+                component: child,
+                stateVariables: ["valueMissing"],
+            });
+        } else if (
+            !child.canBecomeMissing ||
+            child.constructor.rendererType === undefined
         ) {
             return;
         }
-        addOnDemandStateVariables({
-            core: this.core,
-            component: child,
-            stateVariables: ["valueMissing"],
-        });
         child.drawnMissing = Boolean(await child.stateValues.valueMissing);
     }
 
@@ -875,6 +975,7 @@ export class RendererInstructionBuilder {
             return this.initializeListEntryInstruction(
                 item.listEntry.list,
                 item.listEntry.entryIndex,
+                item.listEntry.missing,
             );
         }
         const child = item.child;
@@ -928,22 +1029,28 @@ export class RendererInstructionBuilder {
      * What the renderer of entry `entryIndex` of `list` is sent: each
      * variable the renderer of the entry's type reads, from the list's
      * variable for it (`listEntryStateVariables`), the entry's own value of
-     * one that holds a value per entry (`listPerEntryVariables`).
+     * one that holds a value per entry (`listPerEntryVariables`). Of an
+     * entry drawn as a blank (`missing`), only whether it is hidden.
      */
     async listEntryRendererState(
         list: any,
         entryIndex: number,
+        missing = false,
     ): Promise<Record<string, any>> {
         const listClass = list.constructor;
         const stateValues: Record<string, any> = {};
-        for (const name of [
-            ...Object.keys(
-                this.core.rendererVariablesByComponentType[
-                    listClass.listEntryComponentType
-                ],
-            ),
-            ...listClass.listEntryAdditionalRendererVariables,
-        ]) {
+        // An entry drawn as a blank (D40) is sent only whether it is hidden,
+        // as a value reference drawn as one is (`rendererStateValuesOf`).
+        for (const name of missing
+            ? ["hidden"]
+            : [
+                  ...Object.keys(
+                      this.core.rendererVariablesByComponentType[
+                          listClass.listEntryComponentType
+                      ],
+                  ),
+                  ...listClass.listEntryAdditionalRendererVariables,
+              ]) {
             const listVariable = listClass.listEntryStateVariables[name];
             if (listVariable === undefined || !(listVariable in list.state)) {
                 continue;
@@ -968,9 +1075,15 @@ export class RendererInstructionBuilder {
     async initializeListEntryInstruction(
         list: any,
         entryIndex: number,
+        missing = false,
     ): Promise<any> {
         const entryIdx = this.rendererIdxForListEntry(list, entryIndex);
-        const stateValues = await this.listEntryRendererState(list, entryIndex);
+        this.listEntryDrawnMissing.set(entryIdx, missing);
+        const stateValues = await this.listEntryRendererState(
+            list,
+            entryIndex,
+            missing,
+        );
 
         this.rendererState[entryIdx] = {
             stateValues,
@@ -978,10 +1091,13 @@ export class RendererInstructionBuilder {
         };
         this.componentsToRender[entryIdx] = { children: [] };
 
+        // a blank takes no action: it is not drawn in a graph, and can't be
+        // dragged or clicked (VAL-5)
         const actions: Record<string, any> = {};
-        for (const actionName of LIST_ENTRY_ACTIONS[
-            list.constructor.listEntryComponentType
-        ] ?? []) {
+        for (const actionName of missing
+            ? []
+            : (LIST_ENTRY_ACTIONS[list.constructor.listEntryComponentType] ??
+              [])) {
             actions[actionName] = { actionName, componentIdx: entryIdx };
         }
 
@@ -991,7 +1107,7 @@ export class RendererInstructionBuilder {
                 effectiveIdx: entryIdx,
                 id: `${this.getRendererId(list)}:${entryIndex + 1}`,
                 componentType: list.constructor.listEntryComponentType,
-                rendererType: list.rendererType,
+                rendererType: missing ? BLANK_RENDERER_TYPE : list.rendererType,
                 actions,
                 position: list.position,
             },

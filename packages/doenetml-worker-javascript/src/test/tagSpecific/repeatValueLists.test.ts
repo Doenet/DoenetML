@@ -126,11 +126,95 @@ describe("Repeats whose template is one value @group4", () => {
             doenetML: `
 <numberList name="l">10 20</numberList>
 <p name="p"><repeatForSequence name="r" from="1" to="3" indexName="i"><math>$l[$i] + 1</math></repeatForSequence></p>
-<p name="pn"><repeatForSequence name="rn" from="1" to="3" indexName="i"><number>$l[$i] + 1</number></repeatForSequence></p>
-<p name="pd"><repeatForSequence name="rd" from="1" to="3" indexName="i"><number>$l[$i]</number></repeatForSequence></p>
 `,
-            names: ["p", "pn", "pd"],
+            names: ["p"],
         });
+        // A number computed from an entry past the end is missing
+        // (`<number>$l[3] + 1</number>`, D40, #2460), and so is the list's
+        // entry (`entriesMissing`, #2544), so the list shows a blank there,
+        // as the composite does.
+        const computed = await compare({
+            doenetML: `
+<numberList name="l">10 20</numberList>
+<p name="pn"><repeatForSequence name="r" from="1" to="3" indexName="i"><number>$l[$i] + 1</number></repeatForSequence></p>
+<p name="pr">[$r[3]][<boolean>$r[3] = $r[3]</boolean>]</p>
+`,
+            names: ["pn", "pr"],
+        });
+        expect(computed).toEqual({ pn: "11, 21, ＿", pr: "[＿][false]" });
+        // the list's entry itself is missing
+        const asList = await load(
+            `
+<numberList name="l">10 20</numberList>
+<p name="pn"><repeatForSequence name="r" from="1" to="3" indexName="i"><number>$l[$i] + 1</number></repeatForSequence></p>
+`,
+            true,
+        );
+        const listState = await asList.core.returnAllStateVariables(
+            false,
+            true,
+        );
+        expect(
+            listState[await asList.resolvePathToNodeIdx("r")].stateValues
+                .entriesMissing,
+        ).toEqual([false, false, true]);
+        // A number that is only an entry past the end is missing too (D40),
+        // so the repeat is a list as well.
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">10 20</numberList>
+<p name="pd"><repeatForSequence name="r" from="1" to="3" indexName="i"><number>$l[$i]</number></repeatForSequence></p>
+`,
+            names: ["pd"],
+        });
+        expect(texts).toEqual({ pd: "10, 20, ＿" });
+    });
+
+    it("a number computed from a missing value outside is missing at every index", async () => {
+        // The value outside is a constant of the template; while it is
+        // missing, every entry is (`entriesMissing`, #2544), as each
+        // iteration's `<number>` is.
+        const texts = await compare({
+            doenetML: `
+<number name="c">$nothing</number>
+<math name="mc">$nothing</math>
+<p name="pn"><repeatForSequence name="r" from="1" to="2" indexName="i"><number>$i + $c</number></repeatForSequence></p>
+<p name="pm"><repeatForSequence name="r2" from="1" to="2" indexName="i"><number>$i + $mc</number></repeatForSequence></p>
+<p name="pr">[$r[2]][$r2[1]]</p>
+`,
+            names: ["pn", "pm", "pr"],
+        });
+        expect(texts).toEqual({ pn: "＿, ＿", pm: "＿, ＿", pr: "[＿][＿]" });
+    });
+
+    it("an entry past the end of the list read, while the list is shorter", async () => {
+        // The entry is missing only while the list it reads is too short.
+        for (const [m, expected] of [
+            ["2", "11, 21, ＿"],
+            ["3", "11, 21, 31"],
+        ]) {
+            const texts = await compare({
+                doenetML: `
+<mathInput name="m" prefill="3"/>
+<numberList name="l" maxNumber="$m">10 20 30</numberList>
+<p name="pn"><repeatForSequence name="r" from="1" to="3" indexName="i"><number>$l[$i] + 1</number></repeatForSequence></p>
+`,
+                names: ["pn"],
+                async afterLoad(core, resolvePathToNodeIdx) {
+                    await updateMathInputValue({
+                        latex: "2",
+                        componentIdx: await resolvePathToNodeIdx("m"),
+                        core,
+                    });
+                    await updateMathInputValue({
+                        latex: m,
+                        componentIdx: await resolvePathToNodeIdx("m"),
+                        core,
+                    });
+                },
+            });
+            expect(texts).toEqual({ pn: expected });
+        }
     });
 
     it("a nested math, simplified", async () => {
@@ -162,10 +246,9 @@ describe("Repeats whose template is one value @group4", () => {
 <p name="p"><repeat name="r" for="$l" valueName="x"><math>$x[1]</math></repeat></p>
 <mathList name="lt">(1,2) (3,4,7)</mathList>
 <p name="p2"><repeat name="r2" for="$lt" valueName="x" indexName="i"><math>$x[1] + $i</math></repeat></p>
-<p name="p3"><repeat name="r3" for="$l" valueName="x"><number>$x[3]</number></repeat></p>
 <p name="p4"><repeat name="r4" for="$l" valueName="x"><math>($x[1], $x)</math></repeat></p>
 `,
-            names: ["p", "p2", "p3", "p4"],
+            names: ["p", "p2", "p4"],
         });
         // An index into a scalar entry (`5`, `x`), which has no entries
         // (D27), is a blank, as an index past an entry's end is.
@@ -174,9 +257,19 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({
             p: "1, ＿, 3, ＿",
             p2: "1 + 1, 3 + 2",
-            p3: "NaN, NaN, 7, NaN",
             p4: "(1, (1, 2)), (＿, 5), (3, (3, 4, 7)), (＿, x)",
         });
+        // A number that is only a coordinate the entry lacks is missing
+        // (D40), and so is the list's entry (`entriesMissing`, #2544).
+        const numbers = await compare({
+            doenetML: `
+<mathList name="l">(1,2) 5 (3,4,7) x</mathList>
+<p name="p3"><repeat name="r3" for="$l" valueName="x"><number>$x[3]</number></repeat></p>
+`,
+            names: ["p3"],
+            repeatName: "r3",
+        });
+        expect(numbers).toEqual({ p3: "＿, ＿, 7, ＿" });
     });
 
     it("a coordinate past the value's dimensions is a blank, as of a math", async () => {
@@ -305,7 +398,10 @@ describe("Repeats whose template is one value @group4", () => {
                     component?.componentType === "_repeatValueList",
             ).length,
         ).toBe(2);
-        expect(texts.p.replace(/\s+/g, " ").trim()).toBe("1, 2, 3, 2, 3, 4");
+        // each iteration shows its `<functionIterates>`, a list (D41)
+        expect(texts.p.replace(/\s+/g, " ").trim()).toBe(
+            "(2, 2), (3, 4) 1, 2, 3, (3, 2), (4, 4) 2, 3, 4",
+        );
     });
 
     it("a template that is one value alone shows it with that value's display settings, as does a reference to the repeat", async () => {
@@ -631,7 +727,7 @@ describe("Repeats whose template is one value @group4", () => {
 <math name="c" fixed="$r2[1]=6">5</math>
 <p name="p" fixLocation="$r[1]=1"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></p>
 <p name="p2"><repeatForSequence name="r2" from="1" to="2" valueName="v"><math>$v + $c</math></repeatForSequence></p>
-<p name="p3"><repeatForSequence name="r3" from="1" to="3" indexName="i"><number>$l[$i]</number></repeatForSequence></p>
+<p name="p3"><repeatForSequence name="r3" from="1" to="3" indexName="i"><math>$l[$i]</math></repeatForSequence></p>
 `,
             names: ["p", "p2", "p3"],
         });

@@ -957,6 +957,47 @@ describe("A copy of a name in a case through a reload @group4", () => {
         });
     }
 
+    for (const form of ["copy", "copyWithState"]) {
+        it(`${form}: through a conditionalContent that extends another, keeps the case`, async () => {
+            // The extend's components shadow those of what it extends,
+            // which shows the same case, so the copy is held to that case
+            // as one of `$cc.p` is (#2485 item 2).
+            const r = await reloader(
+                doenetMLFor(form, "$e.p").replace(
+                    "<booleanInput",
+                    '<conditionalContent extend="$cc" name="e"/>\n    <booleanInput',
+                ),
+            );
+            await r.setBoolean("b", true);
+            expect((await r.sv("pc")).stateValues.text).eq("one: ＿");
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await r.resolve("pc.a"),
+                core: r.core(),
+            });
+            await setN(r, "2");
+            expect((await r.sv("e.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            const saved = await r.reload();
+            expect(Object.values(saved.__copySnapshots)).toMatchObject([
+                {
+                    sourceCase: {
+                        stateId: "/~cc/~p",
+                        cases: [{ stateId: "/~cc", caseIndex: 0 }],
+                    },
+                },
+            ]);
+            expect((await r.sv("e.p")).stateValues.text).eq("other: ＿");
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+
+            // the first case active again, and a reload then, keep it
+            await setN(r, "1");
+            await r.reload();
+            expect((await r.sv("pc")).stateValues.text).eq("one: 5");
+        });
+    }
+
     it("of a name inside a group in a case, keeps the case", async () => {
         // A name in only some cases names nothing, in any case, so is not
         // made from one (`$cc.y` of a `y` only in the first case).

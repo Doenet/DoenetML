@@ -339,6 +339,21 @@ reference-index-past-instances =
        *[other] `{ $reference }`: `<{ $component }>` ⴷⴰⵔⵙ { $count } ⵏ ⵢⵉⴼⵔⴷⵉⵙⵏ ⵖⴰⵙ.
     }
 
+# An index after a group holding several components, or none, which names
+# nothing: a group passes an index on only to its one component. $component
+# is the tag name of what the author wrote the group as (`group`, or the
+# repeat, select or `<conditionalContent>` that made it); the components are
+# counted behind ⵏ as above. $suggestion and $child, which name the child to
+# write instead, are not used here.
+
+reference-index-selects-child =
+    { $count ->
+        [0] `{ $reference }`: `<{ $component }>` ⵓⵔ ⴷⴰⵔⵙ ⴰⴼⵔⴷⵉⵙ. ⴰⵎⴹⴰⵏ ⵉⵣⵔⵉ ⵖⴰⵙ ⵙ ⵓⴼⵔⴷⵉⵙ ⵢⴰⵏ.
+        [one] `{ $reference }`: `<{ $component }>` ⴷⴰⵔⵙ { $count } ⵏ ⵓⴼⵔⴷⵉⵙ. ⴰⵎⴹⴰⵏ ⵉⵣⵔⵉ ⵖⴰⵙ ⵙ ⵓⴼⵔⴷⵉⵙ ⵢⴰⵏ.
+        [few] `{ $reference }`: `<{ $component }>` ⴷⴰⵔⵙ { $count } ⵏ ⵢⵉⴼⵔⴷⵉⵙⵏ. ⴰⵎⴹⴰⵏ ⵉⵣⵔⵉ ⵖⴰⵙ ⵙ ⵓⴼⵔⴷⵉⵙ ⵢⴰⵏ.
+       *[other] `{ $reference }`: `<{ $component }>` ⴷⴰⵔⵙ { $count } ⵏ ⵢⵉⴼⵔⴷⵉⵙⵏ. ⴰⵎⴹⴰⵏ ⵉⵣⵔⵉ ⵖⴰⵙ ⵙ ⵓⴼⵔⴷⵉⵙ ⵢⴰⵏ.
+    }
+
 ## `<callAction>`
 
 component-action-unavailable = ⵓⵔ ⵉⵣⴹⴰⵕ ⴰⴷ ⵉⵖⵔ { $action } ⴳ ⵓⴼⵔⴷⵉⵙ `{ $reference }`

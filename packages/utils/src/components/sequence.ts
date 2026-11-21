@@ -21,6 +21,11 @@ export function lettersToNumber(letters: string) {
 }
 
 export function numberToLetters(number: number, lowercase: boolean) {
+    // Not a finite number (`NaN`, from letters that name no number): there
+    // are no letters for it, and the loop below would not end (#2173).
+    if (!Number.isFinite(number)) {
+        return "";
+    }
     number--;
     let offset = 65;
     if (lowercase) {

@@ -146,7 +146,7 @@ function selectErrorAtLoad(
 }
 
 /** An attribute of `component`, matched without regard to case. */
-function attributeOf(component: SerializedComponent, name: string) {
+export function attributeOf(component: SerializedComponent, name: string) {
     const lower = name.toLowerCase();
     for (const [attrName, attribute] of Object.entries(
         component.attributes ?? {},
@@ -183,7 +183,7 @@ function literalBoolean(attribute: SerializedAttribute) {
 }
 
 /** The text the attribute is written as, when it is only text. */
-function literalText(attribute: SerializedAttribute) {
+export function literalText(attribute: SerializedAttribute) {
     const attr: any = attribute;
     if (attr.type === "primitive") {
         return String(attr.primitive.value);

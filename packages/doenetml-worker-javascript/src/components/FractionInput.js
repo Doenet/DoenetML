@@ -19,6 +19,9 @@ import {
 } from "../utils/mathComponentInput";
 import {
     defineSubmitAnswerExternalAction,
+    immediateValueFollowsValue,
+    valueUnderEditVariable,
+    valueUnderEditRecord,
     returnInputValueChangedStateVariableDefinitions,
 } from "../utils/input";
 
@@ -327,6 +330,11 @@ export class FractionInput extends Input {
 
         // The fraction value reflecting the user's in-progress edits.
         stateVariableDefinitions.immediateValue = {
+            // the saved edit, kept only if still the last (`valueUnderEdit`),
+            // which it defines, so that it can clear it when it follows its
+            // value (#2554 item 1)
+            provideEssentialValuesInDefinition: true,
+            additionalStateVariablesDefined: [valueUnderEditVariable()],
             description:
                 "The fraction value reflecting the user's in-progress edits.",
             public: true,
@@ -353,22 +361,36 @@ export class FractionInput extends Input {
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                justRestoredAtLoad,
+                essentialValues,
                 usedDefault,
             }) {
                 if (
-                    changes.value &&
-                    !justUpdatedForNewComponent &&
-                    !usedDefault.value
+                    immediateValueFollowsValue({
+                        valueChanged: changes.value,
+                        valueUsedDefault: usedDefault.value,
+                        justUpdatedForNewComponent,
+                        justRestoredAtLoad,
+                        value: dependencyValues.value,
+                        valueUnderEdit: essentialValues.valueUnderEdit,
+                        savedImmediateValue: essentialValues.immediateValue,
+                    })
                 ) {
                     return {
-                        setValue: { immediateValue: dependencyValues.value },
+                        setValue: {
+                            immediateValue: dependencyValues.value,
+                            valueUnderEdit: null,
+                        },
                         setEssentialValue: {
                             immediateValue: dependencyValues.value,
+                            // the value, not the reader's edit
+                            valueUnderEdit: null,
                         },
                     };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
+                            valueUnderEdit: true,
                             immediateValue: {
                                 defaultValue: dependencyValues.value,
                             },
@@ -378,6 +400,7 @@ export class FractionInput extends Input {
             },
             inverseDefinition({
                 desiredStateVariableValues,
+                dependencyValues,
                 initialChange,
                 shadowedVariable,
             }) {
@@ -392,6 +415,13 @@ export class FractionInput extends Input {
                     {
                         setDependency: "immediateValueChanged",
                         desiredValue: true,
+                    },
+                    {
+                        setEssentialValue: "valueUnderEdit",
+                        value: valueUnderEditRecord({
+                            value: dependencyValues.value,
+                            edit: desiredValue,
+                        }),
                     },
                 ];
 
@@ -859,6 +889,10 @@ export default class FractionComponentInput extends BaseComponent {
     }
 
     static componentType = "_fractionInputComponent";
+    // An edit not yet entered (`immediateValue`) is committed when the input
+    // is made, or shown again, unless it is the input the reader is editing
+    // (`Core.commitUnenteredEdits`, D50).
+    static holdsUnenteredEdit = true;
     static rendererType = "mathInput";
 
     static variableForImplicitProp = "value";

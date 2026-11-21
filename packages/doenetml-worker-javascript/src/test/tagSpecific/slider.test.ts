@@ -723,4 +723,41 @@ describe("Slider tag tests @group1", async () => {
             "hello world",
         );
     });
+
+    // `items` is a list of the slider's type, decided by its written `type`
+    // (TYPE-1): it was declared one number while it held a list, so a
+    // reference to it showed `NaN` (#2545)
+    it("the items of a slider are a list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <slider name="sn"><number>5</number><number>3</number><number>8</number></slider>
+    <slider name="st" type="text"><text>apple</text><text>banana</text></slider>
+    <slider name="sft" from="1" to="3"/>
+    <p name="pn">$sn.items</p>
+    <p name="pt">$st.items</p>
+    <p name="pft">$sft.items</p>
+    <numberList name="nl" extend="$sn.items"/>
+    <textList name="tl" extend="$st.items"/>
+    <p name="pnum">$nl.numItems $tl.numItems</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)];
+        expect((await sv("pn")).stateValues.text).eq("3, 5, 8");
+        expect((await sv("pt")).stateValues.text).eq("apple, banana");
+        // a slider given by `from`, `to` and `step` has no items written
+        expect((await sv("pft")).stateValues.text).eq("");
+        expect((await sv("nl")).stateValues.numbers).eqls([3, 5, 8]);
+        expect((await sv("tl")).stateValues.texts).eqls(["apple", "banana"]);
+        expect((await sv("pnum")).stateValues.text).eq("3 2");
+
+        const shown = async (name: string) =>
+            (await sv(name)).activeChildren.map(
+                (child: any) => child.componentType,
+            );
+        expect(await shown("pn")).eqls(["numberList"]);
+        expect(await shown("pt")).eqls(["textList"]);
+    });
 });

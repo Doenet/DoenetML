@@ -861,9 +861,31 @@ fn a_function_reference_that_fails_to_resolve_is_coded() {
     }
 }
 
+/// The `<setup>` holding the arguments of the function reference that fails to
+/// resolve in `flat_root`, the one input of its error, with the error.
+fn arguments_setup(flat_root: &FlatRoot) -> (&FlatError, &FlatElement) {
+    let function_error = errors_of(flat_root)
+        .into_iter()
+        .find(|e| e.input.is_some())
+        .expect("the function reference's error");
+    let input = function_error.input.as_ref().unwrap();
+    let [argument] = &input[..] else {
+        panic!("the arguments are held in one input");
+    };
+    let [UntaggedContent::Ref(setup_idx)] = argument[..] else {
+        panic!("that input is one node");
+    };
+    let FlatNode::Element(setup) = &flat_root.nodes[setup_idx] else {
+        panic!("the arguments are held in an element");
+    };
+    assert_eq!(setup.name, "setup");
+    (function_error, setup)
+}
+
 /// A function reference that fails to resolve keeps its arguments on its
-/// error (#2434), and compacting keeps the nodes they hold, so the worker can
-/// still report a reference in them (`$a` of `$$f($a)`) at the same time.
+/// error, in a `<setup>` (#2434, #2489), and compacting keeps the nodes they
+/// hold, so the worker makes them and reports a reference in them (`$a` of
+/// `$$f($a)`) at the same time.
 #[test]
 fn a_function_reference_that_fails_to_resolve_keeps_its_arguments() {
     let source = "$$f($a, 2)";
@@ -872,15 +894,10 @@ fn a_function_reference_that_fails_to_resolve_keeps_its_arguments() {
     Expander::expand(&mut flat_root);
     flat_root.compactify(None);
 
-    let errors = errors_of(&flat_root);
-    let function_error = errors
-        .iter()
-        .find(|e| spanned(source, &e.position) == source)
-        .expect("the function reference's error");
-    let input = function_error.input.as_ref().expect("its arguments");
-    assert_eq!(input.len(), 2);
+    let (function_error, setup) = arguments_setup(&flat_root);
+    assert_eq!(spanned(source, &function_error.position), source);
 
-    let UntaggedContent::Ref(arg_idx) = input[0][0] else {
+    let UntaggedContent::Ref(arg_idx) = setup.children[0] else {
         panic!("the first argument is a node");
     };
     let FlatNode::Error(arg_error) = &flat_root.nodes[arg_idx] else {
@@ -888,26 +905,26 @@ fn a_function_reference_that_fails_to_resolve_keeps_its_arguments() {
     };
     assert_eq!(arg_error.code.as_deref(), Some("doenet-w0104"));
     assert_eq!(spanned(source, &arg_error.position), "$a");
-    assert!(matches!(&input[1][..], [UntaggedContent::Text(t)] if t.trim() == "2"));
+    assert!(matches!(&setup.children[1..], [UntaggedContent::Text(t)] if t.trim() == "2"));
 }
 
-/// Nothing is made of the arguments of a function reference that fails to
-/// resolve, though they are kept, so a name written in them resolves to the
-/// function reference itself, as it did when they were dropped: `$m` with
-/// `$$f(<math name="m"/>)` shows a blank, not nothing.
+/// The arguments of a function reference that fails to resolve are made as if
+/// written in a `<setup>` (D40, #2489), so a name written in them names what is
+/// made there: `$m` with `$$f(<math name="m"/>)` is that math, both as the
+/// reference expanded already and as the worker resolves it again.
 #[test]
-fn a_name_in_the_arguments_of_a_function_reference_that_fails_resolves_to_it() {
+fn a_name_in_the_arguments_of_a_function_reference_that_fails_names_what_is_written_there() {
     let source = r#"<p>$$f(<math name="m"/>)</p><p>$m</p>"#;
     let dast_root = dast_root(source);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     let mut resolver = Expander::expand(&mut flat_root);
     flat_root.compactify(Some(&mut resolver));
 
-    let function_error_idx = errors_of(&flat_root)
-        .iter()
-        .find(|e| e.input.is_some())
-        .expect("the function reference's error")
-        .idx;
+    let (_, setup) = arguments_setup(&flat_root);
+    let [UntaggedContent::Ref(math_idx)] = setup.children[..] else {
+        panic!("the argument is the math");
+    };
+    assert!(matches!(&flat_root.nodes[math_idx], FlatNode::Element(e) if e.name == "math"));
 
     // The reference expanded already
     let extending = flat_root
@@ -922,13 +939,7 @@ fn a_name_in_the_arguments_of_a_function_reference_that_fails_resolves_to_it() {
             _ => None,
         })
         .expect("`$m`");
-    assert_eq!(extending.idx(), function_error_idx);
-    assert!(
-        extending
-            .get_resolution()
-            .nodes_in_resolved_path
-            .contains(&function_error_idx)
-    );
+    assert_eq!(extending.idx(), math_idx);
 
     // and the reference resolved again by the worker
     let path = vec![FlatPathPart {
@@ -938,5 +949,28 @@ fn a_name_in_the_arguments_of_a_function_reference_that_fails_resolves_to_it() {
         source_doc: None,
     }];
     let resolution = resolver.resolve(&path, 0, false).unwrap();
-    assert_eq!(resolution.node_idx, function_error_idx);
+    assert_eq!(resolution.node_idx, math_idx);
+}
+
+/// A name in the arguments of a function reference that fails to resolve is
+/// declared where the reference is, as a name in a `<setup>` there is, so the
+/// same name in that scope is ambiguous (D40).
+#[test]
+fn a_name_in_the_arguments_of_a_function_reference_that_fails_is_declared_in_its_scope() {
+    let source = r#"<math name="m"/><p>$$f(<math name="m"/>)</p>$m"#;
+    let dast_root = dast_root(source);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let mut resolver = Expander::expand(&mut flat_root);
+    flat_root.compactify(Some(&mut resolver));
+
+    let path = vec![FlatPathPart {
+        name: "m".to_string(),
+        index: Vec::new(),
+        position: None,
+        source_doc: None,
+    }];
+    assert_eq!(
+        resolver.resolve(&path, 0, false),
+        Err(ResolutionError::NonUniqueReferent)
+    );
 }

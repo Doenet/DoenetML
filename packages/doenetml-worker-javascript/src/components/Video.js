@@ -8,6 +8,11 @@ import {
 import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import { codedDiagnostic } from "../utils/diagnostics";
 
+// `fractionWatched` is 1 once the unwatched part of the video is at most
+// this many seconds and at most this fraction of the video's duration.
+const FULLY_WATCHED_MAX_SECONDS_UNWATCHED = 2;
+const FULLY_WATCHED_MAX_FRACTION_UNWATCHED = 0.01;
+
 export default class Video extends BlockComponent {
     constructor(args) {
         super(args);
@@ -27,6 +32,8 @@ export default class Video extends BlockComponent {
         });
     }
     static componentType = "video";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Embeds a video player",
@@ -316,7 +323,8 @@ export default class Video extends BlockComponent {
                 "The aspect ratio (width / height) of the video player.",
             public: true,
             forRenderer: true,
-            defaultValue: "16 / 9",
+            // a number, as it is shared as a `<number>` (`$v.aspectRatio`)
+            defaultValue: 16 / 9,
             hasEssential: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -499,17 +507,64 @@ export default class Video extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                const { secondsWatched, duration } = dependencyValues;
+
+                // Until the player reports a duration, nothing can be a
+                // fraction of it.
+                if (!(duration > 0)) {
+                    return { setValue: { fractionWatched: 0 } };
+                }
+
+                // The watched segments come from the times the player reports
+                // when playback starts, pauses, seeks or ends, and those are
+                // never exact: a viewer who watched every second can still be
+                // left a fraction of a second short. Count the video as fully
+                // watched if what is left unwatched is within that margin, so
+                // credit based on `fractionWatched` reaches 1.
+                const tolerance = Math.min(
+                    FULLY_WATCHED_MAX_SECONDS_UNWATCHED,
+                    duration * FULLY_WATCHED_MAX_FRACTION_UNWATCHED,
+                );
+                if (duration - secondsWatched <= tolerance) {
+                    return { setValue: { fractionWatched: 1 } };
+                }
+
                 return {
                     setValue: {
-                        fractionWatched:
-                            dependencyValues.secondsWatched /
-                            dependencyValues.duration,
+                        fractionWatched: Math.max(
+                            0,
+                            Math.min(1, secondsWatched / duration),
+                        ),
                     },
                 };
             },
         };
 
         return stateVariableDefinitions;
+    }
+
+    /**
+     * The instruction that records `duration`, reported by the player with a
+     * playback event, as the video's duration when the video has no positive
+     * one yet: the player can report 0 (or nothing) when it becomes ready,
+     * before the video's metadata loads, and a duration of 0 would otherwise
+     * keep `fractionWatched` at 0 for the rest of the visit (#2539). A
+     * positive duration already recorded is kept: it came from the player
+     * when it was ready, or from an earlier event, and `fractionWatched`
+     * absorbs a small difference from the one reported while playing.
+     */
+    async durationUpdateInstructions(duration) {
+        if (!(duration > 0) || (await this.stateValues.duration) > 0) {
+            return [];
+        }
+        return [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "duration",
+                value: duration,
+            },
+        ];
     }
 
     async recordVideoStarted({
@@ -540,6 +595,7 @@ export default class Video extends BlockComponent {
                     stateVariable: "state",
                     value: "playing",
                 },
+                ...(await this.durationUpdateInstructions(duration)),
             ],
             actionId,
             sourceInformation,
@@ -574,10 +630,14 @@ export default class Video extends BlockComponent {
         let previousSegments = await this.stateValues.segmentsWatched;
         let segmentsWatched;
 
+        // Get credit for the beginning and the end even though the player
+        // typically doesn't report exactly 0 or the full duration. Both checks
+        // apply to the same segment when the video is watched in one go.
         if (beginTime < 1) {
-            beginTime = 0; // get credit for the beginning even though it typically doesn't say 0
-        } else if (endTime > duration - 2) {
-            endTime = duration; // get credit for the end even though it typically doesn't get to duration
+            beginTime = 0;
+        }
+        if (duration > 0 && endTime > duration - 2) {
+            endTime = duration;
         }
 
         if (!previousSegments) {
@@ -626,6 +686,7 @@ export default class Video extends BlockComponent {
                     stateVariable: "segmentsWatched",
                     value: segmentsWatched,
                 },
+                ...(await this.durationUpdateInstructions(duration)),
             ],
             actionId,
             sourceInformation,
@@ -667,6 +728,7 @@ export default class Video extends BlockComponent {
                     stateVariable: "state",
                     value: "stopped",
                 },
+                ...(await this.durationUpdateInstructions(duration)),
             ],
             actionId,
             sourceInformation,
@@ -712,6 +774,7 @@ export default class Video extends BlockComponent {
                     stateVariable: "state",
                     value: "stopped",
                 },
+                ...(await this.durationUpdateInstructions(duration)),
             ],
             actionId,
             sourceInformation,
@@ -731,12 +794,24 @@ export default class Video extends BlockComponent {
         });
     }
 
+    /**
+     * The player is ready, reporting the video's `duration`. A duration that
+     * is not positive (the player reports 0 before the video's metadata
+     * loads) does not replace a positive one already known, such as one
+     * saved from an earlier visit (#2539): a duration of 0 would make
+     * `fractionWatched` 0 until the player reports a positive one. A
+     * different positive duration replaces it. `recordVideoSourceChanged`
+     * clears the duration, so a new video's ready report is never taken for
+     * the old one's.
+     */
     async recordVideoReady({
         duration,
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        const keepDuration =
+            !(duration > 0) && (await this.stateValues.duration) > 0;
         await this.coreFunctions.performUpdate({
             updateInstructions: [
                 {
@@ -745,12 +820,16 @@ export default class Video extends BlockComponent {
                     stateVariable: "state",
                     value: "stopped",
                 },
-                {
-                    updateType: "updateValue",
-                    componentIdx: this.componentIdx,
-                    stateVariable: "duration",
-                    value: duration,
-                },
+                ...(keepDuration
+                    ? []
+                    : [
+                          {
+                              updateType: "updateValue",
+                              componentIdx: this.componentIdx,
+                              stateVariable: "duration",
+                              value: duration,
+                          },
+                      ]),
             ],
             actionId,
             sourceInformation,
@@ -772,9 +851,10 @@ export default class Video extends BlockComponent {
      * seeked a freshly created player into the middle of a video the viewer
      * had never played.
      *
-     * `duration` is deliberately left alone: `recordVideoReady` overwrites it
-     * as soon as the new player reports, and blanking it in the meantime only
-     * makes `fractionWatched` divide by null.
+     * `duration` is cleared too: it is the old video's. Until the new player
+     * reports, `fractionWatched` is 0 (as it is with no segments watched),
+     * and `recordVideoReady` keeps a positive duration when it reports 0, so
+     * the old one must not be there to keep.
      *
      * `state` is left alone too: a video that was playing when the source
      * changed should keep playing into the new source, which is what the
@@ -804,6 +884,12 @@ export default class Video extends BlockComponent {
                     updateType: "updateValue",
                     componentIdx: this.componentIdx,
                     stateVariable: "segmentsWatched",
+                    value: null,
+                },
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "duration",
                     value: null,
                 },
             ],

@@ -6,6 +6,10 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import {
+    calculateSequenceParameters,
+    returnSequenceValueForIndex,
+} from "../../utils/sequence";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     componentOrListEntry,
@@ -2502,14 +2506,175 @@ describe("Sequence tag tests @group1", async () => {
         }
     });
 
+    it("a count within floating point of a whole number is that number", async () => {
+        // `(1000.3 - 1000) / 0.1 + 1` is 3.99999999999954 in floating point,
+        // which an author means as 4 (`sequenceLengthOf`); a count that
+        // isn't near a whole number is still rounded down
+        const cases: [string, number[]][] = [
+            [
+                `from="1000" to="1000.3" step="0.1"`,
+                [1000, 1000.1, 1000.2, 1000.3],
+            ],
+            [
+                `type="math" from="1000" to="1000.3" step="0.1"`,
+                [1000, 1000.1, 1000.2, 1000.3],
+            ],
+            [
+                `from="127+1/3" to="128+1/3" step="1/3"`,
+                [127 + 1 / 3, 127 + 2 / 3, 128, 128 + 1 / 3],
+            ],
+            [
+                `to="1000.3" step="0.1" length="4"`,
+                [1000, 1000.1, 1000.2, 1000.3],
+            ],
+            [`from="0.1" to="0.3" step="0.1"`, [0.1, 0.2, 0.3]],
+            [`from="1" to="1.25" step="0.1"`, [1, 1.1, 1.2]],
+            [`from="1000" to="1000.25" step="0.1"`, [1000, 1000.1, 1000.2]],
+            [`from="1" to="3.999999"`, [1, 2, 3]],
+        ];
+        for (const [attributes, values] of cases) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p name="p"><sequence ${attributes}/></p>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const children = childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("p"),
+            );
+            expect(children.length, attributes).eq(values.length);
+            for (let i = 0; i < values.length; i++) {
+                const value = children[i].stateValues.value;
+                const number =
+                    typeof value === "number"
+                        ? value
+                        : value.evaluate_to_constant();
+                expect(Math.abs(number - values[i]), attributes).lessThan(1e-9);
+            }
+        }
+    });
+
+    it("a count is rounded up only within the floating point of its parameters, and the values never go past `to`", async () => {
+        // A count is rounded up to a whole number only when it is short of
+        // it by the error of holding and computing `from` and `to`
+        // (`sequenceCountTolerance`); then its last value is `to` (unless
+        // `from` and the step are whole numbers, whose values are whole
+        // numbers), and, counted back from `to`, its first is not before 1.
+        // Whole numbers and a `to` off the step's grid keep their counts.
+        // Each value is compared exactly.
+        const number = (x: string) => me.fromText(x).evaluate_to_constant();
+        const cases: [Record<string, string>, number, number[], number[]][] = [
+            // [parameters, how many, first values, last values]
+            [{ from: "1000", to: "1000.3", step: "0.1" }, 4, [1000], [1000.3]],
+            [{ from: "0", to: "0.3", step: "0.1" }, 4, [0], [0.2, 0.3]],
+            // 0.1 + 0.1 * 7 is 0.7999999999999999: rounded up, the last is `to`
+            [{ from: "0.1", to: "0.8", step: "0.1" }, 8, [0.1], [0.8]],
+            [{ from: "1000", to: "1000.3", step: "-0.1" }, 0, [], []],
+            [{ from: "1000.3", to: "1000", step: "-0.1" }, 4, [1000.3], [1000]],
+            [{ to: "1.3", step: "0.1" }, 4, [1], [1.3]],
+            [{ to: "1000+0.3", step: "0.1" }, 9994, [1], [1000.3]],
+            [{ from: "1", to: "(0.1+0.7)*10" }, 8, [1, 2], [7, 8]],
+            [
+                { from: "1", to: "1000000000", step: "1000000" },
+                1000,
+                [1],
+                [999000001],
+            ],
+            [{ to: "1000000000", step: "1000000" }, 1000, [1000000], [1e9]],
+            [
+                { from: "0.7", to: "1000000000", step: "1000000" },
+                1000,
+                [0.7],
+                [999000000.7],
+            ],
+            [
+                { from: "1", to: "2000000000", step: "1000000000" },
+                2,
+                [1],
+                [1000000001],
+            ],
+            [{ from: "0", to: "0.9999999999", step: "1" }, 1, [0], [0]],
+            [{ to: "2.9999999999" }, 2, [1.9999999999], [2.9999999999]],
+            [{ from: "1000", to: "1000.25", step: "0.1" }, 3, [1000], [1000.2]],
+        ];
+        for (const [parameters, length, first, last] of cases) {
+            const label = JSON.stringify(parameters);
+            const read = (name: string) =>
+                parameters[name] === undefined
+                    ? null
+                    : number(parameters[name]);
+            const sequence = calculateSequenceParameters({
+                from: read("from"),
+                to: read("to"),
+                step: read("step"),
+                length: null,
+                type: "number",
+            });
+            expect(sequence.length, label).eq(length);
+            const valueAt = (index: number) =>
+                returnSequenceValueForIndex({
+                    index,
+                    ...sequence,
+                    exclude: [],
+                    type: "number",
+                });
+            expect(
+                first.map((_, i) => valueAt(i)),
+                label,
+            ).eqls(first);
+            expect(
+                last.map((_, i) => valueAt(length - last.length + i)),
+                label,
+            ).eqls(last);
+        }
+
+        // and so in documents, of numbers and of maths
+        for (const [attributes, values] of [
+            [`from="0" to="0.3" step="0.1"`, [0, 0.1, 0.2, 0.3]],
+            [`to="1.3" step="0.1"`, [1, 1.1, 1.2, 1.3]],
+            [`from="1" to="(0.1+0.7)*10"`, [1, 2, 3, 4, 5, 6, 7, 8]],
+            [`type="math" from="0" to="0.3" step="0.1"`, [0, 0.1, 0.2, 0.3]],
+            [
+                `type="math" from="1000" to="1000.3" step="0.1"`,
+                [1000, 1000.1, 1000.2, 1000.3],
+            ],
+        ] as [string, number[]][]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<sequence name="s" ${attributes}/>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sequenceValues =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                    .sequenceValues;
+            expect(
+                sequenceValues.map((v: any) =>
+                    typeof v === "number" ? v : v.evaluate_to_constant(),
+                ),
+                attributes,
+            ).eqls(values);
+        }
+    });
+
     // The same cycle `<selectFromSequence>` hits in Doenet/DoenetML#1665: the
-    // exclusion is one of the values the sequence has yet to produce. See
-    // `src/test/diagnostics/circularReferences.test.ts` for the wider family.
+    // exclusion is one of the values the sequence has yet to produce. It is
+    // an error at the reference, decided when the document loads (#2473).
+    // See `src/test/diagnostics/circularReferences.test.ts` for the wider
+    // family.
     it("self-referential exclude is reported as circular", async () => {
-        await expect(
-            createTestCore({
-                doenetML: `<sequence name="a" from="1" to="10" exclude="$a[1]"/>`,
-            }),
-        ).rejects.toThrow("Circular dependency involving these components");
+        const { core } = await createTestCore({
+            doenetML: `<sequence name="a" from="1" to="10" exclude="$a[1]"/>`,
+        });
+        expect(
+            getDiagnosticsByType(core).errors.map(
+                (e) =>
+                    `${e.code} ${e.position?.start.column}-${e.position?.end.column}`,
+            ),
+        ).eqls(["doenet-e0005 46-51"]);
     });
 });

@@ -7,12 +7,15 @@
 // shows the cause in place of the document. The worker side is covered in
 // `circularReferences.test.ts`; this is the join between the two.
 //
-// Unlike `documentBuildFailure.cy.js`, this uses a real document: a text that
+// Unlike `documentBuildFailure.cy.js`, this uses a real document: a number that
 // reads its own value is an authoring error, not a bug we intend to fix, so it
-// will go on creating a cycle when it is switched on. It reads it through a
-// property (`$t.value`): a cycle through what is written alone, such as a text
-// that extends itself, is found when the document loads, in every case, and is
-// an error in place of the reference rather than a stopped document.
+// will go on creating a cycle when it is switched on. It reads a property of
+// itself that the check at load does not list (`$n.hide`): a cycle through
+// what is written, a property such as `$n.value`, an input's `prefill` or a
+// function evaluated at it (`$$f($n)`) is found when the document loads, in
+// every case, and is an error in place of the reference rather than a stopped
+// document (Doenet/DoenetML#2515). If that check comes to find this one too,
+// this needs another, as `circularReferences.test.ts` does.
 
 const FAIL_TIMEOUT = 20_000;
 
@@ -35,7 +38,7 @@ describe(
             renderDoenetML(`
 <p><booleanInput name="b"/></p>
 <p name="p">before</p>
-<conditionalContent condition="$b"><text name="t">$t.value</text></conditionalContent>
+<conditionalContent condition="$b"><number name="n">$n.hide</number></conditionalContent>
 `);
 
             cy.get("#p").should("have.text", "before");

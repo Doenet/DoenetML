@@ -2,9 +2,34 @@ import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisp
 import MathComponent from "./Math";
 import me from "math-expressions";
 import { convertValueToMathExpression } from "@doenet/utils";
+import { codedDiagnostic } from "../utils/diagnostics";
 
 export default class Matrix extends MathComponent {
     static componentType = "matrix";
+    // An object, not a value, though built on `<math>` (D46).
+    static isValue = false;
+
+    /**
+     * A matrix uses one `<math>` child, the last one written (REF-4a), so a
+     * `<math>` written on a copy replaces its source's, and one written on
+     * an extend is ignored (`addChildrenFromComposite`, #2546).
+     */
+    static childGroupsReadOnce = ["maths"];
+
+    /**
+     * Of the children written on a copy or extend (`added`), those a matrix
+     * does not use beside those from its source (`fromSource`): a `<math>`
+     * is its value only when it has no rows or columns. Rows and columns are
+     * added to the source's (REF-4). (`addChildrenFromComposite`, #2486)
+     */
+    static childrenIgnoredBeside({ fromSource, added, groupOf }) {
+        const hasRowsOrColumns = [...fromSource, ...added].some((child) =>
+            ["rows", "columns"].includes(groupOf(child)),
+        );
+        return added.filter(
+            (child) => groupOf(child) === "maths" && hasRowsOrColumns,
+        );
+    }
 
     static componentDocs = {
         summary: "A matrix of math values",
@@ -118,14 +143,42 @@ export default class Matrix extends MathComponent {
                 newChildren.push(child);
             }
 
-            if (!foundRowsOrColumns) {
-                if (
-                    matchedChildren.length > 1 ||
-                    !componentInfoObjects.componentIsSpecifiedType(
-                        matchedChildren[0],
-                        "math",
-                    )
-                ) {
+            const diagnostics = [];
+            const isMath = (child) =>
+                typeof child === "object" &&
+                componentInfoObjects.componentIsSpecifiedType(child, "math");
+            const nonBlank = matchedChildren.filter(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+            const mathChildren = nonBlank.filter(isMath);
+
+            if (foundRowsOrColumns) {
+                // A `<math>` is the matrix's value only when it has no rows
+                // or columns.
+                if (mathChildren.length > 0) {
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0194",
+                            args: { reason: "rows" },
+                        }),
+                    );
+                }
+            } else if (nonBlank.length > 1 && nonBlank.every(isMath)) {
+                // A matrix uses one `<math>` child: of several written, the
+                // last (REF-4a). They are not joined into one expression, as
+                // the children of a `<math>` are (#2546). The matrix reads
+                // the last (`childIndices: [-1]`).
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0194",
+                        args: { reason: "several" },
+                    }),
+                );
+                newChildren = mathChildren;
+            } else {
+                if (matchedChildren.length > 1 || !isMath(matchedChildren[0])) {
                     newChildren = [
                         {
                             type: "serialized",
@@ -147,6 +200,7 @@ export default class Matrix extends MathComponent {
                 success: true,
                 newChildren,
                 nComponents,
+                diagnostics,
             };
         };
 
@@ -200,9 +254,11 @@ export default class Matrix extends MathComponent {
                     childGroups: ["columns"],
                     variableNames: ["numComponents"],
                 },
+                // the last `<math>`, the one a matrix uses (REF-4a)
                 mathChildren: {
                     dependencyType: "child",
                     childGroups: ["maths"],
+                    childIndices: [-1],
                     variableNames: ["matrixSize"],
                 },
                 numRowsAttr: {
@@ -339,7 +395,7 @@ export default class Matrix extends MathComponent {
                         mathChild: {
                             dependencyType: "child",
                             childGroups: ["maths"],
-                            childIndices: [0],
+                            childIndices: [-1],
                             variableNames: [
                                 "matrixEntry" +
                                     (Number(rowInd) + 1) +

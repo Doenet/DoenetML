@@ -11,7 +11,7 @@
  * references whose target or type is only known then.
  */
 import type { ComponentInfoObjects } from "./componentInfoObjects";
-import { publicCaseInsensitiveAliasSubstitutions } from "../StateVariableNameResolver";
+import { publicAliasSubstitutions } from "../StateVariableNameResolver";
 import { describeReferentVariable } from "./referentDescription";
 import {
     listEntryPropertyPath,
@@ -429,6 +429,7 @@ export function staticValueReferenceTarget({
     targetClass: givenTargetClass,
     unresolvedPath,
     componentInfoObjects,
+    propertyTypes,
 }: {
     targetComponentType: string;
     /**
@@ -438,6 +439,13 @@ export function staticValueReferenceTarget({
     targetClass?: any;
     unresolvedPath: { name: string; index: unknown[] }[] | null | undefined;
     componentInfoObjects: ComponentInfoObjects;
+    /**
+     * The types of the target's properties that its class does not declare,
+     * decided from the DoenetML when the document loaded
+     * (`doenetAttributes.propertyTypes`, `propertyTypesAtLoad.ts`), by
+     * variable name. Without them, such a property is not worked out.
+     */
+    propertyTypes?: Record<string, string | string[]>;
 }):
     | {
           referentComponentType: string;
@@ -510,7 +518,7 @@ export function staticValueReferenceTarget({
         return undefined;
     }
 
-    const [variableName] = publicCaseInsensitiveAliasSubstitutions({
+    const [variableName] = publicAliasSubstitutions({
         stateVariables: [name],
         componentClass: targetClass,
         componentInfoObjects,
@@ -563,7 +571,16 @@ export function staticValueReferenceTarget({
         return undefined;
     }
 
-    const valueComponentType = description.createComponentOfType;
+    const arrayVariableName = description.isArray
+        ? Object.keys(info.stateVariableDescriptions).find(
+              (key) => info.stateVariableDescriptions[key] === description,
+          )
+        : variableName;
+    const valueComponentType =
+        description.createComponentOfType ??
+        (arrayVariableName === undefined
+            ? undefined
+            : propertyTypes?.[arrayVariableName]);
     if (typeof valueComponentType !== "string") {
         return undefined;
     }

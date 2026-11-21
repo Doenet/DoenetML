@@ -283,8 +283,75 @@ export class AttributeComponentDependency extends Dependency {
         while (
             comp.shadows ||
             listSourceIdx(comp) !== undefined ||
-            comp.doenetAttributes?.copyListViaComposite !== undefined
+            comp.doenetAttributes?.copyListViaComposite !== undefined ||
+            comp.doenetAttributes?.extendListViaComposite !== undefined
         ) {
+            if (
+                !comp.shadows &&
+                listSourceIdx(comp) === undefined &&
+                comp.doenetAttributes?.copyListViaComposite === undefined
+            ) {
+                // A list made by an `extend` of a list through a path not
+                // resolved when the extend was planned (`$r[1].ml`, so no
+                // `extendsList`) takes the attributes of the list its `_copy`
+                // names once it is expanded, as one through a resolved path
+                // does (#2244). The `_copy`'s replacements change when what
+                // it names does, which recalculates this.
+                if (
+                    this.notFromReferenceSource ||
+                    (this.dontRecurseToShadowsIfHaveAttribute &&
+                        comp.attributes[
+                            this.dontRecurseToShadowsIfHaveAttribute
+                        ])
+                ) {
+                    break;
+                }
+                const extendComposite =
+                    this.dependencyHandler._components[
+                        comp.doenetAttributes.extendListViaComposite
+                    ];
+                if (!extendComposite) {
+                    break;
+                }
+                this.addUpdateTriggersForCompositeReplacements([
+                    extendComposite.componentIdx,
+                ]);
+                (this.extendCompositesWatched ??= new Set()).add(
+                    extendComposite.componentIdx,
+                );
+                if (!extendComposite.isExpanded) {
+                    await this.addBlockerForUnexpandedComposite(
+                        extendComposite,
+                    );
+                    return {
+                        success: false,
+                        downstreamComponentIndices: [],
+                        downstreamComponentTypes: [],
+                    };
+                }
+                const extendIdx = await extendComposite.stateValues.extendIdx;
+                const unresolvedPath =
+                    await extendComposite.stateValues.unresolvedPath;
+                const named =
+                    typeof extendIdx === "number" &&
+                    !(unresolvedPath?.length > 0)
+                        ? this.dependencyHandler._components[extendIdx]
+                        : undefined;
+                if (
+                    !named ||
+                    named.constructor.listEntryComponentType === undefined ||
+                    visited.has(named.componentIdx)
+                ) {
+                    break;
+                }
+                comp = named;
+                visited.add(comp.componentIdx);
+                attribute = comp.attributes[this.attributeName];
+                if (isReadableAttribute(attribute)) {
+                    return this.attributeDownstream(attribute, comp);
+                }
+                continue;
+            }
             if (
                 !comp.shadows &&
                 comp.doenetAttributes?.copyListViaComposite !== undefined
@@ -660,6 +727,11 @@ export class AttributeComponentDependency extends Dependency {
     }
 
     deleteFromUpdateTriggers() {
+        if (this.extendCompositesWatched) {
+            this.deleteUpdateTriggersForCompositeReplacements([
+                ...this.extendCompositesWatched,
+            ]);
+        }
         if (this.specifiedComponentName) {
             let dependenciesMissingComponent =
                 this.dependencyHandler.updateTriggers

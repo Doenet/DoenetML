@@ -335,6 +335,11 @@ export type MessageKey =
     | "invalid-variable-value"
     | "variant-index-must-be-number"
     | "variant-index-must-be-integer"
+    | "variant-name-unknown"
+    | "variant-control-reference"
+    | "variant-name-repeated"
+    | "variants-all-excluded"
+    | "variant-control-made-from"
     | "side-by-side-absolute-widths"
     | "side-by-side-absolute-margins"
     | "side-by-side-no-block-child"
@@ -408,11 +413,16 @@ export type MessageKey =
     | "collect-invalid-component-type"
     | "reference-index-unavailable"
     | "reference-index-selects-nothing"
+    | "reference-index-selects-child"
     | "reference-index-use-property"
     | "reference-index-past-instances"
     | "reference-name-missing-in-branch"
     | "reference-name-types-differ-in-branches"
+    | "reference-branches-hold-several"
+    | "reference-property-partly-held"
+    | "reference-property-after-several"
     | "component-action-unavailable"
+    | "action-target-not-shown"
     | "data-frame-inconsistent-row-lengths"
     | "data-frame-duplicate-column-names"
     | "data-frame-missing-column-name"
@@ -483,23 +493,35 @@ export type MessageKey =
     | "reference-index-not-a-number"
     | "extend-attribute-ignored"
     | "extend-children-ignored"
+    | "copy-children-ignored"
+    | "action-target-not-one-value"
+    | "latex-not-read-as-math"
+    | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
+    | "attribute-name-case"
     | "list-brackets-unmatched"
+    | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
     | "extend-children-change-content"
     | "extend-choice-input-choices"
     | "extend-choice-input-shuffle-order"
+    | "extend-answer-grading-attribute"
+    | "extend-answer-children"
     | "extend-module-attribute"
     | "extend-part-of-choosing-tag"
+    | "extend-award-or-choice"
     | "type-change-unrelated"
     | "type-change-input-from-value"
     | "type-change-from-container"
     | "type-change-composite-not-one"
+    | "type-change-own-type-only"
     | "type-change-composite-types-differ"
     | "type-change-composite-type-unknown"
     | "type-change-index-names-nothing"
     | "type-change-composite-holds-nothing"
+    | "type-change-property-not-one-value"
     | "type-change-value-not-convertible"
+    | "attribute-empty"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -526,6 +548,7 @@ export type MessageKey =
     | "name-attribute-invalid"
     | "component-name-invalid-start"
     | "attribute-name-invalid-start"
+    | "repeat-value-name-is-index-name"
     | "answer-video-watched-missing-video"
     | "answer-video-watched-video-not-reference"
     | "answer-name-not-single-text"
@@ -612,8 +635,17 @@ export type MessageKey =
     | "chart-histogram-bar-width-ignored"
     | "copy-with-state-changes-choice"
     | "copy-with-state-adds-options"
+    | "choice-parameter-reader-changeable"
+    | "choice-not-always-possible"
+    | "choice-parameter-not-analysable"
+    | "choice-parameter-not-a-number"
     | "copy-with-state-of-uri"
     | "copy-with-state-attribute-reaches-choice"
+    | "reorder-items-of-several-types"
+    | "sort-needs-sort-by-prop"
+    | "answer-responses-of-several-types"
+    | "repeat-for-items-of-several-types"
+    | "sort-item-of-several"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1015,6 +1047,11 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "invalid-variable-value",
     "variant-index-must-be-number",
     "variant-index-must-be-integer",
+    "variant-name-unknown",
+    "variant-control-reference",
+    "variant-name-repeated",
+    "variants-all-excluded",
+    "variant-control-made-from",
     "side-by-side-absolute-widths",
     "side-by-side-absolute-margins",
     "side-by-side-no-block-child",
@@ -1088,11 +1125,16 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "collect-invalid-component-type",
     "reference-index-unavailable",
     "reference-index-selects-nothing",
+    "reference-index-selects-child",
     "reference-index-use-property",
     "reference-index-past-instances",
     "reference-name-missing-in-branch",
     "reference-name-types-differ-in-branches",
+    "reference-branches-hold-several",
+    "reference-property-partly-held",
+    "reference-property-after-several",
     "component-action-unavailable",
+    "action-target-not-shown",
     "data-frame-inconsistent-row-lengths",
     "data-frame-duplicate-column-names",
     "data-frame-missing-column-name",
@@ -1163,23 +1205,35 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-index-not-a-number",
     "extend-attribute-ignored",
     "extend-children-ignored",
+    "copy-children-ignored",
+    "action-target-not-one-value",
+    "latex-not-read-as-math",
+    "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
+    "attribute-name-case",
     "list-brackets-unmatched",
+    "list-reference-joins-entry",
     "extend-attribute-changes-content",
     "extend-children-change-content",
     "extend-choice-input-choices",
     "extend-choice-input-shuffle-order",
+    "extend-answer-grading-attribute",
+    "extend-answer-children",
     "extend-module-attribute",
     "extend-part-of-choosing-tag",
+    "extend-award-or-choice",
     "type-change-unrelated",
     "type-change-input-from-value",
     "type-change-from-container",
     "type-change-composite-not-one",
+    "type-change-own-type-only",
     "type-change-composite-types-differ",
     "type-change-composite-type-unknown",
     "type-change-index-names-nothing",
     "type-change-composite-holds-nothing",
+    "type-change-property-not-one-value",
     "type-change-value-not-convertible",
+    "attribute-empty",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",
@@ -1206,6 +1260,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "name-attribute-invalid",
     "component-name-invalid-start",
     "attribute-name-invalid-start",
+    "repeat-value-name-is-index-name",
     "answer-video-watched-missing-video",
     "answer-video-watched-video-not-reference",
     "answer-name-not-single-text",
@@ -1292,8 +1347,17 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "chart-histogram-bar-width-ignored",
     "copy-with-state-changes-choice",
     "copy-with-state-adds-options",
+    "choice-parameter-reader-changeable",
+    "choice-not-always-possible",
+    "choice-parameter-not-analysable",
+    "choice-parameter-not-a-number",
     "copy-with-state-of-uri",
     "copy-with-state-attribute-reaches-choice",
+    "reorder-items-of-several-types",
+    "sort-needs-sort-by-prop",
+    "answer-responses-of-several-types",
+    "repeat-for-items-of-several-types",
+    "sort-item-of-several",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

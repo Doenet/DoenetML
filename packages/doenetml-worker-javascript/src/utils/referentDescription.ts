@@ -45,9 +45,11 @@ export type ReferentDescription = {
      */
     listEntryPosition?: number;
     /**
-     * Whether the variable holds `null` for having no value
-     * (`nullIsMissing`, as `maxNumber` of a `<collect>` with no limit), so
-     * that a reference reading `null` from it is missing (D37).
+     * Whether the variable holds `null` for having no value (`nullIsMissing`,
+     * as `maxNumber` of a `<collect>` with no limit, or an `<award>`'s
+     * `feedbackText` with none), so that a reference reading `null` from it
+     * is missing (D37, D40). Every variable but one that opts out
+     * (`nullMeansMissing`).
      */
     nullIsMissing?: boolean;
 };
@@ -134,7 +136,7 @@ export function describeReferentVariable(
         companions,
         isLocation: Boolean(arrayStateVarObj?.isLocation),
         ...(listEntryPosition === undefined ? {} : { listEntryPosition }),
-        ...(stateVarObj?.nullIsMissing ? { nullIsMissing: true } : {}),
+        ...(nullMeansMissing(stateVarObj) ? { nullIsMissing: true } : {}),
     };
 }
 
@@ -232,4 +234,15 @@ function sameEntryOfArray(
         return undefined;
     }
     return `${otherPrefix}${index}`;
+}
+
+/**
+ * Whether a variable holding `null` has no value, so a reference reading
+ * `null` from it is missing, `＿` (D40, VAL-5, #2460): `null` is never shown
+ * to an author, and where it means "no value" the value is missing. #2483's
+ * `nullIsMissing`, once an opt-in for `maxNumber` alone, is the rule: it
+ * holds for every variable but one whose definition sets it to `false`.
+ */
+export function nullMeansMissing(stateVarObj: any): boolean {
+    return Boolean(stateVarObj) && stateVarObj.nullIsMissing !== false;
 }

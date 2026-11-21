@@ -29,10 +29,10 @@ The behavior of the `<repeat>{:dn}` component is similar to a for loop in other 
 
 <graph 
   size="small" 
-  xmin="-1" 
-  xmax="8" 
-  ymin="-2" 
-  ymax="14">
+  xMin="-1" 
+  xMax="8" 
+  yMin="-2" 
+  yMax="14">
     <shortDescription>A graph of rectangles</shortDescription>
     <repeat 
       for="$n" 
@@ -220,3 +220,89 @@ attributes can be used.
 
 A `<repeat>{:dn}` can be used to generate a user-specified number of randomly placed `<point>{:dn}` components.
 For an alternative way to do this, see the [`<repeatForSequence>{:dn}`](repeatForSequence.mdx) component.
+
+
+---
+
+### Example: Reading a named component of every iteration
+
+
+```doenet-editor-horiz
+<repeat name="r" for="1 2 3" valueName="v">
+  <point name="P">($v, $v^2)</point>
+  <text name="t">point $v</text>
+</repeat>
+
+<p>Every <c>P</c>: $r.P</p>
+<p>The x of every <c>P</c>: $r.P.x</p>
+<p>The <c>P</c> of the second iteration: $r[2].P</p>
+<p>Every value: $r.v</p>
+```
+
+A name after a `<repeat>{:dn}` reaches the component of that name in every
+iteration, so `$r.P` is all three points and `$r.P.x` their x-coordinates.
+With an index first, `$r[2].P` is the one of the second iteration. The
+`valueName` and `indexName` are names in every iteration too: `$r.v` is the
+value of each.
+
+A property written right after the `<repeat>{:dn}`, such as `$r.x`, reads that
+property of what each iteration holds only when what is written inside the
+`<repeat>{:dn}` is one component. Here each iteration holds a point and a text,
+so `$r.x` names nothing, and you name the one you mean: `$r.P.x`.
+
+
+---
+
+### Example: What `for` holds, and one type
+
+
+```doenet-editor-horiz
+<repeat name="data" for="1 2 3" valueName="k">
+  <point name="P">($k, $k^2)</point>
+  <text name="L">P$k</text>
+</repeat>
+
+<p><repeat for="$data" valueName="d">$d.P is labelled $d.L. </repeat></p>
+
+<text name="t">hello</text>
+<p><repeat for="2 $t" type="text" valueName="w">[$w]</repeat></p>
+```
+
+The items of `for` are read as a `<shuffle>{:dn}` reads its children. Text written in `for` is split at spaces into items, and a list, or
+a `<repeat>{:dn}` or `<select>{:dn}` whose iterations or options each hold one
+component, gives one item for each of its entries. A `<group>{:dn}` holding
+one component stands for that component. Anything holding several components
+is one item: a `<group>{:dn}` of several, or an iteration of a
+`<repeat>{:dn}` that holds several. So the second repeat above goes once for
+each iteration of `data`, and `$d.P` and `$d.L` are the point and the text
+named in that iteration.
+
+The items of `for` are all of one type, which you can tell from the DoenetML:
+a `<math>{:dn}`, a `<number>{:dn}` or an `<integer>{:dn}` (which count as one
+type), a `<text>{:dn}`, a `<boolean>{:dn}`, one kind of graphical object such
+as `<point>{:dn}`, or content such as `<p>{:dn}` and anything holding several
+components. An input counts as what it holds. Items of more than one type are
+an error, reported when the document loads, and the `<repeat>{:dn}` shows the
+error in place of its iterations.
+
+Text written in `for` is read as math unless `type` says otherwise, so
+`for="2 $t"`, with `t` a `<text>{:dn}`, is an error until it says
+`type="text"`, as above. When `type` is written, every item of `for` must be
+of that type.
+
+---
+
+## Property Examples
+
+### Property Example: numItems
+
+
+```doenet-editor-horiz
+<numberList name="values">1 2 3 4</numberList>
+<p><repeat name="r" for="$values" valueName="v"><math>$v^2</math></repeat></p>
+<p>Number of iterations: $r.numItems</p>
+```
+
+`numItems` is the number of iterations, which an index selects among
+(`$r[2]` is the second). Any other property after a repeat is that property
+of what each iteration holds.

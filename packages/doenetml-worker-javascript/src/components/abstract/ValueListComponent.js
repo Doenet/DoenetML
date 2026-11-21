@@ -32,6 +32,10 @@ import {
 } from "../../utils/mathVectorMatrixStateVariables";
 import { booleanFromWord, booleanWord } from "../../utils/booleanWords";
 import {
+    COLLECTION_OWN_SETTINGS,
+    numItemsDefinition,
+} from "../../utils/numItems";
+import {
     contentTranslator,
     returnContentLocaleDependencies,
 } from "../../utils/contentLocale";
@@ -69,6 +73,9 @@ import {
  */
 export default class ValueListComponent extends BaseComponent {
     static componentType = "_valueList";
+
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
     // The list is drawn as its entries, each by the renderer of its type
     // (`RendererInstructionBuilder`), so it has no renderer of its own; this
     // is the type its entries need.
@@ -277,9 +284,12 @@ export default class ValueListComponent extends BaseComponent {
 
     // A reference to the whole list reads these of the list itself
     // (`$l.styleNumber` is the style of the list as a whole).
+    // A list is a collection: its count (`numItems`) and the settings every
+    // component has are its own, not each entry's (COLL-2).
     static listOwnProperties = [
         "styleNumber",
-        "hide",
+        ...COLLECTION_OWN_SETTINGS,
+        "numItems",
         "isResponse",
         "permid",
         "doenetML",
@@ -294,6 +304,9 @@ export default class ValueListComponent extends BaseComponent {
         const kind = entryKind(this.listEntryComponentType);
         if (kind === "math") {
             return MATH_ENTRY_DERIVED_PROPERTIES;
+        }
+        if (kind === "boolean") {
+            return BOOLEAN_ENTRY_DERIVED_PROPERTIES;
         }
         return kind === "number" ? NUMBER_ENTRY_DERIVED_PROPERTIES : {};
     }
@@ -607,6 +620,13 @@ export default class ValueListComponent extends BaseComponent {
                 };
             },
         };
+
+        // The number of entries, which an index selects among: a property
+        // of every collection (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "numEntries",
+            count: (numEntries) => numEntries ?? 0,
+        });
 
         // The prefix of the name of each entry of the array of values
         // (`math2`), by which a `<collect>` reads one entry of a list it
@@ -1666,6 +1686,18 @@ const NUMBER_ENTRY_DERIVED_PROPERTIES = {
         companionsOf: "math",
         compute: (value) => numberToMathExpression(value),
         invert: (math) => entryValueOfType(math, "number"),
+    },
+};
+
+// The `math` of a `<boolean>` entry, `1` or `0` (REF-5), which an entry
+// reads as its value where a math is wanted (`$bl` in a `<math>`), as a
+// `<boolean>` adapts to its `math`. It takes no write.
+const BOOLEAN_ENTRY_DERIVED_PROPERTIES = {
+    math: {
+        from: "value",
+        componentType: "math",
+        companionsOf: "math",
+        compute: (value) => me.fromAst(value ? 1 : 0),
     },
 };
 

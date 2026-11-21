@@ -725,6 +725,8 @@ describe("Repeats whose template is one point @group4", () => {
 `,
             names: ["px", "py", "py2", "sy", "pz", "pz2"],
             graphs: ["g", "g2"],
+            // a point of one coordinate keeps the composite (#2221)
+            repeatName: "r2",
         });
         // of every point, a coordinate they do not have is nothing; of one
         // point, it is missing (D37)
@@ -873,6 +875,18 @@ describe("Repeats whose template is one point @group4", () => {
         }
     });
 
+    it("a point of one coordinate whose value is a vector takes it as its coordinates (#2221)", async () => {
+        const result = await compare({
+            doenetML: `
+<p name="p"><repeatForSequence name="r" from="1" to="2" valueName="v"><point>(<math>($v, 2)</math>)</point></repeatForSequence></p>
+<p name="p2">$r</p>
+`,
+            names: ["p", "p2"],
+            becomesList: false,
+        });
+        expect(result.p2).toBe("(1, 2), (2, 2)");
+    });
+
     it("stays a composite where an entry cannot stand in for an iteration", async () => {
         for (const doenetML of [
             // a label
@@ -881,6 +895,9 @@ describe("Repeats whose template is one point @group4", () => {
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point styleNumber="$v">($v, 0)</point></repeatForSequence></graph>`,
             // a constraint that reads the index
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, 0)<constrainToGrid dx="$v"/></point></repeatForSequence></graph>`,
+            // one coordinate, whose value can be a vector, which the point
+            // takes as its coordinates (#2221)
+            `<graph name="g"><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v)</point></repeatForSequence></graph>`,
             // coordinates as attributes
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point x="$v" y="0" /></repeatForSequence></graph>`,
             // a sampler

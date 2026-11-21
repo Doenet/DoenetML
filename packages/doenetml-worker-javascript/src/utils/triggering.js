@@ -1,4 +1,5 @@
 import { targetIdxOfRefResolution } from "./refTargets";
+import { codedDiagnostic } from "./diagnostics";
 
 export function returnStandardTriggeringAttributes(triggerActionOnChange) {
     return {
@@ -187,7 +188,7 @@ export function addStandardTriggeringStateVariableDefinitions(
  * Add the `clickTarget` state variable, which tells the renderer whether
  * clicking this component fires an action. It is true when another
  * component lists this one in `triggerWhenObjectsClicked` and that
- * component acts on clicks, or when this component is a bare reference
+ * component acts on clicks and is shown (not withheld by a composite), or when this component is a bare reference
  * (such as `$t`) to a component that is a click target, since clicking the
  * reference fires the same actions.
  */
@@ -241,6 +242,15 @@ export function addClickTargetStateVariableDefinition(
                     childIdx: comp.componentIdx,
                     parentComponentType: "triggerSet",
                 };
+                // withheld from what a composite shows, as in a
+                // `<conditionalContent>` that is not true, so its clicks
+                // fire nothing (#2120)
+                dependencies[`referencerInactive${ind}`] = {
+                    dependencyType: "stateVariable",
+                    componentIdx: comp.componentIdx,
+                    variableName: "isInactiveCompositeReplacement",
+                    variablesOptional: true,
+                };
             }
 
             return dependencies;
@@ -254,7 +264,8 @@ export function addClickTargetStateVariableDefinition(
             ) {
                 if (
                     !dependencyValues[`referencerTriggerWhen${ind}`] &&
-                    !dependencyValues[`referencerTriggerSet${ind}`]
+                    !dependencyValues[`referencerTriggerSet${ind}`] &&
+                    !dependencyValues[`referencerInactive${ind}`]
                 ) {
                     clickTarget = true;
                 }
@@ -263,4 +274,44 @@ export function addClickTargetStateVariableDefinition(
             return { setValue: { clickTarget } };
         },
     };
+}
+
+/**
+ * Which of the components an action (`<callAction>`, `<updateValue>`) would
+ * act on, `targetIndices`, are not withheld from what is shown. Content is
+ * withheld when it is in a case of a `<conditionalContent>` that is not
+ * true, or in an iteration a repeat no longer has. From outside, withheld content acts as missing (SAVE-4, D40,
+ * #2152), so the action does nothing to it, and when it has nothing left to
+ * act on, the author is told with an info (`doenet-i0060`) naming the
+ * `target` as written. The withheld content keeps its state, and the action
+ * reaches it again once it is shown.
+ *
+ * Returns the indices of the targets not withheld.
+ */
+export async function targetsNotWithheld({ component, targetIndices }) {
+    const shown = [];
+    for (const targetIdx of targetIndices) {
+        if (!(await component.coreFunctions.componentIsWithheld(targetIdx))) {
+            shown.push(targetIdx);
+        }
+    }
+    if (shown.length === 0 && targetIndices.length > 0) {
+        const referenceText =
+            component.coreFunctions.doenetMLStringForReference(
+                await component.stateValues.targetOriginalPath,
+            );
+        component.coreFunctions.addDiagnostic(
+            codedDiagnostic({
+                type: "info",
+                code: "doenet-i0060",
+                args: {
+                    componentType: component.componentType,
+                    reference: referenceText ? "$" + referenceText : "",
+                },
+                position: component.position,
+                sourceDoc: component.sourceDoc,
+            }),
+        );
+    }
+    return shown;
 }

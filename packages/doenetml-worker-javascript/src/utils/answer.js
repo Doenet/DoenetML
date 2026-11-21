@@ -647,6 +647,7 @@ export function returnStandardAnswerStateVariableDefinition() {
                 includeImmediateValueWithValue: !stateValues.autoSubmit,
                 includeRawValueWithImmediateValue: !stateValues.autoSubmit,
                 includeOnlyEssentialValues: true,
+                includeStateIds: true,
             },
         }),
         definition({ dependencyValues, componentIdx }) {
@@ -678,8 +679,21 @@ export function returnStandardAnswerStateVariableDefinition() {
                 }
             }
 
+            // Each component is named by its `stateId`, the id saved state
+            // is keyed by (SAVE-3), not by its index, which can differ each
+            // time it is made (SAVE-5): an answer made again from saved
+            // state, after a reload or when its case is shown again, has
+            // the same hash when what it depends on is unchanged (#2325).
+            // Where it was built is left out too, as it says nothing of the
+            // values.
             let stringified = stringify(
-                dependencyValues.currentCreditAchievedDependencies,
+                dependencyValues.currentCreditAchievedDependencies.map(
+                    (dep) => ({
+                        id: dep.stateId ?? dep.componentIdx,
+                        componentType: dep.componentType,
+                        stateValues: dep.stateValues,
+                    }),
+                ),
                 { replacer: serializedComponentsReplacer },
             );
 
@@ -745,10 +759,14 @@ export function returnStandardAnswerStateVariableDefinition() {
                 dependencyType: "stateVariable",
                 variableName: "hasBeenCorrect",
             },
+            withheld: {
+                dependencyType: "stateVariable",
+                variableName: "isInactiveCompositeReplacement",
+            },
         }),
         definition: function ({
             dependencyValues,
-            justUpdatedForNewComponent,
+            justRestoredAtLoad,
             initialAddPhase,
         }) {
             if (
@@ -760,14 +778,29 @@ export function returnStandardAnswerStateVariableDefinition() {
                 };
             }
 
+            if (dependencyValues.withheld) {
+                // Withheld from what is shown (a case not shown, an
+                // iteration a repeat dropped), the answer keeps its state
+                // (SAVE-4): what it reads there, such as a reference to
+                // what is withheld with it, is not a change to its
+                // responses, and being read from outside does not change it
+                // (#2152, #2174). Once shown, it is compared again.
+                return {
+                    useEssentialOrDefaultValue: { justSubmitted: true },
+                };
+            }
+
             let foundChange =
                 dependencyValues.creditAchievedDependenciesAtSubmit !==
                 dependencyValues.currentCreditAchievedDependencies;
 
-            if (
-                foundChange &&
-                !(justUpdatedForNewComponent || initialAddPhase)
-            ) {
+            // A saved value is trusted only as the document loads. An answer
+            // made later from saved state (when its case is shown again, or
+            // shown for the first time since a reload) is compared with what
+            // was submitted, which may have changed while it was withheld
+            // (#2325). The hash names components by `stateId`, so it is the
+            // same when nothing changed.
+            if (foundChange && !(justRestoredAtLoad || initialAddPhase)) {
                 return {
                     setValue: { justSubmitted: false },
                     setEssentialValue: { justSubmitted: false },

@@ -13,6 +13,7 @@ import { returnStickyGroupDefinitions } from "../utils/constraints";
 import { evaluateToNumber } from "../utils/math";
 
 export default class Polyline extends GraphicalComponent {
+    static missingWhenEntriesMissing = ["vertices"];
     constructor(args) {
         super(args);
 
@@ -26,6 +27,10 @@ export default class Polyline extends GraphicalComponent {
         });
     }
     static componentType = "polyline";
+
+    // missing while its content is only missing children (D40,
+    // `BaseComponent.missingWhenContentMissing`)
+    static missingWhenContentMissing = true;
     static styleOverrideCategories = ["line"];
 
     static componentDocs = {

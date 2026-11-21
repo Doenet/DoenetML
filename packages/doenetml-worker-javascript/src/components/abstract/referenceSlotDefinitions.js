@@ -563,12 +563,12 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  * `numSamples` drops). Its `value` is then the empty value of the type it
  * presents as (`NaN`, `""`, `false`, `＿`), and an empty value alone cannot
  * say so, since a referent can hold `NaN` or `""` too. A variable that holds
- * `null`, such as an attribute with no default (an `<award>`'s
- * `feedbackText`), is not missing: the copy made a component for it, holding
- * the empty value `value` also holds. One that declares `null` to be no
- * value (`nullIsMissing`, `maxNumber` of a `<collect>` with no limit) is
- * missing while it holds `null`, as the copy makes nothing for it then
- * (`replacementFromProp` in `Copy.js`, #2416). One case differs from the copy: an
+ * `null` has no value (`nullMeansMissing` in `referentDescription.ts`, D40),
+ * such as an attribute with no default (an `<award>`'s `feedbackText`) or
+ * `maxNumber` of a `<collect>` with no limit, so it is missing while it holds
+ * `null`, as the copy makes nothing for it then, or, linked, a component
+ * missing while it does (`replacementFromProp` in `Copy.js`, #2416, #2460),
+ * unless its definition sets `nullIsMissing` to `false`. One case differs from the copy: an
  * array entry whose key is there but that holds no value is missing, where
  * the copy made a component holding the empty value. The known such entries
  * are those of a function's global minimum, maximum, infimum or supremum
@@ -591,7 +591,7 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
  *
  * A reference a copy made at run time (`fixedReferent`) has its own
  * `valueMissing`, which is only whether its referent is a missing component
- * (`ValueRef.js`). The copy makes no reference for an entry that is not
+ * or, of a list entry, a blank entry (`ValueRef.js`). The copy makes no reference for an entry that is not
  * there (`Copy.js`), and a reference it made stands for the component it
  * made before value references, which held the empty value of its type once
  * its variable held no value (`$c.selectedValue` after the selected choice
@@ -613,6 +613,16 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                     value: true,
                 };
             }
+            // An entry of a list that is missing, a blank entry (D40),
+            // read entry by entry (`entryMissing2`).
+            if (referentInfo?.listEntryPosition !== undefined) {
+                dependencies.entryMissing = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: `entryMissing${referentInfo.listEntryPosition}`,
+                    variablesOptional: true,
+                };
+            }
             return dependencies;
         },
         definition({ dependencyValues }) {
@@ -620,6 +630,7 @@ export function valueMissingDefinition(names = DEFAULT_NAMES) {
                 setValue: {
                     [names.valueMissing]:
                         dependencyValues.target === undefined ||
+                        Boolean(dependencyValues.entryMissing) ||
                         (dependencyValues.nullIsMissing === true &&
                             dependencyValues.target === null) ||
                         Boolean(dependencyValues.targetInactive) ||

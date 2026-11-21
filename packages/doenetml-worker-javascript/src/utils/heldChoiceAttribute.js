@@ -6,25 +6,161 @@
  * `components/abstract/Copy.js`, `doenet-w0186`, D33).
  */
 import { deepClone } from "@doenet/utils";
+import { splitListText } from "@doenet/parser/list-separation";
+import { listSplittingAttributeValue } from "../components/commonsugar/lists";
 
 /**
  * The value of the attribute component `component` as text it reads back
- * as that value: a single value (`value`), or the numbers of a
- * `<numberList>` (`numbers`), separated by spaces. `undefined` for any
- * other (as a list of another type, as the `exclude` of a
- * `<selectFromSequence>`), which is not read from text once the document
- * is loaded.
+ * as that value: a single value (`value`), or the entries of a list, of a
+ * list component (`<numberList>`, `<mathList>`, `<textList>`, ...) or of
+ * the list of a sequence's type (`_componentListWithSelectableType`, the
+ * `exclude` of a `<selectFromSequence>`) (#2477 item 2). A list's text is
+ * read by the one rule for lists (`splitListText`, #2492): at commas outside
+ * brackets if there is one, at spaces otherwise. Its entries are written
+ * separated by spaces, or else by commas, whichever that rule reads back as
+ * the same entries; a math entry whose text holds a space is written in
+ * parentheses (`entryAsWritten`). `undefined` when neither does (a text
+ * entry holding a comma outside brackets, or a single text entry holding a
+ * space), and for any other value, which is then not held.
+ *
+ * Where the value is held as a list written with that text
+ * (`holdAttributeComponentAt`), use {@link heldValueAsWritten}, which also
+ * holds a single text entry holding a space.
  */
 export async function valueAsWritten(component) {
+    const held = await heldValueAsWritten(component);
+    return held && held.listSplitting === undefined ? held.text : undefined;
+}
+
+/**
+ * The value of the attribute component `component` as text, as
+ * {@link valueAsWritten} gives it, for a value held as a list written with
+ * that text (`holdAttributeComponentAt`), which can also record how its text
+ * is split (`listSplitting`, the value of the list's hidden `_listSplitting`
+ * attribute). When neither spaces nor the rule's commas read back as the
+ * entries, they are written separated by commas, read as commas whatever
+ * the text holds (`listSplitting` `"comma"`): so a single text entry holding
+ * a space (`a b`) is held as one entry (#2598 item 4). `undefined` when that
+ * fails too (a text entry holding a comma outside brackets), and for any
+ * other value, which is then not held.
+ */
+export async function heldValueAsWritten(component) {
     const value = await component?.stateValues?.value;
     if (value !== undefined && value !== null) {
-        return typeof value === "object" ? value.toString() : String(value);
+        return {
+            text: typeof value === "object" ? value.toString() : String(value),
+        };
     }
-    const numbers =
-        component?.componentType === "numberList"
-            ? await component.stateValues.numbers
-            : undefined;
-    return numbers?.map(String).join(" ");
+    const entries = await listEntriesOf(component);
+    if (!entries) {
+        return undefined;
+    }
+    const texts = entries.map((entry) => entryAsWritten(entry));
+    /** Whether `text` read as `splitting` gives the entries. */
+    function readsBack(text, splitting) {
+        const read = splitListText(text, splitting);
+        return (
+            !read.unmatchedBrackets &&
+            read.entries.length === texts.length &&
+            read.entries.every((entry, ind) => entry.trim() === texts[ind])
+        );
+    }
+    for (const separator of [" ", ", "]) {
+        const text = texts.join(separator);
+        if (readsBack(text)) {
+            return { text };
+        }
+    }
+    const commas = { separator: "comma", bracketsGroup: true };
+    const text = texts.join(", ");
+    if (texts.length > 0 && readsBack(text, commas)) {
+        return { text, listSplitting: listSplittingAttributeValue(commas) };
+    }
+    return undefined;
+}
+
+/**
+ * The text of the list entry `entry` that reads back as it: a math whose
+ * text holds a space outside brackets (`2x`, written `2 x`) is written in
+ * parentheses, `(2 x)`, which the rule for lists keeps as one entry and which
+ * reads back as the same math (#2553 item 3).
+ */
+function entryAsWritten(entry) {
+    const text = (
+        typeof entry === "object" && entry !== null
+            ? entry.toString()
+            : String(entry)
+    ).trim();
+    const isMath =
+        typeof entry === "object" && entry !== null && "tree" in entry;
+    if (isMath && splitListText(text).entries.length > 1) {
+        return `(${text})`;
+    }
+    return text;
+}
+
+/**
+ * The type of list component that holds the value of `component` written
+ * as text (`valueAsWritten`) when `component` is the list of a sequence's
+ * type (`_componentListWithSelectableType`), whose entries' type is that of
+ * the sequence: a `<numberList>`, `<mathList>`, `<textList>` or
+ * `<booleanList>`. `undefined` for any other component, whose own children
+ * the text is written as (`holdAttributeComponentAt`).
+ */
+export async function listTypeAsWritten(component) {
+    if (component?.componentType === "_selectionParameter") {
+        // a compiled parameter (`utils/selectionParameters.ts`) that is a
+        // list, of what its output is
+        const parameter = component.doenetAttributes?.selectionParameter;
+        if (parameter?.kind !== "list") {
+            return undefined;
+        }
+        return (
+            { number: "numberList", math: "mathList", text: "textList" }[
+                parameter.output
+            ] ?? "numberList"
+        );
+    }
+    if (component?.componentType !== "_componentListWithSelectableType") {
+        return undefined;
+    }
+    const type = await component.stateValues.type;
+    return (
+        {
+            number: "numberList",
+            math: "mathList",
+            text: "textList",
+            letters: "textList",
+            boolean: "booleanList",
+        }[type] ?? "numberList"
+    );
+}
+
+/**
+ * The entries of `component` when it is a list: a list component's values
+ * (`listValuesArrayName`), or the values of the list of a sequence's type
+ * (`_componentListWithSelectableType`). `undefined` otherwise.
+ */
+async function listEntriesOf(component) {
+    if (!component) {
+        return undefined;
+    }
+    if (
+        component.componentType === "_componentListWithSelectableType" ||
+        (component.componentType === "_selectionParameter" &&
+            component.doenetAttributes?.selectionParameter?.kind === "list")
+    ) {
+        return await component.stateValues.values;
+    }
+    const arrayName = component.constructor?.listValuesArrayName;
+    if (
+        arrayName &&
+        component.constructor.listEntryComponentType !== undefined &&
+        arrayName in component.state
+    ) {
+        return await component.stateValues[arrayName];
+    }
+    return undefined;
 }
 
 /**
@@ -33,14 +169,21 @@ export async function valueAsWritten(component) {
  * written is kept (`authoredComponent`), which a `copy` of it, writing its
  * DoenetML again, is given in place of the value (`serialize`,
  * `withoutReaderState`), so it computes it from what it is given.
+ * `listSplitting`, from {@link heldValueAsWritten}, is how the list that
+ * `text` is written in splits it (its hidden `_listSplitting` attribute).
  */
 export function holdAttributeComponentAt({
     attribute,
     text,
     componentInfoObjects,
+    listType,
+    listSplitting,
 }) {
     attribute.authoredComponent = deepClone(attribute.component);
     delete attribute.keepSourceIterationValue;
+    if (attribute.component?.componentType === "_selectionParameter") {
+        attribute.component = attributeComponentInPlaceOf(attribute.component);
+    }
     const selectableClass =
         componentInfoObjects.allComponentClasses._componentWithSelectableType;
     function isSelectableTypeWrapper(component) {
@@ -54,9 +197,13 @@ export function holdAttributeComponentAt({
         );
     }
     // of an attribute of a selectable type (`from` of a
-    // `<selectFromSequence>`), the component of that type it wraps
+    // `<selectFromSequence>`), the component of that type it wraps. A list
+    // of a selectable type (`exclude`, `listType`) is written to as it is,
+    // as what it wraps can be one reference giving all of its entries.
     let attributeComponent = attribute.component;
+    const isListWrapper = listType !== undefined;
     while (
+        !isListWrapper &&
         isSelectableTypeWrapper(attributeComponent) &&
         attributeComponent.children?.length === 1 &&
         typeof attributeComponent.children[0] === "object"
@@ -75,9 +222,112 @@ export function holdAttributeComponentAt({
         attributeComponent.componentType = presentedType;
     }
     delete attributeComponent.extending;
-    attributeComponent.attributes = {};
+    // a list of a selectable type keeps its `type`, of its entries
+    attributeComponent.attributes = isListWrapper
+        ? Object.fromEntries(
+              Object.entries(attributeComponent.attributes ?? {}).filter(
+                  ([name]) => name === "type",
+              ),
+          )
+        : {};
+    // how the text is split, given to the list that reads it
+    const splittingAttributes =
+        listSplitting === undefined
+            ? {}
+            : {
+                  _listSplitting: {
+                      type: "primitive",
+                      name: "_listSplitting",
+                      primitive: { type: "string", value: listSplitting },
+                  },
+              };
+    if (
+        !isListWrapper &&
+        listSplitting !== undefined &&
+        "_listSplitting" in
+            (componentInfoObjects.allComponentClasses[
+                attributeComponent.componentType
+            ]?.createAttributesObject?.() ?? {})
+    ) {
+        // a list written as a tag (`<textList>`), which takes it
+        Object.assign(attributeComponent.attributes, splittingAttributes);
+    }
     attributeComponent.state = {};
-    attributeComponent.children = [text];
+    // A list of a selectable type reads its children with sugar, which has
+    // been applied, so the text is given as a list of its entries' type,
+    // which reads it (`listTypeAsWritten`). The list takes the place, and
+    // the index, of the first component the wrapper held: what refers to the
+    // module attribute.
+    const firstComponent = isListWrapper
+        ? attributeComponent.children?.find(
+              (child) => typeof child === "object" && child !== null,
+          )
+        : undefined;
+    attributeComponent.children = firstComponent
+        ? [
+              {
+                  type: "serialized",
+                  componentType: listType,
+                  componentIdx: firstComponent.componentIdx,
+                  stateId: firstComponent.stateId,
+                  sourceDoc: firstComponent.sourceDoc,
+                  attributes: { ...splittingAttributes },
+                  doenetAttributes: {},
+                  state: {},
+                  children: [text],
+              },
+          ]
+        : [text];
+}
+
+/**
+ * The attribute component a compiled selection parameter
+ * (`utils/selectionParameters.ts`) was made in place of, of the type it was
+ * (`attributeComponentType`), holding nothing yet, for the value to be
+ * written in it as in any other (`holdAttributeComponentAt`): a parameter
+ * held at a value is that value, written.
+ */
+function attributeComponentInPlaceOf(component) {
+    const parameter = component.doenetAttributes?.selectionParameter;
+    const componentType =
+        component.doenetAttributes?.attributeComponentType ?? "math";
+    const valueType =
+        parameter?.output === "text"
+            ? "text"
+            : parameter?.output === "math"
+              ? "math"
+              : "number";
+    const shell = (type, children) => ({
+        type: "serialized",
+        componentType: type,
+        componentIdx: component.componentIdx,
+        stateId: component.stateId,
+        ...(component.sourceDoc !== undefined
+            ? { sourceDoc: component.sourceDoc }
+            : {}),
+        attributes: {},
+        doenetAttributes: {},
+        state: {},
+        children,
+    });
+    // what it holds first takes the index of its first slot, as what the
+    // attribute component held took its own
+    const firstSlot = (component.children ?? []).find(
+        (child) => typeof child === "object" && child !== null,
+    );
+    const inner = (type) => ({
+        ...shell(type, []),
+        componentIdx: firstSlot?.componentIdx,
+        stateId: firstSlot?.stateId,
+    });
+    if (componentType === "_componentWithSelectableType") {
+        return shell(componentType, [inner(valueType)]);
+    }
+    if (parameter?.kind === "list") {
+        // a list is written to through what it holds first
+        return shell(componentType, [inner("_copy")]);
+    }
+    return shell(componentType, []);
 }
 
 /**

@@ -17,6 +17,12 @@ export default class CodeEditor extends BlockComponent {
         });
     }
     static componentType = "codeEditor";
+    // An edit not yet entered (`immediateValue`) is committed when the input
+    // is made, or shown again, unless it is the input the reader is editing
+    // (`Core.commitUnenteredEdits`, D50).
+    static holdsUnenteredEdit = true;
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     static componentDocs = {
         summary: "An interactive DoenetML code editor",
@@ -299,6 +305,13 @@ export default class CodeEditor extends BlockComponent {
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
+                // A code editor holds text. A value of another type, such as
+                // the math an `<updateValue>` without `type="text"` sends,
+                // is refused rather than stored (DIAG-5, #2607).
+                if (typeof desiredStateVariableValues.value !== "string") {
+                    return { success: false };
+                }
+
                 let instructions = [
                     {
                         setDependency: "valueChanged",

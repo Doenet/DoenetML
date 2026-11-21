@@ -1444,7 +1444,9 @@ describe("Point and vector lists as list components @group4", async () => {
             byX: "(1, 2), (2, 0), (3, 1)",
             byY: "(2, 0), (3, 1), (1, 2)",
             byProp: "(2, 0), (3, 1), (1, 2)",
-            mixed: "(1, 2), (2, 0), (2.5, 1), (3, 1)",
+            // the text beside the points is read as a point (COLL-4); it
+            // used to be left out
+            mixed: "(0, 5), (1, 2), (2, 0), (2.5, 1), (3, 1)",
             indices: "2, 3, 1",
             vByDisplacement: "(0, 5), (1, -1), (2, 3)",
             vByTail: "(1, -1), (0, 5), (2, 3)",
@@ -2039,5 +2041,49 @@ describe("Point and vector lists as list components @group4", async () => {
             pv: "(1, 1) (2, 3)",
             pP: "(1, 2)",
         });
+    });
+    it("a label written through an entry goes to the point the entry comes from (#2521)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pp"><point name="P"><label>hi</label>(1,2)</point></p>
+    <collect name="gp" componentType="point" from="$pp" />
+    <pointList name="pl"><point name="R"><label>yo</label>(1,2)</point></pointList>
+    <pointList name="pl2">$pl</pointList>
+    <textInput name="ti" bindValueTo="$gp[1].label"/>
+    <textInput name="ti2" bindValueTo="$pl[1].label"/>
+    <textInput name="ti3" bindValueTo="$pl2[1].label"/>
+    `,
+        });
+        async function labels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return [
+                stateVariables[await resolvePathToNodeIdx("P")].stateValues
+                    .label,
+                stateVariables[await resolvePathToNodeIdx("R")].stateValues
+                    .label,
+            ];
+        }
+        expect(await labels()).eqls(["hi", "yo"]);
+        await updateTextInputValue({
+            text: "bye",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "ciao",
+            componentIdx: await resolvePathToNodeIdx("ti2"),
+            core,
+        });
+        expect(await labels()).eqls(["bye", "ciao"]);
+        // through an entry of a list that is an entry of another
+        await updateTextInputValue({
+            text: "hey",
+            componentIdx: await resolvePathToNodeIdx("ti3"),
+            core,
+        });
+        expect(await labels()).eqls(["bye", "hey"]);
     });
 });

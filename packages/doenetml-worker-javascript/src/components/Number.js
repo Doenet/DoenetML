@@ -21,6 +21,7 @@ import {
     numberToMathExpression,
     plainComplex,
 } from "../utils/math";
+import { isMissingInput } from "../utils/missing";
 import { addClickTargetStateVariableDefinition } from "../utils/triggering";
 import {
     numberDisplayString,
@@ -42,6 +43,16 @@ export default class NumberComponent extends InlineComponent {
         });
     }
     static componentType = "number";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
+
+    // missing while its content is only missing children (D40,
+    // `BaseComponent.missingWhenContentMissing`)
+    static missingWhenContentMissing = true;
+
+    // missing while it is computed from a missing input, as a number can't
+    // hold a blank (D40, `BaseComponent.missingWhenComputedFromMissing`)
+    static missingWhenComputedFromMissing = true;
 
     static componentDocs = {
         summary: "A numeric floating point value",
@@ -67,7 +78,7 @@ export default class NumberComponent extends InlineComponent {
             createStateVariable: "convertBoolean",
             defaultValue: false,
             description:
-                "Whether to convert boolean inputs to 1/0 instead of NaN.",
+                "Whether to read the content as a boolean expression (a comparison, with texts compared as texts rather than read as numbers), giving 1 or 0. A boolean is 1 or 0 in a number either way.",
         };
         attributes.valueOnNaN = {
             createPrimitiveOfType: "number",
@@ -148,7 +159,11 @@ export default class NumberComponent extends InlineComponent {
             },
             {
                 group: "maths",
-                componentTypes: ["math"],
+                // `_missing`: a blank for an item lacking a property
+                // (`$s.x` of picks one of which lacks `x`, D40 decision 5)
+                // or a reference to one thing that names nothing, which
+                // makes the number missing (D40 decision 1)
+                componentTypes: ["math", "_missing"],
             },
             {
                 group: "texts",
@@ -410,6 +425,42 @@ export default class NumberComponent extends InlineComponent {
             },
         };
 
+        // Whether the value is a `NaN` that comes from a missing input
+        // (D40, VAL-5, #2460): `<number>$nothing + 1</number>`,
+        // `<number>$l[5] + 1</number>`, or `<number><math>＿</math>+1</number>`.
+        // A number can't hold a blank, so it is missing (`valueMissing`),
+        // shown as `＿`, rather than `NaN`. A `NaN` from present inputs
+        // (`<number>x</number>`, `<number>0/0</number>`) stays `NaN`.
+        stateVariableDefinitions.computedFromMissing = {
+            returnDependencies: () => ({
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+                children: {
+                    dependencyType: "child",
+                    childGroups: [
+                        "strings",
+                        "numbers",
+                        "maths",
+                        "texts",
+                        "booleans",
+                    ],
+                    variableNames: ["value", "valueMissing"],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        computedFromMissing:
+                            Number.isNaN(dependencyValues.value) &&
+                            dependencyValues.children.some(isMissingInput),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.value = {
             public: true,
             description: "The numeric value.",
@@ -488,6 +539,13 @@ export default class NumberComponent extends InlineComponent {
                                 "maths",
                                 "unordered",
                             ],
+                            variablesOptional: true,
+                        },
+                        // whether a boolean alone is missing (`isSingleBoolean`)
+                        booleanChildren: {
+                            dependencyType: "child",
+                            childGroups: ["booleans"],
+                            variableNames: ["valueMissing"],
                             variablesOptional: true,
                         },
                         booleanChildrenByCode: {
@@ -597,7 +655,17 @@ export default class NumberComponent extends InlineComponent {
                         }
                     }
 
-                    if (!dependencyValues.convertBoolean) {
+                    if (
+                        !dependencyValues.convertBoolean &&
+                        (!isSingleBoolean(
+                            dependencyValues.allChildren,
+                            componentInfoObjects,
+                        ) ||
+                            // a missing boolean is a blank, as in a `<math>`
+                            // (D40), so no number
+                            dependencyValues.booleanChildren[0].stateValues
+                                .valueMissing === true)
+                    ) {
                         return {
                             setValue: { value: dependencyValues.valueOnNaN },
                         };
@@ -694,17 +762,14 @@ export default class NumberComponent extends InlineComponent {
                             ],
                         };
                     } else if (
-                        dependencyValues.convertBoolean &&
-                        dependencyValues.allChildren.length === 1 &&
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType:
-                                dependencyValues.allChildren[0].componentType,
-                            baseComponentType: "boolean",
-                        }) &&
+                        isSingleBoolean(
+                            dependencyValues.allChildren,
+                            componentInfoObjects,
+                        ) &&
                         (desiredValue === 0 || desiredValue === 1)
                     ) {
-                        // a boolean read as `1` or `0` (`convertBoolean`),
-                        // which is `true` or `false` written back
+                        // a boolean read as `1` or `0` (REF-5), which is
+                        // `true` or `false` written back
                         return {
                             success: true,
                             instructions: [
@@ -933,10 +998,6 @@ export default class NumberComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "singleMathChild",
                 },
-                convertBoolean: {
-                    dependencyType: "stateVariable",
-                    variableName: "convertBoolean",
-                },
                 allChildren: {
                     dependencyType: "child",
                     childGroups: [
@@ -955,10 +1016,10 @@ export default class NumberComponent extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // A boolean read as `1` or `0` (`convertBoolean`) is written
-                // back as `true` or `false` (`value`'s inverse).
+                // A boolean alone, read as `1` or `0` with or without
+                // `convertBoolean` (REF-5), is written back as `true` or
+                // `false` (`value`'s inverse).
                 const singleBooleanChild =
-                    dependencyValues.convertBoolean &&
                     dependencyValues.allChildren.length === 1 &&
                     dependencyValues.booleanChildModifiable.length === 1;
                 if (singleBooleanChild) {
@@ -1079,4 +1140,21 @@ export default class NumberComponent extends InlineComponent {
             });
         }
     }
+}
+
+/**
+ * Whether a `<number>`'s only child is a boolean, which it reads as `1` or
+ * `0` (REF-5) with or without `convertBoolean`: `<number>$b</number>`.
+ * Without `convertBoolean`, several children are wrapped in a `<math>`
+ * (`returnSugarInstructions`), which reads a boolean the same way through its
+ * adapter.
+ */
+function isSingleBoolean(children, componentInfoObjects) {
+    return (
+        children.length === 1 &&
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: children[0].componentType,
+            baseComponentType: "boolean",
+        })
+    );
 }

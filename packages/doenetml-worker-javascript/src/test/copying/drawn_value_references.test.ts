@@ -543,11 +543,16 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <mathInput name="mi" prefill="x+x" />
     <math name="m" simplify styleNumber="3" renderMode="display" hide>$mi</math>
     <text name="t" styleNumber="4">hi</text>
-    <p><group name="gm">$m</group> <group name="gt">$t</group></p>
+    <p name="pg">$m $t</p>
+    <collect name="gm" componentType="math" from="$pg" />
+    <collect name="gt" componentType="text" from="$pg" />
     <math name="um" copy="$gm[1]" />
     <text name="ut" copy="$gt[1]" />
     `,
             });
+
+            // An index does not select the reference in a group (D27), so the
+            // copies are of what a collect finds for the drawn references.
 
             async function copies() {
                 const stateVariables = await core.returnAllStateVariables(
@@ -573,6 +578,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
             const expected = [
                 "2 x",
+                // an item of a collect carries `simplify` (#2521)
                 "full",
                 3,
                 "display",
@@ -589,6 +595,28 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 core,
             });
             expect(await copies()).eqls(expected);
+        });
+
+        // Found while moving the test above off an index into a group
+        // (#2517): an extend of a collect's item carries `simplify`, as it
+        // carries `styleNumber` and `renderMode` (#2521).
+        it("an item of a collect carries `simplify`", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="x+x" />
+    <p name="pp"><math name="m" simplify>$mi</math></p>
+    <collect name="gm" componentType="math" from="$pp" />
+    <math name="um" extend="$gm[1]" />
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("um")].stateValues
+                    .simplify,
+            ).eq("full");
         });
 
         it("a drawn reference is updated in place, not drawn anew, when its value changes", async () => {

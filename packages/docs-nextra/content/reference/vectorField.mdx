@@ -30,7 +30,7 @@ because a tangent direction has no head or tail to distinguish.
 ### Example: A rotational field
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>The vector field (y, -x), which circulates clockwise about the origin</shortDescription>
   <vectorField>(y, -x)</vectorField>
 </graph>
@@ -47,7 +47,7 @@ rather than letting them run off the graph.
 ### Example: Direction only
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>The same rotational field with every arrow the same length</shortDescription>
   <vectorField normalize>(y, -x)</vectorField>
 </graph>
@@ -66,7 +66,7 @@ vanish.
 <setup>
   <function name="G" variables="x y">(2x, 2y)</function>
 </setup>
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>The gradient field of x squared plus y squared, pointing away from the origin</shortDescription>
   <vectorField>$G</vectorField>
 </graph>
@@ -82,7 +82,7 @@ component, which is the alternative to writing the expression out.
 ### Example: Drawn with PreFigure
 
 ```doenet-editor-horiz
-<graph size="small" renderer="prefigure" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" renderer="prefigure" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>The vector field (y, -x), drawn by PreFigure</shortDescription>
   <vectorField name="vf">(y, -x)</vectorField>
   <annotations>
@@ -125,7 +125,7 @@ A few things are drawn differently:
 ### Attribute Example: variables
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A rotational vector field written in u and v</shortDescription>
   <vectorField variables="u v" normalize>(v, -u)</vectorField>
 </graph>
@@ -141,7 +141,7 @@ them:
 
 ```doenet-editor-horiz
 <p>Name the variables: <mathInput name="v1">q</mathInput> <mathInput name="v2">r</mathInput></p>
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A field whose variable names are set by two math inputs</shortDescription>
   <vectorField variables="$v1 $v2" normalize>(r, -q)</vectorField>
 </graph>
@@ -157,7 +157,7 @@ flows away from the vertical axis instead of circling the origin.
 ### Attribute Example: dx, dy
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A rotational vector field sampled on a finer lattice, drawn with thin arrows</shortDescription>
   <vectorField dx="0.5" dy="0.5" markLength="14" lineWidth="2" normalize>(y, -x)</vectorField>
 </graph>
@@ -174,7 +174,7 @@ before the lattice is crowded. `styleNumber="2"` gives a thinner line as well, a
 ### Attribute Example: markLength
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A rotational vector field drawn with long arrows</shortDescription>
   <vectorField markLength="40">(y, -x)</vectorField>
 </graph>
@@ -189,7 +189,7 @@ length of the longest arrow on screen; with `normalize` it sets the length of ev
 ### Attribute Example: maxMarks
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A dense vector field limited to at most 150 arrows</shortDescription>
   <vectorField dx="0.25" dy="0.25" markLength="8" maxMarks="150" normalize>(y, -x)</vectorField>
 </graph>
@@ -204,7 +204,7 @@ the lattice would exceed it, the field keeps every <m>n</m>-th lattice line.
 ### Property Example: dx, dy, normalize
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A named vector field whose settings are reported as text</shortDescription>
   <vectorField name="vf" dx="2" dy="2" normalize>(y, -x)</vectorField>
 </graph>

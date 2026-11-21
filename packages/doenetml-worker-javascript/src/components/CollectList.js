@@ -13,6 +13,11 @@ import { entryKind, entryValueOfType } from "./abstract/ValueListComponent";
 import { RegisteredNumberEntries } from "./abstract/ReorderedValueList";
 import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import Collect from "./Collect";
+import {
+    keepOnlyAttributePropertiesOfComposite,
+    keepOnlyPropertiesOfComposite,
+    listOwnPropertiesOfComposite,
+} from "../utils/numItems";
 import NumberList from "./NumberList";
 import MathList from "./MathList";
 import TextList from "./TextList";
@@ -80,6 +85,16 @@ function collectListClass(Base) {
         // The type collected, which the document pass records.
         static listEntryTypeAttribute = "componentType";
 
+        // Its properties of its own are those of the composite `<collect>`,
+        // so the two builds agree (COMP-4, COLL-2).
+        // Built as a list, it keeps none of the attributes of the authored
+        // list it is built on as properties, as the composite (COMP-4).
+        static attributePropertiesKept = [];
+
+        static get listOwnProperties() {
+            return listOwnPropertiesOfComposite(Collect);
+        }
+
         static listEntryTypeFromAttribute(attribute) {
             const type =
                 attribute?.type === "primitive"
@@ -118,6 +133,7 @@ function collectListClass(Base) {
                 createPrimitiveOfType: "string",
                 description: collectAttributes.componentType.description,
             };
+            keepOnlyAttributePropertiesOfComposite(attributes, Collect);
             return attributes;
         }
 
@@ -137,6 +153,7 @@ function collectListClass(Base) {
             for (const name of [
                 "sourceComponentIdx",
                 "sourceComponent",
+                "sourceInactive",
                 "sourceName",
             ]) {
                 stateVariableDefinitions[name] = collectDefinitions[name];
@@ -342,6 +359,49 @@ function collectListClass(Base) {
                         });
                     }
                     return { success: true, instructions };
+                },
+            };
+
+            // Whether each entry is missing (D40): an entry of a list
+            // collected that is a blank entry (`entryMissing` of that list),
+            // which the list form keeps as a blank entry, drawn as a blank,
+            // and of which a reference (`$c[1]`) is missing. A component
+            // collected is not missing, as one that is is not collected.
+            stateVariableDefinitions.entriesMissing = {
+                ...stateVariableDefinitions.entriesMissing,
+                stateVariablesDeterminingDependencies: [
+                    "entryStructure",
+                    "collectedSources",
+                ],
+                returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+                    const dependenciesByKey = {};
+                    for (const arrayKey of arrayKeys) {
+                        const collected =
+                            stateValues.collectedSources[
+                                stateValues.entryStructure[arrayKey]
+                                    ?.collectedInd
+                            ];
+                        if (collected?.listInd !== undefined) {
+                            dependenciesByKey[arrayKey] = {
+                                entryMissing: {
+                                    dependencyType: "stateVariable",
+                                    componentIdx: collected.componentIdx,
+                                    variableName: `entryMissing${collected.listInd + 1}`,
+                                    variablesOptional: true,
+                                },
+                            };
+                        }
+                    }
+                    return { dependenciesByKey };
+                },
+                arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
+                    const entriesMissing = {};
+                    for (const arrayKey of arrayKeys) {
+                        entriesMissing[arrayKey] = Boolean(
+                            dependencyValuesByKey[arrayKey]?.entryMissing,
+                        );
+                    }
+                    return { setValue: { entriesMissing } };
                 },
             };
 
@@ -607,7 +667,7 @@ function collectListClass(Base) {
             // (`graphSourceOf`): a component collected, or the referent of a
             // reference to a whole component; for an entry of a list, the
             // component that list places its entry as.
-            if (this.listEntriesAnchoredBySources) {
+            if (this.listEntriesHaveSources) {
                 stateVariableDefinitions.entryGraphSources = {
                     shadowVariable: true,
                     stateVariablesDeterminingDependencies: ["collectedSources"],
@@ -681,6 +741,8 @@ function collectListClass(Base) {
                     ),
                 );
             }
+
+            keepOnlyPropertiesOfComposite(stateVariableDefinitions, Collect);
 
             return stateVariableDefinitions;
         }

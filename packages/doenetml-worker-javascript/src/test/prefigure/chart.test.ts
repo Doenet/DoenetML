@@ -57,8 +57,9 @@ describe("chart prefigure tests @group4", async () => {
         it("reports no axis for a chart that was not drawn", async () => {
             // `yMin`/`yMax` report what the chart was drawn with, and nothing
             // was: a number here would describe an axis that is not on screen.
-            // A chart that *was* drawn always has both, so the reading of
-            // `NaN` is unambiguous — it is this case and no other.
+            // A chart that *was* drawn always has both, so a blank (no
+            // value, `null`, is missing: D40) is unambiguous — it is this case
+            // and no other.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <chart name="c"><number>4</number></chart>
@@ -68,7 +69,7 @@ describe("chart prefigure tests @group4", async () => {
             const sv = await core.returnAllStateVariables(false, true);
             expect(
                 sv[await resolvePathToNodeIdx("bounds")].stateValues.text,
-            ).eq("NaN, NaN");
+            ).eq("＿, ＿");
 
             // The values are still readable: they are what the children say,
             // whatever is done with them.

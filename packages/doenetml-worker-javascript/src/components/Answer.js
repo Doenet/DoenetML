@@ -36,7 +36,8 @@ const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix", "angle"];
 
 /**
  * The `set` of `submittedResponses`: an entry written to it, as the value of
- * the type `submittedResponsesComponentType` records for it.
+ * its type: the one the DoenetML decides (`propertyTypes`, TYPE-4), or,
+ * where it doesn't, the one `submittedResponsesComponentType` records.
  *
  * A save holds a math-expression as its tree
  * (`removeFunctionsMathExpressionClass`), so an entry restored from one is a
@@ -58,10 +59,15 @@ function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
     ) {
         return value;
     }
+    const atLoad =
+        component.doenetAttributes?.propertyTypes?.submittedResponses;
     const componentTypes =
         newValues.submittedResponsesComponentType ??
         component.essentialState.submittedResponsesComponentType;
-    const componentType = componentTypes?.[arrayKey] ?? "math";
+    const componentType =
+        (typeof atLoad === "string" ? atLoad : atLoad?.[arrayKey]) ??
+        componentTypes?.[arrayKey] ??
+        "math";
     const holdsMath = MATH_RESPONSE_TYPES.some((baseComponentType) =>
         component.componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: componentType,
@@ -69,6 +75,22 @@ function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
         }),
     );
     return holdsMath ? convertValueToMathExpression(value) : value;
+}
+
+/**
+ * The types of `numEntries` responses decided from the DoenetML when the
+ * document loaded (`propertyTypes`, `propertyTypesAtLoad.ts`, TYPE-2): the
+ * one type they share, or the type of each when they are as many as it
+ * decided. `undefined` when it decided none, or for another number of them.
+ */
+function responseTypesAtLoad(atLoad, numEntries) {
+    if (typeof atLoad === "string") {
+        return Array(numEntries).fill(atLoad);
+    }
+    if (Array.isArray(atLoad) && atLoad.length === numEntries) {
+        return [...atLoad];
+    }
+    return undefined;
 }
 
 export default class Answer extends InlineComponent {
@@ -477,6 +499,19 @@ export default class Answer extends InlineComponent {
                 return false;
             }
 
+            /**
+             * The children the award `child` holds: for an `<award copy>`
+             * whose source the DoenetML gives, its source's and its own
+             * (`copiedAwards.ts`); otherwise those written in it.
+             */
+            function awardChildrenOf(child) {
+                return (
+                    child.doenetAttributes?.copiedAward?.children ??
+                    child.children ??
+                    []
+                );
+            }
+
             function addPotentialResponsesToReferenceDescendants(components) {
                 for (let component of components) {
                     if (component.componentType === "_copy") {
@@ -575,11 +610,19 @@ export default class Answer extends InlineComponent {
                 } else if (componentIsSpecifiedType(child, "award")) {
                     foundAward = true;
                     childIsWrappable.push(false);
-                    if (child.attributes?.referencesAreResponses) {
+                    // An `<award copy>` is decided as its source written
+                    // out (CPY-1), from the children it will hold
+                    // (`copiedAwards.ts`).
+                    const copiedAward = child.doenetAttributes?.copiedAward;
+                    if (
+                        child.attributes?.referencesAreResponses ||
+                        copiedAward?.referencesAreResponses
+                    ) {
                         foundResponse = true;
                     }
-                    if (child.children?.length > 0) {
-                        for (let grandChild of child.children) {
+                    const awardChildren = awardChildrenOf(child);
+                    if (awardChildren.length > 0) {
+                        for (let grandChild of awardChildren) {
                             if (typeof grandChild !== "object") {
                                 if (grandChild.trim()) {
                                     mayNeedInput = true;
@@ -648,7 +691,8 @@ export default class Answer extends InlineComponent {
                             }
                         }
                     } else {
-                        // if copied in award, it won't have children
+                        // No children, or a copy whose source the DoenetML
+                        // does not give, so it is not known what it holds.
                         mayNeedInput = true;
                     }
                 } else if (componentIsSpecifiedType(child, "mathInput")) {
@@ -739,8 +783,9 @@ export default class Answer extends InlineComponent {
                 // recurse to all descendants of awards to see if have a response
                 for (let child of matchedChildren) {
                     if (componentIsSpecifiedType(child, "award")) {
-                        if (child.children?.length > 0) {
-                            if (checkForResponseDescendant(child.children)) {
+                        const awardChildren = awardChildrenOf(child);
+                        if (awardChildren.length > 0) {
+                            if (checkForResponseDescendant(awardChildren)) {
                                 foundResponse = true;
                                 break;
                             }
@@ -752,7 +797,17 @@ export default class Answer extends InlineComponent {
                     // definitely have a case where there is not a response
                     // look inside each award and add isPotentialResponse to any reference
                     for (let child of matchedChildren) {
-                        if (componentIsSpecifiedType(child, "award")) {
+                        if (child.doenetAttributes?.copiedAward) {
+                            // Its references are made from its source's
+                            // when it is made, and marked then (`Award.js`).
+                            child.attributes ??= {};
+                            child.attributes._referencesArePotentialResponses =
+                                {
+                                    type: "unresolved",
+                                    name: "_referencesArePotentialResponses",
+                                    children: ["true"],
+                                };
+                        } else if (componentIsSpecifiedType(child, "award")) {
                             if (child.children?.length > 0) {
                                 addPotentialResponsesToReferenceDescendants(
                                     child.children,
@@ -1796,6 +1851,11 @@ export default class Answer extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "usePotentialResponses",
                     },
+                    // the types decided when the document loaded (TYPE-2)
+                    propertyTypes: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "propertyTypes",
+                    },
                 };
 
                 for (let [
@@ -2022,10 +2082,19 @@ export default class Answer extends InlineComponent {
                     }
                 }
 
+                // Each response's type is decided from the DoenetML when the
+                // document loads (TYPE-2, `propertyTypesAtLoad.ts`); the one
+                // worked out here, from the same tags, is read only where it
+                // wasn't decided.
                 return {
                     setValue: { currentResponses },
                     setCreateComponentOfType: {
-                        currentResponses: componentType,
+                        currentResponses:
+                            responseTypesAtLoad(
+                                globalDependencyValues.propertyTypes
+                                    ?.currentResponses,
+                                currentResponses.length,
+                            ) ?? componentType,
                     },
                 };
             },
@@ -2066,15 +2135,36 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        // The type of each submitted response. Where the DoenetML decides
+        // the types (`propertyTypes`, TYPE-2), they are its types, and
+        // nothing is saved (TYPE-4: saved state never decides a type). Only
+        // where it doesn't, the types at submission are recorded and saved.
         stateVariableDefinitions.submittedResponsesComponentType = {
             hasEssential: true,
             defaultValue: null,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    submittedResponsesComponentType: true,
+            returnDependencies: () => ({
+                propertyTypes: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "propertyTypes",
+                },
+                numSubmittedResponses: {
+                    dependencyType: "stateVariable",
+                    variableName: "numSubmittedResponses",
                 },
             }),
+            definition: ({ dependencyValues }) => {
+                const atLoad = responseTypesAtLoad(
+                    dependencyValues.propertyTypes?.submittedResponses,
+                    dependencyValues.numSubmittedResponses,
+                );
+                return atLoad
+                    ? { setValue: { submittedResponsesComponentType: atLoad } }
+                    : {
+                          useEssentialOrDefaultValue: {
+                              submittedResponsesComponentType: true,
+                          },
+                      };
+            },
             inverseDefinition: function ({ desiredStateVariableValues }) {
                 if (
                     desiredStateVariableValues.submittedResponsesComponentType
@@ -2144,13 +2234,27 @@ export default class Answer extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "numSubmittedResponses",
                     },
+                    // the types decided when the document loaded, which a
+                    // saved type never changes (TYPE-4)
+                    propertyTypes: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "propertyTypes",
+                    },
                 };
                 return { globalDependencies };
             },
             arrayDefinitionByKey({ globalDependencyValues }) {
                 let componentType = [];
 
-                if (globalDependencyValues.submittedResponsesComponentType) {
+                const atLoad = responseTypesAtLoad(
+                    globalDependencyValues.propertyTypes?.submittedResponses,
+                    globalDependencyValues.numSubmittedResponses,
+                );
+                if (atLoad) {
+                    componentType.push(...atLoad);
+                } else if (
+                    globalDependencyValues.submittedResponsesComponentType
+                ) {
                     componentType.push(
                         ...globalDependencyValues.submittedResponsesComponentType.slice(
                             0,
@@ -2783,13 +2887,17 @@ export default class Answer extends InlineComponent {
             value: currentResponses,
         });
 
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "submittedResponsesComponentType",
-            value: this.state.currentResponses.shadowingInstructions
-                .createComponentOfType,
-        });
+        // The types, recorded only where the DoenetML doesn't decide them
+        // (`submittedResponsesComponentType`, TYPE-4)
+        if (!this.doenetAttributes?.propertyTypes?.submittedResponses) {
+            instructions.push({
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "submittedResponsesComponentType",
+                value: this.state.currentResponses.shadowingInstructions
+                    .createComponentOfType,
+            });
+        }
 
         instructions.push({
             updateType: "updateValue",

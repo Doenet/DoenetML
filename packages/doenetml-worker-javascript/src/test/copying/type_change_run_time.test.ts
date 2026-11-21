@@ -3,8 +3,10 @@ import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     movePoint,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
 
@@ -27,6 +29,7 @@ const TYPE_CHANGE_CODES = [
     "doenet-i0053",
     "doenet-i0054",
     "doenet-i0055",
+    "doenet-i0061",
     "doenet-w0104",
     "doenet-w0105",
     "doenet-w0181",
@@ -425,18 +428,11 @@ describe("A reference written as a tag of a composite is decided when the docume
             m6: "7",
             m8: "3",
         });
-        for (const p of ["p3", "p5"]) {
-            expect(await d.replacedBy(p), p).eqls(["_error"]);
-        }
+        // `$P.x` is a math, as a point declares (TYPE, D45)
+        expect(await d.texts(["p3"])).eqls({ p3: "1" });
+        expect(await d.replacedBy("p5")).eqls(["_error"]);
         expect(await d.replacedBy("p7")).eqls(["math"]);
         expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-e0067",
-                type: "error",
-                line: 16,
-                message:
-                    "A `<math>` can be made from `$g3` only when the type of what it holds is known from the DoenetML, and it holds a property, whose type isn't. To read what it holds as one value, write `<math>$g3</math>`.",
-            },
             {
                 code: "doenet-e0064",
                 type: "error",
@@ -585,7 +581,7 @@ describe("A reference written as a tag of a composite is decided when the docume
     it("a list tag takes any number of components, including none, all of one type", async () => {
         const d = await setup(`
 <booleanInput name="b"/>
-<mathInput name="n" prefill="2"/>
+<selectFromSequence name="n" from="2" to="2"/>
 <conditionalContent name="cc"><case condition="$b"><math>x</math></case></conditionalContent>
 <repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat>
 <group name="g" hide><math>a</math><math>b</math></group>
@@ -1516,6 +1512,216 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         });
     });
 
+    for (const first of [1, 2]) {
+        it(`a point from a choiceInput is missing while the selected choice is no tuple, made while choice ${first} is selected`, async () => {
+            // #2488: it was checked only against the choice selected when it
+            // was made.
+            const d = await setup(`
+<choiceInput name="ci" preselectChoice="${first}"><label>c</label><choice><math>(1,2)</math></choice><choice><math>x</math></choice></choiceInput>
+<graph><point extend="$ci" name="Q"/></graph>
+`);
+            async function select(index: number) {
+                await updateSelectedIndices({
+                    componentIdx: await d.resolvePathToNodeIdx("ci"),
+                    selectedIndices: [index],
+                    core: await d.core(),
+                });
+            }
+            const tuple = { Q: "(1, 2)" };
+            const notTuple = { Q: "＿" };
+
+            expect(await shown(d, ["Q"])).eqls(first === 1 ? tuple : notTuple);
+            expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls(
+                first === 1 ? [] : [["doenet-i0053", 3]],
+            );
+
+            await select(3 - first);
+            expect(await shown(d, ["Q"])).eqls(first === 1 ? notTuple : tuple);
+            expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls(
+                first === 1 ? [["doenet-i0053", 3]] : [],
+            );
+
+            await select(first);
+            expect(await shown(d, ["Q"])).eqls(first === 1 ? tuple : notTuple);
+            expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls(
+                first === 1 ? [] : [["doenet-i0053", 3]],
+            );
+        });
+    }
+
+    it("a point from a choiceInput is missing, with an info, while no choice or several are selected", async () => {
+        // #2546 item 8: it was `(0, 0)`, made from no value, or the first
+        // of several (VAL-5, D37).
+        const d = await setup(`
+<choiceInput name="ci" selectMultiple><label>c</label><choice><math>(1,2)</math></choice><choice><math>(3,4)</math></choice></choiceInput>
+<graph><point extend="$ci" name="Q"/></graph>
+<p name="p"><math extend="$ci" name="m"/></p>
+`);
+        async function select(indices: number[]) {
+            await updateSelectedIndices({
+                componentIdx: await d.resolvePathToNodeIdx("ci"),
+                selectedIndices: indices,
+                core: await d.core(),
+            });
+        }
+        const info = (count: number) => ({
+            code: "doenet-i0061",
+            type: "info",
+            line: 3,
+            message:
+                count === 0
+                    ? "`$ci` holds no value now, so this `<point>` is missing until it holds one."
+                    : `\`$ci\` holds ${count} values now, so this \`<point>\` is missing until it holds one.`,
+        });
+
+        expect(await shown(d, ["Q"])).eqls({ Q: "＿" });
+        expect(d.newDiagnostics()).eqls([info(0)]);
+
+        await select([2]);
+        expect(await shown(d, ["Q"])).eqls({ Q: "(3, 4)" });
+        expect(d.newDiagnostics()).eqls([]);
+
+        await select([1, 2]);
+        expect(await shown(d, ["Q"])).eqls({ Q: "＿" });
+        expect(d.newDiagnostics()).eqls([info(2)]);
+
+        await select([1]);
+        expect(await shown(d, ["Q"])).eqls({ Q: "(1, 2)" });
+        expect(d.newDiagnostics()).eqls([]);
+
+        // A tag not checked against the value, a `<math>`, is made from the
+        // entries, as before.
+        await select([]);
+        expect(await shown(d, ["Q", "p"])).eqls({ Q: "＿", p: "＿" });
+        expect(d.newDiagnostics()).eqls([info(0)]);
+
+        await d.reload();
+        expect(await shown(d, ["Q", "p"])).eqls({ Q: "＿", p: "＿" });
+        expect(d.newDiagnostics()).eqls([info(0)]);
+    });
+
+    it("a point from a choiceInput with a text choice is an error at load, whatever is selected", async () => {
+        // #2546 item 8: the type of what is selected is decided from the
+        // choices (D36), also while none is selected.
+        const d = await setup(`
+<choiceInput name="ci"><label>c</label><choice>hi</choice><choice><math>(3,4)</math></choice></choiceInput>
+<graph><point extend="$ci" name="Q"/></graph>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-e0065", 3],
+        ]);
+        await updateSelectedIndices({
+            componentIdx: await d.resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core: await d.core(),
+        });
+        expect(d.newDiagnostics()).eqls([]);
+        expect(await d.typeOf("Q")).eq("_error");
+    });
+
+    it("a point from a choiceInput whose choices are made later is missing, not an error, until one is selected", async () => {
+        // With no choices yet, a choiceInput's `componentType` is a text by
+        // default, which is not a text choice (D36).
+        const d = await setup(`
+<mathInput name="n" prefill="0"><label>n</label></mathInput>
+<choiceInput name="ci"><label>c</label><repeatForSequence length="$n" valueName="v"><choice><math>($v,1)</math></choice></repeatForSequence></choiceInput>
+<graph><point extend="$ci" name="Q"/></graph>
+`);
+        expect(await shown(d, ["Q"])).eqls({ Q: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0061", 4],
+        ]);
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await d.resolvePathToNodeIdx("n"),
+            core: await d.core(),
+        });
+        await updateSelectedIndices({
+            componentIdx: await d.resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core: await d.core(),
+        });
+        expect(await shown(d, ["Q"])).eqls({ Q: "(2, 1)" });
+        expect(d.newDiagnostics()).eqls([]);
+    });
+
+    it("a point from an answer's responses is missing, with an info, while it holds none or several", async () => {
+        // The same rule as a choiceInput's selected values: a property whose
+        // entries are each of the type it holds (#2546 item 8). It was
+        // `(0, 0)`, made from no value or from several.
+        const d = await setup(`
+<mathInput name="mi" prefill="(1,2)"><label>a</label></mathInput>
+<mathInput name="mi2" prefill="(3,4)"><label>b</label></mathInput>
+<answer name="a"><award><when>$mi=(1,2)</when></award></answer>
+<answer name="a2"><award><when>$mi=(1,2) and $mi2=(3,4)</when></award></answer>
+<graph><point extend="$a.submittedResponses" name="Q"/><point extend="$a2.currentResponses" name="R"/></graph>
+`);
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "＿", R: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0061", 6],
+            ["doenet-i0061", 6],
+        ]);
+        await submitAnswer({
+            componentIdx: await d.resolvePathToNodeIdx("a"),
+            core: await d.core(),
+        });
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "(1, 2)", R: "＿" });
+        await d.reload();
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "(1, 2)", R: "＿" });
+    });
+
+    it("a point copied from a choiceInput is decided when made, as one copied from a mathInput is", async () => {
+        // CPY-1: a copy's link is cut. Made while nothing is selected, it
+        // stays missing; on `main` it became the first selection's value.
+        const d = await setup(`
+<choiceInput name="ci" selectMultiple><label>c</label><choice><math>(1,2)</math></choice><choice><math>(3,4)</math></choice></choiceInput>
+<graph><point extend="$ci" name="Q"/><point copy="$ci.selectedValues" name="R"/></graph>
+`);
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "＿", R: "＿" });
+        expect(d.newDiagnostics().map((x) => x.code)).eqls([
+            "doenet-i0061",
+            "doenet-i0061",
+        ]);
+        await updateSelectedIndices({
+            componentIdx: await d.resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core: await d.core(),
+        });
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "(3, 4)", R: "＿" });
+        await d.reload();
+        expect(await shown(d, ["Q", "R"])).eqls({ Q: "(3, 4)", R: "＿" });
+    });
+
+    it("a point from a tally's categories is missing with none, and an error at load with several", async () => {
+        // The same rule: a tally's categories are numbers or texts, so a
+        // point is `e0065` once there are any, also several (D36). With
+        // none it is missing with `i0061`. On `main` both were `(0, 0)`.
+        const d = await setup(`
+<tally name="t">1 2 2</tally>
+<tally name="e"></tally>
+<graph><point extend="$t.categories" name="Q"/><point extend="$e.categories" name="R"/></graph>
+`);
+        expect(d.newDiagnostics().map((x) => [x.code, x.line, x.message])).eqls(
+            [
+                [
+                    "doenet-e0065",
+                    4,
+                    "A `<point>` can't be made from `$t.categories`, which gives a `<number>`. To show it as it is, write `$t.categories`.",
+                ],
+                [
+                    "doenet-i0061",
+                    4,
+                    "`$e.categories` holds no value now, so this `<point>` is missing until it holds one.",
+                ],
+            ],
+        );
+        expect(await d.typeOf("Q")).eq("_error");
+        expect(await shown(d, ["R"])).eqls({ R: "＿" });
+        await d.reload();
+        expect(await d.typeOf("Q")).eq("_error");
+        expect(await shown(d, ["R"])).eqls({ R: "＿" });
+    });
+
     it("a boolean from a text input, and a number and a math from a boolean input, follow and write back", async () => {
         const d = await setup(`
 <textInput name="ti" prefill="true"/>
@@ -1648,5 +1854,72 @@ describe("A related type made from a value follows it, and writes back (#2440, #
             C: "(-3, 4)",
             D: "(-3, 4)",
         });
+    });
+});
+
+describe("A tag of a list entry follows the entry's value (#2521) @group4", () => {
+    it("a point made from an entry of a list is made again when the entry becomes a tuple", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="1"/>
+    <math name="m">$mi</math>
+    <mathList name="l">$mi</mathList>
+    <mathList name="l2">$m</mathList>
+    <point name="Q" extend="$l[1]"/>
+    <point name="Q2" extend="$l2[1]"/>
+    <point name="Q3" extend="$m"/>
+    `,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: string[] = [];
+            for (const name of ["Q", "Q2", "Q3"]) {
+                const sv =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                result.push(sv.valueMissing ? "＿" : sv.latex);
+            }
+            return result;
+        }
+        // a point can't be made from a number: missing, as of a math
+        expect(await shown()).eqls(["＿", "＿", "＿"]);
+        await updateMathInputValue({
+            latex: "(3,4)",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await shown()).eqls(Array(3).fill("\\left( 3, 4 \\right)"));
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await shown()).eqls(["＿", "＿", "＿"]);
+    });
+});
+
+describe("A component in error is missing beside others, also when it comes later (#2546) @group4", () => {
+    it("a point made from a group is made from its math when a case showing a repeat in error becomes true", async () => {
+        // #2546 item 5: the error was dropped only when the copy was first
+        // made, and when the case became true the point was `(0, 0)`.
+        const d = await setup(`
+<booleanInput name="b"><label>b</label></booleanInput>
+<group name="g"><math>(1,2)</math><conditionalContent condition="$b"><repeat for=""/></conditionalContent></group>
+<p name="p"><point extend="$g"/></p>
+`);
+        expect(d.errors()).eqls(["doenet-e0072"]);
+        expect(await d.texts(["p"])).eqls({ p: "(1, 2)" });
+        await d.setBoolean("b", true);
+        expect(await d.texts(["p"])).eqls({ p: "(1, 2)" });
+        expect(d.errors()).eqls(["doenet-e0072"]);
+        await d.setBoolean("b", false);
+        expect(await d.texts(["p"])).eqls({ p: "(1, 2)" });
+        await d.setBoolean("b", true);
+        await d.reload();
+        expect(await d.texts(["p"])).eqls({ p: "(1, 2)" });
+        expect(d.errors()).eqls(["doenet-e0072"]);
     });
 });

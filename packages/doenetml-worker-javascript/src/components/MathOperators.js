@@ -871,6 +871,9 @@ export class StandardDeviation extends Variance {
 export class Count extends MathBaseOperator {
     static componentType = "count";
 
+    // a missing operand is counted, as it is an operand (VAL-5)
+    static countsMissingOperands = true;
+
     static componentDocs = {
         summary: "The number of the child math or number values",
     };

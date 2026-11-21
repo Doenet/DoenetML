@@ -17,6 +17,8 @@ export class SideBySide extends BlockComponent {
         });
     }
     static componentType = "sideBySide";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Renders children in a side-by-side horizontal layout",
@@ -1310,6 +1312,8 @@ export class SbsGroup extends BlockComponent {
         });
     }
     static componentType = "sbsGroup";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static rendererType = "containerBlock";
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -2443,6 +2447,8 @@ export class Stack extends BlockComponent {
         });
     }
     static componentType = "stack";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
     static rendererType = "containerBlock";
     static renderChildren = true;
     static canDisplayChildErrors = true;

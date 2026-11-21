@@ -74,6 +74,12 @@ export async function resolvePathImmediatelyToNodeIdx(
         let resolution = rustCore.resolve_path({ path }, origin, false);
 
         while (resolution.unresolvedPath !== null) {
+            if (resolution.childIndex) {
+                // An index after a `<group>` that does not hold one component
+                // (several, none, or only text) does not select one of its
+                // children (D27): the path names nothing.
+                return -1;
+            }
             if (resolution.unresolvedPath[0].name !== "") {
                 // We stopped matching on a name.
                 // This name will not match a descendant and must match a prop.

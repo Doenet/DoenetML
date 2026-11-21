@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
@@ -18,6 +22,9 @@ function collectedKey(collected) {
 
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
+
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
 
     static componentDocs = {
         summary:
@@ -77,6 +84,20 @@ export default class Collect extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A collection's settings are its own (COLL-2). The `hide`, `fixed`
+        // and `disabled` written on a `<collect>` go to what it collects, so
+        // its own are those it takes from where it is, and its own `hide`
+        // (`$c.hide`, which a list form has) is not set.
+        makeCollectionSettingsOwn(stateVariableDefinitions);
+        stateVariableDefinitions.hide = {
+            public: true,
+            description:
+                "Whether the collect itself is hidden; a `hide` written on it hides what it collects.",
+            shadowingInstructions: { createComponentOfType: "boolean" },
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { hide: false } }),
+        };
 
         stateVariableDefinitions.link = {
             returnDependencies: () => ({}),
@@ -183,6 +204,10 @@ export default class Collect extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "sourceComponent",
                 },
+                sourceInactive: {
+                    dependencyType: "stateVariable",
+                    variableName: "sourceInactive",
+                },
                 ...(stateValues.partlyResolvedSourceIdx != null
                     ? {
                           partlyResolvedSource: {
@@ -200,6 +225,22 @@ export default class Collect extends CompositeComponent {
                     : {}),
             }),
             definition: function ({ dependencyValues, componentInfoObjects }) {
+                if (dependencyValues.sourceInactive) {
+                    // The source was made, and is now withheld, as the
+                    // content of a case no longer active: what the composite
+                    // makes changed, so it is missing by a value, an info,
+                    // and collects nothing, as on a reload, which doesn't
+                    // make it (DIAG-2, DIAG-6, #2506).
+                    return {
+                        setValue: { sourceName: "" },
+                        conditionDiagnostics: [
+                            codedDiagnostic({
+                                type: "info",
+                                code: "doenet-w0072",
+                            }),
+                        ],
+                    };
+                }
                 if (dependencyValues.sourceComponent === null) {
                     // No source, or one `from` names nothing in, is what the
                     // DoenetML says, a warning. A source `from` names inside
@@ -436,6 +477,11 @@ export default class Collect extends CompositeComponent {
             },
         };
 
+        // The number of items, what it collects (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "collectedComponents",
+        });
+
         return stateVariableDefinitions;
     }
 
@@ -445,7 +491,7 @@ export default class Collect extends CompositeComponent {
         workspace,
         componentInfoObjects,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         nComponents,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`)
@@ -498,7 +544,7 @@ export default class Collect extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj,
                     numComponentsForSource,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                     nComponents,
                     stateIdInfo,
                 });
@@ -533,7 +579,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         compositeAttributesObj,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         stateIdInfo,
         nComponents,
     }) {
@@ -656,7 +702,7 @@ export default class Collect extends CompositeComponent {
         workspace,
         componentInfoObjects,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
     }) {
         // console.log("Calculating replacement changes for " + component.componentIdx);
         // console.log((await component.stateValues.collectedComponents).map(x => x.componentIdx))
@@ -811,7 +857,7 @@ export default class Collect extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj,
                     numComponentsForSource,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                     stateIdInfo,
                 });
                 diagnostics.push(...results.diagnostics);
@@ -887,7 +933,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         compositeAttributesObj,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         nComponents,
         stateIdInfo,
     }) {
@@ -901,7 +947,7 @@ export default class Collect extends CompositeComponent {
             componentInfoObjects,
             compositeAttributesObj,
             numComponentsForSource,
-            publicCaseInsensitiveAliasSubstitutions,
+            publicAliasSubstitutions,
             nComponents,
             stateIdInfo,
         });

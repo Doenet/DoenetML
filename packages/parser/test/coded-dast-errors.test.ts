@@ -166,6 +166,15 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expectRoundTrip(errors);
     });
 
+    it("an attribute name in another case (D51)", () => {
+        const errors = [
+            ...normalizedErrors(`<graph xmin="-3" />`),
+            ...normalizedErrors(`<text Name="t">hi</text>`),
+        ];
+        expect(codedErrors(errors).length).toBe(2);
+        expectRoundTrip(errors);
+    });
+
     it("answer sugar", () => {
         const errors = [
             ...normalizedErrors(`<answer type="videoWatched" />`),
@@ -183,6 +192,25 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             ...normalizedErrors(`<repeat for="(1, 2">$v</repeat>`),
         ];
         expect(codedErrors(errors).length).toBe(2);
+        expectRoundTrip(errors);
+    });
+
+    it("select sugar with a type it can't read its text as", () => {
+        const errors = [
+            ...normalizedErrors(`<select type="banana">x y</select>`),
+            // reported once, with the brackets that don't match
+            ...normalizedErrors(`<select type="Math">a) b</select>`),
+            // `type` is not read: options, or no text at all
+            ...normalizedErrors(
+                `<select type="banana"><option><math>x</math></option></select>`,
+            ),
+            ...normalizedErrors(`<select type="banana" />`),
+        ];
+        expect(codedErrors(errors).map((error) => error.code)).toEqual([
+            "doenet-w0145",
+            "doenet-w0145",
+            "doenet-i0058",
+        ]);
         expectRoundTrip(errors);
     });
 

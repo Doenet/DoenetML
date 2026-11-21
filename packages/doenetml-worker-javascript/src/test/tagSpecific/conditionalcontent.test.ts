@@ -616,7 +616,7 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(`pd2`)].stateValues
                     .text,
-            ).eq("");
+            ).eq("＿");
         }
 
         await check_items("mouse", "z");
@@ -657,14 +657,16 @@ describe("Conditional content tag tests @group2", async () => {
         // reference, whether bare or written as a tag, which is then
         // missing (#2450, D37)
         const { warnings, errors } = getDiagnosticsByType(core);
-        // `d` is no name of the document, so it is a property, which no
-        // case has (`doenet-w0104`).
+        // `d` is no name of the document, so it is a property. Every case
+        // holds several components, so a property after `cc` names nothing
+        // whichever is shown, a warning at load (D41 decision 3,
+        // `doenet-w0191`).
         expect(warnings.map((w) => w.message)).eqls([
             "`$cc2.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
             "`$cc3.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
+            '`$cc.d`: a property after `cc` passes into what the case shown holds only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.d`.',
+            '`$cc2.d`: a property after `cc` passes into what the case shown holds only when it holds one component, and cases 1 and 2 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc2.P.d`.',
             "`$cc.c` names nothing: case 2 of `cc` has no `c`. Give it one, or use a name every case has.",
-            "No referent found for reference: `$cc.d`",
-            "No referent found for reference: `$cc2.d`",
         ]);
         expect(errors.map((e) => e.message)).eqls([]);
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -1369,11 +1371,11 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("pc1")].stateValues
                     .text,
-            ).eq(`c1: ${animal}`);
+            ).eq("c1: ＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("pd1")].stateValues
                     .text,
-            ).eq(`d1: ${verb}`);
+            ).eq("d1: ＿");
             expect(
                 stateVariables[await resolvePathToNodeIdx("pe1")].stateValues
                     .text,
@@ -1386,11 +1388,11 @@ describe("Conditional content tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("c1")].stateValues
                     .text,
-            ).eq(animal);
+            ).eq("");
             expect(
                 stateVariables[await resolvePathToNodeIdx("d1")].stateValues
                     .text,
-            ).eq(verb);
+            ).eq("");
             expect(
                 stateVariables[await resolvePathToNodeIdx("e1")].stateValues
                     .text,
@@ -1415,17 +1417,27 @@ describe("Conditional content tag tests @group2", async () => {
         });
         await check_items("elephant", "trumpets");
 
-        // Selecting a child of what the conditionalContent shows by its
-        // position still works, but is deprecated (D27). The pieces that are
-        // strings are nothing to select, and give no warning of their own.
-        const warnings = getDiagnosticsByType(core).warnings;
-        expect(warnings.map((w) => w.code)).eqls([
-            "doenet-w0179",
-            "doenet-w0179",
-        ]);
-        expect(warnings.map((w) => w.args?.reference).sort()).eqls([
-            "$cc[1][2]",
-            "$cc[1][3]",
+        // An index never selects a child of what the conditionalContent
+        // shows (D27): each of these names nothing, and says so. The pieces
+        // that are strings are nothing to select. Which case is shown
+        // follows `n`, so what the index comes after is decided by a value:
+        // an info (DIAG-2, #2506).
+        const { warnings, infos } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
+        expect(
+            infos
+                .map((w) => [
+                    w.code,
+                    w.args?.reference,
+                    w.args?.child,
+                    w.args?.container,
+                ])
+                .sort((a, b) => String(a[1]).localeCompare(String(b[1]))),
+        ).eqls([
+            ["doenet-w0188", "$cc[1][1]", "none", "case"],
+            ["doenet-w0188", "$cc[1][2]", "unnamed", "case"],
+            ["doenet-w0188", "$cc[1][3]", "unnamed", "case"],
+            ["doenet-w0188", "$cc[1][4]", "none", "case"],
         ]);
     });
 

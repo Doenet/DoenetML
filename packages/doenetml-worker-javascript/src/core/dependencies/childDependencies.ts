@@ -9,6 +9,7 @@ import { Dependency, INITIAL_CHANGE_RECORD } from "./Dependency";
 import { gatherDescendants } from "../../utils/descendants";
 import { LIST_ENTRY_ARRAY_PREFIX } from "../../utils/listEntryReference";
 import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
+import { isWrapperOfSeveral } from "../../utils/wrappers";
 
 export class ChildDependency extends Dependency {
     static dependencyType = "child";
@@ -60,6 +61,14 @@ export class ChildDependency extends Dependency {
         // as for a parent that keys its children's text by the composite
         // the text came from.
         this.reportCompositeChanges = this.definition.reportCompositeChanges;
+
+        // Whether each composite the children are replacements of is marked
+        // as a wrapper holding several components (`wrapperOfSeveral` of
+        // `compositeReplacementRange`, `isWrapperOfSeveral`): a `<group>`, as
+        // written or made for an iteration, a pick or a case, holding
+        // several, which a `<shuffle>` moves as one item (COLL-4).
+        // A bare reference to a group (`$g`) stands for it, and is marked.
+        this.markWrappersOfSeveral = this.definition.markWrappersOfSeveral;
     }
 
     async determineDownstreamComponents() {
@@ -145,7 +154,8 @@ export class ChildDependency extends Dependency {
         // if childIndices specified, filter out just those indices
         // Note: indices are relative to the selected ones
         // (not actual index in activeChildren)
-        // so filter uses the i argument, not the x argument
+        // so filter uses the i argument, not the x argument.
+        // A negative index counts from the end: `-1` is the last.
         // A list component is several children of the value, one per
         // entry, so with one among the children the indices pick from the
         // value once the lists are expanded (`expandListChildren`).
@@ -161,8 +171,11 @@ export class ChildDependency extends Dependency {
             ) {
                 this.childIndicesAfterExpansion = true;
             } else {
+                const numSelected = activeChildrenIndices.length;
                 activeChildrenIndices = activeChildrenIndices.filter(
-                    (x: any, i: number) => this.childIndices.includes(i),
+                    (x: any, i: number) =>
+                        this.childIndices.includes(i) ||
+                        this.childIndices.includes(i - numSelected),
                 );
             }
         }
@@ -432,6 +445,15 @@ export class ChildDependency extends Dependency {
                             asList: compositeInfo.asList,
                             potentialListComponents:
                                 translatedPotentialListComponents,
+                            ...(this.markWrappersOfSeveral
+                                ? {
+                                      wrapperOfSeveral: isWrapperOfSeveral(
+                                          this.dependencyHandler._components[
+                                              compositeInfo.compositeIdx
+                                          ],
+                                      ),
+                                  }
+                                : {}),
                         });
                     }
                 }
@@ -1014,7 +1036,10 @@ export class ChildDependency extends Dependency {
             if (isComponent) {
                 downInd++;
             }
-            if (!this.childIndices.includes(ind)) {
+            if (
+                !this.childIndices.includes(ind) &&
+                !this.childIndices.includes(ind - expanded.length)
+            ) {
                 continue;
             }
             if (isComponent) {
@@ -1565,10 +1590,10 @@ export class DescendantDependency extends Dependency {
             let composite = this.dependencyHandler._components[compositeIdx];
             if (composite.attributes._createComponentOfType) {
                 let placeholderType =
-                    this.dependencyHandler.componentInfoObjects
-                        .componentTypeLowerCaseMapping[
-                        composite.attributes._createComponentOfType.primitive.value.toLowerCase()
-                    ];
+                    this.dependencyHandler.componentInfoObjects.componentTypeAsWritten(
+                        composite.attributes._createComponentOfType.primitive
+                            .value,
+                    );
 
                 let matches = this.componentTypes.some((ct: any) =>
                     this.dependencyHandler.componentInfoObjects.isInheritedComponentType(

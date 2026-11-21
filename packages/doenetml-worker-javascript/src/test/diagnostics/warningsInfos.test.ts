@@ -509,55 +509,59 @@ describe("Warning Tests @group4", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(0);
-        expect(diagnosticsByType.infos.length).eq(5);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.infos.length).eq(4);
 
+        // A primitive attribute (`type` of a `<sequence>`) is written as
+        // text and can't be a reference, so a value it can't take is a
+        // warning (#2506); `format` is read from a component, which can come
+        // from a value, so it stays an info.
         // Infos surface in evaluation order, which under on-demand
         // dependency setup follows document order.
-        expect(diagnosticsByType.infos[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Invalid value `bad` for attribute `type`",
         );
+        expect(diagnosticsByType.warnings[0].type).eq("warning");
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(26);
+
+        expect(diagnosticsByType.infos[0].message).contain(
+            "Invalid value `new1` for attribute `format`",
+        );
         expect(diagnosticsByType.infos[0].type).eq("info");
-        expect(diagnosticsByType.infos[0].position.start.line).eq(2);
+        expect(diagnosticsByType.infos[0].position.start.line).eq(5);
         expect(diagnosticsByType.infos[0].position.start.column).eq(3);
-        expect(diagnosticsByType.infos[0].position.end.line).eq(2);
-        expect(diagnosticsByType.infos[0].position.end.column).eq(26);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(5);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(46);
 
         expect(diagnosticsByType.infos[1].message).contain(
-            "Invalid value `new1` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[1].type).eq("info");
-        expect(diagnosticsByType.infos[1].position.start.line).eq(5);
-        expect(diagnosticsByType.infos[1].position.start.column).eq(3);
-        expect(diagnosticsByType.infos[1].position.end.line).eq(5);
-        expect(diagnosticsByType.infos[1].position.end.column).eq(46);
-
-        expect(diagnosticsByType.infos[2].message).contain(
             "Invalid value `new2` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[2].type).eq("info");
-        expect(diagnosticsByType.infos[2].position.start.line).eq(7);
-        expect(diagnosticsByType.infos[2].position.start.column).eq(3);
-        expect(diagnosticsByType.infos[2].position.end.line).eq(7);
-        expect(diagnosticsByType.infos[2].position.end.column).eq(48);
+        expect(diagnosticsByType.infos[1].type).eq("info");
+        expect(diagnosticsByType.infos[1].position.start.line).eq(7);
+        expect(diagnosticsByType.infos[1].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[1].position.end.line).eq(7);
+        expect(diagnosticsByType.infos[1].position.end.column).eq(48);
 
-        expect(diagnosticsByType.infos[3].message).contain(
+        expect(diagnosticsByType.infos[2].message).contain(
             "Invalid value `new1` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[3].type).eq("info");
-        expect(diagnosticsByType.infos[3].position.start.line).eq(9);
-        expect(diagnosticsByType.infos[3].position.start.column).eq(3);
-        expect(diagnosticsByType.infos[3].position.end.line).eq(9);
-        expect(diagnosticsByType.infos[3].position.end.column).eq(34);
+        expect(diagnosticsByType.infos[2].type).eq("info");
+        expect(diagnosticsByType.infos[2].position.start.line).eq(9);
+        expect(diagnosticsByType.infos[2].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[2].position.end.line).eq(9);
+        expect(diagnosticsByType.infos[2].position.end.column).eq(34);
 
-        expect(diagnosticsByType.infos[4].message).contain(
+        expect(diagnosticsByType.infos[3].message).contain(
             "Invalid value `new3` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[4].type).eq("info");
-        expect(diagnosticsByType.infos[4].position.start.line).eq(10);
-        expect(diagnosticsByType.infos[4].position.start.column).eq(3);
-        expect(diagnosticsByType.infos[4].position.end.line).eq(10);
-        expect(diagnosticsByType.infos[4].position.end.column).eq(48);
+        expect(diagnosticsByType.infos[3].type).eq("info");
+        expect(diagnosticsByType.infos[3].position.start.line).eq(10);
+        expect(diagnosticsByType.infos[3].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[3].position.end.line).eq(10);
+        expect(diagnosticsByType.infos[3].position.end.column).eq(48);
 
         // try to change format
         await updateTextInputValue({
@@ -630,13 +634,13 @@ describe("Warning Tests @group4", async () => {
         ).eq("sin(x)");
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(0);
-        expect(diagnosticsByType.infos.length).eq(15);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.infos.length).eq(14);
 
-        expect(diagnosticsByType.infos[5].message).contain(
+        expect(diagnosticsByType.infos[4].message).contain(
             "Invalid value `try1` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[5].position.start.line).eq(4);
+        expect(diagnosticsByType.infos[4].position.start.line).eq(4);
 
         // One write reaches both `m2` and the `m6` that extends it, and each
         // reports the value it was given. Which of the two is evaluated
@@ -646,44 +650,44 @@ describe("Warning Tests @group4", async () => {
             indices
                 .map((i) => diagnosticsByType.infos[i].position.start.line)
                 .sort((a, b) => a - b);
-        for (const i of [6, 7]) {
+        for (const i of [5, 6]) {
             expect(diagnosticsByType.infos[i].message).contain(
                 "Invalid value `try2` for attribute `format`",
             );
         }
-        expect(infosByLine([6, 7])).eqls([5, 9]);
+        expect(infosByLine([5, 6])).eqls([5, 9]);
 
-        expect(diagnosticsByType.infos[8].message).contain(
+        expect(diagnosticsByType.infos[7].message).contain(
             "Invalid value `try3` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[8].position.start.line).eq(6);
+        expect(diagnosticsByType.infos[7].position.start.line).eq(6);
 
-        expect(diagnosticsByType.infos[9].message).contain(
+        expect(diagnosticsByType.infos[8].message).contain(
             "Invalid value `try4` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[9].position.start.line).eq(7);
+        expect(diagnosticsByType.infos[8].position.start.line).eq(7);
 
-        expect(diagnosticsByType.infos[10].message).contain(
+        expect(diagnosticsByType.infos[9].message).contain(
             "Invalid value `try5` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[10].position.start.line).eq(8);
+        expect(diagnosticsByType.infos[9].position.start.line).eq(8);
 
-        for (const i of [11, 12]) {
+        for (const i of [10, 11]) {
             expect(diagnosticsByType.infos[i].message).contain(
                 "Invalid value `try6` for attribute `format`",
             );
         }
-        expect(infosByLine([11, 12])).eqls([5, 9]);
+        expect(infosByLine([10, 11])).eqls([5, 9]);
 
-        expect(diagnosticsByType.infos[13].message).contain(
+        expect(diagnosticsByType.infos[12].message).contain(
             "Invalid value `try7` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[13].position.start.line).eq(10);
+        expect(diagnosticsByType.infos[12].position.start.line).eq(10);
 
-        expect(diagnosticsByType.infos[14].message).contain(
+        expect(diagnosticsByType.infos[13].message).contain(
             "Invalid value `try8` for attribute `format`",
         );
-        expect(diagnosticsByType.infos[14].position.start.line).eq(11);
+        expect(diagnosticsByType.infos[13].position.start.line).eq(11);
     });
 
     it("From action", async () => {
@@ -922,13 +926,15 @@ describe("Warning Tests @group4", async () => {
 
     it("Correctly get reference text when extend with an index", async () => {
         // Note: since extending with an index, the reference cannot be resolved in the first pass before core is initialized.
-        // Instead, the diagnostic is generated after core can determine what replacements the group has.
+        // Instead, the diagnostic is generated after core can determine what replacements the composite has.
         // This tests that the correct text is used for the reference in that case, where the text has to be rebuilt from the source and position info.
         // A tag always makes that tag (D36): while its index names nothing,
-        // it is `<text/>`, with an info.
+        // it is `<text/>`, with an info. The composite is a
+        // `<conditionalContent>` showing no case: an index after a `<group>`
+        // names nothing by a warning of its own (D27).
         let { core } = await createTestCore({
             doenetML: `
-<group name="g"></group>
+<conditionalContent name="g" condition="false"><text>a</text></conditionalContent>
 <text extend="$g[1]" />
     `,
         });
@@ -1444,5 +1450,35 @@ describe("Warning Tests @group4", async () => {
                     info.message.includes("must be a number"),
             ),
         ).eq(true);
+    });
+
+    it("warns when a repeat's valueName and indexName are the same (#2175)", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<p name="p1"><repeatForSequence from="5" to="7" valueName="i" indexName="i">
+  <number>$i</number>
+</repeatForSequence></p>
+<p name="p2"><repeat for="a b" valueName="v" indexName="v">
+  <text>$v</text>
+</repeat></p>
+<conditionalContent condition="false">
+  <repeatForSequence length="2" valueName="j" indexName="j"><number>$j</number></repeatForSequence>
+</conditionalContent>
+<repeat for="1 2" valueName="v" indexName="k"><number>$v</number></repeat>
+<repeat for="1 2" valueName="v"><number>$v</number></repeat>
+<repeatForSequence length="2" valueName="Q" indexName="q"><number>$q</number></repeatForSequence>
+            `,
+        });
+        const { warnings } = getDiagnosticsByType(core);
+        const sameName = warnings.filter((w) => w.code === "doenet-w0189");
+        expect(sameName.map((w) => w.args)).eqls([
+            { componentType: "repeatForSequence", name: "i" },
+            { componentType: "repeat", name: "v" },
+            { componentType: "repeatForSequence", name: "j" },
+        ]);
+        expect(sameName[0].message).eq(
+            "`valueName` and `indexName` of `<repeatForSequence>` are both `i`. Give them different names.",
+        );
+        expect(sameName.map((w) => w.position?.start.line)).eqls([2, 5, 9]);
     });
 });

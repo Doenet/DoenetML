@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
+    movePoint,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
@@ -284,7 +287,10 @@ describe("Missing values and missing tags (D37) @group2", () => {
     <math name="m" extend="$nothing"/>
     <p name="p">[<sum>$l[5] 3</sum>][<sum>$nl[5] 3</sum>][<sum>$m 3</sum>][<boolean>$l[5] = $l[5]</boolean>][<boolean>$m = $m</boolean>][<and>$bl[3] true</and>][<or>$bl[3] true</or>]</p>
     `);
-        expect(text).eq("[＿ + 3][＿ + 3][＿ + 3][false][false][false][true]");
+        // A missing number entry makes a sum of numbers missing, and a missing
+        // operand makes a boolean operator missing, whatever the other
+        // operands: a number or a boolean can't hold a blank (D40, #2460).
+        expect(text).eq("[＿ + 3][＿][＿ + 3][false][false][＿][＿]");
     });
 
     it("treats a bare reference with no referent as a blank operand, as the tag", async () => {
@@ -292,7 +298,7 @@ describe("Missing values and missing tags (D37) @group2", () => {
     <number name="n">2</number>
     <p name="p">[<sum>$nothing 3</sum>][<sum><math extend="$nothing"/> 3</sum>][<sum>$n.nonexistent 3</sum>][<count>$nothing 3</count>][<and>$nothing true</and>][<or>$nothing true</or>]</p>
     `);
-        expect(text).eq("[＿ + 3][＿ + 3][＿ + 3][2][false][true]");
+        expect(text).eq("[＿ + 3][＿ + 3][＿ + 3][2][＿][＿]");
         expect(warnings.map((w) => w.code)).eqls(Array(6).fill("doenet-w0104"));
     });
 
@@ -409,15 +415,18 @@ describe("Missing values and missing tags (D37) @group2", () => {
         ]);
     });
 
-    it("shows a choice input's selected value once a choice is made", async () => {
-        // The tag is linked to the entry, so a write reaches it; it is not
-        // missing before a choice (a known gap), so that a copy of an award's
-        // feedback stays hidden while the award has none.
+    it("shows a choice input's selected value once a choice is made, and a blank before", async () => {
+        // The tag is linked to the entry, so a write reaches it, and it is
+        // missing only while the entry holds no value (#2487).
         const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
     <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
     <p name="p">[<text extend="$ci.selectedValue"/>][$ci.selectedValue]</p>
     `);
-        expect(text).eq("[][＿]");
+        expect(text).eq("[＿][＿]");
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "_blank",
+            "_blank",
+        ]);
         await updateSelectedIndices({
             selectedIndices: [2],
             componentIdx: await resolvePathToNodeIdx("ci"),
@@ -427,6 +436,9 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("[b][b]");
+        expect(
+            rendererTypesOf(core, await resolvePathToNodeIdx("p")),
+        ).not.toContain("_blank");
     });
 
     it("still reports a later branch holding several components after an empty one", async () => {
@@ -471,14 +483,16 @@ describe("Missing values and missing tags (D37) @group2", () => {
         // info `doenet-i0054` while the index names nothing now, or the
         // warning that says why it never does; the bare reference reports
         // only those warnings (its info is left for the new core, #2281).
-        const before = `<mathInput name="mi" prefill="7"/><number name="i">$mi</number><mathList name="l">1 2 3</mathList><number name="n">5</number><repeatForSequence name="r" length="2"><math name="m">x</math></repeatForSequence><group name="g"><math>a</math></group><select name="s" numToSelect="1"><option><math name="q">q</math></option></select><booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>`;
+        const before = `<mathInput name="mi" prefill="7"/><number name="i">$mi</number><mathList name="l">1 2 3</mathList><number name="n">5</number><repeatForSequence name="r" length="2"><math name="m">x</math></repeatForSequence><group name="g"><math>a</math><math>b</math></group><select name="s" numToSelect="1"><option><math name="q">q</math></option></select><booleanInput name="b"/><conditionalContent name="cc"><case condition="$b"><math name="x">1</math></case><else><text name="x">t</text></else></conditionalContent>`;
         const pairs: [string, string, string, string[]][] = [
             ["$l[$i]", "math", "＿", ["I doenet-i0054"]],
             ["$l[5]", "math", "＿", ["I doenet-i0054"]],
             ["$l[0]", "math", "＿", ["W doenet-w0104"]],
             ["$r[$i].m", "math", "＿", ["I doenet-i0054"]],
             ["$r[3].m", "math", "＿", ["I doenet-i0054"]],
-            ["$g[2]", "math", "＿", ["I doenet-i0054"]],
+            // an index after a group holding two components names nothing
+            // (D27)
+            ["$g[2]", "math", "＿", ["W doenet-w0188"]],
             ["$s[$i]", "math", "＿", ["I doenet-i0054"]],
             ["$s[3]", "math", "＿", ["W doenet-w0181"]],
             ["$n[1]", "number", "＿", ["W doenet-w0100"]],
@@ -505,10 +519,12 @@ describe("Missing values and missing tags (D37) @group2", () => {
                 bare.filter((d) => d === "E"),
                 reference,
             ).eqls(onTag.filter((d) => d === "E"));
+            // An index from a value past what a select picked is an info on
+            // the bare reference too, which follows the index (#2506)
             expect(
                 bare.filter((d) => d.startsWith("I")),
                 reference,
-            ).eqls([]);
+            ).eqls(reference === "$s[$i]" ? ["I doenet-w0181"] : []);
         }
 
         // once the index names something, nothing is reported
@@ -527,22 +543,22 @@ describe("Missing values and missing tags (D37) @group2", () => {
         expect(getDiagnosticsByType(core).infos).eqls([]);
     });
 
-    it("reads a property that holds no value, as `maxNumber` of a collect with no limit, as missing", async () => {
-        // `maxNumber` is `null` for no limit, which is no value (#2416), in
-        // each form a `<collect>` takes: a list form (`y`), a composite
-        // (`w`), and with a limit (`z`).
+    it("reads a property that holds no value, as `aspectRatio` of an image with none, as missing", async () => {
+        // `aspectRatio` is `null` for an image with none known, which is no
+        // value (#2416): of an image (`y`), through a composite (`w`, a
+        // `<collect>`, read at an index), and with one given (`z`). (This
+        // read a `<collect>`'s `maxNumber`, `null` for no limit, which is an
+        // attribute and not a property, D41 decision 2.)
         const { text, warnings, errors, infos, core, resolvePathToNodeIdx } =
             await shownAndReported(`
-    <p name="src"><text>a</text><text>b</text></p>
-    <collect name="y" componentType="text" from="$src"/>
-    <collect name="z" componentType="text" from="$src" maxNumber="1"/>
-    <collect name="w" componentType="p" from="$src"/>
-    <p name="p">[$y.maxNumber][$z.maxNumber][$w.maxNumber]</p>
-    <p name="pn"><number name="n1" extend="$y.maxNumber"/><number name="n2" extend="$w.maxNumber"/><number name="n3" extend="$z.maxNumber"/></p>
-    <math name="m1">$y.maxNumber</math>
-    <math name="m2">$y.maxNumber + 1</math>
-    <boolean name="b1">$y.maxNumber = 3</boolean>
-    <boolean name="b2">$z.maxNumber = 1</boolean>
+    <graph name="gr"><image name="y" source="./a.png"/><image name="z" source="./b.png" aspectRatio="1"/></graph>
+    <collect name="w" componentType="image" from="$gr"/>
+    <p name="p">[$y.aspectRatio][$z.aspectRatio][$w[1].aspectRatio]</p>
+    <p name="pn"><number name="n1" extend="$y.aspectRatio"/><number name="n2" extend="$w[1].aspectRatio"/><number name="n3" extend="$z.aspectRatio"/></p>
+    <math name="m1">$y.aspectRatio</math>
+    <math name="m2">$y.aspectRatio + 1</math>
+    <boolean name="b1">$y.aspectRatio = 3</boolean>
+    <boolean name="b2">$z.aspectRatio = 1</boolean>
     `);
         expect(text).eq("[＿][1][＿]");
         expect([...errors, ...warnings, ...infos]).eqls([]);
@@ -554,7 +570,7 @@ describe("Missing values and missing tags (D37) @group2", () => {
             expect((await stateValues(name)).valueMissing, name).eq(true);
         }
         expect((await stateValues("n3")).value).eq(1);
-        expect((await stateValues("n3")).valueMissing).eq(undefined);
+        expect((await stateValues("n3")).valueMissing).eq(false);
         expect((await stateValues("m1")).text).eq("＿");
         expect((await stateValues("m2")).text).eq("＿ + 1");
         expect((await stateValues("b1")).value).eq(false);
@@ -566,5 +582,1841 @@ describe("Missing values and missing tags (D37) @group2", () => {
             "_blank",
             "number",
         ]);
+    });
+});
+
+/**
+ * D40 (Doenet/DoenetML#2461, #2487): a component whose value is made from
+ * its children is missing while its content is only missing children, a
+ * property that holds no value is missing as a tag, and a reference to one
+ * thing that makes nothing is a blank in a `<text>` as in a `<p>`.
+ */
+describe("Missing content and missing values (D40) @group2", () => {
+    it("makes a number, boolean or function whose content is only a missing reference missing", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <p name="p"><number name="n1">$nothing</number><integer name="n2">$nothing</integer><number name="n3"><math extend="$nothing"/></number><boolean name="b1">$nothing</boolean><when name="b2">$nothing</when><function name="f1">$nothing</function><function name="f2"><math extend="$nothing"/></function></p>
+    `);
+        expect(text).eq("＿＿＿＿＿＿＿");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["n1", "n2", "n3", "b1", "b2", "f1", "f2"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        // all but the `<when>`, which is not drawn
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls(
+            Array(6).fill("_blank"),
+        );
+    });
+
+    it("keeps a math, text or comparison holding a missing reference as it was, and makes a number or boolean computed from it missing", async () => {
+        // The blank takes part in a math expression and a comparison (D37).
+        // A number or a boolean computed from it is missing (`n1`, `a1`,
+        // D40, #2460).
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <number name="nm" extend="$nothing"/>
+    <p name="p">[<number name="n1">$nothing + 1</number>][<boolean name="b1">$nothing = 1</boolean>][<boolean name="b2">$nm = $nm</boolean>][<function name="f1">$nothing + 1</function>][<number name="n2">3</number>][<number name="n3"/>][<boolean name="b3"/>][<and name="a1">$nothing</and>][<math name="m1">$nothing</math>][<text name="t1">$nothing</text>][<math name="m2">$nothing + 1</math>][<text name="t2">x $nothing y</text>]</p>
+    `);
+        expect(text).eq(
+            "[＿][false][false][＿ + 1][3][NaN][false][＿][＿][＿][＿ + 1][x ＿ y]",
+        );
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["n1", "a1"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        for (const name of [
+            "b1",
+            "b2",
+            "f1",
+            "n2",
+            "n3",
+            "b3",
+            "m1",
+            "t1",
+            "m2",
+            "t2",
+        ]) {
+            expect(
+                Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                ),
+                name,
+            ).eq(false);
+        }
+    });
+
+    it("makes a shape whose content is only a missing reference missing, not drawn in a graph", async () => {
+        const { core, resolvePathToNodeIdx } = await shownAndReported(`
+    <graph name="g"><circle name="c">$nothing</circle><polygon name="pg">$nothing</polygon><curve name="cv">$nothing</curve><circle name="c2"/></graph>
+    <p name="p">x</p>
+    `);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["c", "pg", "cv"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                .valueMissing,
+        ).eq(false);
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls([
+            "_blank",
+            "_blank",
+            "_blank",
+            "circle",
+        ]);
+    });
+
+    it("reads a reference to a number whose content is missing as missing, never equal", async () => {
+        const { text } = await shownAndReported(`
+    <number name="n">$nothing</number>
+    <boolean name="bb">$nothing</boolean>
+    <p name="p">[$n][$n.value][<boolean>$n = $n</boolean>][<boolean>$bb = $bb</boolean>][<math>$n + 1</math>]</p>
+    `);
+        expect(text).eq("[＿][＿][false][false][＿ + 1]");
+    });
+
+    it("makes a number whose content is missing from it again once the reference names something", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <mathInput name="i" prefill="5" />
+    <mathList name="l">1 2</mathList>
+    <p name="p"><number name="n">$l[$i]</number></p>
+    `);
+        expect(text).eq("＿");
+        // drawn as a blank now, so the viewer is told to load the renderer
+        // it is drawn with once it is not
+        expect(core.core!.rendererTypesInDocument).toContain("number");
+
+        async function current() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+                missing:
+                    stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                        .valueMissing,
+                drawn: rendererTypesOf(core, await resolvePathToNodeIdx("p")),
+            };
+        }
+        expect(await current()).eqls({
+            text: "＿",
+            missing: true,
+            drawn: ["_blank"],
+        });
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await current()).eqls({
+            text: "2",
+            missing: false,
+            drawn: ["number"],
+        });
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await current()).eqls({
+            text: "＿",
+            missing: true,
+            drawn: ["_blank"],
+        });
+    });
+
+    it("makes a tag or a property of a number whose content is missing missing while it is", async () => {
+        // A tag of it (`b`), a tag of a property of it (`a`), a tag of
+        // another type made around it (`c`, `d`), and the math a math reads
+        // of it (its adapter, in `m`) are missing while it is, and come back
+        // with it. An unlinked copy made while it is missing stays missing.
+        const { core, resolvePathToNodeIdx } = await shownAndReported(`
+    <mathInput name="i" prefill="5"/>
+    <mathList name="l">1 2</mathList>
+    <number name="n">$l[$i]</number>
+    <p name="p">[<number name="a" extend="$n.value"/>][<number name="b" extend="$n"/>][<math name="c" extend="$n"/>][<text name="d" extend="$n"/>][<math name="m"><number extend="$n"/></math>][<number name="e" copy="$n.value"/>]</p>
+    `);
+        async function current() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const missing: Record<string, boolean> = {};
+            for (const name of ["a", "b", "c", "d", "e"]) {
+                missing[name] = Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                );
+            }
+            return {
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+                missing,
+                drawn: rendererTypesOf(core, await resolvePathToNodeIdx("p")),
+            };
+        }
+        expect(await current()).eqls({
+            text: "[＿][＿][＿][＿][＿][＿]",
+            missing: { a: true, b: true, c: true, d: true, e: true },
+            drawn: Array(6)
+                .fill("_blank")
+                .map((t, i) => (i === 4 ? "math" : t)),
+        });
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await current()).eqls({
+            text: "[2][2][2][2][2][＿]",
+            missing: { a: false, b: false, c: false, d: false, e: true },
+            drawn: ["number", "number", "math", "text", "math", "_blank"],
+        });
+    });
+
+    it("keeps an unlinked copy of a number whose content is missing as it was made, after a reload too", async () => {
+        // Made while `n` is missing, a copy is missing for good; made while
+        // it is not, a copy of its value keeps the value it was made with.
+        const doenetML = `
+    <mathInput name="i" prefill="5"/>
+    <mathInput name="j" prefill="1"/>
+    <mathList name="l">1 2</mathList>
+    <number name="n">$l[$i]</number>
+    <number name="n2">$l[$j]</number>
+    <p name="p">[<number copy="$n"/>][<number copy="$n.value"/>][<math copy="$n"/>][<number copy="$n2.value"/>]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[＿][＿][＿][1]");
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("j"),
+            core,
+        });
+        expect(await text()).eq("[＿][＿][＿][1]");
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await text()).eq("[＿][＿][＿][1]");
+    });
+
+    it("gives no credit for an award whose condition is missing", async () => {
+        const { core, resolvePathToNodeIdx } = await shownAndReported(`
+    <answer name="a1"><award>$nothing</award></answer>
+    <answer name="a2"><award><when>$nothing</when></award></answer>
+    <p name="p">x</p>
+    `);
+        for (const name of ["a1", "a2"]) {
+            const componentIdx = await resolvePathToNodeIdx(name);
+            await submitAnswer({ componentIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[componentIdx].stateValues.creditAchieved,
+                name,
+            ).eq(0);
+        }
+    });
+
+    it("makes a tag of a property entry that holds no value missing", async () => {
+        const { text, errors, warnings, core, resolvePathToNodeIdx } =
+            await shownAndReported(`
+    <point name="P">(1,2)</point>
+    <function name="f">x</function>
+    <p name="p">[<number name="n1" extend="$P.z"/>][<number name="n2" extend="$P.x3"/>][<math name="n3" extend="$P.z"/>][<number name="n4" extend="$f.minimumValue1"/>][<number name="n5" copy="$P.z"/>][$P.z][<math name="m" extend="$P.x"/>]</p>
+    `);
+        expect([...errors, ...warnings]).eqls([]);
+        expect(text).eq("[＿][＿][＿][＿][＿][＿][1]");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["n1", "n2", "n3", "n4", "n5"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        // a property of a point that has one is not missing (a point can be
+        // missing for a while, so `m` follows it: #2525)
+        expect(
+            Boolean(
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .valueMissing,
+            ),
+        ).eq(false);
+    });
+
+    it("keeps a tag of an array that holds no entries, which is a list, not missing", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <function name="f">x</function>
+    <function name="g">(x-1)^2</function>
+    <p name="p">[<text name="t1">$f.minima</text>][<text name="t2">$f.minimumValues</text>][$f.minima][<pointList name="pl1" extend="$f.minima"/>][<pointList name="pl2" extend="$g.minima"/>][<numberList name="nl" extend="$g.minimumValues"/>]</p>
+    `);
+        // A tag of an array holds its entries, possibly none.
+        expect(text).eq("[][][][][(1, 0)][0]");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
+        ).eq("");
+        for (const name of ["pl1", "pl2", "nl"]) {
+            expect(
+                Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                ),
+                name,
+            ).eq(false);
+        }
+    });
+
+    it("makes a tag of an answer's submitted response missing before a submission", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <answer name="ans"><mathInput name="mi"/><award>x</award></answer>
+    <p name="p">[<math name="m" extend="$ans.submittedResponse"/>][<boolean>$m = $m</boolean>]</p>
+    `);
+        expect(text).eq("[＿][false]");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .valueMissing,
+        ).eq(true);
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "_blank",
+            "boolean",
+        ]);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[y][true]");
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "math",
+            "boolean",
+        ]);
+    });
+
+    it("shows a reference to one thing that makes nothing through a composite as a blank in a text, a p and a math", async () => {
+        const doenetML = `
+    <p name="src"><text>a</text></p>
+    <collect name="c" componentType="text" from="$src"/>
+    <function name="f">x</function>
+    <repeatForSequence name="r" length="2" valueName="v"><math>$v</math></repeatForSequence>
+    <group name="terms"><text>a</text></group>
+    `;
+        for (const reference of [
+            "$c.maxNumber",
+            "$f.minimumValue1",
+            "$r[3]",
+            "$terms.maths",
+        ]) {
+            const { text, core, resolvePathToNodeIdx } = await shownAndReported(
+                `${doenetML}
+    <p name="p">[<text name="t1">${reference}</text>][<text name="t2">x ${reference} y</text>][${reference}][<math name="m">${reference}</math>][<boolean name="b">${reference} = ${reference}</boolean>]</p>`,
+            );
+            expect(text, reference).eq("[＿][x ＿ y][＿][＿][false]");
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const stateValues = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await stateValues("t1")).value, reference).eq("＿");
+            expect((await stateValues("t2")).value, reference).eq("x ＿ y");
+            expect((await stateValues("m")).text, reference).eq("＿");
+            expect((await stateValues("b")).value, reference).eq(false);
+        }
+    });
+});
+
+describe("A missing entry of a list is a blank entry (D40) @group2", () => {
+    /** The `text` of each of `names`. */
+    async function texts(
+        core: any,
+        resolvePathToNodeIdx: any,
+        names: string[],
+    ) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const result: Record<string, string> = {};
+        for (const name of names) {
+            result[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+        return result;
+    }
+
+    it("shows a reference that names nothing as a blank entry, in every list", async () => {
+        const { text, warnings } = await shownAndReported(`
+    <mathList name="l">1 2 3</mathList>
+    <numberList name="nl">1 2 3</numberList>
+    <textList name="tl">a b</textList>
+    <repeatForSequence name="r" length="2" valueName="v"><number>10$v</number></repeatForSequence>
+    <p name="p">[<mathList>$l[5] 2</mathList>][<numberList>$nl[5] 2</numberList>][<textList>$tl[5] x</textList>][<mathList>$nothing 2</mathList>][<numberList>0 $r.x 9</numberList>][<mathList><math extend="$nothing"/> 2</mathList>][<numberList><number>$nothing</number> 2</numberList>]</p>
+    `);
+        expect(text).eq("[＿, 2][＿, 2][＿, x][＿, 2][0, ＿, 9][＿, 2][＿, 2]");
+        expect(warnings.map((w) => w.code)).eqls([
+            "doenet-w0104",
+            "doenet-w0104",
+            "doenet-w0104",
+            "doenet-w0104",
+        ]);
+    });
+
+    it("makes a blank entry of a list of points missing, not drawn, and a shape made from it missing", async () => {
+        // A missing point is not `<point/>`'s (0, 0) (VAL-5): it shows `＿`
+        // inline and is not drawn, and a shape whose points include it is
+        // missing (D40), until the reference names a point again.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <point name="M" extend="$nothing"/>
+    <graph name="g">
+      <pointList name="q">$pts[$i] (5,6)</pointList>
+      <angle name="A" through="(1,0) (0,0) $pts[$i]" />
+      <polygon name="poly" vertices="(1,0) (0,0) $pts[$i]" />
+      <polygon name="poly2" vertices="(1,0) (0,0) $M" />
+      <polygon name="poly3" vertices="$q" />
+      <lineSegment name="ls" endpoints="(1,0) $pts[$i]" />
+      <circle name="c" through="(1,0) $pts[$i] (0,1)" />
+      <line name="l" through="(1,0) $pts[$i]" />
+    </graph>
+    <p name="p">[$q][$q[1]][$q[1].x][<point extend="$q[1]"/>]</p>
+    `,
+        });
+        const shapes = ["A", "poly", "ls", "c", "l", "poly3"];
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("q")).entriesMissing).eqls([missing, false]);
+            for (const name of shapes) {
+                expect((await sv(name)).valueMissing, name).eq(missing);
+            }
+            expect((await sv("poly2")).valueMissing).eq(true);
+            const rendererState =
+                core.core!.rendererInstructionBuilder.rendererState;
+            const drawn = rendererState[
+                await resolvePathToNodeIdx("g")
+            ].childrenInstructions.map((child: any) => child.rendererType);
+            const blank = missing ? "_blank" : undefined;
+            expect(drawn).eqls([
+                blank ?? "point",
+                "point",
+                blank ?? "angle",
+                blank ?? "polygon",
+                "_blank",
+                blank ?? "polygon",
+                blank ?? "lineSegment",
+                blank ?? "circle",
+                blank ?? "line",
+            ]);
+        }
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿, (5, 6)][＿][＿][＿]");
+        await check(true);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[(3, 4), (5, 6)][(3, 4)][3][(3, 4)]");
+        await check(false);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(true);
+    });
+
+    it("gives a blank point entry no action, and moves the entry after it, through a `<collect>` too", async () => {
+        // A blank point can't be dragged (VAL-5); the entries after it keep
+        // their places, so a drag of one moves that point, and only it.
+        const { core, resolvePathToNodeIdx } = withListEntriesAsComponents(
+            await createTestCore({
+                doenetML: `
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g">
+      <pointList name="pl">(1,2) $pts[$i] (5,6) <point name="Q">(7,8)</point></pointList>
+    </graph>
+    <graph name="g2"><collect name="c" from="$pl" componentType="point"/></graph>
+    <p name="p">[$pl][$Q][$pts]</p>
+    `,
+            }),
+        );
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        for (const graph of ["g", "g2"]) {
+            expect(
+                rendererState[
+                    await resolvePathToNodeIdx(graph)
+                ].childrenInstructions.map(
+                    (child: any) => Object.keys(child.actions).length > 0,
+                ),
+                graph,
+            ).eqls([true, false, true, true]);
+        }
+        expect(await shown()).eq(
+            "[(1, 2), ＿, (5, 6), (7, 8)][(7, 8)][(1, 2), (3, 4)]",
+        );
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("pl[3]"),
+            x: -1,
+            y: -2,
+            core,
+        });
+        expect(await shown()).eq(
+            "[(1, 2), ＿, (-1, -2), (7, 8)][(7, 8)][(1, 2), (3, 4)]",
+        );
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("c[4]"),
+            x: -3,
+            y: -4,
+            core,
+        });
+        expect(await shown()).eq(
+            "[(1, 2), ＿, (-1, -2), (-3, -4)][(-3, -4)][(1, 2), (3, 4)]",
+        );
+        // a move sent to the blank is not taken
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("pl[2]"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        expect(await shown()).eq(
+            "[(1, 2), ＿, (-1, -2), (-3, -4)][(-3, -4)][(1, 2), (3, 4)]",
+        );
+
+        // once the entry names a point, it is dragged as the others
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(
+            rendererState[
+                await resolvePathToNodeIdx("g")
+            ].childrenInstructions.map(
+                (child: any) => Object.keys(child.actions).length > 0,
+            ),
+        ).eqls([true, true, true, true]);
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("pl[2]"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        expect(await shown()).eq(
+            "[(1, 2), (9, 9), (-1, -2), (-3, -4)][(-3, -4)][(1, 2), (9, 9)]",
+        );
+    });
+
+    it("makes a blank entry of a list of vectors missing and not drawn", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vectorList name="vs">(1,2) (3,4)</vectorList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g">
+      <vectorList name="vl">(1,2) $vs[$i]</vectorList>
+      <vector name="v" extend="$vl[2]"/>
+    </graph>
+    <p name="p">[$vl][$vl[2]][$v]</p>
+    `,
+        });
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("vl")).entriesMissing).eqls([false, missing]);
+            expect((await sv("v")).valueMissing).eq(missing);
+            expect((await sv("p")).text).eq(
+                missing
+                    ? "[(1, 2), ＿][＿][＿]"
+                    : "[(1, 2), (3, 4)][(3, 4)][(3, 4)]",
+            );
+            const blank = missing ? "_blank" : undefined;
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                ["vector", blank ?? "vector", blank ?? "vector"],
+            );
+        }
+        await check(true);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(false);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(true);
+    });
+
+    it("makes a function through, or a best-fit line of, a missing point missing, not made through the origin", async () => {
+        // A blank point among a function's `through` or a best-fit line's
+        // `data` is missing, as it is among a shape's points (D40, VAL-5),
+        // rather than a point at (0, 0) it is made through.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <function name="f" through="(0,1) $pts[$i] (5,1)"/>
+    <graph name="g">
+      <curve name="c">$f</curve>
+      <bestFitLine name="b" data="(0,1) $pts[$i] (5,7)"/>
+    </graph>
+    <derivative name="d">$f</derivative>
+    `,
+        });
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["f", "c", "b"]) {
+                expect((await sv(name)).valueMissing, name).eq(missing);
+            }
+            const blank = missing ? "_blank" : undefined;
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                [blank ?? "curve", blank ?? "line"],
+            );
+            return (await sv("b")).slope.evaluate_to_constant();
+        }
+        await check(true);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        // the line fit to (0, 1), (3, 4), (5, 7)
+        expect(await check(false)).closeTo(45 / 38, 1e-12);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(true);
+    });
+
+    it("holds no blank entry in a list tag that removes empty entries", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <numberList name="nl">1 2 3</numberList>
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <point name="P">(5,6)</point>
+    <mathInput name="i" prefill="5"/>
+    <p name="p">[<numberList name="a" extend="$nl[$i]" removeEmptyArrayEntries/>][<pointList name="b" extend="$pts[$i]" removeEmptyArrayEntries/>][<mathList name="c" extend="$P.xs[$i]" removeEmptyArrayEntries/>][<numberList name="d" extend="$nl[$i]"/>]</p>
+    `);
+        // an index that names nothing is a blank entry (D40), except where
+        // the tag asks to remove empty entries
+        expect(text).eq("[][][][＿]");
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[2][(3, 4)][6][2]");
+    });
+
+    it("shows a list tag over an index that names nothing as one blank entry", async () => {
+        const { text, core, resolvePathToNodeIdx } = await shownAndReported(`
+    <mathList name="l">1 2 3</mathList>
+    <numberList name="nl">1 2 3</numberList>
+    <mathInput name="i" prefill="5"/>
+    <p name="p">[<numberList name="a" extend="$nl[$i]"/>][<mathList name="b" extend="$l[5]"/>]</p>
+    `);
+        expect(text).eq("[＿][＿]");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["a", "b"]) {
+            const sv = stateVariables[await resolvePathToNodeIdx(name)];
+            expect(sv.stateValues.entriesMissing, name).eqls([true]);
+        }
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect((await texts(core, resolvePathToNodeIdx, ["p"])).p).eq(
+            "[2][＿]",
+        );
+    });
+
+    it("is missing, as is what reads it, until the reference names something again", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="nl">1 2 3</numberList>
+    <textList name="tl">a b</textList>
+    <mathInput name="i" prefill="5"/>
+    <p name="p1"><numberList name="a">$nl[$i] 2</numberList> $a.numValues</p>
+    <p name="p2"><textList name="b">$tl[$i] x</textList></p>
+    <p name="p3"><number name="n1">$a[1]</number> <math name="m1" extend="$a[1]"/> [$a[1]] <number name="n2" extend="$a[1]"/></p>
+    <p name="p4"><numberList name="c" extend="$a"/> <numberList name="d" copy="$a"/></p>
+    <p name="p5"><boolean name="eq">$a = $a</boolean></p>
+    <mathInput name="w" bindValueTo="$a[1]"/>
+    `,
+        });
+        const names = ["p1", "p2", "p3", "p4", "p5"];
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["a", "b", "c", "d"]) {
+                expect((await sv(name)).entriesMissing, name).eqls([
+                    missing,
+                    false,
+                ]);
+            }
+            for (const name of ["n1", "m1", "n2"]) {
+                expect((await sv(name)).valueMissing, name).eq(missing);
+            }
+        }
+
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "＿, 2 2",
+            p2: "＿, x",
+            p3: "＿ ＿ [＿] ＿",
+            p4: "＿, 2 ＿, 2",
+            p5: "false",
+        });
+        await check(true);
+
+        // a blank entry has no source to take a write
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("w"),
+            core,
+        });
+        expect((await texts(core, resolvePathToNodeIdx, ["p1"])).p1).eq(
+            "＿, 2 2",
+        );
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "2, 2 2",
+            p2: "b, x",
+            p3: "2 2 [2] 2",
+            p4: "2, 2 2, 2",
+            p5: "true",
+        });
+        await check(false);
+
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect((await texts(core, resolvePathToNodeIdx, ["p3"])).p3).eq(
+            "＿ ＿ [＿] ＿",
+        );
+        await check(true);
+    });
+
+    it("makes a reference to a blank entry through a path resolved at run time missing", async () => {
+        // `$r[1].a[1]` is a reference a copy makes once it has resolved the
+        // path, which is missing while the entry is blank, as `$a[1]` is.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="i" prefill="5"/>
+    <numberList name="l">1 2</numberList>
+    <repeat for="1" name="r">
+      <numberList name="a">$l[$i] 2</numberList>
+      <textList name="t">$l[$i] x</textList>
+    </repeat>
+    <p name="p1">[$r[1].a[1]] [$r[1].t[1]] $r[1].a</p>
+    <p name="p2"><number name="n">$r[1].a[1]</number> <number name="n2" extend="$r[1].a[1]"/></p>
+    <p name="p3"><boolean name="eq">$r[1].a[1] = $r[1].a[1]</boolean></p>
+    `,
+        });
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["n", "n2"]) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                    name,
+                ).eq(missing);
+            }
+        }
+        const names = ["p1", "p2", "p3"];
+
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "[＿] [＿] ＿, 2",
+            p2: "＿ ＿",
+            p3: "false",
+        });
+        await check(true);
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "[1] [1] 1, 2",
+            p2: "1 1",
+            p3: "true",
+        });
+        await check(false);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await texts(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "[＿] [＿] ＿, 2",
+            p2: "＿ ＿",
+            p3: "false",
+        });
+        await check(true);
+    });
+
+    it("keeps an unlinked copy of a blank entry missing, after a reload too", async () => {
+        // Made while the entry is a blank entry, a `copy` is missing for
+        // good, as an unlinked copy made while its source is missing is; made
+        // while it is not, it keeps the value it was made with.
+        const doenetML = `
+    <mathInput name="i" prefill="5"/>
+    <mathInput name="j" prefill="1"/>
+    <numberList name="l">1 2</numberList>
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <numberList name="a">$l[$i] 2</numberList>
+    <pointList name="pl">(0,0) $pts[$i]</pointList>
+    <numberList name="b">$l[$j] 2</numberList>
+    <repeat for="1" name="r"><numberList name="a">$l[$i] 2</numberList></repeat>
+    <p name="p">[<number name="c1" copy="$a[1]"/>][<math name="c2" copy="$pl[2].x"/>][<number name="c3" copy="$r[1].a[1]"/>][<number name="c4" copy="$a[2]"/>][<number name="c5" copy="$b[1]"/>]</p>
+    <boolean name="eq">$c1 = $c1</boolean>
+    <graph name="g"><point name="c6" copy="$pl[2]"/></graph>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["c1", "c2", "c3", "c6"]) {
+                expect((await sv(name)).valueMissing, name).eq(true);
+            }
+            for (const name of ["c4", "c5"]) {
+                expect((await sv(name)).valueMissing, name).not.eq(true);
+            }
+            expect((await sv("eq")).value).eq(false);
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                ["_blank"],
+            );
+            expect((await sv("p")).text).eq("[＿][＿][＿][2][1]");
+        }
+        await check();
+
+        // unlinked, so made neither again nor from the new entry
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("j"),
+            core,
+        });
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
+
+    it("keeps an unlinked copy made before its entry was blank as made, after a reload too", async () => {
+        // A copy holds the value it was made with. Made again on reload from
+        // the entry, now blank, it pastes fewer attribute components (the
+        // entry's `styleNumber` is not pasted), which must not change its
+        // `stateId`, or its held snapshot would not apply, and pastes them
+        // anyway where its snapshot holds them, to take what they held.
+        const doenetML = `
+    <mathInput name="i" prefill="1"/>
+    <pointList name="pts"><point styleNumber="3">(1,2)</point> (3,4)</pointList>
+    <vectorList name="vs">(5,6) (7,8)</vectorList>
+    <numberList name="l" displayDigits="2">1.23456 2</numberList>
+    <pointList name="pl">(0,0) $pts[$i]</pointList>
+    <vectorList name="vl">(0,0) $vs[$i]</vectorList>
+    <numberList name="a">7 $l[$i]</numberList>
+    <graph name="g"><point name="gp" copy="$pl[2]"/><vector name="gv" copy="$vl[2]"/></graph>
+    <p name="p"><number name="n" copy="$a[2]"/> <math name="x" copy="$pl[2].x"/></p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function check() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("gp")).coords.tree).eqls(["vector", 1, 2]);
+            // what it took from the entry's source and the list too
+            expect((await sv("gp")).styleNumber).eq(3);
+            expect((await sv("n")).displayDigits).eq(2);
+            expect((await sv("gv")).displacement.map((x: any) => x.tree)).eqls([
+                5, 6,
+            ]);
+            for (const name of ["gp", "gv", "n", "x"]) {
+                expect((await sv(name)).valueMissing, name).not.eq(true);
+            }
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                ["point", "vector"],
+            );
+            expect((await sv("p")).text).eq("1.2 1");
+        }
+        await check();
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check();
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check();
+    });
+
+    it("gives a property computed from each entry's value the blank for a blank entry", async () => {
+        // `$pl.y` reads the `y` of every entry, which, for a blank point, is
+        // a blank, not the `0` of the blank point's second coordinate.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="i" prefill="5"/>
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <numberList name="l">1 2</numberList>
+    <pointList name="pl">(5,6) $pts[$i]</pointList>
+    <numberList name="nl">7 $l[$i]</numberList>
+    <collect name="c" from="$pl" componentType="point"/>
+    <p name="p1">$pl.y; $pl.xs; $c.y</p>
+    <p name="p2"><math>$pl.y</math>; <mathList copy="$pl.y"/>; $nl.math</p>
+    `,
+        });
+        expect(await texts(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls({
+            p1: "6, ＿; 5, 6, ＿; 6, ＿",
+            p2: "6, ＿; 6, ＿; 7, ＿",
+        });
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        // the unlinked copy keeps what it was made with
+        expect(await texts(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls({
+            p1: "6, 2; 5, 6, 1, 2; 6, 2",
+            p2: "6, 2; 6, ＿; 7, 1",
+        });
+    });
+
+    it("keeps a blank entry of a list a `<collect>` collects missing", async () => {
+        // A `<collect>` of a list with a blank entry has that blank entry:
+        // a blank point is not drawn, a shape made from it is missing, and a
+        // reference to it is missing (D40, VAL-5), until it names a point.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g">
+      <pointList name="pl">(0,0) (1,0) $pts[$i]</pointList>
+      <collect name="c" from="$pl" componentType="point"/>
+      <polygon name="poly" vertices="$c"/>
+      <point name="P" extend="$c[3]"/>
+    </graph>
+    <mathList name="ml">$pts[$i] 2</mathList>
+    <collect name="cm" from="$ml" componentType="math"/>
+    <p name="p">[$c][$c[3]][<math name="m" extend="$cm[1]"/>]</p>
+    `,
+        });
+        async function check(missing: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("c")).entriesMissing).eqls([
+                false,
+                false,
+                missing,
+            ]);
+            expect((await sv("cm")).entriesMissing).eqls([missing, false]);
+            for (const name of ["poly", "P", "m"]) {
+                expect((await sv(name)).valueMissing, name).eq(missing);
+            }
+            const blank = missing ? "_blank" : undefined;
+            expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls(
+                [
+                    "point",
+                    "point",
+                    blank ?? "point",
+                    "point",
+                    "point",
+                    blank ?? "point",
+                    blank ?? "polygon",
+                    blank ?? "point",
+                ],
+            );
+            return (await sv("p")).text;
+        }
+        expect(await check(true)).eq("[(0, 0), (1, 0), ＿][＿][＿]");
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await check(false)).eq(
+            "[(0, 0), (1, 0), (3, 4)][(3, 4)][(3, 4)]",
+        );
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        await check(true);
+    });
+});
+
+/**
+ * D40, VAL-5 (#2460, #2516, #2525): the type of a result decides how a
+ * missing input acts. A math holds the blank; a number or a boolean computed
+ * from a missing input is missing; a comparison with a blank is false. `null`
+ * is never shown: where it means "no value", the value is missing.
+ */
+describe("A value computed from a missing input (D40) @group2", () => {
+    async function textsOf(doenetML: string, names: string[]) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: Record<string, string> = {};
+        for (const name of names) {
+            texts[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+        return { texts, stateVariables, core, resolvePathToNodeIdx };
+    }
+
+    it("makes a number computed from a missing input missing, and keeps a NaN from present inputs", async () => {
+        const { texts, stateVariables, resolvePathToNodeIdx } = await textsOf(
+            `
+    <numberList name="l">1 2</numberList>
+    <p name="p">[<number name="n1">$nothing + 1</number>][<number name="n2">$l[5] + 1</number>][<number name="n3"><math>＿</math> + 1</number>][<integer name="n4">$nothing + 2</integer>][<number name="n5">x</number>][<number name="n6">0/0</number>][<number name="n7" valueOnNaN="0">$nothing + 1</number>]</p>
+    <p name="p2">[$n1][<math>$n1 + 1</math>][<boolean>$n1 = $n1</boolean>]</p>
+    `,
+            ["p", "p2"],
+        );
+        expect(texts.p).eq("[＿][＿][＿][＿][NaN][NaN][0]");
+        expect(texts.p2).eq("[＿][＿ + 1][false]");
+        for (const [name, missing] of [
+            ["n1", true],
+            ["n2", true],
+            ["n3", true],
+            ["n4", true],
+            ["n5", false],
+            ["n6", false],
+            ["n7", false],
+        ] as const) {
+            expect(
+                Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                ),
+                name,
+            ).eq(missing);
+        }
+    });
+
+    it("makes a number operator over a blank entry missing, keeps a math one holding the blank, and counts it", async () => {
+        const { texts } = await textsOf(
+            `
+    <numberList name="nl">1 $nothing 3</numberList>
+    <mathList name="ml">1 $nothing 3</mathList>
+    <p name="p">[<sum>$nl</sum>][<mean>$nl</mean>][<product>$nl</product>][<max>$nl</max>][<count>$nl</count>][<sum>$ml</sum>][<sum forceSymbolic>$nl</sum>][<sum>$nothing 3</sum>][<sum>$nothing x</sum>]</p>
+    `,
+            ["p"],
+        );
+        expect(texts.p).eq(
+            "[＿][＿][＿][＿][3][1 + ＿ + 3][1 + ＿ + 3][＿ + 3][＿ + x]",
+        );
+    });
+
+    it("makes a NaN that an operator computes from a blank missing, and keeps one from present inputs", async () => {
+        const { texts } = await textsOf(
+            `
+    <p name="p">[<median><math>＿</math></median>][<clampNumber>$nothing</clampNumber>][<wrapNumberPeriodic>$nothing</wrapNumberPeriodic>][<median>1 2 x</median>][<clampNumber>x</clampNumber>]</p>
+    `,
+            ["p"],
+        );
+        expect(texts.p).eq("[＿][＿][＿][NaN][NaN]");
+    });
+
+    it("makes a numeric function at a blank, or a missing function, missing, and a symbolic one hold the blank", async () => {
+        const { texts } = await textsOf(
+            `
+    <function variables="u" name="f">1+u</function>
+    <function variables="u" name="fn" symbolic="false">1+u</function>
+    <pointList name="pl">(1,2) (3,4)</pointList>
+    <function name="g" through="$pl[1] $pl[3]"/>
+    <answer name="ans"><mathInput name="mi"/><award>1</award></answer>
+    <p name="p">[$$f($nothing)][<evaluate function="$f" input="$ans.submittedResponse"/>][$$fn($nothing)][<evaluate function="$fn" input="$nothing"/>][<evaluate function="$fn" input="$ans.submittedResponse"/>][$$fn(2)][$$g(2)][<number>$$fn($nothing)</number>]</p>
+    `,
+            ["p"],
+        );
+        expect(texts.p).eq("[1 + ＿][1 + ＿][＿][＿][＿][3][＿][＿]");
+    });
+
+    it("makes a boolean computed from a missing operand missing, whatever the other operand, and keeps a comparison false", async () => {
+        const { texts, stateVariables, resolvePathToNodeIdx } = await textsOf(
+            `
+    <booleanList name="bl">true</booleanList>
+    <p name="p">[<boolean name="b1">not $nothing</boolean>][<boolean name="b2">$nothing and true</boolean>][<boolean name="b3">$nothing or true</boolean>][<boolean name="b4">$nothing = 1</boolean>][<boolean name="b5">($nothing = 1) or true</boolean>][<boolean name="b6"/>][<boolean name="b7">$bl[3] and false</boolean>]</p>
+    <p name="p2">[<and>$nothing true</and>][<or>$nothing true</or>][<not>$nothing</not>][<xor>$bl[3] true</xor>][<isNumber>$nothing</isNumber>][<and>true true</and>]</p>
+    `,
+            ["p", "p2"],
+        );
+        expect(texts.p).eq("[＿][＿][＿][false][true][false][＿]");
+        expect(texts.p2).eq("[＿][＿][＿][＿][false][true]");
+        for (const [name, missing] of [
+            ["b1", true],
+            ["b3", true],
+            ["b4", false],
+            ["b5", false],
+            ["b6", false],
+        ] as const) {
+            expect(
+                Boolean(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .valueMissing,
+                ),
+                name,
+            ).eq(missing);
+        }
+    });
+
+    it("gives no credit for a condition computed from a missing operand", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="a"><award><when>not $nothing</when></award></answer>
+    <answer name="b"><award><when>$nothing or true</when></award></answer>
+    `,
+        });
+        for (const name of ["a", "b"]) {
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["a", "b"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .creditAchieved,
+                name,
+            ).eq(0);
+        }
+    });
+
+    it("comes back once the missing input names something", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="l">1 2</numberList>
+    <booleanList name="bl">true false</booleanList>
+    <mathInput name="i" prefill="5"/>
+    <p name="p">[<number>$l[$i] + 1</number>][<boolean>not $bl[$i]</boolean>][<sum>$l[$i] 3</sum>]</p>
+    `,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[＿][＿][＿]");
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await text()).eq("[3][true][5]");
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await text()).eq("[＿][＿][＿]");
+    });
+
+    it("shows a blank entry of a list as a blank in the list's text, LaTeX and matrix size", async () => {
+        const { texts } = await textsOf(
+            `
+    <numberList name="nl">1 $nothing 3</numberList>
+    <mathList name="ml">1 $nothing 3</mathList>
+    <booleanList name="bl">true $nothing</booleanList>
+    <textList name="tl">a $nothing</textList>
+    <p name="p">[$nl.text][$bl.text][$tl.text][$ml.latex][$nl[2].text]</p>
+    <p name="p2">[$ml.matrixSize][$ml[2].matrixSize][$ml[1].matrixSize]</p>
+    `,
+            ["p", "p2"],
+        );
+        expect(texts.p).eq("[1, ＿, 3][true, ＿][a, ＿][1, ＿, 3][＿]");
+        expect(texts.p2).eq("[1, 1, ＿, 1, 1][＿][1, 1]");
+    });
+
+    it("reads a property that holds null as missing, never as null", async () => {
+        const { texts } = await textsOf(
+            `
+    <award name="aw"><math>1</math></award>
+    <graph><image name="c" source="./a.png"/></graph>
+    <p name="p">[$aw.feedbackText][<text extend="$aw.feedbackText"/>][<text>$aw.feedbackText</text>][$c.aspectRatio]</p>
+    `,
+            ["p"],
+        );
+        expect(texts.p).eq("[＿][＿][＿][＿]");
+    });
+
+    it("writes through an input bound to a property that holds null, which then has a value", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph><image source="./a.png" name="im"/></graph>
+    <mathInput name="mi" bindValueTo="$im.aspectRatio"/>
+    <p name="p">[$im.aspectRatio][<number extend="$im.aspectRatio"/>][<number copy="$im.aspectRatio"/>]</p>
+    `,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                aspectRatio:
+                    stateVariables[await resolvePathToNodeIdx("im")].stateValues
+                        .aspectRatio,
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+            };
+        }
+        expect(await shown()).eqls({ aspectRatio: null, text: "[＿][＿][＿]" });
+
+        await updateMathInputValue({
+            latex: "1/2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        // the unlinked copy, made while it held null, stays missing
+        expect(await shown()).eqls({
+            aspectRatio: 0.5,
+            text: "[0.5][0.5][＿]",
+        });
+
+        await updateMathInputValue({
+            latex: "",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await shown()).eqls({ aspectRatio: null, text: "[＿][＿][＿]" });
+    });
+
+    it("keeps an unlinked copy made while a property held null missing through a reload", async () => {
+        const doenetML = `
+    <graph><image source="./a.png" name="im"/></graph>
+    <mathInput name="mi" bindValueTo="$im.aspectRatio"/>
+    <p name="p">[<number extend="$im.aspectRatio"/>][<number copy="$im.aspectRatio"/>]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        await updateMathInputValue({
+            latex: "1/2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await text()).eq("[0.5][＿]");
+
+        // made again on a reload while the property has a value, it is made
+        // as it was: missing
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await text()).eq("[0.5][＿]");
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await text()).eq("[3][＿]");
+    });
+
+    it("keeps an unlinked copy of a property of several components as made through a reload, where one held null", async () => {
+        // Only the image whose aspect ratio held null when the copy was
+        // made gives nothing; a reload decides it by image, not for all.
+        const doenetML = `
+    <graph name="gr"><image source="./a.png" name="ia"/><image source="./b.png" name="ib" aspectRatio="2"/></graph>
+    <mathInput name="mi" bindValueTo="$ia.aspectRatio"/>
+    <collect name="c" componentType="image" from="$gr"/>
+    <p name="p">[<mathList copy="$c.aspectRatio"/>]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[2]");
+        await updateMathInputValue({
+            latex: "1/2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await text()).eq("[2]");
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await text()).eq("[2]");
+    });
+});
+
+describe("Missing content read by a math and a list (#2516, #2525) @group2", () => {
+    it("reads a missing child of a math as a blank, not the NaN it holds, and follows it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="l">1 2</numberList>
+    <mathInput name="i" prefill="5"/>
+    <number name="n">$l[$i]</number>
+    <p name="p">[<math><math extend="$n"/></math>][<math><math extend="$n.value"/></math>][<math><number>$n</number></math>][<math><number>$nothing</number></math>][<math>$n</math>][<math><math extend="$n"/> + 1</math>]</p>
+    `,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        expect(await text()).eq("[＿][＿][＿][＿][＿][＿ + 1]");
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await text()).eq("[2][2][2][＿][2][2 + 1]");
+    });
+
+    it("redraws the parent of a component that can be missing only when whether it is missing changes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="x" prefill="1"/>
+    <numberList name="l">1 2</numberList>
+    <mathInput name="i" prefill="1"/>
+    <p name="p"><number name="n">$x</number> <number name="m">$l[$i]</number></p>
+    `,
+        });
+        const builder = (core.core as any).rendererInstructionBuilder;
+        const pIdx = await resolvePathToNodeIdx("p");
+        const original =
+            builder.markParentRenderedChildrenChanged.bind(builder);
+        const marked: number[] = [];
+        builder.markParentRenderedChildrenChanged = (component: any) => {
+            marked.push(component.componentIdx);
+            return original(component);
+        };
+
+        // typing changes what `n` reads, not whether it is missing
+        for (const latex of ["2", "3", "4"]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("x"),
+                core,
+            });
+        }
+        expect(marked).eqls([]);
+
+        // `m` becomes missing, and is drawn as a blank
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(marked).eqls([await resolvePathToNodeIdx("m")]);
+        expect(rendererTypesOf(core, pIdx)).eqls(["number", "_blank"]);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(rendererTypesOf(core, pIdx)).eqls(["number", "number"]);
+    });
+
+    it("makes a math list entry whose content is a reference past the end a blank entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l">1 2</mathList>
+    <mathInput name="i" prefill="5"/>
+    <mathList name="ml"><math>$l[$i]</math> 3</mathList>
+    <p name="p">[$ml][<boolean>$ml[1] = $ml[1]</boolean>]</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ml")].stateValues
+                .entriesMissing,
+        ).eqls([true, false]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿, 3][false]");
+    });
+
+    it("marks the blank entries of a list of a property of every entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl">(1,2) $nothing</pointList>
+    <p name="p">$pl.y</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const pIdx = await resolvePathToNodeIdx("p");
+        expect(stateVariables[pIdx].stateValues.text).eq("2, ＿");
+        const list = Object.values<any>(stateVariables).find(
+            (c) =>
+                c.componentType === "mathList" &&
+                (core.core as any)._components[c.componentIdx]?.parentIdx ===
+                    pIdx,
+        );
+        expect(list.stateValues.entriesMissing).eqls([false, true]);
+    });
+
+    it("marks a blank entry of a list of a property of every entry only while the entry is blank", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts">(3,4)</pointList>
+    <mathInput name="i" prefill="5"/>
+    <pointList name="pl">(1,2) $pts[$i]</pointList>
+    <p name="p">$pl.y</p>
+    `,
+        });
+        const pIdx = await resolvePathToNodeIdx("p");
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const list = Object.values<any>(stateVariables).find(
+                (c) =>
+                    c.componentType === "mathList" &&
+                    (core.core as any)._components[c.componentIdx]
+                        ?.parentIdx === pIdx,
+            );
+            return {
+                text: stateVariables[pIdx].stateValues.text,
+                entriesMissing: list.stateValues.entriesMissing,
+            };
+        }
+        expect(await shown()).eqls({
+            text: "2, ＿",
+            entriesMissing: [false, true],
+        });
+        for (const [latex, expected] of [
+            ["1", { text: "2, 4", entriesMissing: [false, false] }],
+            ["7", { text: "2, ＿", entriesMissing: [false, true] }],
+        ] as const) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("i"),
+                core,
+            });
+            expect(await shown()).eqls(expected);
+        }
+    });
+
+    it("reads a point with a label in a point list through an index", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pts"><point styleNumber="3"><label>A</label>(1,2)</point> (3,4)</pointList>
+    <mathInput name="i" prefill="1"/>
+    <pointList name="pl">(0,0) $pts[$i]</pointList>
+    <p name="p">[$pts[$i]][$pl][$pl[2].coords]</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[(1, 2)][(0, 0), (1, 2)][(1, 2)]");
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+});
+
+describe("Missing values, round 3 (#2544) @group2", () => {
+    it("makes a tag of a property missing while the property holds null, though it had a value when made", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph><image source="./a.png" name="im" aspectRatio="2"/></graph>
+    <mathInput name="mi" bindValueTo="$im.aspectRatio"/>
+    <p name="p">[$im.aspectRatio][<number extend="$im.aspectRatio"/>][<math extend="$im.aspectRatio"/>][<text>$im.aspectRatio</text>][<number>$im.aspectRatio + 1</number>][<math copy="$im.aspectRatio"/>]</p>
+    <math name="m" extend="$im.aspectRatio"/>
+    <math name="m2" extend="$m"/>
+    `,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+                input: stateVariables[await resolvePathToNodeIdx("mi")]
+                    .stateValues.text,
+                mMissing:
+                    stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                        .valueMissing,
+                m2Missing:
+                    stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                        .valueMissing,
+            };
+        }
+        expect(await shown()).eqls({
+            text: "[2][2][2][2][3][2]",
+            input: "2",
+            mMissing: false,
+            m2Missing: false,
+        });
+
+        await updateMathInputValue({
+            latex: "",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        // the unlinked copy, made while it had a value, keeps it
+        expect(await shown()).eqls({
+            text: "[＿][＿][＿][＿][＿][2]",
+            input: "＿",
+            mMissing: true,
+            m2Missing: true,
+        });
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("p"))).eqls([
+            "_blank",
+            "_blank",
+            "_blank",
+            "text",
+            "_blank",
+            "math",
+        ]);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await shown()).eqls({
+            text: "[3][3][3][3][4][2]",
+            input: "3",
+            mMissing: false,
+            m2Missing: false,
+        });
+    });
+
+    it("makes a point or vector holding a reference past the end, or a blank entry, missing while it does", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl">(1,2) (3,4)</pointList>
+    <pointList name="pb">(1,2) $nothing</pointList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g">
+      <point name="P">$pl[$i]</point>
+      <vector name="v">$pl[$i]</vector>
+      <point name="Q" extend="$P"/>
+      <point name="B">$pb[2]</point>
+      <point name="N">$nothing</point>
+    </graph>
+    <p name="p">[$P][$v][$Q][$B][$N][<boolean>$P = $P</boolean>]</p>
+    `,
+        });
+        async function missing() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, boolean> = {};
+            for (const name of ["P", "v", "Q", "B", "N"]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.valueMissing;
+            }
+            return {
+                result,
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+            };
+        }
+        expect(await missing()).eqls({
+            result: { P: true, v: true, Q: true, B: true, N: true },
+            text: "[＿][＿][＿][＿][＿][false]",
+        });
+        // not drawn in the graph
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls([
+            "_blank",
+            "_blank",
+            "_blank",
+            "_blank",
+            "_blank",
+        ]);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await missing()).eqls({
+            result: { P: false, v: false, Q: false, B: true, N: true },
+            text: "[(3, 4)][(3, 4)][(3, 4)][＿][＿][true]",
+        });
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls([
+            "point",
+            "vector",
+            "point",
+            "_blank",
+            "_blank",
+        ]);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await missing()).eqls({
+            result: { P: true, v: true, Q: true, B: true, N: true },
+            text: "[＿][＿][＿][＿][＿][false]",
+        });
+    });
+
+    it("makes a point or vector given a blank entry of a pointList, as content or by an attribute, missing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pb">(1,2) $nothing</pointList>
+    <graph name="g">
+      <point name="B">$pb[2]</point>
+      <vector name="VB">$pb[2]</vector>
+      <point name="C" coords="$pb[2]"/>
+      <vector name="D" displacement="$pb[2]"/>
+      <point name="E">$pb[1]</point>
+    </graph>
+    <p name="p">[$B][$VB][$C][$D][$E]</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["B", "VB", "C", "D"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+                name,
+            ).eq(true);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿][＿][＿][＿][(1, 2)]");
+        expect(rendererTypesOf(core, await resolvePathToNodeIdx("g"))).eqls([
+            "_blank",
+            "_blank",
+            "_blank",
+            "_blank",
+            "point",
+        ]);
+    });
+
+    it("keeps an unlinked copy of a point made while it is missing missing, after a reload too", async () => {
+        // As a copy of a missing number is: made while `P` is missing, `C`
+        // is missing for good.
+        const doenetML = `
+    <pointList name="pl">(1,2) (3,4)</pointList>
+    <mathInput name="i" prefill="3"/>
+    <graph name="g"><point name="P">$pl[$i]</point><point name="C" copy="$P"/></graph>
+    <p name="p">[$P][$C]</p>
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text,
+                drawn: rendererTypesOf(core, await resolvePathToNodeIdx("g")),
+            };
+        }
+        expect(await shown()).eqls({
+            text: "[＿][＿]",
+            drawn: ["_blank", "_blank"],
+        });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect(await shown()).eqls({
+            text: "[(1, 2)][＿]",
+            drawn: ["point", "_blank"],
+        });
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await shown()).eqls({
+            text: "[(1, 2)][＿]",
+            drawn: ["point", "_blank"],
+        });
+    });
+
+    it("keeps a point and a vector defined from each other free of a cycle", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <vector name="v1" head="$(v1.tail)" tail="(3,4)" />
+      <vector name="v5" displacement="$(v5.head)" head="(3,4)" />
+    </graph>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["v1", "v5"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .valueMissing,
+            ).eq(false);
+        }
     });
 });

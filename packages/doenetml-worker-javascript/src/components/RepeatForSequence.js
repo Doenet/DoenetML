@@ -1,5 +1,10 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
+import { iterationAliasNames, iterationDummies } from "../utils/repeatAliases";
 import CompositeComponent from "./abstract/CompositeComponent";
-import { instanceGroupAttributes } from "../utils/indexInstances";
+import { instanceOfAttribute } from "../utils/indexInstances";
 import { deepClone } from "@doenet/utils";
 import {
     gatherVariantComponents,
@@ -22,6 +27,9 @@ import {
 } from "./Repeat";
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
+
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
 
     static componentDocs = {
         summary:
@@ -91,6 +99,9 @@ export default class RepeatForSequence extends CompositeComponent {
     static returnStateVariableDefinitions() {
         const stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
+
         const sequenceDefs = returnStandardSequenceStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, sequenceDefs);
 
@@ -112,6 +123,10 @@ export default class RepeatForSequence extends CompositeComponent {
                 step: {
                     dependencyType: "stateVariable",
                     variableName: "step",
+                },
+                last: {
+                    dependencyType: "stateVariable",
+                    variableName: "last",
                 },
                 exclude: {
                     dependencyType: "stateVariable",
@@ -135,7 +150,7 @@ export default class RepeatForSequence extends CompositeComponent {
         };
 
         stateVariableDefinitions.serializedChildren = {
-            additionalStateVariablesDefined: ["valueDummyIdx", "indexDummyIdx"],
+            additionalStateVariablesDefined: ["valueDummies", "indexDummies"],
             returnDependencies: () => ({
                 serializedChildren: {
                     dependencyType: "serializedChildren",
@@ -143,22 +158,11 @@ export default class RepeatForSequence extends CompositeComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let valueDummyIdx = null;
-                let indexDummyIdx = null;
-
-                const repeatSetup = dependencyValues.serializedChildren.find(
-                    (child) => child.componentType === "_repeatSetup",
+                // the placeholders of every `_repeatSetup`, the source's and a
+                // copy's (#2211)
+                const { valueDummies, indexDummies } = iterationDummies(
+                    dependencyValues.serializedChildren,
                 );
-
-                if (repeatSetup != undefined) {
-                    for (const child of repeatSetup.children) {
-                        if (child.componentType === "_placeholder") {
-                            valueDummyIdx = child.componentIdx;
-                        } else if (child.componentType === "integer") {
-                            indexDummyIdx = child.componentIdx;
-                        }
-                    }
-                }
 
                 const serializedChildren =
                     dependencyValues.serializedChildren.filter(
@@ -192,8 +196,8 @@ export default class RepeatForSequence extends CompositeComponent {
                 return {
                     setValue: {
                         serializedChildren,
-                        valueDummyIdx,
-                        indexDummyIdx,
+                        valueDummies,
+                        indexDummies,
                     },
                 };
             },
@@ -275,6 +279,12 @@ export default class RepeatForSequence extends CompositeComponent {
             },
         };
 
+        // The number of items, its iterations (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "numIterates",
+            count: (numIterates) => numIterates ?? 0,
+        });
+
         return stateVariableDefinitions;
     }
 
@@ -298,6 +308,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 from: null,
                 length: null,
                 step: null,
+                last: null,
                 type: null,
                 exclude: null,
                 lowercase: null,
@@ -308,6 +319,7 @@ export default class RepeatForSequence extends CompositeComponent {
         let from = await component.stateValues.from;
         let length = await component.stateValues.length;
         let step = await component.stateValues.step;
+        let last = await component.stateValues.last;
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
         let lowercase = await component.stateValues.lowercase;
@@ -316,6 +328,7 @@ export default class RepeatForSequence extends CompositeComponent {
             from,
             length,
             step,
+            last,
             type,
             exclude,
             lowercase,
@@ -339,7 +352,7 @@ export default class RepeatForSequence extends CompositeComponent {
             replacements.push(...res.replacements);
             diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
-            workspace.valueComponentIndices.push(res.valueComponentIdx);
+            workspace.valueComponentIndices.push(res.valueComponentIndices);
         }
 
         return { replacements, diagnostics, nComponents };
@@ -412,18 +425,15 @@ export default class RepeatForSequence extends CompositeComponent {
 
         replacements[0] = aliasResult.replacement;
 
-        // An index after the iteration passes to its content when that is one
-        // indexable component, and otherwise selects one of its children (D27)
-        Object.assign(
-            replacements[0].attributes,
-            instanceGroupAttributes({
-                children: replacements[0].children,
-                instanceOf: component.componentType,
-                componentInfoObjects,
-            }),
+        // What made the iteration, for the warning of an index after it. An
+        // index after the iteration passes to its content when that is one
+        // component, and otherwise names nothing, as the resolver decides
+        // from its children (D27, NAME-2, `IndexKind::of_content`).
+        replacements[0].attributes._instanceOf = instanceOfAttribute(
+            component.componentType,
         );
         nComponents = aliasResult.nComponents;
-        const valueComponentIdx = aliasResult.valueComponentIdx;
+        const valueComponentIndices = aliasResult.valueComponentIndices;
 
         // only for a `copyWithState`: a `copy` makes its iterations as
         // written, with its own random choices (D33)
@@ -447,7 +457,7 @@ export default class RepeatForSequence extends CompositeComponent {
             replacements,
             diagnostics,
             nComponents,
-            valueComponentIdx,
+            valueComponentIndices,
         };
     }
 
@@ -497,6 +507,8 @@ export default class RepeatForSequence extends CompositeComponent {
         let from = await component.stateValues.from;
         let length = await component.stateValues.length;
         let step = await component.stateValues.step;
+        // the last value, when it isn't computed from `from` and `step`
+        let last = await component.stateValues.last;
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
         // letters are numbered from 1 whatever their case, so `from` alone
@@ -518,6 +530,7 @@ export default class RepeatForSequence extends CompositeComponent {
             sameValue(lrp.from, from) &&
             lrp.length === length &&
             sameValue(lrp.step, step) &&
+            sameValue(lrp.last ?? null, last) &&
             lrp.exclude?.length === exclude.length &&
             exclude.every((x, i) => sameValue(lrp.exclude[i], x)) &&
             lrp.lowercase === lowercase
@@ -565,6 +578,11 @@ export default class RepeatForSequence extends CompositeComponent {
                 ) {
                     modifyExistingValues = true;
                 }
+            }
+            // a last value that isn't computed from `from` and `step`, now
+            // or before, is another value, or is one no longer
+            if ((last ?? null) !== null || (lrp.last ?? null) !== null) {
+                modifyExistingValues = true;
             }
 
             let prevLength = lrp.length;
@@ -630,21 +648,17 @@ export default class RepeatForSequence extends CompositeComponent {
                     ind < firstToModify + numToModify;
                     ind++
                 ) {
-                    if (workspace.valueComponentIndices[ind] != undefined) {
-                        const componentValue = (
-                            await component.stateValues.forValues
-                        )[ind];
-
-                        const replacementInstruction = {
+                    const componentValue = (
+                        await component.stateValues.forValues
+                    )[ind];
+                    for (const componentIdx of workspace.valueComponentIndices[
+                        ind
+                    ] ?? []) {
+                        replacementChanges.push({
                             changeType: "updateStateVariables",
-                            component: {
-                                componentIdx:
-                                    workspace.valueComponentIndices[ind],
-                            },
+                            component: { componentIdx },
                             stateChanges: { value: componentValue },
-                        };
-
-                        replacementChanges.push(replacementInstruction);
+                        });
                     }
                 }
             }
@@ -671,7 +685,7 @@ export default class RepeatForSequence extends CompositeComponent {
                     diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
                     workspace.valueComponentIndices[ind] =
-                        res.valueComponentIdx;
+                        res.valueComponentIndices;
                 }
 
                 let replacementInstruction = {
@@ -689,6 +703,7 @@ export default class RepeatForSequence extends CompositeComponent {
         lrp.from = from;
         lrp.length = length;
         lrp.step = step;
+        lrp.last = last;
         lrp.exclude = exclude;
         lrp.lowercase = lowercase;
 
@@ -809,26 +824,28 @@ async function addAndLinkAliasComponents(
         children: [],
     };
 
-    const valueName = await component.stateValues.valueName;
-
     // a mapping from the dummy or value component indices to the new alias components we're creating
     const extendIdxMapping = {};
 
-    let valueComponentIdx;
+    // One component per name the iteration's value is read by: the
+    // repeat's `valueName`, and that of each placeholder, of a copy's as of
+    // its source's (`iterationAliasNames`, #2211). Each is given the value
+    // again when it changes (`valueComponentIndices`).
+    const values = iterationAliasNames({
+        ownName: await component.stateValues.valueName,
+        holdsList: hasIterationList(component, "_repeatValues"),
+        dummies: await component.stateValues.valueDummies,
+    });
+    let type = await component.stateValues.type;
+    if (type === "letters") {
+        type = "text";
+    }
+    const valueComponentIdxByName = {};
+    for (const name of values.names) {
+        const valueComponentIdx = nComponents++;
+        valueComponentIdxByName[name] = valueComponentIdx;
 
-    if (valueName && !hasIterationList(component, "_repeatValues")) {
-        valueComponentIdx = nComponents++;
-        const valueDummyIdx = await component.stateValues.valueDummyIdx;
-        if (valueDummyIdx != null) {
-            extendIdxMapping[valueDummyIdx] = valueComponentIdx;
-        }
-
-        let type = await component.stateValues.type;
-        if (type === "letters") {
-            type = "text";
-        }
-
-        // Create reference with name `valueName` that will link to sources
+        // Create reference with name `name` that will link to sources
         setupComponent.children.push({
             type: "serialized",
             componentType: type,
@@ -838,7 +855,7 @@ async function addAndLinkAliasComponents(
                 name: {
                     type: "primitive",
                     name: "name",
-                    primitive: { type: "string", value: valueName },
+                    primitive: { type: "string", value: name },
                 },
             },
             doenetAttributes: {},
@@ -849,15 +866,19 @@ async function addAndLinkAliasComponents(
             },
         });
     }
+    for (const [dummyIdx, name] of Object.entries(values.nameOfDummy)) {
+        extendIdxMapping[dummyIdx] = valueComponentIdxByName[name];
+    }
 
-    const indexName = await component.stateValues.indexName;
-
-    if (indexName && !hasIterationList(component, "_repeatIndices")) {
+    const indices = iterationAliasNames({
+        ownName: await component.stateValues.indexName,
+        holdsList: hasIterationList(component, "_repeatIndices"),
+        dummies: await component.stateValues.indexDummies,
+    });
+    const indexComponentIdxByName = {};
+    for (const name of indices.names) {
         const indexComponentIdx = nComponents++;
-        const indexDummyIdx = await component.stateValues.indexDummyIdx;
-        if (indexDummyIdx != null) {
-            extendIdxMapping[indexDummyIdx] = indexComponentIdx;
-        }
+        indexComponentIdxByName[name] = indexComponentIdx;
 
         setupComponent.children.push({
             type: "serialized",
@@ -868,13 +889,16 @@ async function addAndLinkAliasComponents(
                 name: {
                     type: "primitive",
                     name: "name",
-                    primitive: { type: "string", value: indexName },
+                    primitive: { type: "string", value: name },
                 },
             },
             doenetAttributes: {},
             children: [],
             state: { value: iter + 1, fixed: true },
         });
+    }
+    for (const [dummyIdx, name] of Object.entries(indices.nameOfDummy)) {
+        extendIdxMapping[dummyIdx] = indexComponentIdxByName[name];
     }
 
     const newRepl = { ...thisRepl };
@@ -900,5 +924,9 @@ async function addAndLinkAliasComponents(
         newRepl.children.push(setupComponent);
     }
 
-    return { replacement: newRepl, nComponents, valueComponentIdx };
+    return {
+        replacement: newRepl,
+        nComponents,
+        valueComponentIndices: Object.values(valueComponentIdxByName),
+    };
 }

@@ -96,6 +96,9 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0056": "variant-select-options-not-written",
     "doenet-i0057": "select-from-sequence-coprime-draws-exhausted",
     "doenet-i0058": "list-brackets-unmatched",
+    "doenet-i0059": "list-reference-joins-entry",
+    "doenet-i0060": "action-target-not-shown",
+    "doenet-i0061": "type-change-property-not-one-value",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -282,6 +285,16 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0185": "copy-with-state-of-uri",
     "doenet-w0186": "copy-with-state-attribute-reaches-choice",
     "doenet-w0187": "copy-attribute-invalid-for-component",
+    "doenet-w0188": "reference-index-selects-child",
+    "doenet-w0189": "repeat-value-name-is-index-name",
+    "doenet-w0190": "copy-children-ignored",
+    "doenet-w0191": "reference-branches-hold-several",
+    "doenet-w0192": "reference-property-partly-held",
+    "doenet-w0193": "reference-property-after-several",
+    "doenet-w0194": "matrix-math-child-ignored",
+    "doenet-w0195": "action-target-not-one-value",
+    "doenet-w0196": "latex-not-read-as-math",
+    "doenet-w0197": "attribute-name-case",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -352,6 +365,25 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0067": "type-change-composite-type-unknown",
     "doenet-e0068": "copy-with-state-changes-choice",
     "doenet-e0069": "copy-with-state-adds-options",
+    "doenet-e0070": "choice-parameter-reader-changeable",
+    "doenet-e0071": "type-change-own-type-only",
+    "doenet-e0072": "attribute-empty",
+    "doenet-e0073": "choice-not-always-possible",
+    "doenet-e0074": "choice-parameter-not-analysable",
+    "doenet-e0075": "choice-parameter-not-a-number",
+    "doenet-e0076": "reorder-items-of-several-types",
+    "doenet-e0077": "sort-item-of-several",
+    "doenet-e0078": "extend-award-or-choice",
+    "doenet-e0079": "variant-name-unknown",
+    "doenet-e0080": "sort-needs-sort-by-prop",
+    "doenet-e0081": "repeat-for-items-of-several-types",
+    "doenet-e0082": "answer-responses-of-several-types",
+    "doenet-e0083": "extend-answer-grading-attribute",
+    "doenet-e0084": "extend-answer-children",
+    "doenet-e0085": "variant-control-reference",
+    "doenet-e0086": "variant-name-repeated",
+    "doenet-e0087": "variants-all-excluded",
+    "doenet-e0088": "variant-control-made-from",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",
@@ -408,6 +440,15 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         "doenet-e0048",
         "doenet-e0049",
         "doenet-e0050",
+        // A choice never fails by chance (SEL-4, D39): when its random draws
+        // find nothing, a select draws among the valid choices exactly, and
+        // whether any exists is decided before it draws.
+        "doenet-e0052",
+        "doenet-e0053",
+        "doenet-i0057",
+        // An index never selects a child of a container, with no deprecation
+        // period (D27 revised): the reference names nothing, with `w0188`.
+        "doenet-w0179",
     ]);
 
 /**

@@ -34,6 +34,8 @@ import { DependencyHandler } from "./core/dependencies";
 import { ActionTriggerScheduler } from "./core/ActionTriggerScheduler";
 import { AutoSubmitManager } from "./core/AutoSubmitManager";
 import { addComponents } from "./core/ComponentBuilder";
+import { ENTERED_BY_CORE, hasUnenteredEdit } from "./utils/input";
+import { CircularDependencyError } from "./core/dependencies/CircularDependencyError";
 import { CompositeReplacementUpdater } from "./core/CompositeReplacementUpdater";
 import {
     DiagnosticsManager,
@@ -52,6 +54,7 @@ import { VisibilityTracker } from "./core/VisibilityTracker";
 import * as nameResolver from "./StateVariableNameResolver";
 import { numberAnswers } from "./utils/answer";
 import { buildReaderWritableIndex } from "./utils/readerWritable";
+import { changeContext } from "./utils/decidedByDoenetML";
 
 /** A coded diagnostic `ChildMatcher` recorded for `Core` to raise later. */
 type UnmatchedChildren = { code: DiagnosticCode; args: DiagnosticArgs };
@@ -160,6 +163,13 @@ export default class Core {
      * what a reader can change.
      */
     readerWritable: Set<ComponentIdx> = new Set();
+    /**
+     * The components a reader drags in a graph only to place them (a
+     * `<number>`, a `<math>`), which changes their `anchor` alone, found
+     * with {@link readerWritable} and, like it, kept current as components
+     * are made after load (an iteration of a repeat).
+     */
+    readerPlaced: Set<ComponentIdx> = new Set();
     nComponentsInit: number;
     cid: string | null;
     flags: Record<string, any>;
@@ -254,6 +264,23 @@ export default class Core {
      */
     readerTouchedStateIds!: Set<string>;
     definitionSetStateIds!: Set<string>;
+    /**
+     * The input the reader is editing: the last to receive an edit not yet
+     * entered (`setComponentNeedingUpdateValue`), until it is entered, is
+     * withheld or deleted (`inputNoLongerFocused`), or is disabled
+     * (`_stopEditingIfDisabled`), none of which it can be while focused.
+     * Kept only in memory: after a reload nothing is being edited (D50).
+     */
+    componentBeingEdited: number | null = null;
+    /**
+     * Inputs made, or shown again, since unentered edits were last committed
+     * (`commitUnenteredEdits`, D50), and the input an `extend` withheld or
+     * deleted while edited extends (`inputNoLongerFocused`), and the input
+     * being edited once it is disabled (`_stopEditingIfDisabled`): each of
+     * those that shows an edit not entered, other than the edit of the input
+     * being edited, is committed.
+     */
+    inputsToCommit: Set<number> = new Set();
     /**
      * What an update has written to each `stateId` but not yet merged into
      * `cumulativeStateVariableChanges`, which it does at its end
@@ -447,6 +474,15 @@ export default class Core {
             // reach core through `svComponent.coreFunctions`.
             getStateVariableValue: this.getStateVariableValue, // bound above
             addDiagnostic: this.addDiagnostic.bind(this),
+            // Whether the component at `componentIdx` is withheld from what
+            // is shown (a case not shown, an iteration a repeat no longer
+            // has), for an action not to act on it (SAVE-4, #2152). An index
+            // with no component, as one reserved for a list entry, is not.
+            componentIsWithheld: async (componentIdx: number) =>
+                Boolean(
+                    await this._components[componentIdx]?.stateValues
+                        .isInactiveCompositeReplacement,
+                ),
             // What a save holds of an unlinked copy, by the copy's stateId:
             // its snapshot, with what decided what it made
             // (`heldCopySnapshot`, `readHeldCopySnapshot`).
@@ -455,6 +491,11 @@ export default class Core {
             // The component with `stateId`, if one is made, for an unlinked
             // copy to find the `<conditionalContent>` a save held it was
             // made through (`heldSourceInCase` in `Copy.js`).
+            // What can change as a reader works, for a component to decide
+            // the level of a diagnostic it reports (DIAG-2,
+            // `utils/decidedByDoenetML.ts`). Good only while the components
+            // stay as they are.
+            changeContext: () => changeContext(this),
             componentOfStateId: (stateId: string) => {
                 const component =
                     this._components[this.componentIdxByStateId[stateId]];
@@ -497,8 +538,8 @@ export default class Core {
 
         // Everything restored from a previous session was saved as the
         // reader's work, so it stays theirs now — otherwise re-saving would
-        // quietly drop it. `__componentNeedingUpdateValue` is a reserved
-        // sentinel rather than a component's entry (see `UpdateExecutor`), and
+        // quietly drop it. A `__`-prefixed key (`__componentTypes`) is
+        // reserved, rather than a component's entry, and
         // `buildDocStatePayload` carries every `__` key across regardless.
         this.readerTouchedStateIds = new Set(
             Object.keys(this.cumulativeStateVariableChanges).filter(
@@ -559,9 +600,11 @@ export default class Core {
         // content of a case not shown included, before it is dropped. It
         // marks the serialized components it finds, so a component made
         // from one later (an iteration of a repeat) is added as it is made.
+        this.readerPlaced = new Set();
         this.readerWritable = buildReaderWritableIndex(
             serializedComponents[0],
             this.componentInfoObjects,
+            this.readerPlaced,
         );
 
         // The serialized document is consumed only by the clone above;
@@ -636,6 +679,8 @@ export default class Core {
         // Reset the process queue (see ProcessQueue.ts) so a previous
         // run does not leak into this document.
         this.processQueue.reset();
+        this.componentBeingEdited = null;
+        this.inputsToCommit = new Set();
 
         this.dependencies = new DependencyHandler({
             _components: this._components,
@@ -731,17 +776,9 @@ export default class Core {
             serializedComponentsReplacer,
         );
 
-        if (this.cumulativeStateVariableChanges.__componentNeedingUpdateValue) {
-            await this.performAction({
-                actionName: "updateValue",
-                componentIdx:
-                    this.componentIdxByStateId[
-                        this.cumulativeStateVariableChanges
-                            .__componentNeedingUpdateValue
-                    ],
-                args: { doNotIgnore: true },
-            });
-        }
+        // An input restored with an edit not entered shows it no longer
+        // (D50): nothing is being edited after a reload.
+        await this.commitUnenteredEdits();
 
         if (!this.receivedStateVariableChanges) {
             // TODO: find a way to delay this until after sending the result.
@@ -1050,20 +1087,6 @@ export default class Core {
         );
     }
 
-    findCaseInsensitiveMatches({
-        stateVariables,
-        componentClass,
-    }: {
-        stateVariables: any;
-        componentClass: any;
-    }): any {
-        return nameResolver.findCaseInsensitiveMatches({
-            stateVariables,
-            componentClass,
-            componentInfoObjects: this.componentInfoObjects,
-        });
-    }
-
     matchPublicStateVariables({
         stateVariables,
         componentClass,
@@ -1092,14 +1115,14 @@ export default class Core {
         });
     }
 
-    publicCaseInsensitiveAliasSubstitutions({
+    publicAliasSubstitutions({
         stateVariables,
         componentClass,
     }: {
         stateVariables: any;
         componentClass: any;
     }): any {
-        return nameResolver.publicCaseInsensitiveAliasSubstitutions({
+        return nameResolver.publicAliasSubstitutions({
             stateVariables,
             componentClass,
             componentInfoObjects: this.componentInfoObjects,
@@ -1207,6 +1230,147 @@ export default class Core {
 
     async performUpdate(args: any): Promise<any> {
         return this.updateExecutor.performUpdate(args);
+    }
+
+    /**
+     * Commit the edit not entered of each input made, or shown again, since
+     * this was last run (`inputsToCommit`), other than the input being edited
+     * (`componentBeingEdited`): its `immediateValue` becomes its `value`, as
+     * when the reader enters it (its `updateValue` action), so an input that
+     * isn't focused never shows an edit that wasn't entered (D50, SAVE-1).
+     * Such an input was made from saved state (at load, or in a case shown
+     * again), carried by a `copyWithState` of an input with an edit not
+     * entered, or withheld while the reader edited it; or it is extended by
+     * an input withheld or deleted while the reader edited it.
+     *
+     * A disabled input can't be focused, so it is treated as one withheld
+     * (D50 decision 2): one made disabled is committed as it is made, and
+     * the input being edited is committed once it is disabled, and is no
+     * longer being edited. Its edit is entered with the `answered` event a
+     * blur would record. Under `flags.readOnly`, an edit is entered with no
+     * event and nothing saved (D50 decision 3). Both are asked of the action
+     * with `ENTERED_BY_CORE`, which a reader's action can't carry.
+     *
+     * Run at the end of load and after each update or action request
+     * (`ProcessQueue`), never during an update. Each input is committed on
+     * its own: an error committing one is logged, and the others are still
+     * committed (#2614 item 6). A cycle is not caught: it stops the
+     * document, as anywhere else. Skipped: an input withheld (committed when
+     * shown again), and an input showing the edit of the input being edited,
+     * with the same source (`sourceOfInput`): the input itself, what it
+     * extends, or an `extend` of either.
+     */
+    async commitUnenteredEdits(): Promise<void> {
+        while (true) {
+            // checked again after each round: committing an input can
+            // disable the input being edited
+            await this._stopEditingIfDisabled();
+            if (this.inputsToCommit.size === 0) {
+                break;
+            }
+            const candidates = [...this.inputsToCommit];
+            this.inputsToCommit.clear();
+            const edited =
+                this.componentBeingEdited === null
+                    ? null
+                    : this.sourceOfInput(this.componentBeingEdited);
+            for (const componentIdx of candidates) {
+                try {
+                    await this._commitUnenteredEdit(componentIdx, edited);
+                } catch (e) {
+                    if (e instanceof CircularDependencyError) {
+                        throw e;
+                    }
+                    console.error(e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Commit the edit not entered of the input `componentIdx`, unless it is
+     * gone, withheld, shows no such edit, or shows the edit of the input
+     * being edited, whose source is `edited` (`commitUnenteredEdits`).
+     */
+    async _commitUnenteredEdit(
+        componentIdx: number,
+        edited: number | null,
+    ): Promise<void> {
+        const component = this._components[componentIdx];
+        if (
+            !component ||
+            this.sourceOfInput(componentIdx) === edited ||
+            (await component.stateValues.isInactiveCompositeReplacement) ||
+            !(await hasUnenteredEdit(component))
+        ) {
+            return;
+        }
+        await this.performAction({
+            componentIdx,
+            actionName: "updateValue",
+            args: {
+                [ENTERED_BY_CORE]: { readOnly: Boolean(this.flags.readOnly) },
+            },
+        });
+    }
+
+    /**
+     * If the input being edited is now disabled, it isn't focused: nothing
+     * is being edited, and it is committed (D50 decision 2,
+     * `commitUnenteredEdits`).
+     */
+    async _stopEditingIfDisabled(): Promise<void> {
+        const editedIdx = this.componentBeingEdited;
+        if (editedIdx === null) {
+            return;
+        }
+        const edited = this._components[editedIdx];
+        let disabled = false;
+        try {
+            disabled = Boolean(await edited?.stateValues.disabled);
+        } catch (e) {
+            if (e instanceof CircularDependencyError) {
+                throw e;
+            }
+            console.error(e);
+        }
+        if (disabled) {
+            this.componentBeingEdited = null;
+            this.inputsToCommit.add(editedIdx);
+        }
+    }
+
+    /**
+     * The input whose edit the input `componentIdx` shows: the input it
+     * shadows (an `extend`), at any depth, or itself.
+     */
+    sourceOfInput(componentIdx: number): number {
+        let component = this._components[componentIdx];
+        while (component?.shadows) {
+            const source = this._components[component.shadows.componentIdx];
+            if (!source) {
+                break;
+            }
+            component = source;
+        }
+        return component?.componentIdx ?? componentIdx;
+    }
+
+    /**
+     * The input `componentIdx` is withheld or deleted, and so isn't focused:
+     * if it is the input being edited, nothing is, and the input whose edit
+     * it showed (`sourceOfInput`, an input it extends, which may still be
+     * shown) is committed (D50, `commitUnenteredEdits`).
+     */
+    inputNoLongerFocused(componentIdx: number): void {
+        if (this.componentBeingEdited !== componentIdx) {
+            return;
+        }
+        this.componentBeingEdited = null;
+        const source = this.sourceOfInput(componentIdx);
+        if (source !== componentIdx) {
+            this.inputsToCommit.add(source);
+        }
     }
 
     // → actionTriggerScheduler (cont.)

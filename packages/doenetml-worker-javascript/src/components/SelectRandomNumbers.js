@@ -1,8 +1,11 @@
 import {
+    isSlowSamplingNotice,
     sampleFromRandomNumbers,
     samplingParametersDecidedDependencies,
     withSamplingLevels,
 } from "../utils/randomNumbers";
+import { randomNumbersSelectionFailure } from "../utils/selectionFailure";
+import { codedDiagnostic } from "../utils/diagnostics";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 import {
     choicesWrittenWithoutReference,
@@ -188,6 +191,16 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                     dependencyType: "stateVariable",
                     variableName: "to",
                 },
+                // as written, to name one that isn't a number
+                // (`randomNumbersSelectionFailure`)
+                specifiedFrom: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedFrom",
+                },
+                specifiedTo: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedTo",
+                },
                 step: {
                     dependencyType: "stateVariable",
                     variableName: "step",
@@ -276,6 +289,53 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 ),
         };
 
+        /**
+         * The diagnostics of selecting with these parameters, `diagnostics`
+         * being what drawing from them gave (`sampleFromRandomNumbers`), and
+         * whether it can't select as written. A selection that can't (its
+         * `numToSelect` or a parameter isn't a number, a discrete uniform
+         * distribution has no value, or the distribution's parameters can't
+         * be drawn from, so its values are NaN) is an error, as every
+         * selection's failure is (D39, `selectError`): what it draws from is
+         * decided by the DoenetML, or comes from another selection, and never
+         * changes (SEL-1). A notice that drawing is slow, or a problem with
+         * parameters when it selects none, keeps the level the parameters
+         * give (DIAG-2, `withSamplingLevels`).
+         */
+        function selectionDiagnostics(dependencyValues, diagnostics) {
+            const failure = randomNumbersSelectionFailure({
+                ...dependencyValues,
+                numToSelect: dependencyValues.numSamples,
+            });
+            if (failure) {
+                return {
+                    failed: true,
+                    diagnostics: [
+                        codedDiagnostic({
+                            type: "error",
+                            code: failure.code,
+                            args: failure.args,
+                        }),
+                    ],
+                };
+            }
+            const selects = dependencyValues.numSamples >= 1;
+            const problems = selects
+                ? diagnostics.filter((d) => !isSlowSamplingNotice(d))
+                : [];
+            return {
+                failed: problems.length > 0,
+                diagnostics: [
+                    ...problems.map((d) => ({ ...d, ["type"]: "error" })),
+                    ...withSamplingLevels(
+                        diagnostics.filter((d) => !problems.includes(d)),
+                        dependencyValues.type,
+                        dependencyValues,
+                    ),
+                ],
+            };
+        }
+
         function selectValues({ dependencyValues, essentialValues }) {
             // A selection already made, as on a reload, is kept
             const kept = keptSelection(essentialValues, [
@@ -283,7 +343,20 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 "numToSelect",
             ]);
             if (kept) {
-                return kept;
+                // Still check the parameters it was made from, as when it
+                // was first made, so a reload reports the same (DIAG-6,
+                // #2506). Asking for none draws nothing.
+                const { diagnostics } = sampleFromRandomNumbers({
+                    ...dependencyValues,
+                    numSamples: 0,
+                });
+                return {
+                    ...kept,
+                    sendDiagnostics: selectionDiagnostics(
+                        dependencyValues,
+                        diagnostics,
+                    ).diagnostics,
+                };
             }
             // The values the requested variant gives are taken as given,
             // whatever the select would choose now: a select keeps the
@@ -317,11 +390,21 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                         },
                         desiredValues.length,
                     ),
-                    sendDiagnostics: withSamplingLevels(
-                        diagnostics,
-                        dependencyValues.type,
+                    sendDiagnostics: selectionDiagnostics(
                         dependencyValues,
-                    ),
+                        diagnostics,
+                    ).diagnostics,
+                };
+            }
+
+            // A selection that can't be made as written selects nothing,
+            // decided before any draw
+            const before = selectionDiagnostics(dependencyValues, []);
+            if (before.failed) {
+                return {
+                    setEssentialValue: { selectedValues: [] },
+                    setValue: { selectedValues: [] },
+                    sendDiagnostics: before.diagnostics,
                 };
             }
 
@@ -339,11 +422,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 setEssentialValue: { selectedValues },
                 setValue: { selectedValues },
                 // the selection is made once (`immutable`), so these stay
-                sendDiagnostics: withSamplingLevels(
-                    diagnostics,
-                    dependencyValues.type,
+                sendDiagnostics: selectionDiagnostics(
                     dependencyValues,
-                ),
+                    diagnostics,
+                ).diagnostics,
             };
         }
 

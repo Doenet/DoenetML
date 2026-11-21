@@ -18,7 +18,7 @@ import { serializedAttributeComponent } from "../literalAttribute";
  *   (`templateNodeQualifies`), or one `<abs>`, `<round>` or `<evaluate>`
  *   (`$$f(…)`) of such content (`OPERATOR_TYPES`), which may also be nested
  *   in one, or one `<point>` whose content is its
- *   coordinates, each such a `<math>`, and constraints, which become the
+ *   coordinates, at least two, each such a `<math>`, and constraints, which become the
  *   list's, that read the same values in every iteration and hold no
  *   sampler (`pointQualifies`);
  *   with no attributes but those of `NODE_ATTRIBUTES`, each written as a
@@ -971,8 +971,11 @@ export function convertRepeatsToLists({
             const coordinates = xs.component.children.filter(
                 (child) => typeof child !== "string" || child.trim() !== "",
             );
+            // A point of one coordinate is sized by that coordinate's value
+            // (`<point>(<math>($v, 2)</math>)</point>` is `(1, 2)`), which
+            // an entry, sized by the coordinates written, is not (#2221).
             if (
-                coordinates.length === 0 ||
+                coordinates.length < 2 ||
                 !coordinates.every(
                     (coordinate) =>
                         typeof coordinate !== "string" &&
@@ -1388,10 +1391,9 @@ export function convertRepeatsToLists({
         if (created?.type !== "primitive") {
             return false;
         }
-        const type =
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                String(created.primitive.value).toLowerCase()
-            ];
+        const type = componentInfoObjects.componentTypeAsWritten(
+            String(created.primitive.value),
+        );
         return (
             type !== undefined &&
             componentInfoObjects.isInheritedComponentType({

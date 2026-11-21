@@ -1,6 +1,10 @@
 import BooleanComponent from "./Boolean";
 
-import { evaluateLogic } from "../utils/booleanLogic";
+import {
+    childByCodeMissing,
+    evaluateLogic,
+    logicTreeMissing,
+} from "../utils/booleanLogic";
 
 export default class When extends BooleanComponent {
     static componentType = "when";
@@ -161,6 +165,26 @@ export default class When extends BooleanComponent {
                     // if don't have parsed expression
                     // (which could occur if have no children or if have invalid form)
                     // return false
+                    return {
+                        setValue: {
+                            conditionSatisfied: false,
+                            value: false,
+                            fractionSatisfied: 0,
+                        },
+                    };
+                }
+
+                // A condition computed from a missing operand is missing
+                // (`computedFromMissing`), and a missing condition gives no
+                // credit (D40, #2460): `<when>not $nothing</when>` is not
+                // satisfied, nor is `<when>$nothing or true</when>`.
+                if (
+                    logicTreeMissing({
+                        logicTree: dependencyValues.parsedExpression.tree,
+                        isMissingCode: (code) =>
+                            childByCodeMissing(dependencyValues, code),
+                    })
+                ) {
                     return {
                         setValue: {
                             conditionSatisfied: false,

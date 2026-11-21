@@ -661,7 +661,7 @@ describe("PeriodicSet tag tests @group3", async () => {
     <p name="offset_p">Enter the offsets:
       <setup><sequence name="seq" length="$number_offsets" /></setup>
       <repeat name="mis" for="$seq">
-        <mathInput />
+        <mathInput name="mi" />
       </repeat>
     </p>
 
@@ -739,22 +739,22 @@ describe("PeriodicSet tag tests @group3", async () => {
 
         await updateMathInputValue({
             latex: "30",
-            componentIdx: await resolvePathToNodeIdx("mis[1][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[1].mi"),
             core,
         });
         await updateMathInputValue({
             latex: "150",
-            componentIdx: await resolvePathToNodeIdx("mis[2][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[2].mi"),
             core,
         });
         await updateMathInputValue({
             latex: "210",
-            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3].mi"),
             core,
         });
         await updateMathInputValue({
             latex: "211",
-            componentIdx: await resolvePathToNodeIdx("mis[4][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[4].mi"),
             core,
         });
         await submitAnswer({
@@ -779,7 +779,7 @@ describe("PeriodicSet tag tests @group3", async () => {
         // correct answer
         await updateMathInputValue({
             latex: "-30",
-            componentIdx: await resolvePathToNodeIdx("mis[4][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[4].mi"),
             core,
         });
         await submitAnswer({
@@ -839,7 +839,7 @@ describe("PeriodicSet tag tests @group3", async () => {
         // add in a duplicate
         await updateMathInputValue({
             latex: "330",
-            componentIdx: await resolvePathToNodeIdx("mis[5][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[5].mi"),
             core,
         });
         await submitAnswer({
@@ -864,27 +864,27 @@ describe("PeriodicSet tag tests @group3", async () => {
         // fill in with duplicates
         await updateMathInputValue({
             latex: "330",
-            componentIdx: await resolvePathToNodeIdx("mis[6][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[6].mi"),
             core,
         });
         await updateMathInputValue({
             latex: "330",
-            componentIdx: await resolvePathToNodeIdx("mis[7][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[7].mi"),
             core,
         });
         await updateMathInputValue({
             latex: "330",
-            componentIdx: await resolvePathToNodeIdx("mis[8][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[8].mi"),
             core,
         });
         await updateMathInputValue({
             latex: "330",
-            componentIdx: await resolvePathToNodeIdx("mis[9][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[9].mi"),
             core,
         });
         await updateMathInputValue({
             latex: "330",
-            componentIdx: await resolvePathToNodeIdx("mis[10][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[10].mi"),
             core,
         });
         await submitAnswer({
@@ -943,7 +943,7 @@ describe("PeriodicSet tag tests @group3", async () => {
 
         await updateMathInputValue({
             latex: "100",
-            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3].mi"),
             core,
         });
         await submitAnswer({
@@ -983,7 +983,7 @@ describe("PeriodicSet tag tests @group3", async () => {
 
         await updateMathInputValue({
             latex: "100",
-            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3].mi"),
             core,
         });
         await submitAnswer({
@@ -1087,7 +1087,7 @@ describe("PeriodicSet tag tests @group3", async () => {
 
         await updateMathInputValue({
             latex: "330",
-            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3].mi"),
             core,
         });
         await submitAnswer({
@@ -1156,7 +1156,7 @@ describe("PeriodicSet tag tests @group3", async () => {
 
         await updateMathInputValue({
             latex: "100",
-            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3].mi"),
             core,
         });
         await submitAnswer({
@@ -1180,7 +1180,7 @@ describe("PeriodicSet tag tests @group3", async () => {
 
         await updateMathInputValue({
             latex: "150",
-            componentIdx: await resolvePathToNodeIdx("mis[3][1]"),
+            componentIdx: await resolvePathToNodeIdx("mis[3].mi"),
             core,
         });
         await submitAnswer({

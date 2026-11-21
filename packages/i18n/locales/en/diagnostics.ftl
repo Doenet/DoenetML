@@ -122,6 +122,66 @@ variant-index-must-be-number = Variant index { $index } must be a number
 
 variant-index-must-be-integer = Variant index { $index } must be an integer
 
+# Translators: `variantsToInclude` and `variantsToExclude` ($attribute) are
+# attribute names and stay in English. $names lists the names written in
+# $attribute that are not variants, each already in backticks; $namesCount is
+# how many there are. $component is the tag whose variants they are
+# (`document`, `problem`, `section`, …). $numVariants is how many variants it
+# has, and $variants lists their names, each already in backticks, shortened
+# with `…` when there are many. $outcome is `allVariants` when
+# `variantsToInclude` names no variant at all, so every variant is included,
+# and `ignored` otherwise.
+variant-name-unknown = `{ $attribute }` names { $names }, which { $namesCount ->
+        [one] is not a variant
+       *[other] are not variants
+    } of this { $component ->
+        [document] document
+       *[other] `<{ $component }>`
+    }. { $numVariants ->
+        [one] Its one variant is named { $variants }.
+       *[other] Its { $numVariants } variants are named { $variants }.
+    } { $outcome ->
+        [allVariants] As `{ $attribute }` names no variant, every variant is included.
+       *[ignored] { $namesCount ->
+            [one] The name is ignored.
+           *[other] The names are ignored.
+        }
+    }
+
+# Translators: $attribute is an attribute of `<variantControl>`
+# (`numVariants`, `variantNames`, `seeds`, …), which stays in English. Each
+# reference (`$n`) written in it is ignored, since a document's variants are
+# decided before anything in it, so before a reference can be read; what is
+# written beside a reference is kept. Reported once for the attribute,
+# however many references it holds.
+variant-control-reference = `{ $attribute }` of `<variantControl>` holds a reference. A document's variants are decided before anything else in it, so references can't be read there and are ignored. Write the value itself.
+
+# Translators: `variantNames` stays in English. $names lists the names
+# written again, each already in backticks, as written the second time;
+# $namesCount is how many there are. Names are compared without case, so
+# `x` and `X` are the same name.
+variant-name-repeated = `variantNames` names { $names } again. Variant names are compared without case, so each must be different. { $namesCount ->
+        [one] The name is kept where it is first written, and the repeat is ignored.
+       *[other] Each name is kept where it is first written, and the repeats are ignored.
+    }
+
+# Translators: `variantsToExclude` and `variantsToInclude` stay in English.
+# $component is the tag whose variants they are (`document`, `problem`, …).
+# $withInclude is `yes` when `variantsToInclude` is written too.
+variants-all-excluded = `variantsToExclude` excludes every variant of this { $component ->
+        [document] document
+       *[other] `<{ $component }>`
+    }{ $withInclude ->
+        [yes] {" "}that `variantsToInclude` names
+       *[no] {""}
+    }, which leaves none. Every variant is included.
+
+# Translators: `<variantControl>`, `extend`, `copy` and `copyWithState` stay
+# in English. A document's variants are decided before anything else in it,
+# so a `<variantControl>` can't be made from another: the author must write
+# its attributes out.
+variant-control-made-from = A `<variantControl>` can't be made with `extend`, `copy` or `copyWithState`. A document's variants are decided before any reference in it can be read. Write the attributes on the `<variantControl>` itself.
+
 ## `<sideBySide>`
 
 # $component is `sideBySide` or `sbsGroup`.
@@ -437,6 +497,53 @@ reference-index-unavailable = Cannot reference index `{ $reference }`
 
 reference-index-selects-nothing = `{ $reference }`: an index cannot select anything in this `<{ $component }>`. An index selects among what a component makes, such as the entries of a list or the iterations of a repeat, not among the children of a component. To refer to a child, give it a name and write that name after a `.`.
 
+# An index after a `<group>` that holds several components, or none: `$g[2]`
+# on a `<group name="g">` holding two, or `$r[1][2]`, an index after an
+# iteration of a repeat that holds two. A group holding one component passes
+# the index to it (NAME-2); otherwise the reference names nothing, as an index
+# never selects one of a group's children.
+# $reference is the reference as the author wrote it, up to and including that
+# index, with its `$` (and, when the index ends it, the arguments of a function
+# reference: `$$f[2](2)`). $container is what the author wrote the group as:
+# `iteration` for an iteration of a repeat, `pick` for what a select picked,
+# `case` for what a `<conditionalContent>` shows, and `group` for a `<group>`;
+# $component is the tag name of that repeat, select or `<conditionalContent>`,
+# and `group` for a `<group>`. $count is how many components the group holds,
+# not counting blank text and `<setup>`s (any other text is one).
+# $child is `named` when the index is at a child with a name, `unnamed` when it
+# is at one with none, and `none` when the group has no child there;
+# $suggestion is the reference with that index replaced by `.` and the child's
+# name (or `x`, for a child with no name), followed by the arguments when
+# $reference has them. Tags, references and attributes stay as written.
+
+reference-index-selects-child =
+    { $container ->
+        [iteration] `{ $reference }` names nothing: this iteration of a `<{ $component }>` holds { $count ->
+            [0] no components
+            [one] one component
+           *[other] { $count } components
+        }, and an index passes into an iteration only when it holds one.
+        [pick] `{ $reference }` names nothing: what the `<{ $component }>` picked holds { $count ->
+            [0] no components
+            [one] one component
+           *[other] { $count } components
+        }, and an index passes into a pick only when it holds one.
+        [case] `{ $reference }` names nothing: what the `<{ $component }>` shows holds { $count ->
+            [0] no components
+            [one] one component
+           *[other] { $count } components
+        }, and an index passes into it only when it holds one.
+       *[group] `{ $reference }` names nothing: the `<group>` holds { $count ->
+            [0] no components
+            [one] one component
+           *[other] { $count } components
+        }, and an index passes into a group only when it holds one.
+    } An index never selects a child. { $child ->
+        [named] To refer to the child, write `{ $suggestion }`.
+        [unnamed] To refer to the child, give it a name, such as `name="x"`, and write `{ $suggestion }`.
+       *[none] To refer to a child, give it a name and write that name after a `.`.
+    }
+
 # An index on a component whose values are reached through one of its
 # properties rather than by indexing the component itself: `$ss[1]` on a
 # `<spreadsheet>`, whose cells are `$ss.cells[1][2]`. $reference is the
@@ -482,37 +589,150 @@ reference-index-past-instances =
 # branch that has no $name, and $ordinal which of its kind it is (1 for the
 # first case). $container is the name of the `<conditionalContent>` or
 # `<select>` when $hasName is "true", and its tag otherwise; DoenetML, so it
-# stays in English.
+# stays in English. $branch is `item` for a name after the `valueName` of a
+# `<repeat>` whose `for` holds items of several components (COLL-5), each
+# item being a branch, and $ordinal the item's place in the `for`; or
+# `someItem` when that place is not known when the document loads (an item
+# after anything in `for` other than a reference to a `<group>`, which may
+# give a number of items, or an order, decided as the document runs);
+# $container is then the `<repeat>`. An item that is an option or a case
+# is named as one, with $container the `<select>` or `<conditionalContent>`.
 
 reference-name-missing-in-branch = `{ $reference }` names nothing: { $branch ->
         [else] the `<else>`
         [option] option { $ordinal }
+        [item] item { $ordinal } of the `for`
+        [someItem] an item of the `for`
        *[case] case { $ordinal }
     } of { $hasName ->
         [true] `{ $container }`
        *[other] the `<{ $container }>`
     } has no `{ $name }`. Give it one, or use a name every { $branch ->
         [option] option
+        [item] item
+        [someItem] item
        *[other] case
     } has.
 
 # As `reference-name-missing-in-branch`, where two branches declare $name with
 # different tags, $firstType and $secondType, which stay in English. $branch is
-# `case` or `option`.
+# `case`, `option` or `item`.
 
 reference-name-types-differ-in-branches = `{ $reference }` names nothing: `{ $name }` is a `<{ $firstType }>` in one { $branch ->
         [option] option
+        [item] item of the `for`
        *[other] case
     } of { $hasName ->
         [true] `{ $container }`
        *[other] the `<{ $container }>`
     } and a `<{ $secondType }>` in another. Use the same type, or different names.
 
+# A property or an index after a `<select>` or `<conditionalContent>` whose
+# options or cases differ: some hold one component, to which it passes, and
+# others several, a container it does not pass into (#2520, D41). Decided at
+# load from every option or case. $reference is the reference as written,
+# with its `$`. $what is `index` or `property`. $branch is `option` or
+# `case`; $ordinals lists the options, or the cases (not the `<else>`), that
+# hold several, and $withElse is `true` when the `<else>` does too.
+# $container is the container's name when $hasName is `true`, else its tag
+# name. $suggestion (when $hasSuggestion is `true`) is the reference with
+# `.P` after the container and its first index. Tags, names and references
+# stay as written.
+
+reference-branches-hold-several = `{ $reference }`: { $what ->
+        [index] an index
+       *[property] a property
+    } after { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } passes into what { $branch ->
+        [option] each pick
+       *[case] the case shown
+    } holds only when it holds one component, and { $branch ->
+        [option] { $ordinalsCount ->
+            [one] option { $ordinals } holds
+           *[other] options { $ordinals } hold
+        }
+       *[case] { $withElse ->
+            [true] { $ordinalsCount ->
+                [0] the `<else>` holds
+                [one] case { $ordinals } and the `<else>` hold
+               *[other] cases { $ordinals } and the `<else>` hold
+            }
+           *[other] { $ordinalsCount ->
+                [one] case { $ordinals } holds
+               *[other] cases { $ordinals } hold
+            }
+        }
+    } several. { $hasSuggestion ->
+        [true] Give the component you mean a name in each, such as `name="P"`, and write `{ $suggestion }`.
+       *[other] Give the component you mean a name in each, and write that name after a `.`.
+    }
+
+# A property after a `<select>` or `<conditionalContent>` whose options or
+# cases each hold one component, where some of those components have the
+# property and others don't (D40, #2452): each that lacks it gives a blank.
+# Decided at load from every option or case. $reference is the reference as
+# written, with its `$`; $property the property and $lackingType the tag of a
+# component that lacks it, both as written. $container is the container's
+# name when $hasName is `true`, else its tag name. $branch is `option`,
+# `case`, or `item` (the items of a `<repeat>`, of types that differ through
+# its `for` or a `<conditionalContent>` in it). A name in only some options
+# or cases names nothing from outside
+# (`doenet-w0183`), so the message does not suggest reading one by name.
+
+reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $hasName ->
+        [true] `{ $container }`
+       *[other] the `<{ $container }>`
+    } has no property `{ $property }`, so it gives a blank there. For a value from each, give every { $branch ->
+        [option] option
+        [item] item
+       *[case] case
+    } a component that has `{ $property }`.
+
+# A property after a `<group>` that holds several components: `$g.x` on a
+# `<group name="g">` holding two points, `$r.x` or `$r[1].x` after a repeat
+# whose template holds two (said as "each item holds 2"; authors are not
+# told of iterations as groups), `$s.x` after a pick that holds two, or `$cc.x` after
+# the case a `<conditionalContent>` shows, holding two (D41). A group holding
+# one component stands for it, and the property is that component's; with
+# several, the group is only a container, and the reference names nothing
+# there. The group's own settings (`$g.hide`) are not this.
+# $reference is the reference as the author wrote it, with its `$`.
+# $container and $component are as for `reference-index-selects-child`:
+# `iteration`, `pick`, `case` or `group`, and the tag name of the repeat,
+# select or `<conditionalContent>` (`group` for a `<group>`). $count is how
+# many components the group holds, not counting blank text and `<setup>`s.
+# $child is `named` when the first child that has the property has a name,
+# `reference` when it is a reference written alone (`$Q`), which cannot take
+# a name, else `unnamed`; $tag is, for `reference`, that reference written as
+# a tag with a name (`<point extend="$Q" name="P"/>`); $suggestion is the
+# reference with that child's name (or `P`) put before the property. Tags,
+# references and attributes stay as written.
+reference-property-after-several =
+    { $container ->
+        [iteration] `{ $reference }` names nothing: what is written inside the `<{ $component }>` holds { $count } components, so each item holds { $count }, and a property applies to an item only when it is one component.
+        [pick] `{ $reference }` names nothing: what the `<{ $component }>` picked holds { $count } components, and a property passes into a pick only when it holds one.
+        [case] `{ $reference }` names nothing: what the `<{ $component }>` shows holds { $count } components, and a property passes into it only when it holds one.
+       *[group] `{ $reference }` names nothing: the `<group>` holds { $count } components, and a property passes into a group only when it holds one.
+    } { $child ->
+        [named] To read the property of a child, write `{ $suggestion }`.
+        [reference] To read the property of a child, write it as a tag with a name, such as `{ $tag }`, and write `{ $suggestion }`.
+       *[unnamed] To read the property of a child, give it a name, such as `name="P"`, and write `{ $suggestion }`.
+    }
+
 ## `<callAction>`
 
 # $action is the `actionName` the author asked for, part of the DoenetML
 # language, so it stays in English. $reference is the `target` as written.
 component-action-unavailable = Cannot call { $action } on component `{ $reference }`
+
+# An action (`<callAction>`, `<updateValue>`, $componentType) whose `target`,
+# $reference as written, is in content not shown now: a case of a
+# `<conditionalContent>` that is not true, or an iteration a repeat no longer
+# has. Content that is not shown acts as missing from outside, so the action
+# did nothing. The tag and attribute names stay in English.
+action-target-not-shown = The `<{ $componentType }>` did nothing: its `target`, `{ $reference }`, is not shown now.
 
 ## `<dataFrame>`
 
@@ -592,11 +812,23 @@ math-input-invalid-function-names = <mathInput>: ignored invalid function name(s
 # than by building a record: the thrower is caught, the component becomes an
 # `_error`, and the diagnostic is re-raised from it.
 
-component-type-invalid = Invalid component type: `<{ $componentType }>`
+# $suggestion (when $hasSuggestion is `true`) is the tag the one written
+# differs from only in case: tags are case-sensitive, with `copy` or `extend`
+# as without (D51). Tag names stay in English.
+component-type-invalid = Invalid component type: `<{ $componentType }>`{ $hasSuggestion ->
+        [true] . Did you mean `<{ $suggestion }>`?
+       *[other] {""}
+    }
 
 attribute-repeated = Cannot repeat attribute { $attribute }.
 
-attribute-invalid-for-component = Invalid attribute "{ $attribute }" for a component of type `<{ $componentType }>`.
+# $suggestion (when $hasSuggestion is `true`) is the attribute the one written
+# differs from only in case: attribute names are case-sensitive (D51).
+# Attribute and tag names stay in English.
+attribute-invalid-for-component = Invalid attribute "{ $attribute }" for a component of type `<{ $componentType }>`.{ $hasSuggestion ->
+        [true] {" "}Did you mean "{ $suggestion }"?
+       *[other] {""}
+    }
 
 ## Style definition contrast
 
@@ -757,7 +989,13 @@ composite-circular-dependency =
     }
 
 # $reference is the reference as the author wrote it, already carrying its `$`.
-reference-no-referent = No referent found for reference: `{ $reference }`
+# $suggestion (when $hasSuggestion is `true`) is the reference with its
+# property in the case the component has it: property names are
+# case-sensitive (D51), so `$P.X` names nothing and suggests `$P.x`.
+reference-no-referent = No referent found for reference: `{ $reference }`{ $hasSuggestion ->
+        [true] . Did you mean `{ $suggestion }`?
+       *[other] {""}
+    }
 
 reference-multiple-referents = Multiple referents found for reference: `{ $reference }`
 
@@ -778,14 +1016,63 @@ extend-attribute-ignored = The `{ $attribute }` attribute is ignored: a `<{ $com
 
 extend-children-ignored = Children written inside a `<{ $componentType }>` with `extend` are ignored: it shows the same content as the component it extends.
 
+# Children written inside a tag with `copy` (or `copyWithState`) are added to
+# those of what it copies, but some a $componentType doesn't use beside those:
+# a `<math>` beside the rows of a `<matrix>`, or a curve's functions beside its
+# `through` points. $componentType is DoenetML and stays in English, as does
+# `copy`.
+copy-children-ignored = A child written inside a `<{ $componentType }>` with `copy` is ignored: a `<{ $componentType }>` doesn't use it beside the children of what it copies.
+
+# The `target` of an `<updateValue>` is a container of several things, which
+# has no one value to change (#2554, COLL-3): a `<group>` holding several
+# components ($container is `group`, and $count how many), or a `<repeat>` or
+# `<repeatForSequence>`, which makes an item for each iteration ($container is
+# `repeat`). $componentType is the action's tag name, $component the
+# container's, and $reference the target as the author wrote it, with its `$`.
+# Tag names and references stay as written.
+action-target-not-one-value = { $container ->
+        [repeat] The `<{ $componentType }>` does nothing: its `target`, `{ $reference }`, is a `<{ $component }>`, which makes an item for each iteration and has no one value. Name the component to change inside one item, as `{ $reference }[1].x` for a component named `x`.
+       *[group] The `<{ $componentType }>` does nothing: its `target`, `{ $reference }`, is a `<group>` of { $count } components, which has no one value. Name the component to change.
+    }
+
+# The LaTeX of an `<m>`, `<me>` or `<men>` ($component) is read as math, as a
+# `<math>` around it reads it (`<math><m>…</m></math>`, or `$mm.math`), but it
+# isn't math that can be read (`\text{hi}`), so the math is a blank (D46).
+# $latex is the LaTeX as written. The tags stay in English.
+latex-not-read-as-math = The LaTeX of this `<{ $component }>`, `{ $latex }`, can't be read as math, so the math made from it is a blank.
+
+# A `<math>` child of a `<matrix>` that the matrix doesn't use (#2546). A
+# matrix uses one `<math>` child, the last one written. $reason is `several`
+# when more than one `<math>` is written, so the earlier ones are ignored, and
+# `rows` when a `<math>` is written beside `<row>` or `<column>` children,
+# which give the matrix its entries instead. Tag names stay in English.
+matrix-math-child-ignored = { $reason ->
+        [rows] A `<math>` written beside the `<row>` or `<column>` children of a `<matrix>` is ignored: the rows or columns give the matrix its entries.
+       *[several] A `<matrix>` uses one `<math>` child, the last one written, so the others are ignored. To make one expression from several, write it in one `<math>`.
+    }
+
 # An attribute the component does not have, written on a component with
 # `copy`, `copyWithState` or `extend` (#2332), including one that names
 # nothing. The component is still shown, as what it copies, or as a blank; the
 # attribute does nothing. Written on the component without `copy` or `extend`,
 # the same attribute is an error (`attribute-invalid-for-component`).
 # $attribute and $componentType are an attribute name and an element name,
-# part of the DoenetML language, so they stay in English.
-copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` has no such attribute.
+# part of the DoenetML language, so they stay in English. $suggestion (when
+# $hasSuggestion is `true`) is the attribute the component does have that the
+# one written differs from only in case: names are case-sensitive (D51).
+copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` has no such attribute.{ $hasSuggestion ->
+        [true] {" "}Did you mean `{ $suggestion }`?
+       *[other] {""}
+    }
+
+# An attribute written in another case than the component's spelling
+# (`xmin` for `xMin`). Names are case-sensitive (D51), but for now the
+# attribute is still applied, under the component's spelling, with this
+# warning; in a later release it will be an error, as a misspelled attribute
+# is. $attribute is the name as written, $suggestion the component's spelling,
+# and $componentType the element name, all part of the DoenetML language, so
+# they stay in English.
+attribute-name-case = Attribute names are case-sensitive: write `{ $suggestion }`, not `{ $attribute }`, on a `<{ $componentType }>`. It is applied for now, but will be an error in a later release.
 
 # An info, not a warning: a list written as text (`<mathList>`, a list
 # attribute, the text of a `<sum>` or `<sort>`) whose brackets don't balance
@@ -796,6 +1083,15 @@ copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored
 # $componentType is an element name, part of the DoenetML language, so it
 # stays in English.
 list-brackets-unmatched = The brackets in the list of `<{ $componentType }>` don't all match, so they are ignored: the commas or spaces inside them separate entries like any others. To keep one inside an entry, balance the brackets, or, in a list written between tags, write its entries as children.
+
+# An editor hint, not a run-time diagnostic: in a list separated by spaces
+# (`<mathList>`, `<textList>` and the other list tags), a reference written
+# with no space beside other text or another reference is part of the one
+# entry they make together, so `2$a` is one entry and `2 $a` two (#2168,
+# D40). The hint points at the entry so an author can see where the list was
+# split. $entry is the entry as written and $componentType an element name;
+# both are DoenetML, so they stay in English.
+list-reference-joins-entry = `{ $entry }` is one entry of the `<{ $componentType }>`: a reference written with no space beside the text around it is part of the same entry. To make them separate entries, put a space between them.
 
 # An `extend` is the same component again: it shares its source's content and
 # state, so it can't change what the component makes or what its state can
@@ -822,11 +1118,29 @@ extend-choice-input-choices = Choices written inside an `extend` of a `<choiceIn
 
 extend-choice-input-shuffle-order = An `extend` of a `<choiceInput>` shares its selection with `{ $source }`, which counts the choices in the order `{ $source }` shows them, so it can't change `shuffleOrder`. To show the choices in a different order, use `copy`.
 
+# An `extend` of an `<answer>` shares its responses, credit and attempts
+# with its source ($source, the reference as written), so it can't change an
+# attribute that decides them ($attribute, its name as the `<answer>` declares
+# it, whatever case it is written in) (REF-7, D32).
+extend-answer-grading-attribute = An `extend` of an `<answer>` shares its responses and credit with `{ $source }`, which grades them, so it can't change `{ $attribute }`. To grade with a different `{ $attribute }`, use `copy`.
+
+# Inputs, awards or responses written inside an `extend` of an `<answer>`,
+# which shares its responses and credit with its source ($source, the
+# reference as written) (REF-7, D32). A label or description may be written.
+extend-answer-children = What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `{ $source }`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.
+
 extend-module-attribute = A `<module>` makes its content from its attributes. An `extend` shows the same content as `{ $source }`, so it can't change `{ $attribute }`. To make the module with a different `{ $attribute }`, use `copy`.
 
 # $componentType is `case`, `else` or `option`, and $parentType the tag it is
 # part of: `conditionalContent` or `select`.
 extend-part-of-choosing-tag = `<{ $componentType }>` is part of a `<{ $parentType }>`, and means something only there, so it can't be extended.
+
+# An `extend` or `copyWithState` ($how) of an `<award>` or a `<choice>`
+# ($componentType), which can only be copied (D42). Its state records the last
+# submission of the `<answer>` or `<choiceInput>` ($parentType) holding it, so
+# neither sharing that record nor starting from another one means anything.
+# $source is the reference as written, as `$aw`.
+extend-award-or-choice = `<{ $componentType }>` records the submissions of the `<{ $parentType }>` holding it, so it can't be made with `{ $how }`. Use `copy` to write it again here: `<{ $componentType } copy="{ $source }"/>`.
 
 ## A reference written as a different tag
 
@@ -894,6 +1208,21 @@ type-change-composite-not-one =
         }
     }
 
+# $componentType is a tag that makes its list of values itself from its
+# attributes, such as `<sequence>` or `<sampleRandomNumbers>`. Written with
+# `extend` or `copy`, it can be made only from one component of its own type,
+# and `$source` isn't always one: it holds several, or another type, or it
+# is a property or an entry of a list. $makes is `content` when
+# $componentType is a tag that makes its content itself, such as `<repeat>`,
+# `<select>` or `<collect>`, and `$source` is a property or an entry of a
+# property or a list (`$s.value`, `$l[2]`), which is a value, never such a tag
+# (#2546); otherwise it is `values`. The tags and `$source` are DoenetML and
+# stay in English.
+type-change-own-type-only = { $makes ->
+        [content] A `<{ $componentType }>` makes its content itself, so it can be made only from another `<{ $componentType }>`, and `{ $source }` is a value. To show it as it is, write `{ $source }`.
+       *[values] A `<{ $componentType }>` makes its values from its own attributes, so it can be made only from another `<{ $componentType }>`, and `{ $source }` isn't always one. To show it as it is, write `{ $source }`.
+    }
+
 # What `$source` holds can be of more than one type, $types, a list of tags
 # already joined (`<math>`, `<number>`). $isList is "true" when
 # $componentType is a list, such as `<mathList>`, which takes any number of
@@ -924,6 +1253,16 @@ type-change-index-names-nothing = `{ $source }` names nothing now, so this `<{ $
 # as a blank, until it holds one component again.
 type-change-composite-holds-nothing = `{ $source }` holds nothing now, so this `<{ $componentType }>` is missing until it holds one component.
 
+# `$source` is a property whose value is a list of values, each of the type
+# it is, such as the selected values of a `<choiceInput>` (`$ci`), and it
+# holds no value now ($holds is `none`) or $count values, two or more
+# ($holds is `several`), so the tag $componentType, made from one of them,
+# is missing, and shown as a blank, until it holds one (#2546).
+type-change-property-not-one-value = { $holds ->
+        [none] `{ $source }` holds no value now, so this `<{ $componentType }>` is missing until it holds one.
+       *[several] `{ $source }` holds { $count } values now, so this `<{ $componentType }>` is missing until it holds one.
+    }
+
 # $value is the value of `$source` now. $valueCheck says what it would have
 # to be: a tuple, such as (1, 2), for a point, vector or coords, or true or
 # false, a number or a relation, for a boolean.
@@ -934,6 +1273,12 @@ type-change-value-not-convertible =
     }
 
 ## Children that do not match
+
+# An attribute written with no value, such as `for=""` on a `<repeat>`, where
+# the attribute needs one: it is not a true/false attribute, for which an
+# empty value means true. $attribute is its name, as written, which is
+# DoenetML and stays in English.
+attribute-empty = The `{ $attribute }` attribute is empty, and it needs a value. Write one, as `{ $attribute }="…"`, or remove the attribute.
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.
 
@@ -1088,6 +1433,11 @@ component-name-invalid-start = Invalid component name "{ $name }". Names must st
 # $attribute is an attribute name an author wrote, beginning with `_`, which
 # is kept for the attributes DoenetML sets itself.
 attribute-name-invalid-start = Invalid attribute "{ $attribute }". Attribute names cannot start with an underscore.
+
+# A `<repeat>` or `<repeatForSequence>` ($componentType) whose `valueName` and
+# `indexName` are the same name, $name, so a reference to it finds both. The
+# tag and attribute names stay in English.
+repeat-value-name-is-index-name = `valueName` and `indexName` of `<{ $componentType }>` are both `{ $name }`. Give them different names.
 
 ## `<answer>` sugar
 
@@ -1709,6 +2059,79 @@ copy-with-state-adds-options =
        *[other] Adding a `<{ $childType }>` to a `copyWithState` of a `<{ $componentType }>` would change what it chooses, which a `copyWithState` keeps. Use `copy` to make a new `<{ $componentType }>` that chooses again.
     }
 
+# A random selection (a `<select>`, a `<selectFromSequence>`, ...) whose
+# parameter $attribute reads $reference, a reference as the author wrote it
+# (`$n`, `$P.x`), which reaches a `<{ $changeableType }>`. $kind is `sampler`
+# when that is a sampler (`<sampleRandomNumbers>`, ...), which draws again
+# when what it reads changes or when it is resampled, and `reader` otherwise:
+# something a reader can change, as an input, an answer, a slider, or
+# something a reader drags or writes to (a `<number>` a dragged point reads).
+# $componentType is the selection's own tag. A selection's parameters must
+# come from the DoenetML, so the selection is an error in every variant (D39,
+# SEL-1). The tags, attribute names and `indexName` stay in English.
+choice-parameter-reader-changeable =
+    { $kind ->
+        [sampler] `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, which reaches a `<{ $changeableType }>`, a sampler, which draws again when what it reads changes or when it is resampled. What a random selection chooses from must come from what the author wrote: literals, other random selections (not samplers), content that can't change, and a repeat's `indexName`.
+       *[other] `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, which reaches a `<{ $changeableType }>` that a reader can change. What a random selection chooses from must come from what the author wrote: literals, other random selections (not samplers), content that can't change, and a repeat's `indexName`.
+    }
+
+# A random selection that can't select as written for some value its
+# parameters can take, decided at load (SEL-5). $when names those values, as
+# "`$a` = 1, `$i` = 2" (references are DoenetML, and stay as written); for
+# $kind "unproven" it gives the values at which it can't be decided, or, when
+# the values were bounded instead, their ranges, as "`$i` ∈ {1, 2, 3, …}"
+# (it can't be decided for some values in them).
+# $attribute is the parameter that isn't a number, or, for $kind "letters",
+# the `from` or `to` of a letters sequence whose text isn't letters (as text
+# with space around a letter isn't) (DoenetML). $variantName is a variant
+# name as the author wrote it. For $kind "variantOptions", $reference is the
+# reference an option is copied with, as written (DoenetML), and $when is
+# empty.
+choice-not-always-possible =
+    { $kind ->
+        [values] `<{ $componentType }>` can't always select as written: when { $when }, it has { $numValues ->
+            [one] 1 value
+           *[other] { $numValues } values
+        } to select { $numToSelect } from.
+        [primes] `<{ $componentType }>` can't always select as written: when { $when }, it has { $numValues ->
+            [one] 1 prime
+           *[other] { $numValues } primes
+        } to select { $numToSelect } from.
+        [options] `<{ $componentType }>` can't always select as written: when { $when }, it has { $numValues ->
+            [one] 1 option
+           *[other] { $numValues } options
+        } to select { $numToSelect } from.
+        [coprime] `<{ $componentType }>` can't always select as written: when { $when }, no { $numToSelect } of its values have no common factor.
+        [combinations] `<{ $componentType }>` can't always select as written: when { $when }, every combination of { $numToSelect } values is excluded.
+        [variants] `<{ $componentType }>` can't always select as written: when { $when }, `numToSelect` is { $numToSelect }, but variant { $variantName } has { $numValues ->
+            [one] 1 option
+           *[other] { $numValues } options
+        }.
+        [number] `<{ $componentType }>` can't always select as written: when { $when }, `{ $attribute }` isn't a number.
+        [letters] `<{ $componentType }>` can't always select as written: when { $when }, `{ $attribute }` isn't letters.
+        [variantOptions] DoenetML can't show that `<{ $componentType }>` can always select as written: the option it copies with `{ $reference }` can be a different option in each variant, so a variant may have no option for it, while another option names the variants it is for (`selectForVariants`). Copy an option that the DoenetML decides, or name no variants.
+       *[unproven] DoenetML can't show that `<{ $componentType }>` can always select as written: it can't decide whether it can when { $when }. Write its parameters so that it can, such as with `numToSelect` no larger than the fewest values it can have.
+    }
+
+# A parameter of a random selection that the load-time check can't analyse
+# (SEL-6). $part is what isn't analysable, as written (DoenetML). With
+# $through "component", it is inside the `<{ $throughType }>` that
+# $reference names.
+choice-parameter-not-analysable =
+    { $through ->
+        [component] `{ $attribute }` of `<{ $componentType }>` reads `{ $reference }`, a `<{ $throughType }>` holding `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to one value another random selection selects, a repeat's index or value, a module attribute, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
+       *[other] `{ $attribute }` of `<{ $componentType }>` reads `{ $part }`, which DoenetML can't analyse to show that the selection can always be made. A parameter can be a literal; a reference to one value another random selection selects, a repeat's index or value, a module attribute, or a `<number>`, `<integer>` or `<math>` of these; and these combined with `+`, `-`, `*`, `/`, `min`, `max`, `abs`, `floor`, `ceil` and `round`.
+    }
+
+# A random selection whose parameter $attribute (an attribute name, which
+# stays in English) isn't a number, or, with $kind "letters", isn't letters,
+# so it can't select as written (D39). $componentType is the tag.
+choice-parameter-not-a-number =
+    { $kind ->
+        [letters] `<{ $componentType }>` can't select as written: `{ $attribute }` isn't letters.
+       *[number] `<{ $componentType }>` can't select as written: `{ $attribute }` isn't a number.
+    }
+
 # A document loaded from a URI, $uri, has no reader state, so a
 # `copyWithState` of it has nothing to carry and is made as a `copy`.
 copy-with-state-of-uri = `copyWithState` of `{ $uri }` carries nothing more than `copy`, since a document loaded from a URI has no state. Write `copy`.
@@ -1717,3 +2140,103 @@ copy-with-state-of-uri = `copyWithState` of `{ $uri }` carries nothing more than
 # inside it, such as a `<module>` attribute that sets a nested `numToSelect`.
 # The choices copied with the state are kept, so it changes nothing there.
 copy-with-state-attribute-reaches-choice = `{ $attribute }` reaches a choice inside this `copyWithState`, which keeps the choices it copies, so it does not change them. Use `copy` to make the choices again.
+
+# A `<sort>` or `<shuffle>` ($component) whose items are of more than one
+# type (COLL-4, D41). $first and $second are two of the items found, each
+# described by a kind: "one", a component of the tag $first; "piece", the
+# text $firstPiece the author wrote, read as the tag $first; "group", a
+# `<group>` of $firstCount components; or "item", the items of the
+# collection $first (`repeat`, `select`, `conditionalContent`), each holding
+# $firstCount components. Likewise for $second. $suggestType is `yes` when
+# one of them is text the author wrote and the other a number, math or text,
+# so that `type` (how to read the text) can make them one type; it can't
+# beside a `<p>`, a point, a boolean or a group. $wrap says how to make them
+# one type when one is content an author may take for a value (D46): `m`, an
+# `<m>` ($mTag: `m`, `me` or `men`) beside a math, which a `<math>` around it
+# reads as math; `label`, a `<label>` beside a text, which a `<text>` around it
+# reads as text; `no` otherwise. $mTag is `m` when $wrap isn't `m`.
+reorder-items-of-several-types = `<{ $component }>` takes items of one type, but it has { $firstKind ->
+        [group] a `<group>` of { $firstCount } components
+        [item] the items of a `<{ $first }>` (each of { $firstCount } components)
+        [piece] `{ $firstPiece }` (read as a `<{ $first }>`)
+       *[one] a `<{ $first }>`
+    } and { $secondKind ->
+        [group] a `<group>` of { $secondCount } components
+        [item] the items of a `<{ $second }>` (each of { $secondCount } components)
+        [piece] `{ $secondPiece }` (read as a `<{ $second }>`)
+       *[one] a `<{ $second }>`
+    }. Give each type a `<{ $component }>` of its own{ $suggestType ->
+        [yes] , or write `type` to say how to read the text
+       *[other] {""}
+    }.{ $wrap ->
+        [m] {" "}`<{ $mTag }>` shows LaTeX; it isn't a math. To sort or shuffle it with other maths, write `<math><{ $mTag }>…</{ $mTag }></math>` (or `<math>$mm</math>` for an `<{ $mTag }>` named `mm`), which reads its LaTeX as math.
+        [label] {" "}A `<label>` shows its content; it isn't a text. To sort or shuffle it with other texts, write `<text><label>…</label></text>` (or `<text>$l</text>` for a `<label>` named `l`), which reads it as text.
+       *[other] {""}
+    }
+
+# A `<sort>` or `<sortIndices>` ($component) of items with no value to
+# compare, with no `sortByProp` (COLL-4, D46): content ($kind `content`, as a
+# `<p>`), or objects other than points and vectors ($kind `object`, as an
+# `<atom>` or a `<line>`). $item is the tag of the first item. $suggestText is
+# `yes` for content with a `text` property, which `sortByProp="text"` sorts by.
+# `sortByProp` and the tags stay in English.
+sort-needs-sort-by-prop = `<{ $component }>` can't compare its items: { $kind ->
+        [content] `<{ $item }>` is content, with no value to sort by
+       *[object] `<{ $item }>` has no value to sort by
+    }. Add `sortByProp` naming the property to compare{ $suggestText ->
+        [yes] , as `<{ $component } sortByProp="text">` compares the text each one shows
+       *[other] , as `<{ $component } sortByProp="name">` does for a property `name`
+    }.
+
+# An `<answer>` reads a response from a `<conditionalContent>` that is of
+# one type, $firstType, in one case and of another, $secondType, in another
+# (TYPE-2, COMP-11): the response would change type as the case shown
+# changes, so it is an error at load, shown in place of the
+# `<conditionalContent>`. The tags stay in English.
+answer-responses-of-several-types = An `<answer>` reads a response from this `<conditionalContent>` that is a `<{ $firstType }>` in one case and a `<{ $secondType }>` in another, but a response has one type, decided from what is written. Give it one type in every case.
+
+# The `for` of a `<repeat>` holds items of one type (COLL-5, D44), decided
+# at load. $reason is `mix` for items of more than one type, the first two
+# described as in `reorder-items-of-several-types` ($firstKind, $first,
+# $firstCount, $firstPiece and the same for $second); or `type` when the
+# repeat says `type="$type"` and an item, described by the $first
+# arguments, is of another type. $suggestText is `yes` when text written in
+# `for` is beside a text, so `type="text"` would read the text as text.
+# `for`, `type` and the tags stay in English.
+repeat-for-items-of-several-types = { $reason ->
+        [type] This `<repeat>` says `type="{ $type }"`, so every item of its `for` is to be a { $type }, but `for` has { $firstKind ->
+            [group] a `<group>` of { $firstCount } components
+            [item] the items of a `<{ $first }>` (each of { $firstCount } components)
+            [piece] `{ $firstPiece }` (read as a `<{ $first }>`)
+           *[one] a `<{ $first }>`
+        }. Remove `type`, or give that item a `<repeat>` of its own.
+       *[mix] The `for` of a `<repeat>` holds items of one type, but it has { $firstKind ->
+            [group] a `<group>` of { $firstCount } components
+            [item] the items of a `<{ $first }>` (each of { $firstCount } components)
+            [piece] `{ $firstPiece }` (read as a `<{ $first }>`)
+           *[one] a `<{ $first }>`
+        } and { $secondKind ->
+            [group] a `<group>` of { $secondCount } components
+            [item] the items of a `<{ $second }>` (each of { $secondCount } components)
+            [piece] `{ $secondPiece }` (read as a `<{ $second }>`)
+           *[one] a `<{ $second }>`
+        }. Give each type a `<repeat>` of its own{ $suggestText ->
+            [yes] , or write `type="text"` to read the text written in `for` as text
+           *[other] {""}
+        }.
+    }
+
+# A `<sort>` or `<sortIndices>` ($component) of an item holding several
+# components, which has nothing to be compared by (COLL-4, D41). The item is
+# described by $itemKind: "group", a `<group>` of $itemCount components, or
+# "item", the items of the collection $item, each holding $itemCount
+# components. The message names what to write instead: a `<collect>` of the
+# components, of the tag $firstType of the first of them, or a name in each
+# item; and, for a `<sort>`, a `<shuffle>`, which keeps them together.
+sort-item-of-several = { $itemKind ->
+        [item] `<{ $component }>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort one component of each, name it (`<{ $component }>$r.n</{ $component }>` sorts the `n` of each item of `r`), or sort a `<collect>` of the components (`<collect componentType="{ $firstType }" from="$r"/>`).
+       *[group] `<{ $component }>` can't compare a `<group>` of { $itemCount } components. To sort its components, sort a `<collect>` of them (`<collect componentType="{ $firstType }" from="$g"/>` of a group `g`), or write them in the `<{ $component }>` without the group.
+    }{ $component ->
+        [sort] {" "}Use `<shuffle>` to keep each item's components together.
+       *[other] {""}
+    }

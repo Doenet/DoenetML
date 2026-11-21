@@ -83,6 +83,7 @@ const BROKEN_DOENETML: Record<string, string> = {
     "a name that does not start with a letter": `<p name="1st">hi</p>`,
     "a value outside the attribute's enumeration": `<p hide="maybe">hi</p>`,
     "a list value outside the attribute's enumeration": `<sideBySide valigns="top sideways" />`,
+    "a reference joined to the text beside it in a list": `<math name="a">y</math><mathList>2$a</mathList>`,
 };
 
 describe("Coded schema violations render to the English the checker wrote", () => {

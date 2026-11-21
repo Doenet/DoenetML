@@ -1940,7 +1940,7 @@ describe("Point tag tests @group4", async () => {
             doenetML: `
 <graph>
     <point name="P" xs="3.1 -3.4">
-        <attractToGrid includeGridLines/>
+        <attractToGrid includeGridlines/>
     </point>
 </graph>
   `,
@@ -2011,7 +2011,7 @@ describe("Point tag tests @group4", async () => {
 
 <graph>
     <point name="P" xs="-7.1 8.9">
-        <attractToGrid dx="$dx" dy="$dy" xoffset="$xoffset" yoffset="$yoffset" xThreshold="$xThreshold" yThreshold="$yThreshold" />
+        <attractToGrid dx="$dx" dy="$dy" xoffset="$xoffset" yoffset="$yoffset" xthreshold="$xThreshold" ythreshold="$yThreshold" />
     </point>
 </graph>
 
@@ -2120,7 +2120,7 @@ describe("Point tag tests @group4", async () => {
 
 <graph grid="3 3" xMin="-8.5" xMax="8.5" yMin="-8.5" yMax="8.5">
     <point name="P" xs="-3.5 6.6">
-        <attractToGrid dx="3" dy="3" xThreshold="1" yThreshold="1" includeGridLines="$includeGridLines" />
+        <attractToGrid dx="3" dy="3" xthreshold="1" ythreshold="1" includeGridlines="$includeGridLines" />
     </point>
 </graph>
   `,

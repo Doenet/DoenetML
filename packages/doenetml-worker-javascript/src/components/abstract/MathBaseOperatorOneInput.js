@@ -1,5 +1,7 @@
 import MathComponent from "../Math";
+import me from "math-expressions";
 import { renameStateVariable } from "../../utils/stateVariables";
+import { holdsBlank, holdsNaN } from "../../utils/missing";
 
 export default class MathOperatorOneInput extends MathComponent {
     static componentType = "_mathOperatorOneInput";
@@ -44,13 +46,22 @@ export default class MathOperatorOneInput extends MathComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                return {
-                    setValue: {
-                        unnormalizedValue: dependencyValues.mathOperator(
-                            dependencyValues.value,
-                        ),
-                    },
-                };
+                const unnormalizedValue = dependencyValues.mathOperator(
+                    dependencyValues.value,
+                );
+                // A `NaN` caused by a missing or blank input is missing (D40,
+                // VAL-5, #2460): `<clampNumber>$nothing</clampNumber>` is
+                // `＿`. A `NaN` from a present input
+                // (`<clampNumber>x</clampNumber>`) stays.
+                if (
+                    holdsBlank(dependencyValues.value) &&
+                    holdsNaN(unnormalizedValue)
+                ) {
+                    return {
+                        setValue: { unnormalizedValue: me.fromAst("\uff3f") },
+                    };
+                }
+                return { setValue: { unnormalizedValue } };
             },
             inverseDefinition: function ({
                 desiredStateVariableValues,

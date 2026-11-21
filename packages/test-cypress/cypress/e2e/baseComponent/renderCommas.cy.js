@@ -157,6 +157,9 @@ $fi.iterates
 
     it("dynamically change index resolutions with reference inside composite", () => {
         // Note: this tests the DOM, corresponding to test of same name in `extend_references.test.ts`
+        // An index after a `<group>` names nothing (D27), whatever it holds;
+        // an iteration whose whole content is one reference to a list
+        // selects among the list's entries, which change as the list does.
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -168,19 +171,15 @@ $fi.iterates
     <section name="sec1">
         <p name="p"><group name="g" asList>-6 $s-8</group></p>
 
-        <p extend="$p" name="p2" />
-
-        <p name="p3">3rd entry: $g[3], $p2.g[3]</p>
+        <p name="p3">3rd entry: $g[3]</p>
     </section>
 
     <section name="sec2">
-        <p name="p"><group name="g" asList><number>-6</number>$s<number>-8</number></group></p>
+        <repeatForSequence name="r" length="1">$s</repeatForSequence>
 
-        <p extend="$p" name="p2" />
-
-        <p name="p3">3rd entry: $g[3], $p2.g[3]</p>
+        <p name="p3">2nd entry: $r[1][2]</p>
+        <p extend="$p3" name="p4" />
     </section>
-    <text name="in_text">$ci.choiceTexts</text>
 
     `,
                 },
@@ -188,100 +187,34 @@ $fi.iterates
             );
         });
 
-        const pText = "-6, 1, -8";
-        cy.get(cesc("#sec1.p")).should("have.text", pText);
-        cy.get(cesc("#sec1.p2")).should("have.text", pText);
-        cy.get(cesc("#sec2.p")).should("have.text", pText);
-        cy.get(cesc("#sec2.p2")).should("have.text", pText);
-        cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: ＿, ＿");
-        cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: -8, -8");
-
-        // Add another replacement, shifting so that the third entry comes from the sequence
-        cy.get("#n" + " textarea")
-            .type("{end}{backspace}2{enter}", {
-                force: true,
-            })
-            .then(() => {
-                const pText = "-6, 1, 2, -8";
-                cy.get(cesc("#sec1.p")).should("have.text", pText);
-                cy.get(cesc("#sec1.p2")).should("have.text", pText);
-                cy.get(cesc("#sec2.p")).should("have.text", pText);
-                cy.get(cesc("#sec2.p2")).should("have.text", pText);
-                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: 2, 2");
-                cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: 2, 2");
-            });
-
-        // Remove all replacements, shifting so that there is no longer a third entry
-        cy.get("#n" + " textarea")
-            .type("{end}{backspace}0{enter}", {
-                force: true,
-            })
-            .then(() => {
-                const pText = "-6, -8";
-                cy.get(cesc("#sec1.p")).should("have.text", pText);
-                cy.get(cesc("#sec1.p2")).should("have.text", pText);
-                cy.get(cesc("#sec2.p")).should("have.text", pText);
-                cy.get(cesc("#sec2.p2")).should("have.text", pText);
-                cy.get(cesc("#sec1.p3")).should(
+        function check(n) {
+            const entries = [...Array(n).keys()].map((i) => i + 1);
+            // `p` and `p4` are unique names, so their ids are not qualified
+            // by the section, as `p3`, written in both, is
+            cy.get(cesc("#p")).should(
+                "have.text",
+                [-6, ...entries, -8].join(", "),
+            );
+            cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: ＿");
+            for (const name of ["#sec2.p3", "#p4"]) {
+                cy.get(cesc(name)).should(
                     "have.text",
-                    "3rd entry: ＿, ＿",
+                    `2nd entry: ${n >= 2 ? 2 : "＿"}`,
                 );
-                cy.get(cesc("#sec2.p3")).should(
-                    "have.text",
-                    "3rd entry: ＿, ＿",
-                );
-            });
+            }
+        }
 
-        // Add three replacements, so that third entry is again a number
-        cy.get("#n" + " textarea")
-            .type("{end}{backspace}3{enter}", {
-                force: true,
-            })
-            .then(() => {
-                const pText = "-6, 1, 2, 3, -8";
-                cy.get(cesc("#sec1.p")).should("have.text", pText);
-                cy.get(cesc("#sec1.p2")).should("have.text", pText);
-                cy.get(cesc("#sec2.p")).should("have.text", pText);
-                cy.get(cesc("#sec2.p2")).should("have.text", pText);
-                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: 2, 2");
-                cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: 2, 2");
-            });
+        check(1);
 
-        // Back to one replacements, so that third entry is back to a string for first section
-        cy.get("#n" + " textarea")
-            .type("{end}{backspace}1{enter}", {
-                force: true,
-            })
-            .then(() => {
-                const pText = "-6, 1, -8";
-                cy.get(cesc("#sec1.p")).should("have.text", pText);
-                cy.get(cesc("#sec1.p2")).should("have.text", pText);
-                cy.get(cesc("#sec2.p")).should("have.text", pText);
-                cy.get(cesc("#sec2.p2")).should("have.text", pText);
-                cy.get(cesc("#sec1.p3")).should(
-                    "have.text",
-                    "3rd entry: ＿, ＿",
-                );
-                cy.get(cesc("#sec2.p3")).should(
-                    "have.text",
-                    "3rd entry: -8, -8",
-                );
-            });
-
-        // Back to 2 replacements
-        cy.get("#n" + " textarea")
-            .type("{end}{backspace}2{enter}", {
-                force: true,
-            })
-            .then(() => {
-                const pText = "-6, 1, 2, -8";
-                cy.get(cesc("#sec1.p")).should("have.text", pText);
-                cy.get(cesc("#sec1.p2")).should("have.text", pText);
-                cy.get(cesc("#sec2.p")).should("have.text", pText);
-                cy.get(cesc("#sec2.p2")).should("have.text", pText);
-                cy.get(cesc("#sec1.p3")).should("have.text", "3rd entry: 2, 2");
-                cy.get(cesc("#sec2.p3")).should("have.text", "3rd entry: 2, 2");
-            });
+        for (const n of [2, 0, 3, 1]) {
+            cy.get("#n" + " textarea")
+                .type(`{end}{backspace}${n}{enter}`, {
+                    force: true,
+                })
+                .then(() => {
+                    check(n);
+                });
+        }
     });
 
     it("render commas around repeat inside document", () => {

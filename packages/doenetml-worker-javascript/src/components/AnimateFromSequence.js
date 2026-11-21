@@ -5,11 +5,17 @@ import {
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
 import me from "math-expressions";
+import {
+    compositeTargetsDependency,
+    pathOfTarget,
+    propertyWithIndices,
+    targetsAmongReplacements,
+} from "../utils/actionTargets";
 const { mod } = me.math;
 import { nanoid } from "nanoid";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
-import { missingTargetDecided } from "./UpdateValue";
+import { missingTargetDecided, noValueTargetLevel } from "./UpdateValue";
 
 export default class AnimateFromSequence extends BaseComponent {
     constructor(args) {
@@ -134,6 +140,10 @@ export default class AnimateFromSequence extends BaseComponent {
                     dependencyType: "stateVariable",
                     variableName: "step",
                 },
+                last: {
+                    dependencyType: "stateVariable",
+                    variableName: "last",
+                },
                 exclude: {
                     dependencyType: "stateVariable",
                     variableName: "exclude",
@@ -220,7 +230,14 @@ export default class AnimateFromSequence extends BaseComponent {
                             dependencyValues.selectedIndex - 1
                         ],
                     },
-                    setCreateComponentOfType: { value: dependencyValues.type },
+                    // `letters` is a way of writing text, not a component
+                    // type, as for a `<sequence>` (`sequenceEntryComponentType`)
+                    setCreateComponentOfType: {
+                        value:
+                            dependencyValues.type === "letters"
+                                ? "text"
+                                : dependencyValues.type,
+                    },
                 };
             },
             async inverseDefinition({
@@ -419,7 +436,10 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.targetIdentities = {
-            stateVariablesDeterminingDependencies: ["targetComponent"],
+            stateVariablesDeterminingDependencies: [
+                "targetComponent",
+                "unresolvedPath",
+            ],
             returnDependencies: function ({
                 stateValues,
                 componentInfoObjects,
@@ -432,25 +452,17 @@ export default class AnimateFromSequence extends BaseComponent {
                         dependencyType: "contentDecidedByDoenetML",
                         componentIdx: stateValues.targetComponent.componentIdx,
                     };
-                    if (
-                        componentInfoObjects.isCompositeComponent({
-                            componentType:
-                                stateValues.targetComponent.componentType,
-                            includeNonStandard: false,
-                        })
-                    ) {
-                        dependencies.targets = {
-                            dependencyType: "replacement",
-                            compositeIdx:
-                                stateValues.targetComponent.componentIdx,
-                            recursive: true,
-                        };
-                    } else {
-                        dependencies.targets = {
-                            dependencyType: "stateVariable",
-                            variableName: "targetComponent",
-                        };
-                    }
+                    // a composite or a wrapper, through which the target
+                    // reaches its component(s) (COLL-2, COLL-3)
+                    const fromReplacements = compositeTargetsDependency({
+                        targetComponent: stateValues.targetComponent,
+                        unresolvedPath: stateValues.unresolvedPath,
+                        componentInfoObjects,
+                    });
+                    dependencies.targets = fromReplacements ?? {
+                        dependencyType: "stateVariable",
+                        variableName: "targetComponent",
+                    };
                 }
                 return dependencies;
             },
@@ -460,6 +472,9 @@ export default class AnimateFromSequence extends BaseComponent {
                     targetIdentities = dependencyValues.targets;
                     if (!Array.isArray(targetIdentities)) {
                         targetIdentities = [targetIdentities];
+                    } else {
+                        targetIdentities =
+                            targetsAmongReplacements(targetIdentities);
                     }
                 }
                 let diagnostics = [];
@@ -536,20 +551,18 @@ export default class AnimateFromSequence extends BaseComponent {
                     ] of stateValues.targetIdentities.entries()) {
                         let thisTarget;
 
-                        if (stateValues.unresolvedPath) {
-                            let propIndex = stateValues.propIndex;
-                            if (propIndex) {
-                                // make propIndex be a shallow copy
-                                // so that can detect if it changed
-                                // when update dependencies
-                                propIndex = [...propIndex];
-                            }
-
+                        const path = pathOfTarget(
+                            target,
+                            stateValues.unresolvedPath,
+                        );
+                        if (path) {
                             thisTarget = {
                                 dependencyType:
                                     "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
-                                unresolvedPath: stateValues.unresolvedPath,
+                                // what is left of the path after a name
+                                // resolved in each item (`$r.mi.value`)
+                                unresolvedPath: path,
                                 // So that an index in the path that cannot be
                                 // applied is reported as the reference the
                                 // author wrote in `target`.
@@ -557,7 +570,6 @@ export default class AnimateFromSequence extends BaseComponent {
                                     stateValues.targetOriginalPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
                             };
@@ -585,6 +597,11 @@ export default class AnimateFromSequence extends BaseComponent {
                     targetIdentities: dependencyValues.targetIdentities,
                     targetsDecided: dependencyValues.targetsDecided,
                 });
+                const noValueLevel = noValueTargetLevel({
+                    targetComponent: dependencyValues.targetComponent,
+                    targetIdentities: dependencyValues.targetIdentities,
+                    targetsDecided: dependencyValues.targetsDecided,
+                });
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -603,21 +620,15 @@ export default class AnimateFromSequence extends BaseComponent {
                         }
                         targets.push(target);
                         if (Object.keys(target.stateValues)[0] === undefined) {
-                            if (dependencyValues.unresolvedPath) {
-                                let prop =
-                                    dependencyValues.unresolvedPath[0].name;
-                                if (
-                                    dependencyValues.unresolvedPath[0].index
-                                        .length > 0
-                                ) {
-                                    for (const idx of dependencyValues
-                                        .unresolvedPath[0].index) {
-                                        prop += `[idx]`;
-                                    }
-                                }
+                            const path = pathOfTarget(
+                                dependencyValues.targetIdentities[ind],
+                                dependencyValues.unresolvedPath,
+                            );
+                            if (path) {
+                                const prop = propertyWithIndices(path[0]);
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: "warning",
+                                        type: noValueLevel,
                                         code: "doenet-w0044",
                                         args: {
                                             source: "animateFromSequence",
@@ -629,7 +640,7 @@ export default class AnimateFromSequence extends BaseComponent {
                             } else {
                                 diagnostics.push(
                                     codedDiagnostic({
-                                        type: "warning",
+                                        type: noValueLevel,
                                         code: "doenet-w0044",
                                         args: {
                                             source: "animateFromSequence",

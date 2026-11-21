@@ -12,6 +12,25 @@ console.log = (...args) => {
 };
 
 describe("Normalize dast", async () => {
+    it("gives a fraction input its two boxes, unless it is made from another", () => {
+        expect(
+            toXml(normalizeDocumentDast(lezerToDast(`<fractionInput/>`))),
+        ).toEqual(
+            `<document><fractionInput><_fractionInputComponent part="numerator" /><_fractionInputComponent part="denominator" /></fractionInput></document>`,
+        );
+        // its source's boxes come with it (#2614 item 3)
+        for (const attribute of ["extend", "copy", "copyWithState"]) {
+            expect(
+                toXml(
+                    normalizeDocumentDast(
+                        lezerToDast(`<fractionInput ${attribute}="$f"/>`),
+                    ),
+                ),
+            ).toEqual(
+                `<document><fractionInput ${attribute}="$f" /></document>`,
+            );
+        }
+    });
     it("wraps a field's bare expression in a <function> child", () => {
         const dast = normalizeDocumentDast(
             lezerToDast(`<slopeField>y - x</slopeField>`),
@@ -599,23 +618,46 @@ describe("Normalize dast", async () => {
     it("detects rename conflicts case-insensitively", () => {
         // `MinValue` and `From` refer to the same canonical attribute; the
         // deprecated form must be dropped with a conflict warning, not silently
-        // co-exist with the canonical form.
+        // co-exist with the canonical form. (`From` is given its spelling,
+        // `from`, first, with a warning of its own: D51.)
         const source = `<selectPrimeNumbers MinValue="5" From="7" />`;
         const dast = lezerToDast(source);
         const normalized = normalizeDocumentDast(dast);
 
         expect(toXml(normalized)).toEqual(
-            '<document><selectPrimeNumbers From="7" /></document>',
+            '<document><selectPrimeNumbers from="7" /></document>',
         );
 
         const warnings = extractDastErrors(normalized).filter(
             (error) => error.error_type === "warning",
         );
         expect(warnings).toMatchObject([
+            { code: "doenet-w0197" },
             {
                 message:
                     "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated and ignored because `from` is also specified.",
             },
+        ]);
+    });
+
+    it("corrects the case of name, extend, copy and copyWithState on a tag the schema doesn't list", () => {
+        // D51: every tag has these four, and the resolver reads them before
+        // the core could correct them. Other attributes of such a tag are
+        // left as written, for the core.
+        const source = `<h Name="a" Copy="$b" Hide /><foo Extend="$c" CopyWithState="$d" />`;
+        const normalized = normalizeDocumentDast(lezerToDast(source));
+
+        expect(toXml(normalized)).toEqual(
+            '<document><h name="a" copy="$b" Hide="true" /><foo extend="$c" copyWithState="$d" /></document>',
+        );
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings.map((w) => w.code)).toEqual([
+            "doenet-w0197",
+            "doenet-w0197",
+            "doenet-w0197",
+            "doenet-w0197",
         ]);
     });
 
@@ -676,11 +718,11 @@ describe("Normalize dast", async () => {
         source = '<conditionalContent condition="a">b</conditionalContent>';
         dast = lezerToDast(source);
         expect(toXml(normalizeDocumentDast(dast))).toEqual(
-            '<document><conditionalContent><case condition="a"><group>b</group></case></conditionalContent></document>',
+            '<document><conditionalContent><case _madeBySugar="true" condition="a"><group>b</group></case></conditionalContent></document>',
         );
     });
 
-    it("Leaves a conditionalContent or repeat written with extend as written", () => {
+    it("Leaves a conditionalContent or repeat written with extend, or a childless copy, as written", () => {
         // An extend takes no content of its own, so the sugar is skipped,
         // so that what is written on it is reported as written, and a bare
         // one has no generated child (#2404).
@@ -694,8 +736,9 @@ describe("Normalize dast", async () => {
                 '<document><conditionalContent extend="$c" condition="a">b</conditionalContent></document>',
             ],
             [
+                // in another case, given its spelling first (D51)
                 '<conditionalContent Extend="$c"><else>b</else></conditionalContent>',
-                '<document><conditionalContent Extend="$c"><else>b</else></conditionalContent></document>',
+                '<document><conditionalContent extend="$c"><else>b</else></conditionalContent></document>',
             ],
             [
                 "<repeat extend='$r' valueName='v' indexName='i' />",
@@ -705,10 +748,21 @@ describe("Normalize dast", async () => {
                 "<repeatForSequence extend='$r' valueName='v' />",
                 '<document><repeatForSequence extend="$r" valueName="v" /></document>',
             ],
-            // a copy is sugared as before
+            // a copy with content of its own is sugared as before
             [
                 '<conditionalContent copy="$c" condition="a">b</conditionalContent>',
-                '<document><conditionalContent copy="$c"><case condition="a"><group>b</group></case></conditionalContent></document>',
+                '<document><conditionalContent copy="$c"><case _madeBySugar="true" condition="a"><group>b</group></case></conditionalContent></document>',
+            ],
+            // A copy with none keeps its `condition`, which is the condition
+            // of its source's one case, rather than adding an empty case of
+            // its own (#2217).
+            [
+                '<conditionalContent copy="$c" condition="a" />',
+                '<document><conditionalContent copy="$c" condition="a" /></document>',
+            ],
+            [
+                '<conditionalContent copyWithState="$c" condition="a"> </conditionalContent>',
+                '<document><conditionalContent copyWithState="$c" condition="a"> </conditionalContent></document>',
             ],
         ]) {
             const dast = lezerToDast(source);

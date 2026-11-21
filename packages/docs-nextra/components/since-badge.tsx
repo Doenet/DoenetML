@@ -8,9 +8,10 @@ import { UNRELEASED } from "../scripts/schema-history-keys";
  * Two kinds, and only one of them is visible by default:
  *
  *   - **In development** — in the working-tree schema but in no release. The
- *     docs site deploys from every push to `main`, so an author reading it is
- *     usually on an older release than the page describes; this is the marker
- *     that stops them writing a feature that silently does nothing.
+ *     docs site serves `main` at `/0.8/`, rebuilt on every push to it, so an
+ *     author reading it is usually on an older release than the page
+ *     describes; this is the marker that stops them writing a feature that
+ *     silently does nothing.
  *   - **Added in X** — released, and so true for most readers. It ships in the
  *     DOM but `app/style.css` hides it, because badging 1,800 items on a quiet
  *     page would say nothing to anyone. Carrying the version in `data-since`

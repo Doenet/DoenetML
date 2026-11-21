@@ -19,6 +19,9 @@ export default class SubsetOfRealsInput extends BlockComponent {
         });
     }
     static componentType = "subsetOfRealsInput";
+    // An input, which stands for what it holds: a `<subsetOfReals>`, an object, so it
+    // is of that object's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     static componentDocs = {
         summary:
@@ -56,7 +59,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             description: "Display width of the input.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
-            defaultValue: 800,
+            defaultValue: { size: 800, isAbsolute: true },
             public: true,
             forRenderer: true,
             excludeFromSchema: true,
@@ -65,7 +68,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             description: "Display height of the input.",
             createComponentOfType: "componentSize",
             createStateVariable: "height",
-            defaultValue: 300,
+            defaultValue: { size: 300, isAbsolute: true },
             public: true,
             forRenderer: true,
             excludeFromSchema: true,

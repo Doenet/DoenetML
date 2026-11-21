@@ -92,12 +92,12 @@ describe("MatchesPattern tag tests @group3", async () => {
   </matchesPattern></p>
   <p>Matches: <mathList extend="$requireNumeric.patternMatches" name="rnm" /></p>
 
-  <p>Require variable matches: <matchesPattern name="requireVariable" pattern="$pattern" requirevariableMatches>
+  <p>Require variable matches: <matchesPattern name="requireVariable" pattern="$pattern" requireVariableMatches>
     $expr
   </matchesPattern></p>
   <p>Matches: <mathList extend="$requireVariable.patternMatches" name="rvm" /></p>
 
-  <p>Variable except x: <matchesPattern name="excludeX" pattern="$pattern" excludeMatches="x" requirevariableMatches>
+  <p>Variable except x: <matchesPattern name="excludeX" pattern="$pattern" excludeMatches="x" requireVariableMatches>
     $expr
   </matchesPattern></p>
   <p>Matches: <mathList extend="$excludeX.patternMatches" name="exm" /></p>
@@ -326,12 +326,12 @@ describe("MatchesPattern tag tests @group3", async () => {
   </matchesPattern></p>
   <p>Matches: <mathList extend="$requireNumeric.patternMatches" name="rnm" /></p>
 
-  <p>Require variable matches: <matchesPattern name="requireVariable" pattern="$pattern" requirevariableMatches>
+  <p>Require variable matches: <matchesPattern name="requireVariable" pattern="$pattern" requireVariableMatches>
     $expr
   </matchesPattern></p>
   <p>Matches: <mathList extend="$requireVariable.patternMatches" name="rvm" /></p>
 
-  <p>Variable except x: <matchesPattern name="excludeX" pattern="$pattern" excludeMatches="x" requirevariableMatches>
+  <p>Variable except x: <matchesPattern name="excludeX" pattern="$pattern" excludeMatches="x" requireVariableMatches>
     $expr
   </matchesPattern></p>
   <p>Matches: <mathList extend="$excludeX.patternMatches" name="exm" /></p>

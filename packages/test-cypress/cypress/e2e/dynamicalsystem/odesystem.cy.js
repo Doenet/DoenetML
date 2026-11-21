@@ -28,7 +28,7 @@ describe("ODESystem Tag Tests", { tags: ["@group2"] }, function () {
 
     <p name="pVal">value at 1: $$f(1)</p>
 
-    <graph name="g" xmin="-2" xmax="20" ymin="-300" ymax="3200">
+    <graph name="g" xMin="-2" xMax="20" yMin="-300" yMax="3200">
       <function extend="$f" name="curve" />
     </graph>
     `,

@@ -668,9 +668,11 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                         if (i <= 6) {
                             cy.get(cesc(`#pm${i}`)).should(
                                 "have.text",
-                                `m${i}: , equation ???`,
+                                // an unnumbered row has no tag (`null`), so a
+                                // tag of it is missing (D40)
+                                `m${i}: ＿, equation ???`,
                             );
-                            cy.get(cesc(`#etm${i}`)).should("have.text", "");
+                            cy.get(cesc(`#etm${i}`)).should("have.text", "＿");
                             cy.get(cesc(`#rm${i}`)).should("have.text", `???`);
                             cy.get(cesc(`#rm${i}`)).click();
                             cy.url().should(
@@ -763,9 +765,11 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
                         if (i <= 6) {
                             cy.get(cesc(`#pn${i}`)).should(
                                 "have.text",
-                                `n${i}: , equation ???`,
+                                // an unnumbered row has no tag (`null`), so a
+                                // tag of it is missing (D40)
+                                `n${i}: ＿, equation ???`,
                             );
-                            cy.get(cesc(`#etn${i}`)).should("have.text", ``);
+                            cy.get(cesc(`#etn${i}`)).should("have.text", "＿");
                             cy.get(cesc(`#rn${i}`)).should("have.text", `???`);
                             cy.get(cesc(`#rn${i}`)).click();
                             cy.url().should(

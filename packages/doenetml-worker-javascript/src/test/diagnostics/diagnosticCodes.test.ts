@@ -291,9 +291,38 @@ describe("coded diagnostics reach the record @group4", () => {
         expect(warnings[0].message).eq(
             "Cannot reference index `$p.styleDescription[1]`",
         );
+        // the index as written, not a literal `[idx]` (#2614 item 9)
+        expect(warnings[1].args?.property).eq("styleDescription[1]");
         const { start, end } = warnings[0].position!;
         expect(doenetML.substring(start.offset, end.offset)).eq(
             `<updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />`,
+        );
+    });
+
+    // An index read from a reference is written as its value, each index
+    // after the property (#2614 item 9).
+    it("writes each index of a property no target has", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="p" /><number name="n">2</number>
+<updateValue name="uv" target="$p.foo[$n][3]" newValue="x" />`,
+        });
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
+
+        const w0044 = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0044",
+        );
+        expect(w0044.length).eq(1);
+        expect(w0044[0].args).eqls({
+            source: "updateValue",
+            property: "foo[2][3]",
+            component: "point",
+        });
+        expect(w0044[0].message).eq(
+            'Invalid target for `<updateValue>`: cannot find a state variable named "foo[2][3]" on a `<point>`.',
         );
     });
 
@@ -316,6 +345,7 @@ describe("coded diagnostics reach the record @group4", () => {
         expect(warnings[0].args).eqls({
             reference: "$p.styleDescription[1]",
         });
+        expect(warnings[1].args?.property).eq("styleDescription[1]");
     });
 
     // A copy of an `<updateValue>` is a replacement, and is no more a
@@ -384,10 +414,12 @@ describe("coded diagnostics reach the record @group4", () => {
     // the record is made, which is where a code is easiest to drop.
     it("codes a circular dependency a composite reports", async () => {
         const { core } = await createTestCore({
+            // A reference holding itself only for the value of an index, which
+            // the check at load leaves to the composite (#2473); a point whose
+            // label holds it as content is an error at load (#2515).
             doenetML: `
-<point name="a">(2,3)
-  <label><section>$a</section></label>
-</point>
+<mathInput name="n" prefill="2"/>
+<repeatForSequence name="r" length="2" valueName="v"><conditionalContent><case condition="$v=1"><text>one</text></case><else><p>hi [$r[$n]]</p></else></conditionalContent></repeatForSequence>
 `,
         });
 
@@ -419,27 +451,29 @@ describe("coded diagnostics reach the record @group4", () => {
 
     it("codes a reference resolved too late for the first pass", async () => {
         // Extending with an index defers resolution until core knows the
-        // group's replacements, so this warning is the worker's own rather
-        // than the one the Rust resolver raises for a plainly absent name.
-        // The resolver hands back `g` with the index still unresolved, so this
-        // is `RefResolutionDependency`'s *later* warning — the one for an
-        // expanded composite with no replacement at that index — and not the
-        // one the test below reaches. The reference is bare: written as a tag,
-        // `<text extend="$g[1]"/>`, it is `<text/>` with an info instead
-        // (`doenet-i0054`, D36).
+        // composite's replacements, so this warning is the worker's own
+        // rather than the one the Rust resolver raises for a plainly absent
+        // name. The resolver hands back `c` with the index still unresolved,
+        // so this is `RefResolutionDependency`'s *later* warning — the one for
+        // an expanded composite with no replacement at that index — and not
+        // the one the test below reaches. The composite is a
+        // `<conditionalContent>` showing no case: an index after a `<group>`
+        // is `doenet-w0188` instead (D27). The reference is bare: written as
+        // a tag, `<text extend="$c[1]"/>`, it is `<text/>` with an info
+        // instead (`doenet-i0054`, D36).
         const { core } = await createTestCore({
             doenetML: `
-<group name="g"></group>
-<p>$g[1]</p>
+<conditionalContent name="c" condition="false"><p>a</p></conditionalContent>
+<p>$c[1]</p>
 `,
         });
 
         const { warnings } = getDiagnosticsByType(core);
         expect(warnings.length).eq(1);
         expect(warnings[0].code).eq("doenet-w0104");
-        expect(warnings[0].args).eqls({ reference: "$g[1]" });
+        expect(warnings[0].args).eqls({ reference: "$c[1]" });
         expect(warnings[0].message).eq(
-            "No referent found for reference: `$g[1]`",
+            "No referent found for reference: `$c[1]`",
         );
     });
 

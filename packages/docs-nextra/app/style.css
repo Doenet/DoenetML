@@ -325,3 +325,39 @@ html.dark main .attr-filter-empty {
 html:not(.dark) main .nextra-callout.x\:text-yellow-700 {
     color: #854d0e;
 }
+
+/* ---------------------------------------------------------------------------
+ * Version switcher (components/version-switcher.tsx), shown in the navbar
+ * when the deploy builds more than one version of the docs.
+ * --------------------------------------------------------------------------- */
+.docs-version-switcher {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.875rem;
+}
+
+.docs-version-switcher select {
+    width: auto;
+    max-width: 12rem;
+    border: 1px solid rgb(209, 213, 219);
+    border-radius: 6px;
+    padding: 0.15rem 0.4rem;
+    background: transparent;
+    color: inherit;
+}
+
+html.dark .docs-version-switcher select {
+    border-color: rgb(75, 85, 99);
+}
+
+html.dark .docs-version-switcher select option {
+    background: rgb(17, 17, 17);
+}
+
+@media (max-width: 640px) {
+    .docs-version-switcher-label {
+        display: none;
+    }
+}

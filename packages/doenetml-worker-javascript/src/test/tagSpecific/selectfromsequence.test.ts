@@ -664,8 +664,11 @@ describe("SelectFromSequence tag tests @group4", async () => {
         ).eq(num2);
     });
 
-    it("select doesn't change dynamically", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
+    it("numToSelect and the range from an input are an error at load", async () => {
+        // What a selection chooses from can't come from an input
+        // (D39, SEL-1): an error at load in every variant, and the choice
+        // chooses nothing.
+        const { core } = await createTestCore({
             doenetML: `
     <mathInput prefill="5" name="numToSelect"/>
     <mathInput prefill="3" name="maxNum"/>
@@ -680,74 +683,8 @@ describe("SelectFromSequence tag tests @group4", async () => {
     </p>
     `,
         });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        let sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-        expect(sample1replacements.length).eq(5);
-        expect(sample2replacements.length).eq(2);
-        let sample1numbers = sample1replacements.map(
-            (x) => x.stateValues.value,
-        );
-        let sample2numbers = sample2replacements.map(
-            (x) => x.stateValues.value,
-        );
-
-        for (let num of sample1numbers) {
-            expect([1, 2, 3].includes(num)).eq(true);
-        }
-        for (let num of sample2numbers) {
-            expect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(num)).eq(true);
-        }
-
-        // Nothing changes when change mathInputs
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: await resolvePathToNodeIdx("numToSelect"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: await resolvePathToNodeIdx("maxNum"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "16",
-            componentIdx: await resolvePathToNodeIdx("numToSelect2"),
-            core,
-        });
-        await updateMathInputValue({
-            latex: "18",
-            componentIdx: await resolvePathToNodeIdx("maxNum2"),
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        sample1replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample1"),
-        );
-        sample2replacements = entriesOrReplacements(
-            core,
-            stateVariables,
-            await resolvePathToNodeIdx("sample2"),
-        );
-
-        expect(sample1replacements.map((x) => x.stateValues.value)).eqls(
-            sample1numbers,
-        );
-        expect(sample2replacements.map((x) => x.stateValues.value)).eqls(
-            sample2numbers,
-        );
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => e.code)).eqls(Array(2).fill("doenet-e0070"));
     });
 
     it("select doesn't resample in dynamic repeat", async () => {
@@ -1073,13 +1010,15 @@ describe("SelectFromSequence tag tests @group4", async () => {
     });
 
     it("select multiple numbers with excludeCombinations, handles round-off error", async () => {
-        // Third number selected will be 0.1*3, which isn't exactly 0.3 due to round off error.
-        // Even so, excluding 0.3 works successfully.
+        // The count, (0.3 - 0.1) / 0.1 + 1, is 2.9999999999999996, which is 3
+        // within floating point, so the third number is `to`, 0.3, not
+        // 0.1 + 0.1*2, 0.30000000000000004, which is past it. Excluding 0.3
+        // works.
         const doenetML = `<selectFromSequence from="0.1" to="0.3" step="0.1" numToSelect="2" excludeCombinations="(0.1 0.3) (0.2 0.3) (0.3 0.1)" name="s"/>`;
         const valid_combinations = [
             [0.1, 0.2],
             [0.2, 0.1],
-            [0.1 * 3, 0.2],
+            [0.3, 0.2],
         ];
         const componentName = "s";
 
@@ -1423,9 +1362,9 @@ describe("SelectFromSequence tag tests @group4", async () => {
       <textInput name="c4">$c2</textInput>
     </p>
     <p>
-      <boolean extend="$a.fixed" name="af" />
-      <boolean extend="$b.fixed" name="bf" />
-      <boolean extend="$c.fixed" name="cf" />
+      <boolean extend="$a[1].fixed" name="af" />
+      <boolean extend="$b[1].fixed" name="bf" />
+      <boolean extend="$c[1].fixed" name="cf" />
     </p>
     <p>
       <boolean extend="$a2.fixed" name="a2f" />
@@ -2564,25 +2503,68 @@ describe("SelectFromSequence tag tests @group4", async () => {
         expect(secondNumbers).eqls(originalNumbers);
     });
 
-    // Doenet/DoenetML#1665: an attribute that refers back to the selection
-    // cannot be evaluated until the selection is made, which in turn needs the
-    // attribute. Both cases exhausted the worker's heap before the fix; the
-    // document now fails the way any circular reference fails one. The wider
-    // family of self-referential attributes is in
-    // `src/test/diagnostics/circularReferences.test.ts`.
-    it("self-referential exclude is reported as circular", async () => {
-        await expect(
-            createTestCore({
-                doenetML: `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`,
-            }),
-        ).rejects.toThrow("Circular dependency involving these components");
+    it("a count within floating point of a whole number is that number", async () => {
+        // `(1000.3 - 1000) / 0.1 + 1` is 3.99999999999954 in floating point:
+        // 4 values, also when `from` and `to` read another selection
+        for (const doenetML of [
+            `<selectFromSequence name="s" from="1000" to="1000.3" step="0.1" numToSelect="4"/>`,
+            `<selectFromSequence name="t" from="1000" to="1001"/><selectFromSequence name="s" from="$t" to="$t+0.3" step="0.1" numToSelect="4"/>`,
+        ]) {
+            for (const requestedVariantIndex of [1, 2]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                });
+                const { errors, infos } = getDiagnosticsByType(core);
+                expect(errors, doenetML).eqls([]);
+                expect(
+                    infos.map((i) => i.code),
+                    doenetML,
+                ).not.toContain("doenet-e0036");
+                const s = (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("s")
+                ].stateValues;
+                expect(s.length).eq(4);
+                expect(s.selectedValues).toHaveLength(4);
+            }
+        }
+        // a count that isn't near a whole number is rounded down
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<selectFromSequence name="s" from="1" to="1.25" step="0.1"/>`,
+        });
+        expect(
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("s")
+            ].stateValues.length,
+        ).eq(3);
     });
 
-    it("self-referential sequence bound is reported as circular", async () => {
-        await expect(
-            createTestCore({
-                doenetML: `<selectFromSequence name="a" from="1" to="$a[1]" numToSelect="2"/>`,
-            }),
-        ).rejects.toThrow("Circular dependency involving these components");
-    });
+    // Doenet/DoenetML#1665: an attribute that refers back to the selection
+    // cannot be evaluated until the selection is made, which in turn needs the
+    // attribute. Both cases exhausted the worker's heap before the fix, and
+    // then stopped the document; the reference is now an error, decided when
+    // the document loads (#2473). The wider family of self-referential
+    // attributes is in `src/test/diagnostics/circularReferences.test.ts`.
+    for (const [description, doenetML, columns] of [
+        [
+            "self-referential exclude",
+            `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`,
+            "73-78",
+        ],
+        [
+            "self-referential sequence bound",
+            `<selectFromSequence name="a" from="1" to="$a[1]" numToSelect="2"/>`,
+            "43-48",
+        ],
+    ]) {
+        it(`${description} is reported as circular`, async () => {
+            const { core } = await createTestCore({ doenetML });
+            expect(
+                getDiagnosticsByType(core).errors.map(
+                    (e) =>
+                        `${e.code} ${e.position?.start.column}-${e.position?.end.column}`,
+                ),
+            ).eqls([`doenet-e0005 ${columns}`]);
+        });
+    }
 });

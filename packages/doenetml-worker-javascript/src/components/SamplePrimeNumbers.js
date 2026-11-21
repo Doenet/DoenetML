@@ -1,3 +1,4 @@
+import { drawsCarried, drawnFromParameters } from "../utils/randomNumbers";
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
 import { setUpVariantSeedAndRng } from "../utils/variants";
@@ -11,6 +12,23 @@ import ValueListComponent from "./abstract/ValueListComponent";
  * it is drawn again.
  */
 export default class SamplePrimeNumbers extends ValueListComponent {
+    /**
+     * A `copyWithState` carries the draws (CPY-8), so they are made before
+     * this is copied, as a copy made before they were would have none to
+     * carry and would draw its own (`drawsCarried`). A `copy` draws its own
+     * (D33). A linked copy (an `extend`) shows this one's draws as they are
+     * (`shadowVariable`), and nothing else serialized carries them, so they
+     * are not made early for those: made before what they are drawn from is
+     * all there, they would be drawn again once it is, and so after each
+     * reload.
+     */
+    async serialize(parameters = {}) {
+        if (parameters.copyAll && !parameters.withoutReaderState) {
+            await this.stateValues.sampledValues;
+        }
+        return await super.serialize(parameters);
+    }
+
     constructor(args) {
         super(args);
 
@@ -141,8 +159,20 @@ export default class SamplePrimeNumbers extends ValueListComponent {
         };
 
         stateVariableDefinitions.sampledValues = {
+            // the draws a `copyWithState` carried (`drawsCarried`)
+            provideEssentialValuesInDefinition: true,
+            providePreviousValuesInDefinition: true,
             shadowVariable: true,
             hasEssential: true,
+            // what the draws were made from, carried with them
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "drawnFrom",
+                    hasEssential: true,
+                    shadowVariable: true,
+                    defaultValue: null,
+                },
+            ],
             stateVariablesDeterminingDependencies: ["variantDeterminesSeed"],
             returnDependencies({ stateValues, sharedParameters }) {
                 let dependencies = {
@@ -174,11 +204,14 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                essentialValues,
+                previousValues,
             }) {
+                const drawnFrom = drawnFromParameters(dependencyValues);
                 if (dependencyValues.numSamples < 1) {
                     return {
-                        setEssentialValue: { sampledValues: [] },
-                        setValue: { sampledValues: [] },
+                        setEssentialValue: { sampledValues: [], drawnFrom },
+                        setValue: { sampledValues: [], drawnFrom },
                     };
                 }
 
@@ -187,10 +220,18 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                 // then don't resample the values but just use the current ones
                 if (
                     Object.keys(changes).length === 0 ||
-                    justUpdatedForNewComponent
+                    justUpdatedForNewComponent ||
+                    drawsCarried({
+                        essentialValues,
+                        previousValues,
+                        drawnFrom,
+                    })
                 ) {
                     return {
-                        useEssentialOrDefaultValue: { sampledValues: true },
+                        useEssentialOrDefaultValue: {
+                            sampledValues: true,
+                            drawnFrom: true,
+                        },
                     };
                 }
 
@@ -201,8 +242,8 @@ export default class SamplePrimeNumbers extends ValueListComponent {
                 });
 
                 return {
-                    setEssentialValue: { sampledValues },
-                    setValue: { sampledValues },
+                    setEssentialValue: { sampledValues, drawnFrom },
+                    setValue: { sampledValues, drawnFrom },
                 };
             },
             inverseDefinition({ desiredStateVariableValues }) {

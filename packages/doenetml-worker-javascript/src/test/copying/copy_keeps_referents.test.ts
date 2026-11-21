@@ -493,7 +493,7 @@ describe("A copy's references keep their referents @group4", () => {
     <number name="n">1</number>
     <booleanInput name="b" />
     <group name="g">
-        <repeat name="r" for="1 2" valueName="v"><p>$v $n</p></repeat>
+        <repeat name="r" for="1 2" valueName="v"><p name="p">$v $n</p></repeat>
         <conditionalContent name="cc">
             <case condition="$b"><p name="p">yes $n</p></case>
             <else><p name="p">no $n</p></else>
@@ -515,7 +515,7 @@ describe("A copy's references keep their referents @group4", () => {
         async function expectTexts(cc: string) {
             const expected: Record<string, string> = {};
             for (const g of groups) {
-                expected[`${g}.r[2][1]`] = "2 1";
+                expected[`${g}.r[2].p`] = "2 1";
                 expected[`${g}.cc.p`] = `${cc} 1`;
                 expected[`${g}.s[1].p`] = "a 1";
             }

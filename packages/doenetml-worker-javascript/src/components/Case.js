@@ -31,6 +31,14 @@ export default class Case extends BaseComponent {
             description:
                 "Boolean expression; this case is selected when the condition is true.",
         };
+        // Set by the parser, not by authors, on the case its
+        // `<conditionalContent>` sugar makes to hold content written with no
+        // `<case>`, and the `condition` written on the `<conditionalContent>`
+        // (`applyConditionToOnlyCase`, #2217).
+        attributes._madeBySugar = {
+            createPrimitiveOfType: "boolean",
+            excludeFromSchema: true,
+        };
 
         return attributes;
     }

@@ -1,36 +1,37 @@
 import { serializedAttributeComponent } from "../utils/literalAttribute";
-import { enumerateSelectionCombinations } from "@doenet/utils";
+import { selectionCombinationAtIndex } from "@doenet/utils";
 import {
     extractConstantSortAttribute,
     pushVariantInfo,
 } from "../utils/variants";
 import {
-    checkForExcludedCombination,
-    estimateNumberOfDuplicateCombinations,
-    estimateNumberOfNumberCombinationsExcluded,
-    mergeContainingNumberCombinations,
-} from "../utils/excludeCombinations";
+    excludedCombinationsOf,
+    primeSelectionFailure,
+    primeSpace,
+    notANumberFailure,
+    numToSelectNotANumber,
+} from "../utils/selectionFailure";
+import { estimateNumberOfNumberCombinationsExcluded } from "../utils/excludeCombinations";
 import { createPrimesList } from "../utils/primeNumbers";
 import { sampleFromNumberList } from "../utils/randomNumbers";
 import ValueListComponent from "./abstract/ValueListComponent";
 import {
     NO_SELECT_ERROR,
     choicesWrittenWithoutReference,
-    returnChoicesDecidedByDoenetMLDefinition,
     returnSelectErrorReportDefinition,
     selectError,
-    selectFailureType,
     selectionResult,
     keptSelection,
     NUM_TO_SELECT_VARIABLE,
     withNumToSelect,
     selectionWithRequested,
 } from "../utils/selectErrors";
+import { drawValidCombination } from "../utils/validCombinations";
 
 /**
- * The attributes that decide what a `<selectPrimeNumbers>` can select:
- * whether a failure to select is an error or a missing selection with an
- * info (`selectFailureType`, `choicesDecidedByDoenetML`).
+ * The attributes that decide what a `<selectPrimeNumbers>` can select. When
+ * all are written without a reference, a fresh load reproduces its
+ * selection (`choicesWrittenWithoutReference`).
  */
 const ATTRIBUTES_DECIDING_CHOICES = [
     "from",
@@ -214,27 +215,13 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             }),
             definition: function ({ dependencyValues }) {
                 if (dependencyValues.excludeCombinations !== null) {
-                    let excludedCombinations =
-                        dependencyValues.excludeCombinations.stateValues.lists
-                            .map((x) =>
-                                x.slice(0, dependencyValues.numToSelect),
-                            )
-                            .filter(
-                                (x) =>
-                                    x.length === dependencyValues.numToSelect,
-                            );
-
-                    while (true) {
-                        let result =
-                            mergeContainingNumberCombinations(
-                                excludedCombinations,
-                            );
-                        if (result.merged) {
-                            excludedCombinations = result.combinations;
-                        } else {
-                            break;
-                        }
-                    }
+                    // as the load-time check reads them
+                    // (`excludedCombinationsOf`)
+                    const excludedCombinations = excludedCombinationsOf(
+                        dependencyValues.excludeCombinations.stateValues.lists,
+                        dependencyValues.numToSelect,
+                        "number",
+                    );
 
                     return {
                         setValue: { excludedCombinations },
@@ -284,11 +271,6 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             },
         };
 
-        stateVariableDefinitions.choicesDecidedByDoenetML =
-            returnChoicesDecidedByDoenetMLDefinition({
-                attributeNames: ATTRIBUTES_DECIDING_CHOICES,
-            });
-
         stateVariableDefinitions.selectedValues = {
             immutable: true,
             hasEssential: true,
@@ -314,10 +296,6 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             ],
             returnDependencies: ({ sharedParameters }) => ({
                 ...selectionDependencies(),
-                choicesDecidedByDoenetML: {
-                    dependencyType: "stateVariable",
-                    variableName: "choicesDecidedByDoenetML",
-                },
                 variantRng: {
                     dependencyType: "value",
                     value: sharedParameters.variantRng,
@@ -604,12 +582,12 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             };
         }
 
-        let numbers = enumerateSelectionCombinations({
+        let numbers = selectionCombinationAtIndex({
             numberOfIndices: numToSelect,
             numberOfOptions: primes.length,
-            maxNumber: variantIndex,
             withReplacement,
-        })[variantIndex - 1];
+            index: variantIndex - 1,
+        });
         let values = numbers.map((x) => primes[x]);
         return { success: true, desiredVariant: { values } };
     }
@@ -694,34 +672,36 @@ function makeSelection({ dependencyValues, essentialValues }) {
 
 /** The selection a `<selectPrimeNumbers>` makes itself, given no choices. */
 function makeFreshSelection(dependencyValues) {
+    if (numToSelectNotANumber(dependencyValues.numToSelect)) {
+        const failure = notANumberFailure("selectPrimeNumbers", "numToSelect");
+        return selectionResult(selectError(failure), { selectedValues: null });
+    }
     if (dependencyValues.numToSelect < 1) {
         return selectionResult(NO_SELECT_ERROR, { selectedValues: [] });
     }
 
-    // An error when the DoenetML decides that nothing can be selected, and a
-    // missing selection with an info when a value does (D38, DIAG-7)
-    const type = selectFailureType(dependencyValues.choicesDecidedByDoenetML);
+    // Whether it can select is the test the load-time check makes for each
+    // value its parameters can take (`primeSelectionFailure`), decided
+    // before any draw (SEL-4, DIAG-7).
+    const failure = primeSelectionFailure(dependencyValues);
+    if (failure) {
+        const error = selectError({
+            code: failure.code,
+            args: failure.args,
+        });
+        return selectionResult(error, { selectedValues: null });
+    }
 
     let numUniqueRequired = 1;
     if (!dependencyValues.withReplacement) {
         numUniqueRequired = dependencyValues.numToSelect;
     }
 
-    let possibleValues = dependencyValues.possibleValues;
-    let numValues = possibleValues.length;
+    const possibleValues = dependencyValues.possibleValues;
 
-    if (numUniqueRequired > numValues) {
-        const error = selectError({
-            code: "doenet-e0047",
-            args: { numToSelect: numUniqueRequired, numValues },
-            type,
-        });
-        return selectionResult(error, { selectedValues: null });
-    }
-
-    let numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
+    const numCombinationsExcluded = estimateNumberOfNumberCombinationsExcluded({
         excludedCombinations: dependencyValues.excludedCombinations,
-        numValues,
+        numValues: possibleValues.length,
         withReplacement: dependencyValues.withReplacement,
         numToSelect: dependencyValues.numToSelect,
     });
@@ -736,46 +716,12 @@ function makeFreshSelection(dependencyValues) {
             rng: dependencyValues.variantRng,
         });
     } else {
-        let numPossibilities = numValues;
+        // The combinations to draw from (`primeSpace`), of which one is
+        // valid, as found above.
+        const space = primeSpace(dependencyValues);
 
-        if (dependencyValues.withReplacement) {
-            numPossibilities = Math.pow(
-                numPossibilities,
-                dependencyValues.numToSelect,
-            );
-        } else {
-            let n = numPossibilities;
-            for (let i = 1; i < dependencyValues.numToSelect; i++) {
-                numPossibilities *= n - i;
-            }
-        }
-
-        if (numCombinationsExcluded > 0.7 * numPossibilities) {
-            // As in `SelectFromSequence`: a combination naming NaN can name
-            // the same one twice, so the estimate is revised down before the
-            // threshold is believed. A count that survives — or one there was
-            // nothing to revise — is the same failure and the same code.
-            if (
-                dependencyValues.excludedCombinations.some((x) =>
-                    x.some(Number.isNaN),
-                )
-            ) {
-                numCombinationsExcluded -=
-                    estimateNumberOfDuplicateCombinations(
-                        dependencyValues.excludedCombinations,
-                        numValues,
-                        dependencyValues.withReplacement,
-                    );
-            }
-
-            if (numCombinationsExcluded > 0.7 * numPossibilities) {
-                const error = selectError({ code: "doenet-e0051", type });
-                return selectionResult(error, { selectedValues: null });
-            }
-        }
-
-        // with 200 chances with at least 70% success,
-        // prob of failure less than 10^(-30)
+        // Draw, and draw again when a combination is excluded. When most
+        // aren't, a few draws find one.
         let foundValidCombination = false;
         for (let sampnum = 0; sampnum < 200; sampnum++) {
             selectedValues = sampleFromNumberList({
@@ -785,26 +731,20 @@ function makeFreshSelection(dependencyValues) {
                 rng: dependencyValues.variantRng,
             });
 
-            // try again if hit excluded combination
-            if (
-                checkForExcludedCombination({
-                    type: "number",
-                    excludedCombinations: dependencyValues.excludedCombinations,
-                    values: selectedValues,
-                })
-            ) {
-                continue;
+            if (space.isValid(selectedValues)) {
+                foundValidCombination = true;
+                break;
             }
-
-            foundValidCombination = true;
-            break;
         }
 
         if (!foundValidCombination) {
-            // this won't happen, as occurs with prob < 10^(-30), and depends
-            // on the variant alone
-            const error = selectError({ code: "doenet-e0052", type: "info" });
-            return selectionResult(error, { selectedValues: null });
+            // The draws found none, so valid combinations are rare: draw
+            // among them exactly, so the select never fails by chance
+            // (SEL-4). One exists, as found above.
+            selectedValues = drawValidCombination({
+                ...space,
+                rng: dependencyValues.variantRng,
+            }).values;
         }
     }
 

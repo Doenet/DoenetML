@@ -15,7 +15,7 @@ re-tiles automatically as the user pans or zooms the graph.
 A `<pegboard/>{:dn}` does not, on its own, cause other graphical objects to snap. To make a
 `<point>{:dn}` snap to peg locations, pair the pegboard with an
 [`<attractToGrid/>`](attractToGrid) or [`<constrainToGrid/>`](constrainToGrid) constraint using the
-same `dx`, `dy`, `xOffset`, and `yOffset` values.
+same `dx`, `dy`, `xoffset`, and `yoffset` values.
 
 <AttrPropDisplay name='pegboard'/>
 
@@ -58,7 +58,7 @@ softly snaps to each peg as it is dragged near.
 ### Attribute Example: dx, dy
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>A pegboard with horizontal spacing 2 and vertical spacing 0.5</shortDescription>
   <pegboard dx="2" dy="0.5" />
 </graph>
@@ -73,7 +73,7 @@ spacings when modeling a domain whose axes carry different units.
 ### Attribute Example: xoffset, yoffset
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>A pegboard whose grid is shifted by half a unit in each direction</shortDescription>
   <pegboard dx="1" dy="1" xoffset="0.5" yoffset="0.5" />
 </graph>

@@ -200,6 +200,15 @@ export default class Award extends BaseComponent {
                 "References to components whose values should be treated as responses for this award.",
         };
 
+        // Set by the `<answer>` sugar, not by authors, on an `<award copy>`
+        // in an answer with no response, so that the references its copied
+        // children hold are potential responses, as those of the award
+        // written out are (ANS-2, CPY-1, `Answer.js`).
+        attributes._referencesArePotentialResponses = {
+            createPrimitiveOfType: "boolean",
+            excludeFromSchema: true,
+        };
+
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
             createStateVariable: "splitSymbols",
@@ -224,6 +233,9 @@ export default class Award extends BaseComponent {
     }
 
     static preprocessSerializedChildren({ serializedChildren, attributes }) {
+        if (attributes._referencesArePotentialResponses?.primitive?.value) {
+            addPotentialResponsesToReferences(serializedChildren);
+        }
         if (attributes.referencesAreResponses?.type === "references") {
             const references = attributes.referencesAreResponses.references
                 .filter((child) => child.componentType === "_copy")
@@ -1000,7 +1012,23 @@ function addResponsesToDescendantsWithReference(components, reference) {
                     let foundIsResponse = Object.keys(component.attributes)
                         .map((x) => x.toLowerCase())
                         .includes("isresponse");
-                    if (!foundIsResponse) {
+                    if (
+                        !foundIsResponse &&
+                        component.componentType === "_ref"
+                    ) {
+                        // A value reference resolves no attributes: it reads
+                        // its mark as a primitive (`ValueRef.js`). The
+                        // document makes one with the mark already
+                        // (`utils/dast/valueReferences.ts`), so this one is in
+                        // an award made by `copy`, or inside an extend of
+                        // what holds it, copied from the source award's
+                        // reference.
+                        component.attributes.isResponse = {
+                            type: "primitive",
+                            name: "isResponse",
+                            primitive: { type: "boolean", value: true },
+                        };
+                    } else if (!foundIsResponse) {
                         // Make it an unresolved attribute
                         // as the composite don't have the attribute isResponse
                         // but pass it on to their replacements
@@ -1019,6 +1047,40 @@ function addResponsesToDescendantsWithReference(components, reference) {
                     reference,
                 );
             }
+        }
+    }
+}
+
+/**
+ * Mark each reference among `components` that is not inside another reference
+ * a potential response (`isPotentialResponse`), as the `<answer>` sugar marks
+ * those of an award written out in an answer with no response
+ * (`addPotentialResponsesToReferenceDescendants` in `Answer.js`). Here they
+ * are those of an `<award copy>`, made from its source's.
+ */
+function addPotentialResponsesToReferences(components) {
+    for (const component of components) {
+        if (typeof component !== "object" || component === null) {
+            continue;
+        }
+        if (component.componentType === "_ref") {
+            // A value reference resolves no attributes: it reads its mark as
+            // a primitive (`ValueRef.js`).
+            component.attributes ??= {};
+            component.attributes.isPotentialResponse = {
+                type: "primitive",
+                name: "isPotentialResponse",
+                primitive: { type: "boolean", value: true },
+            };
+        } else if (component.componentType === "_copy") {
+            component.attributes ??= {};
+            component.attributes.isPotentialResponse = {
+                type: "unresolved",
+                name: "isPotentialResponse",
+                children: ["true"],
+            };
+        } else if (component.children) {
+            addPotentialResponsesToReferences(component.children);
         }
     }
 }

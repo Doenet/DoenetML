@@ -244,7 +244,7 @@ describe("chart line and scatter prefigure tests @group4", async () => {
             // And there is no measured horizontal extent to report.
             expect(
                 sv[await resolvePathToNodeIdx("bounds")].stateValues.text,
-            ).eq("NaN, NaN");
+            ).eq("＿, ＿");
         });
 
         it("prints the values of a line whose markers are off", async () => {
@@ -286,10 +286,10 @@ describe("chart line and scatter prefigure tests @group4", async () => {
             // categories say, so there is no measured extent to report.
             expect(
                 sv[await resolvePathToNodeIdx("catBounds")].stateValues.text,
-            ).eq("NaN, NaN");
+            ).eq("＿, ＿");
             expect(
                 sv[await resolvePathToNodeIdx("barBounds")].stateValues.text,
-            ).eq("NaN, NaN");
+            ).eq("＿, ＿");
         });
 
         it("honors xMin and xMax, and ignores a pair that describes no box", async () => {

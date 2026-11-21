@@ -11,6 +11,11 @@ export default class BestFitLine extends Line {
     };
     static rendererType = "line";
 
+    // It is fit to its `data`, not made through `through`: it is missing
+    // while a point of its data is (D40), rather than fit to the origin
+    // for it (`BaseComponent.missingWhenEntriesMissing`).
+    static missingWhenEntriesMissing = ["data"];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

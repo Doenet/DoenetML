@@ -11,6 +11,13 @@ export default class OrbitalDiagram extends BlockComponent {
 
     static componentType = "orbitalDiagram";
 
+    /**
+     * Its value is its one `<orbitalDiagram>` child, or else its first
+     * `<tupleList>`, so of one written on its copy and the source's, the last
+     * written wins (REF-4a, `addChildrenFromComposite`, #2486).
+     */
+    static childGroupsReadOnce = ["orbitalDiagrams", "tupleLists"];
+
     static componentDocs = {
         summary:
             "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes",

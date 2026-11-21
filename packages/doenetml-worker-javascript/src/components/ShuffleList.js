@@ -16,6 +16,10 @@ function shuffleListClass(Base) {
 
         static createsVariants = true;
 
+        static get collectionCompositeClass() {
+            return Shuffle;
+        }
+
         static createAttributesObject() {
             let attributes = super.createAttributesObject();
             attributes.type = Shuffle.createAttributesObject().type;

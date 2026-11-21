@@ -110,6 +110,8 @@ export default class Graph extends BlockComponent {
         });
     }
     static componentType = "graph";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A 2D coordinate-axis graph",
@@ -1795,14 +1797,10 @@ export default class Graph extends BlockComponent {
             },
         };
 
+        // Not a property (D45 decision 4): its type, a text or a list of
+        // numbers, would follow its value, and every property's type is
+        // decided from the DoenetML (TYPE). Public again if someone asks.
         stateVariableDefinitions.grid = {
-            description: "Grid line spacing on the graph.",
-            public: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-                addAttributeComponentsShadowingStateVariables:
-                    returnNumberDisplayAttributeComponentShadowing(),
-            },
             forRenderer: true,
             stateVariablesDeterminingDependencies: [
                 "gridAttrCompName",
@@ -1863,7 +1861,6 @@ export default class Graph extends BlockComponent {
                 if (!dependencyValues.gridAttrCompChildren) {
                     return {
                         setValue: { grid: "none" },
-                        setCreateComponentOfType: { grid: "text" },
                     };
                 }
 
@@ -1896,7 +1893,6 @@ export default class Graph extends BlockComponent {
 
                 const noGrid = () => ({
                     setValue: { grid: "none" },
-                    setCreateComponentOfType: { grid: "text" },
                     conditionDiagnostics: droppedAChild
                         ? []
                         : [
@@ -1919,7 +1915,6 @@ export default class Graph extends BlockComponent {
                 if (["medium", "dense", "none"].includes(grid)) {
                     return {
                         setValue: { grid },
-                        setCreateComponentOfType: { grid: "text" },
                         conditionDiagnostics: [],
                     };
                 }
@@ -1955,7 +1950,6 @@ export default class Graph extends BlockComponent {
 
                 return {
                     setValue: { grid },
-                    setCreateComponentOfType: { grid: "numberList" },
                     conditionDiagnostics: [],
                     sendDiagnostics: bracketsDiagnostics,
                 };

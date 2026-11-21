@@ -814,14 +814,13 @@ fn root_names_pass_through_an_iteration_holding_one_repeat() {
 
     // The iterations of `r`, each holding one `<repeat name="q">`
     let mut next_idx = flat_root.nodes.len();
-    let mut flat_fragment = flat_fragment_from_str(
+    let flat_fragment = flat_fragment_from_str(
         r#"<group><repeat name="q"><c/></repeat></group><group><repeat name="q"><c/></repeat></group>"#,
         next_idx,
         Some(r_idx),
     );
     let g1_idx = next_idx;
     let q1_idx = next_idx + 1;
-    mark_index_pass_through(&mut flat_fragment, &[g1_idx, next_idx + 3]);
     next_idx += flat_fragment.nodes.len();
     resolver.add_nodes(
         &flat_fragment,
@@ -832,7 +831,7 @@ fn root_names_pass_through_an_iteration_holding_one_repeat() {
     assert_eq!(table.get(&q1_idx), Some(&"r:1.q".to_string()));
 
     // The iterations of the first `q` are reached as `$r[1][1]` and `$r[1][2]`,
-    // and their children by the (deprecated) child indexing after that
+    // and the children of an iteration holding several by their place in it
     let flat_fragment = flat_fragment_from_str(
         r#"<group><d/></group><group><e/><f/></group>"#,
         next_idx,

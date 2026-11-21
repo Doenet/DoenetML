@@ -132,6 +132,9 @@ function distinctValues(values, numeric) {
 export class Tally extends CountingBaseListOperator {
     static componentType = "tally";
 
+    // The categories that turned up, documented as a property (`tally.mdx`).
+    static attributePropertiesKept = ["categories"];
+
     static componentDocs = {
         summary: "How many times each category appears in a list",
     };
@@ -279,25 +282,52 @@ export class Tally extends CountingBaseListOperator {
                         dependencyType: "stateVariable",
                         variableName: "countLabels",
                     },
+                    // Their type, decided from what is written when the
+                    // document loaded (TYPE, D45, `propertyTypesAtLoad.ts`):
+                    // with `categories` written, the type they are read as;
+                    // else a number when every value is a number by its tag.
+                    // A math is counted by its value, as a number when it is
+                    // one, but its category is a text, as its tag decides.
+                    propertyTypes: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "propertyTypes",
+                    },
                 },
             }),
             arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
                 const labels = globalDependencyValues.countLabels;
+                const type =
+                    globalDependencyValues.propertyTypes?.categories ??
+                    labels?.componentType ??
+                    "number";
                 const categories = {};
                 for (const arrayKey of arrayKeys) {
-                    categories[arrayKey] = labels?.values[arrayKey];
+                    categories[arrayKey] = categoryOfType(
+                        labels?.values[arrayKey],
+                        type,
+                    );
                 }
                 return {
                     setValue: { categories },
-                    setCreateComponentOfType: {
-                        categories: labels?.componentType ?? "number",
-                    },
+                    setCreateComponentOfType: { categories: type },
                 };
             },
         };
 
         return stateVariableDefinitions;
     }
+}
+
+/**
+ * A category `value`, as counted, held as the type `type` its categories are
+ * of: a number counted among numbers is the text it shows when they are
+ * texts.
+ */
+function categoryOfType(value, type) {
+    if (type === "text" && typeof value === "number") {
+        return String(value);
+    }
+    return value;
 }
 
 /**

@@ -35,7 +35,7 @@ describe("FunctionIterates tag tests @group2", async () => {
   Then</p>
   <ul>
   <repeatForSequence name="ls" length="$n" indexName="i">
-    <li><m>f^{$i}(u) = <math extend="$iterates[$i]" name="iter" /></m></li>
+    <li name="li"><m>f^{$i}(u) = <math extend="$iterates[$i]" name="iter" /></m></li>
   </repeatForSequence>
   </ul>
 
@@ -47,15 +47,15 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[1].li")].stateValues
                 .text,
         ).eq("f¹(u) = 3 a v");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[2].li")].stateValues
                 .text,
         ).eq("f²(u) = 3 a² v");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[3].li")].stateValues
                 .text,
         ).eq("f³(u) = 3 a³ v");
 
@@ -78,19 +78,19 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[1].li")].stateValues
                 .text,
         ).eq("f¹(u) = b w²");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[2].li")].stateValues
                 .text,
         ).eq("f²(u) = b³ w⁴");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[3].li")].stateValues
                 .text,
         ).eq("f³(u) = b⁷ w⁸");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[4].li")].stateValues
                 .text,
         ).eq("f⁴(u) = b¹⁵ w¹⁶");
 
@@ -103,19 +103,19 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[1].li")].stateValues
                 .text,
         ).eq("f¹(u) = b x²");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[2].li")].stateValues
                 .text,
         ).eq("f²(u) = b x²");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[3].li")].stateValues
                 .text,
         ).eq("f³(u) = b x²");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[4].li")].stateValues
                 .text,
         ).eq("f⁴(u) = b x²");
 
@@ -133,23 +133,23 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[1].li")].stateValues
                 .text,
         ).eq("f¹(u) = q + w");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[2].li")].stateValues
                 .text,
         ).eq("f²(u) = 2 q + w");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[3].li")].stateValues
                 .text,
         ).eq("f³(u) = 3 q + w");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[4].li")].stateValues
                 .text,
         ).eq("f⁴(u) = 4 q + w");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[5][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[5].li")].stateValues
                 .text,
         ).eq("f⁵(u) = 5 q + w");
     });
@@ -163,7 +163,7 @@ describe("FunctionIterates tag tests @group2", async () => {
   Then</p>
   <ul>
   <repeatForSequence name="ls" length="$n" indexName="i">
-    <li><m>f^{$i}(u) =  <math extend="$iterates[$i]" name="iter" displayDigits="10" /></m></li>
+    <li name="li"><m>f^{$i}(u) =  <math extend="$iterates[$i]" name="iter" displayDigits="10" /></m></li>
   </repeatForSequence>
   </ul>
 
@@ -175,15 +175,15 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[1].li")].stateValues
                 .text,
         ).eq("f¹(u) = 6");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[2].li")].stateValues
                 .text,
         ).eq("f²(u) = 18");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[3].li")].stateValues
                 .text,
         ).eq("f³(u) = 54");
 
@@ -206,19 +206,19 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[1].li")].stateValues
                 .text,
         ).eq("f¹(u) = 0.125");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[2].li")].stateValues
                 .text,
         ).eq("f²(u) = 0.03125");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[3].li")].stateValues
                 .text,
         ).eq("f³(u) = 0.001953125");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[4].li")].stateValues
                 .text,
         ).eq("f⁴(u) = 0.000007629394531");
 
@@ -234,19 +234,19 @@ describe("FunctionIterates tag tests @group2", async () => {
         // Ideally wouldn't have spaces in N a N, but get it from
         // parsing the latex of the `<m>` and converting to text
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[1].li")].stateValues
                 .text,
         ).eq("f¹(u) = N a N");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[2].li")].stateValues
                 .text,
         ).eq("f²(u) = N a N");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[3].li")].stateValues
                 .text,
         ).eq("f³(u) = N a N");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[4].li")].stateValues
                 .text,
         ).eq("f⁴(u) = N a N");
 
@@ -264,23 +264,23 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[1][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[1].li")].stateValues
                 .text,
         ).eq("f¹(u) = 5.25");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[2].li")].stateValues
                 .text,
         ).eq("f²(u) = 10.25");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[3].li")].stateValues
                 .text,
         ).eq("f³(u) = 15.25");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[4][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[4].li")].stateValues
                 .text,
         ).eq("f⁴(u) = 20.25");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ls[5][1]")].stateValues
+            stateVariables[await resolvePathToNodeIdx("ls[5].li")].stateValues
                 .text,
         ).eq("f⁵(u) = 25.25");
     });
@@ -692,5 +692,55 @@ describe("FunctionIterates tag tests @group2", async () => {
         for (const n of gIterates) {
             expect(n.stateValues.value.tree).eq("\uff3f");
         }
+    });
+
+    it("is a collection: shows its iterates as a list, and an index selects one (D41)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<function name="f">2x</function>
+<mathInput name="n" prefill="3"/>
+<p name="p1"><functionIterates name="fi" function="$f" initialValue="1" numIterates="$n"/></p>
+<p name="p2">$fi[2] $fi.numItems</p>
+<p name="p3">$fi</p>
+<p name="p4"><sum>$fi</sum></p>
+<p name="p5">$fi.iterates</p>
+<p name="p6">$fi.finalIterate</p>
+`,
+        });
+        async function texts() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, string> = {};
+            for (const name of ["p1", "p2", "p3", "p4", "p5", "p6"]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.text;
+            }
+            return result;
+        }
+        expect(await texts()).eqls({
+            p1: "2, 4, 8",
+            p2: "4 3",
+            p3: "2, 4, 8",
+            p4: "14",
+            p5: "2, 4, 8",
+            p6: "8",
+        });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        expect(await texts()).eqls({
+            p1: "2, 4, 8, 16",
+            p2: "4 4",
+            p3: "2, 4, 8, 16",
+            p4: "30",
+            p5: "2, 4, 8, 16",
+            p6: "16",
+        });
     });
 });

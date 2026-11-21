@@ -26,6 +26,12 @@ available actions are:
 - `navigateToTarget`: Navigates to a specified target, such as a reference link.
 - `copyDoenetMLToClipboard`: Copies the DoenetML of the target component to the clipboard.
 
+A target that is not shown now, such as one in a case of a
+[`<conditionalContent>{:dn}`](conditionalContent.mdx) that is not true, or in an
+iteration a repeat no longer has, acts as missing: the action does nothing, and
+the editor notes it. Actions triggered with it (`triggerWith`) do not run
+either. Once the target is shown again, the action reaches it.
+
 <AttrPropDisplay name='callAction'/>
 
 ## Examples

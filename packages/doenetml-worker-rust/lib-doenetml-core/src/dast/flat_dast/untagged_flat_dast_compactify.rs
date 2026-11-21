@@ -57,10 +57,8 @@ impl FlatNode {
     }
 
     /// Given `ref_index_map`, which is a vector of old indices to new indices,
-    /// rewrite all `Ref` nodes to point to the new indices. What an
-    /// `extending` resolved to is rewritten with `name_targets` instead
-    /// (`FlatRoot::compactify`).
-    fn shift_references(&mut self, ref_index_map: &[Index], name_targets: &[Index]) {
+    /// rewrite all `Ref` nodes to point to the new indices.
+    fn shift_references(&mut self, ref_index_map: &[Index]) {
         match self {
             FlatNode::Element(elm) => {
                 for child in elm.children.iter_mut() {
@@ -84,7 +82,7 @@ impl FlatNode {
 
                 // An element may have a special `extending` property that also needs fixing.
                 if let Some(extending) = &mut elm.extending {
-                    let new_idx = name_targets[extending.idx()];
+                    let new_idx = ref_index_map[extending.idx()];
                     extending.set_idx(new_idx);
 
                     // extending might also have indices that are references that also need fixing.
@@ -114,7 +112,7 @@ impl FlatNode {
                     resolution
                         .nodes_in_resolved_path
                         .iter_mut()
-                        .for_each(|idx| *idx = name_targets[*idx]);
+                        .for_each(|idx| *idx = ref_index_map[*idx]);
                 }
             }
             FlatNode::FunctionRef(function_ref) => {
@@ -162,21 +160,15 @@ impl FlatRoot {
     /// Indices are adjusted to reflect the new positions of the nodes.
     pub fn compactify(&mut self, resolver: Option<&mut Resolver>) {
         let mut is_referenced: Vec<bool> = std::iter::repeat_n(false, self.nodes.len()).collect();
-        // For a node in the arguments of a function reference that names
-        // nothing (`FlatError::input`), that reference, the outermost one if
-        // nested. The arguments are kept for the worker to report what is
-        // wrong in them (#2434), but nothing is made of them, so a name in
-        // them resolves to the reference, as it did when they were dropped.
-        let mut held_by: Vec<Option<Index>> = vec![None; self.nodes.len()];
         let mut to_visit = self
             .children
             .iter()
             .filter_map(|node| match node {
-                UntaggedContent::Ref(idx) => Some((*idx, None)),
+                UntaggedContent::Ref(idx) => Some(*idx),
                 _ => None,
             })
             .collect::<Vec<_>>();
-        while let Some((idx, holder)) = to_visit.pop() {
+        while let Some(idx) = to_visit.pop() {
             // Don't visit a node's children more than once.
             // This shouldn't ever happen if the children form a _tree_, but this
             // allows the algorithm to work on an arbitrary graph.
@@ -184,22 +176,12 @@ impl FlatRoot {
                 continue;
             }
             is_referenced[idx] = true;
-            held_by[idx] = holder;
             let node = &self.nodes[idx];
-            let child_holder = match node {
-                FlatNode::Error(_) => holder.or(Some(idx)),
-                _ => holder,
-            };
-            to_visit.extend(
-                node.all_references()
-                    .into_iter()
-                    .map(|child| (child, child_holder)),
-            );
+            to_visit.extend(node.all_references());
         }
 
-        // If every node is referenced, and every name resolves to its own
-        // node, we don't need to do anything.
-        if is_referenced.iter().all(|b| *b) && held_by.iter().all(Option::is_none) {
+        // If every node is referenced, we don't need to do anything.
+        if is_referenced.iter().all(|b| *b) {
             return;
         }
 
@@ -241,22 +223,12 @@ impl FlatRoot {
             })
             .collect::<Vec<_>>();
 
-        // Where a name, or a reference already expanded, resolves to.
-        let name_targets = old_to_new_indices
-            .iter()
-            .enumerate()
-            .map(|(old_idx, new_idx)| match held_by[old_idx] {
-                Some(holder) => old_to_new_indices[holder],
-                None => *new_idx,
-            })
-            .collect::<Vec<_>>();
-
         self.nodes.retain(|node| is_referenced[node.idx()]);
 
         // Shift the indices of all nodes and the references of the root node
         self.nodes
             .iter_mut()
-            .for_each(|node| node.shift_references(&old_to_new_indices, &name_targets));
+            .for_each(|node| node.shift_references(&old_to_new_indices));
         self.children.iter_mut().for_each(|node| {
             if let UntaggedContent::Ref(idx) = node {
                 *idx = old_to_new_indices[*idx];
@@ -264,7 +236,7 @@ impl FlatRoot {
         });
 
         if let Some(resolve) = resolver {
-            resolve.compactify(&is_referenced, &old_to_new_indices, &name_targets);
+            resolve.compactify(&is_referenced, &old_to_new_indices);
         }
     }
 }

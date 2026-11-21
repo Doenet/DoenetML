@@ -26,6 +26,7 @@ import {
 import { evaluateToNumber, isNumericConstant } from "../utils/math";
 
 export default class LineSegment extends GraphicalComponent {
+    static missingWhenEntriesMissing = ["endpoints"];
     constructor(args) {
         super(args);
 

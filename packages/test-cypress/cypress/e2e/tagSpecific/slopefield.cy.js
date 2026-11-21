@@ -74,7 +74,7 @@ describe("SlopeField and VectorField Tag Tests", { tags: ["@group2"] }, () => {
             win.postMessage(
                 {
                     doenetML: `
-    <graph name="g" xmin="-3" xmax="3" ymin="-3" ymax="3">
+    <graph name="g" xMin="-3" xMax="3" yMin="-3" yMax="3">
         <slopeField>y - x</slopeField>
     </graph>
     `,
@@ -107,7 +107,7 @@ describe("SlopeField and VectorField Tag Tests", { tags: ["@group2"] }, () => {
             win.postMessage(
                 {
                     doenetML: `
-    <graph name="g" xmin="-3" xmax="3" ymin="-3" ymax="3">
+    <graph name="g" xMin="-3" xMax="3" yMin="-3" yMax="3">
         <vectorField normalize>(y, -x)</vectorField>
     </graph>
     `,
@@ -142,7 +142,7 @@ describe("SlopeField and VectorField Tag Tests", { tags: ["@group2"] }, () => {
             win.postMessage(
                 {
                     doenetML: `
-    <graph name="g" xmin="-3" xmax="3" ymin="-3" ymax="3">
+    <graph name="g" xMin="-3" xMax="3" yMin="-3" yMax="3">
         <vectorField name="vf" variables="u v" normalize>(v, -u)</vectorField>
     </graph>
     `,

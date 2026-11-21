@@ -244,7 +244,7 @@ Reference pages double as a curriculum for how to write DoenetML well — so exa
 
 2. **Add `<shortDescription>` to graphs and other visual blocks** so the example also models accessibility. Place it as the first child of the `<graph>`:
    ```doenet
-   <graph xmin="-2" xmax="5" ymin="-2.2" ymax="4.5">
+   <graph xMin="-2" xMax="5" yMin="-2.2" yMax="4.5">
      <shortDescription>An interactive cobweb plot</shortDescription>
      ...
    </graph>

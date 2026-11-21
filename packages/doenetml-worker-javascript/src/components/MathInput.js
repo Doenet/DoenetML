@@ -25,7 +25,12 @@ import {
 } from "../utils/mathVectorMatrixStateVariables";
 import {
     buildInputResponseEvent,
+    ENTERED_BY_CORE,
+    enteringUpdateOptions,
     defineSubmitAnswerExternalAction,
+    immediateValueFollowsValue,
+    valueUnderEditVariable,
+    valueUnderEditRecord,
 } from "../utils/input";
 import {
     moveGraphicalObjectWithAnchorAction,
@@ -48,6 +53,10 @@ export default class MathInput extends Input {
         defineSubmitAnswerExternalAction(this);
     }
     static componentType = "mathInput";
+    // An edit not yet entered (`immediateValue`) is committed when the input
+    // is made, or shown again, unless it is the input the reader is editing
+    // (`Core.commitUnenteredEdits`, D50).
+    static holdsUnenteredEdit = true;
 
     static componentDocs = {
         summary: "An interactive math input",
@@ -491,6 +500,10 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "parseScientificNotation",
                 },
+                removeStrings: {
+                    dependencyType: "stateVariable",
+                    variableName: "removeStrings",
+                },
                 valueChanged: {
                     dependencyType: "stateVariable",
                     variableName: "valueChanged",
@@ -540,6 +553,8 @@ export default class MathInput extends Input {
                                                     dependencyValues.splitSymbols,
                                                 parseScientificNotation:
                                                     dependencyValues.parseScientificNotation,
+                                                removeStrings:
+                                                    dependencyValues.removeStrings,
                                             },
                                         ).expression;
                                     }
@@ -622,6 +637,11 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.immediateValue = {
+            // the saved edit, kept only if still the last (`valueUnderEdit`),
+            // which it defines, so that it can clear it when it follows its
+            // value (#2554 item 1)
+            provideEssentialValuesInDefinition: true,
+            additionalStateVariablesDefined: [valueUnderEditVariable()],
             description:
                 "The math value reflecting the user's in-progress edits.",
             public: true,
@@ -648,6 +668,8 @@ export default class MathInput extends Input {
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                justRestoredAtLoad,
+                essentialValues,
                 usedDefault,
             }) {
                 // console.log(`definition of immediateValue`)
@@ -656,21 +678,33 @@ export default class MathInput extends Input {
                 // console.log(`justUpdatedForNewComponent: ${justUpdatedForNewComponent}`)
 
                 if (
-                    changes.value &&
-                    !justUpdatedForNewComponent &&
-                    !usedDefault.value
+                    immediateValueFollowsValue({
+                        valueChanged: changes.value,
+                        valueUsedDefault: usedDefault.value,
+                        justUpdatedForNewComponent,
+                        justRestoredAtLoad,
+                        value: dependencyValues.value,
+                        valueUnderEdit: essentialValues.valueUnderEdit,
+                        savedImmediateValue: essentialValues.immediateValue,
+                    })
                 ) {
                     // only update to value when it changes
                     // (otherwise, let its essential value change)
                     return {
-                        setValue: { immediateValue: dependencyValues.value },
+                        setValue: {
+                            immediateValue: dependencyValues.value,
+                            valueUnderEdit: null,
+                        },
                         setEssentialValue: {
                             immediateValue: dependencyValues.value,
+                            // the value, not the reader's edit
+                            valueUnderEdit: null,
                         },
                     };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
+                            valueUnderEdit: true,
                             immediateValue: {
                                 defaultValue: dependencyValues.value,
                             },
@@ -680,6 +714,7 @@ export default class MathInput extends Input {
             },
             inverseDefinition: function ({
                 desiredStateVariableValues,
+                dependencyValues,
                 initialChange,
                 shadowedVariable,
             }) {
@@ -692,6 +727,13 @@ export default class MathInput extends Input {
                     {
                         setDependency: "immediateValueChanged",
                         desiredValue: true,
+                    },
+                    {
+                        setEssentialValue: "valueUnderEdit",
+                        value: valueUnderEditRecord({
+                            value: dependencyValues.value,
+                            edit: desiredStateVariableValues.immediateValue,
+                        }),
                     },
                 ];
 
@@ -961,7 +1003,7 @@ export default class MathInput extends Input {
             definition({
                 dependencyValues,
                 essentialValues,
-                justUpdatedForNewComponent,
+                justRestoredAtLoad,
                 usedDefault,
             }) {
                 // console.log(`definition of raw value for ${componentIdx}`)
@@ -972,7 +1014,11 @@ export default class MathInput extends Input {
                 if (
                     essentialValues.rawRendererValue === undefined ||
                     !(
-                        justUpdatedForNewComponent ||
+                        // A restored value is kept as the document loads. In
+                        // an input made from saved state later (a case shown
+                        // again), it is kept only if the value it showed is
+                        // still the value, as for `immediateValue` (#2325).
+                        justRestoredAtLoad ||
                         deepCompare(
                             essentialValues.lastValueForDisplay.tree,
                             dependencyValues.valueForDisplay.tree,
@@ -1286,8 +1332,10 @@ export default class MathInput extends Input {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        [ENTERED_BY_CORE]: enteredByCore,
     }) {
-        if (!(await this.stateValues.disabled)) {
+        // the core enters a disabled input's edit (`ENTERED_BY_CORE`)
+        if (enteredByCore || !(await this.stateValues.disabled)) {
             let immediateValue = await this.stateValues.immediateValue;
 
             if (
@@ -1329,6 +1377,7 @@ export default class MathInput extends Input {
                     },
                     {
                         updateType: "unsetComponentNeedingUpdateValue",
+                        componentIdx: this.componentIdx,
                     },
                 ];
 
@@ -1356,9 +1405,18 @@ export default class MathInput extends Input {
                     actionId,
                     sourceInformation,
                     skipRendererUpdate: false,
-                    event,
+                    ...enteringUpdateOptions(enteredByCore, event),
                 });
 
+                if (enteredByCore?.readOnly) {
+                    // no chained action is run under `readOnly`; the renderers
+                    // show the value
+                    return await this.coreFunctions.updateRenderers({
+                        actionId,
+                        sourceInformation,
+                        skipRendererUpdate,
+                    });
+                }
                 return await this.coreFunctions.triggerChainedActions({
                     componentIdx: this.componentIdx,
                     actionId,
@@ -1416,7 +1474,10 @@ function calculateMathExpressionFromLatex({
     if (removeStrings) {
         for (let s of removeStrings) {
             if (["$", "%"].includes(s)) {
-                s = "\\" + s;
+                // remove the escaped form (e.g., `\$`), which is what the
+                // renderer produces, as well as any unescaped form,
+                // which can come from a `prefillLatex`
+                latex = latex.replaceAll("\\" + s, "");
             }
             latex = latex.replaceAll(s, "");
         }

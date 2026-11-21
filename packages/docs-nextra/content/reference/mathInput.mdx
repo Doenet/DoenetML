@@ -394,6 +394,9 @@ behavior, the `hideNaN` attribute may be set to false.
 
 The `removeStrings` attribute allows Doenet to ignore elements of a user's input which cannot be parsed into a math.
 
+The strings are also removed from a `prefillLatex`, which is still displayed in full: `prefillLatex="\$10,000" removeStrings="$ ,"{:dn}` shows `$10,000` with value `10000`.
+A `prefill` is parsed as math before `removeStrings` applies, so use `prefillLatex` for a prefill containing strings to remove.
+
 
 
 ---

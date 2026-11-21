@@ -177,13 +177,22 @@ impl Resolver {
             }
 
             // Index edges are traversed after all name edges.
-            // An index after an iteration or a pick whose whole content is one indexable component
-            // passes to that component, so the index edges are that component's.
+            // An index after a group whose whole content is one component passes to that
+            // component, so the index edges are that component's.
+            // Only a component that produces instances does: any other (a `<math>`, a nested
+            // `<group>`) keeps the root name its place in the group gives it (`g:1`), as
+            // nothing else takes that name.
             let mut index_data = current_data;
             if let NodeOrRoot::Node(mut idx) = origin {
-                while let Some(child_idx) = self.pass_through_child(idx) {
+                while let Some(child_idx) = self.pass_through_child(idx, false) {
+                    let child_data = &self.node_resolver_data[child_idx + 1];
+                    if !child_data.index_kind.is_instances()
+                        || child_data.index_resolutions.is_empty()
+                    {
+                        break;
+                    }
                     idx = child_idx;
-                    index_data = &self.node_resolver_data[idx + 1];
+                    index_data = child_data;
                 }
             }
             for edge in index_data.index_resolutions.iter().enumerate().filter_map(

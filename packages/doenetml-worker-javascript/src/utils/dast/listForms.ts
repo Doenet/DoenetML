@@ -16,7 +16,7 @@ import { serializedAttributeComponent } from "../literalAttribute";
  *   of the types of `REORDERED_LIST_BASES`, or a list of them: an authored
  *   component, the text its sugar split into such components, a reference
  *   whose type the document gives, a list component, or a `<group>` of
- *   such children;
+ *   one such child (a group of several is moved as one item, COLL-4);
  * - and none is an `extend` or `copy`, or takes an attribute the list does
  *   not (`sortByProp`, or, for a `<collect>`, one it would pass on to the
  *   copies it makes, other than the display settings and `hide`).
@@ -125,6 +125,61 @@ const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {
     shuffle: new Set([...COPY_MECHANICS, "aslist"]),
 };
 
+/**
+ * Disable the pass, to compare a document with its `<collect>`, `<sort>` and
+ * `<shuffle>` built as lists and as composites in tests (COMP-4).
+ */
+let listFormsEnabled = true;
+export function setListFormsEnabled(enabled: boolean) {
+    listFormsEnabled = enabled;
+}
+
+/**
+ * Whether the `<collect>` `collect` is made a `_collectList` as written: it
+ * is no `extend` or `copy`, takes only the attributes the list does, and
+ * names, as `componentType`, one of the types of `COLLECT_LIST_BASES`. An
+ * `extend` or `copy` of it that sets more keeps it a composite, which this
+ * does not look at (`convertToListForms` does). A list collects the values of
+ * what it collects from as one array, so a reference to it, or to one of
+ * its entries, in what it collects from, reads itself
+ * (`referenceCycles.ts`).
+ */
+export function collectIsListFormAsWritten(
+    collect: SerializedComponent,
+    componentInfoObjects: ComponentInfoObjects,
+) {
+    if (
+        !listFormsEnabled ||
+        collect.componentType !== "collect" ||
+        collect.extending
+    ) {
+        return false;
+    }
+    const allowed = LIST_FORM_ATTRIBUTES.collect;
+    if (
+        !Object.keys(collect.attributes ?? {}).every((name) =>
+            allowed.has(name.toLowerCase()),
+        )
+    ) {
+        return false;
+    }
+    const component = serializedAttributeComponent(
+        collect.attributes?.componentType,
+    );
+    if (
+        !component ||
+        !component.children.every((child) => typeof child === "string")
+    ) {
+        return false;
+    }
+    const written = (component.children as string[])
+        .join("")
+        .trim()
+        .toLowerCase();
+    const type = componentInfoObjects.componentTypeLowerCaseMapping[written];
+    return type in COLLECT_LIST_BASES;
+}
+
 export function convertToListForms({
     serializedComponents,
     componentInfoObjects,
@@ -134,6 +189,9 @@ export function convertToListForms({
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
 }): { nComponents: number } {
+    if (!listFormsEnabled) {
+        return { nComponents };
+    }
     const { componentsByIdx, copiesByCreatedIdx, referentType, referentClass } =
         documentReferents({ serializedComponents, componentInfoObjects });
 
@@ -324,7 +382,9 @@ export function convertToListForms({
      * reads through a `<group>` among its children. Only a group that is not
      * an `extend` or `copy` and sets nothing but its name and `hide`
      * qualifies, so that a hidden group hides its entries in the list as it
-     * hides them anywhere else (#2390).
+     * hides them anywhere else (#2390). A group of several components is not
+     * flattened (COLL-4): a `<shuffle>` moves it as one item, which the
+     * composite does, and a `<sort>` of it is an error.
      */
     function groupValueType(
         group: SerializedComponent,
@@ -333,7 +393,10 @@ export function convertToListForms({
             group.extending !== undefined ||
             !Object.keys(group.attributes).every((name) =>
                 GROUP_ATTRIBUTES.has(name.toLowerCase()),
-            )
+            ) ||
+            group.children.filter(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            ).length > 1
         ) {
             return undefined;
         }
@@ -390,6 +453,9 @@ export function convertToListForms({
         let type: string | null = null;
         if (
             component.extending === undefined &&
+            // one whose items are not of one type is an error, shown by the
+            // composite (`reorderedItemsAtLoad.ts`)
+            component.doenetAttributes?.reorderErrorAtLoad === undefined &&
             hasOnlyListFormAttributes(component) &&
             copiesKeepTheList(component)
         ) {

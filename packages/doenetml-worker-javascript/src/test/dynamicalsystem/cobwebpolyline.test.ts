@@ -38,10 +38,10 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
     <label>Delete line</label>
   </updateValue>
   
-  <graph xmin="-2" xmax="5" ymin="-2.2" ymax="4.5" width="500px" name="graph1">
+  <graph xMin="-2" xMax="5" yMin="-2.2" yMax="4.5" width="500px" name="graph1">
     <xLabel>x_n</xLabel>
     <yLabel>x_{n+1}</yLabel>
-    <cobwebPolyline name="cobweb" stylenumber="4" attractThreshold="0.2" numPoints="$numPoints" function="$f" initialPoint="$P1" numIterationsRequired='3' />
+    <cobwebPolyline name="cobweb" styleNumber="4" attractThreshold="0.2" numPoints="$numPoints" function="$f" initialPoint="$P1" numIterationsRequired='3' />
   </graph> 
 
 
@@ -466,7 +466,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
   </setup>
   <p name="p1">Initial point: <mathInput name="x0" /></p>
   <graph>
-    <cobwebPolyline name="cobweb" stylenumber="4" numPoints="100" function="$f" initialPoint="$x0" lockToSolution />
+    <cobwebPolyline name="cobweb" styleNumber="4" numPoints="100" function="$f" initialPoint="$x0" lockToSolution />
   </graph>
   `,
         });

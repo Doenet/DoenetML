@@ -10,6 +10,12 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<updateValue>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types) 
 component that changes the value or property of a named component based on a button click interaction or a boolean condition.
 
+A target that is not shown now, such as one in a case of a
+[`<conditionalContent>{:dn}`](conditionalContent.mdx) that is not true, or in an
+iteration a repeat no longer has, is left unchanged, and the editor notes it.
+Actions triggered with it (`triggerWith`) do not run either. Once the target is shown
+again, it is updated as before.
+
 
 <AttrPropDisplay name='updateValue'/>
 
@@ -105,6 +111,10 @@ An `<updateValue>{:dn}` is used to set the `tail` property of a `<vector>{:dn}`,
 
 
 When the `target` is a list component such as a `<numberList>{:dn}`, `<mathList>{:dn}`, `<textList>{:dn}`, or `<pointList>{:dn}`, the `<updateValue>{:dn}` sets every entry of the list to `newValue`, and the list keeps the same number of entries. An index such as `$scores[2]` picks out a single entry instead. A property of a list, such as `$points.x` for a `<pointList>{:dn}` named `points`, sets that property of every entry.
+
+The `target` names the component to change. A `<group>{:dn}` holding one component stands for it, so `target="$g"` changes that component, as does `target="$r[1]"` when each iteration of a repeat named `r` holds one component. A name after a repeat or a select reaches the component of that name in each item, so `target="$r.x"` changes `x` in every iteration.
+
+A `<group>{:dn}` of several components, a `<repeat>{:dn}` or a `<repeatForSequence>{:dn}` has no one value, so an `<updateValue>{:dn}` whose `target` is one of them changes nothing; name the component inside it instead, as `$g.a` for a component named `a` in a group named `g`, or `$r[1].x` for a component named `x` in the first iteration of a repeat named `r`. The editor warns about a group of several components, a `<repeat>{:dn}` or a `<repeatForSequence>{:dn}` when the document loads.
 
 
 

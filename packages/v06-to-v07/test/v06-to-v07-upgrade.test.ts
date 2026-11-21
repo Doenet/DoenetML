@@ -643,9 +643,47 @@ describe("v06 to v07 update", () => {
         correctSource = `<group name="g"><math>a</math></group><group extend="$g" componentIndex="" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
-        source = `<group name="g"><math>a</math><point>(1,2)</point></group><copy source="g" componentIndex="2" /><copy source="g" componentIndex="2" prop="x" />`;
-        correctSource = `<group name="g"><math>a</math><point>(1,2)</point></group><point extend="$g[2]" /><math extend="$g[2].x" />`;
+        source = `<select name="s"><option><math>a</math><point>(1,2)</point></option></select><copy source="s" componentIndex="1" /><sequence name="q" length="3" /><copy source="q" componentIndex="2" />`;
+        correctSource = `<select name="s"><option><math>a</math><point>(1,2)</point></option></select><group extend="$s[1]" /><sequence name="q" length="3" /><number extend="$q[2]" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // A group holding one component stands for it in v0.7, and an index
+        // after the group passes on to that component, so `componentIndex="1"`,
+        // which meant the component, becomes the group itself.
+        source = `<group name="g"><math>(1,2)</math></group><copy source="g" componentIndex="1" /><copy source="g" componentIndex="1" name="c" />`;
+        correctSource = `<group name="g"><math>(1,2)</math></group>$g<group extend="$g" name="c" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // v0.6 counted `componentIndex` with the composites in the group expanded,
+        // except a group, which it kept as one component, as it did a copy of one
+        // (`treatAsComponentForRecursiveReplacements`): a nested group, whatever it
+        // holds, or a copy of a group is that one component, which `$g` stands for.
+        source = `<group name="x"><math>(1,2)</math><math>5</math></group><group name="g"><group><math>(3,4)</math><sequence length="2" /></group></group><group name="h"><copy source="x"/></group><copy source="g" componentIndex="1" /><copy source="h" componentIndex="1" />`;
+        correctSource = `<group name="x"><math>(1,2)</math><math>5</math></group><group name="g"><group><math>(3,4)</math><sequence length="2" /></group></group><group name="h"><group extend="$x" /></group>$g$h`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+        // `componentIndex="1"` into a group holding a sequence, a map or a copy of a
+        // sequence meant the first of its items, not the group's whole content, so
+        // `$g` would not say it; nor does `$g[1]`, which the lookup can't type (it
+        // would type it as the sequence), so the copy is left as it was.
+        source = `<sequence name="q" length="3" /><group name="g"><sequence length="3" /></group><group name="h"><copy source="q"/></group><group name="k"><map><template><math>$v</math></template><sources alias="v"><sequence length="2"/></sources></map></group><copy source="g" componentIndex="1" /><copy source="h" componentIndex="1" /><copy source="k" componentIndex="1" /><copy source="g" componentIndex="2" />`;
+        const expandedRes = await updateSyntaxFromV06toV07(source);
+        expect(expandedRes.xml).not.toContain("$g");
+        expect(expandedRes.xml).not.toContain("$h");
+        expect(expandedRes.xml).not.toContain("$k");
+        expect(expandedRes.vfile.messages.map((m) => m.ruleId)).toEqual(
+            Array(4).fill("copy/unresolved-referent"),
+        );
+
+        // An index after a group holding several components names nothing in
+        // v0.7 (it never selects a child), so a `componentIndex` into such a
+        // `<group>` has no counterpart and the copy is left as it was.
+        source = `<group name="g"><math>a</math><point>(1,2)</point></group><copy source="g" componentIndex="2" /><copy source="g" componentIndex="2" prop="x" />`;
+        const groupRes = await updateSyntaxFromV06toV07(source);
+        expect(groupRes.xml).toEqual(source);
+        expect(groupRes.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+            "copy/unresolved-referent",
+        ]);
 
         // A propIndex on a prop that is not an array meant nothing, and the copy is
         // left as it was, attributes and all.

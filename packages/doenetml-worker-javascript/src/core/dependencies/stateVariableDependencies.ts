@@ -16,6 +16,7 @@ import {
     isIndexIntoValue,
     isValueEntriesVariable,
 } from "../../utils/mathVectorMatrixStateVariables";
+import { isWrapperOfSeveral, ownSettingOfWrapper } from "../../utils/wrappers";
 
 export class StateVariableDependency extends Dependency {
     static dependencyType = "stateVariable";
@@ -43,6 +44,15 @@ export class StateVariableDependency extends Dependency {
         if (this.definition.onlyToSetInInverseDefinition) {
             this.onlyToSetInInverseDefinition = true;
         }
+
+        // Bookkeeping a definition reads that is not part of what the
+        // component's value depends on, so it is left out of
+        // `recursiveDependencyValues` (an answer's hash of its responses).
+        if (this.definition.notInRecursiveDependencyValues) {
+            this.notInRecursiveDependencyValues = true;
+        }
+
+        this.withheldValuesNotRead = this.definition.withheldValuesNotRead;
 
         if (this.definition.returnAsComponentObject) {
             this.returnSingleComponent = true;
@@ -117,6 +127,8 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         }
 
         this.originalDownstreamVariableNames = [];
+
+        this.withheldValuesNotRead = this.definition.withheldValuesNotRead;
 
         if (this.definition.returnAsComponentObject) {
             this.returnSingleComponent = true;
@@ -197,9 +209,6 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         }
         this.publicStateVariablesOnly =
             Boolean(this.definition.publicStateVariablesOnly) && !listEntryPath;
-        this.caseInsensitiveVariableMatch =
-            Boolean(this.definition.caseInsensitiveVariableMatch) &&
-            !listEntryPath;
 
         let unresolvedPath = [...(listEntryPath?.path ?? definitionPath)];
         let nextPart = unresolvedPath.shift();
@@ -237,7 +246,24 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         // (`$m.__valueEntries`).
         if (indexAsProp && isValueEntriesVariable(variableName)) {
             this.publicStateVariablesOnly = false;
-            this.caseInsensitiveVariableMatch = false;
+        }
+
+        // A wrapper holding several components keeps as its own the
+        // settings a composite keeps private (`$g.fixed` of a `<group>` of
+        // two is the group's), for a property is not passed into it (D41
+        // decision 3, `stopAtWrappersOfSeveral`).
+        const ownSetting = this.definition.ownSettingsOfWrappersOfSeveral
+            ? ownSettingOfWrapper(variableName)
+            : undefined;
+        if (
+            ownSetting !== undefined &&
+            nextPart.index.length === 0 &&
+            unresolvedPath.length === 0 &&
+            isWrapperOfSeveral(component)
+        ) {
+            variableName = ownSetting;
+            this.originalDownstreamVariableNames = [variableName];
+            this.publicStateVariablesOnly = false;
         }
 
         let propIndex = [];
@@ -673,6 +699,7 @@ export class RecursiveDependencyValuesDependency extends Dependency {
             this.definition.includeRawValueWithImmediateValue;
         this.includeOnlyEssentialValues =
             this.definition.includeOnlyEssentialValues;
+        this.includeStateIds = this.definition.includeStateIds;
 
         this.variablesOptional = true;
     }
@@ -903,7 +930,10 @@ export class RecursiveDependencyValuesDependency extends Dependency {
 
                     for (let dependencyName in downDeps) {
                         let dep = downDeps[dependencyName];
-                        if (dep.onlyToSetInInverseDefinition) {
+                        if (
+                            dep.onlyToSetInInverseDefinition ||
+                            dep.notInRecursiveDependencyValues
+                        ) {
                             continue;
                         }
                         for (let [

@@ -1,3 +1,12 @@
+import { LIST_ENTRY_ARRAY_PREFIX } from "../utils/listEntryReference";
+import {
+    missingWhileListEntryMissingDefinition,
+    missingWhileSourceMissingDefinition,
+} from "../utils/missing";
+import {
+    describeReferentVariable,
+    nullMeansMissing,
+} from "../utils/referentDescription";
 import { expressionAttributeDefinitions } from "../utils/expressionAttribute";
 import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
@@ -424,6 +433,7 @@ export async function createIsolatedComponents({
             serializedComponent,
             componentIdx,
             core.readerWritable,
+            core.readerPlaced,
         );
 
         const createResult = await createChildrenThenComponent({
@@ -855,6 +865,83 @@ export async function createChildrenThenComponent({
                 }
 
                 const shadowedComponent = core._components[idx];
+                const propertyCanBeNull =
+                    typeof shadowInfo.propVariable === "string" &&
+                    !shadowedComponent.state.entriesMissing &&
+                    nullMeansMissing(
+                        shadowedComponent.state[shadowInfo.propVariable],
+                    ) &&
+                    !shadowedComponent.state[shadowInfo.propVariable].isArray &&
+                    !shadowedComponent.state[shadowInfo.propVariable]
+                        .isArrayEntry;
+                if (
+                    shadowInfo.propVariable !== undefined &&
+                    (shadowedComponent.canBecomeMissing || propertyCanBeNull) &&
+                    !newComponent.isMissing &&
+                    !newComponent.doenetAttributes.missingWhileEntryEmpty
+                ) {
+                    // A property of a component that can be missing for a
+                    // while is missing while it is (D37):
+                    // `<number extend="$n.value"/>` of
+                    // `<number name="n">$l[$i]</number>`. So is one that
+                    // holds `null` for no value, while it does, though it had
+                    // a value when the tag was made (D40, #2544):
+                    // `<math extend="$im.aspectRatio"/>` once the image's
+                    // aspect ratio is cleared.
+                    newComponent.doenetAttributes.missingWhileSourceMissing = true;
+                    newComponent.state.valueMissing =
+                        missingWhileSourceMissingDefinition(
+                            idx,
+                            propertyCanBeNull
+                                ? shadowInfo.propVariable
+                                : undefined,
+                        );
+                } else if (
+                    shadowInfo.propVariable !== undefined &&
+                    shadowedComponent.state.entriesMissing &&
+                    !newComponent.isMissing &&
+                    !newComponent.doenetAttributes.missingWhileEntryEmpty
+                ) {
+                    // An entry of a list that is a blank entry is missing
+                    // while it is (D40, #2461): `<number extend="$a[1]"/>`
+                    // of `<numberList name="a">$l[5] 2</numberList>`.
+                    const position = describeReferentVariable(
+                        shadowedComponent,
+                        shadowInfo.propVariable,
+                    )?.listEntryPosition;
+                    if (position !== undefined) {
+                        newComponent.doenetAttributes.missingWhileListEntryMissing = true;
+                        newComponent.state.valueMissing =
+                            missingWhileListEntryMissingDefinition(
+                                idx,
+                                position,
+                            );
+                        // It names a blank entry, as a reference that names
+                        // nothing does (`contentNamesNothing`), so a point
+                        // holding it alone is missing (`<point>$pl[2]</point>`,
+                        // #2544) without reading through it to its source.
+                        newComponent.state.namesNothing =
+                            missingWhileListEntryMissingDefinition(
+                                idx,
+                                position,
+                                "namesNothing",
+                            );
+                    }
+                }
+                if (
+                    typeof shadowInfo.propVariable === "string" &&
+                    shadowInfo.propVariable.startsWith(
+                        LIST_ENTRY_ARRAY_PREFIX,
+                    ) &&
+                    shadowedComponent.state.entriesMissing &&
+                    newComponent.state.entriesMissing
+                ) {
+                    // A list of a property of every entry of a list whose
+                    // entries can be blank (`$pl.y`) has a blank entry where
+                    // that list does (D40, #2525; `entriesMissing` in
+                    // `AuthoredValueList`).
+                    newComponent.doenetAttributes.entriesMissingFromSource = true;
+                }
                 if (!shadowedComponent.shadowedBy) {
                     shadowedComponent.shadowedBy = [];
                 }
@@ -938,6 +1025,12 @@ export async function createChildrenThenComponent({
         componentIdx,
     });
 
+    // an edit not entered it was made with, from saved state or carried by a
+    // `copyWithState`, is committed once the update is over (D50)
+    if (componentClass.holdsUnenteredEdit) {
+        core.inputsToCommit.add(componentIdx);
+    }
+
     // Other components' dependencies may be blocked on this component's
     // identity, so that resolution stays eager. The former per-state-variable
     // resolve pass is gone: state variables now resolve on first demand.
@@ -956,6 +1049,20 @@ export async function createChildrenThenComponent({
     const results = { newComponent: newComponent, lastErrorMessage };
 
     return results;
+}
+
+/**
+ * The mark left on a state variable restored from saved state
+ * (`justUpdatedForNewComponent`), which tells its definition whether it was
+ * restored as the document loaded (`"atLoad"`) or into a component made
+ * later (`"afterLoad"`), such as one in a case shown again or shown for the
+ * first time since a reload. A value saved while its component was withheld
+ * was not kept up to date with what it is computed from (#2325), so a
+ * definition that keeps a restored value instead of recomputing it can keep
+ * it only at load.
+ */
+function restoredFlag(core: Core) {
+    return core.initialAddPhase ? "atLoad" : "afterLoad";
 }
 
 /**
@@ -1005,7 +1112,8 @@ export async function checkForStateVariablesUpdatesForNewComponent({
             for (const vName in core.updateInfo
                 .stateVariableUpdatesForMissingComponents[stateId]) {
                 if (comp.state[vName]) {
-                    comp.state[vName].justUpdatedForNewComponent = true;
+                    comp.state[vName].justUpdatedForNewComponent =
+                        restoredFlag(core);
                 }
             }
         }
@@ -1037,7 +1145,8 @@ export async function checkForStateVariablesUpdatesForNewComponent({
                         componentIdx,
                         stateVariable: vName,
                     });
-                    comp.state[vName].justUpdatedForNewComponent = true;
+                    comp.state[vName].justUpdatedForNewComponent =
+                        restoredFlag(core);
                     if (result.foundIgnore) {
                         // This is a kludge
                         // The only case so far with ignored children is that Math ignores strings

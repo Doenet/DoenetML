@@ -22,6 +22,8 @@ export default class Slider extends BaseComponent {
         });
     }
     static componentType = "slider";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
     static renderChildren = true;
 
     static componentDocs = {
@@ -183,7 +185,8 @@ export default class Slider extends BaseComponent {
         );
 
         stateVariableDefinitions.items = {
-            description: "The values the slider can take.",
+            description:
+                "The values the slider can take, as a list, when given by its children. Empty for a slider given by `from`, `to` and `step`.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -246,9 +249,16 @@ export default class Slider extends BaseComponent {
                     }); //sort in number order
                 }
 
+                // a list of the slider's type, decided by its written `type`
+                // (TYPE-1, #2545)
                 return {
                     setValue: { items },
-                    setCreateComponentOfType: { items: dependencyValues.type },
+                    setCreateComponentOfType: {
+                        items:
+                            dependencyValues.type === "text"
+                                ? "textList"
+                                : "numberList",
+                    },
                 };
             },
         };

@@ -62,7 +62,7 @@ describe("chart pie prefigure tests @group4", async () => {
             // report. `NaN` is how a null number reads in prose.
             expect(
                 sv[await resolvePathToNodeIdx("bounds")].stateValues.text,
-            ).eq("NaN, NaN, NaN, NaN");
+            ).eq("＿, ＿, ＿, ＿");
 
             // The values are still the values.
             expect(sv[await resolvePathToNodeIdx("c")].stateValues.values).eqls(

@@ -1811,7 +1811,7 @@ describe("Number tag tests @group3", async () => {
 
   <p>
     <mathInput name="mi4" bindValueTo="$n4" />
-    <number name="n4" valueOnNan="5" />
+    <number name="n4" valueOnNaN="5" />
   </p>
 
 
@@ -1837,18 +1837,18 @@ describe("Number tag tests @group3", async () => {
 
   <p>
     <mathInput name="mi4a" bindValueTo="$n4a" />
-    <number name="n4a" valueOnNan="5"><number/></number>
+    <number name="n4a" valueOnNaN="5"><number/></number>
   </p>
 
   <p>
     <mathInput name="mi4b" bindValueTo="$n4b" />
-    <number name="n4b"><number valueOnNan="5"/></number>
+    <number name="n4b"><number valueOnNaN="5"/></number>
   </p>
 
 
   <p>
     <number name="n5">8/</number>
-    <number name="n6" valueOnNan="7">8/</number>
+    <number name="n6" valueOnNaN="7">8/</number>
   </p>
 
   <p>
@@ -2276,6 +2276,8 @@ describe("Number tag tests @group3", async () => {
         ).eqls(NaN);
     });
 
+    // A boolean is `1` or `0` as a number (REF-5), with or without
+    // `convertBoolean` (#2566); `convertBoolean` reads the content as logic
     it("convertBoolean", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -2300,16 +2302,16 @@ describe("Number tag tests @group3", async () => {
         ).eq(0);
         expect(
             stateVariables[await resolvePathToNodeIdx("n3")].stateValues.value,
-        ).eqls(NaN);
+        ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("n4")].stateValues.value,
-        ).eqls(NaN);
+        ).eq(0);
         expect(
             stateVariables[await resolvePathToNodeIdx("n5")].stateValues.value,
-        ).eqls(NaN);
+        ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("n6")].stateValues.value,
-        ).eqls(NaN);
+        ).eq(0);
     });
 
     it("a number with convertBoolean of one boolean writes 1 or 0 back as true or false", async () => {
@@ -2943,9 +2945,9 @@ describe("Number tag tests @group3", async () => {
     it("complex numbers and inverse definition", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <p><number name="n1">1</number> <mathInput bindValueto="$n1" name="mi1" /></p>
-  <p><number name="n2"><number>1</number></number> <mathInput bindValueto="$n2" name="mi2" /></p>
-  <p><number name="n3"></number> <mathInput bindValueto="$n3" name="mi3" /></p>
+  <p><number name="n1">1</number> <mathInput bindValueTo="$n1" name="mi1" /></p>
+  <p><number name="n2"><number>1</number></number> <mathInput bindValueTo="$n2" name="mi2" /></p>
+  <p><number name="n3"></number> <mathInput bindValueTo="$n3" name="mi3" /></p>
 
   `,
         });

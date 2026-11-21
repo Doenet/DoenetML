@@ -23,6 +23,7 @@
 import type Core from "../Core";
 import { calcStartEndIdx } from "../utils/resolver";
 import { refreshRootNames } from "./ResolverAdapter";
+import { holderReference, referenceContentOf } from "../utils/indexInstances";
 
 /** Whether `component` is a list component that a reference made. */
 function isReferencedList(component: any) {
@@ -199,6 +200,67 @@ export async function giveListEntriesToIndexParent({
             indexParent.owner,
         );
     }
+}
+
+/**
+ * When the items of `composite` are held by a `<group>` whose whole content is
+ * one reference (`holderReference`), as what that reference, or a reference
+ * among what it made, makes: tell the resolver what an index after the group
+ * does with them now (`referenceContentOf`, Rust `ReferenceContent`), once
+ * they are made, as they change. What the reference makes when it first
+ * expands is told with it (`ResolverAdapter.ts`); this follows what it makes
+ * later, and what the references among it make. When that changes, the
+ * references that index the group are resolved again.
+ */
+export async function giveReferenceContentToIndexParent({
+    core,
+    composite,
+}: {
+    core: Core;
+    composite: any;
+}) {
+    if (!core.addNodesToResolver) {
+        return;
+    }
+    const indexParent = indexParentOf(core, composite);
+    if (!indexParent || indexParent.owner === composite) {
+        return;
+    }
+    const reference = holderReference(indexParent.owner);
+    if (!reference) {
+        return;
+    }
+    const content = await referenceContentOf({
+        reference,
+        components: core._components,
+        componentInfoObjects: core.componentInfoObjects,
+    });
+    const contentKey = JSON.stringify(content);
+    if (indexParent.owner._referenceContentGiven === contentKey) {
+        return;
+    }
+    indexParent.owner._referenceContentGiven = contentKey;
+    core.addNodesToResolver(
+        {
+            type: "flatFragment",
+            children: [],
+            nodes: [],
+            parentIdx: null,
+            parentSourceSequence: null,
+            indexParentReference: content,
+            idxMap: {},
+        },
+        {
+            ReplaceRange: {
+                parent: indexParent.parentIdx,
+                range: { start: 0, end: 0 },
+            },
+        },
+    );
+    refreshRootNames(core);
+    await core.dependencies.addBlockersFromChangedReplacements(
+        indexParent.owner,
+    );
 }
 
 /**

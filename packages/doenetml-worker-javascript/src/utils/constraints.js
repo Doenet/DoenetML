@@ -59,13 +59,10 @@ export function applyConstraintFromComponentConstraints(
 
 export function returnConstraintGraphInfoDefinitions() {
     return {
+        // The enclosing graph's x and y scales (and a third 1), read by
+        // constraints with `relativeToGraphScales`. Not a property: a graph's
+        // `xScale` and `yScale` are (#2545).
         scales: {
-            description:
-                "The graph axis scales (x and y) used when applying this constraint.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "number",
-            },
             returnDependencies: () => ({
                 graphAncestor: {
                     dependencyType: "ancestor",

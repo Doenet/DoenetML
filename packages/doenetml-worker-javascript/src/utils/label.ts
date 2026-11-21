@@ -342,6 +342,10 @@ export function returnLabelStateVariableDefinitions({
         groupName: "labels",
         shadowingInstructions: {
             createComponentOfType: "label",
+            // A reference to `label` copies the `<label>` child it comes
+            // from, keeping its markup, rather than making a label from the
+            // string (`labelComponentToCopy`).
+            componentToCopyVariable: "labelComponentToCopy",
             addStateVariablesShadowingStateVariables: {
                 hasLatex: {
                     stateVariableToShadow: "labelHasLatex",
@@ -364,6 +368,13 @@ export function returnLabelStateVariableDefinitions({
                 // the one that can render the label's markup.
                 variableName: "labelFromParent",
                 forRenderer: true,
+            },
+            {
+                // Whether `label` was taken from the shadow source (a copy of
+                // an input with no `<label>` of its own), whose `<label>`
+                // child a reference to `label` then copies
+                // (`labelComponentToCopy`).
+                variableName: "labelFromShadowSource",
             },
         ],
         returnDependencies: function (this: any) {
@@ -463,6 +474,7 @@ export function returnLabelStateVariableDefinitions({
                             label: "",
                             labelHasLatex: false,
                             labelFromParent: false,
+                            labelFromShadowSource: false,
                         },
                     };
                 } else if (labelChild.stateValues.hasLatex) {
@@ -472,6 +484,7 @@ export function returnLabelStateVariableDefinitions({
                                 label: "",
                                 labelHasLatex: false,
                                 labelFromParent: false,
+                                labelFromShadowSource: false,
                             },
                         };
                     } else {
@@ -480,6 +493,7 @@ export function returnLabelStateVariableDefinitions({
                                 label: labelChild.stateValues.value,
                                 labelHasLatex: true,
                                 labelFromParent: false,
+                                labelFromShadowSource: false,
                             },
                         };
                     }
@@ -489,6 +503,7 @@ export function returnLabelStateVariableDefinitions({
                             label: labelChild.stateValues.value.trim(),
                             labelHasLatex: false,
                             labelFromParent: false,
+                            labelFromShadowSource: false,
                         },
                     };
                 }
@@ -497,7 +512,11 @@ export function returnLabelStateVariableDefinitions({
                     useEssentialOrDefaultValue: {
                         label: true,
                     },
-                    setValue: { labelHasLatex: false, labelFromParent: false },
+                    setValue: {
+                        labelHasLatex: false,
+                        labelFromParent: false,
+                        labelFromShadowSource: false,
+                    },
                 };
             } else if (
                 dependencyValues.labelIsName &&
@@ -526,6 +545,7 @@ export function returnLabelStateVariableDefinitions({
                             label: "",
                             labelHasLatex: false,
                             labelFromParent: false,
+                            labelFromShadowSource: false,
                         },
                     };
                 }
@@ -554,6 +574,7 @@ export function returnLabelStateVariableDefinitions({
                         label,
                         labelHasLatex: false,
                         labelFromParent: false,
+                        labelFromShadowSource: false,
                     },
                 };
             } else if (
@@ -572,6 +593,7 @@ export function returnLabelStateVariableDefinitions({
                             ],
                         ),
                         labelFromParent: false,
+                        labelFromShadowSource: false,
                     },
                 };
             } else if (
@@ -586,6 +608,7 @@ export function returnLabelStateVariableDefinitions({
                                 .labelHasLatex,
                         ),
                         labelFromParent: false,
+                        labelFromShadowSource: true,
                     },
                 };
             } else if (
@@ -601,6 +624,7 @@ export function returnLabelStateVariableDefinitions({
                                 .labelHasLatex,
                         ),
                         labelFromParent: false,
+                        labelFromShadowSource: false,
                     },
                 };
             } else if (
@@ -613,12 +637,17 @@ export function returnLabelStateVariableDefinitions({
                         label: dependencyValues.parentLabel,
                         labelHasLatex: dependencyValues.parentLabelHasLatex,
                         labelFromParent: true,
+                        labelFromShadowSource: false,
                     },
                 };
             } else {
                 return {
                     useEssentialOrDefaultValue: { label: true },
-                    setValue: { labelHasLatex: false, labelFromParent: false },
+                    setValue: {
+                        labelHasLatex: false,
+                        labelFromParent: false,
+                        labelFromShadowSource: false,
+                    },
                 };
             }
         },
@@ -702,6 +731,68 @@ export function returnLabelStateVariableDefinitions({
                     ],
                 };
             }
+        },
+    };
+
+    /**
+     * The `<label>` child that `label` is taken from, for a reference to
+     * `label` to copy (`componentToCopyVariable`), so the reference keeps the
+     * child's markup (`<em>`, `<delete>`, math), which the `label` string
+     * drops. `null` when `label` is not the value of a `<label>` child: when
+     * it comes from `labelIsName`, an essential value or the parent, or when
+     * the child is hidden or holds only an empty `\(\)` (where `label` is
+     * `""`). A reference then makes a label from the string. When `label`
+     * comes from the shadow source (`$ti2` of `$ti`, which has no `<label>`
+     * child of its own), it is the source's `<label>` child, so `$ti2.label`
+     * keeps the markup `$ti.label` does (#2537).
+     */
+    stateVariableDefinitions.labelComponentToCopy = {
+        returnDependencies: () => ({
+            labelChild: {
+                dependencyType: "child",
+                childGroups: ["labels"],
+                variableNames: ["value", "hasLatex", "hidden"],
+                dontRecurseToShadows: true,
+            },
+            labelFromShadowSource: {
+                dependencyType: "stateVariable",
+                variableName: "labelFromShadowSource",
+            },
+            shadowSource: {
+                dependencyType: "shadowSource",
+                variableNames: ["labelComponentToCopy"],
+                variablesOptional: true,
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: Record<string, any>;
+        }) {
+            if (dependencyValues.labelFromShadowSource) {
+                return {
+                    setValue: {
+                        labelComponentToCopy:
+                            dependencyValues.shadowSource?.stateValues
+                                .labelComponentToCopy ?? null,
+                    },
+                };
+            }
+            const labelChild =
+                dependencyValues.labelChild[
+                    dependencyValues.labelChild.length - 1
+                ];
+            if (
+                !labelChild ||
+                labelChild.stateValues.hidden ||
+                (labelChild.stateValues.hasLatex &&
+                    labelChild.stateValues.value === "\\(\\)")
+            ) {
+                return { setValue: { labelComponentToCopy: null } };
+            }
+            return {
+                setValue: { labelComponentToCopy: labelChild.componentIdx },
+            };
         },
     };
 

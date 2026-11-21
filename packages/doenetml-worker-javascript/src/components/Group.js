@@ -69,15 +69,11 @@ export default class Group extends CompositeComponent {
         // Set on a group made for an iteration of a repeat, a pick of a
         // select, or what a `<conditionalContent>` shows
         // (`utils/indexInstances.ts`): the type of the component that made
-        // it, and, for an iteration or a pick whose whole content is one
-        // indexable component, that component's position, to which an index
-        // after the group passes.
+        // it, which the warning for an index after it names. Whether an index
+        // after a group passes to its one component or names nothing, the
+        // resolver decides from its children (`IndexKind::of_content`).
         attributes._instanceOf = {
             createPrimitiveOfType: "string",
-            excludeFromSchema: true,
-        };
-        attributes._indexPassThrough = {
-            createPrimitiveOfType: "number",
             excludeFromSchema: true,
         };
 
@@ -203,9 +199,9 @@ export default class Group extends CompositeComponent {
 
                 if (dependencyValues.typeAttr) {
                     let componentType =
-                        componentInfoObjects.componentTypeLowerCaseMapping[
-                            dependencyValues.typeAttr.toLowerCase()
-                        ];
+                        componentInfoObjects.componentTypeAsWritten(
+                            dependencyValues.typeAttr,
+                        );
 
                     if (
                         !(
@@ -235,7 +231,7 @@ export default class Group extends CompositeComponent {
         nComponents,
         componentInfoObjects,
         workspace,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
     }) {
         let diagnostics = [];
 
@@ -303,7 +299,7 @@ export default class Group extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj: this.createAttributesObject(),
                     components,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                     nComponents,
                     stateIdInfo,
                 },

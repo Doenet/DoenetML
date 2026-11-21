@@ -27,7 +27,9 @@ describe("A copy of several sources @group1", async () => {
     });
 
     // `$g.coords` has three sources: the first point, the repeat and the
-    // last point. When `n` changes, the copy remakes the repeat's
+    // last point. (Each iteration of `g` holds one component, so the
+    // property passes into it; after a group of several it would name
+    // nothing, D41 decision 3.) When `n` changes, the copy remakes the repeat's
     // replacements and the last point's, clearing the counts from the middle
     // source on. The old indexing cleared the first two sources' counts
     // instead. What is rendered is the same either way, so this checks that
@@ -35,7 +37,7 @@ describe("A copy of several sources @group1", async () => {
     it("keeps its replacements in order as a middle source grows and shrinks", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<mathInput name="n" prefill="1"/>
-<group name="g"><point>(0,0)</point><repeatForSequence length="$n" valueName="v"><point>($v,1)</point></repeatForSequence><point>(9,9)</point></group>
+<repeat name="g" for="0 1 9" valueName="k"><conditionalContent><case condition="$k=1"><repeatForSequence length="$n" valueName="v"><point>($v,1)</point></repeatForSequence></case><else><point>($k,$k)</point></else></conditionalContent></repeat>
 <p name="coords">$g.coords</p>`,
         });
         const nIdx = await resolvePathToNodeIdx("n");
@@ -55,9 +57,8 @@ describe("A copy of several sources @group1", async () => {
                 points.push(`(${v}, 1)`);
             }
             points.push("(9, 9)");
-            // The copy's replacements are separate maths, with nothing
-            // between them in the paragraph.
-            return points.join("");
+            // The copy of a repeat is shown as a list.
+            return points.join(", ");
         }
 
         expect(await coords()).eq(expected(1));

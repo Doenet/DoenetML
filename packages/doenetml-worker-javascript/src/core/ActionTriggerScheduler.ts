@@ -270,6 +270,9 @@ export class ActionTriggerScheduler {
      * a click (or focus) of both runs for the first and not again for that
      * gesture. Gestures arrive one after another, so only the latest one is
      * remembered.
+     *
+     * An action chained by a component that is gone or withheld from what a
+     * composite shows does not fire (#2120).
      */
     async triggerChainedActions({
         componentIdx,
@@ -385,6 +388,19 @@ export class ActionTriggerScheduler {
         }
 
         for (let chainedActionInstructions of actionsToChain) {
+            // A component that is gone, or withheld from what a composite
+            // shows (the case of a `<conditionalContent>` that is no longer
+            // true), does not act: its chains stay registered so that it
+            // acts again once it is shown (#2120).
+            const chainedComponent =
+                this.core._components[chainedActionInstructions.componentIdx];
+            if (
+                !chainedComponent ||
+                (await chainedComponent.stateValues
+                    .isInactiveCompositeReplacement)
+            ) {
+                continue;
+            }
             chainedActionInstructions = { ...chainedActionInstructions };
             if (chainedActionInstructions.args) {
                 chainedActionInstructions.args = {

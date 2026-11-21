@@ -729,6 +729,7 @@ export default class ValueRef extends BaseComponent {
                         ownAttribute: false,
                         sourceDependency:
                             referentContextDependency(stateVariable),
+                        listEntrySourceOf: referentListEntrySource,
                         stateVariablesDeterminingDependencies: this
                             .fixedReferent
                             ? undefined
@@ -929,6 +930,33 @@ function referentContextDependency(attributeName) {
 }
 
 /**
+ * The entry of a list a reference to one entry reads `fixed` and
+ * `fixLocation` of the entry's source from, given its `referentInfo` (or the
+ * referent a copy fixed): the list's arrays holding them for each entry
+ * (`listEntryContextArrays`), so that `$c[1]` of a `<collect>` is fixed when
+ * the component it collected is (#2239). None for a reference to a list
+ * that holds no such arrays, or to something else.
+ */
+function referentListEntrySource(component, stateValues) {
+    const referentInfo = component.fixedReferent ?? stateValues.referentInfo;
+    if (referentInfo?.listEntryPosition === undefined) {
+        return undefined;
+    }
+    const variables =
+        component.componentInfoObjects.allComponentClasses[
+            referentInfo.componentType
+        ]?.listEntryContextArrays;
+    if (!variables) {
+        return undefined;
+    }
+    return {
+        componentIdx: referentInfo.componentIdx,
+        index: referentInfo.listEntryPosition - 1,
+        variables,
+    };
+}
+
+/**
  * The actions by which the renderer of a type reports a click or a focus,
  * which a drawn reference that stands for a copy of its referent passes on
  * to the referent (`_performOnReferent`).
@@ -1026,7 +1054,10 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
                     variableName: "valueMissing",
                 },
             };
-            if (referentInfo) {
+            if (referentInfo?.referencedWholeComponent) {
+                dependencies.wholeReferent =
+                    wholeReferentResponseDependency(referentInfo);
+            } else if (referentInfo) {
                 dependencies.referenced = {
                     dependencyType: "stateVariable",
                     componentIdx: referentInfo.componentIdx,
@@ -1037,13 +1068,20 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
             return dependencies;
         },
         definition({ dependencyValues, componentInfoObjects }) {
-            let valueAsResponse = dependencyValues.referenced;
             if (dependencyValues.valueMissing) {
-                valueAsResponse = me.fromAst("\uff3f");
-            } else if (
-                valueAsResponse === undefined ||
-                valueAsResponse === null
-            ) {
+                return { setValue: { valueAsResponse: me.fromAst("\uff3f") } };
+            }
+            if (dependencyValues.wholeReferent) {
+                return {
+                    setValue: {
+                        valueAsResponse: wholeReferentResponse(
+                            dependencyValues.wholeReferent,
+                        ).value,
+                    },
+                };
+            }
+            let valueAsResponse = dependencyValues.referenced;
+            if (valueAsResponse === undefined || valueAsResponse === null) {
                 valueAsResponse = emptyValueOfType(
                     referencedComponentType,
                     componentInfoObjects,
@@ -1063,37 +1101,91 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
  * `valueAsResponse`. That is the type of the referenced variable
  * (`referencedComponentType`, `$P.x` a `math`), or `math` for the blank math
  * recorded when there is nothing to read (for a reference a copy made at
- * run time, only when its referent is a missing component).
+ * run time, only when its referent is a missing component). For a reference
+ * to a whole component, it is the type the referent is recorded as
+ * (`wholeReferentResponse`).
  */
 function componentTypeAsResponseDefinition(
     referencedComponentType,
     fixedReferent,
 ) {
-    return {
-        returnDependencies: () => ({
-            valueMissing: {
-                dependencyType: "stateVariable",
-                variableName: "valueMissing",
-            },
-        }),
-        definition({ dependencyValues }) {
-            return {
-                setValue: {
-                    componentTypeAsResponse: dependencyValues.valueMissing
-                        ? "math"
-                        : referencedComponentType,
+    const definition = {
+        returnDependencies({ stateValues = {} }) {
+            const referentInfo = fixedReferent ?? stateValues.referentInfo;
+            const dependencies = {
+                valueMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
                 },
             };
+            if (referentInfo?.referencedWholeComponent) {
+                dependencies.wholeReferent =
+                    wholeReferentResponseDependency(referentInfo);
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            let componentTypeAsResponse = referencedComponentType;
+            if (dependencyValues.valueMissing) {
+                componentTypeAsResponse = "math";
+            } else if (dependencyValues.wholeReferent) {
+                componentTypeAsResponse = wholeReferentResponse(
+                    dependencyValues.wholeReferent,
+                ).componentType;
+            }
+            return { setValue: { componentTypeAsResponse } };
         },
     };
+    if (!fixedReferent) {
+        definition.stateVariablesDeterminingDependencies = ["referentInfo"];
+    }
+    return definition;
+}
+
+/**
+ * The dependency on the variables of a whole referent from which it is
+ * recorded as a response (`wholeReferentResponse`).
+ */
+function wholeReferentResponseDependency(referentInfo) {
+    return {
+        dependencyType: "multipleStateVariables",
+        componentIdx: referentInfo.componentIdx,
+        variableNames: ["value", "formula", "componentType"],
+        variablesOptional: true,
+    };
+}
+
+/**
+ * What an `<answer>` records for a reference to a whole component read
+ * through the referent's adapter (`readsReferentAdapter`, `$P` in a
+ * comparison reads `P.coords`): the referent itself, as it records the copy
+ * of the referent that such a reference keeps when the answer's award names
+ * it in `referencesAreResponses` (`utils/dast/valueReferences.ts`), and as in
+ * `currentResponses` (`Answer.js`): its `value` as its type, else its
+ * `formula` as a math, else an empty text. A reference made in the source of
+ * an award that `extend` or `copy` copies is such a reference.
+ */
+function wholeReferentResponse(referent) {
+    const stateValues = referent.stateValues ?? {};
+    if (stateValues.value !== undefined) {
+        return {
+            value: stateValues.value,
+            componentType: stateValues.componentType ?? referent.componentType,
+        };
+    }
+    if (stateValues.formula instanceof me.class) {
+        return { value: stateValues.formula, componentType: "math" };
+    }
+    return { value: "", componentType: "text" };
 }
 
 /**
  * The definition of `valueMissing` of a reference a copy made at run time
  * (`fixedReferent`): whether its referent is a missing component (D37,
  * `BaseComponent.isMissing`), as `$r[1].n.value` of an iteration whose `n`
- * is missing. Its other ways of having nothing to read are the copy's,
- * which makes no reference for an entry that is not there.
+ * is missing, or, of an entry of a list, whether the entry is a blank entry
+ * (D40). Its other ways of having nothing to read are the copy's, which
+ * makes no reference for an entry that is not there.
  */
 function fixedReferentMissingDefinition(fixedReferent) {
     return {
@@ -1104,11 +1196,26 @@ function fixedReferentMissingDefinition(fixedReferent) {
                 variableName: "valueMissing",
                 variablesOptional: true,
             },
+            // A blank entry of a list (D40), which the copy does make a
+            // reference for: `$r[1].a[1]` of `<numberList name="a">$l[5]
+            // 2</numberList>`.
+            ...(fixedReferent.listEntryPosition === undefined
+                ? {}
+                : {
+                      entryMissing: {
+                          dependencyType: "stateVariable",
+                          componentIdx: fixedReferent.componentIdx,
+                          variableName: `entryMissing${fixedReferent.listEntryPosition}`,
+                          variablesOptional: true,
+                      },
+                  }),
         }),
         definition({ dependencyValues }) {
             return {
                 setValue: {
-                    valueMissing: Boolean(dependencyValues.targetMissing),
+                    valueMissing:
+                        Boolean(dependencyValues.targetMissing) ||
+                        Boolean(dependencyValues.entryMissing),
                 },
             };
         },

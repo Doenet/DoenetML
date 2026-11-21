@@ -8,6 +8,7 @@ import {
     ensureStateVariableMaterialized,
 } from "../StateVariableInitializer";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
+import { unexpandedCompositeHolding } from "../unexpandedCompositeHolding";
 import {
     changeContext,
     pathHasIndexThatCanChange,
@@ -124,10 +125,6 @@ export class Dependency {
 
         if (dependencyDefinition.publicStateVariablesOnly) {
             this.publicStateVariablesOnly = true;
-        }
-
-        if (dependencyDefinition.caseInsensitiveVariableMatch) {
-            this.caseInsensitiveVariableMatch = true;
         }
 
         if (dependencyDefinition.useMappedVariableNames) {
@@ -441,14 +438,6 @@ export class Dependency {
                     this.originalDownstreamVariableNamesByComponent[index];
             } else {
                 originalVarNames = this.originalDownstreamVariableNames;
-            }
-
-            if (this.caseInsensitiveVariableMatch) {
-                originalVarNames =
-                    this.dependencyHandler.core.findCaseInsensitiveMatches({
-                        stateVariables: originalVarNames,
-                        componentClass: downComponent.constructor,
-                    });
             }
 
             if (this.publicStateVariablesOnly) {
@@ -1147,6 +1136,12 @@ export class Dependency {
                     componentObj.componentIdx = componentIdx;
                 }
 
+                // The id saved state is keyed by (SAVE-3), which, unlike
+                // the index, is the same each time the document is built.
+                if (this.includeStateIds) {
+                    componentObj.stateId = depComponent.stateId;
+                }
+
                 if (depComponent.position) {
                     componentObj.position =
                         this.dependencyHandler.frozenPositionCopy(
@@ -1172,6 +1167,18 @@ export class Dependency {
                     let usedDefaultObj: any = {};
                     let foundOneUsedDefault = false;
 
+                    // A component withheld from what is shown (a case not
+                    // shown, an iteration a repeat no longer has) is not
+                    // evaluated by a reader that asks only what it has, not
+                    // what it holds (`withheldValuesNotRead`): from outside,
+                    // withheld content acts as missing (SAVE-4, D40, #2152).
+                    // Its variables are named, with no value, and their
+                    // changes are left for when it is read once shown.
+                    const valuesNotRead =
+                        this.withheldValuesNotRead &&
+                        (await depComponent.state.isInactiveCompositeReplacement
+                            ?.value);
+
                     for (let [
                         varInd,
                         originalVarName,
@@ -1193,7 +1200,10 @@ export class Dependency {
                         ) {
                             let mappedStateVarObj =
                                 depComponent.state[mappedVarName];
-                            if (!mappedStateVarObj.deferred) {
+                            if (valuesNotRead) {
+                                componentObj.stateValues[nameForOutput] =
+                                    undefined;
+                            } else if (!mappedStateVarObj.deferred) {
                                 componentObj.stateValues[nameForOutput] =
                                     await mappedStateVarObj.value;
                                 // absent when already consumed and not
@@ -1556,6 +1566,33 @@ export class Dependency {
                 stateVariableBlocked: vName,
             });
         }
+    }
+
+    /**
+     * When the component `componentIdx` doesn't exist yet because it is
+     * written inside a composite that hasn't expanded, as `n` of
+     * `<group name="g"><number name="n">2</number></group>` before the group
+     * expands, block this dependency on expanding that composite, so it is
+     * resolved from the component, whatever order the document is written
+     * in (#2553), rather than without it. A random choice whose parameter
+     * reads `$g.n` then draws once, from what `n` gives, not before the
+     * group is there and again after (COMP-8, SEL-7).
+     *
+     * Whether there is such a composite. Must be awaited, as
+     * {@link Dependency.addBlockerForUnexpandedComposite}.
+     */
+    async addBlockerForCompositeHolding(
+        componentIdx: number,
+    ): Promise<boolean> {
+        const composite = unexpandedCompositeHolding(
+            this.dependencyHandler.core,
+            componentIdx,
+        );
+        if (!composite) {
+            return false;
+        }
+        await this.addBlockerForUnexpandedComposite(composite);
+        return true;
     }
 
     /**

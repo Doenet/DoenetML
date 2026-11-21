@@ -22,12 +22,17 @@ import {
     reportConditionDiagnostics,
     refreshRootNames,
 } from "./ResolverAdapter";
-import { namesReachedThroughCopy, postProcessCopy } from "../utils/copy";
-import { preprocessAttributesObject } from "../utils/attributes";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
+import {
+    addShadowingCompositeResponseMark,
+    namesReachedThroughCopy,
+    postProcessCopy,
+} from "../utils/copy";
 import { createComponentIndicesForShadowedReplacements } from "../utils/componentIndices";
 import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
-import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
+import {
+    giveListEntriesToIndexParent,
+    giveReferenceContentToIndexParent,
+} from "./listEntryResolverNodes";
 
 /**
  * Loose-typed bag describing one entry in the `componentChanges` array
@@ -162,7 +167,7 @@ export class CompositeReplacementUpdater {
         // componentInfoObjects
         // flags
         // resolveItem: a function that the composite can use to resolve any state variables
-        // publicCaseInsensitiveAliasSubstitutions: a function that can be used to find a case insensitive match
+        // publicAliasSubstitutions: a function that can be used to find a case insensitive match
         //   to a public state variable, substituting aliases if necessary
         let initialNComponents;
         let replacementResults;
@@ -179,14 +184,13 @@ export class CompositeReplacementUpdater {
                     nComponents: this.core._components.length,
                     workspace: component.replacementsWorkspace,
                     componentInfoObjects: this.core.componentInfoObjects,
+                    allDoenetMLs: this.core.allDoenetMLs,
                     flags: this.core.flags,
                     resolveItem: this.core.dependencies.resolveItem.bind(
                         this.core.dependencies,
                     ),
-                    publicCaseInsensitiveAliasSubstitutions:
-                        this.core.publicCaseInsensitiveAliasSubstitutions.bind(
-                            this.core,
-                        ),
+                    publicAliasSubstitutions:
+                        this.core.publicAliasSubstitutions.bind(this.core),
                 });
 
             replacementResults = {
@@ -619,6 +623,26 @@ export class CompositeReplacementUpdater {
             core: this.core,
             composite: component,
         });
+        // What an index after a group holding only a reference does with what
+        // the reference made, now that it changed
+        await giveReferenceContentToIndexParent({
+            core: this.core,
+            composite: component,
+        });
+        // The shadows of the composite got their new replacements with it
+        // (`createShadowedReplacements`), so their index parents, such as a
+        // `<group extend="$r[1]">` of an iteration holding `$cc.x`, are told
+        // the same (#2520 item 5).
+        for (const shadow of allExpandableShadows(component)) {
+            await giveListEntriesToIndexParent({
+                core: this.core,
+                composite: shadow,
+            });
+            await giveReferenceContentToIndexParent({
+                core: this.core,
+                composite: shadow,
+            });
+        }
 
         const results = {
             success: true,
@@ -1029,48 +1053,16 @@ export class CompositeReplacementUpdater {
                         componentIdx: shadowingComponent.shadows.compositeIdx,
                     });
 
-                    // TODO: is isResponse the only attribute to convert?
-                    if (shadowingComponent.attributes.isResponse) {
-                        let compositeAttributesObj = preprocessAttributesObject(
-                            shadowingComponent.constructor.createAttributesObject(),
-                        );
-
-                        for (let repl of newSerializedReplacements) {
-                            if (typeof repl !== "object") {
-                                continue;
-                            }
-
-                            // add attributes
-                            if (!repl.attributes) {
-                                repl.attributes = {};
-                            }
-                            let nComponents = this.core._components.length;
-                            const res =
-                                convertUnresolvedAttributesForComponentType({
-                                    attributes: {
-                                        isResponse:
-                                            shadowingComponent.attributes
-                                                .isResponse,
-                                    },
-                                    componentType: repl.componentType,
-                                    componentInfoObjects:
-                                        this.core.componentInfoObjects,
-                                    compositeAttributesObj,
-                                    nComponents,
-                                });
-
-                            const attributesFromComposite = res.attributes;
-                            nComponents = res.nComponents;
-                            if (nComponents > this.core._components.length) {
-                                this.core._components[nComponents - 1] =
-                                    undefined;
-                            }
-
-                            Object.assign(
-                                repl.attributes,
-                                attributesFromComposite,
-                            );
-                        }
+                    // the mark an award's `referencesAreResponses` gave
+                    // this shadow
+                    const nComponents = addShadowingCompositeResponseMark({
+                        shadowingComponent,
+                        serializedReplacements: newSerializedReplacements,
+                        componentInfoObjects: this.core.componentInfoObjects,
+                        nComponents: this.core._components.length,
+                    });
+                    if (nComponents > this.core._components.length) {
+                        this.core._components[nComponents - 1] = undefined;
                     }
                 } catch (e: any) {
                     rethrowIfCircular(e);
@@ -1668,6 +1660,22 @@ function findExpandableShadowByCompositeIdx(
         }
     }
     return undefined;
+}
+
+/**
+ * The components that shadow `component`, and those that shadow them, in
+ * turn (`iterateExpandableShadows`), each once.
+ */
+function allExpandableShadows(component: any, seen = new Set<any>()): any[] {
+    const found: any[] = [];
+    for (const shadow of iterateExpandableShadows(component)) {
+        if (seen.has(shadow)) {
+            continue;
+        }
+        seen.add(shadow);
+        found.push(shadow, ...allExpandableShadows(shadow, seen));
+    }
+    return found;
 }
 
 function calculateAllComponentsShadowing(component: any): ComponentIdx[] {

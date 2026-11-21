@@ -536,7 +536,7 @@ describe("Polyline tag tests @group1", async () => {
   <graph name="g1">
     <setup><sequence from="-5" to="5" name="s"/></setup>
     <repeat hide name="mps" for="$s" valueName="x">
-      <point>($x + <math>0</math>, 5sin($x) + <math>0</math>)</point>
+      <point name="P">($x + <math>0</math>, 5sin($x) + <math>0</math>)</point>
     </repeat>
     <polyline vertices="$mps" name="pg" />
   </graph>
@@ -559,13 +559,13 @@ describe("Polyline tag tests @group1", async () => {
         vertices[8] = [-8, 4];
 
         await movePoint({
-            componentIdx: await resolvePathToNodeIdx("g1.mps[1][1]"),
+            componentIdx: await resolvePathToNodeIdx("g1.mps[1].P"),
             x: vertices[0][0],
             y: vertices[0][1],
             core,
         });
         await movePoint({
-            componentIdx: await resolvePathToNodeIdx("g1.mps[9][1]"),
+            componentIdx: await resolvePathToNodeIdx("g1.mps[9].P"),
             x: vertices[8][0],
             y: vertices[8][1],
             core,
@@ -3982,7 +3982,7 @@ describe("Polyline tag tests @group1", async () => {
     it("constrain to polyline, different scales from graph", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
+  <graph xMin="-110" xMax="110" yMin="-0.11" yMax="0.11">
     <polyline vertices="(-50,-0.02) (-40,0.07) (70,0.06) (10,-0.01)" name="p" />
     <point x="0" y="0.01" name="A">
         <constrainTo relativeToGraphScales>$p</constrainTo>
@@ -4165,31 +4165,27 @@ describe("Polyline tag tests @group1", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
-            undefined,
-        );
+        // an index that names nothing gives one blank point (D40)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
             undefined,
         );
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
 
         await updateMathInputValue({
             latex: "1",
@@ -4287,22 +4283,16 @@ describe("Polyline tag tests @group1", async () => {
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
 
         await updateMathInputValue({
             latex: "4",
@@ -4311,31 +4301,27 @@ describe("Polyline tag tests @group1", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
-            undefined,
-        );
+        // an index that names nothing gives one blank point (D40)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("Ps")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(stateVariables[await resolvePathToNodeIdx("Ps[2]")]).eq(
             undefined,
         );
         expect(stateVariables[await resolvePathToNodeIdx("Ps[3]")]).eq(
             undefined,
         );
+        // a list of values over an index that names nothing holds one blank
+        // entry (D40)
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "x[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("x")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
         expect(
-            await componentOrListEntry(
-                core,
-                stateVariables,
-                resolvePathToNodeIdx,
-                "xa[1]",
-            ),
-        ).eq(undefined);
+            stateVariables[await resolvePathToNodeIdx("xa")].stateValues
+                .entriesMissing,
+        ).eqls([true]);
     });
 
     it("polyline from vector operations", async () => {

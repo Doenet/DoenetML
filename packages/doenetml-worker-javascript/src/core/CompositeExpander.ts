@@ -1,3 +1,4 @@
+import { isWrapperOfSeveral } from "../utils/wrappers";
 import type Core from "../Core";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { errorComponentState } from "../utils/dast/errors";
@@ -16,6 +17,7 @@ import {
 } from "./ResolverAdapter";
 import {
     addAttributesToSingleReplacement,
+    addShadowingCompositeResponseMark,
     namesReachedThroughCopy,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
@@ -25,8 +27,14 @@ import {
     createComponentIndicesFromSerializedChildren,
     createComponentIndicesForShadowedReplacements,
 } from "../utils/componentIndices";
-import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
-import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
+import {
+    CircularDependencyError,
+    rethrowIfCircular,
+} from "./dependencies/CircularDependencyError";
+import {
+    giveListEntriesToIndexParent,
+    giveReferenceContentToIndexParent,
+} from "./listEntryResolverNodes";
 
 /**
  * Expands composite components into their replacements: walks descendants
@@ -303,7 +311,7 @@ export async function expandCompositeComponent({
 }: {
     core: Core;
     component: any;
-}) {
+}): Promise<{ success: boolean; compositesExpanded?: number[] }> {
     if (!("readyToExpandWhenResolved" in component.state)) {
         throw Error(
             `Could not find state variable readyToExpandWhenResolved of composite ${component.componentIdx}`,
@@ -317,8 +325,48 @@ export async function expandCompositeComponent({
 
     core.updateInfo.compositesToExpand.delete(component.componentIdx);
 
+    if (
+        core.updateInfo.compositesBeingExpanded.includes(component.componentIdx)
+    ) {
+        // Making this composite's replacements reached the composite itself,
+        // as when a sampler in what a `copyWithState` copies is drawn from
+        // that copy, and makes its draws before it is copied. Expanding it
+        // again here would do so without end.
+        throw new CircularDependencyError(
+            core.dependencies.getCircularDependencyMessage([component]),
+        );
+    }
+
     core.updateInfo.compositesBeingExpanded.push(component.componentIdx);
 
+    try {
+        return await expandMarkedComposite({ core, component });
+    } catch (e) {
+        // Whatever the expansion threw, the composite is no longer being
+        // expanded: left marked, it would be taken for a cycle the next time
+        // anything expanded it (#2554 item 4).
+        const ind = core.updateInfo.compositesBeingExpanded.indexOf(
+            component.componentIdx,
+        );
+        if (ind !== -1) {
+            core.updateInfo.compositesBeingExpanded.splice(ind, 1);
+        }
+        throw e;
+    }
+}
+
+/**
+ * The expansion of `component` once it is marked as being expanded
+ * (`compositesBeingExpanded`), which `_finishExpanding` unmarks when it
+ * succeeds and `expandCompositeComponent` when it throws.
+ */
+async function expandMarkedComposite({
+    core,
+    component,
+}: {
+    core: Core;
+    component: any;
+}): Promise<{ success: boolean; compositesExpanded?: number[] }> {
     if (component.parent) {
         for (const list of [
             component.parent.unexpandedCompositesReady,
@@ -363,8 +411,7 @@ export async function expandCompositeComponent({
             allDoenetMLs: core.allDoenetMLs,
             flags: core.flags,
             resolveItem: core.dependencies.resolveItem.bind(core.dependencies),
-            publicCaseInsensitiveAliasSubstitutions:
-                core.publicCaseInsensitiveAliasSubstitutions.bind(core),
+            publicAliasSubstitutions: core.publicAliasSubstitutions.bind(core),
         });
 
         // If `core._components` changed in length while `createSerializedReplacements` was executing,
@@ -602,6 +649,15 @@ async function expandShadowingComposite({
         componentIdx: nameOfCompositeMediatingTheShadow,
     });
 
+    // the mark an award's `referencesAreResponses` gave this shadow
+    newNComponents = addShadowingCompositeResponseMark({
+        shadowingComponent: component,
+        serializedReplacements,
+        componentInfoObjects: core.componentInfoObjects,
+        nComponents: newNComponents,
+    });
+    reserveComponentIndices(core, newNComponents);
+
     // If shadowed composite mediates the shadow of compositeMediatingTheShadow,
     // then we have a circular reference.
     let foundCircular = false;
@@ -681,8 +737,7 @@ async function expandShadowingComposite({
             components: core._components,
             nComponents: newNComponents,
             stateIdInfo,
-            publicCaseInsensitiveAliasSubstitutions:
-                core.publicCaseInsensitiveAliasSubstitutions.bind(core),
+            publicAliasSubstitutions: core.publicAliasSubstitutions.bind(core),
         });
 
         for (const diagnostic of verificationResult.diagnostics) {
@@ -903,6 +958,9 @@ export async function createAndSetReplacements({
 
     // A list component among the items is indexed by its entries.
     await giveListEntriesToIndexParent({ core, composite: component });
+    // What an index after a group holding only a reference does with what
+    // the reference made, now that it is made
+    await giveReferenceContentToIndexParent({ core, composite: component });
 }
 
 /**
@@ -980,9 +1038,9 @@ export async function replaceCompositeChildren({
                 // A composite given a type makes exactly one component,
                 // so it is replaced by a single placeholder.
                 let componentType =
-                    core.componentInfoObjects.componentTypeLowerCaseMapping[
-                        child.attributes._createComponentOfType.primitive.value.toLowerCase()
-                    ];
+                    core.componentInfoObjects.componentTypeAsWritten(
+                        child.attributes._createComponentOfType.primitive.value,
+                    );
                 replacements = [
                     {
                         componentType,
@@ -1280,6 +1338,15 @@ export async function changeInactiveComponentAndDescendants({
         inactive
     ) {
         component.state.isInactiveCompositeReplacement.value = inactive;
+        if (component.constructor.holdsUnenteredEdit) {
+            if (inactive) {
+                // a withheld input isn't focused
+                core.inputNoLongerFocused(component.componentIdx);
+            } else {
+                // shown again: an edit it holds is committed (D50)
+                core.inputsToCommit.add(component.componentIdx);
+            }
+        }
         await core.markUpstreamDependentsStale({
             component,
             varName: "isInactiveCompositeReplacement",
@@ -1332,6 +1399,10 @@ export async function changeInactiveComponentAndDescendants({
  * recursed into. `stopAtListComposites` does the same for a composite
  * that can be shown as a list (its state has `asList`), so that a copy
  * of the replacements keeps the list, commas and all.
+ * `stopAtWrappersOfSeveral` does the same for a wrapper holding several
+ * components ({@link isWrapperOfSeveral}), which a property is not passed
+ * into (D41 decision 3, COLL-3); it is still recorded among
+ * `compositesFound`, so a change of what it holds is followed.
  */
 export function recursivelyReplaceCompositesWithReplacements({
     core,
@@ -1340,6 +1411,7 @@ export function recursivelyReplaceCompositesWithReplacements({
     includeWithheldReplacements = false,
     stopIfHaveProp,
     stopAtListComposites = false,
+    stopAtWrappersOfSeveral = false,
 }: {
     core: Core;
     replacements: any[];
@@ -1347,6 +1419,7 @@ export function recursivelyReplaceCompositesWithReplacements({
     includeWithheldReplacements?: boolean;
     stopIfHaveProp?: string;
     stopAtListComposites?: boolean;
+    stopAtWrappersOfSeveral?: boolean;
 }): {
     compositesFound: number[];
     newReplacements: any[];
@@ -1390,6 +1463,11 @@ export function recursivelyReplaceCompositesWithReplacements({
 
         compositesFound.push(replacement.componentIdx);
 
+        if (stopAtWrappersOfSeveral && isWrapperOfSeveral(replacement)) {
+            newReplacements.push(replacement);
+            continue;
+        }
+
         if (!replacement.isExpanded) {
             if (replacement.state.readyToExpandWhenResolved.isResolved) {
                 unexpandedCompositesReady.push(replacement.componentIdx);
@@ -1417,6 +1495,7 @@ export function recursivelyReplaceCompositesWithReplacements({
             includeWithheldReplacements,
             stopIfHaveProp,
             stopAtListComposites,
+            stopAtWrappersOfSeveral,
         });
         compositesFound.push(...recursionResult.compositesFound);
         newReplacements.push(...recursionResult.newReplacements);

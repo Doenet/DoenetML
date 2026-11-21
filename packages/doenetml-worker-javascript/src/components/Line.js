@@ -22,6 +22,7 @@ import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
 
 export default class Line extends GraphicalComponent {
+    static missingWhenEntriesMissing = ["through"];
     constructor(args) {
         super(args);
 

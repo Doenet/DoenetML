@@ -238,9 +238,11 @@ describe("An index that names nothing @group4", async () => {
             expect([...warnings, ...errors, ...infos], body).eqls([]);
         }
 
-        // A collect with no limit has the property `maxNumber`.
+        // A list with no limit has the property `maxNumber`. (A
+        // `<collect>`'s `maxNumber` is an attribute, not a property, D41
+        // decision 2.)
         const { warnings, errors, infos } = await shownAndReported(
-            `<collect name="c" componentType="math" from="$l"/><p name="p">[$c.maxNumber]</p>`,
+            `<mathList name="c">1 2</mathList><p name="p">[$c.maxNumber]</p>`,
         );
         expect([...warnings, ...errors, ...infos]).eqls([]);
     });
@@ -386,9 +388,11 @@ describe("An index that names nothing @group4", async () => {
 
     it("keeps the info of a tag whose child has a warning of its own", async () => {
         // A warning in what is written in the tag says nothing about its
-        // index; one in its reference (`$l[$nothing]`) does.
+        // index; one in its reference (`$l[$nothing]`) does. The index is
+        // past the iterations of a repeat: after a `<group>`, it would name
+        // nothing by a warning of its own (D27).
         const { warnings, errors, infos } = await shownAndReported(
-            `<mathInput name="i" prefill="5"/><group name="pg"><text>a</text><text>b</text></group><p name="p"><text extend="$pg[$i]">$nothing</text><math extend="$l[$nothing]"/></p>`,
+            `<mathInput name="i" prefill="5"/><repeat name="pg" for="a b" valueName="v"><text>$v</text></repeat><p name="p"><text extend="$pg[$i]">$nothing</text><math extend="$l[$nothing]"/></p>`,
         );
         expect(errors).eqls([]);
         expect(warnings.map((w) => w.args)).eqls([
@@ -416,16 +420,18 @@ describe("An index that names nothing @group4", async () => {
     });
 
     it("reads the reference of a tag whatever the case of its attribute", async () => {
-        // `Extend` is `extend`: the warning in its index says why the index
-        // names nothing, as for the lowercase attribute.
+        // `Extend` is applied as `extend` for now, with a warning that names
+        // are case-sensitive (D51): the warning in its index says why the
+        // index names nothing, as for the lowercase attribute.
         for (const attribute of ["extend", "Extend", "COPY"]) {
             const { warnings, infos } = await shownAndReported(
                 `<p name="p"><math ${attribute}="$l[$nothing]"/></p>`,
             );
-            expect(
-                warnings.map((w) => w.code),
-                attribute,
-            ).eqls(["doenet-w0104"]);
+            expect(warnings.map((w) => w.code).sort(), attribute).eqls(
+                attribute === "extend"
+                    ? ["doenet-w0104"]
+                    : ["doenet-w0104", "doenet-w0197"],
+            );
             expect(infos, attribute).eqls([]);
         }
     });

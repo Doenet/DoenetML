@@ -1,3 +1,4 @@
+import { drawsCarried, drawnFromParameters } from "../utils/randomNumbers";
 import {
     sampleFromRandomNumbers,
     validGaussianParameters,
@@ -20,6 +21,23 @@ import ValueListComponent from "./abstract/ValueListComponent";
  * it is drawn again.
  */
 export default class SampleRandomNumbers extends ValueListComponent {
+    /**
+     * A `copyWithState` carries the draws (CPY-8), so they are made before
+     * this is copied, as a copy made before they were would have none to
+     * carry and would draw its own (`drawsCarried`). A `copy` draws its own
+     * (D33). A linked copy (an `extend`) shows this one's draws as they are
+     * (`shadowVariable`), and nothing else serialized carries them, so they
+     * are not made early for those: made before what they are drawn from is
+     * all there, they would be drawn again once it is, and so after each
+     * reload.
+     */
+    async serialize(parameters = {}) {
+        if (parameters.copyAll && !parameters.withoutReaderState) {
+            await this.stateValues.sampledValues;
+        }
+        return await super.serialize(parameters);
+    }
+
     constructor(args) {
         super(args);
 
@@ -28,6 +46,31 @@ export default class SampleRandomNumbers extends ValueListComponent {
         });
     }
     static componentType = "sampleRandomNumbers";
+
+    // The distribution sampled from, computed from what is written (the
+    // expected `mean` of a uniform distribution), documented as properties
+    // (`sampleRandomNumbers.mdx`).
+    static attributePropertiesKept = [
+        "type",
+        "from",
+        "to",
+        "step",
+        "mean",
+        "variance",
+        "standardDeviation",
+        "logMean",
+        "logVariance",
+        "logStandardDeviation",
+        "means",
+        "variances",
+        "standardDeviations",
+        "weights",
+        "numTotal",
+        "numSuccesses",
+        "numDraws",
+        "numTrials",
+        "probability",
+    ];
 
     static listEntryComponentType = "number";
 
@@ -485,9 +528,35 @@ export default class SampleRandomNumbers extends ValueListComponent {
                     }
                     if (dependencyValues.type === "uniform") {
                         to = from + 1;
+                    } else if (!(
+                        Number.isFinite(from) &&
+                        Number.isFinite(step) &&
+                        step !== 0
+                    )) {
+                        // Stepping past an excluded value would never end
+                        // (a step of 0, or a `from` or step that isn't a
+                        // finite number, which an excluded `NaN` or
+                        // `Infinity` matches): the two values are `from` and
+                        // `from + step`, and none when either is excluded.
+                        to = from + step;
+                        if (exclude.includes(from) || exclude.includes(to)) {
+                            to = from;
+                            numDiscreteValues = 0;
+                        } else {
+                            numDiscreteValues = 2;
+                        }
                     } else {
                         // make sure from isn't excluded
+                        // (stopping when a step no longer changes it, as
+                        // from a `from` too large for the step to change,
+                        // or past the largest number: stepping on would
+                        // never end, and the range has no values)
+                        let stuck = false;
                         while (exclude.includes(from)) {
+                            if (from + step === from) {
+                                stuck = true;
+                                break;
+                            }
                             from += step;
                         }
 
@@ -495,14 +564,24 @@ export default class SampleRandomNumbers extends ValueListComponent {
 
                         // make sure to isn't excluded, so that have exactly two values
                         let i = 1;
-                        while (exclude.includes(to)) {
+                        while (!stuck && exclude.includes(to)) {
+                            if (!Number.isFinite(to)) {
+                                // past the largest number, and excluded
+                                stuck = true;
+                                break;
+                            }
                             // Note: make sure calculate to using exact same sequence of operations as actual values
                             // so don't have differences due to floating point rounding
                             i++;
                             to = from + i * step;
                         }
 
-                        numDiscreteValues = 2;
+                        if (stuck) {
+                            to = from;
+                            numDiscreteValues = 0;
+                        } else {
+                            numDiscreteValues = 2;
+                        }
                     }
                 } else {
                     if (from === null) {
@@ -513,7 +592,12 @@ export default class SampleRandomNumbers extends ValueListComponent {
                             numDiscreteValues = Math.floor(
                                 (to - targetFrom) / step + 1,
                             );
-                            if (numDiscreteValues < 1) {
+                            // a step of 0 gives no count (counting without
+                            // end would never finish)
+                            if (
+                                numDiscreteValues < 1 ||
+                                numDiscreteValues === Infinity
+                            ) {
                                 numDiscreteValues = 0;
                                 from = null;
                             } else {
@@ -536,7 +620,12 @@ export default class SampleRandomNumbers extends ValueListComponent {
                             numDiscreteValues = Math.floor(
                                 (to - from) / step + 1,
                             );
-                            if (numDiscreteValues < 1) {
+                            // a step of 0 gives no count (counting without
+                            // end would never finish)
+                            if (
+                                numDiscreteValues < 1 ||
+                                numDiscreteValues === Infinity
+                            ) {
                                 numDiscreteValues = 0;
                             } else {
                                 to = from + (numDiscreteValues - 1) * step;
@@ -1388,8 +1477,20 @@ export default class SampleRandomNumbers extends ValueListComponent {
         };
 
         stateVariableDefinitions.sampledValues = {
+            // the draws a `copyWithState` carried (`drawsCarried`)
+            provideEssentialValuesInDefinition: true,
+            providePreviousValuesInDefinition: true,
             shadowVariable: true,
             hasEssential: true,
+            // what the draws were made from, carried with them
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "drawnFrom",
+                    hasEssential: true,
+                    shadowVariable: true,
+                    defaultValue: null,
+                },
+            ],
             stateVariablesDeterminingDependencies: ["variantDeterminesSeed"],
             returnDependencies({ stateValues, sharedParameters }) {
                 let dependencies = {
@@ -1500,11 +1601,14 @@ export default class SampleRandomNumbers extends ValueListComponent {
                 dependencyValues,
                 changes,
                 justUpdatedForNewComponent,
+                essentialValues,
+                previousValues,
             }) {
+                const drawnFrom = drawnFromParameters(dependencyValues);
                 if (dependencyValues.numSamples < 1) {
                     return {
-                        setEssentialValue: { sampledValues: [] },
-                        setValue: { sampledValues: [] },
+                        setEssentialValue: { sampledValues: [], drawnFrom },
+                        setValue: { sampledValues: [], drawnFrom },
                     };
                 }
 
@@ -1513,7 +1617,12 @@ export default class SampleRandomNumbers extends ValueListComponent {
                 // then don't resample the values but just use the current ones
                 if (
                     Object.keys(changes).length === 0 ||
-                    justUpdatedForNewComponent
+                    justUpdatedForNewComponent ||
+                    drawsCarried({
+                        essentialValues,
+                        previousValues,
+                        drawnFrom,
+                    })
                 ) {
                     // Keep the values, but re-check the parameters: they have not
                     // changed, so whatever was wrong with them still is, and an
@@ -1527,7 +1636,10 @@ export default class SampleRandomNumbers extends ValueListComponent {
                     });
 
                     return {
-                        useEssentialOrDefaultValue: { sampledValues: true },
+                        useEssentialOrDefaultValue: {
+                            sampledValues: true,
+                            drawnFrom: true,
+                        },
                         conditionDiagnostics: withSamplingLevels(
                             diagnostics,
                             dependencyValues.type,
@@ -1540,8 +1652,8 @@ export default class SampleRandomNumbers extends ValueListComponent {
                     sampleFromRandomNumbers(dependencyValues);
 
                 return {
-                    setEssentialValue: { sampledValues },
-                    setValue: { sampledValues },
+                    setEssentialValue: { sampledValues, drawnFrom },
+                    setValue: { sampledValues, drawnFrom },
                     // what these parameters give now, gone when they no longer
                     // give it (B33)
                     conditionDiagnostics: withSamplingLevels(
@@ -1639,9 +1751,10 @@ export default class SampleRandomNumbers extends ValueListComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        // Any diagnostic these parameters raise was already sent when `sampledValues`
-        // was first computed, and resampling cannot change them, so there is nothing
-        // new to report here — and an action has no `sendDiagnostics` in any case.
+        // The diagnostics these parameters give are not reported here: the
+        // update below runs `sampledValues`' definition again, which keeps
+        // the values and reports them as its conditions, as for the first
+        // draw, so they follow the parameters after a resample too (#2506).
         const { sampledValues } = sampleFromRandomNumbers({
             type: await this.stateValues.type,
             numSamples: await this.stateValues.numSamples,

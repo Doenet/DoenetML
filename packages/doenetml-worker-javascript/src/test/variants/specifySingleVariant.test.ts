@@ -2364,7 +2364,7 @@ describe("Specifying single variant tests @group1", async () => {
         // the repeat's seed, the same ones they drew when recreated on the
         // first load.
         const doenetML = `<booleanInput name="b"/>
-        <conditionalContent name="cc"><case condition="$b"><number>3</number><number>4</number></case><else><number>1</number><number>2</number></else></conditionalContent>
+        <conditionalContent name="cc"><case condition="$b"><numberList>3 4</numberList></case><else><numberList>1 2</numberList></else></conditionalContent>
         <group><p><repeat for="$cc"><selectFromSequence from="1" to="1000"/></repeat></p></group>`;
 
         for (let variantIndex = 1; variantIndex <= 3; variantIndex++) {

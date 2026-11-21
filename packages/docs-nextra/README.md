@@ -14,7 +14,7 @@ This site is built with [Nextra 4](https://nextra.site) on the Next.js App Route
 ### Dev Instructions
 
 Make sure that `packages/doenetml` and `packages/standalone` have been built. Their assets are needed.
-Changes to the docs-nextra files require their own build. New .mdx documents (e.g, in the 'content/reference' folder) require inclusion  in the _meta.ts file to support indexing.  Note: the file name in the .ts file must literally match the filename in the same folder. New components need to be listed in the 'componentTypes.mdx' file.
+Changes to the docs-nextra files require their own build. New .mdx documents (e.g, in the 'content/reference' folder) require inclusion in the _meta.ts file to support indexing. Note: the file name in the .ts file must literally match the filename in the same folder. New components need to be listed in the 'componentTypes.mdx' file.
 
 Then, if you update 'componentTypes.mdx', then be sure to update the static assets so to generate the indexing needed:
 
@@ -26,7 +26,7 @@ npm run build:schema
 Then rebuild the documentation and test it:
 
 ```
-cd packages/docs-nextra 
+cd packages/docs-nextra
 npm run build
 npm run dev
 ```
@@ -56,7 +56,7 @@ the committed `doenet-schema.json` at every release tag and diffs the snapshots,
 runs as part of `build:pre`.
 
 It is generated rather than committed, deliberately. The index is a pure function of the
-release tags, so a stored copy could only ever be *stale* — after a release, until someone
+release tags, so a stored copy could only ever be _stale_ — after a release, until someone
 remembered to regenerate it — and never more correct. Deriving it at build time means
 there is no freshness check to run and no step in the release flow to forget.
 
@@ -69,23 +69,23 @@ Two consequences:
 - **There is no diff to read after a release.** `npm run report:schema-changes` replaces
   it, and reports any release rather than only the most recent:
 
-  ```
-  npm run report:schema-changes -w packages/docs-nextra            # newest release
-  npm run report:schema-changes -w packages/docs-nextra -- 0.7.21  # a specific one
-  npm run report:schema-changes -w packages/docs-nextra -- --all   # every release
-  ```
+    ```
+    npm run report:schema-changes -w packages/docs-nextra            # newest release
+    npm run report:schema-changes -w packages/docs-nextra -- 0.7.21  # a specific one
+    npm run report:schema-changes -w packages/docs-nextra -- --all   # every release
+    ```
 
 Read it through `scripts/schema-history-keys.ts`, which holds the key space
 (`el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`,
 `va:<element>.<attr>.<value>`), the helpers that build those keys and the index's type —
 and nothing else, so a client component can import it. `schema-history.ts` next to it
-reads git, so importing *that* one from a component fails the build on
+reads git, so importing _that_ one from a component fails the build on
 `node:child_process`.
 
 Two rules worth knowing before reading a value out of the index. `since` is the start of a
-key's *latest contiguous run of presence*, not its first-ever appearance — keys get
+key's _latest contiguous run of presence_, not its first-ever appearance — keys get
 removed and names get reused, so a rename reads as the old spelling gaining `removedIn`
-and the new one gaining its own `since`. And the index covers *released* versions only, so
+and the new one gaining its own `since`. And the index covers _released_ versions only, so
 a key in the working-tree schema with no entry is by definition unreleased.
 
 ### Version badges
@@ -125,7 +125,8 @@ nothing to anyone. Three rules drop them:
 
 Of the ~1,800 badges left, the default view shows only the ones reading **In development** —
 in the working-tree schema, in no release. Those are the ones an author cannot act on yet,
-and the docs site deploys from every push to `main`, so they are always present. Values
+and the docs site serves `main` at `/0.8/`, rebuilt on every push to it, so they are always
+present there. (The 0.7 docs at `/0.7/` carry no badges.) Values
 matter here out of proportion to their number: `type` on `<selectRandomNumbers>` is as old
 as the schema and so carries no badge of its own, which would otherwise leave its table
 listing `logNormal` as though an author could write it.
@@ -133,7 +134,7 @@ listing `logNormal` as though an author could write it.
 The rest read "Added in X", ship in the DOM, and are hidden by `app/style.css`. Each carries
 its version in `data-since`, on both the badge and the item around it, which is what lets a
 "my version" selector reveal and dim by CSS alone with no re-render. They also carry
-`data-pagefind-filter="version:…"`, which Pagefind collects per page, so a *search* can be
+`data-pagefind-filter="version:…"`, which Pagefind collects per page, so a _search_ can be
 narrowed to the pages carrying an item from a given release, or one still in development.
 `data-pagefind-ignore` alongside keeps the badge's own words out of result excerpts while
 still collecting the filter.
@@ -141,7 +142,7 @@ still collecting the filter.
 ### zod is pinned to 4.3 in the root `overrides`
 
 Nextra 4.6.1 validates its `<Layout>` props with `z.custom()` schemas that carry no
-explicit `.optional()`. zod 4.4.0 changed what a *missing* key on such a schema does —
+explicit `.optional()`. zod 4.4.0 changed what a _missing_ key on such a schema does —
 it used to parse as `undefined`, and now raises `Invalid input: expected nonoptional,
 received undefined`. `<Layout>` destructures `children` out of its props before
 validating the rest, so with zod >= 4.4 every page fails to render on that one field.

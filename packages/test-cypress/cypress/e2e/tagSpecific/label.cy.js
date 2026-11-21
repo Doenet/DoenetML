@@ -135,7 +135,7 @@ describe("Label Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#l1").should("have.text", "Before gone");
         cy.get("label#l2 ins#i1").should("have.text", "Name");
     });
-    it("markup in more labels, and a copy of a label's value", () => {
+    it("markup in more labels, and in a reference to a label", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -173,8 +173,9 @@ describe("Label Tag Tests", { tags: ["@group4"] }, function () {
         // the outer whitespace is trimmed, as it is from the label's value
         cy.get("#trim-label").should("have.text", "Lead x trail");
 
-        // a copy of a label's value has only its text
+        // a reference to an input's label in a paragraph keeps the markup
+        // of its `<label>` child
         cy.get("#pCopy").should("have.text", "T A");
-        cy.get("#pCopy del").should("not.exist");
+        cy.get("#pCopy del").should("have.text", "A");
     });
 });

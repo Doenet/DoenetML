@@ -1,12 +1,17 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import {
-    compareExtractedValues,
+    compareForSorting,
     returnBreakStringsIntoTypeSugarInstruction,
     returnListValueStateVariableDefinitions,
 } from "../utils/listValues";
 import { returnReplacementsToHideDefinitions } from "../utils/replacementsToHide";
+import { reorderErrorReplacements } from "../utils/reorderErrors";
 
 /**
  * The permutation taking `previous` to `current`, or `null` if `current` is
@@ -212,7 +217,7 @@ export function returnSortAttributes() {
         createPrimitiveOfType: "string",
         highlighted: true,
         description:
-            "Component type to sort bare string children as. Omit it and they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
+            "Component type to sort bare string children as. Omit it and, beside components of one type written as tags, they are read as that type where they read as it (only text with coordinates as a point or vector, only `true` or `false` as a boolean); otherwise they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
         validValues: [
             {
                 value: "number",
@@ -259,7 +264,7 @@ export function returnSortedValuesDefinition() {
             let sortedValues = [...dependencyValues.listValues];
 
             sortedValues.sort((a, b) =>
-                compareExtractedValues(a, b, dependencyValues.allAreNumeric),
+                compareForSorting(a, b, dependencyValues.allAreNumeric),
             );
 
             return { setValue: { sortedValues } };
@@ -269,6 +274,9 @@ export function returnSortedValuesDefinition() {
 
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
+
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
 
     static componentDocs = {
         summary: "Sorts a list according to a comparison function",
@@ -301,7 +309,9 @@ export default class Sort extends CompositeComponent {
         let sugarInstructions = super.returnSugarInstructions();
 
         sugarInstructions.push(
-            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType, {
+                allowComponents: true,
+            }),
         );
 
         return sugarInstructions;
@@ -319,11 +329,15 @@ export default class Sort extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
+
         Object.assign(
             stateVariableDefinitions,
             returnListValueStateVariableDefinitions({
                 componentName: this.componentType,
                 supportProps: true,
+                keepMissing: true,
             }),
         );
 
@@ -368,6 +382,11 @@ export default class Sort extends CompositeComponent {
             },
         };
 
+        // The number of items, what it sorts (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "sortedValues",
+        });
+
         return stateVariableDefinitions;
     }
 
@@ -378,6 +397,16 @@ export default class Sort extends CompositeComponent {
         workspace,
         nComponents,
     }) {
+        // Items not of one type, decided at load (COLL-4): the error.
+        const errorResult = reorderErrorReplacements({
+            component,
+            nComponents,
+        });
+        if (errorResult) {
+            workspace.componentsCopied = [];
+            return errorResult;
+        }
+
         let diagnostics = [];
 
         let replacements = [];
@@ -475,6 +504,11 @@ export default class Sort extends CompositeComponent {
         nComponents,
     }) {
         let diagnostics = [];
+
+        if (component.doenetAttributes?.reorderErrorAtLoad) {
+            // the error, which does not change
+            return { replacementChanges: [], diagnostics, nComponents };
+        }
 
         let componentsToCopy = [];
 

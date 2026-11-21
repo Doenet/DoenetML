@@ -163,6 +163,23 @@ function forwardFromShadowSourceIfUnmodified(stateDef, varName, conditionName) {
 export default class Function extends InlineComponent {
     static componentType = "function";
 
+    /**
+     * A function is defined by its first `<math>` or `<function>` child, so
+     * of one written on its copy and the source's, the last written wins
+     * (REF-4a, `addChildrenFromComposite`, #2486).
+     */
+    static childGroupsReadOnce = ["maths", "functions"];
+
+    // missing while its content is only missing children (D40,
+    // `BaseComponent.missingWhenContentMissing`)
+    static missingWhenContentMissing = true;
+
+    // and while a point it is made through is missing, as a shape is
+    // (D40): `<function through="(1,2) $Q"/>` with no `Q` is missing,
+    // rather than interpolating through the origin
+    // (`BaseComponent.missingWhenEntriesMissing`)
+    static missingWhenEntriesMissing = ["through"];
+
     static componentDocs = {
         summary: "A mathematical function, defined by formula or interpolation",
     };

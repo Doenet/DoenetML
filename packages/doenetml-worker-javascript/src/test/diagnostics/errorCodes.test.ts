@@ -171,7 +171,12 @@ describe("the code survives the whole trip through the component @group4", () =>
         const { errors } = getDiagnosticsByType(core);
         expect(errors.length).eq(1);
         expect(errors[0].code).eq("doenet-e0004");
-        expect(errors[0].args).eqls({ attribute: "bad", componentType: "p" });
+        expect(errors[0].args).eqls({
+            attribute: "bad",
+            componentType: "p",
+            suggestion: "",
+            hasSuggestion: "false",
+        });
         // The English is unchanged, which is what the assertions in
         // `errors.test.ts` depend on.
         expect(errors[0].message).eq(
@@ -192,25 +197,33 @@ describe("the code survives the whole trip through the component @group4", () =>
             (error) => error.code === "doenet-e0002",
         );
         expect(invalidType.length).eq(1);
-        expect(invalidType[0].args).eqls({ componentType: "apple" });
+        expect(invalidType[0].args).eqls({
+            componentType: "apple",
+            suggestion: "",
+            hasSuggestion: "false",
+        });
         expect(invalidType[0].message).eq("Invalid component type: `<apple>`");
     });
 
-    it("reaches the record for a repeated attribute", async () => {
-        // Spelled with different capitalization on purpose: two identical
-        // attribute names never reach the worker (the parser folds them), so
-        // the repeat this catches is one that only collides after the
-        // case-insensitive mapping.
+    it("reaches the record for an attribute in another case, with its suggestion", async () => {
+        // Two identical attribute names never reach the worker (the parser
+        // folds them). One that differs in case is another attribute, as
+        // names are case-sensitive (D51): `NAME` is not `name`, so it is not
+        // a repeat of it.
         const { core } = await createTestCore({
             doenetML: `<p name="a" NAME="b">Hello</p>`,
         });
 
         const { errors } = getDiagnosticsByType(core);
-        const repeated = errors.filter(
-            (error) => error.code === "doenet-e0003",
+        expect(errors.map((error) => error.code)).eqls(["doenet-e0004"]);
+        expect(errors[0].args).eqls({
+            attribute: "NAME",
+            componentType: "p",
+            suggestion: "name",
+            hasSuggestion: "true",
+        });
+        expect(errors[0].message).eq(
+            'Invalid attribute "NAME" for a component of type `<p>`. Did you mean "name"?',
         );
-        expect(repeated.length).eq(1);
-        expect(repeated[0].args).eqls({ attribute: "name" });
-        expect(repeated[0].message).eq("Cannot repeat attribute name.");
     });
 });

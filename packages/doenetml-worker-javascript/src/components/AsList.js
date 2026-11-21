@@ -3,6 +3,8 @@ import InlineComponent from "./abstract/InlineComponent";
 
 export default class AsList extends InlineComponent {
     static componentType = "asList";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Renders its children as a comma-separated list",

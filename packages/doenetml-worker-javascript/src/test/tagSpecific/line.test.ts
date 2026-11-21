@@ -5590,7 +5590,11 @@ describe("Line tag tests @group3", async () => {
                         .value.tree,
                 ).eq(t2y);
             } else {
-                expect(await resolvePathToNodeIdx("Ps[1]")).eq(-1);
+                // an index that names nothing gives one blank entry (D40)
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("Ps")].stateValues
+                        .entriesMissing,
+                ).eqls([true]);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("x")].stateValues
                         .value.tree,
@@ -6291,7 +6295,7 @@ describe("Line tag tests @group3", async () => {
   <graph>
     <line through="(0, $$f(0)) (pi/2, $$f(pi/2))" name="l" />
   </graph>
-  <p name="p1">y-intercept: $l.yIntercept</p>
+  <p name="p1">y-intercept: $l.yintercept</p>
   <p name="p2">slope: $l.slope</p>
 
     `,

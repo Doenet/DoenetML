@@ -15,6 +15,8 @@ export default class Hint extends BlockComponent {
         });
     }
     static componentType = "hint";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "Hint shown on demand to help with an exercise",

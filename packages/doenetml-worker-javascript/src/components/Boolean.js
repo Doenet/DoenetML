@@ -1,6 +1,8 @@
 import InlineComponent from "./abstract/InlineComponent";
+import me from "math-expressions";
 import {
     buildParsedExpression,
+    logicTreeMissing,
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
 import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
@@ -13,6 +15,17 @@ import {
 
 export default class BooleanComponent extends InlineComponent {
     static componentType = "boolean";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
+
+    // missing while its content is only missing children (D40,
+    // `BaseComponent.missingWhenContentMissing`)
+    static missingWhenContentMissing = true;
+
+    // missing while its logic is computed from a missing operand, as a
+    // boolean can't hold a blank (D40,
+    // `BaseComponent.missingWhenComputedFromMissing`)
+    static missingWhenComputedFromMissing = true;
 
     static componentDocs = {
         summary: "A boolean value",
@@ -238,6 +251,60 @@ export default class BooleanComponent extends InlineComponent {
             stateVariableDefinitions,
             returnChildrenByCodeStateVariableDefinitions(),
         );
+
+        if (this.missingWhenComputedFromMissing) {
+            // Whether an operand of its logic is missing (`logicTreeMissing`,
+            // D40, VAL-5, #2460): `<boolean>not $nothing</boolean>` and
+            // `<boolean>$nothing and true</boolean>` are missing, shown as
+            // `＿`, while `<boolean>$nothing = 1</boolean>` is false.
+            stateVariableDefinitions.computedFromMissing = {
+                // Read from the children's `valueMissing` and the structure
+                // of the logic alone, not the children's values: an
+                // `<answer>` reads the `valueMissing` of every component in
+                // its awards, which must not make it read their values.
+                returnDependencies: () => ({
+                    parsedExpression: {
+                        dependencyType: "stateVariable",
+                        variableName: "parsedExpression",
+                    },
+                    codePre: {
+                        dependencyType: "stateVariable",
+                        variableName: "codePre",
+                    },
+                    children: {
+                        dependencyType: "child",
+                        childGroups: ["comparableTypes"],
+                        variableNames: ["valueMissing"],
+                        variablesOptional: true,
+                    },
+                }),
+                definition({ dependencyValues }) {
+                    const { parsedExpression, codePre, children } =
+                        dependencyValues;
+                    // the codes are those `mathChildrenByCode` gives the
+                    // children, in order
+                    const missingCodes = new Set(
+                        children.flatMap((child, ind) =>
+                            child.stateValues?.valueMissing
+                                ? [codePre + ind]
+                                : [],
+                        ),
+                    );
+                    return {
+                        setValue: {
+                            computedFromMissing:
+                                parsedExpression !== null &&
+                                missingCodes.size > 0 &&
+                                logicTreeMissing({
+                                    logicTree: parsedExpression.tree,
+                                    isMissingCode: (code) =>
+                                        missingCodes.has(code),
+                                }),
+                        },
+                    };
+                },
+            };
+        }
 
         stateVariableDefinitions.value = {
             description: "The boolean value (true or false).",
@@ -488,8 +555,58 @@ export default class BooleanComponent extends InlineComponent {
             },
         };
 
+        // The boolean as `1` or `0`, where a math is wanted (REF-5): the
+        // math a boolean adapts to as the child of a `<math>`, a `<point>`, a
+        // `<mathList>` or anything else that takes maths but not booleans or
+        // texts, so `<math>$b+1</math>` is `1+1`. Not a property: `$b` in such
+        // a place reads it, a missing boolean as a blank. Writing `1` or `0` back sets `true` or `false`.
+        stateVariableDefinitions.math = {
+            returnDependencies: () => ({
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+                // not every type of boolean can be missing (`<isInteger>`)
+                valueMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                // a missing boolean is a blank in the math (D40)
+                const math = dependencyValues.valueMissing
+                    ? me.fromAst("\uff3f")
+                    : me.fromAst(dependencyValues.value ? 1 : 0);
+                return { setValue: { math } };
+            },
+            inverseDefinition({ desiredStateVariableValues }) {
+                let desired = desiredStateVariableValues.math;
+                if (desired instanceof me.class) {
+                    desired = desired.evaluate_to_constant();
+                }
+                if (desired === 0 || desired === 1) {
+                    return {
+                        success: true,
+                        instructions: [
+                            {
+                                setDependency: "value",
+                                desiredValue: desired === 1,
+                            },
+                        ],
+                    };
+                }
+                return { success: false };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 
-    static adapters = ["text"];
+    // As a text where a text is wanted, otherwise as `1` or `0` where a math
+    // is (REF-5)
+    static adapters = [
+        "text",
+        { stateVariable: "math", componentType: "math" },
+    ];
 }

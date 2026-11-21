@@ -14,6 +14,12 @@ Conditions may be defined directly on the `<conditionalContent>{:dn}` tag using 
 Alternatively, one can use one or more [`<case>{:dn}`](case.mdx) children with an 
 optional [`<else>{:dn}`](else.mdx) child.
 
+From outside, the content of a case that is not shown acts as missing: a
+reference to it, such as `$cc.ans.creditAchieved`, is blank (`＿`), an action
+that targets it does nothing, and reading it does not change it. It keeps what
+a reader did in it, and when the case is shown again, it comes back with it,
+following any change made meanwhile to what it depends on.
+
 <AttrPropDisplay name='conditionalContent'/>
 
 

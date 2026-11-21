@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -39,7 +42,16 @@ async function setup(doenetML: string) {
         await core.returnAllStateVariables(false, true);
     }
 
-    return { core, diagnostics, setMath };
+    async function setBoolean(name: string, boolean: boolean) {
+        await updateBooleanInputValue({
+            boolean,
+            componentIdx: await resolvePathToNodeIdx(name),
+            core,
+        });
+        await core.returnAllStateVariables(false, true);
+    }
+
+    return { core, diagnostics, setMath, setBoolean };
 }
 
 describe("Warning levels by the source of the condition", () => {
@@ -305,5 +317,157 @@ $f.domain
             { type: "info", line: 7 },
         ]);
         expect(diagnostics("doenet-i0054")).eqls([]);
+    });
+});
+
+describe("Diagnostic-level follow-ups (#2506)", () => {
+    it("i0048: a value a primitive attribute can't take is a warning", async () => {
+        // A primitive is written as text and can't be a reference. An
+        // attribute read from a component (`format`, and `type` of a
+        // `<sampleRandomNumbers>`, a text) can come from a value, so it stays
+        // an info, though here it is written as a literal (a known gap).
+        const { core, diagnostics } = await setup(`
+<slider type="banana"/>
+<substitute type="banana" match="x" replacement="y">x+1</substitute>
+<sampleRandomNumbers type="banana"/>
+<math format="new1">x</math>
+`);
+        await core.returnAllStateVariables(false, true);
+        expect(diagnostics("doenet-i0048")).eqls([
+            { type: "warning", line: 2 },
+            { type: "warning", line: 3 },
+            { type: "info", line: 4 },
+            { type: "info", line: 5 },
+        ]);
+    });
+
+    it("w0144: only what carries a value child's value decides the level", async () => {
+        const { diagnostics, setMath } = await setup(`
+<mathInput name="n" prefill="2"/>
+<chart type="bar"><number displayDigits="$n">4</number> x</chart>
+<chart type="bar"><series styleNumber="$n">4 x</series></chart>
+<chart type="bar"><number hide="$n=3">4</number> x</chart>
+<chart type="bar"><number>$n</number> x</chart>
+`);
+        expect(diagnostics("doenet-w0144")).eqls([
+            { type: "warning", line: 3 },
+            { type: "warning", line: 4 },
+            { type: "warning", line: 5 },
+            { type: "info", line: 6 },
+        ]);
+        await setMath("n", "3");
+        expect(diagnostics("doenet-w0144")).eqls([
+            { type: "warning", line: 3 },
+            { type: "warning", line: 4 },
+            { type: "warning", line: 5 },
+            { type: "info", line: 6 },
+        ]);
+    });
+
+    // SEL-8: a warning written in a case, an option or an iteration's
+    // template is the author's, whichever is shown: a warning, at its line,
+    // that stays once reported.
+    const written = `<graph><circle through="(x,1) (2,3) (4,1)"/></graph>
+<chart type="bar">4 x</chart>`;
+    const authored = (line: number) => [
+        { type: "warning", line },
+        { type: "warning", line: line + 1 },
+    ];
+    const codes = ["doenet-w0027", "doenet-w0144"];
+
+    for (const [kind, doenetML] of [
+        [
+            "a case",
+            `<booleanInput name="b"/>
+<conditionalContent condition="$b">
+${written}
+</conditionalContent>`,
+        ],
+        [
+            "a case of several",
+            `<booleanInput name="b"/>
+<conditionalContent><case condition="$b">
+${written}
+</case><else><p>no</p></else></conditionalContent>`,
+        ],
+    ]) {
+        it(`a warning written in ${kind} stays once shown`, async () => {
+            const { core, setBoolean } = await setup(doenetML);
+            const levels = () =>
+                (core as any).core.diagnostics
+                    .filter((d: any) => codes.includes(d.code))
+                    .map((d: any) => ({
+                        type: d.type,
+                        line: d.position?.start.line,
+                    }))
+                    .sort((a: any, b: any) => a.line - b.line);
+            await core.returnAllStateVariables(false, true);
+            // Known gap: not made, so not reported before it is shown
+            expect(levels()).eqls([]);
+            await setBoolean("b", true);
+            expect(levels()).eqls(authored(3));
+            await setBoolean("b", false);
+            expect(levels()).eqls(authored(3));
+            await setBoolean("b", true);
+            expect(levels()).eqls(authored(3));
+        });
+    }
+
+    it("a warning written in a repeat's template stays once its iterations are gone", async () => {
+        const { core, setMath } = await setup(`<mathInput name="n" prefill="1"/>
+<repeatForSequence length="$n">
+${written}
+</repeatForSequence>`);
+        const levels = () =>
+            (core as any).core.diagnostics
+                .filter((d: any) => codes.includes(d.code))
+                .map((d: any) => ({
+                    type: d.type,
+                    line: d.position?.start.line,
+                }))
+                .sort((a: any, b: any) => a.line - b.line);
+        await core.returnAllStateVariables(false, true);
+        expect(levels()).eqls(authored(3));
+        await setMath("n", "0");
+        expect(levels()).eqls(authored(3));
+        await setMath("n", "2");
+        expect(levels()).eqls(authored(3));
+    });
+
+    it("a warning written in the option a select picks is a warning", async () => {
+        const { core } = await setup(`<select>
+<option>
+${written}
+</option>
+</select>`);
+        await core.returnAllStateVariables(false, true);
+        expect(
+            (core as any).core.diagnostics
+                .filter((d: any) => codes.includes(d.code))
+                .map((d: any) => ({
+                    type: d.type,
+                    line: d.position?.start.line,
+                }))
+                .sort((a: any, b: any) => a.line - b.line),
+        ).eqls(authored(3));
+    });
+
+    it("an info in a case still goes when the case isn't shown, and a value in a template is still an info", async () => {
+        const { diagnostics, setBoolean, setMath } = await setup(`
+<booleanInput name="b"/>
+<mathInput name="a"/>
+<conditionalContent condition="$b">
+  <graph><circle through="($a,1) (2,3) (4,1)"/></graph>
+</conditionalContent>
+<repeat for="$a 1" valueName="v"><chart type="bar">4 $v</chart></repeat>
+`);
+        expect(diagnostics("doenet-w0027")).eqls([]);
+        expect(diagnostics("doenet-w0144")).eqls([{ type: "info", line: 7 }]);
+        await setBoolean("b", true);
+        expect(diagnostics("doenet-w0027")).eqls([{ type: "info", line: 5 }]);
+        await setBoolean("b", false);
+        expect(diagnostics("doenet-w0027")).eqls([]);
+        await setMath("a", "5");
+        expect(diagnostics("doenet-w0144")).eqls([]);
     });
 });

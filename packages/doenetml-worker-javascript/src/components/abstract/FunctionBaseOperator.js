@@ -10,6 +10,13 @@ import { returnWrapNonLabelsDescriptionsSugarFunction } from "../../utils/label"
 export default class FunctionOperator extends Function {
     static componentType = "_functionOperator";
 
+    // Its children are operands, among which a missing one is a blank
+    // (D37), so it is not missing for one
+    // (`BaseComponent.missingWhenContentMissing`).
+    static missingWhenContentMissing = false;
+    // It is not made through points.
+    static missingWhenEntriesMissing = [];
+
     static returnSugarInstructions() {
         let sugarInstructions = [];
 

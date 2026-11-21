@@ -104,11 +104,13 @@ describe("A copy of a <sort> reads the text written in it as its own type (#2414
 <p name="pt"><sort name="t" type="text">$x 10 3 $y</sort></p>
 <p name="p2"><sort copy="$t" type="number"/></p>
 `);
+        // Numbers among text are items of two types, an error at load
+        // (COLL-4), as is a copy of it; they used to be sorted as text.
         expect(await texts(["ps", "p1", "pt", "p2"])).eqls({
             ps: "1, 3, 5, 10",
             p1: "1, 10, 3, 5",
-            pt: "10, 20, 3, 5",
-            p2: "3, 5, 10, 20",
+            pt: "",
+            p2: "",
         });
     });
 
@@ -577,8 +579,10 @@ describe("A reference written as a different tag is allowed only between related
     });
 
     it("a point or boolean made from a value reference follows its value both ways", async () => {
-        // `$g[1]` is the value reference `$m.value` (`_ref`), which presents
-        // a math: its value is depended on as a math's is.
+        // `$g[1]` is the shown case, which holds only the value reference
+        // `$m.value` (`_ref`), which presents a math: its value is depended
+        // on as a math's is. (An index never selects the reference itself in
+        // a group, D27.)
         for (const [start, point, boolean] of [
             ["x", "＿", "＿"],
             ["(1,2)", "(1, 2)", "＿"],
@@ -586,7 +590,7 @@ describe("A reference written as a different tag is allowed only between related
             const { core, resolvePathToNodeIdx, texts } = await setup(`
 <mathInput name="mi" prefill="${start}"/>
 <math name="m">$mi</math>
-<p><group name="g">$m.value</group></p>
+<p><conditionalContent name="g"><case condition="true">$m.value</case></conditionalContent></p>
 <p name="p1"><point extend="$g[1]"/></p>
 <p name="p2"><boolean extend="$g[1]"/></p>
 `);
@@ -1319,6 +1323,50 @@ describe("A related type is made from the value of what is referenced, not from 
             p2: "(1, 2)",
         });
         expect(typeChangeDiagnostics()).eqls([]);
+    });
+
+    it("a group holding a math beside a repeat with an empty `for` holds the math", async () => {
+        // #2488: the repeat in error is missing (#2482), so the point is
+        // made from the math, and the error has a code.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<group name="g"><math>(1,2)</math><repeat for=""><math>3</math></repeat></group>
+<p name="p1"><point extend="$g"/></p>`,
+        });
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
+        expect(
+            errors.map((e) => [e.code, e.message, e.position?.start.line]),
+        ).eqls([
+            [
+                "doenet-e0072",
+                'The `for` attribute is empty, and it needs a value. Write one, as `for="…"`, or remove the attribute.',
+                1,
+            ],
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("(1, 2)");
+    });
+
+    it("a group holding a text beside a repeat with an empty `for` is checked at load as the text", async () => {
+        // The repeat in error is not one of what the group holds, so the
+        // point can't be made from the text, which is said when the
+        // document loads (#2488).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<group name="g"><text>hi</text><repeat for=""/></group>
+<p name="p1"><point extend="$g"/></p>`,
+        });
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(warnings).eqls([]);
+        expect(errors.map((e) => [e.code, e.position?.start.line])).eqls([
+            ["doenet-e0072", 1],
+            ["doenet-e0065", 2],
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("");
     });
 
     it("the one component a composite stands for is found through references in it", async () => {

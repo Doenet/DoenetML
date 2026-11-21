@@ -154,6 +154,10 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
                     dependencyType: "stateVariable",
                     variableName: "step",
                 },
+                last: {
+                    dependencyType: "stateVariable",
+                    variableName: "last",
+                },
                 exclude: {
                     dependencyType: "stateVariable",
                     variableName: "exclude",
@@ -161,6 +165,10 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
                 lowercase: {
                     dependencyType: "stateVariable",
                     variableName: "lowercase",
+                },
+                validSequence: {
+                    dependencyType: "stateVariable",
+                    variableName: "validSequence",
                 },
             };
         },
@@ -177,6 +185,11 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
                         0,
                     );
                 return { setValue: { numIterates, forValues: [] } };
+            }
+            // An invalid sequence (a letters `from` that is not letters)
+            // has no iterations, as the repeat shows none (#2173).
+            if (!dependencyValues.validSequence) {
+                return { setValue: { numIterates: 0, forValues: [] } };
             }
             const forValues = returnSequenceValues(dependencyValues);
             return {

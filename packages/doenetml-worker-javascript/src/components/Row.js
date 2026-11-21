@@ -12,6 +12,8 @@ import {
 
 export default class Row extends BaseComponent {
     static componentType = "row";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     // `<row>` is also accepted inside `<matrix>`, where it sugars into
     // `<matrixRow>`. Both entries appear in the docs index disambiguated by

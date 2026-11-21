@@ -2229,9 +2229,11 @@ describe("LineSegment tag tests @group1", async () => {
                         .value.tree,
                 ).eq(t2y);
             } else {
-                expect(stateVariables[await resolvePathToNodeIdx("Ps[1]")]).eq(
-                    undefined,
-                );
+                // an index that names nothing gives one blank entry (D40)
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("Ps")].stateValues
+                        .entriesMissing,
+                ).eqls([true]);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("x")].stateValues
                         .value.tree,

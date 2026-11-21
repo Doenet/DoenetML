@@ -403,8 +403,8 @@ describe("Feedback tag tests @group1", async () => {
     </feedback>
     <p><answer name="ans2">
         <mathInput name="mi2" />
-        <award extend="$xy" name="xy2" credit="0.5" />
-        <award extend="$x" name="x2" credit="1"/>
+        <award copy="$xy" name="xy2" credit="0.5" />
+        <award copy="$x" name="x2" credit="1"/>
     </answer></p>
     <feedback name="f3" condition="$xy2">
         <p>You got award 3.</p>
@@ -771,10 +771,10 @@ describe("Feedback tag tests @group1", async () => {
 
   <p><answer name="ans2">
     <choiceInput name="ci2">
-      <choice extend="$dog1" name="dog2" credit="0.1"/>
+      <choice copy="$dog1" name="dog2" credit="0.1"/>
       <shuffle>
-        <choice extend="$cow1" name="cow2" />
-        <choice extend="$cat1" name="cat2" credit="1" />
+        <choice copy="$cow1" name="cow2" />
+        <choice copy="$cat1" name="cat2" credit="1" />
       </shuffle>
     </choiceInput>
   </answer></p>
@@ -935,7 +935,7 @@ describe("Feedback tag tests @group1", async () => {
             doenetML: `
   <p><answer type="text" name="ans">hello there</answer></p>
   <feedback name="f" condition="$(ans.creditAchieved) != 1 and $(ans.responseHasBeenSubmitted) ">
-    <p name="p">Your response <em>$ans.submittedresponse</em> is incorrect.</p>
+    <p name="p">Your response <em>$ans.submittedResponse</em> is incorrect.</p>
   </feedback>
   `,
         });
@@ -2871,7 +2871,7 @@ describe("Feedback tag tests @group1", async () => {
     it("an index into a shuffle follows its items after a copy is recreated", async () => {
         // The recreated copy takes the place of the deleted one among the
         // shuffle's indices, so `$sh[n]` still refers to the nth item shown.
-        // Variant 4 shuffles both feedbacks ahead of the texts.
+        // Variant 4 shuffles both feedbacks ahead of the paragraphs.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p><answer name="ans">
@@ -2879,11 +2879,11 @@ describe("Feedback tag tests @group1", async () => {
     <award name="award1" feedbackText="good"><math>x</math></award>
   </answer></p>
   <div name="d"><shuffle name="sh">
-    <text>A</text>
+    <p>A</p>
     <feedback extend="$award1.feedback" />
-    <text>B</text>
+    <p>B</p>
     <feedback extend="$award1.feedback" />
-    <text>C</text>
+    <p>C</p>
   </shuffle></div>
   <div name="d2"><shuffle name="sh2" extend="$sh" /></div>
   <div name="r">$sh[1] $sh[2] $sh[3] $sh[4] $sh[5]</div>
@@ -2906,7 +2906,7 @@ describe("Feedback tag tests @group1", async () => {
                         ? comp.stateValues.hidden
                             ? "hidden"
                             : comp.stateValues.feedbackText
-                        : comp.stateValues.value,
+                        : comp.stateValues.text,
                 );
 
             const shown = await describeItems("d");

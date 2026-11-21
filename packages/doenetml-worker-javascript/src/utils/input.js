@@ -1,3 +1,6 @@
+import { deepCompare } from "@doenet/utils";
+import { fingerprint } from "./fingerprint";
+
 /**
  * Building blocks shared by all input components (math inputs, text inputs,
  * code editors, boolean inputs, choice inputs, …), independent of the kind of
@@ -129,6 +132,130 @@ export async function buildInputResponseEvent({
 }
 
 /**
+ * The key of the argument with which the core, not the reader, runs an
+ * input's `updateValue` action to enter an edit not entered
+ * (`Core.commitUnenteredEdits`, D50). Its value is `{ readOnly }`.
+ * - The edit is entered even when the input is disabled, which a reader's
+ *   action never is: a disabled input can't be focused, so it shows no edit
+ *   not entered (D50 decision 2). The `answered` event a blur would record
+ *   is recorded.
+ * - With `readOnly` (`flags.readOnly`), the edit is entered without an event
+ *   and without saving, so the input shows its value and nothing is saved or
+ *   reported (D50 decision 3).
+ *
+ * A symbol, so that an action sent from a renderer, whose arguments are
+ * copied without their symbol keys, can't carry it.
+ */
+export const ENTERED_BY_CORE = Symbol("enteredByCore");
+
+/**
+ * The options of `performUpdate` with which an input's `updateValue` action
+ * enters its edit (`event` the `answered` event it records), as the core
+ * asks with `enteredByCore` (`ENTERED_BY_CORE`): under `readOnly`, no event,
+ * no save, and past the read-only check.
+ */
+export function enteringUpdateOptions(enteredByCore, event) {
+    if (enteredByCore?.readOnly) {
+        return { overrideReadOnly: true, doNotSave: true };
+    }
+    return { event };
+}
+
+/**
+ * Whether the input `component`, of a class that holds an edit not yet
+ * entered (`holdsUnenteredEdit`), shows one: its `immediateValue` differs
+ * from its `value`, compared as its `updateValue` action compares them (a
+ * math by its tree). A disabled input can show one, which the core enters
+ * (`ENTERED_BY_CORE`).
+ */
+export async function hasUnenteredEdit(component) {
+    const value = await component.stateValues.value;
+    const immediateValue = await component.stateValues.immediateValue;
+    if (value?.tree !== undefined && immediateValue?.tree !== undefined) {
+        return !deepCompare(value.tree, immediateValue.tree);
+    }
+    return value !== immediateValue;
+}
+
+/**
+ * The state variable `valueUnderEdit`, holding the reader's last edit of an
+ * input (its `immediateValue`): `{ value, edit }`, fingerprints of the value
+ * the edit was typed over and of the edit typed (`valueUnderEditRecord`), or
+ * `null` when the input shows its value rather than an edit. It is saved, so
+ * that an input made again from saved state after the document has loaded
+ * can tell whether its saved `immediateValue` is still that edit, and its
+ * value still the one the edit was typed over
+ * (`immediateValueFollowsValue`). The `immediateValue` defines it alongside
+ * itself (`additionalStateVariablesDefined`), so that it can clear it when
+ * it follows its value: an edit the value then replaced, even with the edit
+ * itself, is the reader's edit no longer (#2554 item 1).
+ */
+export function valueUnderEditVariable() {
+    return {
+        variableName: "valueUnderEdit",
+        hasEssential: true,
+        // carried with the `immediateValue` it records the edit of
+        shadowVariable: true,
+        defaultValue: null,
+    };
+}
+
+/**
+ * Whether an input's `immediateValue`, the reader's in-progress edit, is set
+ * to its `value`, which it follows only when the value changes.
+ *
+ * A value restored from saved state is not a change, as the document loads:
+ * the saved `immediateValue` is what the reader saw. But a saved
+ * `immediateValue` is brought up to date only when it is computed, so one
+ * saved while the input was withheld (in a case not shown) can be older than
+ * its value, which can change meanwhile (`bindValueTo`). An input made from
+ * saved state after the document has loaded (when the case is shown again,
+ * or shown for the first time since a reload) therefore keeps the saved
+ * `immediateValue` (`savedImmediateValue`) only if it is still the reader's
+ * last edit and its value is still the one that edit was typed over
+ * (`valueUnderEdit`), and otherwise follows its value, as it would have had
+ * it been shown (#2325). An edit the value replaced while the input was
+ * shown is not kept, even when the value has come back to what it was typed
+ * over.
+ */
+export function immediateValueFollowsValue({
+    valueChanged,
+    valueUsedDefault,
+    justUpdatedForNewComponent,
+    justRestoredAtLoad,
+    value,
+    valueUnderEdit,
+    savedImmediateValue,
+}) {
+    if (!valueChanged || valueUsedDefault) {
+        return false;
+    }
+    if (!justUpdatedForNewComponent) {
+        return true;
+    }
+    if (justRestoredAtLoad) {
+        return false;
+    }
+    return !(
+        valueUnderEdit != null &&
+        valueUnderEdit.value !== undefined &&
+        valueUnderEdit.value === fingerprint(value) &&
+        valueUnderEdit.edit === fingerprint(savedImmediateValue)
+    );
+}
+
+/**
+ * What `valueUnderEdit` holds of an edit `edit` typed over the value
+ * `value`: a fingerprint of each, rather than the values, which the saved
+ * state holds already as the input's `immediateValue` and `value`. Held
+ * again, they would double what an input's edit costs the saved state
+ * (Doenet/DoenetML#1940). `edit` is the value saved as `immediateValue`.
+ */
+export function valueUnderEditRecord({ value, edit }) {
+    return { value: fingerprint(value), edit: fingerprint(edit) };
+}
+
+/**
  * The `immediateValue` state variable used by inputs whose value is committed
  * on blur/enter (`textInput`, `codeEditor`): it mirrors `value`, but only
  * follows `value` when `value` itself changes — otherwise it holds the user's
@@ -142,6 +269,11 @@ export function returnImmediateValueStateVariableDefinition({
     const stateVariableDefinitions = {};
 
     stateVariableDefinitions.immediateValue = {
+        // the saved edit, kept only if still the last (`valueUnderEdit`),
+        // which it defines, so that it can clear it when it follows its
+        // value (#2554 item 1)
+        provideEssentialValuesInDefinition: true,
+        additionalStateVariablesDefined: [valueUnderEditVariable()],
         description,
         public: true,
         shadowingInstructions: {
@@ -165,24 +297,38 @@ export function returnImmediateValueStateVariableDefinition({
             dependencyValues,
             changes,
             justUpdatedForNewComponent,
+            justRestoredAtLoad,
+            essentialValues,
             usedDefault,
         }) {
             if (
-                changes.value &&
-                !justUpdatedForNewComponent &&
-                !usedDefault.value
+                immediateValueFollowsValue({
+                    valueChanged: changes.value,
+                    valueUsedDefault: usedDefault.value,
+                    justUpdatedForNewComponent,
+                    justRestoredAtLoad,
+                    value: dependencyValues.value,
+                    valueUnderEdit: essentialValues.valueUnderEdit,
+                    savedImmediateValue: essentialValues.immediateValue,
+                })
             ) {
                 // only update to value when it changes
                 // (otherwise, let its essential value change)
                 return {
-                    setValue: { immediateValue: dependencyValues.value },
+                    setValue: {
+                        immediateValue: dependencyValues.value,
+                        valueUnderEdit: null,
+                    },
                     setEssentialValue: {
                         immediateValue: dependencyValues.value,
+                        // the value, not the reader's edit
+                        valueUnderEdit: null,
                     },
                 };
             } else {
                 return {
                     useEssentialOrDefaultValue: {
+                        valueUnderEdit: true,
                         immediateValue: {
                             variablesToCheck: "immediateValue",
                             defaultValue: dependencyValues.value,
@@ -193,9 +339,17 @@ export function returnImmediateValueStateVariableDefinition({
         },
         inverseDefinition: function ({
             desiredStateVariableValues,
+            dependencyValues,
             initialChange,
             shadowedVariable,
         }) {
+            // Both inputs that use this hold text: a value of another type,
+            // such as the math an `<updateValue>` without `type="text"`
+            // sends, is refused rather than stored (DIAG-5, #2607).
+            if (typeof desiredStateVariableValues.immediateValue !== "string") {
+                return { success: false };
+            }
+
             // value is essential; give it the desired value
             let instructions = [
                 {
@@ -205,6 +359,13 @@ export function returnImmediateValueStateVariableDefinition({
                 {
                     setDependency: "immediateValueChanged",
                     desiredValue: true,
+                },
+                {
+                    setEssentialValue: "valueUnderEdit",
+                    value: valueUnderEditRecord({
+                        value: dependencyValues.value,
+                        edit: desiredStateVariableValues.immediateValue,
+                    }),
                 },
             ];
 
@@ -280,8 +441,10 @@ export async function inputUpdateValue({
     actionId,
     sourceInformation = {},
     skipRendererUpdate = false,
+    [ENTERED_BY_CORE]: enteredByCore,
 }) {
-    if (!(await this.stateValues.disabled)) {
+    // the core enters a disabled input's edit (`ENTERED_BY_CORE`)
+    if (enteredByCore || !(await this.stateValues.disabled)) {
         let immediateValue = await this.stateValues.immediateValue;
 
         if ((await this.stateValues.value) !== immediateValue) {
@@ -308,6 +471,7 @@ export async function inputUpdateValue({
                 },
                 {
                     updateType: "unsetComponentNeedingUpdateValue",
+                    componentIdx: this.componentIdx,
                 },
             ];
 
@@ -323,9 +487,18 @@ export async function inputUpdateValue({
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
-                event,
+                ...enteringUpdateOptions(enteredByCore, event),
             });
 
+            if (enteredByCore?.readOnly) {
+                // no chained action is run under `readOnly`; the renderers
+                // show the value
+                return await this.coreFunctions.updateRenderers({
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate,
+                });
+            }
             return await this.coreFunctions.triggerChainedActions({
                 componentIdx: this.componentIdx,
                 actionId,

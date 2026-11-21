@@ -103,8 +103,10 @@ case of multiple selections), then the name of the child. Give that child the sa
 so that the name refers to it whichever option is selected.
 
 An index selects among the selections, not among the children of an option: `$groupSelect[2][2]` does not
-mean the second child of the second selection. (Earlier versions read it that way. That reading still
-works for now but gives a deprecation warning that shows the name to use instead.)
+mean the second child of the second selection. It names nothing, and DoenetML gives a warning that shows the
+name to use instead. (Earlier versions read it as that child.) A selection whose whole content is one
+component stands for it, and passes a further index on to it: with `<option><math>(1,2,3)</math></option>{:dn}`,
+`$s[1][2]` is `2`.
 
 
 Select a new page variant from the pulldown menu at the top of the 
@@ -150,6 +152,10 @@ refers to the child component within the `<option>{:dn}` that was selected.
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
 
+A name after the `<select>{:dn}` with no index reaches that component in every
+pick: `$roll.firstDie` is the first die of both rolls. Every `<option>{:dn}`
+must declare the name, with the same type.
+
 
 
 ---
@@ -163,7 +169,7 @@ editor to see different variants of the document.
   <number name="a" extend="$s[1]"/>
   <number name="b" extend="$s[2]"/>
 
-<select name="f" numToSelect="2" type="function">
+<select name="f" numToSelect="2">
   <option>
     <function>x^2</function>
   </option>
@@ -272,6 +278,33 @@ Different page variants (which can be accessed from the left-side menu) will hav
 
 
 The `numToSelect` attribute sets how many values are chosen from the options. The default value is `1`. When more than one is selected, the individual selections are accessed by index (for example, `$s[1]`). Without `withReplacement`, each option can be chosen at most once.
+
+`numToSelect`, like every attribute that decides what a random choice chooses
+from, may reference another random choice, such as `numToSelect="$n"` with
+`<selectFromSequence name="n" from="2" to="4"/>{:dn}`, or content that can't
+change, but not an input, a sampler such as
+[`<sampleRandomNumbers>`](sampleRandomNumbers), or anything else a reader can
+change. What a choice chooses from comes from what the author wrote, so such a
+reference is an error when the document loads, in every variant.
+
+The choice must be possible for every value such a reference can take, in
+every variant and every iteration of a repeat. This is checked when the
+document loads, never by trying variants: `numToSelect="$n"` with `n` chosen from 2 to 4 is an error for a `<select>{:dn}` of three options, since `n` can be 4. A reference may be combined
+with numbers and other references by `+`, `-`, `*`, `/`, `min`, `max`, `abs`,
+`floor`, `ceil` and `round`, written in the attribute or in a `<number>{:dn}`,
+`<integer>{:dn}` or `<math>{:dn}` it references. Anything else, such as a
+function evaluated or a property such as `$p.x`, is an error, since the check
+can't tell whether the choice can always be made. `withReplacement` may read another random choice only as one reference alone,
+and a `<number>{:dn}` or `<math>{:dn}` an attribute reads may have no attribute
+that changes its value, such as `valueOnNaN` or `simplify`.
+
+A selection that can't be made as written is always an error, never a selection
+of nothing: so is a `numToSelect` that isn't a number, such as `numToSelect="x"`
+or `numToSelect=""`. A `numToSelect` of `0` asks for nothing, and selects
+nothing with no error. An `<option copy="$g[$k]"/>{:dn}` whose index reads
+another random choice can be a different option in each variant, so beside
+options that name the variants they are for (`selectForVariants`), it is an
+error when the document loads.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.

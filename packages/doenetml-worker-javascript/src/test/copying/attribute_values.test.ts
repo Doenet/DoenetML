@@ -265,9 +265,11 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // (B3 replaces them). `$P.xs` in a paragraph is a list whose
             // display settings shadow P's. `$pg.vertex1` is an entry of an
             // array wrapped in a point, whose display settings go on the
-            // point. `$n.value` in the group is a value reference, and
-            // `$g[1]` names it, so `a` and `b` are made from the reference
-            // itself (`ValueRef.serialize`).
+            // point. `$n.value` in the paragraph is a value reference, and
+            // `$g[1]`, the first number a collect finds there, is it, so `a`
+            // and `b` are made from the reference itself
+            // (`ValueRef.serialize`). (An index never selects a child of a
+            // group, D27.)
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="k" prefill="4" />
@@ -276,7 +278,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <polygon name="pg" vertices="(1.23456,2.34567) (3,4) (5,6)" displayDigits="$k" />
     <p name="v">$pg.vertex1</p>
     <number name="n" displayDigits="$k">1.23456</number>
-    <p><group name="g">$n.value</group></p>
+    <p name="pn">$n.value</p>
+    <collect name="g" componentType="number" from="$pn" />
     <number extend="$g[1]" name="a" />
     <number copy="$g[1]" name="b" />
     `,
@@ -1017,8 +1020,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // `b` its `hide`, from what they reference. The copies of the
             // repeat, made at the start and later in a conditionalContent,
             // show what the source's iterations show, as the settings and
-            // `hide` change. (Their `fixed` is not pinned: a reference to a
-            // list entry does not take the entry source's, #2239.)
+            // `hide` change. (Their `fixed` is pinned in
+            // `context_attributes.test.ts`, #2239.)
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="k" prefill="4" />

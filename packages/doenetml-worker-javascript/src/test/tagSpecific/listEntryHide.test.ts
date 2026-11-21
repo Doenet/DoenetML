@@ -173,12 +173,8 @@ describe("A hidden entry of a list @group4", async () => {
             shown: "2",
             value: "1, 2",
         },
-        {
-            list: `<group name="l" asList><number hide>1</number><number>2</number></group>`,
-            drawnAs: "number",
-            shown: "2",
-            value: "1, 2",
-        },
+        // A `<group asList>` is not here: an index after a `<group>` names
+        // nothing (D27), so it has no entries `$l[k]`; it is tested below.
     ];
 
     for (const { list, setup, drawnAs, shown, value, graphical } of lists) {
@@ -225,6 +221,40 @@ describe("A hidden entry of a list @group4", async () => {
             }
         });
     }
+
+    it("a hidden child of a group shown as a list is not drawn, and an index after the group names nothing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="direct"><group name="l" asList><number hide>1</number><number>2</number></group></p>
+    <p name="ref">$l</p>
+    <p name="entry">$l[1] $l[2]</p>
+    <math name="value">$l</math>
+    `,
+        });
+
+        for (const name of ["direct", "ref"]) {
+            expect(await drawnIn(core, resolvePathToNodeIdx, name), name).eqls([
+                "number",
+            ]);
+        }
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "direct",
+                "ref",
+                "entry",
+                "value",
+            ]),
+        ).eqls({ direct: "2", ref: "2", entry: "＿ ＿", value: "1, 2" });
+        expect(
+            getDiagnosticsByType(core).warnings.map((w) => [
+                w.code,
+                w.args?.reference,
+            ]),
+        ).eqls([
+            ["doenet-w0188", "$l[1]"],
+            ["doenet-w0188", "$l[2]"],
+        ]);
+    });
 
     it("a hidden list hides its entries, but not a reference to an entry, whose `hide` is its source's", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -728,10 +758,12 @@ describe("Hidden content nested inside a list @group4", async () => {
     });
 
     it("a hidden group around children of a sort is still sorted with them, and shows as its `hide` changes", async () => {
+        // A group of one stands for its component in a sort (COLL-4); a
+        // group of several would be an error.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="h" />
-    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number><number>4</number></group><number>1</number></sort></p>
+    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number></group><group hide="$h"><number>4</number></group><number>1</number></sort></p>
     <p name="entries">$l[1] $l[2] $l[3] $l[4]</p>
     <math name="value">$l</math>
     `,
@@ -773,12 +805,13 @@ describe("Hidden content nested inside a list @group4", async () => {
         // Each entry of the lists is replaced by a reference to it
         // (`listEntryReplacement`), whose properties are the entry's
         // (#2480): `hide` is the entry's own, and `hidden` is also true while
-        // the list holding it is hidden. The `<text>` keeps each a composite.
+        // the list holding it is hidden. The `<number>` beside the
+        // `<mathList>`s keeps each a composite.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="h" />
-    <p><sort name="s"><mathList hide="$h">1 3</mathList><mathList><math hide>2</math></mathList><text>b</text></sort></p>
-    <p><shuffle name="sh"><mathList hide="$h">1</mathList><text>b</text></shuffle></p>
+    <p><sort name="s"><mathList hide="$h">1 3</mathList><mathList><math hide>2</math></mathList><number>7</number></sort></p>
+    <p><shuffle name="sh"><mathList hide="$h">1</mathList><number>7</number></shuffle></p>
     <p name="sort">$s[1].hide $s[1].hidden $s[2].hide $s[2].hidden $s[3].hide $s[3].hidden</p>
     <p name="values">$s[1].value $s[2].text $s[3].latex $s[4].hidden</p>
     <p name="shuffle1">$sh[1] $sh[1].hide $sh[1].hidden</p>
@@ -809,7 +842,7 @@ describe("Hidden content nested inside a list @group4", async () => {
         expect(await texts()).eqls([
             "false false true true false false",
             "1 2 3 false",
-            ["1 false false", "b false false"],
+            ["1 false false", "7 false false"],
         ]);
 
         await updateBooleanInputValue({
@@ -820,7 +853,7 @@ describe("Hidden content nested inside a list @group4", async () => {
         expect(await texts()).eqls([
             "false true true true false true",
             "1 2 3 false",
-            ["1 false true", "b false false"],
+            ["1 false true", "7 false false"],
         ]);
     });
 
@@ -829,7 +862,7 @@ describe("Hidden content nested inside a list @group4", async () => {
         // does not have is not, and is reported as for any referent.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p><sort name="s"><mathList>3 1</mathList><text>b</text></sort></p>
+    <p><sort name="s"><mathList>3 1</mathList><number>7</number></sort></p>
     <p name="p">[$s[1].bogus][$s[1].hide]</p>
     `,
         });
@@ -848,10 +881,10 @@ describe("Hidden content nested inside a list @group4", async () => {
             doenetML: `
     <booleanInput name="h" />
     <mathInput name="mi" prefill="5" />
-    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number><math>4</math></group><number>$mi</number></sort></p>
+    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number></group><group hide="$h"><math>4</math></group><number>$mi</number></sort></p>
     <p name="entries">$l[1] $l[2] $l[3] $l[4]</p>
     <p name="whole">$l</p>
-    <choiceInput><choice name="ch"><sort><number>3</number><group hide="$h"><number>2</number><math>4</math></group><number>$mi</number></sort></choice></choiceInput>
+    <choiceInput><choice name="ch"><sort><number>3</number><group hide="$h"><number>2</number></group><group hide="$h"><math>4</math></group><number>$mi</number></sort></choice></choiceInput>
     `,
         });
 
@@ -927,7 +960,7 @@ describe("Hidden content nested inside a list @group4", async () => {
         const doenetML = `
     <booleanInput name="h" />
     <mathInput name="mi" prefill="5" />
-    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number><math>4</math></group><number>$mi</number></sort></p>
+    <p name="p"><sort name="l"><number>3</number><group hide="$h"><number>2</number></group><group hide="$h"><math>4</math></group><number>$mi</number></sort></p>
     <p name="entries">$l[1] $l[2] $l[3] $l[4]</p>
     <p name="whole">$l</p>
     `;

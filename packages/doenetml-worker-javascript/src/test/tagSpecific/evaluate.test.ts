@@ -363,13 +363,14 @@ describe("Evaluate tag tests @group2", async () => {
   `,
         });
 
-        // initial state
+        // initial state: no response yet, so the input is one blank entry
+        // (D40), which takes part in the expression (D37)
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("eval")].stateValues.value
                 .tree,
-        ).eq("＿");
+        ).eqls(["+", 1, "＿"]);
 
         // submit answer
         await updateMathInputValue({

@@ -184,8 +184,8 @@ export class StatePersistence {
      * component's mirror of the state of another component it shadows. See
      * `_isNonPropShadow`.
      *
-     * `__`-prefixed keys are reserved sentinels rather than components' entries
-     * (`__componentNeedingUpdateValue`), and are always carried.
+     * `__`-prefixed keys are reserved rather than components' entries
+     * (`__componentTypes`), and are always carried.
      */
     _readerStateToSave(): Record<string, any> {
         const cumulative = this.core.cumulativeStateVariableChanges;
@@ -481,6 +481,12 @@ export class StatePersistence {
                     madeFrom?.sourceCase,
                     component.unlinkedMadeFrom?.sourceCase,
                 ) &&
+                // nor one made missing because what it copies was then
+                // (`madeMissing`, `missingSourceInPlace`), or a property it
+                // copies held `null` (`nullSources`, `replacementFromProp`),
+                // which one made now does not decide
+                !component.unlinkedMadeFrom?.madeMissing &&
+                !component.unlinkedMadeFrom?.nullSources &&
                 // nor one that would decide an index warning otherwise
                 // (`reportIndexIntoScalarAsMade`), which what it shows need
                 // not reveal, as of a blank value
@@ -547,6 +553,10 @@ export class StatePersistence {
         if (core.flags.saveRendererState) {
             await core.flushPendingRenderers();
         }
+
+        // what definitions set since the last update, such as a sampler's
+        // draws made as the document loaded
+        core.updateExecutor?.mergeEssentialValuesSavedInDefinition();
 
         const sequence = ++this._saveSequence;
 

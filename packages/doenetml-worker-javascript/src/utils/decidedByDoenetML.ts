@@ -17,17 +17,25 @@
  * select is an error only when what decides it cannot change
  * (`selectErrors.ts`).
  */
+import { isPlacementLocation } from "./readerWritable";
+import {
+    LIST_ENTRY_ARRAY_PREFIX,
+    LIST_ENTRY_PREFIX,
+} from "./listEntryReference";
 
 /**
  * What {@link canChange} reads: the live components, the component classes,
  * what a reader can write to (`Core.readerWritable`, from
- * `buildReaderWritableIndex`), and the answers found so far, keyed by
- * component index and whether it was reached by a reference.
+ * `buildReaderWritableIndex`), what a reader drags in a graph only to place
+ * it, whose `anchor` alone a reader changes (`Core.readerPlaced`), and the
+ * answers found so far, keyed by component index and whether it was
+ * reached by a reference.
  */
 export type ChangeContext = {
     components: any[];
     componentInfoObjects: any;
     writable: Set<number>;
+    placed: Set<number>;
     memo: Map<string, boolean>;
 };
 
@@ -40,11 +48,13 @@ export function changeContext(core: {
     _components: any[];
     componentInfoObjects: any;
     readerWritable?: Set<number>;
+    readerPlaced?: Set<number>;
 }): ChangeContext {
     return {
         components: core._components,
         componentInfoObjects: core.componentInfoObjects,
         writable: core.readerWritable ?? new Set(),
+        placed: core.readerPlaced ?? new Set(),
         memo: new Map(),
     };
 }
@@ -222,13 +232,25 @@ function canChangeUncached(
     }
     if (
         component.replacementOf &&
-        replacementsCanChange(component.replacementOf, ctx)
+        (viaReference
+            ? madeByReferenceCanChange(component, ctx)
+            : writtenInPlaceCanChange(component, ctx))
     ) {
         return true;
     }
     if (component.shadows) {
         const source = ctx.components[component.shadows.componentIdx];
-        if (!source || canChange(source, ctx, true)) {
+        // a copy of a placed component's `anchor` (`$m.anchor`, `<point
+        // extend="$m.anchor"/>`) follows the drag
+        if (
+            !source ||
+            readsPlacedAnchor(
+                component.shadows.componentIdx,
+                component.shadows.propVariable,
+                ctx,
+            ) ||
+            canChange(source, ctx, true)
+        ) {
             return true;
         }
     }
@@ -239,11 +261,47 @@ function canChangeUncached(
                 !standsOnlyForLabels(child, componentInfoObjects) &&
                 canChange(child, ctx, viaReference),
         ) ||
-        Object.values(component.attributes ?? {}).some((attribute) =>
-            attributeCanChange(attribute, ctx, viaReference),
+        Object.entries(component.attributes ?? {}).some(
+            ([name, attribute]) =>
+                !ATTRIBUTES_NOT_OF_THE_VALUE.has(name.toLowerCase()) &&
+                attributeCanChange(attribute, ctx, viaReference),
         )
     );
 }
+
+/**
+ * The attributes that only display, style or place a component, or say how
+ * a reader may act on it, so decide nothing of its value: one that can
+ * change (`<number displayDigits="$n">`, `<series styleNumber="$n">`)
+ * doesn't make the value one that can (#2506). Lower case.
+ */
+const ATTRIBUTES_NOT_OF_THE_VALUE: ReadonlySet<string> = new Set(
+    [
+        "name",
+        "hide",
+        "rendered",
+        "disabled",
+        "fixed",
+        "fixLocation",
+        "draggable",
+        "styleNumber",
+        "layer",
+        "isResponse",
+        "isPotentialResponse",
+        "permid",
+        "displayDigits",
+        "displayDecimals",
+        "displaySmallAsZero",
+        "padZeros",
+        "avoidScientificNotation",
+        "labelIsName",
+        "labelPosition",
+        "showLabel",
+        "applyStyleToLabel",
+        "anchor",
+        "positionFromAnchor",
+    ].map((name) => name.toLowerCase()),
+);
 
 /**
  * Whether which replacements the composite `composite` makes can change:
@@ -259,12 +317,16 @@ function canChangeUncached(
  * follows it as a copy (`shadows`), and one that copies it once, unlinked,
  * holds what it was made with.
  */
-function replacementsCanChange(composite: any, ctx: ChangeContext): boolean {
+function replacementsCanChange(
+    composite: any,
+    ctx: ChangeContext,
+    inPlace = false,
+): boolean {
     if (typeof composite !== "object" || composite === null) {
         return false;
     }
     const live = liveComponent(composite, ctx);
-    const key = `replacements:${live.componentIdx}`;
+    const key = `replacements:${live.componentIdx}:${inPlace}`;
     const known = ctx.memo.get(key);
     if (known !== undefined) {
         return known;
@@ -275,8 +337,10 @@ function replacementsCanChange(composite: any, ctx: ChangeContext): boolean {
         (typeof live.refResolution === "object" &&
             live.refResolution !== null &&
             referenceCanNameSomethingElse(live.refResolution, ctx)) ||
-        (live.replacementOf !== undefined &&
-            replacementsCanChange(live.replacementOf, ctx)) ||
+        (inPlace
+            ? writtenInPlaceCanChange(live, ctx)
+            : live.replacementOf !== undefined &&
+              replacementsCanChange(live.replacementOf, ctx)) ||
         Object.values(live.attributes ?? {}).some((attribute) =>
             attributeCanChange(attribute, ctx),
         ) ||
@@ -296,6 +360,173 @@ function replacementsCanChange(composite: any, ctx: ChangeContext): boolean {
     }
     ctx.memo.set(key, result);
     return result;
+}
+
+/**
+ * Whether what made `component`, reached by a reference, can come to make
+ * something else (`replacementsCanChange` of the composite that made it).
+ * A copy a bare reference made (`$g` written in an option, its copy of
+ * `g`'s math) is the component it copies wherever that reference is
+ * written, so for it this asks only what `branchCanChange` asks of where
+ * the reference is: a case whose choice can change, or a reference that can
+ * name something else, not the pick of a `<select>` (SEL-8), as for the
+ * component a value reference (`$m` in an option) reads (#2520 item 4).
+ */
+function madeByReferenceCanChange(component: any, ctx: ChangeContext): boolean {
+    const madeBy = liveComponent(component.replacementOf, ctx);
+    if (
+        component.shadows &&
+        component.shadows.propVariable === undefined &&
+        madeBy.componentType === "_copy"
+    ) {
+        return branchCanChange(component, ctx);
+    }
+    return replacementsCanChange(component.replacementOf, ctx);
+}
+
+/**
+ * The composites whose replacements are content the author wrote in them:
+ * a case's or option's content, a repeat's template, what a group, sort or
+ * shuffle holds. Which of it is shown can change (the active case, the
+ * option picked, the number of iterations), but what is written in it is
+ * the author's wherever it is shown, so a literal in it is decided by the
+ * DoenetML (DIAG-2, SEL-8, #2506). A value in it that can change, such as
+ * `$v` of a repeat over an input, is found where it is read.
+ */
+const HOLD_WRITTEN_CONTENT = new Set([
+    "group",
+    "conditionalContent",
+    "case",
+    "else",
+    "option",
+    "select",
+    "repeat",
+    "repeatForSequence",
+    "sort",
+    "shuffle",
+]);
+
+/**
+ * Whether `component`, as it is written in place (not reached by a
+ * reference), can change because a composite made it: not one that holds
+ * what the author wrote ({@link HOLD_WRITTEN_CONTENT}), which it passes
+ * through, but one that makes its replacements otherwise, such as a
+ * reference that can come to name something else or a random choice
+ * ({@link replacementsCanChange}).
+ */
+function writtenInPlaceCanChange(component: any, ctx: ChangeContext): boolean {
+    const seen = new Set<number>();
+    let composite = component.replacementOf;
+    while (typeof composite === "object" && composite !== null) {
+        const live = liveComponent(composite, ctx);
+        if (seen.has(live.componentIdx)) {
+            return false;
+        }
+        seen.add(live.componentIdx);
+        if (!HOLD_WRITTEN_CONTENT.has(live.componentType)) {
+            return replacementsCanChange(live, ctx, true);
+        }
+        composite = live.replacementOf;
+    }
+    return false;
+}
+
+/**
+ * Whether what made `component` can come to make other content, written
+ * otherwise, as a reader works: `component` is in the content of a case of a
+ * `<conditionalContent>` whose choice of case can change (a condition from
+ * an input), or made by a composite that makes its replacements otherwise,
+ * such as a reference that can come to name something else. For a
+ * diagnostic about how what a reference reaches is written: a group holding
+ * several components that an index comes after (`doenet-w0188`), or a
+ * repeat with fewer iterations than an index (`doenet-w0181`), is an info
+ * while it lasts when the reference can come to reach other content
+ * (DIAG-2, #2506).
+ *
+ * What an iteration of a repeat holds is made from the same template as
+ * every other. What a `<select>` picked is the content of an option the
+ * author wrote, which SEL-8 checks whether picked or not, and a pick doesn't
+ * change as a reader works, so neither counts here.
+ */
+export function branchCanChange(component: any, ctx: ChangeContext): boolean {
+    const seen = new Set<number>();
+    let composite = liveComponent(component, ctx).replacementOf;
+    while (typeof composite === "object" && composite !== null) {
+        const live = liveComponent(composite, ctx);
+        if (seen.has(live.componentIdx)) {
+            return false;
+        }
+        seen.add(live.componentIdx);
+        if (
+            live.componentType === "conditionalContent"
+                ? replacementsCanChange(live, ctx, true)
+                : !HOLD_WRITTEN_CONTENT.has(live.componentType) &&
+                  !isRandom(live, ctx.componentInfoObjects) &&
+                  madeFromCanChange(live, ctx)
+        ) {
+            return true;
+        }
+        composite = live.replacementOf;
+    }
+    return false;
+}
+
+/**
+ * Whether which case the `<conditionalContent>` `conditionalContent` shows,
+ * or whether it shows one, can change as a reader works (a `condition` from
+ * an input), as `branchCanChange` asks of the one a component is made by.
+ */
+export function caseShownCanChange(
+    conditionalContent: any,
+    ctx: ChangeContext,
+): boolean {
+    return replacementsCanChange(
+        liveComponent(conditionalContent, ctx),
+        ctx,
+        true,
+    );
+}
+
+/**
+ * Whether the number of replacements the composite `composite` makes can
+ * change as a reader works: an attribute it is made from can (a repeat's
+ * `for` from an input), it is a reference that can come to name something
+ * else, or it is in content that can come to be other content
+ * ({@link branchCanChange}). A `<select>`'s `numToSelect` written as `1`
+ * decides its number of picks, though which it picks is random.
+ */
+export function numReplacementsCanChange(
+    composite: any,
+    ctx: ChangeContext,
+): boolean {
+    const live = liveComponent(composite, ctx);
+    return madeFromCanChange(live, ctx) || branchCanChange(live, ctx);
+}
+
+/**
+ * Whether what the live composite `live` is made from can change: an
+ * attribute (a repeat's `for` from an input), what an attribute that names
+ * components holds (a `<collect>`'s `from`, {@link contentCanChange}: not
+ * whether a reader can open the section it names), or its reference, which
+ * can come to name something else.
+ */
+function madeFromCanChange(live: any, ctx: ChangeContext): boolean {
+    return (
+        Object.values(live.attributes ?? {}).some((attribute: any) =>
+            typeof attribute === "object" &&
+            attribute !== null &&
+            attribute.type !== "expression" &&
+            !attribute.component &&
+            Array.isArray(attribute.references)
+                ? attribute.references.some((reference: any) =>
+                      contentCanChange(reference, ctx),
+                  )
+                : attributeCanChange(attribute, ctx),
+        ) ||
+        (typeof live.refResolution === "object" &&
+            live.refResolution !== null &&
+            referenceCanNameSomethingElse(live.refResolution, ctx))
+    );
 }
 
 /**
@@ -390,6 +621,110 @@ export function referenceCanChange(
     }
     const source = ctx.components[refResolution.nodeIdx];
     return !source || canChange(source, ctx, true);
+}
+
+/**
+ * Whether `property` of the component `componentIdx` is the `anchor` of a
+ * component a reader drags in a graph only to place it (`ctx.placed`): the
+ * drag changes that, and nothing else of it (`$m.anchor` of a `<math>` in
+ * a graph).
+ */
+function readsPlacedAnchor(
+    componentIdx: number,
+    property: unknown,
+    ctx: ChangeContext,
+): boolean {
+    if (typeof property !== "string") {
+        return false;
+    }
+    if (isPlacementLocation(property)) {
+        return ctx.placed.has(componentIdx);
+    }
+    // the `anchor` of an entry of a list (`$ml[1].anchor`), which is the
+    // anchor of the component the entry is placed as
+    const location = entryPropertyOf(property);
+    return (
+        location !== undefined &&
+        isPlacementLocation(location) &&
+        entryAnchorIsPlaced(componentIdx, ctx, new Set())
+    );
+}
+
+/**
+ * The entry property a list's per-entry variable reads (`anchor` of
+ * `__listEntry_anchor_1` or `__listEntries_anchor`), if it is one.
+ */
+function entryPropertyOf(variable: string): string | undefined {
+    if (variable.startsWith(LIST_ENTRY_ARRAY_PREFIX)) {
+        return variable.slice(LIST_ENTRY_ARRAY_PREFIX.length);
+    }
+    if (variable.startsWith(LIST_ENTRY_PREFIX)) {
+        return variable.slice(LIST_ENTRY_PREFIX.length).replace(/_\d+$/, "");
+    }
+    return undefined;
+}
+
+/**
+ * Whether a reader drags where an entry of the list `listIdx` is placed
+ * (`graphSourceOf` in `AuthoredValueList.js`): the list is placed in a
+ * graph, or an entry comes from a placed component, a child of the list or
+ * the referent of a value reference in it (`$a` in `<mathList>`), or from
+ * an entry of a list among its children or what a composite among them
+ * makes, or the list shadows one that is. Any entry counts, erring toward
+ * changeable.
+ */
+function entryAnchorIsPlaced(
+    listIdx: number,
+    ctx: ChangeContext,
+    seen: Set<number>,
+): boolean {
+    if (seen.has(listIdx)) {
+        return false;
+    }
+    seen.add(listIdx);
+    if (ctx.placed.has(listIdx)) {
+        return true;
+    }
+    const list = ctx.components[listIdx];
+    if (!list) {
+        return false;
+    }
+    if (
+        typeof list.shadows?.componentIdx === "number" &&
+        entryAnchorIsPlaced(list.shadows.componentIdx, ctx, seen)
+    ) {
+        return true;
+    }
+    // what a composite among the children makes stands for it (the copy
+    // of `ml` in `<mathList extend="$ml"/>`)
+    const entries = (list.definingChildren ?? []).flatMap((child: any) =>
+        Array.isArray(child?.replacements) ? child.replacements : [child],
+    );
+    return entries.some((child: any) => {
+        if (typeof child !== "object" || child === null) {
+            return false;
+        }
+        let source =
+            child.componentType === "_ref"
+                ? ctx.components[child.refResolution?.nodeIdx]
+                : child;
+        // an extend shares its source's anchor unless it writes its own
+        const visited = new Set<any>();
+        while (source && !visited.has(source)) {
+            visited.add(source);
+            if (
+                ctx.placed.has(source.componentIdx) ||
+                entryAnchorIsPlaced(source.componentIdx, ctx, seen)
+            ) {
+                return true;
+            }
+            if (source.attributes?.anchor) {
+                return false;
+            }
+            source = ctx.components[source.shadows?.componentIdx];
+        }
+        return false;
+    });
 }
 
 /**
