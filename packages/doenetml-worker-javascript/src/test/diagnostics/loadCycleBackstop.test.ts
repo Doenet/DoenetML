@@ -65,39 +65,41 @@ describe("A circular dependency at load becomes a located e0005 @group2", () => 
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
             ],
-            // a property whose value reads the number
+            // a property whose value reads the number: the reference to the
+            // number, written in an attribute, is blamed, though the run
+            // time's cycle names the component it is in
             [
                 `$cc.hidden
 <conditionalContent name="cc" hide="$s.sectionNumber=1"><p>a</p></conditionalContent>
 <section name="s"><p name="p">hi</p></section>`,
-                "$cc.hidden",
+                "$s.sectionNumber",
             ],
             // `numIterations` of a repeat whose iteration reads the number
             [
                 `$r.numIterations
 <repeatForSequence name="r" to="2"><conditionalContent condition="$s.sectionNumber=1"><p>a</p></conditionalContent></repeatForSequence>
 <section name="s"><p name="p">hi</p></section>`,
-                "$r.numIterations",
+                "$s.sectionNumber",
             ],
             // a group holding a section and a composite reading the number
             [
                 `$g
 <group name="g"><section/><conditionalContent condition="$s.sectionNumber=1"><p>a</p></conditionalContent></group>
 <section name="s"><p name="p">hi</p></section>`,
-                "$g",
+                "$s.sectionNumber",
             ],
             // a name reached through an inner composite reading the number
             [
                 `$cc.q
 <conditionalContent name="cc"><case condition="true"><conditionalContent condition="$s.sectionNumber=1"><p name="q">a</p></conditionalContent></case></conditionalContent>
 <section name="s"><p name="p">hi</p></section>`,
-                "$cc.q",
+                "$s.sectionNumber",
             ],
             [
                 `$sel[1].q
 <select name="sel"><option><conditionalContent condition="$s.sectionNumber=1"><p name="q">a</p></conditionalContent></option></select>
 <section name="s"><p name="p">hi</p></section>`,
-                "$sel[1].q",
+                "$s.sectionNumber",
             ],
             // a collect of sections from inside a `<p>` (it ran away: "infinite
             // loop while calculating replacement changes")
@@ -157,6 +159,25 @@ $r[1].q.title
 $r[1].P.x
 <section name="s"><p name="p">hi</p></section>`,
             "$s.sectionNumber",
+        );
+    });
+
+    // A reference to the number of a section not on the cycle, written
+    // beside one to the number of a section on it, is not blamed; nor is one
+    // written in what a section on the cycle holds, which is not on it.
+    it("blames the reference to the number of a section on the cycle", async () => {
+        await expectBlamed(
+            `<section name="t"/>
+$cc.hidden
+<conditionalContent name="cc" hide="$t.sectionNumber=1 or $s.sectionNumber=1"><p>a</p></conditionalContent>
+<section name="s"><p name="p">hi</p></section>`,
+            "$s.sectionNumber",
+        );
+        await expectBlamed(
+            `<section name="s"><p name="p">hi</p><p>$s.title</p>
+<conditionalContent condition="$s.title='x'"><p>a</p></conditionalContent>
+</section>`,
+            "$s.title",
         );
     });
 
@@ -264,7 +285,10 @@ $r2[2].q
         const doenetML = `$cc.hidden
 <conditionalContent name="cc" hide="$s.sectionNumber=1"><p>a</p></conditionalContent>
 <section name="s"><p name="p">hi</p></section>`;
-        const { core, scoreState } = await expectBlamed(doenetML, "$cc.hidden");
+        const { core, scoreState } = await expectBlamed(
+            doenetML,
+            "$s.sectionNumber",
+        );
         await core.saveImmediately();
         const { core: reloaded, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
@@ -280,10 +304,11 @@ $r2[2].q
         expect(
             getDiagnosticsByType(reloaded).errors.map((error) => [
                 error.code,
+                error.position?.start.line,
                 error.position?.start.column,
                 error.position?.end.column,
             ]),
-        ).eqls([["doenet-e0005", 1, 11]]);
+        ).eqls([["doenet-e0005", 2, 37, 53]]);
     });
 
     // The load is rebuilt once (D57): a document whose rebuild stops on a

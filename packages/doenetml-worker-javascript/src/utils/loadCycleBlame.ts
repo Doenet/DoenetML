@@ -18,11 +18,17 @@
  *    is a reference read as a value (`_ref`);
  * 3. else the first authored component in document order but the document.
  *
- * When the node blamed is no reference, the cycle check makes a reference
- * written in it, to it or to another node on the cycle, the error in its
- * place, if there is one (`$P.x` in `<point name="P">($P.x+1, 2)</point>`):
- * that is where the author wrote the cycle (DIAG-4). The check does it, as
- * such a reference may be compiled into an expression after it.
+ * The rebuild's cycle check (`breakReferenceCycles`) refines the choice
+ * where the author wrote the cycle (DIAG-4), as a reference written in an
+ * attribute is compiled into an expression after the check, so the run
+ * time's cycle names the component it is in, not it:
+ * - rule 1 also counts a reference to the number of a section on the cycle
+ *   written in an attribute of a node on it (`hide="$s.sectionNumber=1"`
+ *   of a `<conditionalContent>` read by `$cc.hidden`), and the first such,
+ *   in document order, is made the error in place of the node blamed here;
+ * - else, when the node blamed is no reference, a reference written in it,
+ *   to it or to another node on the cycle, is made the error in its place,
+ *   if there is one (`$P.x` in `<point name="P">($P.x+1, 2)</point>`).
  *
  * A component the run time made (what a composite holds, a component made
  * for an attribute) stands for the authored nodes it was made from: what it

@@ -884,6 +884,66 @@ export function breakReferenceCycles({
         }
     }
 
+    /**
+     * Whether `copy` is a reference to a section's number
+     * (`$s.sectionNumber`, `$s.title`, …: `NUMBER_PROPERTIES`).
+     */
+    function isReferenceToNumber(copy: SerializedComponent) {
+        const path = referenceOf(copy)?.unresolvedPath;
+        const target = targetOf(copy);
+        const targetType = target ? typeOf(target) : undefined;
+        return (
+            targetType !== undefined &&
+            path?.length === 1 &&
+            typeof path[0]?.name === "string" &&
+            inherits(targetType, "_sectioningComponent") &&
+            NUMBER_PROPERTIES.has(propertyNamed(targetType, path[0].name))
+        );
+    }
+
+    /**
+     * The first reference to the number of a section in `onCycle`, in
+     * document order, among the components `onCycle` and the references
+     * written in their attributes (D57, rule 1), if there is one.
+     */
+    function referenceToNumberOnCycle(onCycle: Set<number>) {
+        const references: SerializedComponent[] = [];
+        for (const idx of onCycle) {
+            const component = componentsByIdx.get(idx);
+            if (!component) {
+                continue;
+            }
+            if (component.componentType === "_copy") {
+                references.push(component);
+            }
+            for (const attribute of Object.values(component.attributes ?? {})) {
+                for (const one of componentsOfAttribute(attribute)) {
+                    if (one.componentType === "_copy") {
+                        references.push(one);
+                    }
+                    const inside: { copy: SerializedComponent }[] = [];
+                    gatherCopiesIn(one, new Set(), inside);
+                    references.push(...inside.map(({ copy }) => copy));
+                }
+            }
+        }
+        const order = new Map(
+            [...componentsByIdx.keys()].map((idx, i) => [idx, i]),
+        );
+        // to a section on the cycle: a reference to the number of another
+        // section, in an attribute of a node on it, is not on it
+        return references
+            .filter(
+                (copy) =>
+                    isReferenceToNumber(copy) &&
+                    onCycle.has(targetOf(copy)!.componentIdx),
+            )
+            .sort(
+                (a, b) =>
+                    order.get(a.componentIdx)! - order.get(b.componentIdx)!,
+            )[0];
+    }
+
     /** The component the graph has for what `copy` is of, if resolved. */
     function targetOf(copy: SerializedComponent) {
         const reference = referenceOf(copy);
@@ -1944,18 +2004,28 @@ export function breakReferenceCycles({
         findCycles(listIndexEdges, listEntryEdges);
     }
 
-    // What a load that stopped on a circular dependency blamed (D57): the
-    // node blamed, or, if it is no reference, the first reference written in
-    // it, to it or to another node on the cycle, which is where the author
-    // wrote the cycle (`$P.x` in `<point name="P">($P.x+1, 2)</point>`,
-    // DIAG-4). The first written in the most other nodes on the cycle is
-    // chosen: with that point in a `<repeatForSequence>` blamed, after a
-    // `<p>$P.y</p>`, `$P.y` is to the point but not on the cycle, and making
-    // it the error would leave the cycle unbroken.
+    // What a load that stopped on a circular dependency blamed (D57). First,
+    // a reference to the number of a section on the cycle, itself on the
+    // cycle or written in an attribute of a node on it, the first in
+    // document order (D57's rule 1): one written in an attribute
+    // (`hide="$s.sectionNumber=1"`) is compiled into an expression after this
+    // check, so the run time's cycle names the component it is in, not it.
+    // Else the node blamed, or, if it is no
+    // reference, the first reference written in it, to it or to another node
+    // on the cycle, which is where the author wrote the cycle (`$P.x` in
+    // `<point name="P">($P.x+1, 2)</point>`, DIAG-4). The first written in
+    // the most other nodes on the cycle is chosen: with that point in a
+    // `<repeatForSequence>` blamed, after a `<p>$P.y</p>`, `$P.y` is to the
+    // point but not on the cycle, and making it the error would leave the
+    // cycle unbroken.
     const forcedCycleMembers = new Set<number>();
     if (loadCycle) {
         const blamed = componentsByIdx.get(loadCycle.blamed);
-        if (blamed) {
+        const toNumber = referenceToNumberOnCycle(loadCycle.onCycle);
+        if (toNumber) {
+            forcedCycleMembers.add(toNumber.componentIdx);
+            loadCycle.made = toNumber.componentIdx;
+        } else if (blamed) {
             let chosen = blamed;
             if (blamed.componentType !== "_copy") {
                 const written: {
