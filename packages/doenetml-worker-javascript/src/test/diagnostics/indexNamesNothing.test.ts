@@ -420,16 +420,18 @@ describe("An index that names nothing @group4", async () => {
     });
 
     it("reads the reference of a tag whatever the case of its attribute", async () => {
-        // `Extend` is `extend`: the warning in its index says why the index
-        // names nothing, as for the lowercase attribute.
+        // `Extend` is applied as `extend` for now, with a warning that names
+        // are case-sensitive (D51): the warning in its index says why the
+        // index names nothing, as for the lowercase attribute.
         for (const attribute of ["extend", "Extend", "COPY"]) {
             const { warnings, infos } = await shownAndReported(
                 `<p name="p"><math ${attribute}="$l[$nothing]"/></p>`,
             );
-            expect(
-                warnings.map((w) => w.code),
-                attribute,
-            ).eqls(["doenet-w0104"]);
+            expect(warnings.map((w) => w.code).sort(), attribute).eqls(
+                attribute === "extend"
+                    ? ["doenet-w0104"]
+                    : ["doenet-w0104", "doenet-w0197"],
+            );
             expect(infos, attribute).eqls([]);
         }
     });
