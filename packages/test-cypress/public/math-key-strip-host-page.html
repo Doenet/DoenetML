@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- A static host page for the math key strip's e2e
+     (accessibility/mathKeyStripHost.cy.js): two activity iframes, each with
+     the strip attached by @doenet/standalone's math-key-strip.js, and a text
+     field of the host's own. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Math key strip host</title>
+        <script src="/standalone/math-key-strip.js"></script>
+    </head>
+    <body>
+        <p><label>Host field <input id="host-field" /></label></p>
+        <iframe
+            id="act1"
+            src="/math-key-strip-activity-if.html"
+            width="360"
+            height="160"
+        ></iframe>
+        <iframe
+            id="act2"
+            src="/math-key-strip-activity-if.html"
+            width="360"
+            height="160"
+        ></iframe>
+        <script>
+            window.detachStrips = [
+                DoenetMathKeyStrip.attach(document.getElementById("act1")),
+                DoenetMathKeyStrip.attach(document.getElementById("act2")),
+            ];
+        </script>
+    </body>
+</html>

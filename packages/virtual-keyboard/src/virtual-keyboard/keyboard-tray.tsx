@@ -4,6 +4,7 @@ import { OnClick } from "./keyboard";
 import { ManagedKeyboard } from "./managed-keyboard";
 import classNames from "classnames";
 import type { Direction, Translator } from "@doenet/i18n";
+import { VIRTUAL_KEYBOARD_PART_ATTRIBUTE } from "./math-key-strip";
 import "./keyboard-tray.css";
 
 /**
@@ -28,17 +29,36 @@ export function getVirtualKeyboardTrayElement(): HTMLElement | null {
 }
 
 /**
- * Whether `node` is inside the keyboard tray.
+ * The virtual keyboard `node` is inside — the tray, or another part that types
+ * into math inputs, such as the math key strip — or `null`.
+ */
+export function getVirtualKeyboardElementContaining(
+    node: EventTarget | null,
+): HTMLElement | null {
+    if (!(node instanceof Node)) {
+        return null;
+    }
+    const tray = getVirtualKeyboardTrayElement();
+    if (tray?.contains(node)) {
+        return tray;
+    }
+    const element = node instanceof Element ? node : node.parentElement;
+    return (
+        element?.closest<HTMLElement>(`[${VIRTUAL_KEYBOARD_PART_ATTRIBUTE}]`) ??
+        null
+    );
+}
+
+/**
+ * Whether `node` is inside the keyboard tray, or another part of the virtual
+ * keyboard (the math key strip).
  *
  * How a math input tells a blur that hands over to the keyboard from one that
  * leaves the input for good, and how the tray tells that focus is being kept
  * inside itself rather than moving away from the input it types into.
  */
 export function isInVirtualKeyboardTray(node: EventTarget | null): boolean {
-    return (
-        node instanceof Node &&
-        (getVirtualKeyboardTrayElement()?.contains(node) ?? false)
-    );
+    return getVirtualKeyboardElementContaining(node) !== null;
 }
 
 const KeyboardIcon = () => (

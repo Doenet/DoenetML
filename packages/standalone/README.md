@@ -76,6 +76,65 @@ that cap and the author's own `maxNumAttempts`; inside a container with
 `sectionWideCheckWork`, the cap applies to the container's check-work
 button. Leaving the attribute out means no cap.
 
+## Math keys on phones and tablets
+
+On a touch device a math input raises the device's own keyboard when the
+viewer has no Doenet keyboard (`data-doenet-add-virtual-keyboard="false"`).
+That keyboard has letters and digits but no union, root or fraction bar.
+`data-doenet-math-key-strip="true"` adds a row of math keys on top of it while
+a math input has focus, in groups set apart by a wider gap: fraction, power,
+nth root and absolute value; pi and infinity; ≤, ≥, ≠, < and >; union and
+intersection; then ±. A right-arrow key (the same as the arrow key: from the
+end of an exponent, root or fraction it steps out) is pinned at the end. The
+row scrolls sideways. It is a labelled toolbar of named buttons, and pressing
+a key leaves focus, and the device's keyboard, in the math input. On the
+viewer's own page it also works with a hardware keyboard: Tab from a math
+input goes into the row (one tab stop, arrow keys, Escape back to the input).
+
+| Attribute                                       | Prop                              | Meaning                                                                                          |
+| ----------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `data-doenet-math-key-strip`                    | `mathKeyStrip`                    | Show the row of math keys above the device's keyboard. Default `false`.                          |
+| `data-doenet-external-virtual-keyboard-provided` | `externalVirtualKeyboardProvided` | The embedding page draws the keyboard (or the row of keys) and sends its keys into this frame. |
+
+With the Doenet keyboard on (the default), the row appears only once the
+reader closes the Doenet keyboard and gets the device's keyboard back.
+
+**In an iframe**, the row has to be drawn by the page that holds the iframe:
+inside it, it would sit at the bottom of the iframe rather than on top of the
+device's keyboard. Render the activity with all three settings, and load
+`math-key-strip.js` on the host page:
+
+```html
+<!-- inside the iframe -->
+<div
+    class="doenetml-applet"
+    data-doenet-add-virtual-keyboard="false"
+    data-doenet-external-virtual-keyboard-provided="true"
+    data-doenet-math-key-strip="true"
+>
+    …
+</div>
+
+<!-- on the host page -->
+<script src="https://cdn.jsdelivr.net/npm/@doenet/standalone@<version>/math-key-strip.js"></script>
+<script>
+    const detach = DoenetMathKeyStrip.attach(
+        document.querySelector("iframe#activity"),
+        { theme: "system" }, // or "light" / "dark"
+    );
+</script>
+```
+
+`math-key-strip.js` has no dependencies (no React) and only acts on messages
+from the iframe it was attached to. The row hides when that iframe is removed
+or loads another page. Its keys are named in English; for another language,
+pass `translate: (key, args, fallback) => string` to `attach`, which is asked
+for the `math-key-*` names of `@doenet/i18n`'s catalog. The row a host page
+draws is for touch only: Tab from a math input stays inside the iframe, where
+a hardware keyboard types the same notation as commands (`\cup`). An
+activity rendered with a version of DoenetML that does not know
+`mathKeyStrip` never reports focus to it, so the row simply does not appear.
+
 ## MathJax
 
 The renderer uses MathJax to typeset math. It **coexists** with a MathJax that

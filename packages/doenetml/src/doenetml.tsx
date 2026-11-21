@@ -22,7 +22,7 @@ import type {
     ErrorRecord,
     WarningRecord,
 } from "@doenet/utils";
-import { VirtualKeyboard } from "@doenet/virtual-keyboard";
+import { VirtualKeyboard, type KeyCommand } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
 // The lazy wrapper, not `EditorViewer` itself: this import is what keeps the
@@ -42,8 +42,12 @@ export type { DiagnosticsTabId } from "./EditorViewer/DiagnosticsResponseTabs";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
-import { store, useAppDispatch } from "./state";
+import { store, useAppDispatch, useAppSelector } from "./state";
 import { keyboardSlice } from "./state/slices/keyboard";
+import {
+    InDocumentMathKeyStrip,
+    focusedMathInputBox,
+} from "./InDocumentMathKeyStrip";
 import {
     setVariantIndex,
     setVariantsFromCallback,
@@ -157,6 +161,7 @@ export function DoenetViewer({
     forceUnsuppressCheckWork = false,
     addVirtualKeyboard = true,
     externalVirtualKeyboardProvided = false,
+    mathKeyStrip = false,
     doenetViewerUrl,
     doenetImagesUrl,
     darkMode = "system",
@@ -214,6 +219,19 @@ export function DoenetViewer({
     forceUnsuppressCheckWork?: boolean;
     addVirtualKeyboard?: boolean;
     externalVirtualKeyboardProvided?: boolean;
+    /**
+     * On a touch device, show a row of math keys (fraction, power, nth root,
+     * ...) on top of the device's own keyboard while a math input has focus.
+     * It appears only while the device's keyboard is in play: with
+     * `addVirtualKeyboard={false}`, or once the reader closes the Doenet
+     * keyboard. Default `false`.
+     *
+     * With `externalVirtualKeyboardProvided`, the embedding page draws the
+     * strip (`@doenet/standalone`'s `math-key-strip.js`) and this viewer only
+     * reports focus to it and takes its keys — also when `addVirtualKeyboard`
+     * is `false`, which is how the device's keyboard is kept up in an iframe.
+     */
+    mathKeyStrip?: boolean;
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
     /**
@@ -496,6 +514,7 @@ export function DoenetViewer({
                             externalVirtualKeyboardProvided={
                                 externalVirtualKeyboardProvided
                             }
+                            mathKeyStrip={mathKeyStrip}
                             theme={resolvedTheme}
                             translate={translateChrome}
                             direction={hostUiDirection}
@@ -806,6 +825,7 @@ export const DoenetEditor = React.forwardRef<
 function WrapWithKeyboard({
     addVirtualKeyboard,
     externalVirtualKeyboardProvided,
+    mathKeyStrip = false,
     theme,
     translate,
     direction,
@@ -813,6 +833,7 @@ function WrapWithKeyboard({
 }: React.PropsWithChildren<{
     addVirtualKeyboard: boolean;
     externalVirtualKeyboardProvided: boolean;
+    mathKeyStrip?: boolean;
     theme?: "dark" | "light";
     translate?: Translator;
     direction?: Direction;
@@ -823,62 +844,96 @@ function WrapWithKeyboard({
         announced: false,
         release: null,
     });
-    const keyboard = addVirtualKeyboard ? (
-        <VirtualKeyboard
-            externalVirtualKeyboardProvided={externalVirtualKeyboardProvided}
-            ownerRef={focusedMathInput}
-            theme={theme}
-            // The tray lives in its own React root outside this tree (it is
-            // shared by every viewer on the page), so the translator has to be
-            // handed to it the same way `theme` already is — context cannot
-            // cross a root boundary. Neither can an inherited `dir`, so the
-            // direction rides the same channel.
-            translate={translate}
-            direction={direction}
-            onClick={(keyCommands) => {
-                // `keyboardChoice` is a preference, not a key press. It is
-                // routed to the store instead of to the focused input, so that
-                // every math input can decide whether to keep the device's own
-                // on-screen keyboard down. See `KeyCommand`.
-                const lastChoice = keyCommands
-                    .filter((command) => command.type === "keyboardChoice")
-                    .pop();
-                if (lastChoice) {
-                    dispatch(
-                        keyboardSlice.actions.setSystemKeyboardRequested(
-                            lastChoice.command === "system",
-                        ),
-                    );
-                }
+    const beforeKeyboard = useRef<HTMLDivElement | null>(null);
+    const systemKeyboardRequested = useAppSelector(
+        keyboardSlice.selectors.systemKeyboardRequested,
+    );
 
-                // A fresh array every press, and deliberately so: a math input
-                // notices a new batch of keys by the identity of the array in
-                // the store, and the keys of a given tray button are one
-                // constant array reused on every press of it. Storing that
-                // constant would leave the state unchanged, and pressing the
-                // same key twice in a row would type one character. The
-                // bookkeeping events the tray used to send alongside every
-                // press kept the identity moving on their own; nothing does
-                // now, so the dispatch has to.
-                const keyPresses = keyCommands.filter(
-                    (command) => command.type !== "keyboardChoice",
-                );
-                if (keyPresses.length > 0) {
-                    dispatch(
-                        keyboardSlice.actions.setKeyboardInput(keyPresses),
-                    );
+    /** Keys from the tray, the strip, or a keyboard in the embedding page. */
+    function handleKeyCommands(keyCommands: KeyCommand[]) {
+        // `keyboardChoice` is a preference, not a key press. It is
+        // routed to the store instead of to the focused input, so that
+        // every math input can decide whether to keep the device's own
+        // on-screen keyboard down. See `KeyCommand`.
+        const lastChoice = keyCommands
+            .filter((command) => command.type === "keyboardChoice")
+            .pop();
+        if (lastChoice) {
+            dispatch(
+                keyboardSlice.actions.setSystemKeyboardRequested(
+                    lastChoice.command === "system",
+                ),
+            );
+        }
+
+        // A fresh array every press, and deliberately so: a math input
+        // notices a new batch of keys by the identity of the array in
+        // the store, and the keys of a given tray button are one
+        // constant array reused on every press of it. Storing that
+        // constant would leave the state unchanged, and pressing the
+        // same key twice in a row would type one character. The
+        // bookkeeping events the tray used to send alongside every
+        // press kept the identity moving on their own; nothing does
+        // now, so the dispatch has to.
+        const keyPresses = keyCommands.filter(
+            (command) => command.type !== "keyboardChoice",
+        );
+        if (keyPresses.length > 0) {
+            dispatch(keyboardSlice.actions.setKeyboardInput(keyPresses));
+        }
+    }
+
+    // The channel to a keyboard in the embedding page — its keys coming in,
+    // focus reports going out — is mounted with a Doenet keyboard, as it
+    // always was, and also for an embedding page that draws the math key
+    // strip. The latter is with `addVirtualKeyboard` off, so the device's own
+    // keyboard stays up: `VirtualKeyboardAvailableContext` below still says
+    // there is no Doenet keyboard to replace it.
+    const externalStrip = mathKeyStrip && externalVirtualKeyboardProvided;
+    const keyboard =
+        addVirtualKeyboard || externalStrip ? (
+            <VirtualKeyboard
+                externalVirtualKeyboardProvided={
+                    externalVirtualKeyboardProvided
                 }
-            }}
-        />
-    ) : null;
+                ownerRef={focusedMathInput}
+                theme={theme}
+                // The tray lives in its own React root outside this tree (it
+                // is shared by every viewer on the page), so the translator has
+                // to be handed to it the same way `theme` already is — context
+                // cannot cross a root boundary. Neither can an inherited
+                // `dir`, so the direction rides the same channel.
+                translate={translate}
+                direction={direction}
+                getFocusedInputRect={focusedMathInputBox}
+                onClick={handleKeyCommands}
+            />
+        ) : null;
+
+    // The same condition under which a math input lets a touch device raise
+    // its own keyboard (`suppressSystemKeyboard` in `mathInput.tsx`), less the
+    // pointer test, which the strip makes itself.
+    const deviceKeyboardInPlay = !addVirtualKeyboard || systemKeyboardRequested;
+    const strip =
+        mathKeyStrip && !externalVirtualKeyboardProvided ? (
+            <InDocumentMathKeyStrip
+                ownerRef={focusedMathInput}
+                deviceKeyboardInPlay={deviceKeyboardInPlay}
+                onKeys={handleKeyCommands}
+                theme={theme}
+                translate={translate}
+                spacerRef={beforeKeyboard}
+            />
+        ) : null;
 
     return (
         <VirtualKeyboardAvailableContext.Provider value={addVirtualKeyboard}>
             <FocusedMathInputContext.Provider value={focusedMathInput}>
                 <LegacyKeyboardTrayContext.Provider value={legacyKeyboardTray}>
                     {children}
-                    <div className="before-keyboard" />
+                    <div className="before-keyboard" ref={beforeKeyboard} />
                     {keyboard}
+                    {strip}
                 </LegacyKeyboardTrayContext.Provider>
             </FocusedMathInputContext.Provider>
         </VirtualKeyboardAvailableContext.Provider>

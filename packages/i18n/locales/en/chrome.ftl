@@ -93,6 +93,28 @@ slider-next = Next
 keyboard-open = Open Keyboard
 keyboard-close = Close Keyboard
 
+# The row of math keys shown above a phone's own keyboard. `math-key-strip`
+# names the row; the others are the accessible names of its keys, whose faces
+# are symbols (∪, ⁿ√, ≤ ...). Lower case, as they are read out mid-sentence.
+math-key-strip = Math keys
+math-key-union = union
+math-key-infinity = infinity
+math-key-nth-root = nth root
+math-key-fraction = fraction
+math-key-power = power
+math-key-pi = pi
+math-key-intersection = intersection
+math-key-less-or-equal = less than or equal to
+math-key-greater-or-equal = greater than or equal to
+math-key-less = less than
+math-key-greater = greater than
+math-key-not-equal = not equal to
+math-key-absolute-value = absolute value
+math-key-plus-minus = plus or minus
+# The right arrow: moves the cursor one place right, which from the end of an
+# exponent, root or fraction steps out of it.
+math-key-move-right = move right
+
 # Accessible name of the button that drops one selected choice from an inline
 # `<choiceInput selectMultiple>`. The button itself is drawn as a bare cross,
 # so `$choice` — the choice's own text, which is never translated — is the

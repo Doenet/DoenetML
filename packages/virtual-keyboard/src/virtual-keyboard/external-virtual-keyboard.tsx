@@ -25,12 +25,35 @@ export type IframeMessage = {
  *
  * Posted with a target origin of `"*"`, for the same reason `IframeMessage`
  * is: the two documents are routinely on different origins, and neither can
- * read the other's. Nothing here is sensitive — one bit about focus — and the
- * parent only acts on messages whose `event.source` is its own iframe.
+ * read the other's. Nothing here is sensitive — whether a math input has
+ * focus, and where it is on the screen (`inputRect`) — and the parent only
+ * acts on messages whose `event.source` is its own iframe.
  */
 export type IframeFocusMessage = {
     subject: "keyboard-focus";
     mathInputFocused: boolean;
+    /**
+     * Where the focused math input is — with its check button, if it has one —
+     * in the iframe's viewport, so a keyboard the parent draws can keep it in
+     * view. Sent only while a math input is focused, and only by viewers that
+     * know to; a parent must not rely on it. Vertical extent only: that is all
+     * a keyboard along the bottom of the screen can cover.
+     */
+    inputRect?: { top: number; bottom: number };
+};
+
+/**
+ * A message from the parent window asking the iframe to report focus again
+ * (an `IframeFocusMessage` with `mathInputFocused: true`) if one of its math
+ * inputs has focus. Nothing is sent otherwise.
+ *
+ * The parent sends it when its iframe has loaded a document. It cannot tell
+ * the load of a new document (the one whose input had focus is gone, and
+ * nothing says so) from the late load of the same one (whose input took focus
+ * before its images finished), so it forgets the focus and asks.
+ */
+export type IframeFocusQueryMessage = {
+    subject: "keyboard-focus-query";
 };
 
 /**

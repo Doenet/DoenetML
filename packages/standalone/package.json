@@ -45,7 +45,27 @@
             ],
             "dependencies": [
                 "build:main",
-                "build:inline"
+                "build:inline",
+                "build:math-key-strip"
+            ]
+        },
+        "build:math-key-strip": {
+            "command": "vite -c vite.config-math-key-strip.ts build",
+            "files": [
+                "src/math-key-strip.ts",
+                "../virtual-keyboard/src/virtual-keyboard/math-key-strip.ts",
+                "../virtual-keyboard/src/virtual-keyboard/host-math-key-strip.ts",
+                "../virtual-keyboard/src/virtual-keyboard/keys.ts",
+                "vite.config-math-key-strip.ts",
+                "../../scripts/vite-plugins.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/math-key-strip.js",
+                "dist/math-key-strip.js.map"
+            ],
+            "dependencies": [
+                "build:main"
             ]
         },
         "build:inline": {
@@ -83,9 +103,11 @@
             "output": [
                 "dist/**/*.js",
                 "!dist/coordinator.js",
+                "!dist/math-key-strip.js",
                 "!dist/doenet-standalone-inline.js",
                 "dist/**/*.map",
                 "!dist/coordinator.js.map",
+                "!dist/math-key-strip.js.map",
                 "!dist/doenet-standalone-inline.js.map",
                 "dist/**/*.d.ts",
                 "dist/**/*.json",
