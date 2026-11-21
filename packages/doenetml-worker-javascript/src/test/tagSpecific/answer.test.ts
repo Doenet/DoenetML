@@ -7920,7 +7920,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer
   >Current response: <math extend="$default.currentResponse" name="default_cr" />
-  Submitted response: <math extend="$default.SubmittedResponse" name="default_sr" />
+  Submitted response: <math extend="$default.submittedResponse" name="default_sr" />
   
   </p>
 
@@ -7929,7 +7929,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer>
   >Current response: <math extend="$short.currentResponse" name="short_cr" />
-  Submitted response: <math extend="$short.SubmittedResponse" name="short_sr" />
+  Submitted response: <math extend="$short.submittedResponse" name="short_sr" />
   </p>
 `;
 
@@ -8004,7 +8004,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer
   >Current response: <number extend="$default.currentResponse" name="default_cr" />
-  Submitted response: <number extend="$default.SubmittedResponse" name="default_sr" />
+  Submitted response: <number extend="$default.submittedResponse" name="default_sr" />
   
   </p>
 
@@ -8013,7 +8013,7 @@ What is the derivative of <function name="f">x^2</function>?
     1.23456789
   </answer>
   >Current response: <number extend="$short.currentResponse" name="short_cr" />
-  Submitted response: <number extend="$short.SubmittedResponse" name="short_sr" />
+  Submitted response: <number extend="$short.submittedResponse" name="short_sr" />
   </p>
 `;
 

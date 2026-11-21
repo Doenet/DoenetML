@@ -211,20 +211,20 @@ pub(super) fn branch_container_kind(
         element.name.clone()
     };
     match tag.as_str() {
-        "conditionalContent" | "conditionalcontent" => {
-            Some(BranchContainerKind::ConditionalContent)
-        }
+        "conditionalContent" => Some(BranchContainerKind::ConditionalContent),
         "select" => {
             let num_to_select = element
                 .attributes
                 .iter()
-                .find(|attr| attr.name.eq_ignore_ascii_case("numToSelect"));
+                // Matched exactly (D51): one written in another case was
+                // given this spelling by the parser (`attribute-name-case.ts`).
+                .find(|attr| attr.name == "numToSelect");
             // A copy of a `<select>` picks as many as the one it copies,
             // unless its own `numToSelect` says otherwise.
             let is_copy = element.name == "_copy"
                 || element.extending.is_some()
                 || element.attributes.iter().any(|attr| {
-                    // matched without regard to case, as `ref_expand` matches them
+                    // matched exactly, as `ref_expand` matches them
                     crate::dast::ref_expand::is_extend_or_copy_attribute(&attr.name)
                 });
             match num_to_select {

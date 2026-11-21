@@ -35,6 +35,8 @@ describe("the error component carries its diagnostic to the renderer @group4", (
         expect(error.stateValues.args).eqls({
             attribute: "bogusAttribute",
             componentType: "p",
+            suggestion: "",
+            hasSuggestion: "false",
         });
         // The English is still there: it is what the renderer falls back to
         // when the reader's catalogs have no answer for the code.

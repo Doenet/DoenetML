@@ -11,7 +11,7 @@
  * references whose target or type is only known then.
  */
 import type { ComponentInfoObjects } from "./componentInfoObjects";
-import { publicCaseInsensitiveAliasSubstitutions } from "../StateVariableNameResolver";
+import { publicAliasSubstitutions } from "../StateVariableNameResolver";
 import { describeReferentVariable } from "./referentDescription";
 import {
     listEntryPropertyPath,
@@ -518,7 +518,7 @@ export function staticValueReferenceTarget({
         return undefined;
     }
 
-    const [variableName] = publicCaseInsensitiveAliasSubstitutions({
+    const [variableName] = publicAliasSubstitutions({
         stateVariables: [name],
         componentClass: targetClass,
         componentInfoObjects,

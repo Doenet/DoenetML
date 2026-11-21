@@ -294,6 +294,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0194": "matrix-math-child-ignored",
     "doenet-w0195": "action-target-not-one-value",
     "doenet-w0196": "latex-not-read-as-math",
+    "doenet-w0197": "attribute-name-case",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

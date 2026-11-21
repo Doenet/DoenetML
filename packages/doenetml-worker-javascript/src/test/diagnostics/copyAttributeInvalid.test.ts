@@ -109,7 +109,12 @@ describe("An attribute a copy or extend does not have @group4", async () => {
             expect(shown.warnings.length, doenetML).eq(1);
             const [warning] = shown.warnings;
             expect(warning.code, doenetML).eq("doenet-w0187");
-            expect(warning.args, doenetML).eqls({ attribute, componentType });
+            expect(warning.args, doenetML).eqls({
+                attribute,
+                componentType,
+                suggestion: "",
+                hasSuggestion: "false",
+            });
             expect(warning.message, doenetML).eq(
                 `The \`${attribute}\` attribute is ignored: a \`<${componentType}>\` has no such attribute.`,
             );
@@ -123,7 +128,6 @@ describe("An attribute a copy or extend does not have @group4", async () => {
     it("an attribute the component or the copy has is not reported", async () => {
         for (const doenetML of [
             `<math name="m">x+x</math><math name="a" extend="$m" simplify="full"/><p name="p">$a</p>`,
-            `<math name="m">x+x</math><math name="a" copy="$m" SIMPLIFY="full"/><p name="p">$a</p>`,
             `<mathList name="ml">x y</mathList><mathList name="a" extend="$ml" asList="false"/><p name="p">$a</p>`,
             `<math name="m">x</math><math name="a" extend="$m" hide/><p name="p">$a</p>`,
         ]) {

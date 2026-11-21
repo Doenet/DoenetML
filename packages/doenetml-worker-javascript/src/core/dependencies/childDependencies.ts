@@ -1590,10 +1590,10 @@ export class DescendantDependency extends Dependency {
             let composite = this.dependencyHandler._components[compositeIdx];
             if (composite.attributes._createComponentOfType) {
                 let placeholderType =
-                    this.dependencyHandler.componentInfoObjects
-                        .componentTypeLowerCaseMapping[
-                        composite.attributes._createComponentOfType.primitive.value.toLowerCase()
-                    ];
+                    this.dependencyHandler.componentInfoObjects.componentTypeAsWritten(
+                        composite.attributes._createComponentOfType.primitive
+                            .value,
+                    );
 
                 let matches = this.componentTypes.some((ct: any) =>
                     this.dependencyHandler.componentInfoObjects.isInheritedComponentType(

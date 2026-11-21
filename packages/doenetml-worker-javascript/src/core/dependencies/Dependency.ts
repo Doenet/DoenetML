@@ -127,10 +127,6 @@ export class Dependency {
             this.publicStateVariablesOnly = true;
         }
 
-        if (dependencyDefinition.caseInsensitiveVariableMatch) {
-            this.caseInsensitiveVariableMatch = true;
-        }
-
         if (dependencyDefinition.useMappedVariableNames) {
             this.useMappedVariableNames = true;
         }
@@ -442,14 +438,6 @@ export class Dependency {
                     this.originalDownstreamVariableNamesByComponent[index];
             } else {
                 originalVarNames = this.originalDownstreamVariableNames;
-            }
-
-            if (this.caseInsensitiveVariableMatch) {
-                originalVarNames =
-                    this.dependencyHandler.core.findCaseInsensitiveMatches({
-                        stateVariables: originalVarNames,
-                        componentClass: downComponent.constructor,
-                    });
             }
 
             if (this.publicStateVariablesOnly) {

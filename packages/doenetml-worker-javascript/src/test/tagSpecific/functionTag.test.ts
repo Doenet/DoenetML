@@ -1108,7 +1108,7 @@ describe("Function tag tests @group4", async () => {
             doenetML: `
     <function through="(0,2) (2,1) (3,2)" name="f" styleNumber="1" />
     <function extend="$f" through="(1,5) (4,2)" name="g" styleNumber="2" />
-    <function extend="$f" throughslopes="1 2 -3" name="h" styleNumber="3" />
+    <function extend="$f" throughSlopes="1 2 -3" name="h" styleNumber="3" />
     `,
         });
 
@@ -6650,10 +6650,10 @@ describe("Function tag tests @group4", async () => {
       <point name="max" extend="$f.maximum1" />
       <point name="min" extend="$f.minimum1" />
       <pointList extend="$f.extrema" name="ext" />
-      <point name="gmax" extend="$f.globalmaximum" />
-      <point name="gmin" extend="$f.globalminimum" />
-      <point name="sup" extend="$f.globalsupremum" />
-      <point name="inf" extend="$f.globalinfimum" />
+      <point name="gmax" extend="$f.globalMaximum" />
+      <point name="gmin" extend="$f.globalMinimum" />
+      <point name="sup" extend="$f.globalSupremum" />
+      <point name="inf" extend="$f.globalInfimum" />
     `,
         });
 

@@ -35,7 +35,7 @@ point, since a vector has a direction to point in.)
 ### Example: A slope field from an expression
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>The slope field of y' = x sin(x)</shortDescription>
   <slopeField>x*sin(x)</slopeField>
 </graph>
@@ -50,7 +50,7 @@ on <m>x</m>, so every mark in a column is parallel.
 ### Example: A slope field of two variables
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>The slope field of y' = y - x</shortDescription>
   <slopeField>y - x</slopeField>
 </graph>
@@ -68,7 +68,7 @@ variables. Marks along the line <m>y = x</m> are horizontal, since <m>y' = 0</m>
 <setup>
   <function name="f" variables="x y">y - x</function>
 </setup>
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A slope field with a solution curve drawn through it</shortDescription>
   <slopeField>$f</slopeField>
   <function styleNumber="2">x + 1 - e^x</function>
@@ -85,7 +85,7 @@ to writing the expression out.
 ### Example: Drawn with PreFigure
 
 ```doenet-editor-horiz
-<graph size="small" renderer="prefigure" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" renderer="prefigure" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>The slope field of y' = y - x, drawn by PreFigure</shortDescription>
   <slopeField name="sf">y - x</slopeField>
   <annotations>
@@ -124,7 +124,7 @@ A few things are drawn differently:
 ### Attribute Example: variables
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>The slope field of a differential equation written in s and t</shortDescription>
   <slopeField variables="s t">s - t</slopeField>
 </graph>
@@ -140,7 +140,7 @@ them:
 
 ```doenet-editor-horiz
 <p>Name the variables: <mathInput name="v1">q</mathInput> <mathInput name="v2">r</mathInput></p>
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A field whose variable names are set by two math inputs</shortDescription>
   <slopeField variables="$v1 $v2">q - r</slopeField>
 </graph>
@@ -155,7 +155,7 @@ first, `q` in the second — turns <m>y' = x - y</m> into <m>y' = y - x</m> and 
 ### Attribute Example: dx, dy
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A slope field sampled twice as finely in each direction, drawn with thin marks</shortDescription>
   <slopeField dx="0.5" dy="0.5" markLength="12" lineWidth="2">x*sin(x)</slopeField>
 </graph>
@@ -173,7 +173,7 @@ marks on screen. `styleNumber="2"` thins the marks as well, and recolors them.
 ### Attribute Example: markLength
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A slope field drawn with long marks</shortDescription>
   <slopeField markLength="34">y</slopeField>
 </graph>
@@ -189,7 +189,7 @@ scaled.
 ### Attribute Example: xoffset, yoffset
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A slope field whose lattice is shifted half a unit</shortDescription>
   <slopeField xoffset="0.5" yoffset="0.5">y</slopeField>
 </graph>
@@ -204,7 +204,7 @@ scaled.
 ### Attribute Example: maxMarks
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A dense slope field limited to at most 200 marks</shortDescription>
   <slopeField dx="0.2" dy="0.2" markLength="6" maxMarks="200">y</slopeField>
 </graph>
@@ -220,7 +220,7 @@ lattice line, so it stays readable.
 ### Property Example: dx, dy, markLength
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5" identicalAxisScales>
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A named slope field whose lattice settings are reported as text</shortDescription>
   <slopeField name="sf" dx="0.5" dy="2" markLength="16">y</slopeField>
 </graph>

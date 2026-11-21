@@ -506,7 +506,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     components,
     nComponents,
     stateIdInfo,
-    publicCaseInsensitiveAliasSubstitutions,
+    publicAliasSubstitutions,
 }) {
     let diagnostics = [];
 
@@ -897,7 +897,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                 let target = components[replacementSource.componentIdx];
 
                 if (target) {
-                    let propVariable = publicCaseInsensitiveAliasSubstitutions({
+                    let propVariable = publicAliasSubstitutions({
                         stateVariables: [propName],
                         componentClass: target.constructor,
                     })[0];

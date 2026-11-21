@@ -199,9 +199,9 @@ export default class Group extends CompositeComponent {
 
                 if (dependencyValues.typeAttr) {
                     let componentType =
-                        componentInfoObjects.componentTypeLowerCaseMapping[
-                            dependencyValues.typeAttr.toLowerCase()
-                        ];
+                        componentInfoObjects.componentTypeAsWritten(
+                            dependencyValues.typeAttr,
+                        );
 
                     if (
                         !(
@@ -231,7 +231,7 @@ export default class Group extends CompositeComponent {
         nComponents,
         componentInfoObjects,
         workspace,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
     }) {
         let diagnostics = [];
 
@@ -299,7 +299,7 @@ export default class Group extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj: this.createAttributesObject(),
                     components,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                     nComponents,
                     stateIdInfo,
                 },

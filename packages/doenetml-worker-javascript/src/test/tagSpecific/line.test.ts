@@ -6295,7 +6295,7 @@ describe("Line tag tests @group3", async () => {
   <graph>
     <line through="(0, $$f(0)) (pi/2, $$f(pi/2))" name="l" />
   </graph>
-  <p name="p1">y-intercept: $l.yIntercept</p>
+  <p name="p1">y-intercept: $l.yintercept</p>
   <p name="p2">slope: $l.slope</p>
 
     `,

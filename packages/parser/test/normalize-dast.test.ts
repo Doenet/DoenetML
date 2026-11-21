@@ -618,23 +618,46 @@ describe("Normalize dast", async () => {
     it("detects rename conflicts case-insensitively", () => {
         // `MinValue` and `From` refer to the same canonical attribute; the
         // deprecated form must be dropped with a conflict warning, not silently
-        // co-exist with the canonical form.
+        // co-exist with the canonical form. (`From` is given its spelling,
+        // `from`, first, with a warning of its own: D51.)
         const source = `<selectPrimeNumbers MinValue="5" From="7" />`;
         const dast = lezerToDast(source);
         const normalized = normalizeDocumentDast(dast);
 
         expect(toXml(normalized)).toEqual(
-            '<document><selectPrimeNumbers From="7" /></document>',
+            '<document><selectPrimeNumbers from="7" /></document>',
         );
 
         const warnings = extractDastErrors(normalized).filter(
             (error) => error.error_type === "warning",
         );
         expect(warnings).toMatchObject([
+            { code: "doenet-w0197" },
             {
                 message:
                     "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated and ignored because `from` is also specified.",
             },
+        ]);
+    });
+
+    it("corrects the case of name, extend, copy and copyWithState on a tag the schema doesn't list", () => {
+        // D51: every tag has these four, and the resolver reads them before
+        // the core could correct them. Other attributes of such a tag are
+        // left as written, for the core.
+        const source = `<h Name="a" Copy="$b" Hide /><foo Extend="$c" CopyWithState="$d" />`;
+        const normalized = normalizeDocumentDast(lezerToDast(source));
+
+        expect(toXml(normalized)).toEqual(
+            '<document><h name="a" copy="$b" Hide="true" /><foo extend="$c" copyWithState="$d" /></document>',
+        );
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings.map((w) => w.code)).toEqual([
+            "doenet-w0197",
+            "doenet-w0197",
+            "doenet-w0197",
+            "doenet-w0197",
         ]);
     });
 
@@ -713,8 +736,9 @@ describe("Normalize dast", async () => {
                 '<document><conditionalContent extend="$c" condition="a">b</conditionalContent></document>',
             ],
             [
+                // in another case, given its spelling first (D51)
                 '<conditionalContent Extend="$c"><else>b</else></conditionalContent>',
-                '<document><conditionalContent Extend="$c"><else>b</else></conditionalContent></document>',
+                '<document><conditionalContent extend="$c"><else>b</else></conditionalContent></document>',
             ],
             [
                 "<repeat extend='$r' valueName='v' indexName='i' />",

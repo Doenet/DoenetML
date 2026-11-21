@@ -448,7 +448,7 @@ describe("Label tests @group3", async () => {
 
   <graph name="g6">
     <repeat name="r" for="$s" valueName="v">
-      <lineSegment name="P" labelIsName endPoints="($v,1)" />
+      <lineSegment name="P" labelIsName endpoints="($v,1)" />
     </repeat>
   </graph>
 

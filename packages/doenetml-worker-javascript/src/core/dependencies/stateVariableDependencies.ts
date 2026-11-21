@@ -209,9 +209,6 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         }
         this.publicStateVariablesOnly =
             Boolean(this.definition.publicStateVariablesOnly) && !listEntryPath;
-        this.caseInsensitiveVariableMatch =
-            Boolean(this.definition.caseInsensitiveVariableMatch) &&
-            !listEntryPath;
 
         let unresolvedPath = [...(listEntryPath?.path ?? definitionPath)];
         let nextPart = unresolvedPath.shift();
@@ -249,7 +246,6 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         // (`$m.__valueEntries`).
         if (indexAsProp && isValueEntriesVariable(variableName)) {
             this.publicStateVariablesOnly = false;
-            this.caseInsensitiveVariableMatch = false;
         }
 
         // A wrapper holding several components keeps as its own the

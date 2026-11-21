@@ -166,6 +166,15 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expectRoundTrip(errors);
     });
 
+    it("an attribute name in another case (D51)", () => {
+        const errors = [
+            ...normalizedErrors(`<graph xmin="-3" />`),
+            ...normalizedErrors(`<text Name="t">hi</text>`),
+        ];
+        expect(codedErrors(errors).length).toBe(2);
+        expectRoundTrip(errors);
+    });
+
     it("answer sugar", () => {
         const errors = [
             ...normalizedErrors(`<answer type="videoWatched" />`),

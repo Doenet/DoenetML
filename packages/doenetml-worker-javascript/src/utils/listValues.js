@@ -412,7 +412,6 @@ export function returnListValueStateVariableDefinitions({
                         componentIdx: cIdx,
                         variableName: stateValues.propName,
                         variablesOptional: true,
-                        caseInsensitiveVariableMatch: true,
                         publicStateVariablesOnly: true,
                         returnAsComponentObject: true,
                     };
@@ -608,7 +607,6 @@ function entryPropertyDependency(item, name) {
             { name, index: [] },
         ],
         variablesOptional: true,
-        caseInsensitiveVariableMatch: true,
         publicStateVariablesOnly: true,
         returnAsComponentObject: true,
     };

@@ -6437,6 +6437,8 @@ describe("Extend and references tests @group2", async () => {
     });
 
     it("handle extending or copying with invalid component type", async () => {
+        // A tag that is not a component type is the same error written with
+        // `extend` or `copy` as written alone (NAME-0, D51).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
         <graph>
@@ -6444,7 +6446,7 @@ describe("Extend and references tests @group2", async () => {
             <point name="p" >(3,4)</point>
         </graph>
         <graph name="g2">
-            <shortDescription>A graph with warnings</shortDescription>
+            <shortDescription>A graph with errors</shortDescription>
             <invalidName extend="$p" name="p2" /><anotherInvalidName copy="$p" name="p3" />
         </graph>
     `,
@@ -6452,28 +6454,26 @@ describe("Extend and references tests @group2", async () => {
 
         let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(2);
 
-        expect(diagnosticsByType.warnings[0].message).contain(
-            `Cannot extend or copy an unrecognized component type: invalidName`,
+        expect(diagnosticsByType.errors[0].code).eq("doenet-e0002");
+        expect(diagnosticsByType.errors[0].message).eq(
+            "Invalid component type: `<invalidName>`",
         );
+        expect(diagnosticsByType.errors[0].position.start.line).eq(8);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(13);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(8);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(50);
 
-        expect(diagnosticsByType.warnings[0].type).eq("warning");
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(8);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(13);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(8);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(50);
-
-        expect(diagnosticsByType.warnings[1].message).contain(
-            `Cannot extend or copy an unrecognized component type: anotherInvalidName`,
+        expect(diagnosticsByType.errors[1].code).eq("doenet-e0002");
+        expect(diagnosticsByType.errors[1].message).eq(
+            "Invalid component type: `<anotherInvalidName>`",
         );
-
-        expect(diagnosticsByType.warnings[1].type).eq("warning");
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(8);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(50);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(8);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(92);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(8);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(50);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(8);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(92);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
@@ -6481,13 +6481,13 @@ describe("Extend and references tests @group2", async () => {
                 (v) => v.tree,
             ),
         ).eqls([3, 4]);
-        expect(stateVariables[await resolvePathToNodeIdx("p2")]).eq(undefined);
-        expect(stateVariables[await resolvePathToNodeIdx("p3")]).eq(undefined);
-
+        // each is an error in place of the tag
         expect(
-            stateVariables[await resolvePathToNodeIdx("g2")].activeChildren
-                .length,
-        ).eq(1);
+            stateVariables[await resolvePathToNodeIdx("p2")].componentType,
+        ).eq("_error");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].componentType,
+        ).eq("_error");
     });
 
     it("reference inside composite adds to index resolution but not names", async () => {

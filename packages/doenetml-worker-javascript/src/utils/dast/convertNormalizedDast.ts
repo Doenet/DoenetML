@@ -55,6 +55,11 @@ import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
+import {
+    attributeNameCaseCorrections,
+    nameDifferingOnlyInCase,
+    suggestionArgs,
+} from "./nameCase";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -173,6 +178,16 @@ function unresolvedReferenceDiagnostic(
 }
 
 /**
+ * Attributes every tag takes that no class declares: the ones a tag is made
+ * from another with. Suggested for one written in another case
+ * (`doenet-e0004`).
+ */
+const ATTRIBUTES_OF_EVERY_TAG = ["extend", "copy", "copyWithState"];
+
+/** The attributes of the copy a tag with `extend` or `copy` is made into. */
+const ATTRIBUTES_OF_A_COPY = ["asList", "removeEmptyArrayEntries"];
+
+/**
  * Transform the normalized dast into the serialized components used
  * to initialize the Javascript Doenet core
  *
@@ -209,6 +224,76 @@ export async function normalizedDastToSerializedComponents(
     const missingInPlaceOfTag = new Set<UnflattenedComponent>();
 
     /**
+     * Give an attribute of `node` written in another case than its
+     * component's (`<subsetOfRealsInput xmin>` for `xMin`) the component's
+     * spelling, with the warning the parser gives (`doenet-w0197`), for this
+     * release (D51's migration). The parser (`attribute-name-case.ts`) has
+     * renamed those the schema lists, before anything read them; this is the
+     * backstop for those it does not know of, an attribute the schema hides
+     * and every attribute of a tag it hides (`<panel>`), so that every
+     * attribute applied before names were case-sensitive still is, for now.
+     * Those it renamed are matched here as written, so are not warned of
+     * twice. It runs before anything in the core reads an attribute: the
+     * sugar and the checks at load read the unflattened components. Not
+     * `name`, `extend`, `copy` or `copyWithState`, which every class
+     * declares: the reference resolver has read them already, as written,
+     * so the parser corrects those on every tag, listed or not; one still
+     * in another case here was written beside its spelling
+     * (`copy="$a" Copy="$b"`), and is an attribute the tag doesn't have
+     * (`doenet-w0187`, which suggests the spelling). Nor on a class that
+     * accepts any attribute, as `<module>`.
+     */
+    const correctedNodes = new Set<number>();
+    function correctAttributeNameCase(
+        node: FlatElement,
+        nodeIdx: number,
+        diagnostics: DiagnosticRecord[],
+    ) {
+        if (correctedNodes.has(nodeIdx)) {
+            return;
+        }
+        correctedNodes.add(nodeIdx);
+        const componentType = componentInfoObjects.componentTypeAsWritten(
+            getComponentType(node),
+        );
+        const componentClass =
+            componentType === undefined
+                ? undefined
+                : componentInfoObjects.allComponentClasses[componentType];
+        if (!componentClass || componentClass.acceptAnyAttribute) {
+            return;
+        }
+        const corrections = attributeNameCaseCorrections({
+            written: node.attributes.map((attribute) => attribute.name),
+            known: [
+                ...Object.keys(componentClass.createAttributesObject()),
+                ...(node.extending ? ATTRIBUTES_OF_A_COPY : []),
+            ],
+            exclude: ["name", ...ATTRIBUTES_OF_EVERY_TAG],
+        });
+        for (const { written, corrected } of corrections) {
+            const i = node.attributes.findIndex(
+                (attribute) => attribute.name === written,
+            );
+            const attribute = node.attributes[i];
+            node.attributes[i] = { ...attribute, name: corrected };
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0197",
+                    args: {
+                        attribute: written,
+                        suggestion: corrected,
+                        componentType,
+                    },
+                    position: attribute.position ?? node.position,
+                    sourceDoc: attribute.sourceDoc ?? node.sourceDoc,
+                }),
+            );
+        }
+    }
+
+    /**
      * The missing tag (`BaseComponent.isMissing`) for the element `node`,
      * whose `extend` or `copy` names nothing, under its own index: a
      * component of its type with its own attributes, but not its children,
@@ -223,9 +308,7 @@ export async function normalizedDastToSerializedComponents(
     ): UnflattenedComponent {
         const componentType = getComponentType(node);
         const mapped =
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                componentType.toLowerCase()
-            ];
+            componentInfoObjects.componentTypeAsWritten(componentType);
         // A list is drawn as its entries, and a missing one has none, so it
         // is a `_missing` too, to be drawn and read as one blank.
         const isComposite =
@@ -325,6 +408,7 @@ export async function normalizedDastToSerializedComponents(
             } else {
                 const node = normalized_root.nodes[idxOrString];
                 if (node.type === "element") {
+                    correctAttributeNameCase(node, idxOrString, diagnostics);
                     const children = unflattenDastNodes(
                         node.children,
                         diagnostics,
@@ -424,7 +508,21 @@ export async function normalizedDastToSerializedComponents(
                         const isUnresolvedReference =
                             codeAndArgs.code === "doenet-w0104" ||
                             codeAndArgs.code === "doenet-w0105";
-                        if (!isUnresolvedReference) {
+                        if (
+                            codeAndArgs.code === "doenet-w0197" &&
+                            typeof codeAndArgs.args?.componentType ===
+                                "string" &&
+                            componentInfoObjects.componentTypeAsWritten(
+                                codeAndArgs.args.componentType,
+                            ) === undefined
+                        ) {
+                            // The parser corrected `name`, `extend`, `copy`
+                            // or `copyWithState` on a tag the schema doesn't
+                            // list, not knowing if it is a component type.
+                            // One that is not is an error (`doenet-e0002`),
+                            // so nothing is applied, and the warning that
+                            // it is would be false.
+                        } else if (!isUnresolvedReference) {
                             diagnostics.push({
                                 type: node.errorType,
                                 message: node.message,
@@ -1258,9 +1356,21 @@ export function expandUnflattenedToSerializedComponents({
 
         try {
             if (componentClass === undefined) {
+                // A tag is matched exactly, with `copy` or `extend` as
+                // without (D51); one in another case suggests the tag.
                 throw new DiagnosticError({
                     code: "doenet-e0002",
-                    args: { componentType: component.componentType },
+                    args: {
+                        componentType: component.componentType,
+                        ...suggestionArgs(
+                            nameDifferingOnlyInCase(
+                                component.componentType,
+                                Object.keys(
+                                    componentInfoObjects.allComponentClasses,
+                                ).filter((type) => !type.startsWith("_")),
+                            ),
+                        ),
+                    },
                 });
             }
 
@@ -1516,12 +1626,6 @@ export function expandAllUnflattenedAttributes({
 
     const diagnostics: DiagnosticRecord[] = [];
 
-    let attributeLowerCaseMapping: Record<string, string> = {};
-
-    for (let attrName in classAttributes) {
-        attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
-    }
-
     let attributes: Record<string, SerializedAttribute> = {};
 
     // The `<document>` is the root, which nothing can replace: an attribute
@@ -1547,9 +1651,15 @@ export function expandAllUnflattenedAttributes({
         );
     }
 
+    // Matched exactly (D51). One written in another case was given the
+    // component's spelling already, with a warning, for now: by the parser
+    // (`attribute-name-case.ts`), or, for one the schema hides, by
+    // `correctAttributeNameCase`.
     for (let attr in unflattenedAttributes) {
-        let attrName = attributeLowerCaseMapping[attr.toLowerCase()];
-        let attrDef = classAttributes[attrName];
+        const attrName = attr;
+        let attrDef = Object.hasOwn(classAttributes, attr)
+            ? classAttributes[attr]
+            : undefined;
         if (attrDef) {
             if (attrName in attributes) {
                 // The first one written is kept.
@@ -1631,6 +1741,12 @@ export function expandAllUnflattenedAttributes({
                         componentType:
                             authoredComponentType ??
                             componentClass.componentType,
+                        ...suggestionArgs(
+                            nameDifferingOnlyInCase(attr, [
+                                ...Object.keys(classAttributes),
+                                ...ATTRIBUTES_OF_EVERY_TAG,
+                            ]),
+                        ),
                     },
                 }),
                 unflattenedAttributes[attr],
@@ -1810,34 +1926,15 @@ export function expandAttribute({
             }
 
             if (attrDef.copyComponentAttributesForCreatedComponent) {
-                // Attribute names are matched case-insensitively everywhere
-                // else (see `attributeLowerCaseMapping` in
-                // `expandAllAttributes`), so the author's spelling can be any
-                // casing. Match it the same way here, or `<tally TYPE="...">`
-                // would leave `type` uncopied while every other reading of the
-                // attribute still saw it — and the created component would be
-                // built to one type while the parent reported another.
-                const lowerCaseMapping: Record<string, string> = {};
-                for (const authorSpelling in allUnflattenedAttributes) {
-                    lowerCaseMapping[authorSpelling.toLowerCase()] =
-                        authorSpelling;
-                }
+                // Attribute names are matched exactly (D51): one the author
+                // wrote in another case was given the declared spelling
+                // already (`attribute-name-case.ts`, `correctAttributeNameCase`).
                 for (let attrName of attrDef.copyComponentAttributesForCreatedComponent) {
-                    const authorSpelling =
-                        lowerCaseMapping[attrName.toLowerCase()];
-                    if (authorSpelling !== undefined) {
+                    if (Object.hasOwn(allUnflattenedAttributes, attrName)) {
                         // XXX: we many need to increment component indices here
-                        unflattenedComponentAttributes[attrName] = {
-                            ...JSON.parse(
-                                JSON.stringify(
-                                    allUnflattenedAttributes[authorSpelling],
-                                ),
-                            ),
-                            // The declared spelling, not the author's, so that
-                            // the copy is indistinguishable from one written
-                            // out on the created component.
-                            name: attrName,
-                        };
+                        unflattenedComponentAttributes[attrName] = JSON.parse(
+                            JSON.stringify(allUnflattenedAttributes[attrName]),
+                        );
                     }
                 }
             }
@@ -2227,18 +2324,14 @@ export function convertUnresolvedAttributesForComponentType({
     const newClass = componentInfoObjects.allComponentClasses[componentType];
     const newAttributesObj = newClass.createAttributesObject();
 
-    // Without a prototype, so that an attribute an author names
-    // `constructor` or `toString` finds nothing rather than `Object`'s.
-    let attributeLowerCaseMapping: Record<string, string> = Object.create(null);
-
-    for (let attrName in newAttributesObj) {
-        attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
-    }
-
-    const compositeAttributeLowerCaseMapping: Record<string, string> =
-        Object.create(null);
-    for (const attrName in compositeAttributesObj) {
-        compositeAttributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
+    // Attribute names are matched exactly (D51), and only as the class's
+    // own, so that an attribute an author names `constructor` or `toString`
+    // finds nothing rather than `Object`'s.
+    function ownAttribute<T>(
+        attributesObj: Record<string, T>,
+        attrName: string,
+    ): string | undefined {
+        return Object.hasOwn(attributesObj, attrName) ? attrName : undefined;
     }
 
     const newAttributes: Record<string, SerializedAttribute> = {};
@@ -2254,8 +2347,11 @@ export function convertUnresolvedAttributesForComponentType({
         }
     }
     function isPrimitiveAttribute(attrNameOrig: string) {
-        const attrName = attributeLowerCaseMapping[attrNameOrig.toLowerCase()];
-        return Boolean(newAttributesObj[attrName]?.createPrimitiveOfType);
+        const attrName = ownAttribute(newAttributesObj, attrNameOrig);
+        return Boolean(
+            attrName !== undefined &&
+            newAttributesObj[attrName].createPrimitiveOfType,
+        );
     }
     const attrNamesInOrder = [
         ...Object.keys(attributes).filter(isPrimitiveAttribute),
@@ -2265,18 +2361,20 @@ export function convertUnresolvedAttributesForComponentType({
     for (const attrNameOrig of attrNamesInOrder) {
         const attribute = attributes[attrNameOrig];
 
-        const attrNameLower = attrNameOrig.toLowerCase();
-        const attrName = attributeLowerCaseMapping[attrNameLower];
+        const attrName = ownAttribute(newAttributesObj, attrNameOrig);
 
-        const attrDef = newAttributesObj[attrName];
+        const attrDef =
+            attrName === undefined ? undefined : newAttributesObj[attrName];
 
         // Look the attribute up by the composite's own name for it, not the
         // new class's: a class that accepts any attribute (`<module>`) does
         // not declare the composite's `_createComponentIdx`, and would
         // otherwise be handed it, along with the rest of a `_copy`'s own
         // attributes (#2227).
-        const compositeAttrName =
-            compositeAttributeLowerCaseMapping[attrNameLower];
+        const compositeAttrName = ownAttribute(
+            compositeAttributesObj,
+            attrNameOrig,
+        );
 
         if (
             compositeAttrName !== undefined &&
@@ -2289,7 +2387,7 @@ export function convertUnresolvedAttributesForComponentType({
             continue;
         }
 
-        if (attrDef) {
+        if (attrDef && attrName !== undefined) {
             if (attribute.type === "unresolved") {
                 let res = expandAttribute({
                     attrDef,
@@ -2435,21 +2533,15 @@ export function convertAttributeValuesForComponentType({
     const newClass = componentInfoObjects.allComponentClasses[componentType];
     const newAttributesObj = newClass.createAttributesObject();
 
-    let attributeLowerCaseMapping: Record<string, string> = {};
-
-    for (let attrName in newAttributesObj) {
-        attributeLowerCaseMapping[attrName.toLowerCase()] = attrName;
-    }
-
     const newAttributes: Record<string, SerializedAttribute> = {};
 
-    for (const attrNameOrig in attributeValues) {
-        const attributeVal = attributeValues[attrNameOrig];
+    // Matched exactly (D51).
+    for (const attrName in attributeValues) {
+        const attributeVal = attributeValues[attrName];
 
-        const attrName =
-            attributeLowerCaseMapping[attrNameOrig.toLocaleLowerCase()];
-
-        const attrDef = newAttributesObj[attrName];
+        const attrDef = Object.hasOwn(newAttributesObj, attrName)
+            ? newAttributesObj[attrName]
+            : undefined;
 
         if (attrDef?.createComponentOfType) {
             newAttributes[attrName] = {

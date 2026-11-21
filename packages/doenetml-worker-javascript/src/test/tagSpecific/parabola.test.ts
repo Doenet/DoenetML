@@ -1062,17 +1062,17 @@ describe("Parabola Tag Tests @group2", async () => {
     it("constrain to parabola opening downward, different axis scales", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph ymin="-1000" ymax="1000">
+    <graph yMin="-1000" yMax="1000">
     <parabola through="(1,-200) (2,-300) (0,-300)" name="p" />
     <point x="0" y="0" name="A">
         <constrainTo relativeToGraphScales>$p</constrainTo>
     </point>
     </graph>
-    <graph name="g2" ymin="-1000" ymax="1000">
+    <graph name="g2" yMin="-1000" yMax="1000">
       <parabola extend="$p" name="p2" />
       <point extend="$A" name="A2" />
     </graph>
-    <graph extend="$g2" name="g3" ymin="-1000" ymax="1000" />
+    <graph extend="$g2" name="g3" yMin="-1000" yMax="1000" />
     `,
         });
 

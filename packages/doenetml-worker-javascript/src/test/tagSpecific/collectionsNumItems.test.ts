@@ -462,10 +462,11 @@ describe("A collection's own properties @group4", () => {
         expect(composites.diagnostics).toEqual([]);
     });
 
-    it("a collection's own properties are named without regard to case, built either way", async () => {
-        // As any property is (`$P.X`): `$s.numitems` was the sort's own as a
-        // list and named nothing after the composite, and `$s.Fixed` was the
-        // sort's own as a list and each item's after the composite.
+    it("a collection's own properties in another case name nothing, built either way (D51)", async () => {
+        // As any property in another case (`$P.X`): names are matched
+        // exactly. Before, `$s.numitems` was the sort's own as a list and
+        // named nothing after the composite, and `$s.Fixed` was the sort's
+        // own as a list and each item's after the composite (#2569 item 5).
         const { lists, composites } = await bothBuilds({
             doenetML: `
 <repeat name="r" for="1 2" valueName="v"><point fixed>($v, 0)</point></repeat>
@@ -475,17 +476,23 @@ describe("A collection's own properties @group4", () => {
 <shuffle name="sh"><point fixed>(1,2)</point><point fixed>(3,4)</point></shuffle>
 <p name="p1">$r.numitems $s.NUMITEMS $c.NumItems $so.numitems $sh.numitems</p>
 <p name="p2">$r.Fixed $s.FIXED $c.Fixed $so.Fixed $sh.Fixed</p>
+<p name="p3">$r.numItems $s.numItems $c.numItems $so.numItems $sh.numItems</p>
 `,
-            names: ["p1", "p2"],
+            names: ["p1", "p2", "p3"],
         });
         const expected = {
-            p1: "2 2 2 2 2",
-            p2: "false false false false false",
+            p1: "＿ ＿ ＿ ＿ ＿",
+            p2: "＿ ＿ ＿ ＿ ＿",
+            p3: "2 2 2 2 2",
         };
         expect(lists.texts).toEqual(expected);
         expect(composites.texts).toEqual(expected);
-        expect(lists.diagnostics).toEqual([]);
-        expect(composites.diagnostics).toEqual([]);
+        const missing = [
+            ...Array(5).fill("warning doenet-w0104 line 7"),
+            ...Array(5).fill("warning doenet-w0104 line 8"),
+        ];
+        expect(lists.diagnostics).toEqual(missing);
+        expect(composites.diagnostics).toEqual(missing);
     });
 
     it("a collection's attributes are not properties of its own", async () => {

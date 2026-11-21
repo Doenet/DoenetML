@@ -19,10 +19,10 @@ component that renders a rectangle when nested inside a [`<graph>{:dn}`](graph.m
 ```doenet-editor-horiz
 <graph 
   size="small" 
-  xmin="-3" 
-  xmax="3" 
-  ymin="-3" 
-  ymax="3">
+  xMin="-3" 
+  xMax="3" 
+  yMin="-3" 
+  yMax="3">
     <shortDescription>A graph of the default rectangle</shortDescription>
     <rectangle/>
 </graph>
@@ -44,10 +44,10 @@ clicking and dragging on any side.
 ```doenet-editor-horiz
 <graph 
   size="small" 
-  xmin="-3" 
-  xmax="3" 
-  ymin="-3" 
-  ymax="3">
+  xMin="-3" 
+  xMax="3" 
+  yMin="-3" 
+  yMax="3">
     <shortDescription>A graph of a rectangle defined by center, width, and height</shortDescription>
     <rectangle name="rect1" center='(0,0)' width="4" height="2"/>
 </graph>
@@ -67,7 +67,7 @@ itself can be repositioned by clicking and dragging on any side.
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-2" xmax="6" ymin="-1" ymax="1">
+<graph size="small" xMin="-2" xMax="6" yMin="-1" yMax="1">
   <shortDescription>A graph of six filled rectangles with different styles</shortDescription>
   <rectangle filled center="(0,0.25)"/>
   <rectangle filled center="(1,-0.25)" styleNumber="2"/>
@@ -145,7 +145,7 @@ constrained points in the `vertices` attribute.
 ```doenet-example
 <p>Drag the center point to shift the rectangle's position</p>
 
-<graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
+<graph size="small" xMin="-2" xMax="2" yMin="-2" yMax="2">
   <shortDescription>A graph of a rectangle with its center point</shortDescription>
   <rectangle center="(0,0)" name="rect"/>
   <point extend="$rect.center" styleNumber="2"/>

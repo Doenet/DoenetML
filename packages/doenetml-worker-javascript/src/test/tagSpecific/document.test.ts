@@ -527,8 +527,9 @@ describe("Document tag tests @group4", async () => {
                 `foo="bar"`,
             ],
             [
+                // in another case, not a repeat of `name` (D51)
                 `<document name="d" NAME="e"><p name="p">hi</p></document>`,
-                "doenet-e0003",
+                "doenet-e0004",
                 `NAME="e"`,
             ],
         ] as const) {

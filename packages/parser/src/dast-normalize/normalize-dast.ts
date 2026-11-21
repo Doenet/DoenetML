@@ -28,6 +28,7 @@ import {
 import { answerSugar } from "./component-sugar/answer";
 import { fieldFunctionSugar } from "./component-sugar/field";
 import { pluginApplyDeprecations } from "./deprecations";
+import { pluginCorrectAttributeNameCase } from "./attribute-name-case";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -42,6 +43,8 @@ export function normalizeDocumentDast(
         .use(pluginChangeCdataToText)
         .use(pluginEnsureDocumentElement)
         .use(pluginConvertPretextAttributes)
+        // before anything else reads an attribute by its name (D51)
+        .use(pluginCorrectAttributeNameCase)
         .use(pluginEnforceValidNames)
         .use(pluginExpandAliasedElements)
         .use(pluginApplyDeprecations);

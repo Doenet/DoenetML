@@ -765,9 +765,9 @@ export function documentReferents({
         if (typeAttribute?.type !== "primitive") {
             return undefined;
         }
-        return componentInfoObjects.componentTypeLowerCaseMapping[
-            String(typeAttribute.primitive.value).toLowerCase()
-        ];
+        return componentInfoObjects.componentTypeAsWritten(
+            String(typeAttribute.primitive.value),
+        );
     }
 
     const referents = {

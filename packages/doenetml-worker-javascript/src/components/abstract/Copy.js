@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
+import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
 import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
 import ValueListComponent from "./ValueListComponent";
@@ -84,6 +84,10 @@ import {
     ownSettingOfWrapper,
 } from "../../utils/wrappers";
 import { instanceKindOf } from "../../utils/indexInstances";
+import {
+    referenceWithPropertyCase,
+    suggestionArgs,
+} from "../../utils/dast/nameCase";
 import {
     branchCanChange,
     pathHasIndexThatCanChange,
@@ -684,9 +688,9 @@ export default class Copy extends CompositeComponent {
                     // (Exception: if the componentType of variableForImplicitProp is undefined, we allow an implicit type)
 
                     let componentTypeFromAttr =
-                        componentInfoObjects.componentTypeLowerCaseMapping[
-                            dependencyValues.typeAttr.toLowerCase()
-                        ];
+                        componentInfoObjects.componentTypeAsWritten(
+                            dependencyValues.typeAttr,
+                        );
 
                     // if createComponentOfType matches the source's componentType,
                     // we won't allow an implicit prop
@@ -822,7 +826,6 @@ export default class Copy extends CompositeComponent {
                                 unresolvedPath: thisUnresolvedPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
                                 // `$g.fixed` of a group of several is the
@@ -943,9 +946,9 @@ export default class Copy extends CompositeComponent {
 
                 if (dependencyValues.typeAttr) {
                     let componentType =
-                        componentInfoObjects.componentTypeLowerCaseMapping[
-                            dependencyValues.typeAttr.toLowerCase()
-                        ];
+                        componentInfoObjects.componentTypeAsWritten(
+                            dependencyValues.typeAttr,
+                        );
 
                     if (
                         !(
@@ -1357,9 +1360,9 @@ export default class Copy extends CompositeComponent {
                           dependencyValues.extendedComponent?.componentType);
                 const writtenType =
                     dependencyValues.writtenType &&
-                    componentInfoObjects.componentTypeLowerCaseMapping[
-                        dependencyValues.writtenType.toLowerCase()
-                    ];
+                    componentInfoObjects.componentTypeAsWritten(
+                        dependencyValues.writtenType,
+                    );
                 const writtenClass =
                     componentInfoObjects.allComponentClasses[writtenType];
                 if (
@@ -1513,7 +1516,6 @@ export default class Copy extends CompositeComponent {
                                 componentIdx: source.componentIdx,
                                 variableName: propName,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                             };
 
                             dependencies["sourceComponentType" + ind] = {
@@ -1521,7 +1523,6 @@ export default class Copy extends CompositeComponent {
                                 componentIdx: source.componentIdx,
                                 variableName: propName,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                             };
 
                             // the component a reference to the prop copies
@@ -1834,7 +1835,7 @@ export default class Copy extends CompositeComponent {
         allDoenetMLs,
         componentInfoObjects,
         resolveItem,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         heldMadeFrom,
     }) {
         // console.log(`create serialized replacements of ${component.componentIdx}`)
@@ -1988,7 +1989,7 @@ export default class Copy extends CompositeComponent {
                     components,
                     nComponents,
                     stateIdInfo,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                 },
             );
             diagnostics.push(...verificationResult.diagnostics);
@@ -2125,7 +2126,7 @@ export default class Copy extends CompositeComponent {
                 compositeAttributesObj,
                 componentInfoObjects,
                 numComponentsForSource,
-                publicCaseInsensitiveAliasSubstitutions,
+                publicAliasSubstitutions,
 
                 copyInChildren:
                     Number(sourceNum) === 0 &&
@@ -2256,7 +2257,7 @@ export default class Copy extends CompositeComponent {
             components,
             nComponents,
             stateIdInfo,
-            publicCaseInsensitiveAliasSubstitutions,
+            publicAliasSubstitutions,
         });
         diagnostics.push(...verificationResult.diagnostics);
         nComponents = verificationResult.nComponents;
@@ -2378,7 +2379,7 @@ export default class Copy extends CompositeComponent {
         compositeAttributesObj,
         componentInfoObjects,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         copyInChildren,
         heldCase,
         inPlaceOfProp,
@@ -2496,7 +2497,7 @@ export default class Copy extends CompositeComponent {
                 compositeAttributesObj,
                 componentInfoObjects,
                 numComponentsForSource,
-                publicCaseInsensitiveAliasSubstitutions,
+                publicAliasSubstitutions,
                 sourceNum,
                 heldMadeFrom,
                 madeFrom,
@@ -2685,7 +2686,7 @@ export default class Copy extends CompositeComponent {
                             compositeAttributesObj,
                             componentInfoObjects,
                             numComponentsForSource,
-                            publicCaseInsensitiveAliasSubstitutions,
+                            publicAliasSubstitutions,
                         });
                         diagnostics.push(...fallbackResults.diagnostics);
                         nComponents = fallbackResults.nComponents;
@@ -2826,10 +2827,9 @@ export default class Copy extends CompositeComponent {
                     writtenType:
                         writtenType === undefined
                             ? undefined
-                            : (componentInfoObjects
-                                  .componentTypeLowerCaseMapping[
-                                  writtenType.toLowerCase()
-                              ] ?? writtenType),
+                            : (componentInfoObjects.componentTypeAsWritten(
+                                  writtenType,
+                              ) ?? writtenType),
                     how: link ? "extend" : "copyWithState",
                     source,
                 });
@@ -3021,7 +3021,7 @@ export default class Copy extends CompositeComponent {
         componentInfoObjects,
 
         resolveItem,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
     }) {
         // console.log(
         //   "Calculating replacement changes for " + component.componentIdx,
@@ -3188,7 +3188,7 @@ export default class Copy extends CompositeComponent {
                     components,
                     nComponents,
                     stateIdInfo,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                 },
             );
             diagnostics.push(...verificationResult.diagnostics);
@@ -3304,7 +3304,7 @@ export default class Copy extends CompositeComponent {
                         components,
                         nComponents,
                         stateIdInfo,
-                        publicCaseInsensitiveAliasSubstitutions,
+                        publicAliasSubstitutions,
                     });
                 diagnostics.push(...verificationResult.diagnostics);
                 nComponents = verificationResult.nComponents;
@@ -3453,7 +3453,7 @@ export default class Copy extends CompositeComponent {
                         workspace,
                         componentInfoObjects,
                         resolveItem,
-                        publicCaseInsensitiveAliasSubstitutions,
+                        publicAliasSubstitutions,
                     });
                     diagnostics.push(...result.diagnostics);
                     return {
@@ -3751,7 +3751,7 @@ export default class Copy extends CompositeComponent {
                     compositeAttributesObj,
                     componentInfoObjects,
                     numComponentsForSource,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                 });
                 diagnostics.push(...results.diagnostics);
                 nComponents = results.nComponents;
@@ -3838,7 +3838,7 @@ export default class Copy extends CompositeComponent {
                 compositeAttributesObj,
                 componentInfoObjects,
                 numComponentsForSource,
-                publicCaseInsensitiveAliasSubstitutions,
+                publicAliasSubstitutions,
                 copyInChildren:
                     Number(sourceNum) === 0 &&
                     component.attributes._copyInChildren?.primitive.value,
@@ -4018,7 +4018,7 @@ export default class Copy extends CompositeComponent {
             components,
             nComponents,
             stateIdInfo,
-            publicCaseInsensitiveAliasSubstitutions,
+            publicAliasSubstitutions,
         });
         diagnostics.push(...verificationResult.diagnostics);
         nComponents = verificationResult.nComponents;
@@ -4064,7 +4064,7 @@ export default class Copy extends CompositeComponent {
         compositeAttributesObj,
         componentInfoObjects,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
     }) {
         let diagnostics = [];
 
@@ -4079,7 +4079,7 @@ export default class Copy extends CompositeComponent {
             compositeAttributesObj,
             componentInfoObjects,
             numComponentsForSource,
-            publicCaseInsensitiveAliasSubstitutions,
+            publicAliasSubstitutions,
             copyInChildren:
                 Number(sourceNum) === 0 &&
                 component.attributes._copyInChildren?.primitive.value,
@@ -4260,7 +4260,7 @@ async function componentInPlaceOfProp({
     sourceNum,
     components,
     componentInfoObjects,
-    publicCaseInsensitiveAliasSubstitutions,
+    publicAliasSubstitutions,
 }) {
     const propName = (await component.stateValues.effectivePropNameBySource)?.[
         sourceNum
@@ -4294,7 +4294,7 @@ async function componentInPlaceOfProp({
     ) {
         return undefined;
     }
-    const varName = publicCaseInsensitiveAliasSubstitutions({
+    const varName = publicAliasSubstitutions({
         stateVariables: [propName],
         componentClass: target.constructor,
     })[0];
@@ -4328,9 +4328,8 @@ async function componentInPlaceOfProp({
         !componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: componentToCopy.componentType,
             baseComponentType:
-                componentInfoObjects.componentTypeLowerCaseMapping[
-                    writtenType.toLowerCase()
-                ] ?? writtenType,
+                componentInfoObjects.componentTypeAsWritten(writtenType) ??
+                writtenType,
         })
     ) {
         return undefined;
@@ -4367,7 +4366,7 @@ export async function replacementFromProp({
     compositeAttributesObj,
     componentInfoObjects,
     numComponentsForSource,
-    publicCaseInsensitiveAliasSubstitutions,
+    publicAliasSubstitutions,
     sourceNum,
     heldMadeFrom,
     madeFrom,
@@ -4402,7 +4401,7 @@ export async function replacementFromProp({
             (ownSettingOfWrapper(propName) === propName &&
                 isWrapperOfSeveral(target))
                 ? propName
-                : publicCaseInsensitiveAliasSubstitutions({
+                : publicAliasSubstitutions({
                       stateVariables: [propName],
                       componentClass: target.constructor,
                   })[0];
@@ -6968,9 +6967,7 @@ function typeStandingFor(component, { componentInfoObjects }) {
         return undefined;
     }
     const writtenType =
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            writtenValue.toLowerCase()
-        ];
+        componentInfoObjects.componentTypeAsWritten(writtenValue);
     const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
     if (
         !writtenClass ||
@@ -7062,9 +7059,7 @@ async function caseSourceOf({ component, components, componentInfoObjects }) {
         component.attributes._createComponentOfType?.primitive?.value;
     const writtenType =
         writtenValue &&
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            writtenValue.toLowerCase()
-        ];
+        componentInfoObjects.componentTypeAsWritten(writtenValue);
     if (
         writtenType &&
         componentInfoObjects.isInheritedComponentType({
@@ -7357,9 +7352,7 @@ async function typeChangeAtLoadError({
             : component.attributes._createComponentOfType?.primitive?.value;
     const writtenType =
         writtenValue &&
-        (componentInfoObjects.componentTypeLowerCaseMapping[
-            writtenValue.toLowerCase()
-        ] ??
+        (componentInfoObjects.componentTypeAsWritten(writtenValue) ??
             writtenValue);
     const extended = await component.stateValues.extendedComponent;
     const source =
@@ -7395,9 +7388,7 @@ async function missingPropertyError({
             component.attributes._createComponentOfType?.primitive?.value;
         const writtenType =
             writtenValue &&
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                writtenValue.toLowerCase()
-            ];
+            componentInfoObjects.componentTypeAsWritten(writtenValue);
         const writtenClass =
             componentInfoObjects.allComponentClasses[writtenType];
         if (
@@ -7465,15 +7456,26 @@ async function missingPropertyError({
         // is an error.
         return undefined;
     }
+    const reference = referenceAsWritten(
+        await component.stateValues.originalPath,
+        sourceComponent,
+    );
     return {
         level: "warning",
         diagnostic: codedDiagnostic({
             type: "warning",
             code: "doenet-w0104",
             args: {
-                reference: referenceAsWritten(
-                    await component.stateValues.originalPath,
-                    sourceComponent,
+                reference,
+                // a property in another case names nothing (D51), and is
+                // suggested in the case the component has
+                ...suggestionArgs(
+                    referenceWithPropertyCase({
+                        reference,
+                        propName,
+                        componentTypes: [sourceComponent.componentType],
+                        componentInfoObjects,
+                    }),
                 ),
             },
         }),
@@ -7804,18 +7806,37 @@ async function reportMissingProperty({
                     }),
             )
         ) {
+            // as written, `$$` and all (`createReplacementsFromSources`)
+            const reference =
+                workspace.referenceAsWritten ??
+                referenceAsWritten(
+                    await component.stateValues.originalPath,
+                    sourceComponent,
+                );
             diagnostics = [
                 codedDiagnostic({
                     type: "warning",
                     code: "doenet-w0104",
                     args: {
-                        // as written, `$$` and all (`createReplacementsFromSources`)
-                        reference:
-                            workspace.referenceAsWritten ??
-                            referenceAsWritten(
-                                await component.stateValues.originalPath,
-                                sourceComponent,
-                            ),
+                        reference,
+                        // a property in another case names nothing (D51),
+                        // and is suggested in the case the component has
+                        ...suggestionArgs(
+                            referenceWithPropertyCase({
+                                reference,
+                                propName,
+                                componentTypes: [
+                                    sourceComponent.componentType,
+                                    ...sources
+                                        .filter(
+                                            (source) =>
+                                                typeof source === "object",
+                                        )
+                                        .map((source) => source.componentType),
+                                ],
+                                componentInfoObjects,
+                            }),
+                        ),
                     },
                 }),
             ];
@@ -8323,9 +8344,9 @@ function missingInPlaceOfCopiedError({
 
     const writtenType = component.attributes._createComponentOfType?.primitive
         ?.value
-        ? componentInfoObjects.componentTypeLowerCaseMapping[
-              component.attributes._createComponentOfType.primitive.value.toLowerCase()
-          ]
+        ? componentInfoObjects.componentTypeAsWritten(
+              component.attributes._createComponentOfType.primitive.value,
+          )
         : undefined;
 
     /**
@@ -8492,13 +8513,10 @@ function missingOfWrittenType({
     // component of this type (`missingInPlaceOfCopiedError`)
     componentType: typeNeeded,
 }) {
-    const componentType =
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            (
-                typeNeeded ??
-                component.attributes._createComponentOfType.primitive.value
-            ).toLowerCase()
-        ];
+    const componentType = componentInfoObjects.componentTypeAsWritten(
+        typeNeeded ??
+            component.attributes._createComponentOfType.primitive.value,
+    );
 
     if (
         componentInfoObjects.isCompositeComponent({ componentType }) ||
@@ -8570,9 +8588,7 @@ async function indexNamesNothing({
         return undefined;
     }
     const writtenType =
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            writtenValue.toLowerCase()
-        ];
+        componentInfoObjects.componentTypeAsWritten(writtenValue);
     const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
     if (
         !writtenClass ||
@@ -8656,9 +8672,7 @@ async function dropErrorsBesideOthers({
         component.attributes._createComponentOfType?.primitive?.value;
     const writtenType =
         writtenValue &&
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            writtenValue.toLowerCase()
-        ];
+        componentInfoObjects.componentTypeAsWritten(writtenValue);
     const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
     const replacements = results.serializedReplacements;
     if (
@@ -8790,9 +8804,7 @@ async function typeChangeStatus({
         component.attributes._createComponentOfType?.primitive?.value;
     const writtenType =
         writtenValue &&
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            writtenValue.toLowerCase()
-        ];
+        componentInfoObjects.componentTypeAsWritten(writtenValue);
     const writtenClass = componentInfoObjects.allComponentClasses[writtenType];
     if (
         !writtenClass ||
@@ -9653,9 +9665,8 @@ async function keepChoicesReachedByModuleAttributes({
         const isWrapper =
             component.componentType === "_copy" && writtenType !== undefined;
         const choosingType = isWrapper
-            ? (componentInfoObjects.componentTypeLowerCaseMapping[
-                  writtenType.toLowerCase()
-              ] ?? writtenType)
+            ? (componentInfoObjects.componentTypeAsWritten(writtenType) ??
+              writtenType)
             : component.componentType;
         const choiceAttributes = new Set(
             (
@@ -9836,9 +9847,7 @@ async function copyWithStateChangesChoicesErrors({
             child.attributes?._createComponentOfType?.primitive?.value;
         return written === undefined
             ? child.componentType
-            : (componentInfoObjects.componentTypeLowerCaseMapping[
-                  written.toLowerCase()
-              ] ?? written);
+            : (componentInfoObjects.componentTypeAsWritten(written) ?? written);
     }
     const addedChild = writtenChildren.find(
         (child) =>
@@ -10553,10 +10562,7 @@ function referenceType(reference, componentInfoObjects, components) {
     const written =
         reference.attributes?._createComponentOfType?.primitive?.value;
     let componentType =
-        written &&
-        componentInfoObjects.componentTypeLowerCaseMapping[
-            written.toLowerCase()
-        ];
+        written && componentInfoObjects.componentTypeAsWritten(written);
     if (!componentType) {
         const ref = reference.extending?.Ref;
         if (

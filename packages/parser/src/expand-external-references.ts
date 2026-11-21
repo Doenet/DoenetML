@@ -26,6 +26,10 @@ type RemoteSource = {
 /**
  * The attributes, lowercased, that make an element from what they reference.
  */
+// Matched without regard to case, for now: this runs before the attribute
+// names are given their components' spelling (`attribute-name-case.ts`),
+// which still applies one written in another case, with a warning, for one
+// release (D51).
 const EXTEND_OR_COPY_ATTRIBUTES = ["extend", "copy", "copywithstate"];
 
 /**

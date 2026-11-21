@@ -11,8 +11,14 @@ export type ComponentInfoObjects = {
     /** A subset of `allComponentClasses`, filtered to just include those components that create variants */
     componentTypesCreatingVariants: Record<string, DoenetMLComponentClass<any>>;
     /** A mapping from a lower-cased version of `componentType` to the actual `componentType`
-     * of each component available in DoenetML */
+     * of each component available in DoenetML. For a component type an author
+     * writes as an attribute's *value* (`<collect componentType="Point">`),
+     * which is read without case. A tag is matched exactly (D51): use
+     * `componentTypeAsWritten`. */
     componentTypeLowerCaseMapping: Record<string, string>;
+    /** `written` if it is a component type, matched exactly as a tag is
+     * (NAME-0, D51), else `undefined`. */
+    componentTypeAsWritten: (written: string) => string | undefined;
     /** A function that returns `true` if `inheritedComponentType` is inherited from `baseComponentType` */
     isInheritedComponentType: ({
         inheritedComponentType,
@@ -181,6 +187,12 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
             componentType;
     }
 
+    function componentTypeAsWritten(written: string): string | undefined {
+        return Object.hasOwn(allComponentClasses, written)
+            ? written
+            : undefined;
+    }
+
     /** A record of information about the state variables of a component, keyed by component type */
     const stateVariableInfo: Record<string, StateVariableInfo> = {};
     for (const componentType in allComponentClasses) {
@@ -306,6 +318,7 @@ export function createComponentInfoObjects(): ComponentInfoObjects {
         allComponentClasses,
         componentTypesCreatingVariants,
         componentTypeLowerCaseMapping,
+        componentTypeAsWritten,
         isInheritedComponentType,
         isCompositeComponent,
         stateVariableInfo,

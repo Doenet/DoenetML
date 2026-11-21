@@ -20,7 +20,7 @@ legend entries are defined with the `<label>{:dn}` component.
 
 
 ```doenet-editor-horiz
-<graph xmin="-2" ymin="-2" size="large">
+<graph xMin="-2" yMin="-2" size="large">
   <shortDescription>graph with four labeled points and a legend</shortDescription>
   <point name="A" labelIsName styleNumber="1">(2,3)</point>
   <point name="B" labelIsName styleNumber="3">(4,3)</point>
@@ -52,7 +52,7 @@ attributes in the order in which they are defined within the `<graph>{:dn}`.
 
 
 ```doenet-editor-horiz
-<graph xmin="-2" ymin="-2" size="large">
+<graph xMin="-2" yMin="-2" size="large">
   <shortDescription>graph with three lines and a legend labeling each line</shortDescription>
   <line name="line1" styleNumber="3">y = 4</line>
   <line name="line2" styleNumber="4">y = -x + 2</line>
@@ -89,7 +89,7 @@ label is attached to (no need to include the `$`).
 
 ```doenet-example
 <p>Default legend positioning:</p>
-<graph xmin="-2" ymin="-2" size="small">
+<graph xMin="-2" yMin="-2" size="small">
   <shortDescription>graph with two labeled points and a default-positioned legend</shortDescription>
   <point name="A" labelIsName styleNumber="1">(2,3)</point>
   <point name="B" labelIsName styleNumber="3">(4,3)</point>
@@ -101,7 +101,7 @@ label is attached to (no need to include the `$`).
 
 <p>Legend position = upperleft:</p>
 
-<graph xmax="2" ymin="-2" size="small">
+<graph xMax="2" yMin="-2" size="small">
   <shortDescription>graph with two labeled points and a legend in the upper left</shortDescription>
   <point name="A" labelIsName styleNumber="1">(-2,3)</point>
   <point name="B" labelIsName styleNumber="3">(-4,3)</point>
@@ -113,7 +113,7 @@ label is attached to (no need to include the `$`).
 
 <p>Legend position = lowerright:</p>
 
-<graph xmin="-2" ymax="2" size="small">
+<graph xMin="-2" yMax="2" size="small">
   <shortDescription>graph with two labeled points and a legend in the lower right</shortDescription>
   <point name="A" labelIsName styleNumber="1">(2,-3)</point>
   <point name="B" labelIsName styleNumber="3">(4,-3)</point>
@@ -123,7 +123,7 @@ label is attached to (no need to include the `$`).
   </legend>
 </graph>  
 <p>Legend position = lowerleft:</p>
-<graph xmax="2" ymax="2" size="small" >
+<graph xMax="2" yMax="2" size="small" >
   <shortDescription>graph with two labeled points and a legend in the lower left</shortDescription>
   <point name="A" labelIsName styleNumber="1">(-2,-3)</point>
   <point name="B" labelIsName styleNumber="3">(-4,-3)</point>
@@ -148,7 +148,7 @@ are: `upperright`, `upperleft`, `lowerright` and `lowerleft`.
 
 
 ```doenet-example
-<graph xmin="-2" ymin="-2" size="small">
+<graph xMin="-2" yMin="-2" size="small">
   <shortDescription>graph of two functions with a legend drawn over an opaque box</shortDescription>
   <function name="f">x^2</function>
   <function name="g" styleNumber="2">x</function>
@@ -167,7 +167,7 @@ the legend instead. The box paints the graph's background color unless the
 legend's `<styleDefinition>{:dn}` names a `backgroundColor`:
 
 ```doenet-example
-<graph xmin="-2" ymin="-2" size="small">
+<graph xMin="-2" yMin="-2" size="small">
   <shortDescription>graph of a function with a legend on a pale yellow box</shortDescription>
   <function name="f">x^2</function>
   <legend boxed styleNumber="10">
@@ -201,7 +201,7 @@ drawn in the color that object is actually drawn in.
 
 
 ```doenet-example
-<graph xmin="-2" ymin="-2" size="small">
+<graph xMin="-2" yMin="-2" size="small">
   <shortDescription>graph of a function, a filled rectangle, and a legend drawn above the rectangle</shortDescription>
   <function name="f">x^2</function>
   <rectangle vertices="(4,6) (9.5,9.5)" filled styleNumber="2" layer="2" fixLocation />
@@ -231,7 +231,7 @@ swatches behind a curve but not its labels.
 
 
 ```doenet-example
-<graph xmin="-2" ymin="-2">
+<graph xMin="-2" yMin="-2">
   <shortDescription>graph with a filled circle, rectangle, line, and point with a legend using closed swatches</shortDescription>
   <circle radius="3" center="(2,2)" filled/>
   <rectangle center="(7,3)" width="2" height="4" styleNumber="2" filled/>

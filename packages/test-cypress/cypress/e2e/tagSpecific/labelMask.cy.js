@@ -70,7 +70,7 @@ describe("Legible (masked) graph labels", { tags: ["@group3"] }, function () {
         postDoenetML(`
   <text name="loaded">loaded</text>
 
-  <graph name="g" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="g" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <point name="P" labelIsName="false">
       (0, 3)
       <label>${pointLabel}</label>
@@ -97,7 +97,7 @@ describe("Legible (masked) graph labels", { tags: ["@group3"] }, function () {
         postDoenetML(`
   <text name="loaded">loaded</text>
 
-  <graph name="g" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="g" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <line through="(-8,0) (8,0)">
       <label>${lineLabel}</label>
     </line>
@@ -123,7 +123,7 @@ describe("Legible (masked) graph labels", { tags: ["@group3"] }, function () {
         postDoenetML(`
   <text name="loaded">loaded</text>
 
-  <graph name="g" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="g" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <label anchor="(0,0)">${labelText}</label>
   </graph>
         `);
@@ -147,7 +147,7 @@ describe("Legible (masked) graph labels", { tags: ["@group3"] }, function () {
         postDoenetML(`
   <text name="loaded">loaded</text>
 
-  <graph name="g" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="g" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <point name="P" labelIsName="false" maskLabel="true">
       (0, 3)
       <label>${pointLabel}</label>
@@ -175,7 +175,7 @@ describe("Legible (masked) graph labels", { tags: ["@group3"] }, function () {
             `
   <text name="loaded">loaded</text>
 
-  <graph name="g" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="g" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <point name="P" labelIsName="false" maskLabel="true">
       (0, 3)
       <label>${pointLabel}</label>
@@ -211,7 +211,7 @@ describe("Legible (masked) graph labels", { tags: ["@group3"] }, function () {
         postDoenetML(`
   <text name="loaded">loaded</text>
 
-  <graph name="g" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="g" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <label anchor="(0,0)" maskLabel="true">${labelText}</label>
   </graph>
         `);
