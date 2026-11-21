@@ -118,13 +118,6 @@ export function pathOfTarget(
 }
 
 /**
- * The property the first part of a target's path names, with its indices as
- * written after it (`styleDescription[1]`, `foo[2][3]`), for `doenet-w0044`.
- * An index read from a reference (`[$n]`) is resolved by the time the path
- * is left over, so its value is written; anything else in an index is
- * written as `…`.
- */
-/**
  * The arguments of `doenet-w0044` that suggest the property `pathPart`
  * names in another case on a `componentType` (D51, DIAG-3): `Value` on a
  * `<number>` suggests `value`, and an array entry the index form (`X1` on a
@@ -151,6 +144,13 @@ export function propertyCaseSuggestionArgs({
     );
 }
 
+/**
+ * The property the first part of a target's path names, with its indices as
+ * written after it (`styleDescription[1]`, `foo[2][3]`), for `doenet-w0044`.
+ * An index read from a reference (`[$n]`) is resolved by the time the path
+ * is left over, so its value is written; anything else in an index is
+ * written as `…`.
+ */
 export function propertyWithIndices(pathPart: {
     name: string;
     index?: { value?: unknown[] }[];
