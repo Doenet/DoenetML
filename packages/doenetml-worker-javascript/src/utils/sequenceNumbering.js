@@ -50,8 +50,9 @@
  * it (`…CountersAfter`). Before it, they are where the nearest item or
  * pass-through before it among its siblings left them, or, with none, its
  * parent's offset. After an item, its counter is one
- * more; after a pass-through, the counters have advanced by the items it holds
- * (`…Counts`). An item's number is its counter after it; a pass-through's
+ * more; after a pass-through, they are where the last item or pass-through
+ * among its own children left them, or, with none, where they stood before
+ * it. An item's number is its counter after it; a pass-through's
  * offset is its counters before it, so nested pass-throughs continue one
  * sequence. In a parent that numbers no children (one with no offset, such
  * as a `<span>`), the count starts at zero and a pass-through doesn't advance
@@ -66,9 +67,19 @@
  * reads one sibling (the `nearestPrecedingSibling` dependency), so the
  * numbering of N items costs O(N) dependencies, not O(N²).
  *
- * Counts flow up (`…Counts` reads only children) and counters flow forward
- * and down (`…CountersAfter` and `…Offset` read only the parent, an earlier
- * sibling and the component's own counts),
+ * A composite among the siblings that has not expanded is waited for, as
+ * what it makes may be an item or a pass-through, unless the DoenetML shows
+ * it can make neither (`makesNoSectioning`, marked at load: a
+ * `<conditionalContent>` whose cases hold no section), or it is given the
+ * type of an item, as in `<section extend="$x"/>`, which makes exactly one,
+ * and is counted as one. So a composite before a section can read the
+ * section's number when it can't change it (#2614 item 2). One that can is a
+ * cycle, found at load (`referenceCycles.ts`).
+ *
+ * Counters flow forward, down and back up: an item's `…CountersAfter` reads
+ * its parent's `…Offset` or an earlier sibling's `…CountersAfter`, a
+ * pass-through's `…Offset` reads the same, and its `…CountersAfter` reads its
+ * last child's, which reads back only as far as its `…Offset`,
  * so there is no cycle. None of it reads
  * visibility or credit: which steps a cascade has revealed does not move a
  * number, and answering a question recomputes none of this. A number does
@@ -76,7 +87,7 @@
  * `<conditionalContent>` among the items, or inside a pass-through among them,
  * grows or shrinks, the items after it are renumbered.
  *
- * Counters, counts and offsets are keyed by the name of a counter
+ * Counters and offsets are keyed by the name of a counter
  * (`counterOf`), so that a sequence could number each type of division
  * separately by giving each its own counter. Both sequences use one counter
  * today.
@@ -111,10 +122,8 @@ const DIVISION_PASS_THROUGH_TYPES = [
  * @typedef {object} Sequence
  * @property {string} name - prefixes the dependency names a numbered item
  *   reads the sequence through, keeping them apart from another sequence's.
- * @property {string} counts - a pass-through's counts of the items it holds.
  * @property {string} offset - the counters the children of a component that
- *   numbers them start from: for a pass-through, the counts of the items
- *   before it.
+ *   numbers them start from: for a pass-through, the counters before it.
  * @property {string} countersAfter - an item's or pass-through's counters as
  *   they stand after it.
  * @property {string} itemComponentType - the base type of the items.
@@ -127,7 +136,6 @@ const DIVISION_PASS_THROUGH_TYPES = [
 /** @type {Sequence} */
 export const DIVISION_SEQUENCE = {
     name: "division",
-    counts: "divisionCounts",
     offset: "divisionOffset",
     countersAfter: "divisionCountersAfter",
     itemComponentType: "_sectioningComponentNumberWithSiblings",
@@ -139,7 +147,6 @@ export const DIVISION_SEQUENCE = {
 /** @type {Sequence} */
 export const LIST_ITEM_SEQUENCE = {
     name: "listItem",
-    counts: "listItemCounts",
     offset: "listItemOffset",
     countersAfter: "listItemCountersAfter",
     // Every sectioning child counts, whether or not it is itself a list item.
@@ -163,38 +170,6 @@ function isPassThrough(sequence, componentType, componentInfoObjects) {
  * `<cascade>` that reveals them and a `<page>` that prints them.
  */
 export const LIST_CONTAINER_TYPES = ["_sectioningComponent", "cascade", "page"];
-
-/**
- * Walk `children` in order: each item advances its counter by one, and each
- * pass-through advances the counters by its counts.
- *
- * @returns {object} the counters' final values.
- */
-function countChildren({ sequence, children, componentInfoObjects }) {
-    const counters = {};
-
-    for (const child of children) {
-        if (typeof child !== "object" || child === null) {
-            continue;
-        }
-        if (
-            isPassThrough(sequence, child.componentType, componentInfoObjects)
-        ) {
-            addCounts(counters, child.stateValues?.[sequence.counts]);
-        } else if (
-            inherits(
-                child.componentType,
-                sequence.itemComponentType,
-                componentInfoObjects,
-            )
-        ) {
-            const counter = sequence.counterOf(child.componentType);
-            counters[counter] = (counters[counter] ?? 0) + 1;
-        }
-    }
-
-    return counters;
-}
 
 /**
  * The counters a document starts from, given the `initializeCounters` the
@@ -223,22 +198,6 @@ function initialOffset({ sequence, initializeCounters, componentInfoObjects }) {
         }
     }
     return offset;
-}
-
-/** Advance `counters` by `counts`, in place. */
-function addCounts(counters, counts) {
-    for (const [counter, count] of Object.entries(counts ?? {})) {
-        counters[counter] = (counters[counter] ?? 0) + count;
-    }
-}
-
-function childrenCountsDependency(sequence) {
-    return {
-        dependencyType: "child",
-        includeAllChildren: true,
-        variableNames: [sequence.counts],
-        variablesOptional: true,
-    };
 }
 
 /**
@@ -282,6 +241,38 @@ export function returnSequenceStartDefinition(
 }
 
 /**
+ * A `nearestPrecedingSibling` dependency on the nearest item or pass-through
+ * of `sequence` before a component among its siblings, or, with
+ * `fromEndOfChildren`, the last among its own children, with its counters
+ * after it. A composite the DoenetML shows makes neither is passed over
+ * (`makesNoSectioning`), and one given the type of an item, which makes
+ * exactly one, is counted (`countPlaceholdersOfTypes`), so neither is waited
+ * for (#2614 item 2).
+ *
+ * @param {Sequence} sequence
+ */
+function nearestMemberDependency(sequence, { fromEndOfChildren = false } = {}) {
+    return {
+        dependencyType: "nearestPrecedingSibling",
+        componentTypes: [
+            sequence.itemComponentType,
+            ...sequence.passThroughComponentTypes,
+        ],
+        variableNames: [sequence.countersAfter],
+        passOverCompositesMarked: MAKES_NO_SECTIONING,
+        countPlaceholdersOfTypes: [sequence.itemComponentType],
+        fromEndOfChildren,
+    };
+}
+
+/**
+ * The `doenetAttribute` marked at load on a composite that the DoenetML shows
+ * can make no sectioning component and no container a sequence passes
+ * through (`markCompositesMakingNoSectioning`).
+ */
+export const MAKES_NO_SECTIONING = "makesNoSectioning";
+
+/**
  * The dependencies of the counters before an item or a pass-through: its
  * parent's offset, and the nearest item or pass-through before it among its
  * siblings, with its counters after it.
@@ -294,60 +285,67 @@ function countersBeforeDependencies(sequence) {
             dependencyType: "parentStateVariable",
             variableName: sequence.offset,
         },
-        previous: {
-            dependencyType: "nearestPrecedingSibling",
-            componentTypes: [
-                sequence.itemComponentType,
-                ...sequence.passThroughComponentTypes,
-            ],
-            variableNames: [sequence.countersAfter],
-        },
+        previous: nearestMemberDependency(sequence),
     };
+}
+
+/**
+ * The counters after the members of `sequence` found by a
+ * `nearestMemberDependency` (`found`): the counters after the item or
+ * pass-through found, or, with none, `start`, advanced by one for each item
+ * a composite given its type will make between it and the component. A copy.
+ *
+ * @param {Sequence} sequence
+ */
+function countersAfterFound(sequence, found, start) {
+    const real = found.find((member) => !member.placeholder);
+    const counters = {
+        ...(real ? real.stateValues[sequence.countersAfter] : (start ?? {})),
+    };
+    for (const member of found) {
+        if (member.placeholder) {
+            const counter = sequence.counterOf(member.componentType);
+            counters[counter] = (counters[counter] ?? 0) + 1;
+        }
+    }
+    return counters;
 }
 
 /**
  * The counters before an item or a pass-through, from the dependencies of
  * `countersBeforeDependencies`: the counters after the nearest item or
  * pass-through before it, or, with none, its parent's offset (zero in a
- * parent that numbers no children). A copy, to be advanced.
+ * parent that numbers no children), and after the items composites between
+ * them will make (`countersAfterFound`). A copy, to be advanced.
  *
  * @param {Sequence} sequence
  */
 function countersBefore(sequence, dependencyValues) {
-    const previous = dependencyValues.previous[0];
-    return {
-        ...(previous
-            ? previous.stateValues[sequence.countersAfter]
-            : (dependencyValues.parentOffset ?? {})),
-    };
+    return countersAfterFound(
+        sequence,
+        dependencyValues.previous,
+        dependencyValues.parentOffset,
+    );
 }
 
 /**
- * The state variables of a component `sequence` passes through: its counts
- * of the items it holds, its offset (the counters its children start from,
- * which are the counters before it), and its counters after it.
+ * The state variables of a component `sequence` passes through: its offset
+ * (the counters its children start from, which are the counters before it),
+ * and its counters after it, where the last item or pass-through among its
+ * children left them.
  *
  * Each item and pass-through reads the counters after the one before it, so
- * the counters form one chain through the siblings. Its links are kept to one
- * state variable each: there is no state variable for the counters before.
+ * the counters form one chain through the siblings, and through the children
+ * of each pass-through. Its links are kept to one state variable each: there
+ * is no state variable for the counters before. A pass-through does not
+ * count its children as a `child` dependency would, which waits for every
+ * composite among them to expand: it reads only the last, which waits only
+ * for what can change the count, as an item does (#2614 item 2).
  *
  * @param {Sequence} sequence
  */
 export function returnSequencePassThroughDefinitions(sequence) {
     return {
-        [sequence.counts]: {
-            returnDependencies: () => ({
-                children: childrenCountsDependency(sequence),
-            }),
-            definition({ dependencyValues, componentInfoObjects }) {
-                const counters = countChildren({
-                    sequence,
-                    children: dependencyValues.children,
-                    componentInfoObjects,
-                });
-                return { setValue: { [sequence.counts]: counters } };
-            },
-        },
         [sequence.offset]: {
             returnDependencies: () => countersBeforeDependencies(sequence),
             definition({ dependencyValues }) {
@@ -366,18 +364,22 @@ export function returnSequencePassThroughDefinitions(sequence) {
         [sequence.countersAfter]: {
             returnDependencies: () => ({
                 ...countersBeforeDependencies(sequence),
-                counts: {
-                    dependencyType: "stateVariable",
-                    variableName: sequence.counts,
-                },
+                last: nearestMemberDependency(sequence, {
+                    fromEndOfChildren: true,
+                }),
             }),
             definition({ dependencyValues }) {
-                const counters = countersBefore(sequence, dependencyValues);
+                const before = countersBefore(sequence, dependencyValues);
                 // In a parent that numbers no children, a pass-through
                 // doesn't advance the count.
-                if (dependencyValues.parentOffset != null) {
-                    addCounts(counters, dependencyValues.counts);
-                }
+                const counters =
+                    dependencyValues.parentOffset == null
+                        ? before
+                        : countersAfterFound(
+                              sequence,
+                              dependencyValues.last,
+                              before,
+                          );
                 return { setValue: { [sequence.countersAfter]: counters } };
             },
         },

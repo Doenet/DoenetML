@@ -45,6 +45,7 @@ import {
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { breakReferenceCycles } from "./referenceCycles";
+import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
 import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
@@ -837,6 +838,15 @@ export async function normalizedDastToSerializedComponents(
         );
     }
 
+    // Which composites the DoenetML shows can make no section, so that a
+    // section's number needn't wait for them to expand (#2614 item 2).
+    // Before the cycle check, which follows a reference to a section's
+    // number to the composites its numbering does wait for.
+    markCompositesMakingNoSectioning({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+    });
+
     // A reference that depends on itself, through what is written in every
     // branch, is a circular dependency, an error at load in place of the
     // reference (D14, DIAG-7). After the type check, whose own circular
@@ -1514,15 +1524,43 @@ export function expandAllUnflattenedAttributes({
 
     let attributes: Record<string, SerializedAttribute> = {};
 
+    // The `<document>` is the root, which nothing can replace: an attribute
+    // it doesn't have, or one repeated, is reported at the attribute, which
+    // is ignored, and the rest of the document renders (DIAG-5, #2614 item 1). Anywhere else, it
+    // is thrown, and the component becomes an `_error`.
+    const keepComponent = componentClass.componentType === "document";
+    function attributeError(
+        error: DiagnosticError,
+        attribute: UnflattenedAttribute,
+    ) {
+        if (!keepComponent) {
+            throw error;
+        }
+        diagnostics.push(
+            codedDiagnostic({
+                type: "error",
+                code: error.code as any,
+                args: error.args as any,
+                position: attribute.position,
+                sourceDoc: attribute.sourceDoc,
+            }),
+        );
+    }
+
     for (let attr in unflattenedAttributes) {
         let attrName = attributeLowerCaseMapping[attr.toLowerCase()];
         let attrDef = classAttributes[attrName];
         if (attrDef) {
             if (attrName in attributes) {
-                throw new DiagnosticError({
-                    code: "doenet-e0003",
-                    args: { attribute: attrName },
-                });
+                // The first one written is kept.
+                attributeError(
+                    new DiagnosticError({
+                        code: "doenet-e0003",
+                        args: { attribute: attrName },
+                    }),
+                    unflattenedAttributes[attr],
+                );
+                continue;
             }
 
             let attribute = unflattenedAttributes[attr];
@@ -1581,18 +1619,22 @@ export function expandAllUnflattenedAttributes({
             diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
         } else {
-            throw new DiagnosticError({
-                code: "doenet-e0004",
-                args: {
-                    attribute: attr,
-                    // What the author wrote, not what the component was
-                    // retyped to. Naming `<integer>` for a `<number>` written
-                    // between index brackets points at markup that is nowhere
-                    // in their document (#1919).
-                    componentType:
-                        authoredComponentType ?? componentClass.componentType,
-                },
-            });
+            attributeError(
+                new DiagnosticError({
+                    code: "doenet-e0004",
+                    args: {
+                        attribute: attr,
+                        // What the author wrote, not what the component was
+                        // retyped to. Naming `<integer>` for a `<number>`
+                        // written between index brackets points at markup
+                        // that is nowhere in their document (#1919).
+                        componentType:
+                            authoredComponentType ??
+                            componentClass.componentType,
+                    },
+                }),
+                unflattenedAttributes[attr],
+            );
         }
     }
     return { attributes, diagnostics, nComponents };

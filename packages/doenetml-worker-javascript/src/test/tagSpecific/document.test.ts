@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -501,5 +502,61 @@ describe("Document tag tests @group4", async () => {
                 );
             });
         });
+    });
+
+    // An attribute a `<document>` doesn't have is `doenet-e0004`, as on any
+    // tag, but the document can't be replaced by the error, as another
+    // component is: the attribute is ignored, and the rest of the document
+    // renders (DIAG-5). It failed to load (#2614 item 1). So does a repeated
+    // attribute (`doenet-e0003`), the first one written being kept.
+    it("an attribute a document doesn't have is an error at the attribute, and the document loads", async () => {
+        for (const [doenetML, code, marked] of [
+            [
+                `<document foo="bar"><p name="p">hi</p></document>`,
+                "doenet-e0004",
+                `foo="bar"`,
+            ],
+            [
+                `<document uniqueVariants="false"><p name="p">hi</p></document>`,
+                "doenet-e0004",
+                `uniqueVariants="false"`,
+            ],
+            [
+                `<document name="d" foo="bar"><p name="p">hi</p></document>`,
+                "doenet-e0004",
+                `foo="bar"`,
+            ],
+            [
+                `<document name="d" NAME="e"><p name="p">hi</p></document>`,
+                "doenet-e0003",
+                `NAME="e"`,
+            ],
+        ] as const) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                doenetML,
+            ).eq("hi");
+            expect(stateVariables[core.core!.documentIdx].componentType).eq(
+                "document",
+            );
+            const { errors, warnings } = getDiagnosticsByType(core);
+            expect(warnings, doenetML).eqls([]);
+            expect(
+                errors.map((error: any) => error.code),
+                doenetML,
+            ).eqls([code]);
+            const { start, end } = errors[0].position;
+            expect(doenetML.slice(start.offset, end.offset), doenetML).eq(
+                marked,
+            );
+        }
     });
 });
