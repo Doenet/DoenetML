@@ -25,6 +25,8 @@ import {
 } from "../utils/mathVectorMatrixStateVariables";
 import {
     buildInputResponseEvent,
+    ENTERED_BY_CORE,
+    enteringUpdateOptions,
     defineSubmitAnswerExternalAction,
     immediateValueFollowsValue,
     valueUnderEditVariable,
@@ -1330,8 +1332,10 @@ export default class MathInput extends Input {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
+        [ENTERED_BY_CORE]: enteredByCore,
     }) {
-        if (!(await this.stateValues.disabled)) {
+        // the core enters a disabled input's edit (`ENTERED_BY_CORE`)
+        if (enteredByCore || !(await this.stateValues.disabled)) {
             let immediateValue = await this.stateValues.immediateValue;
 
             if (
@@ -1401,9 +1405,17 @@ export default class MathInput extends Input {
                     actionId,
                     sourceInformation,
                     skipRendererUpdate: false,
-                    event,
+                    ...enteringUpdateOptions(enteredByCore, event),
                 });
 
+                if (enteredByCore?.readOnly) {
+                    // no action is run under `readOnly`; the renderers show the value
+                    return await this.coreFunctions.updateRenderers({
+                        actionId,
+                        sourceInformation,
+                        skipRendererUpdate,
+                    });
+                }
                 return await this.coreFunctions.triggerChainedActions({
                     componentIdx: this.componentIdx,
                     actionId,

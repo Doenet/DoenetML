@@ -21,6 +21,7 @@ import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     compositeTargetsDependency,
     pathOfTarget,
+    propertyWithIndices,
     targetsAmongReplacements,
 } from "../utils/actionTargets";
 
@@ -577,12 +578,7 @@ export default class UpdateValue extends InlineComponent {
                                 dependencyValues.unresolvedPath,
                             );
                             if (path) {
-                                let prop = path[0].name;
-                                if (path[0].index.length > 0) {
-                                    for (const idx of path[0].index) {
-                                        prop += `[idx]`;
-                                    }
-                                }
+                                const prop = propertyWithIndices(path[0]);
                                 diagnostics.push(
                                     codedDiagnostic({
                                         type: noValueLevel,

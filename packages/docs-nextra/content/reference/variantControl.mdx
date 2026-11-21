@@ -41,7 +41,10 @@ smaller the larger the combination space.
 A document's variants are decided before anything else in it is made, so
 the attributes of `<variantControl>{:dn}` must be written out. A reference
 such as `numVariants="$n"` can't be read there: it is ignored, with an
-error, and anything written beside it is kept.
+error, and anything written beside it is kept. For the same reason, a
+`<variantControl>{:dn}` can't be made from another with `extend` or `copy`
+(`<variantControl extend="$vc"/>{:dn}`): that is an error, and it is ignored.
+Write its attributes out instead.
 
 A `<variantControl>{:dn}` never stops the document from loading. Whatever it
 can't follow is an error at the attribute, and the document loads with the
@@ -189,7 +192,8 @@ extras dropped because there are not enough distinguishable outputs are
 not variants: in the `uniqueVariants` example above, with six variants,
 `g` is not a variant's name.
 
-An empty `variantsToInclude=""` is ignored, with an error. If the names left
+An empty `variantsToInclude=""` is ignored, with an error, as is an empty
+`numVariants=""`. If the names left
 no variant at all (`variantsToExclude` naming every variant, or every one
 `variantsToInclude` names), both are ignored, with an error, and every
 variant is included.

@@ -176,6 +176,12 @@ variants-all-excluded = `variantsToExclude` excludes every variant of this { $co
        *[no] {""}
     }, which leaves none. Every variant is included.
 
+# Translators: `<variantControl>`, `extend` and `copy` stay in English. A
+# document's variants are decided before anything else in it, so a
+# `<variantControl>` can't be made from another: the author must write its
+# attributes out.
+variant-control-made-from = A `<variantControl>` can't be made with `extend` or `copy`. A document's variants are decided before anything else in it, so before what they reference can be read. Write the attributes on the `<variantControl>` itself.
+
 ## `<sideBySide>`
 
 # $component is `sideBySide` or `sbsGroup`.

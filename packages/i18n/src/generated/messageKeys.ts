@@ -339,6 +339,7 @@ export type MessageKey =
     | "variant-control-reference"
     | "variant-name-repeated"
     | "variants-all-excluded"
+    | "variant-control-made-from"
     | "side-by-side-absolute-widths"
     | "side-by-side-absolute-margins"
     | "side-by-side-no-block-child"
@@ -1049,6 +1050,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "variant-control-reference",
     "variant-name-repeated",
     "variants-all-excluded",
+    "variant-control-made-from",
     "side-by-side-absolute-widths",
     "side-by-side-absolute-margins",
     "side-by-side-no-block-child",

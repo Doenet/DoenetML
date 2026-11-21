@@ -7,7 +7,11 @@ import {
     roundForDisplay,
     stripLatex,
 } from "./math";
-import { buildInputResponseEvent } from "./input";
+import {
+    buildInputResponseEvent,
+    ENTERED_BY_CORE,
+    enteringUpdateOptions,
+} from "./input";
 
 /**
  * Shared building blocks for the internal math-input "cell" components that
@@ -503,8 +507,10 @@ export async function mathComponentInputUpdateValue({
     actionId,
     sourceInformation = {},
     skipRendererUpdate = false,
+    [ENTERED_BY_CORE]: enteredByCore,
 }) {
-    if (!(await this.stateValues.disabled)) {
+    // the core enters a disabled input's edit (`ENTERED_BY_CORE`)
+    if (enteredByCore || !(await this.stateValues.disabled)) {
         let immediateValue = await this.stateValues.immediateValue;
 
         if (
@@ -559,9 +565,17 @@ export async function mathComponentInputUpdateValue({
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
-                event,
+                ...enteringUpdateOptions(enteredByCore, event),
             });
 
+            if (enteredByCore?.readOnly) {
+                // no action is run under `readOnly`; the renderers show the value
+                return await this.coreFunctions.updateRenderers({
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate,
+                });
+            }
             return await this.coreFunctions.triggerChainedActions({
                 componentIdx: this.componentIdx,
                 actionId,
