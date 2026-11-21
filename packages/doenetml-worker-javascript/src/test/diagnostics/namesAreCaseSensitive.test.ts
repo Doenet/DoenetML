@@ -534,6 +534,18 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         expect(errors).toHaveLength(0);
         expect(warnings).toHaveLength(0);
         expect(await text("p")).eq("1 5");
+
+        // An extend can't be given one in another case either, as it can't
+        // be given the one it is applied under (`doenet-e0060`).
+        ({ errors, warnings } = await load(
+            `${definition}<module extend="$mod" A="5" name="m2"/>`,
+        ));
+        expect(errors.map((e) => [e.code, e.message])).toEqual([
+            [
+                "doenet-e0060",
+                "A `<module>` makes its content from its attributes. An `extend` shows the same content as `$mod`, so it can't change `A`. To make the module with a different `A`, use `copy`.",
+            ],
+        ]);
     });
 
     it("an array entry or its alias in another case suggests the index form (NAME-2)", async () => {
@@ -596,7 +608,7 @@ describe("Names are case-sensitive (D51) @group4", async () => {
             actionName: "updateValue",
             args: {},
         });
-        const { errors, warnings } = getDiagnosticsByType(core);
+        let { errors, warnings } = getDiagnosticsByType(core);
         expect(errors).toHaveLength(0);
         const messages = warnings
             .filter((w) => w.code === "doenet-w0044")
@@ -607,6 +619,17 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         expect(messages).toContain(
             'Invalid target for `<updateValue>`: cannot find a state variable named "X1" on a `<point>`. Did you mean "xs[1]"?',
         );
+
+        // and an `<animateFromSequence>`'s, reported when it loads
+        ({ warnings } = await load(
+            `<number name="n">1</number><animateFromSequence target="$n.Value" from="1" to="3"/>`,
+        ));
+        expect(warnings.map((w) => [w.code, w.message])).toEqual([
+            [
+                "doenet-w0044",
+                'Invalid target for `<animateFromSequence>`: cannot find a state variable named "Value" on a `<number>`. Did you mean "value"?',
+            ],
+        ]);
     });
 
     it("a sortByProp naming no property is a warning at load, with a suggestion in another case (#2627 item 5)", async () => {

@@ -3,16 +3,19 @@
  * (D51, NAME-0), shared by the parser (`dast-normalize/attribute-name-case.ts`,
  * which renames those the schema lists) and the JavaScript core
  * (`correctAttributeNameCase` in `convertNormalizedDast.ts`, the backstop for
- * those the schema hides), so that the two can't drift apart. Exported as
+ * those the schema hides, and `moduleAttributesWritten` in
+ * `utils/moduleAttributeNames.ts`, for the attributes a `<module>` declares),
+ * so that they can't drift apart. Exported as
  * `@doenet/parser/attribute-name-case`, with nothing else, as the core needs
  * only this.
  *
  * Attribute names are matched exactly, but for one release an attribute
  * written in another case is still applied, under the component's spelling,
  * with a warning that it will be an error (`doenet-w0197`). Making it an
- * error is dropping the two callers of {@link attributeNameCaseCorrections}:
+ * error is dropping the callers of {@link attributeNameCaseCorrections}:
  * without the rename, the attribute is one the component doesn't have
- * (`doenet-e0004`, which suggests the spelling).
+ * (`doenet-e0004`, which suggests the spelling), or, on a `<module>`, sets
+ * no module attribute.
  */
 
 /** Attributes every tag takes, which no component declares. */

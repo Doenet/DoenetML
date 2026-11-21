@@ -455,8 +455,8 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         // type, written with `copy` or `extend`, is `e0002` before a copy is
         // made; the parser keeps one of an attribute written twice in one
         // case (silently, for now), so the core never sees both, and of one
-        // written in two cases the second is one the component doesn't have
-        // (`e0004`).
+        // written in two cases, one not given the component's spelling stays
+        // an attribute the component doesn't have (`e0004`).
         "doenet-w0065",
         "doenet-e0003",
     ]);

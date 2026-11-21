@@ -105,9 +105,10 @@ function componentTypeOf(node: DastElement): string {
 /**
  * Give each attribute of `node` written in another case than its
  * component's the component's spelling, pushing a `doenet-w0197` warning
- * for each onto `warnings`. Also run on an external reference's element
- * and the element it is merged into (`expand-external-references.ts`),
- * before their attributes are merged, which happens before this plugin runs.
+ * for each onto `warnings`. Also run by `expand-external-references.ts`, on
+ * an element with an external reference and on the external content merged
+ * into it, before their attributes are merged, which happens before this
+ * plugin runs.
  */
 export function correctAttributes(node: DastElement, warnings: DastError[]) {
     const componentType = componentTypeOf(node);
