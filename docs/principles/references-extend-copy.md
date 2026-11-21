@@ -63,7 +63,7 @@ from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't 
 **Known violations** (#2627):
 - several components declare all-lowercase compound names (`halign`, `xintercept`,
   `circumradius`, `xoffset`, …) where the convention is camelCase. The docs taught `hAlign` and
-  `yIntercept`, which no longer work. For a decision: rename them before the release;
+  `yIntercept`, which no longer work. Decided (D60): rename them to camelCase before the release;
 - a `<module>`'s declared attributes, and an external reference's content (`copy="doenet:…"`),
   are still matched without case;
 - `w0104` suggests no spelling for an array entry or alias in another case (`$P.X1`);

@@ -3231,3 +3231,18 @@ property reached.
 
 Implementation: #2626. It reverts parts of #2565 (per-item names and properties, `w0192` for
 repeats) and #2611 (`$r.mi` as a target).
+
+## D60. Compound attribute and property names are camelCase (decided, Tier 1; November 2026)
+
+Some components declared all-lowercase compound names where the convention is camelCase (`xMin`,
+`numItems`): `circumradius`, `inradius`, `coeffvar1`, `coeffvar2`, `xintercept`, `yintercept`,
+`righthandside`, `righthandsides`, `xoffset`/`yoffset`/`zoffset`, `xthreshold`/`ythreshold`/
+`zthreshold`, `halign`, `valign`, `valigns`. The docs taught the camelCase spellings, which
+worked until names became case-sensitive (D51, #2624) (#2627 item 1).
+
+**Decided:** rename them to camelCase (`circumRadius`, `inRadius`, `coeffVar1`, `xIntercept`,
+`rightHandSide`, `xOffset`, `xThreshold`, `hAlign`, `vAlign`, …), before the release that ships
+#2624, so authors meet one change rather than two. The one-release fallback (`w0197`) covers the
+old attribute spellings, since they differ only in case. A property written the old way names
+nothing, with a suggestion. Single words (`endpoints`, `eigenvalues`) are not in scope. A new
+compound name is camelCase.
