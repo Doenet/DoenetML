@@ -1274,8 +1274,13 @@ export default class Core {
      * extends, or an `extend` of either.
      */
     async commitUnenteredEdits(): Promise<void> {
-        await this._stopEditingIfDisabled();
-        while (this.inputsToCommit.size > 0) {
+        while (true) {
+            // checked again after each round: committing an input can
+            // disable the input being edited
+            await this._stopEditingIfDisabled();
+            if (this.inputsToCommit.size === 0) {
+                break;
+            }
             const candidates = [...this.inputsToCommit];
             this.inputsToCommit.clear();
             const edited =

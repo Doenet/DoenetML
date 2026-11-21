@@ -388,6 +388,22 @@ describe("A disabled or read-only input shows no edit not entered @group2", () =
         expect((await h.answered()).length).eq(1);
     });
 
+    it("an input disabled by committing another input enters the edit", async () => {
+        // the copy's edit, entered, disables the input being edited
+        const h = await setup(`
+    <mathInput name="mi" prefill="1" disabled="$cc.c.value > 3"/>
+    <graph><point name="P">(0,0)</point></graph>
+    <conditionalContent name="cc">
+      <case condition="$P.x > 1"><mathInput name="c" copyWithState="$mi"/></case>
+    </conditionalContent>`);
+        await h.editMath("mi", "4");
+        await h.drag("P", 2);
+        expect(await h.shown("cc.c")).eq("4 / 4");
+        expect((await h.sv("mi")).stateValues.disabled).eq(true);
+        expect(await h.shown("mi")).eq("4 / 4");
+        expect((await h.answered()).length).eq(2);
+    });
+
     it("an input made disabled at a reload enters the edit it was saved with", async () => {
         const h = await setup(`
     <mathInput name="mi" prefill="1"/>
