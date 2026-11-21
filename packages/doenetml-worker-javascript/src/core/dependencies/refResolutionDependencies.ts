@@ -1315,9 +1315,7 @@ export class RefResolutionDependency extends Dependency {
         const componentInfoObjects =
             this.dependencyHandler.componentInfoObjects;
         const writtenType =
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                written.toLowerCase()
-            ];
+            componentInfoObjects.componentTypeAsWritten(written);
         const writtenClass = componentInfoObjects.allComponentClasses[
             writtenType
         ] as any;

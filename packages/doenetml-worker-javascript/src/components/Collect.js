@@ -491,7 +491,7 @@ export default class Collect extends CompositeComponent {
         workspace,
         componentInfoObjects,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         nComponents,
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`)
@@ -544,7 +544,7 @@ export default class Collect extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj,
                     numComponentsForSource,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                     nComponents,
                     stateIdInfo,
                 });
@@ -579,7 +579,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         compositeAttributesObj,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         stateIdInfo,
         nComponents,
     }) {
@@ -702,7 +702,7 @@ export default class Collect extends CompositeComponent {
         workspace,
         componentInfoObjects,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
     }) {
         // console.log("Calculating replacement changes for " + component.componentIdx);
         // console.log((await component.stateValues.collectedComponents).map(x => x.componentIdx))
@@ -857,7 +857,7 @@ export default class Collect extends CompositeComponent {
                     componentInfoObjects,
                     compositeAttributesObj,
                     numComponentsForSource,
-                    publicCaseInsensitiveAliasSubstitutions,
+                    publicAliasSubstitutions,
                     stateIdInfo,
                 });
                 diagnostics.push(...results.diagnostics);
@@ -933,7 +933,7 @@ export default class Collect extends CompositeComponent {
         componentInfoObjects,
         compositeAttributesObj,
         numComponentsForSource,
-        publicCaseInsensitiveAliasSubstitutions,
+        publicAliasSubstitutions,
         nComponents,
         stateIdInfo,
     }) {
@@ -947,7 +947,7 @@ export default class Collect extends CompositeComponent {
             componentInfoObjects,
             compositeAttributesObj,
             numComponentsForSource,
-            publicCaseInsensitiveAliasSubstitutions,
+            publicAliasSubstitutions,
             nComponents,
             stateIdInfo,
         });

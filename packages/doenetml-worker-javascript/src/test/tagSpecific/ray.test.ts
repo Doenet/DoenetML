@@ -1138,7 +1138,7 @@ describe("Ray Tag Tests @group1", function () {
     it("constrain to ray, different scales from graph", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
+    <graph xMin="-110" xMax="110" yMin="-0.11" yMax="0.11">
         <ray name="l" through="(-1,-0.05)" endpoint="(1,0.05)"/>
         <point name="P" x="100" y="0" >
             <constrainTo relativeToGraphScales>$l</constrainTo>

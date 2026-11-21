@@ -458,8 +458,9 @@ export class NearestPrecedingSiblingDependency extends Dependency {
             return undefined;
         }
         const componentType =
-            this.dependencyHandler.componentInfoObjects
-                .componentTypeLowerCaseMapping[given.toLowerCase()];
+            this.dependencyHandler.componentInfoObjects.componentTypeAsWritten(
+                given,
+            );
         return this.isOfTypes(componentType, this.countPlaceholdersOfTypes)
             ? componentType
             : undefined;

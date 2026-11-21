@@ -570,7 +570,6 @@ export default class AnimateFromSequence extends BaseComponent {
                                     stateValues.targetOriginalPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
                             };

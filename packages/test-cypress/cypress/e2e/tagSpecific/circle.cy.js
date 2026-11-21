@@ -20,7 +20,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
     <graph>
       <circle name="circ" />
     </graph>
-    <mathInput bindvalueTo="$circ.radius" name="r" />
+    <mathInput bindValueTo="$circ.radius" name="r" />
     <p>radius: <math extend="$circ.radius" name="r2" /></p>
     <p>Center: <math extend="$circ.center" name="c" /></p>
   `;

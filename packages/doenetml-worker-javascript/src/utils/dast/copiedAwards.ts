@@ -94,9 +94,7 @@ export function markCopiedAwards({
         const type = written?.primitive?.value;
         if (
             typeof type !== "string" ||
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                type.toLowerCase()
-            ] !== "award"
+            componentInfoObjects.componentTypeAsWritten(type) !== "award"
         ) {
             return false;
         }

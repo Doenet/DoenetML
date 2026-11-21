@@ -1087,20 +1087,6 @@ export default class Core {
         );
     }
 
-    findCaseInsensitiveMatches({
-        stateVariables,
-        componentClass,
-    }: {
-        stateVariables: any;
-        componentClass: any;
-    }): any {
-        return nameResolver.findCaseInsensitiveMatches({
-            stateVariables,
-            componentClass,
-            componentInfoObjects: this.componentInfoObjects,
-        });
-    }
-
     matchPublicStateVariables({
         stateVariables,
         componentClass,
@@ -1129,14 +1115,14 @@ export default class Core {
         });
     }
 
-    publicCaseInsensitiveAliasSubstitutions({
+    publicAliasSubstitutions({
         stateVariables,
         componentClass,
     }: {
         stateVariables: any;
         componentClass: any;
     }): any {
-        return nameResolver.publicCaseInsensitiveAliasSubstitutions({
+        return nameResolver.publicAliasSubstitutions({
             stateVariables,
             componentClass,
             componentInfoObjects: this.componentInfoObjects,

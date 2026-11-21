@@ -25,7 +25,7 @@ describe("odeSystem Tag Tests @group4", async () => {
     <rightHandSide simplify="full">$a x</rightHandSide>
 </odeSystem>
 
-<graph xmin="-1">
+<graph xMin="-1">
     <function extend="$ode.numericalSolution" name="f" />
     <point name="point1" x='$zeroFixed' y='$ic' />
 </graph>
@@ -148,7 +148,7 @@ describe("odeSystem Tag Tests @group4", async () => {
   <p>T = <mathInput name="T" prefill="10"/></p>
   <p>maxIter = <mathInput name="maxIter" prefill="1000"/></p>
   <p>chunkSize = <mathInput name="chunkSize" prefill="10"/></p>
-  <odeSystem name="ode" initialConditions="1" maxIterations="$maxIter" tolerance="$tol" chunksize="$chunkSize">
+  <odeSystem name="ode" initialConditions="1" maxIterations="$maxIter" tolerance="$tol" chunkSize="$chunkSize">
     <rightHandSide>x</rightHandSide>
   </odeSystem>
 
@@ -572,7 +572,7 @@ describe("odeSystem Tag Tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <p>display initial conditions: <booleanInput name="showic" prefill="true"/></p>  
-  <odeSystem name="ode" initialconditions="1" hideInitialCondition="!$showic">
+  <odeSystem name="ode" initialConditions="1" hideInitialCondition="!$showic">
     <rightHandSide>x</rightHandSide>
   </odeSystem>
 `,
@@ -611,13 +611,13 @@ describe("odeSystem Tag Tests @group4", async () => {
             doenetML: `
   <p>initial condition 1 = <mathInput name="ic1" prefill="1"/></p>
   <p>initial condition 2 = <mathInput name="ic2" prefill="3"/></p>
-  <odeSystem name="ode" initialconditions="$ic1 $ic2">
+  <odeSystem name="ode" initialConditions="$ic1 $ic2">
     <rightHandSide>-0.2y</rightHandSide>
     <rightHandSide>0.1x + 0.3y</rightHandSide>
   </odeSystem>
 
   <graph>
-    <curve parmin="0" parmax="10">
+    <curve parMin="0" parMax="10">
       <function extend="$ode.numericalSolutions[1]" name="f1" />
       <function extend="$ode.numericalSolutions[2]" name="f2" />
     </curve>
@@ -788,7 +788,7 @@ describe("odeSystem Tag Tests @group4", async () => {
 
         // No variables specified
         let doenetML = `
-<odeSystem name="ode" initialconditions="a b c d e f">
+<odeSystem name="ode" initialConditions="a b c d e f">
 <rightHandSide>q</rightHandSide>
 <rightHandSide>r</rightHandSide>
 <rightHandSide>s</rightHandSide>
@@ -802,7 +802,7 @@ describe("odeSystem Tag Tests @group4", async () => {
 
         // all variables specified
         doenetML = `
-<odeSystem name="ode" initialconditions="a b c d e f" variables="j k l m n p">
+<odeSystem name="ode" initialConditions="a b c d e f" variables="j k l m n p">
 <rightHandSide>q</rightHandSide>
 <rightHandSide>r</rightHandSide>
 <rightHandSide>s</rightHandSide>
@@ -816,7 +816,7 @@ describe("odeSystem Tag Tests @group4", async () => {
 
         // some variables specified
         doenetML = `
-<odeSystem name="ode" initialconditions="a b c d e f" variables="j k l">
+<odeSystem name="ode" initialConditions="a b c d e f" variables="j k l">
 <rightHandSide>q</rightHandSide>
 <rightHandSide>r</rightHandSide>
 <rightHandSide>s</rightHandSide>
@@ -832,7 +832,7 @@ describe("odeSystem Tag Tests @group4", async () => {
     it("copy rightHandSide, initial conditions", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <odeSystem name="ode" initialconditions="c 3">
+  <odeSystem name="ode" initialConditions="c 3">
   <rightHandSide>a*x*y+z</rightHandSide>
   <rightHandSide>x/y</rightHandSide>
   </odeSystem>
@@ -854,7 +854,7 @@ describe("odeSystem Tag Tests @group4", async () => {
 
   <p>Swap right hand sides and keep initial conditions</p>
 
-  <odeSystem name="odeswap" initialconditions="$(ode.initialconditions)">
+  <odeSystem name="odeswap" initialConditions="$(ode.initialconditions)">
     <rightHandSide>$ode.rhs2</rightHandSide>
     <rightHandSide>$ode.rhs1</rightHandSide>
   </odeSystem>
@@ -972,11 +972,11 @@ describe("odeSystem Tag Tests @group4", async () => {
     it("avoidScientificNotation in odeSystem latex", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<odeSystem name="ode1" initialconditions="0.000000000007">
+<odeSystem name="ode1" initialConditions="0.000000000007">
   <rightHandSide>2000000000000000000000x</rightHandSide>
 </odeSystem>
 
-<odeSystem name="ode2" initialconditions="0.000000000007" avoidScientificNotation>
+<odeSystem name="ode2" initialConditions="0.000000000007" avoidScientificNotation>
   <rightHandSide>2000000000000000000000x</rightHandSide>
 </odeSystem>
 `,
@@ -1001,7 +1001,7 @@ describe("odeSystem Tag Tests @group4", async () => {
         // (`$ode.numericalSolution[2]`), not an index into the first.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <odeSystem name="ode" initialconditions="1 3">
+  <odeSystem name="ode" initialConditions="1 3">
     <rightHandSide>-0.2y</rightHandSide>
     <rightHandSide>0.1x + 0.3y</rightHandSide>
   </odeSystem>

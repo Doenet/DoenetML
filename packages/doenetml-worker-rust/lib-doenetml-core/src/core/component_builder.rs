@@ -229,7 +229,7 @@ impl ComponentBuilder {
 
             // Look to see if there is a public prop with a matching name on `referent`
             return match referent
-                .get_public_local_prop_index_from_name_case_insensitive(referenced_prop_name)
+                .get_public_local_prop_index_from_name(referenced_prop_name)
             {
                 Some(referent_prop_idx) => Ok(Extending::Prop(ExtendingPropSource {
                     prop_pointer: PropPointer {
@@ -469,7 +469,7 @@ impl ComponentBuilder {
                             }
                             let referent = referent.unwrap();
                             let referent_local_prop_idx = referent
-                                .get_public_local_prop_index_from_name_case_insensitive(
+                                .get_public_local_prop_index_from_name(
                                     &path_part.name,
                                 );
                             if let Some(referent_local_prop_idx) = referent_local_prop_idx {

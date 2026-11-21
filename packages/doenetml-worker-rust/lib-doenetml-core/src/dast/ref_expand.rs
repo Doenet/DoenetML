@@ -454,9 +454,9 @@ impl Expander {
             // we must mark it as such
             // (which indicates that we shouldn't change the component type
             // from the one specified in the element)
-            if extend_or_copy.name.eq_ignore_ascii_case("copy") {
+            if extend_or_copy.name == "copy" {
                 element.extending = extend_referent.map(|source| source.as_copy_attribute());
-            } else if extend_or_copy.name.eq_ignore_ascii_case("copyWithState") {
+            } else if extend_or_copy.name == "copyWithState" {
                 element.extending =
                     extend_referent.map(|source| source.as_copy_with_state_attribute());
             } else {
@@ -495,12 +495,11 @@ fn referent_tag(flat_root: &FlatRoot, resolver: &Resolver, idx: Index) -> Option
 }
 
 /// Whether `name` is one of the attributes that make an element from a
-/// reference: `extend`, `copy` or `copyWithState`, matched without regard to
-/// case.
+/// reference: `extend`, `copy` or `copyWithState`, matched exactly, as every
+/// attribute name is (D51). `Extend` is an attribute the element does not
+/// have, which the JavaScript core reports (`doenet-e0004`).
 pub fn is_extend_or_copy_attribute(name: &str) -> bool {
-    name.eq_ignore_ascii_case("extend")
-        || name.eq_ignore_ascii_case("copy")
-        || name.eq_ignore_ascii_case("copyWithState")
+    matches!(name, "extend" | "copy" | "copyWithState")
 }
 
 /// Return the index of the referent of `UntaggedContent` if it is a reference.

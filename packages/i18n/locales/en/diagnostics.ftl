@@ -812,11 +812,23 @@ math-input-invalid-function-names = <mathInput>: ignored invalid function name(s
 # than by building a record: the thrower is caught, the component becomes an
 # `_error`, and the diagnostic is re-raised from it.
 
-component-type-invalid = Invalid component type: `<{ $componentType }>`
+# $suggestion (when $hasSuggestion is `true`) is the tag the one written
+# differs from only in case: tags are case-sensitive, with `copy` or `extend`
+# as without (D51). Tag names stay in English.
+component-type-invalid = Invalid component type: `<{ $componentType }>`{ $hasSuggestion ->
+        [true] . Did you mean `<{ $suggestion }>`?
+       *[other] {""}
+    }
 
 attribute-repeated = Cannot repeat attribute { $attribute }.
 
-attribute-invalid-for-component = Invalid attribute "{ $attribute }" for a component of type `<{ $componentType }>`.
+# $suggestion (when $hasSuggestion is `true`) is the attribute the one written
+# differs from only in case: attribute names are case-sensitive (D51).
+# Attribute and tag names stay in English.
+attribute-invalid-for-component = Invalid attribute "{ $attribute }" for a component of type `<{ $componentType }>`.{ $hasSuggestion ->
+        [true] {" "}Did you mean "{ $suggestion }"?
+       *[other] {""}
+    }
 
 ## Style definition contrast
 
@@ -977,7 +989,13 @@ composite-circular-dependency =
     }
 
 # $reference is the reference as the author wrote it, already carrying its `$`.
-reference-no-referent = No referent found for reference: `{ $reference }`
+# $suggestion (when $hasSuggestion is `true`) is the reference with its
+# property in the case the component has it: property names are
+# case-sensitive (D51), so `$P.X` names nothing and suggests `$P.x`.
+reference-no-referent = No referent found for reference: `{ $reference }`{ $hasSuggestion ->
+        [true] . Did you mean `{ $suggestion }`?
+       *[other] {""}
+    }
 
 reference-multiple-referents = Multiple referents found for reference: `{ $reference }`
 
@@ -1039,8 +1057,22 @@ matrix-math-child-ignored = { $reason ->
 # attribute does nothing. Written on the component without `copy` or `extend`,
 # the same attribute is an error (`attribute-invalid-for-component`).
 # $attribute and $componentType are an attribute name and an element name,
-# part of the DoenetML language, so they stay in English.
-copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` has no such attribute.
+# part of the DoenetML language, so they stay in English. $suggestion (when
+# $hasSuggestion is `true`) is the attribute the component does have that the
+# one written differs from only in case: names are case-sensitive (D51).
+copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` has no such attribute.{ $hasSuggestion ->
+        [true] {" "}Did you mean `{ $suggestion }`?
+       *[other] {""}
+    }
+
+# An attribute written in another case than the component's spelling
+# (`xmin` for `xMin`). Names are case-sensitive (D51), but for now the
+# attribute is still applied, under the component's spelling, with this
+# warning; in a later release it will be an error, as a misspelled attribute
+# is. $attribute is the name as written, $suggestion the component's spelling,
+# and $componentType the element name, all part of the DoenetML language, so
+# they stay in English.
+attribute-name-case = Attribute names are case-sensitive: write `{ $suggestion }`, not `{ $attribute }`, on a `<{ $componentType }>`. It is applied for now, but will be an error in a later release.
 
 # An info, not a warning: a list written as text (`<mathList>`, a list
 # attribute, the text of a `<sum>` or `<sort>`) whose brackets don't balance

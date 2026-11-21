@@ -96,7 +96,7 @@ const LEGEND_DOC = `
 <updateValue name="grow" target="$top" newValue="100" type="number">
   <label>grow</label>
 </updateValue>
-<graph xmin="-10" xmax="10" ymin="-10" ymax="$top">
+<graph xMin="-10" xMax="10" yMin="-10" yMax="$top">
   <function name="f">x^2</function>
   <legend boxed>
     <label forObject="$f">curve <m>f(x)</m></label>

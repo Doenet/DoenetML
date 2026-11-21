@@ -100,14 +100,14 @@ impl ComponentProps for Component {
             .map(LocalPropIdx::new)
     }
 
-    fn get_public_local_prop_index_from_name_case_insensitive(
+    fn get_public_local_prop_index_from_name(
         &self,
         name: &str,
     ) -> Option<LocalPropIdx> {
         self.variant
             .get_prop_names()
             .iter()
-            .position(|&x| x.eq_ignore_ascii_case(name))
+            .position(|&x| x == name)
             .map(LocalPropIdx::new)
     }
 

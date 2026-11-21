@@ -6021,23 +6021,23 @@ $c7.radius
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <setup>
-        <styleDefinition stylenumber="1" lineColor="blue" fillColor="blue" lineWidth="2" lineStyle="solid" />
-        <styleDefinition stylenumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" fillStyle="horizontal" />
+        <styleDefinition styleNumber="1" lineColor="blue" fillColor="blue" lineWidth="2" lineStyle="solid" />
+        <styleDefinition styleNumber="2" lineColor="red" fillColor="green" lineWidth="2" lineStyle="solid" fillStyle="horizontal" />
 
-        <styleDefinition stylenumber="3" lineColor="blue" fillColor="blue" lineWidth="5" lineStyle="solid" />
-        <styleDefinition stylenumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" fillStyle="dots" />
+        <styleDefinition styleNumber="3" lineColor="blue" fillColor="blue" lineWidth="5" lineStyle="solid" />
+        <styleDefinition styleNumber="4" lineColor="red" fillColor="green" lineWidth="1" lineStyle="dotted" fillStyle="dots" />
     </setup>
 
     <graph>
       <circle center="(-8,0)" name="c1" />
       <circle center="(-8,4)" name="c2" filled fillStyle="vertical" />
-      <circle center="(-4,0)" name="c3" stylenumber="2" />
-      <circle center="(-4,4)" name="c4" stylenumber="2" filled />
+      <circle center="(-4,0)" name="c3" styleNumber="2" />
+      <circle center="(-4,4)" name="c4" styleNumber="2" filled />
 
-      <circle center="(0,0)" name="c5" stylenumber="3"/>
-      <circle center="(0,4)" name="c6" stylenumber="3" filled />
-      <circle center="(4,0)" name="c7" stylenumber="4" />
-      <circle center="(4,4)" name="c8" stylenumber="4" filled />
+      <circle center="(0,0)" name="c5" styleNumber="3"/>
+      <circle center="(0,4)" name="c6" styleNumber="3" filled />
+      <circle center="(4,0)" name="c7" styleNumber="4" />
+      <circle center="(4,4)" name="c8" styleNumber="4" filled />
 
     </graph>
 

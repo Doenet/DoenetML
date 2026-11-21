@@ -96,7 +96,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
         loadDoenetML(`
     <text name="a">a</text>
     <booleanInput name="show" prefill="true" />
-    <graph name="g" xmin="-5" xmax="5" ymin="-5" ymax="5">
+    <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
       <conditionalContent condition="$show"><pegboard/></conditionalContent>
     </graph>
     <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
@@ -123,7 +123,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
         // its job, or that one would pass with the pegboard simply broken.
         loadDoenetML(`
     <text name="a">a</text>
-    <graph name="g" xmin="-5" xmax="5" ymin="-5" ymax="5">
+    <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
       <pegboard/>
     </graph>
     <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
@@ -146,7 +146,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
         loadDoenetML(`
     <text name="a">a</text>
     <p>Change dx: <mathInput name="dxInput" prefill="1" /></p>
-    <graph name="g" xmin="-5" xmax="5" ymin="-5" ymax="5">
+    <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
       <pegboard dx="$dxInput" />
     </graph>
     <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>
@@ -177,7 +177,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
         // time as the graph widens.
         loadDoenetML(`
     <text name="a">a</text>
-    <graph name="g" xmin="-5" xmax="5" ymin="-5" ymax="5">
+    <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
       <pegboard dx="2" dy="0.5" xoffset="0.25" yoffset="-0.125" />
     </graph>
     <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xmax" /></p>

@@ -1368,7 +1368,7 @@ describe("ChoiceInput tag tests @group4", async () => {
       <choice>cat</choice>
       <choice>dog</choice>
       <choice>monkey</choice>
-      <choice preselect>mouse</choice>
+      <choice preSelect>mouse</choice>
       <choice>rabbit</choice>
       <choice>emu</choice>
       <choice>giraffe</choice>
@@ -1380,7 +1380,7 @@ describe("ChoiceInput tag tests @group4", async () => {
       <choice>cat</choice>
       <choice>dog</choice>
       <choice>monkey</choice>
-      <choice preselect>mouse</choice>
+      <choice preSelect>mouse</choice>
       <choice>rabbit</choice>
       <choice>emu</choice>
       <choice>giraffe</choice>
@@ -1389,9 +1389,9 @@ describe("ChoiceInput tag tests @group4", async () => {
 
     <choiceInput name="c5" inline>
       <choice>cat</choice>
-      <choice preselect>dog</choice>
+      <choice preSelect>dog</choice>
       <choice>monkey</choice>
-      <choice preselect>mouse</choice>
+      <choice preSelect>mouse</choice>
       <choice>rabbit</choice>
       <choice>emu</choice>
       <choice>giraffe</choice>
@@ -1401,9 +1401,9 @@ describe("ChoiceInput tag tests @group4", async () => {
 
     <choiceInput name="c6" shuffleOrder>
       <choice>cat</choice>
-      <choice preselect>dog</choice>
+      <choice preSelect>dog</choice>
       <choice>monkey</choice>
-      <choice preselect>mouse</choice>
+      <choice preSelect>mouse</choice>
       <choice>rabbit</choice>
       <choice>emu</choice>
       <choice>giraffe</choice>
@@ -1415,7 +1415,7 @@ describe("ChoiceInput tag tests @group4", async () => {
       <choice>cat</choice>
       <choice>dog</choice>
       <choice>monkey</choice>
-      <choice preselect>mouse</choice>
+      <choice preSelect>mouse</choice>
       <choice>rabbit</choice>
       <choice>emu</choice>
       <choice>giraffe</choice>
@@ -1427,7 +1427,7 @@ describe("ChoiceInput tag tests @group4", async () => {
       <choice>cat</choice>
       <choice>dog</choice>
       <choice>monkey</choice>
-      <choice preselect>mouse</choice>
+      <choice preSelect>mouse</choice>
       <choice>rabbit</choice>
       <choice>emu</choice>
       <choice>giraffe</choice>
@@ -1486,7 +1486,7 @@ describe("ChoiceInput tag tests @group4", async () => {
     it("disabled choice", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <choiceInput inline placeholder="Choose animal" name="ci">
+    <choiceInput inline placeHolder="Choose animal" name="ci">
       <choice name="choice1">cat</choice>
       <choice name="choice2">dog</choice>
       <choice name="choice3" disabled>monkey</choice>

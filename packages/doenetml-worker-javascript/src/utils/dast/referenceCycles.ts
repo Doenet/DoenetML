@@ -793,9 +793,9 @@ export function breakReferenceCycles({
         if (written?.type !== "primitive") {
             return undefined;
         }
-        return componentInfoObjects.componentTypeLowerCaseMapping[
-            String(written.primitive.value).toLowerCase()
-        ];
+        return componentInfoObjects.componentTypeAsWritten(
+            String(written.primitive.value),
+        );
     }
 
     /**

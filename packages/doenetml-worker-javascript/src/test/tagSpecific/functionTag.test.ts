@@ -1108,7 +1108,7 @@ describe("Function tag tests @group4", async () => {
             doenetML: `
     <function through="(0,2) (2,1) (3,2)" name="f" styleNumber="1" />
     <function extend="$f" through="(1,5) (4,2)" name="g" styleNumber="2" />
-    <function extend="$f" throughslopes="1 2 -3" name="h" styleNumber="3" />
+    <function extend="$f" throughSlopes="1 2 -3" name="h" styleNumber="3" />
     `,
         });
 

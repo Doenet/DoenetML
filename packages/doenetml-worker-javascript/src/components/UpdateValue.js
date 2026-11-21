@@ -482,7 +482,6 @@ export default class UpdateValue extends InlineComponent {
                                     stateValues.targetOriginalPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
                             };
@@ -506,7 +505,6 @@ export default class UpdateValue extends InlineComponent {
                                     stateValues.targetOriginalPath,
                                 returnAsComponentObject: true,
                                 variablesOptional: true,
-                                caseInsensitiveVariableMatch: true,
                                 publicStateVariablesOnly: true,
                                 useMappedVariableNames: true,
                             };

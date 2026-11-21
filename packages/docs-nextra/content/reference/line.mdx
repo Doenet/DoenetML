@@ -332,7 +332,7 @@ The `points` property of a named `<line>{:dn}` returns the through points of the
 
 ---
 
-### Property Example: xIntercept, yIntercept
+### Property Example: xintercept, yintercept
 
 
 ```doenet-editor-horiz
@@ -340,26 +340,26 @@ The `points` property of a named `<line>{:dn}` returns the through points of the
   <shortDescription>graph of a line with its x and y intercepts marked</shortDescription>
   <line name="line1" through="(-8,-2) (4,4)"/>
   <point styleNumber="2">
-    ($line1.xIntercept,0)
+    ($line1.xintercept,0)
   </point>
   <point styleNumber="3">
-    (0,$line1.yIntercept)
+    (0,$line1.yintercept)
   </point>
 </graph>
 
-<p><c>xIntercept</c>: $line1.xIntercept</p>
-<p><c>yIntercept</c>: $line1.yIntercept</p>     
+<p><c>xintercept</c>: $line1.xintercept</p>
+<p><c>yintercept</c>: $line1.yintercept</p>     
 ```
 
 
 
-The `xIntercept` and `yIntercept` properties return the intercepts of the named `<line>{:dn}`.
+The `xintercept` and `yintercept` properties return the intercepts of the named `<line>{:dn}`.
 
 
 
 ---
 
-### Property Example: coeff0, coeffVar1, coeffVar2
+### Property Example: coeff0, coeffvar1, coeffvar2
 
 
 ```doenet-editor-horiz
@@ -370,13 +370,13 @@ The `xIntercept` and `yIntercept` properties return the intercepts of the named 
 
 <p><c>equation</c> = $line1.equation</p>
 <p><c>coeff0</c> = $line1.coeff0</p>
-<p><c>coeffVar1</c> = $line1.coeffVar1</p>
-<p><c>coeffVar2</c> = $line1.coeffVar2</p>
+<p><c>coeffvar1</c> = $line1.coeffvar1</p>
+<p><c>coeffvar2</c> = $line1.coeffvar2</p>
 ```
 
 Linear coefficients corresponding to the linear form
 $A x + B y + C = 0$
-can be obtained with the above properties, where $C = $`coeff0`, $B = $`coeffVar2` and $A = $`coeffVar1`.
+can be obtained with the above properties, where $C = $`coeff0`, $B = $`coeffvar2` and $A = $`coeffvar1`.
 
 ---
 

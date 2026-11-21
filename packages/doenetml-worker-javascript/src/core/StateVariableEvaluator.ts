@@ -1177,7 +1177,7 @@ export class StateVariableEvaluator {
 
     // The five state-variable name-resolution helpers below live as pure
     // functions in StateVariableNameResolver.ts. The wrappers preserve the
-    // public surface (`core.findCaseInsensitiveMatches`, etc., plus the
+    // public surface (`core.matchPublicStateVariables`, etc., plus the
     // by-reference passes used in composite sugar functions) by injecting
     // `componentInfoObjects` and delegating.
 }

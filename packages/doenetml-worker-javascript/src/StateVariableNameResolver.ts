@@ -1,104 +1,11 @@
-// Pure string utilities for resolving state variable names: case-insensitive
-// matching, public-only filtering, alias substitution, and array entry detection.
+// Pure string utilities for resolving state variable names: public-only
+// filtering, alias substitution, and array entry detection. A property name
+// is matched exactly, as written (NAME-0, D51): `$P.X` of a point names
+// nothing.
 //
 // Core wraps these so existing callers like
-// `core.publicCaseInsensitiveAliasSubstitutions(args)` and the by-reference
+// `core.publicAliasSubstitutions(args)` and the by-reference
 // passes used in composite sugar functions keep working.
-
-export function findCaseInsensitiveMatches({
-    stateVariables,
-    componentClass,
-    componentInfoObjects,
-}: {
-    stateVariables: string[];
-    componentClass: any;
-    componentInfoObjects: any;
-}): string[] {
-    let stateVarInfo =
-        componentInfoObjects.stateVariableInfo[componentClass.componentType];
-
-    let newVariables: string[] = [];
-
-    for (let stateVariable of stateVariables) {
-        let foundMatch = false;
-
-        let lowerCaseVarName = stateVariable.toLowerCase();
-
-        for (let varName in stateVarInfo.stateVariableDescriptions) {
-            if (lowerCaseVarName === varName.toLowerCase()) {
-                foundMatch = true;
-                newVariables.push(varName);
-                break;
-            }
-        }
-
-        if (foundMatch) {
-            continue;
-        }
-
-        let isArraySize = false;
-        let lowerCaseNameMinusSize = lowerCaseVarName;
-        if (lowerCaseVarName.substring(0, 13) === "__array_size_") {
-            isArraySize = true;
-            lowerCaseNameMinusSize = lowerCaseVarName.substring(13);
-        }
-
-        for (let aliasName in stateVarInfo.aliases) {
-            if (lowerCaseNameMinusSize === aliasName.toLowerCase()) {
-                // don't substitute alias here, just fix case
-                if (isArraySize) {
-                    aliasName = "__array_size_" + aliasName;
-                }
-                newVariables.push(aliasName);
-                foundMatch = true;
-                break;
-            }
-        }
-        if (foundMatch) {
-            continue;
-        }
-
-        let arrayEntryPrefixesLongestToShortest = Object.keys(
-            stateVarInfo.arrayEntryPrefixes,
-        ).sort((a, b) => b.length - a.length);
-        for (let prefix of arrayEntryPrefixesLongestToShortest) {
-            if (
-                lowerCaseVarName.substring(0, prefix.length) ===
-                prefix.toLowerCase()
-            ) {
-                // TODO: the varEnding is still a case-sensitive match
-                // Should we require that getArrayKeysFromVarName have
-                // a case-insensitive mode?
-                let arrayVariableName =
-                    stateVarInfo.arrayEntryPrefixes[prefix].arrayVariableName;
-                let arrayStateVarDescription =
-                    stateVarInfo.stateVariableDescriptions[arrayVariableName];
-                let arrayKeys =
-                    arrayStateVarDescription.getArrayKeysFromVarName({
-                        arrayEntryPrefix: prefix,
-                        varEnding: stateVariable.substring(prefix.length),
-                        numDimensions: arrayStateVarDescription.numDimensions,
-                    });
-                if (arrayKeys.length > 0) {
-                    let newVarName =
-                        prefix + lowerCaseVarName.substring(prefix.length);
-                    foundMatch = true;
-                    newVariables.push(newVarName);
-                    break;
-                }
-            }
-        }
-
-        if (foundMatch) {
-            continue;
-        }
-
-        // no match, so don't alter
-        newVariables.push(stateVariable);
-    }
-
-    return newVariables;
-}
 
 export function matchPublicStateVariables({
     stateVariables,
@@ -204,7 +111,7 @@ export function substituteAliases({
     return newVariables;
 }
 
-export function publicCaseInsensitiveAliasSubstitutions({
+export function publicAliasSubstitutions({
     stateVariables,
     componentClass,
     componentInfoObjects,
@@ -213,14 +120,8 @@ export function publicCaseInsensitiveAliasSubstitutions({
     componentClass: any;
     componentInfoObjects: any;
 }): string[] {
-    let mappedVarNames = findCaseInsensitiveMatches({
+    let mappedVarNames = matchPublicStateVariables({
         stateVariables,
-        componentClass,
-        componentInfoObjects,
-    });
-
-    mappedVarNames = matchPublicStateVariables({
-        stateVariables: mappedVarNames,
         componentClass,
         componentInfoObjects,
     });

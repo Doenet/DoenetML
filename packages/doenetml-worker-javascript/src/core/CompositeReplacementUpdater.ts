@@ -167,7 +167,7 @@ export class CompositeReplacementUpdater {
         // componentInfoObjects
         // flags
         // resolveItem: a function that the composite can use to resolve any state variables
-        // publicCaseInsensitiveAliasSubstitutions: a function that can be used to find a case insensitive match
+        // publicAliasSubstitutions: a function that can be used to find a case insensitive match
         //   to a public state variable, substituting aliases if necessary
         let initialNComponents;
         let replacementResults;
@@ -189,10 +189,8 @@ export class CompositeReplacementUpdater {
                     resolveItem: this.core.dependencies.resolveItem.bind(
                         this.core.dependencies,
                     ),
-                    publicCaseInsensitiveAliasSubstitutions:
-                        this.core.publicCaseInsensitiveAliasSubstitutions.bind(
-                            this.core,
-                        ),
+                    publicAliasSubstitutions:
+                        this.core.publicAliasSubstitutions.bind(this.core),
                 });
 
             replacementResults = {

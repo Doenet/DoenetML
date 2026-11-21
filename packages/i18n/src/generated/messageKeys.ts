@@ -498,6 +498,7 @@ export type MessageKey =
     | "latex-not-read-as-math"
     | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
+    | "attribute-name-case"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
@@ -1209,6 +1210,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "latex-not-read-as-math",
     "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
+    "attribute-name-case",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
     "extend-attribute-changes-content",

@@ -83,7 +83,7 @@ import {
     listEntryCountAtLoad,
 } from "./listEntryCountAtLoad";
 import { TAGS_MAKING_THEIR_CONTENT } from "../../components/abstract/Copy";
-import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
+import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
 import { COLLECTIONS_OF_NAMED_ITEMS, ownSettingOfWrapper } from "../wrappers";
 import { propertyTypeReader } from "./propertyTypesAtLoad";
 
@@ -165,7 +165,7 @@ export function typeHasProperty({
     if (!componentClass) {
         return false;
     }
-    const [mapped] = publicCaseInsensitiveAliasSubstitutions({
+    const [mapped] = publicAliasSubstitutions({
         stateVariables: [propName],
         componentClass,
         componentInfoObjects,
@@ -433,9 +433,7 @@ export function reportTypeChangesAtLoad({
                       ?.value;
         const writtenType =
             writtenValue &&
-            (componentInfoObjects.componentTypeLowerCaseMapping[
-                writtenValue.toLowerCase()
-            ] ??
+            (componentInfoObjects.componentTypeAsWritten(writtenValue) ??
                 writtenValue);
         const originalPath = copy.extending
             ? (unwrapSource(copy.extending as any) as any)?.originalPath
@@ -557,6 +555,8 @@ export function checkTypeChangesAtLoad({
         any
     >;
 
+    // Without case, as it also reads a type written as a value
+    // (`<collect componentType="Point">`); a tag is exact already (D51).
     function canonicalType(type: string | undefined) {
         return type === undefined
             ? undefined
