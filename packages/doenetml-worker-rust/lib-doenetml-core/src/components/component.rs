@@ -100,10 +100,7 @@ impl ComponentProps for Component {
             .map(LocalPropIdx::new)
     }
 
-    fn get_public_local_prop_index_from_name(
-        &self,
-        name: &str,
-    ) -> Option<LocalPropIdx> {
+    fn get_public_local_prop_index_from_name(&self, name: &str) -> Option<LocalPropIdx> {
         self.variant
             .get_prop_names()
             .iter()

@@ -1,5 +1,7 @@
 import { Plugin } from "unified";
-import { doenetSchema } from "@doenet/static-assets/schema";
+// Each tag's attribute names only: the whole schema would add hundreds of kB
+// to the viewer's eagerly loaded bundle, where this runs.
+import { attributeNamesOfTag } from "@doenet/static-assets/attribute-names";
 import type { DastAttribute, DastElement, DastError, DastRoot } from "../types";
 import { visitIncludingPathIndices } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
@@ -78,33 +80,9 @@ const ATTRIBUTES_OF_EVERY_TAG = ["extend", "copy", "copyWithState"];
 /** The attributes of the copy a tag with `extend` or `copy` is made into. */
 const ATTRIBUTES_OF_A_COPY = ["asList", "removeEmptyArrayEntries"];
 
-type SchemaElementLike = { name: string; attributes: { name: string }[] };
-
-let attributesByTag: Map<string, string[]> | undefined;
-
-/** The attributes the schema lists for each tag, aliases included. */
+/** The attributes the schema lists for a tag, aliases included. */
 function attributesOf(tag: string): string[] | undefined {
-    if (!attributesByTag) {
-        attributesByTag = new Map();
-        const elements = doenetSchema.elements as readonly SchemaElementLike[];
-        for (const element of elements) {
-            attributesByTag.set(
-                element.name,
-                element.attributes.map((attr) => attr.name),
-            );
-        }
-        const aliased = (doenetSchema.aliasedElements ?? {}) as Record<
-            string,
-            SchemaElementLike
-        >;
-        for (const [alias, element] of Object.entries(aliased)) {
-            attributesByTag.set(
-                alias,
-                element.attributes.map((attr) => attr.name),
-            );
-        }
-    }
-    return attributesByTag.get(tag);
+    return attributeNamesOfTag(tag);
 }
 
 /**

@@ -228,9 +228,7 @@ impl ComponentBuilder {
             let referenced_prop_name = &unresolved_path[0].name;
 
             // Look to see if there is a public prop with a matching name on `referent`
-            return match referent
-                .get_public_local_prop_index_from_name(referenced_prop_name)
-            {
+            return match referent.get_public_local_prop_index_from_name(referenced_prop_name) {
                 Some(referent_prop_idx) => Ok(Extending::Prop(ExtendingPropSource {
                     prop_pointer: PropPointer {
                         component_idx: referent.get_idx(),
@@ -468,10 +466,8 @@ impl ComponentBuilder {
                                 return Err(ref_resolution.node_idx);
                             }
                             let referent = referent.unwrap();
-                            let referent_local_prop_idx = referent
-                                .get_public_local_prop_index_from_name(
-                                    &path_part.name,
-                                );
+                            let referent_local_prop_idx =
+                                referent.get_public_local_prop_index_from_name(&path_part.name);
                             if let Some(referent_local_prop_idx) = referent_local_prop_idx {
                                 let prop_idx =
                                     self.structure_graph.get_component_props(referent.get_idx())

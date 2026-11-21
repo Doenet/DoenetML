@@ -211,9 +211,7 @@ pub(super) fn branch_container_kind(
         element.name.clone()
     };
     match tag.as_str() {
-        "conditionalContent" => {
-            Some(BranchContainerKind::ConditionalContent)
-        }
+        "conditionalContent" => Some(BranchContainerKind::ConditionalContent),
         "select" => {
             let num_to_select = element
                 .attributes

@@ -52,10 +52,7 @@ impl ComponentProps for _Ref {
     fn get_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
         None
     }
-    fn get_public_local_prop_index_from_name(
-        &self,
-        _name: &str,
-    ) -> Option<LocalPropIdx> {
+    fn get_public_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
         None
     }
 }
