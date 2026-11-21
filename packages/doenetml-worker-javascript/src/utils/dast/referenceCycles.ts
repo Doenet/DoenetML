@@ -132,6 +132,10 @@ import { errorComponentState } from "./errors";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { collectIsListFormAsWritten } from "./listForms";
 import {
+    compositesNumberingWaitsFor,
+    NUMBER_PROPERTIES,
+} from "./sectionNumberingAtLoad";
+import {
     listSplittingFromAttribute,
     splitListEntries,
 } from "../../components/commonsugar/lists";
@@ -1328,6 +1332,18 @@ export function breakReferenceCycles({
             return [];
         }
         const property = propertyNamed(targetType, first.name);
+        if (
+            inherits(targetType, "_sectioningComponent") &&
+            NUMBER_PROPERTIES.has(property)
+        ) {
+            // its number, which waits for the composites before it that may
+            // make a section (#2614 item 2)
+            return compositesNumberingWaitsFor({
+                section: target,
+                parentOf,
+                componentInfoObjects,
+            }).map((composite) => composite.componentIdx);
+        }
         if (
             entryFor(PROPERTIES_READ, targetType)?.includes(property) ||
             entryFor(ATTRIBUTES_READ, targetType)?.properties.includes(

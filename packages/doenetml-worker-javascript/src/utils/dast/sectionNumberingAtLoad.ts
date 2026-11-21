@@ -1,0 +1,407 @@
+/**
+ * What a section's number waits for, decided at load from the DoenetML
+ * (#2614 item 2, DIAG-5, NAME-7).
+ *
+ * A section is numbered among the sections before it (`sequenceNumbering.js`).
+ * A composite before it that has not expanded may make more, so the number
+ * waits for it, and a composite whose expansion reads the number waited for
+ * it in turn: a circular dependency that stopped the document. Two things
+ * keep that from happening:
+ *
+ * - **A composite that can't make a section is not waited for.** When the
+ *   DoenetML shows that a composite can make no sectioning component and no
+ *   container a numbering passes through (a `<div>`, a `<cascade>`, a
+ *   `<page>`), it is marked (`makesNoSectioning`), and the numbering passes
+ *   over it (`markCompositesMakingNoSectioning`). So
+ *   `<conditionalContent condition="$s.sectionNumber > 1">` whose cases hold
+ *   no section, before the section `s`, loads. A composite given the type of
+ *   a section (`<section extend="$x"/>`) makes exactly one, and is counted as
+ *   one without being waited for.
+ * - **A composite that can is a cycle, found at load.** A reference to the
+ *   number of a section (its `sectionNumber`, `enumeration` or `title`) reads
+ *   each composite its numbering waits for (`compositesNumberingWaitsFor`),
+ *   an edge of the graph `breakReferenceCycles` searches. So
+ *   `<repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence>`
+ *   before `s` is `doenet-e0005` at the reference, and the rest renders.
+ *
+ * Both read the one mark, so what the numbering waits for when the document
+ * runs is what the cycle check finds an edge to.
+ */
+import type { SerializedComponent } from "./types";
+import type { ComponentInfoObjects } from "../componentInfoObjects";
+import {
+    DIVISION_SEQUENCE,
+    LIST_ITEM_SEQUENCE,
+    MAKES_NO_SECTIONING,
+} from "../sequenceNumbering";
+
+/**
+ * The containers a numbering passes through, of either sequence: a section
+ * inside one is numbered among the sections beside it.
+ */
+const PASS_THROUGH_TYPES = [
+    ...new Set([
+        ...DIVISION_SEQUENCE.passThroughComponentTypes,
+        ...LIST_ITEM_SEQUENCE.passThroughComponentTypes,
+    ]),
+];
+
+/**
+ * The children of a composite whose own children are what it makes when it
+ * is chosen: a `<case>` (and an `<else>`, which sugar makes one) of a
+ * `<conditionalContent>`, and an `<option>` of a `<select>`.
+ */
+const BRANCH_TYPES = ["case", "else", "option"];
+
+/**
+ * The properties of a section made from its number, so that a reference to
+ * one reads what its numbering waits for. Lower case.
+ */
+export const NUMBER_PROPERTIES = new Set([
+    "sectionnumber",
+    "enumeration",
+    "title",
+    "titleprefix",
+]);
+
+/** The reference a `_copy` is of, if it was resolved. */
+function referenceOf(copy: SerializedComponent) {
+    const extending: any = copy.extending;
+    if (!extending) {
+        return undefined;
+    }
+    return (extending.Ref ??
+        extending.ExtendAttribute ??
+        extending.CopyAttribute ??
+        extending.CopyWithStateAttribute) as
+        { nodeIdx: number; unresolvedPath: any[] | null } | undefined;
+}
+
+/**
+ * The helpers both halves share: whether a type is one a numbering counts or
+ * passes through, and the type a reference written as a tag makes.
+ */
+function typeHelpers(componentInfoObjects: ComponentInfoObjects) {
+    function inherits(componentType: string, base: string) {
+        return componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType: base,
+        });
+    }
+    function isComposite(componentType: string) {
+        return componentInfoObjects.isCompositeComponent({
+            componentType,
+            includeNonStandard: true,
+        });
+    }
+    function isPassThrough(componentType: string) {
+        return PASS_THROUGH_TYPES.some((base) => inherits(componentType, base));
+    }
+    /** A sectioning component or a container a numbering passes through. */
+    function isSectioning(componentType: string) {
+        return (
+            inherits(componentType, "_sectioningComponent") ||
+            isPassThrough(componentType)
+        );
+    }
+    /** The type a reference written as a tag makes, if it is one. */
+    function writtenType(copy: SerializedComponent) {
+        const written = copy.attributes?._createComponentOfType;
+        if (written?.type !== "primitive") {
+            return undefined;
+        }
+        return componentInfoObjects.componentTypeLowerCaseMapping[
+            String(written.primitive.value).toLowerCase()
+        ];
+    }
+    return { inherits, isComposite, isPassThrough, isSectioning, writtenType };
+}
+
+/**
+ * Mark `doenetAttributes.makesNoSectioning` on each composite in
+ * `serializedComponents`, at any depth, that the DoenetML shows can make no
+ * sectioning component and no container a numbering passes through, so that
+ * a section's numbering does not wait for it (`sequenceNumbering.js`).
+ *
+ * A composite may make one when:
+ * - it is a `<collect>`, which may collect anything;
+ * - it is a reference (`$x`, `<group extend="$x"/>`) to a sectioning
+ *   component or a container a numbering passes through, or to a composite
+ *   that may make one, or one not decided from the DoenetML (an index into
+ *   a composite, `$r[1]`). A reference to a property (`$s.title`) makes a
+ *   value, and one that names nothing makes nothing. A reference written as
+ *   a tag that is no composite makes that tag, so may make one only when the
+ *   tag is one;
+ * - any child written in it may make one: a sectioning component, a
+ *   container a numbering passes through, a composite that may, or a
+ *   `<case>` or `<option>` with a child that may. A `<setup>` makes nothing.
+ *
+ * The marks are made before the cycle check, which reads them
+ * (`compositesNumberingWaitsFor`).
+ */
+export function markCompositesMakingNoSectioning({
+    serializedComponents,
+    componentInfoObjects,
+}: {
+    serializedComponents: (SerializedComponent | string)[];
+    componentInfoObjects: ComponentInfoObjects;
+}) {
+    const { isComposite, isSectioning, writtenType } =
+        typeHelpers(componentInfoObjects);
+
+    const componentsByIdx = new Map<number, SerializedComponent>();
+    const copiesByCreatedIdx = new Map<number, SerializedComponent>();
+    const composites: SerializedComponent[] = [];
+
+    function gather(components: (SerializedComponent | string)[]) {
+        for (const component of components) {
+            if (typeof component !== "object" || component === null) {
+                continue;
+            }
+            if (componentsByIdx.has(component.componentIdx)) {
+                continue;
+            }
+            componentsByIdx.set(component.componentIdx, component);
+            const createdIdx = component.attributes?._createComponentIdx;
+            if (
+                component.componentType === "_copy" &&
+                createdIdx?.type === "primitive"
+            ) {
+                copiesByCreatedIdx.set(
+                    Number(createdIdx.primitive.value),
+                    component,
+                );
+            }
+            if (isComposite(component.componentType)) {
+                composites.push(component);
+            }
+            for (const attribute of Object.values(
+                component.attributes ?? {},
+            ) as any[]) {
+                if (attribute?.component) {
+                    gather([attribute.component]);
+                }
+                gather(attribute?.references ?? []);
+                gather(attribute?.children ?? []);
+            }
+            gather(component.children ?? []);
+        }
+    }
+    gather(serializedComponents);
+
+    const mayMakeByIdx = new Map<number, boolean>();
+    // being decided, so a reference that reaches itself is not followed
+    // round again: it may make one, as nothing decides that it does not
+    const deciding = new Set<number>();
+
+    /** Whether the child `child`, written in a composite, may make one. */
+    function childMayMake(child: SerializedComponent | string): boolean {
+        if (typeof child !== "object" || child === null) {
+            return false;
+        }
+        const componentType = child.componentType;
+        if (componentType === "setup" || componentType === "_repeatSetup") {
+            return false;
+        }
+        if (isComposite(componentType)) {
+            return mayMake(child);
+        }
+        if (BRANCH_TYPES.includes(componentType)) {
+            return (child.children ?? []).some(childMayMake);
+        }
+        return isSectioning(componentType);
+    }
+
+    /** Whether the reference `copy` may make one through what it is of. */
+    function referenceMayMake(copy: SerializedComponent): boolean {
+        if (copy.doenetAttributes?.noReferent) {
+            // names nothing, so makes nothing
+            return false;
+        }
+        if (
+            copy.doenetAttributes?.typeChangeAtLoad?.code?.startsWith?.(
+                "doenet-e",
+            )
+        ) {
+            // an error, decided at load, which it shows in its place
+            return false;
+        }
+        const reference = referenceOf(copy);
+        if (!reference || reference.nodeIdx < 0) {
+            return true;
+        }
+        const target =
+            componentsByIdx.get(reference.nodeIdx) ??
+            copiesByCreatedIdx.get(reference.nodeIdx);
+        if (!target) {
+            return true;
+        }
+        const targetIsComposite = isComposite(target.componentType);
+        const path = reference.unresolvedPath ?? [];
+        if (path.length === 0) {
+            return targetIsComposite
+                ? mayMake(target)
+                : isSectioning(target.componentType);
+        }
+        if (
+            !targetIsComposite &&
+            path.length === 1 &&
+            typeof path[0]?.name === "string" &&
+            path[0].name !== "" &&
+            !(path[0].index?.length > 0)
+        ) {
+            // a property, which is a value
+            return false;
+        }
+        return true;
+    }
+
+    function mayMake(composite: SerializedComponent): boolean {
+        const idx = composite.componentIdx;
+        const known = mayMakeByIdx.get(idx);
+        if (known !== undefined) {
+            return known;
+        }
+        if (deciding.has(idx)) {
+            return true;
+        }
+        deciding.add(idx);
+        let result: boolean;
+        if (composite.componentType === "collect") {
+            result = true;
+        } else if (composite.componentType === "_copy") {
+            const written = writtenType(composite);
+            if (written !== undefined && !isComposite(written)) {
+                result = isSectioning(written);
+            } else {
+                // a reference written as a composite (`<group extend>`)
+                // holds what is written in it too
+                result =
+                    referenceMayMake(composite) ||
+                    (written !== undefined &&
+                        (composite.children ?? []).some(childMayMake));
+            }
+        } else {
+            result = (composite.children ?? []).some(childMayMake);
+        }
+        deciding.delete(idx);
+        mayMakeByIdx.set(idx, result);
+        return result;
+    }
+
+    for (const composite of composites) {
+        if (!mayMake(composite)) {
+            composite.doenetAttributes = {
+                ...composite.doenetAttributes,
+                [MAKES_NO_SECTIONING]: true,
+            };
+        }
+    }
+}
+
+/**
+ * The composites the number of the section `section` waits for, which a
+ * reference to its number reads (`NUMBER_PROPERTIES`, `breakReferenceCycles`):
+ * each composite written before it among the components it is numbered
+ * with, unless marked as making no section (`makesNoSectioning`) or written
+ * as a tag of a section, which is counted as one. That is, before it among:
+ *
+ * - its siblings, and the children of each container a numbering passes
+ *   through among them (a `<div>`), at any depth;
+ * - the siblings of its parent, when the parent is a composite, a `<case>`
+ *   or an `<option>`, whose children are its parent's, or a container a
+ *   numbering passes through, and so on up;
+ * - the siblings of the section it is in, and so on up, as its number may
+ *   include that section's (`includeParentNumber`).
+ *
+ * `parentOf` is the component each component is written in, as a child.
+ * Both sequences are followed, as which numbers a section is decided when
+ * the document runs.
+ */
+export function compositesNumberingWaitsFor({
+    section,
+    parentOf,
+    componentInfoObjects,
+}: {
+    section: SerializedComponent;
+    parentOf: Map<number, SerializedComponent>;
+    componentInfoObjects: ComponentInfoObjects;
+}): SerializedComponent[] {
+    const { inherits, isComposite, isPassThrough, writtenType } =
+        typeHelpers(componentInfoObjects);
+
+    const found: SerializedComponent[] = [];
+
+    function visitBefore(component: SerializedComponent | string) {
+        if (typeof component !== "object" || component === null) {
+            return;
+        }
+        const componentType = component.componentType;
+        if (componentType === "_copy") {
+            const written = writtenType(component);
+            if (written !== undefined && !isComposite(written)) {
+                // a tag that is no composite: one section, counted, or a
+                // tag the numbering passes over, or a container it passes
+                // through, whose count is waited for
+                if (isPassThrough(written)) {
+                    found.push(component);
+                }
+                return;
+            }
+        }
+        if (isComposite(componentType)) {
+            if (!component.doenetAttributes?.[MAKES_NO_SECTIONING]) {
+                found.push(component);
+            }
+            return;
+        }
+        if (isPassThrough(componentType)) {
+            for (const child of component.children ?? []) {
+                visitBefore(child);
+            }
+        }
+    }
+
+    /** Whether the children of a component of this type are its parent's. */
+    function isTransparent(componentType: string) {
+        return (
+            isComposite(componentType) ||
+            BRANCH_TYPES.includes(componentType) ||
+            isPassThrough(componentType)
+        );
+    }
+
+    let node: SerializedComponent = section;
+    const seen = new Set<number>();
+    while (!seen.has(node.componentIdx)) {
+        seen.add(node.componentIdx);
+        const parent = parentOf.get(node.componentIdx);
+        if (!parent) {
+            break;
+        }
+        for (const sibling of parent.children ?? []) {
+            if (sibling === node) {
+                break;
+            }
+            visitBefore(sibling);
+        }
+        if (isTransparent(parent.componentType)) {
+            node = parent;
+            continue;
+        }
+        // A component that numbers its children from one: the number may
+        // include that of the section it is in.
+        let ancestor: SerializedComponent | undefined = parent;
+        while (
+            ancestor &&
+            !inherits(ancestor.componentType, "_sectioningComponent")
+        ) {
+            ancestor = parentOf.get(ancestor.componentIdx);
+        }
+        if (!ancestor) {
+            break;
+        }
+        node = ancestor;
+    }
+    return found;
+}
