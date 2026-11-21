@@ -70,6 +70,11 @@ type CreateTestCoreOptions = {
      * would. Ignored by the Rust-core stand-in.
      */
     sendEvent?: (payload: Record<string, any>) => void;
+    /**
+     * Receives each batch of renderer instructions, as the viewer's
+     * `updateRenderersCallback` does, the first (`init`) included.
+     */
+    updateRenderersCallback?: (args: any) => void;
 };
 
 export async function createTestCore({
@@ -87,6 +92,7 @@ export async function createTestCore({
     initialState,
     errorsAfterLoad,
     sendEvent,
+    updateRenderersCallback,
 }: CreateTestCoreOptions): Promise<
     Awaited<ReturnType<typeof createTestCoreJavascript>>
 > {
@@ -122,6 +128,7 @@ export async function createTestCore({
         initialState,
         errorsAfterLoad,
         sendEvent,
+        updateRenderersCallback,
     });
 }
 
@@ -140,6 +147,7 @@ async function createTestCoreJavascript({
     initialState,
     errorsAfterLoad,
     sendEvent = () => null,
+    updateRenderersCallback = () => null,
 }: CreateTestCoreOptions) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
@@ -213,6 +221,17 @@ async function createTestCoreJavascript({
     function deleteNodesFromResolver(node_list: NodeList) {
         rustCore.delete_nodes_from_resolver(node_list);
     }
+    // so that a load stopping on a circular dependency is rebuilt from
+    // the resolver as it was before (D57)
+    function saveResolver() {
+        rustCore.save_resolver();
+    }
+    function restoreResolver() {
+        return rustCore.restore_resolver();
+    }
+    function releaseSavedResolver() {
+        rustCore.release_saved_resolver();
+    }
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -245,6 +264,9 @@ async function createTestCoreJavascript({
         deleteNodesFromResolver,
         resolvePath,
         updateRootNames,
+        saveResolver,
+        restoreResolver,
+        releaseSavedResolver,
     });
 
     const scoreState = {
@@ -308,7 +330,7 @@ async function createTestCoreJavascript({
             requestedVariant,
             errorsAfterLoad,
         },
-        () => null,
+        updateRenderersCallback,
         reportScoreAndStateCallback,
         () => null,
         () => null,

@@ -1617,6 +1617,20 @@ export default class Core {
         }
     }
 
+    /**
+     * This core's load stopped on a circular dependency, and the document is
+     * being built again by another (D57, `rebuildAroundLoadCycle`): stop
+     * what this one started without saving anything, as nothing it made was
+     * shown.
+     */
+    abandonLoad(): void {
+        this.processQueue.stopProcessingRequests = true;
+        this.rendererInstructionBuilder.cancelDeferredRendererUpdate();
+        this.rendererInstructionBuilder.cancelIdleRendererFlush();
+        this.statePersistence.reset();
+        this.actionTriggerScheduler.reset();
+    }
+
     async terminate(): Promise<void> {
         let pause100 = function () {
             return new Promise<void>((resolve) => {

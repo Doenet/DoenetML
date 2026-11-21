@@ -173,6 +173,23 @@ impl PublicDoenetMLCore {
             .replace_index_resolutions_in_resolver(&components.content, index_resolution);
     }
 
+    /// Save a copy of the resolver before the document loads (D57).
+    pub fn save_resolver(&mut self) {
+        self.core.save_resolver();
+    }
+
+    /// Put back the resolver saved by `save_resolver`, for a load that is
+    /// rebuilt. Returns whether one was saved.
+    pub fn restore_resolver(&mut self) -> bool {
+        self.core.restore_resolver()
+    }
+
+    /// Drop the resolver saved by `save_resolver`, once the document has
+    /// loaded.
+    pub fn release_saved_resolver(&mut self) {
+        self.core.release_saved_resolver();
+    }
+
     pub fn delete_nodes_from_resolver(&mut self, node_list: NodeList) {
         self.core.delete_nodes_from_resolver(&node_list.nodes);
     }

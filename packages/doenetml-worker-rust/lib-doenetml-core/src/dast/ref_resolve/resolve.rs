@@ -340,7 +340,10 @@ pub struct NodeResolverData {
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
 /// recreated.
-#[derive(Debug, Serialize)]
+///
+/// It is `Clone` so that the worker can save it before a document loads and
+/// restore it if the load is rebuilt (`Core::save_resolver`).
+#[derive(Debug, Serialize, Clone)]
 pub struct Resolver {
     /// List of the node resolver data for a node at a given index shifted by `1`
     /// so that `node_resolver_data[i+1]` gives the data for node `i`

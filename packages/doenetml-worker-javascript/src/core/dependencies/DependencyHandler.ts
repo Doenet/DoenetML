@@ -123,6 +123,8 @@ export class DependencyHandler {
      * clears it on entry besides.
      */
     _circularPathComponents: ComponentIdx[];
+    /** The variable of each component on `_circularPathComponents`. */
+    _circularPathVarNames: string[];
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
@@ -216,6 +218,7 @@ export class DependencyHandler {
 
         this.circularCheckMarks = new CircularCheckMarks();
         this._circularPathComponents = [];
+        this._circularPathVarNames = [];
 
         this.dependencyTypes = {};
         dependencyTypeClasses.forEach(
@@ -1003,6 +1006,7 @@ export class DependencyHandler {
         varName: string;
     }) {
         this._circularPathComponents.length = 0;
+        this._circularPathVarNames.length = 0;
         this._searchForCircularDependency(componentIdx, varName);
     }
 
@@ -1012,12 +1016,25 @@ export class DependencyHandler {
             // The path runs from the variable the search started at through
             // the variable reached twice (which is somewhere on it) to the
             // variable that closed the cycle.
+            // the cycle itself runs from where the variable reached twice is
+            // on the path
+            let start = this._circularPathComponents.length - 1;
+            while (
+                start > 0 &&
+                !(
+                    this._circularPathComponents[start] === componentIdx &&
+                    this._circularPathVarNames[start] === varName
+                )
+            ) {
+                start--;
+            }
             throw new CircularDependencyError(
                 this.getCircularDependencyMessage(
                     this._circularPathComponents.map(
                         (idx) => this.components[idx],
                     ),
                 ),
+                this._circularPathComponents.slice(start),
             );
         }
         if (mark === PASSED) {
@@ -1026,6 +1043,7 @@ export class DependencyHandler {
 
         this.circularCheckMarks.set(componentIdx, varName, ON_PATH);
         this._circularPathComponents.push(componentIdx);
+        this._circularPathVarNames.push(varName);
         try {
             const downDeps =
                 this.downstreamDependencies[componentIdx]?.[varName];
@@ -1045,6 +1063,7 @@ export class DependencyHandler {
             }
         } finally {
             this._circularPathComponents.pop();
+            this._circularPathVarNames.pop();
             this.circularCheckMarks.set(componentIdx, varName, PASSED);
         }
     }
@@ -2063,15 +2082,14 @@ export class DependencyHandler {
             { type: blockerType, code: blockerCode },
         );
         if (cycle) {
+            const cycleIndices = cycle.map(({ code }) =>
+                Number(code.split("|")[0]),
+            );
             throw new CircularDependencyError(
                 this.getCircularDependencyMessage(
-                    cycle.map(
-                        ({ code }) =>
-                            this.components[
-                                code.split("|")[0] as unknown as number
-                            ],
-                    ),
+                    cycleIndices.map((idx) => this.components[idx]),
                 ),
+                cycleIndices,
             );
         }
 

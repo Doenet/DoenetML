@@ -28,6 +28,10 @@ pub struct Core {
     pub document_model: DocumentModel,
     pub document_renderer: DocumentRenderer,
     pub resolver: Option<Resolver>,
+    /// The resolver as it was before the document loaded, kept while it
+    /// loads so that a load that is rebuilt starts from it again
+    /// (`save_resolver`, `restore_resolver`).
+    pub saved_resolver: Option<Resolver>,
 }
 
 impl Default for Core {
@@ -42,6 +46,7 @@ impl Core {
             document_model: DocumentModel::new_with_root_data_query(),
             document_renderer: DocumentRenderer::new(),
             resolver: None,
+            saved_resolver: None,
         }
     }
 
@@ -55,6 +60,32 @@ impl Core {
         flat_root.compactify(Some(&mut resolver));
         self.resolver = Some(resolver);
         flat_root.into_normalized_root()
+    }
+
+    /// Save a copy of the resolver, to be restored by `restore_resolver`.
+    /// The worker saves it before the document loads: a load that stops on a
+    /// circular dependency is rebuilt, and the nodes the first load added
+    /// (what its composites made) must not be in the resolver the second
+    /// load starts from (D57).
+    pub fn save_resolver(&mut self) {
+        self.saved_resolver = self.resolver.clone();
+    }
+
+    /// Put back the resolver saved by `save_resolver`, keeping the saved copy
+    /// so it can be restored again. Returns whether there was one.
+    pub fn restore_resolver(&mut self) -> bool {
+        match &self.saved_resolver {
+            Some(saved) => {
+                self.resolver = Some(saved.clone());
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Drop the copy saved by `save_resolver`, once the document has loaded.
+    pub fn release_saved_resolver(&mut self) {
+        self.saved_resolver = None;
     }
 
     pub fn add_nodes_to_resolver(
