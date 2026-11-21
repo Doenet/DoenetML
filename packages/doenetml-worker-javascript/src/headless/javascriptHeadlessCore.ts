@@ -285,6 +285,22 @@ export async function createJavascriptHeadlessCore({
         return order;
     }
 
+    /**
+     * Whether a component is one of the document's scored parts: an
+     * `<answer>`, or a component that is scored as a whole, such as a
+     * `<pretzel>` (anything built on `_blockScoredComponent`). These are the
+     * components the document numbers as its answers
+     * (`componentNumberByAnswerName`).
+     */
+    function isScoredPart(candidate: any): boolean {
+        return ["answer", "_blockScoredComponent"].some((baseComponentType) =>
+            core.componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: candidate.componentType,
+                baseComponentType,
+            }),
+        );
+    }
+
     function toComponent(child: any): HeadlessComponent {
         return {
             componentIdx: child.componentIdx,
@@ -356,7 +372,7 @@ export async function createJavascriptHeadlessCore({
             for (const answer of core._components) {
                 // A copy of an answer shadows it and shares its state; the
                 // answer itself is the one to report.
-                if (answer?.componentType !== "answer" || answer.shadows) {
+                if (!answer || answer.shadows || !isScoredPart(answer)) {
                     continue;
                 }
                 const values = answer.stateValues;
@@ -370,7 +386,11 @@ export async function createJavascriptHeadlessCore({
                         creditAchieved: await values.creditAchieved,
                         numSubmissions: await values.numSubmissions,
                     },
-                    inputs: (await values.inputChildren).map(toComponent),
+                    // A part scored as a whole, such as a `<pretzel>`, has no
+                    // input children of its own.
+                    inputs: ((await values.inputChildren) ?? []).map(
+                        toComponent,
+                    ),
                 });
             }
             // In document order: where each sits in the document as it now

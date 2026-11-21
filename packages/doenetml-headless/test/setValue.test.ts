@@ -294,6 +294,9 @@ describe("setValue and submit", () => {
             <choiceInput name="many" selectMultiple>
                 <choice>a</choice><choice>b</choice><choice>c</choice>
             </choiceInput>
+            <p><choiceInput name="inl" inline selectMultiple>
+                <choice>a</choice><choice>b</choice><choice>c</choice>
+            </choiceInput></p>
             <choiceInput name="cd"><choice disabled>a</choice><choice>b</choice></choiceInput>`,
             async (core) => {
                 let error = await refusal(setValue(core, "ci", [1, 2]));
@@ -312,6 +315,7 @@ describe("setValue and submit", () => {
                 expect((await credits(core)).c.ifSubmit).toBe(0);
 
                 await setValue(core, "many", [3, 1]);
+                await setValue(core, "inl", [3, 1]);
                 await setValue(core, "cd", 2);
                 const read = async (name: string) => {
                     const r = await core.resolvePath(name);
@@ -322,8 +326,10 @@ describe("setValue and submit", () => {
                         ])
                     ).selectedIndices;
                 };
-                // In increasing order, as the renderer sends them
+                // In increasing order, as checkboxes send them; an inline
+                // dropdown keeps the order picked
                 expect(await read("many")).toEqual([1, 3]);
+                expect(await read("inl")).toEqual([3, 1]);
                 expect(await read("cd")).toEqual([2]);
             },
         );
@@ -397,11 +403,16 @@ describe("setValue and submit", () => {
                 await setValue(core, { answer: "a", position: 1 }, "x");
                 await submit(core, "d");
                 const answers = await core.getAnswers();
-                expect(answers.map((a) => a.stored.numSubmissions)).toEqual([
-                    1, 1,
-                ]);
-                expect(answers.map((a) => a.stored.creditAchieved)).toEqual([
-                    1, 0,
+                expect(
+                    answers.map((a) => [
+                        a.stableKey,
+                        a.stored.numSubmissions,
+                        a.stored.creditAchieved,
+                    ]),
+                ).toEqual([
+                    ["a", 1, 1],
+                    ["b", 1, 0],
+                    ["p", 1, 0],
                 ]);
             },
         );

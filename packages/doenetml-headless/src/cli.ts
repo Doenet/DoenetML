@@ -227,7 +227,7 @@ function formatCheck(file: string, result: CheckResult): string {
         ...(result.answers.length > 0 ? ["Answers:"] : []),
         ...result.answers.map(
             (a) =>
-                `  ${a.stableKey ?? `(no stable key, ${at(a.position)})`}: ${a.inputs.map((i) => i.componentType).join(", ") || "no inputs of its own"}`,
+                `  ${a.stableKey ?? `(no stable key, ${at(a.position)})`}: ${a.componentType === "answer" ? a.inputs.map((i) => i.componentType).join(", ") || "no inputs of its own" : `a <${a.componentType}>, scored as a whole`}`,
         ),
         ...formatDiagnostics(result.diagnostics),
     ].join("\n");

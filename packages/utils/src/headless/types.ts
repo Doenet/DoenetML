@@ -47,7 +47,7 @@ export interface HeadlessCore {
      * The current values of the named state variables of a component, public
      * or not. A name the component does not have is absent from the result.
      * `setValue` reads `disabled`, `fixed`, `fixLocation`, `draggable`,
-     * `numChoices`, `selectMultiple`, `choicesDisabled`, `numRows`,
+     * `numChoices`, `selectMultiple`, `choicesDisabled`, `inline`, `numRows`,
      * `numColumns` and `numDimensions`.
      */
     readProperties(
@@ -56,13 +56,14 @@ export interface HeadlessCore {
     ): Promise<Record<string, unknown>>;
 
     /**
-     * The document's `<answer>` components, in the order a reader meets them
-     * (a repeat's answers iteration by iteration, a select's in the order
-     * selected). Not included: a copy of an answer that shadows it (the
-     * answer itself is reported once), an answer whose content has not been
-     * created (inside an unopened `<solution>`), and a `<pretzel>`, nor the
-     * `<answer>` that gives each of its problems' answer, which the pretzel
-     * turns into text; a pretzel's credit is in the document's.
+     * The document's scored parts, in the order a reader meets them (a
+     * repeat's iteration by iteration, a select's in the order selected):
+     * each `<answer>`, and each component scored as a whole, such as a
+     * `<pretzel>`, the parts the document numbers as its answers. Not
+     * included: a copy that shadows one (the part itself is reported once), a
+     * part whose content has not been created (inside an unopened
+     * `<solution>`), and the `<answer>` that gives each of a pretzel's
+     * problems' answer, which the pretzel turns into text.
      */
     getAnswers(): Promise<HeadlessAnswer[]>;
 
@@ -188,7 +189,8 @@ export type HeadlessAnswer = HeadlessComponent & {
     };
     /**
      * The inputs that are the answer's own children, in order, so that
-     * `inputs[n - 1]` is the input at position `n`. An input the answer uses
+     * `inputs[n - 1]` is the input at position `n`; none for a part scored as
+     * a whole, such as a `<pretzel>`. An input the answer uses
      * through `forAnswer` is not here; it is reached by its own path.
      */
     inputs: HeadlessComponent[];

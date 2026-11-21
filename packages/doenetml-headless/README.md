@@ -32,19 +32,20 @@ So, in a result:
   itself says. They are restored exactly as stored, so they are the browser's
   claim, shown beside the recomputed credit for comparison and nothing more.
 - `document.credit` is the document's own `creditAchievedIfSubmit`. The
-  document weighs its parts itself, so a `<pretzel>` or a section with
+  document weighs its parts itself, by their weights, and a section with
   `sectionWideCheckWork` counts as the one part it is; read this, do not add
   up the answers. It is `NaN` (`null` in JSON) when the document weighs
   nothing (no answers, or every weight 0), and also when a `<problem>` or
   other aggregating section in it has no answers, whatever the rest earns
   (each divides by the weight of what it holds, with no guard for none).
 
-`answers` are the document's `<answer>` components in the order a reader meets
-them (a repeat's iteration by iteration, a select's in the order selected). A
-copy of an answer is not reported beside it, an answer inside an unopened
-`<solution>` does not exist yet, and a `<pretzel>` is not among them (nor is
-the `<answer>` that gives each of its problems' answer, which it turns into
-text): its credit is only in `document.credit`.
+`answers` are the document's scored parts in the order a reader meets them (a
+repeat's iteration by iteration, a select's in the order selected): each
+`<answer>`, and each component scored as a whole, such as a `<pretzel>`
+(`componentType: "pretzel"`, with no `inputs`). A copy of an answer is not
+reported beside it, an answer inside an unopened `<solution>` does not exist
+yet, and the `<answer>` that gives each of a pretzel's problems' answer is not
+among them, since the pretzel turns it into text.
 
 **Snapshot the state at the moment of submission.** `creditAchievedIfSubmit`
 reflects the inputs as they were when the state was saved, not as they were
@@ -176,7 +177,7 @@ a path at all (names joined by `.`, literal indices) throws a plain `Error`.
 | `<mathInput>`     | the LaTeX typed, a string                                                                                                                                                                                                                     |
 | `<textInput>`     | the text, a string                                                                                                                                                                                                                            |
 | `<booleanInput>`  | `true` or `false`                                                                                                                                                                                                                             |
-| `<choiceInput>`   | the positions of the selected choices, numbered from 1 in the order the reader sees them (shuffled, if the choices are), as an array or one number; one position unless it has `selectMultiple`, each at most once, none of a disabled choice |
+| `<choiceInput>`   | the positions of the selected choices, numbered from 1 in the order the reader sees them (shuffled, if the choices are), as an array or one number; one position unless it has `selectMultiple`, each at most once, none of a disabled choice; several are selected in increasing position, as checkboxes select them, or, for an `inline` input, in the order given, as its dropdown keeps the order they were picked |
 | `<fractionInput>` | `{ numerator, denominator }`, each the LaTeX typed                                                                                                                                                                                            |
 | `<matrixInput>`   | the LaTeX of every cell, as an array of rows of the matrix's current size                                                                                                                                                                     |
 | `<point>`         | its coordinates, `[x, y]` or `[x, y, z]` as the point has, moved as a drag moves it                                                                                                                                                           |

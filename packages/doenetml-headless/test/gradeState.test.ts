@@ -156,12 +156,21 @@ describe("gradeState", () => {
             await submitAnswerAt(core, x1.componentIdx);
         });
         const result = await gradeState(doenetML, 1, state);
-        // The answer and the pretzel are the document's two scored parts
+        // The answer and the pretzel are the document's two scored parts,
+        // and both are among the answers; the problems' own answers are not
         expect(result.document.credit).toBe(0.5);
-        const mean =
-            result.answers.reduce((sum, a) => sum + a.credit, 0) /
-            result.answers.length;
-        expect(mean).not.toBe(0.5);
+        expect(
+            result.answers.map((a) => [a.stableKey, a.componentType, a.credit]),
+        ).toEqual([
+            ["x1", "answer", 1],
+            ["p", "pretzel", 0],
+        ]);
+        const pretzel = result.answers[1];
+        expect(pretzel.inputs).toEqual([]);
+        expect(pretzel.stored).toEqual({
+            creditAchieved: 0,
+            numSubmissions: 0,
+        });
     });
 
     it("reads the document's credit with a section-wide check work", async () => {

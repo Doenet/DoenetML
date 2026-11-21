@@ -51,4 +51,22 @@ describe("check", () => {
             { componentType: "mathInput" },
         ]);
     });
+
+    it("reports a pretzel among the answers, and not its problems' answers", async () => {
+        const result = await check(`
+    <answer name="before">1</answer>
+    <pretzel name="pz">
+        <problem><statement><p>1+1?</p></statement><answer>2</answer></problem>
+        <problem><statement><p>1+2?</p></statement><answer>3</answer></problem>
+    </pretzel>
+    <answer name="after">2</answer>
+    `);
+        expect(
+            result.answers.map((a) => [a.stableKey, a.componentType, a.inputs]),
+        ).toEqual([
+            ["before", "answer", [{ componentType: "mathInput" }]],
+            ["pz", "pretzel", []],
+            ["after", "answer", [{ componentType: "mathInput" }]],
+        ]);
+    });
 });

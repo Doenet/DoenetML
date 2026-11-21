@@ -25,6 +25,9 @@ export type ValueTarget = string | { answer: string; position: number };
  * - `choiceInput`: the selected choices' positions, numbered from 1 (an array,
  *   or one number), in the order the reader sees the choices: one unless the
  *   input has `selectMultiple`, each at most once, none of a disabled choice.
+ *   A list of choices selects them in increasing position, as its checkboxes
+ *   do; an inline one in the order given, as its dropdown keeps the order
+ *   they were picked.
  * - `fractionInput`: `{ numerator, denominator }`, each the LaTeX typed.
  * - `matrixInput`: the LaTeX of each cell, as an array of rows; its shape must
  *   be the matrix's.
@@ -225,8 +228,8 @@ async function refuseIfDisabled(
     component: HeadlessComponent,
     where: string,
 ) {
-    // An component or point that cannot change ignores the actions sent to it, so
-    // a value set on one would silently not be there. A fixed component (`fixed`
+    // An input or point that cannot change ignores the actions sent to it, so
+    // a value set on one would silently not be there. A fixed input (`fixed`
     // on it or on a container) is one, though it is not disabled.
     const { disabled, fixed, fixLocation, draggable } =
         await core.readProperties(component.componentIdx, [
@@ -275,11 +278,12 @@ async function selectChoices(
     where: string,
 ) {
     const selectedIndices = typeof value === "number" ? [value] : value;
-    const { numChoices, selectMultiple, choicesDisabled } =
+    const { numChoices, selectMultiple, choicesDisabled, inline } =
         await core.readProperties(input.componentIdx, [
             "numChoices",
             "selectMultiple",
             "choicesDisabled",
+            "inline",
         ]);
     if (
         !Array.isArray(selectedIndices) ||
@@ -318,13 +322,16 @@ async function selectChoices(
             `${where}: choice ${disabledIndex} is disabled, so it cannot be selected.`,
         );
     }
-    // The renderer sends the selected positions in increasing order, so the
-    // input's value lists the selected choices in the order the reader sees
-    // them, whatever order they were given in here.
+    // A list of checkboxes sends the selected positions in increasing order;
+    // an inline dropdown sends them in the order they were picked, so for it
+    // the order given here is the order picked.
     await core.dispatchAction({
         componentIdx: input.componentIdx,
         actionName: "updateSelectedIndices",
-        args: { selectedIndices: [...indices].sort((a, b) => a - b) },
+        args: {
+            selectedIndices:
+                inline === true ? indices : [...indices].sort((a, b) => a - b),
+        },
     });
 }
 
