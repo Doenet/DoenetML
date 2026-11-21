@@ -234,8 +234,9 @@ which is never made, has no target and gets `w0043` as a warning, decided by the
 **`doenet-w0195`** at load, naming the target and what to write instead (`$g.a`, `$r[1].x`).
 **Done by #2611** (COLL-2, COLL-3): a target that is a wrapper of one component (`$g` of a group
 holding one input, `$r[1]` of an iteration holding one `<number>`, a pick, a shown case) reaches
-it, at any depth, for `<updateValue>` and `<animateFromSequence>`; `target="$r.mi"` reaches every
-iteration's `mi`, and `$r.mi.value` each one's value. A wrapper of several is still only a
+it, at any depth, for `<updateValue>` and `<animateFromSequence>`. It also made `target="$r.mi"`
+reach every iteration's `mi`; **D59 reverts that** (#2626): a name after a repeat names nothing,
+and the target is written `$r[1].mi`. A wrapper of several is still only a
 container (`w0044` when acted on). `w0044` is an info when what a composite holds can change
 (DIAG-2), a warning otherwise.
 

@@ -168,12 +168,12 @@ implementation term, and authors do not need it ([decisions.md](decisions.md), D
     What an index, a name or a property after a tag reaches depends on what the tag is to you:
     - **one thing** (a point, a vector, a matrix, a math holding a tuple) has its own properties,
       and an index reaches an entry of its value;
-    - **many things** (a list, a collect, a sort or shuffle, a repeat, a select, a conditional):
-      an index picks an item, and a name or a property reaches into every item. A name always
-      works (`$r.P`). A property works when each item is one component: every list entry, or
-      what you write inside a repeat, in each option or in each case. When that holds several
-      components, name the one you mean: `$r.P.x`. `numItems` and settings such as `hide` are
-      the collection's own;
+    - **many things** (a list, a collect, a sort or shuffle, a repeat, a select of several): an
+      index picks an item, and a name or property after the tag is the tag's own (`numItems`,
+      `hide`), never an item's. Index an item to reach into it: `$r[2].P`, `$pl[1].x`. A
+      one-entry list is still a list (D59);
+    - **one shown thing** (a `<conditionalContent>`, a `<select>` that picks one) stands for what
+      it shows: `$cc.x`, `$s.P`;
     - **a `<group>`** holding one component stands for it; holding several, name the one you
       mean.
 

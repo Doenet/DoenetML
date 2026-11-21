@@ -422,8 +422,9 @@ an error on a tag, which D37 reversed (#2458). Examples: `$n.nonexistent`,
    no property of that name (`__prop_name_not_found` in `W/components/abstract/Copy.js`). A
    property the type has, but with no value now, stays missing with no warning: `$P.z` of a 2D
    point, `$c.maxNumber` with no limit (above).
-3. **For a collection, everything its items can be** (COLL-2; a wrapper of several takes no
-   property, COLL-3). `$cc.value` is fine when every case holds one math.
+3. **For a conditional or a one-pick chooser, everything its cases or options can be** (COLL-2; a
+   wrapper of several takes no property, COLL-3). `$cc.value` is fine when every case holds one
+   math. (A collection's own properties don't reach its items, D59.)
    **It warns, decided at load, if any component the composite can hold lacks the property**,
    and each component that lacks it contributes a blank `＿` (decided, D40; #2452). A property
    none has is `w0104`, as before. **Done by #2547** for a select and a conditional whose options

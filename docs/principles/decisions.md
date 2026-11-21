@@ -2583,7 +2583,8 @@ names nothing (D27 revised, #2518).
 
 ### Decided
 
-1. **A property or a name after a collection applies to each item.** `$pl.x` is `1, 3`. A name
+1. **A property or a name after a collection applies to each item.** *(Reverted by D59, except for a
+   `<conditionalContent>` and a one-pick chooser.)* `$pl.x` is `1, 3`. A name
    applies the same way: `$rmix.P` is each iteration's `P`, and `$s.P.x` each pick's `P`'s x. A
    name reached this way follows the rules for a name in branches: declared in every option or
    case, with one type (D22, COMP-11); a template declares it in every iteration. An item that
@@ -3198,3 +3199,29 @@ works and is unchanged.
 **Decided:** ordering a text against a number is a type mix, with a warning at load saying the
 comparison can never be true, as D47's other type mixes are. Nothing is converted. When the text
 is a `sectionNumber`, the warning suggests `ownNumber` (D56). Implemented with PR 28 (#2582).
+
+## D59. A name or property after a collection is the collection's own (decided, Tier 1; November 2026)
+
+Reverts D41 decision 1 for collections. With it, `$r.x` was each item's `x` but `$r.fixed` the
+repeat's own, and `$r.P` every iteration's `P`: authors found it hard to tell which a name or
+property reached.
+
+**Decided** (COLL-1, COLL-2):
+1. **After a collection, a name or property is the collection's own.** A collection is a list, a
+   sequence, a collect, a sort or shuffle, a repeat, the list operators, and a select or other
+   random chooser with `numToSelect` written as anything but a literal `1`. Its own properties are
+   `numItems`, `hide`, `fixed`, `disabled`, and those the tag declares for itself. Anything else
+   names nothing, with a warning suggesting an index: `$pl.x` → `$pl[1].x`, `$r.P` → `$r[1].P`.
+2. **A one-shown-thing tag stands for what it shows,** as a `<group>` of one does: a
+   `<conditionalContent>`, and a select or chooser with no `numToSelect` or a literal `1`. `$cc.x`
+   and `$s.P.x` keep working, with the every-branch rule (COMP-11). Its own settings stay its own.
+3. **Decided by the tag as written,** never by the number of items as the document runs: a
+   one-entry `<mathList>` is still a list, and `numToSelect="$n"` is a collection.
+4. **Every item later, by a slice:** `$r[:].P`, `$pl[:].x`, if authors need it. Not implemented.
+   This leaves a name or property after a collection free for the collection's own, such as
+   attributes (`maxNumber`) if they are exposed one day (D41's open question).
+5. **An action's target follows the same rule:** `target="$r.mi"` names nothing; write
+   `$r[1].mi`.
+
+Implementation: #2626. It reverts parts of #2565 (per-item names and properties, `w0192` for
+repeats) and #2611 (`$r.mi` as a target).

@@ -129,61 +129,72 @@ was built" assertions.
 > not on how it is built.**
 > - **One thing** (a point, a vector, a matrix, a math holding a tuple) has its own properties.
 >   An index reaches an entry of its value.
-> - **Many things** (a list, a sequence, a collect, a sort or shuffle, a repeat, a select, a
->   conditional, the random choosers): an index picks an item, and a name or a property reaches
->   into every item.
->   - **A name always works:** for a `<repeat name="r">` with a `<point name="P">`
->     written inside it, `$r.P` is the `P` from every item, as `$r[2].P` is the `P` from item 2.
->   - **A property works when each item is one component:** every list entry, and a repeat,
->     select or conditional where what you write inside the repeat, in each option or in each
->     case is one component. `$r.x` is every item's `x`.
->   - **When what you write for an item holds several components,** a property can't tell which
->     you mean: name it and write `$r.P.x`.
+> - **Many things** (a list, a sequence, a collect, a sort or shuffle, a repeat, a select of
+>   several): an index picks an item. A name or a property after it is the tag's own
+>   (`$r.numItems`, `$r.hide`), never an item's. To reach into an item, index it: `$r[2].P`,
+>   `$pl[1].x`. This holds even when it happens to hold one item.
+> - **One shown thing** (a `<conditionalContent>`, and a `<select>` or other random chooser that
+>   picks one) stands for what it shows: `$cc.x` is the shown case's `x`, and `$s.P` the pick's
+>   `P`. A name must be declared in every case or option (COMP-11).
 > - **A `<group>`** holding one component stands for it. Holding several, name the one you mean.
+>
+> Which of these a tag is comes from the tag as written, never from how many items it holds as
+> the document runs. So `.x` after a tag always means the same thing.
 
 How this is built from smaller rules is Tier 2: an item of a repeat, select or conditional is a
-*wrapper* (an iteration, a pick or a shown case), as a `<group>` is, and a property after a
-collection applies to each item and then through the wrapper (COLL-2 with COLL-3). Authors don't
-need the word.
+*wrapper* (an iteration, a pick or a shown case), as a `<group>` is. A conditional and a
+one-pick chooser stand for their one wrapper, which stands for its component (COLL-3). Authors
+don't need the word.
+
+**Reaching into every item later.** If authors need a property or name of every item, it will be
+written as a slice, `$r[:].P` or `$pl[:].x` (D59), so a name or property after a collection stays
+free for the collection's own (such as `maxNumber`, if attributes are exposed one day).
 
 The kinds, precisely (Tier 2):
 - **One thing:** a point, vector, coords, a math holding a tuple or vector, a matrix, a math or
   matrix input, and `<solveEquations>`. A set would be one thing with no index.
 - **Many things:** the lists (`<mathList>` … `<intervalList>`), `<sequence>`, the random
-  selectors and samplers, the list operators, `<collect>`, `<sort>`, `<shuffle>`, `<repeat>`,
-  `<repeatForSequence>`, `<select>`, `<conditionalContent>` (0 or 1 items: the shown case) and
-  `<functionIterates>`.
+  selectors and samplers with `numToSelect` (or `numSamples`) written as anything but a literal
+  `1`, the list operators, `<collect>`, `<sort>`, `<shuffle>`, `<repeat>`, `<repeatForSequence>`
+  and `<functionIterates>`.
+- **One shown thing:** a `<conditionalContent>` (0 or 1 items: the shown case), and a `<select>`
+  or other random chooser with no `numToSelect`, or a literal `1`. It is still indexed by item
+  (`$cc[1]`, `$s[1]`), and `numItems` is its own.
 - **Wrappers:** `<group>`, an iteration, a pick and a shown case. A wrapper is not indexable
   itself (COLL-3).
 
 Whether a tag is built as a composite or a list component never changes which kind it is
 (COMP-4).
 
-### COLL-2: a collection is indexed by item, and a property or name applies to each item (Tier 2; D41)
-- **Index:** an item (NAME-2).
-- **Property:** each item's (`$pl.x` of a `<pointList>` whose points have x 1 and 3 is `1, 3`).
-  An item that lacks it gives a blank, with a warning decided at load (#2452).
-- **Name:** each item's component of that name: `$r.P` is every iteration's `P`, and `$s.P.x` each
-  pick's `P`'s x. The name must be declared in every option or case, with one type (COMP-11);
-  what is written inside a repeat declares it in every iteration.
-- **Options or cases that differ** (some holding one component, some several): a property or an
-  index after the select or conditional works only for some branches, so the author gets a
-  warning at load naming the branches that hold several (#2520 item 1).
-- **Own properties, a fixed set:** `numItems` (entries, iterations, picks; 0 or 1 for a
-  conditional), and the settings every component has (`hide`, `fixed`, `disabled`). They win
-  over the items' properties of the same name; an item that is itself a collection is reached by
-  index (`$c[1].numItems`). They also win over an item's component of that name: with
-  `<number name="fixed"/>` in each iteration, `$r.fixed` is the repeat's own `fixed`, and the
-  item's is `$r[1].fixed` (#2611; an action's target agrees). A collection's attributes are not
-  properties, so adding one never shadows the items' properties.
+### COLL-2: a collection is indexed by item; a name or property after it is its own (Tier 2; D41, D59)
+- **Index:** an item (NAME-2): `$r[2]`, `$r[2].P`, `$pl[1].x`.
+- **Property:** the collection's own, never an item's. Its own properties are `numItems`
+  (entries, iterations, picks), the settings every component has (`hide`, `fixed`, `disabled`),
+  and the properties the tag declares for itself. `$pl.x` of a `<pointList>` names nothing, with
+  a warning suggesting `$pl[1].x`.
+- **Name:** names nothing after a collection, with a warning suggesting an index: `$r.P` →
+  `$r[1].P`. Names inside an item are reached through the item (NAME-3).
+- **A one-shown-thing tag** (a `<conditionalContent>`, a one-pick chooser) is not a collection
+  for this: a name or property after it reaches the shown component, through its wrapper
+  (COLL-3). A name must be declared in every case or option, with one type (COMP-11). When
+  options or cases differ (some holding one component, some several), a property after it works
+  only for some, so the author gets a warning at load naming the ones that hold several
+  (#2520 item 1).
+- **Later:** every item's property or name would be a slice, `$r[:].P` (D59). Not implemented.
+
+**Reverted by D59** (decided November 2026): D41 decision 1 had a name or property after a
+collection reach into every item (`$pl.x` was `1, 3`, `$r.P` every iteration's `P`). Authors
+found that confusing: `$r.fixed` was the repeat's own but `$r.x` each item's. #2565 and #2611
+implemented it; the work to remove it is #2626.
 
 **Done by #2565** (closing #2523 and #2271):
 - `numItems` is on every collection, in both builds (`W/utils/numItems.ts`), and wins over an
   item's property of that name.
 - A name after a collection is each item's: `$rmix.P`, `$rmix.P.x`, `$s.P.x`, `$c.P` of a collect
   holding `P` more than once. After a select of several it follows the every-option rule at load.
+  **Reverted by D59** for collections (#2626); it stays for a one-pick select and a conditional.
 - An item lacking a property gives a blank with `w0192` at load, for repeats too (`$rmix.x` over
-  a point and a text is `1, ＿, 2`).
+  a point and a text is `1, ＿, 2`). **Reverted by D59** for collections: `$rmix.x` names nothing.
 - A collection's settings are its own (`$s.fixed`, `$r.fixed`).
 - A collection's attributes are not properties (`attributesAreProperties = false`): `$c.maxNumber`
   of a collect is each item's. A collect, sort or shuffle built as a list no longer inherits that
@@ -198,10 +209,11 @@ Whether a tag is built as a composite or a list component never changes which ki
   `variance`, …).
 
 **Known violations** (#2569):
-- a name each item lacks shows nothing, with no warning (`$r.P` with `P` only in a nested
-  repeat, `$r.P.nope`);
-- `$c.P` of a collect holding `P` once names that one alone, and when the collect's count
-  follows an input it latches onto one item live (a reload gives every item);
+- **under D59 (#2626):** a name or property after a collection still reaches into every item
+  (`$pl.x`, `$r.P`, `$r.P.x`, `$c.P`, and an action's `target="$r.mi"`). Each should name nothing,
+  with a warning suggesting an index. Once removed, these older violations go away with it: a
+  name each item lacks showing nothing (`$r.P.nope`), and `$c.P` naming one item or latching onto
+  one live;
 - `<collect fixed|disabled|hide>` passes these to the collected copies, so they aren't the
   collect's own;
 - a collection's own property spelled in another case is the collection's when written directly
