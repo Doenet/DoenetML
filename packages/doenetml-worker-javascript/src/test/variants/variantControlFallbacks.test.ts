@@ -241,7 +241,7 @@ ${select}
 
     describe("a variantControl made from another is an error", () => {
         const message =
-            "A `<variantControl>` can't be made with `extend` or `copy`. A document's variants are decided before anything else in it, so before what they reference can be read. Write the attributes on the `<variantControl>` itself.";
+            "A `<variantControl>` can't be made with `extend`, `copy` or `copyWithState`. A document's variants are decided before any reference in it can be read. Write the attributes on the `<variantControl>` itself.";
 
         for (const attribute of ["extend", "copy", "copyWithState"]) {
             it(`with ${attribute}, the variantControl written out is followed`, async () => {
