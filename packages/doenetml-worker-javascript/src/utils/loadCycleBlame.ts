@@ -35,9 +35,12 @@
  *
  * A component the run time made (what a composite holds, a component made
  * for an attribute) stands for the authored nodes it was made from: what it
- * was copied from (`madeFromIdx`, such as what is written in a repeat's
- * template), and the composite that made it (`replacementOf`) or the
- * component it is in, each traced back to one written in the DoenetML.
+ * was copied from (`madeFromIdx`: what is written in a repeat's template,
+ * or what an `extend`, `copy` or `$n` is of), and the composite that made it
+ * (`replacementOf`) or the component it is in, each traced back to one
+ * written in the DoenetML. Its state variables on the cycle are those of
+ * what it was copied from, but those of an attribute the reference that made
+ * it writes itself, which are the reference's (`authoredOwnerOf`).
  */
 import type { SerializedComponent } from "./dast/types";
 import type { ComponentInfoObjects } from "./componentInfoObjects";
@@ -125,8 +128,9 @@ function authoredComponents(document: SerializedComponent) {
 
 /**
  * The authored nodes a component on the cycle stands for: itself, if written
- * in the DoenetML; else what it was copied from (`madeFromIdx`, such as what
- * is written in a repeat's template), and the composite that made it or the
+ * in the DoenetML; else what it was copied from (`madeFromIdx`: what is
+ * written in a repeat's template, or what an `extend`, `copy` or `$n` is
+ * of), and the composite that made it or the
  * component it is in, each traced the same way to one that was written.
  */
 function authoredNodesOf(
@@ -166,26 +170,67 @@ function authoredNodesOf(
 }
 
 /**
- * The authored node `componentIdx` is, or was copied from (`madeFromIdx`,
- * such as what is written in a repeat's template), if any: one whose state
- * variables are those of the authored node, unlike the composite that made
- * it or the component it is in.
+ * Whether the state variable `varName` (lower case) is of an attribute
+ * `component` has written: the attribute itself (`hide`), or a value of an
+ * expression attribute (`__hide_ref0_value`, `expressionAttributePrefix`).
  */
-function authoredSelfOf(
+function isOfAttributeWritten(component: SerializedComponent, varName: string) {
+    return Object.keys(component.attributes ?? {}).some((name) => {
+        const lower = name.toLowerCase();
+        return varName === lower || varName.startsWith(`__${lower}_`);
+    });
+}
+
+/**
+ * The authored node whose state variable `varName` (lower case) of
+ * `componentIdx` is, if any, and the authored nodes passed over on the way.
+ * That is the component itself, if written in the DoenetML, else, for a
+ * copy (`madeFromIdx`: what is written in a repeat's template, or what an
+ * `extend`, `copy` or `$n` is of), what it was copied from, traced the same
+ * way. But a copy made by an authored reference (`replacementOf` a `_copy`)
+ * that writes the variable's attribute itself
+ * (`<number extend="$n" name="m" hide="$s.hidden"/>`) takes the variable
+ * from the reference, not from what it copies, so it is the reference's.
+ * The composite that made a component, or the component it is in, does not
+ * have its state variables, so is not followed.
+ */
+function authoredOwnerOf(
     componentIdx: number,
+    varName: string,
     authored: Map<number, SerializedComponent>,
     components: any[],
-): number | undefined {
+): { owner: number | undefined; passed: number[] } {
     const seen = new Set<number>();
+    const passed: number[] = [];
     let idx: number | undefined = componentIdx;
     while (idx !== undefined && !seen.has(idx)) {
         if (authored.has(idx)) {
-            return idx;
+            return { owner: idx, passed };
         }
         seen.add(idx);
-        idx = components[idx]?.madeFromIdx;
+        const component = components[idx];
+        const reference = authored.get(component?.replacementOf?.componentIdx);
+        if (
+            reference?.componentType === "_copy" &&
+            component?.madeFromIdx !== undefined &&
+            isOfAttributeWritten(reference, varName)
+        ) {
+            // what it copies is passed over: none of its variables on the
+            // cycle is this one
+            const copied = authoredOwnerOf(
+                component.madeFromIdx,
+                varName,
+                authored,
+                components,
+            );
+            if (copied.owner !== undefined) {
+                passed.push(copied.owner);
+            }
+            return { owner: reference.componentIdx, passed };
+        }
+        idx = component?.madeFromIdx;
     }
-    return undefined;
+    return { owner: undefined, passed };
 }
 
 /**
@@ -217,19 +262,37 @@ export function blameLoadCycle({
         }
     }
     // the state variables the cycle runs through of each authored node it
-    // is, or was copied from, lower case
+    // is, or was copied from, lower case. An authored node a copy was made
+    // from, passed over for a variable the copy's reference writes, is given
+    // an entry too, even if empty: the run time said which variables of the
+    // copy are on the cycle, and none of them is in its attributes
     const variablesOnCycle = new Map<number, Set<string>>();
-    for (const [componentIdx, varName] of stateVariables) {
-        const idx = authoredSelfOf(componentIdx, byIdx, components);
-        if (idx === undefined || typeof varName !== "string") {
-            continue;
-        }
+    function variablesOf(idx: number) {
         let vars = variablesOnCycle.get(idx);
         if (!vars) {
             vars = new Set();
             variablesOnCycle.set(idx, vars);
         }
-        vars.add(varName.toLowerCase());
+        return vars;
+    }
+    for (const [componentIdx, varName] of stateVariables) {
+        if (typeof varName !== "string") {
+            continue;
+        }
+        const lower = varName.toLowerCase();
+        const { owner, passed } = authoredOwnerOf(
+            componentIdx,
+            lower,
+            byIdx,
+            components,
+        );
+        if (owner === undefined) {
+            continue;
+        }
+        variablesOf(owner).add(lower);
+        for (const idx of passed) {
+            variablesOf(idx);
+        }
     }
     const inOrder = [...candidates].sort(
         (a, b) => order.get(a)! - order.get(b)!,

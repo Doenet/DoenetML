@@ -22,7 +22,7 @@ export class CircularDependencyError extends Error {
      * The state variables on the cycle, `[componentIdx, varName]`, when the
      * check that found it knows them (the two in `DependencyHandler`), so
      * that the blame can tell which attributes of a component the cycle runs
-     * through (`blameLoadCycle`'s `attributesOnCycle`).
+     * through (`blameLoadCycle`'s `variablesOnCycle`).
      */
     stateVariables: [number, string][];
 

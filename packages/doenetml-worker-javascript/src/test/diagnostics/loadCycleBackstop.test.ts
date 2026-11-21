@@ -203,6 +203,23 @@ $cc.hidden
 <repeatForSequence name="r" to="1"><number name="n" hide="$s.hidden" displayDigits="$s.sectionNumber">1</number></repeatForSequence>`,
             "$r[1].n.hidden",
         );
+        // a copy that writes the attribute the cycle runs through: the
+        // variable is the copy's (`m`'s `hide`), not that of what it copies,
+        // so the number read in `n`'s `hide`, off the cycle, is not blamed
+        // (that stopped the document: the rebuild met the same cycle)
+        for (const copy of [
+            `<number extend="$n" name="m" hide="$s.hidden"/>`,
+            `<number copy="$n" name="m" hide="$s.hidden"/>`,
+        ]) {
+            await expectBlamed(
+                `<p name="p">hi</p>
+<section name="s" hide="$m.hidden"/>
+<number name="n" hide="$s.sectionNumber=5">1</number>
+${copy}
+<section/>`,
+                "$m.hidden",
+            );
+        }
     });
 
     // With no reference among the components the cycle reports, the first

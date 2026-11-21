@@ -2089,8 +2089,9 @@ export class DependencyHandler {
             { type: blockerType, code: blockerCode },
         );
         if (cycle) {
-            // each code is the component's index, then, but for a composite
-            // to expand, the state variable
+            // a code is the component's index, then, for a state-variable or
+            // determineDependencies blocker, the state variable (the others,
+            // such as a composite to expand, have none)
             const codes = cycle.map(({ code }) => code.split("|"));
             const cycleIndices = codes.map((parts) => Number(parts[0]));
             throw new CircularDependencyError(
