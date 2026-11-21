@@ -1,4 +1,8 @@
-import type { HeadlessComponent, HeadlessCore } from "@doenet/utils";
+import type {
+    HeadlessAction,
+    HeadlessComponent,
+    HeadlessCore,
+} from "@doenet/utils";
 import { HeadlessError } from "./errors";
 
 /**
@@ -61,7 +65,10 @@ export const SETTABLE_COMPONENT_TYPES = [
  * or that names nothing (`notFound`), a component of a type it does not know
  * (`unsupportedTarget`, never a guess), a disabled or fixed input, a point that
  * cannot be moved, or a disabled choice (`targetDisabled`), and a value of the wrong
- * shape (`invalidValue`).
+ * shape (`invalidValue`). Refuses as `targetDisabled`, too, a value that was
+ * sent and not taken: an input bound to a fixed component keeps its value,
+ * and a point that extends one with a fixed location stays put. Where the
+ * document refuses part of the change, the rest of it may have been made.
  */
 export async function setValue(
     core: HeadlessCore,
@@ -90,30 +97,45 @@ export async function setValue(
                 core,
                 component.componentIdx,
                 expectString(value, where),
+                where,
             );
             return;
         case "textInput": {
             const text = expectString(value, where);
-            await core.dispatchAction({
+            await send(core, where, {
                 componentIdx: component.componentIdx,
                 actionName: "updateImmediateValue",
                 args: { text },
             });
-            await core.dispatchAction({
+            await send(core, where, {
                 componentIdx: component.componentIdx,
                 actionName: "updateValue",
             });
+            await expectTaken(
+                core,
+                component.componentIdx,
+                "value",
+                text,
+                where,
+            );
             return;
         }
         case "booleanInput":
             if (typeof value !== "boolean") {
                 throw invalid(where, "a <booleanInput> takes true or false");
             }
-            await core.dispatchAction({
+            await send(core, where, {
                 componentIdx: component.componentIdx,
                 actionName: "updateBoolean",
                 args: { boolean: value },
             });
+            await expectTaken(
+                core,
+                component.componentIdx,
+                "value",
+                value,
+                where,
+            );
             return;
         case "choiceInput":
             await selectChoices(core, component, value, where);
@@ -258,17 +280,64 @@ async function refuseIfDisabled(
     }
 }
 
+/**
+ * Send an action for `setValue`, and refuse (`targetDisabled`) if the core
+ * refused a change it asked for because a component is `fixed` or has
+ * `fixLocation`: the target itself, or one it is bound to or extends, such as
+ * the location-fixed point a `<point extend>` takes its location from.
+ */
+async function send(core: HeadlessCore, where: string, action: HeadlessAction) {
+    const { refusedChanges } = await core.dispatchAction(action);
+    const refusal = refusedChanges[0];
+    if (refusal) {
+        throw new HeadlessError(
+            "targetDisabled",
+            refusal.reason === "fixLocation"
+                ? `${where} did not take the value: its location comes from a component whose location is fixed.`
+                : `${where} did not take the value: it is bound to, or extends, a component that is fixed.`,
+        );
+    }
+}
+
+/**
+ * Refuse (`targetDisabled`) if an input did not take the value it was sent:
+ * the value the action sets directly is still something else. An input whose
+ * value comes from a component that does not change, such as one
+ * `bindValueTo` a fixed component, keeps that component's value.
+ */
+async function expectTaken(
+    core: HeadlessCore,
+    componentIdx: number,
+    propertyName: string,
+    expected: unknown,
+    where: string,
+) {
+    const actual = (await core.readProperties(componentIdx, [propertyName]))[
+        propertyName
+    ];
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+        throw new HeadlessError(
+            "targetDisabled",
+            `${where} did not take the value: it kept ${JSON.stringify(actual)}, so its value comes from something that did not change (for example, it is bound to a fixed component).`,
+        );
+    }
+}
+
 async function typeMath(
     core: HeadlessCore,
     componentIdx: number,
     latex: string,
+    where: string,
 ) {
-    await core.dispatchAction({
+    await send(core, where, {
         componentIdx,
         actionName: "updateRawValue",
         args: { rawRendererValue: latex },
     });
-    await core.dispatchAction({ componentIdx, actionName: "updateValue" });
+    await send(core, where, { componentIdx, actionName: "updateValue" });
+    // On a refused change the input shows its value again, so what was typed
+    // is gone; otherwise it stays as typed.
+    await expectTaken(core, componentIdx, "rawRendererValue", latex, where);
 }
 
 async function selectChoices(
@@ -325,14 +394,13 @@ async function selectChoices(
     // A list of checkboxes sends the selected positions in increasing order;
     // an inline dropdown sends them in the order they were picked, so for it
     // the order given here is the order picked.
-    await core.dispatchAction({
+    const sent = inline === true ? indices : [...indices].sort((a, b) => a - b);
+    await send(core, where, {
         componentIdx: input.componentIdx,
         actionName: "updateSelectedIndices",
-        args: {
-            selectedIndices:
-                inline === true ? indices : [...indices].sort((a, b) => a - b),
-        },
+        args: { selectedIndices: sent },
     });
+    await expectTaken(core, input.componentIdx, "selectedIndices", sent, where);
 }
 
 async function typeFraction(
@@ -362,8 +430,8 @@ async function typeFraction(
             `${where}: the <fractionInput> does not have the two math inputs it is expected to.`,
         );
     }
-    await typeMath(core, numerator.componentIdx, value.numerator);
-    await typeMath(core, denominator.componentIdx, value.denominator);
+    await typeMath(core, numerator.componentIdx, value.numerator, where);
+    await typeMath(core, denominator.componentIdx, value.denominator, where);
 }
 
 async function typeMatrix(
@@ -401,7 +469,7 @@ async function typeMatrix(
                     `${where}: the <matrixInput> has no cell (${rowInd + 1}, ${colInd + 1}).`,
                 );
             }
-            await typeMath(core, cell.componentIdx, latex);
+            await typeMath(core, cell.componentIdx, latex, where);
         }
     }
 }
@@ -436,7 +504,7 @@ async function movePoint(
         );
     }
     const [x, y, z] = value as number[];
-    await core.dispatchAction({
+    await send(core, where, {
         componentIdx: component.componentIdx,
         actionName: "movePoint",
         args: z === undefined ? { x, y } : { x, y, z },

@@ -13,7 +13,9 @@
  *   document root, so it has no stable key and cannot be driven.
  * - `unsupportedTarget`: the target is not a component type `setValue` sets.
  * - `targetDisabled`: the input or the choice is disabled, the input is fixed,
- *   or the point cannot be moved, so it would ignore the value.
+ *   or the point cannot be moved, so it would ignore the value; or the value
+ *   was sent and not taken, because what the target is bound to or extends
+ *   is fixed (or, for a point, has a fixed location).
  * - `invalidValue`: the value does not fit the target.
  */
 export type HeadlessErrorCode =

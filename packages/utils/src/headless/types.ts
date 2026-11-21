@@ -26,9 +26,12 @@ export interface HeadlessCore {
 
     /**
      * Run an action on a component, as a renderer would, and wait for the
-     * document to settle. Rejects if the core refuses the action.
+     * document to settle. Rejects if the core refuses the action itself.
+     * Resolves with the changes the action asked for that the core refused
+     * because a component, or a source it shadows, is `fixed` or has
+     * `fixLocation`: the action ran, and those changes did not happen.
      */
-    dispatchAction(action: HeadlessAction): Promise<void>;
+    dispatchAction(action: HeadlessAction): Promise<HeadlessActionResult>;
 
     /**
      * Resolve a reference path such as `r[3].g.p` (with or without the leading
@@ -141,6 +144,18 @@ export type HeadlessAction = {
     componentIdx: number;
     actionName: string;
     args?: Record<string, unknown>;
+};
+
+export type HeadlessActionResult = {
+    /**
+     * Each change refused because `componentIdx` (the component the action
+     * changed, or a source it shadows) is `fixed` or has `fixLocation`.
+     */
+    refusedChanges: {
+        componentIdx: number;
+        stateVariable: string;
+        reason: "fixed" | "fixLocation";
+    }[];
 };
 
 export type HeadlessComponent = {

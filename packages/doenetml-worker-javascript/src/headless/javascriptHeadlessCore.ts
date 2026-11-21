@@ -16,6 +16,7 @@ import {
     cidFromText,
     data_format_version,
     type DiagnosticRecord,
+    type HeadlessActionResult,
     type HeadlessAnswer,
     type HeadlessComponent,
     type HeadlessCore,
@@ -246,6 +247,14 @@ export async function createJavascriptHeadlessCore({
     );
     let terminated = false;
 
+    // The changes refused while the current action runs. Actions on one core
+    // run one at a time (`setValue` and `submit` wait for each), so each
+    // refusal belongs to the action in progress.
+    let refusedChanges: HeadlessActionResult["refusedChanges"] = [];
+    core.onChangeRefused = (refusal) => {
+        refusedChanges.push(refusal);
+    };
+
     function component(componentIdx: number) {
         if (terminated) {
             throw Error("This headless core has been terminated.");
@@ -318,6 +327,7 @@ export async function createJavascriptHeadlessCore({
 
         async dispatchAction({ componentIdx, actionName, args = {} }) {
             component(componentIdx);
+            refusedChanges = [];
             const result: any = await jsCore.requestAction({
                 componentIdx,
                 actionName,
@@ -334,6 +344,7 @@ export async function createJavascriptHeadlessCore({
                         (result.errMsg ? `: ${result.errMsg}` : "."),
                 );
             }
+            return { refusedChanges };
         },
 
         async resolvePath(path) {

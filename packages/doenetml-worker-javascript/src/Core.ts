@@ -273,6 +273,17 @@ export default class Core {
      */
     componentBeingEdited: number | null = null;
     /**
+     * Called each time a change is refused because a component, or a source
+     * it shadows, is `fixed` or has `fixLocation`. Unset in a viewer, where a
+     * refused change is only logged; the headless core sets it to reject the
+     * action that asked for the change.
+     */
+    onChangeRefused?: (refusal: {
+        componentIdx: ComponentIdx;
+        stateVariable: string;
+        reason: "fixed" | "fixLocation";
+    }) => void;
+    /**
      * Inputs made, or shown again, since unentered edits were last committed
      * (`commitUnenteredEdits`, D50), and the input an `extend` withheld or
      * deleted while edited extends (`inputNoLongerFocused`), and the input

@@ -26,6 +26,7 @@ export { defaultCoreFactory } from "./defaultCore";
 export { RESOLVER_WASM_ENV } from "./resolverWasm";
 export type {
     HeadlessAction,
+    HeadlessActionResult,
     HeadlessAnswer,
     HeadlessComponent,
     HeadlessCore,

@@ -238,6 +238,37 @@ describe("JavaScript headless core @group4", () => {
         await core.terminate();
     });
 
+    it("reports the changes an action asked for that were refused as fixed", async () => {
+        const core = await create(`<graph>
+            <point name="F" fixLocation>(5,5)</point>
+            <point name="G" extend="$F" fixLocation="false" />
+            <point name="H">(1,1)</point>
+        </graph>`);
+        const idx = async (name: string) => {
+            const r = await core.resolvePath(name);
+            if (r.status !== "resolved") throw Error(name);
+            return r.component.componentIdx;
+        };
+        const move = async (name: string) =>
+            core.dispatchAction({
+                componentIdx: await idx(name),
+                actionName: "movePoint",
+                args: { x: 8, y: 9 },
+            });
+        expect(await move("G")).toEqual({
+            refusedChanges: [
+                {
+                    componentIdx: await idx("F"),
+                    stateVariable: "xs",
+                    reason: "fixLocation",
+                },
+            ],
+        });
+        // The next action starts with none
+        expect(await move("H")).toEqual({ refusedChanges: [] });
+        await core.terminate();
+    });
+
     it("refuses an action on a component that does not exist, and use after terminate", async () => {
         const core = await create(`<p name="p">hi</p>`);
         await expect(

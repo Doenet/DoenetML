@@ -185,7 +185,12 @@ a path at all (names joined by `.`, literal indices) throws a plain `Error`.
 Each value is turned into the actions the component's renderer sends. Any other
 type is refused (`unsupportedTarget`), as are a disabled or fixed input, a disabled choice, or a point that
 cannot be moved (`targetDisabled`, since it would ignore the value) and a value
-of the wrong shape (`invalidValue`).
+of the wrong shape (`invalidValue`). A value the document does not take is
+refused as `targetDisabled` too: an input bound to a fixed component
+(`<mathInput bindValueTo="$m"/>` with `<math name="m" fixed>`) keeps its value,
+and a point that extends one with a fixed location stays where it is. A point
+a constraint or attractor moves somewhere else has taken the value, as a drag
+does.
 
 `submit(core, path)` submits an `<answer>` or a `<pretzel>`, or, for any other
 component (a section with `sectionWideCheckWork`, the document), all the

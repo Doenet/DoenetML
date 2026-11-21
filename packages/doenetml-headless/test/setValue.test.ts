@@ -6,6 +6,7 @@ import {
     HeadlessError,
     setValue,
     submit,
+    type ValueToSet,
 } from "../src";
 
 async function withCore(
@@ -331,6 +332,70 @@ describe("setValue and submit", () => {
                 expect(await read("many")).toEqual([1, 3]);
                 expect(await read("inl")).toEqual([3, 1]);
                 expect(await read("cd")).toEqual([2]);
+            },
+        );
+    });
+
+    it("refuses a value the document would not take: a fixed source, a bound fixed value", async () => {
+        await withCore(
+            `<graph>
+                <point name="F" fixLocation>(5,5)</point>
+                <point name="G" extend="$F" fixLocation="false" />
+                <point name="H">(1,1)</point>
+                <point name="K" extend="$H" />
+                <point name="A">(3,3)<attractTo><point>(3,3)</point></attractTo></point>
+            </graph>
+            <math name="m" fixed>1</math><mathInput name="mi" bindValueTo="$m" />
+            <math name="m2">1</math><mathInput name="mi2" bindValueTo="$m2" />
+            <text name="t" fixed>a</text><textInput name="ti" bindValueTo="$t" />
+            <boolean name="b" fixed>false</boolean><booleanInput name="bi" bindValueTo="$b" />
+            <number name="n" fixed>1</number>
+            <choiceInput name="ci" bindValueTo="$n"><choice>p</choice><choice>q</choice></choiceInput>
+            <math name="f" fixed>1/3</math><fractionInput name="fi" bindValueTo="$f" />`,
+            async (core) => {
+                const read = async (name: string, property: string) => {
+                    const r = await core.resolvePath(name);
+                    if (r.status !== "resolved") throw Error(name);
+                    return (
+                        await core.readProperties(r.component.componentIdx, [
+                            property,
+                        ])
+                    )[property];
+                };
+                for (const [name, value, property, kept] of [
+                    ["G", [8, 9], "xs", [5, 5]],
+                    ["mi", "9", "value", 1],
+                    ["ti", "zz", "value", "a"],
+                    ["bi", true, "value", false],
+                    [
+                        "fi",
+                        { numerator: "1", denominator: "2" },
+                        "value",
+                        ["/", 1, 3],
+                    ],
+                ] as const) {
+                    const error = await refusal(
+                        setValue(core, name, value as ValueToSet),
+                    );
+                    expect(error.code, name).toBe("targetDisabled");
+                    expect(error.message, name).toContain(
+                        "did not take the value",
+                    );
+                    expect(await read(name, property), name).toEqual(kept);
+                }
+                expect((await refusal(setValue(core, "ci", 2))).code).toBe(
+                    "targetDisabled",
+                );
+
+                // What the document does take is not refused: a point that
+                // extends one free to move, one an attractor pulls back to
+                // where it was, an input bound to a value that is not fixed
+                await setValue(core, "K", [8, 9]);
+                expect(await read("H", "xs")).toEqual([8, 9]);
+                await setValue(core, "A", [3.1, 2.9]);
+                expect(await read("A", "xs")).toEqual([3, 3]);
+                await setValue(core, "mi2", "9");
+                expect(await read("m2", "value")).toBe(9);
             },
         );
     });
