@@ -3083,6 +3083,18 @@ describe("Sectioning tag tests @group3", async () => {
 <group name="g"><repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence></group>`,
                 "$s.sectionNumber",
             ],
+            // a path into a composite is read once it has expanded, even
+            // one that makes no section
+            [
+                `$cc.hidden<section name="s"><p name="p">hi</p></section>
+<conditionalContent name="cc" condition="$s.sectionNumber = 1"><p/></conditionalContent>`,
+                "$s.sectionNumber",
+            ],
+            [
+                `$r.numIterations<section name="s"><p name="p">hi</p></section>
+<repeatForSequence name="r" to="$s.sectionNumber"><p/></repeatForSequence>`,
+                "$s.sectionNumber",
+            ],
             // a problem among problems is numbered the same way
             [
                 `<problems><repeatForSequence to="$b.sectionNumber"><problem/></repeatForSequence><problem name="b"><p name="p">hi</p></problem></problems>`,
@@ -3279,6 +3291,33 @@ describe("Sectioning tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx(name)].stateValues;
         expect((await sv("s")).sectionNumber).eq("2");
         expect((await sv("c")).collectedComponents.length).eq(2);
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+
+    // A reference to a property of a component that is no composite makes a
+    // value, never a section, so a section's number doesn't wait for it, and
+    // what the property is made from can read that number. A polygon's
+    // `vertices` and `vertex2.x`, copied before the section whose number a
+    // vertex reads, stopped the document with a circular dependency.
+    it("a reference to a property before a section, of a component reading the section's number, loads", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="first"/>
+    <p name="vs">$pg.vertices</p>
+    $pg.vertices
+    $pg.vertex2.x
+    <section name="s"/>
+    <graph><polygon name="pg" vertices="(1,2) ($s.sectionNumber,3)"/></graph>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                .sectionNumber,
+        ).eq("2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("vs")].stateValues.text,
+        ).eq("(1, 2), (2, 3)");
         expect(getDiagnosticsByType(core).errors).eqls([]);
     });
 

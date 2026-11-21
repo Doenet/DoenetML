@@ -136,8 +136,9 @@ function typeHelpers(componentInfoObjects: ComponentInfoObjects) {
  * - it is a reference (`$x`, `<group extend="$x"/>`) to a sectioning
  *   component or a container a numbering passes through, or to a composite
  *   that may make one, or one not decided from the DoenetML (an index into
- *   a composite, `$r[1]`). A reference to a property (`$s.title`) makes a
- *   value, and one that names nothing makes nothing. A reference written as
+ *   a composite, `$r[1]`). A reference to a property of a component that
+ *   is no composite (`$s.title`, `$pg.vertex2.x`) makes a value, and one
+ *   that names nothing makes nothing. A reference written as
  *   a tag that is no composite makes that tag, so may make one only when the
  *   tag is one. The value of a `<repeat>` (`$v`, its `valueName`) is an item
  *   of its `for`, so may make one when an item may;
@@ -261,12 +262,15 @@ export function markCompositesMakingNoSectioning({
         }
         if (
             !targetIsComposite &&
-            path.length === 1 &&
-            typeof path[0]?.name === "string" &&
-            path[0].name !== "" &&
-            !(path[0].index?.length > 0)
+            path.every(
+                (part: any) =>
+                    typeof part?.name === "string" && part.name !== "",
+            )
         ) {
-            // a property, which is a value
+            // a property (`$s.title`), an entry of one (`$pg.vertices[1]`)
+            // or a property of one (`$pg.vertex2.x`): a value, as the names
+            // in a path are resolved at load and what is left are
+            // properties
             return false;
         }
         return true;

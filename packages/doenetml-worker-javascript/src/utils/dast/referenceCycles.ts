@@ -1587,6 +1587,12 @@ export function breakReferenceCycles({
                             reference!.unresolvedPath,
                         ),
                     );
+                    // A path into a composite (`$r[1]`, `$cc.hidden`) is
+                    // read once it has expanded, whether or not it may make
+                    // a section: the reference waits for it.
+                    if (isComposite(target.componentType)) {
+                        edges.push(expansionNode(target.componentIdx));
+                    }
                 }
                 // a composite, or a container a numbering passes through,
                 // copied with what is written in it
