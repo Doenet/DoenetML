@@ -131,7 +131,8 @@ function typeHelpers(componentInfoObjects: ComponentInfoObjects) {
  *   a composite, `$r[1]`). A reference to a property (`$s.title`) makes a
  *   value, and one that names nothing makes nothing. A reference written as
  *   a tag that is no composite makes that tag, so may make one only when the
- *   tag is one;
+ *   tag is one. The value of a `<repeat>` (`$v`, its `valueName`) is an item
+ *   of its `for`, so may make one when an item may;
  * - any child written in it may make one: a sectioning component, a
  *   container a numbering passes through, a composite that may, or a
  *   `<case>` or `<option>` with a child that may. A `<setup>` makes nothing.
@@ -151,9 +152,13 @@ export function markCompositesMakingNoSectioning({
 
     const componentsByIdx = new Map<number, SerializedComponent>();
     const copiesByCreatedIdx = new Map<number, SerializedComponent>();
+    const parentByIdx = new Map<number, SerializedComponent>();
     const composites: SerializedComponent[] = [];
 
-    function gather(components: (SerializedComponent | string)[]) {
+    function gather(
+        components: (SerializedComponent | string)[],
+        parent?: SerializedComponent,
+    ) {
         for (const component of components) {
             if (typeof component !== "object" || component === null) {
                 continue;
@@ -162,6 +167,9 @@ export function markCompositesMakingNoSectioning({
                 continue;
             }
             componentsByIdx.set(component.componentIdx, component);
+            if (parent) {
+                parentByIdx.set(component.componentIdx, parent);
+            }
             const createdIdx = component.attributes?._createComponentIdx;
             if (
                 component.componentType === "_copy" &&
@@ -184,7 +192,7 @@ export function markCompositesMakingNoSectioning({
                 gather(attribute?.references ?? []);
                 gather(attribute?.children ?? []);
             }
-            gather(component.children ?? []);
+            gather(component.children ?? [], component);
         }
     }
     gather(serializedComponents);
@@ -256,6 +264,39 @@ export function markCompositesMakingNoSectioning({
         return true;
     }
 
+    /**
+     * Whether the value of a repeat, which `placeholder` (the `_placeholder`
+     * a `<repeat>`'s `valueName` names) stands for, may make one: whether an
+     * item of its `for` may. A `<repeatForSequence>`'s value is a number or
+     * a letter. Where the repeat or its `for` is not found, it may.
+     */
+    function valueMayMake(placeholder: SerializedComponent): boolean {
+        const setup = parentByIdx.get(placeholder.componentIdx);
+        const repeat = setup && parentByIdx.get(setup.componentIdx);
+        if (setup?.componentType !== "_repeatSetup" || repeat === undefined) {
+            return true;
+        }
+        const repeatType =
+            repeat.componentType === "_copy"
+                ? writtenType(repeat)
+                : repeat.componentType;
+        if (repeatType === "repeatForSequence") {
+            return false;
+        }
+        const items = repeat.attributes?.for;
+        if (repeatType !== "repeat" || items === undefined) {
+            return true;
+        }
+        if (items.type === "primitive") {
+            return false;
+        }
+        if (items.type !== "component") {
+            return true;
+        }
+        // the `<group>` its items are written in
+        return (items.component.children ?? []).some(childMayMake);
+    }
+
     function mayMake(composite: SerializedComponent): boolean {
         const idx = composite.componentIdx;
         const known = mayMakeByIdx.get(idx);
@@ -269,6 +310,9 @@ export function markCompositesMakingNoSectioning({
         let result: boolean;
         if (composite.componentType === "collect") {
             result = true;
+        } else if (composite.componentType === "_placeholder") {
+            // the value of a repeat, an item of its `for`
+            result = valueMayMake(composite);
         } else if (composite.componentType === "_copy") {
             const written = writtenType(composite);
             if (written !== undefined && !isComposite(written)) {

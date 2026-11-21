@@ -3040,6 +3040,12 @@ describe("Sectioning tag tests @group3", async () => {
 <section name="s" includeAutoNumber><section name="sub" includeParentNumber><p name="p">hi</p></section></section>`,
                 "$sub.sectionNumber",
             ],
+            // the value of a `<repeat>` over a section is a section
+            [
+                `<section/><repeat for="$a" valueName="v"><repeatForSequence to="$s.sectionNumber">$v</repeatForSequence></repeat><section name="a"/>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.sectionNumber",
+            ],
             // a title is made from the number
             [
                 `<conditionalContent condition="$s.title = 'Section 1'"><section/></conditionalContent>
@@ -3163,6 +3169,29 @@ describe("Sectioning tag tests @group3", async () => {
         expect((await sv("c")).sectionNumber).eq("1");
         expect((await sv("s")).sectionNumber).eq("2");
         expect((await sv("after")).sectionNumber).eq("3");
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+
+    // The value of a `<repeat>` is an item of its `for`, so a repeat whose
+    // template shows its value can make a section only when an item may be
+    // one. Over numbers, it can make none, and so it can read the number of
+    // a section after it.
+    it("a repeat showing its value, over numbers, reads the number of a section after it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="first"/>
+    <number name="n">3</number>
+    <repeat name="r" for="1 $n" valueName="v"><conditionalContent condition="$s.sectionNumber = 2">$v</conditionalContent></repeat>
+    <repeatForSequence name="r2" to="2" valueName="w"><conditionalContent condition="$s.sectionNumber = 2">$w</conditionalContent></repeatForSequence>
+    <section name="s"/>
+    <p name="p">$r; $r2</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("s")).sectionNumber).eq("2");
+        expect((await sv("p")).text).eq("1, 3; 1, 2");
         expect(getDiagnosticsByType(core).errors).eqls([]);
     });
 
