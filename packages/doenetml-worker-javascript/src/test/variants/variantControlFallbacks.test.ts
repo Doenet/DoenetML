@@ -197,6 +197,119 @@ ${select}
         }
     });
 
+    describe("an empty numVariants", () => {
+        // `Number("")` is 0, which gave one variant, silently (#2614 item 7)
+        for (const written of [
+            'numVariants=""',
+            'numVariants="   "',
+            "numVariants",
+        ]) {
+            it(`${written} is ignored, and the other attributes followed`, async () => {
+                const { variants, errors } = await load(`
+<variantControl ${written} variantNames="x y" />
+${select}
+`);
+                // the default, 100, with the names written
+                expect(variants.length).eq(100);
+                expect(variants.slice(0, 3)).eqls(["x", "y", "c"]);
+                expect(errors.length).eq(1);
+                expect(errors[0].code).eq("doenet-e0072");
+                expect(errors[0].message).eq(
+                    'The `numVariants` attribute is empty, and it needs a value. Write one, as `numVariants="…"`, or remove the attribute.',
+                );
+                // at the attribute
+                expect(errors[0].position?.start.line).eq(2);
+                expect(errors[0].position?.start.column).eq(17);
+            });
+        }
+
+        it("in a problem", async () => {
+            const { variants, errors } = await load(
+                `
+<problem name="problem1">
+    <variantControl numVariants="" variantsToInclude="b c" />
+    ${select}
+</problem>
+`,
+                { componentName: "problem1" },
+            );
+            expect(variants).eqls(["b", "c"]);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0072"]);
+            expect(errors[0].position?.start.line).eq(3);
+        });
+    });
+
+    describe("a variantControl made from another is an error", () => {
+        const message =
+            "A `<variantControl>` can't be made with `extend`, `copy` or `copyWithState`. A document's variants are decided before any reference in it can be read. Write the attributes on the `<variantControl>` itself.";
+
+        for (const attribute of ["extend", "copy", "copyWithState"]) {
+            it(`with ${attribute}, the variantControl written out is followed`, async () => {
+                const { variants, errors, warnings } = await load(`
+<variantControl name="vc" numVariants="2" />
+<variantControl ${attribute}="$vc" numVariants="$m" />
+<number name="m">3</number>
+${select}
+`);
+                expect(variants).eqls(["a", "b"]);
+                // one error, at the tag, and no `e0085` for its reference
+                expect(errors.length).eq(1);
+                expect(errors[0].code).eq("doenet-e0088");
+                expect(errors[0].message).eq(message);
+                expect(errors[0].position?.start.line).eq(3);
+                expect(errors[0].position?.start.column).eq(1);
+                expect(warnings).eqls([]);
+            });
+        }
+
+        it("extending a section's, written before it", async () => {
+            const { variants, errors } = await load(`
+<variantControl extend="$vc" />
+<section><variantControl name="vc" numVariants="2" />${select}</section>
+`);
+            // the document has no `<variantControl>` of its own, so its
+            // variants are its one section's
+            expect(variants).eqls(["a", "b"]);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0088"]);
+            expect(errors[0].position?.start.line).eq(2);
+        });
+
+        it("in a problem, extending another problem's", async () => {
+            const { variants, errors } = await load(
+                `
+<problem name="p1"><variantControl name="vc" numVariants="2" />${select}</problem>
+<problem name="p2"><variantControl extend="$vc" />${select}</problem>
+`,
+                { componentName: "p2" },
+            );
+            expect(variants.length).eq(100);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0088"]);
+            expect(errors[0].position?.start.line).eq(3);
+        });
+
+        it("whether or not what it extends is found", async () => {
+            const { variants, errors, warnings } = await load(`
+<variantControl extend="$nothing" />
+${select}
+`);
+            expect(variants.length).eq(100);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0088"]);
+            expect(errors[0].position?.start.line).eq(2);
+            // and the reference names nothing
+            expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
+        });
+
+        it("a reference to a variantControl is not one", async () => {
+            const { variants, errors } = await load(`
+<variantControl name="vc" numVariants="2" />
+<p>$vc</p>
+${select}
+`);
+            expect(variants).eqls(["a", "b"]);
+            expect(errors.length).eq(0);
+        });
+    });
+
     describe("a reference is ignored", () => {
         const message = (attribute: string) =>
             `\`${attribute}\` of \`<variantControl>\` holds a reference. A document's variants are decided before anything else in it, so references can't be read there and are ignored. Write the value itself.`;

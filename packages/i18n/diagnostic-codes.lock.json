@@ -95,6 +95,7 @@
     "doenet-e0085": "variant-control-reference",
     "doenet-e0086": "variant-name-repeated",
     "doenet-e0087": "variants-all-excluded",
+    "doenet-e0088": "variant-control-made-from",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",

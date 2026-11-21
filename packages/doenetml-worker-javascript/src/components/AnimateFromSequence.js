@@ -8,6 +8,7 @@ import me from "math-expressions";
 import {
     compositeTargetsDependency,
     pathOfTarget,
+    propertyWithIndices,
     targetsAmongReplacements,
 } from "../utils/actionTargets";
 const { mod } = me.math;
@@ -625,12 +626,7 @@ export default class AnimateFromSequence extends BaseComponent {
                                 dependencyValues.unresolvedPath,
                             );
                             if (path) {
-                                let prop = path[0].name;
-                                if (path[0].index.length > 0) {
-                                    for (const idx of path[0].index) {
-                                        prop += `[idx]`;
-                                    }
-                                }
+                                const prop = propertyWithIndices(path[0]);
                                 diagnostics.push(
                                     codedDiagnostic({
                                         type: noValueLevel,

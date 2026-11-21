@@ -12,6 +12,25 @@ console.log = (...args) => {
 };
 
 describe("Normalize dast", async () => {
+    it("gives a fraction input its two boxes, unless it is made from another", () => {
+        expect(
+            toXml(normalizeDocumentDast(lezerToDast(`<fractionInput/>`))),
+        ).toEqual(
+            `<document><fractionInput><_fractionInputComponent part="numerator" /><_fractionInputComponent part="denominator" /></fractionInput></document>`,
+        );
+        // its source's boxes come with it (#2614 item 3)
+        for (const attribute of ["extend", "copy", "copyWithState"]) {
+            expect(
+                toXml(
+                    normalizeDocumentDast(
+                        lezerToDast(`<fractionInput ${attribute}="$f"/>`),
+                    ),
+                ),
+            ).toEqual(
+                `<document><fractionInput ${attribute}="$f" /></document>`,
+            );
+        }
+    });
     it("wraps a field's bare expression in a <function> child", () => {
         const dast = normalizeDocumentDast(
             lezerToDast(`<slopeField>y - x</slopeField>`),
