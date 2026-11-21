@@ -25,6 +25,7 @@ import {
     listTypeAsWritten,
     holdUnresolvedAttributeAt,
     valueAsWritten,
+    heldValueAsWritten,
 } from "../utils/heldChoiceAttribute";
 export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
@@ -1067,11 +1068,12 @@ async function holdAtSourceIterationValue({
             ([name]) => name.toLowerCase() === lowerName,
         )?.[1]?.component;
         const source = components[sourceAttribute?.originalIdx];
-        text = await valueAsWritten(source);
-        if (text !== undefined) {
+        const held = await heldValueAsWritten(source);
+        if (held !== undefined) {
             holdAttributeComponentAt({
                 attribute,
-                text,
+                text: held.text,
+                listSplitting: held.listSplitting,
                 componentInfoObjects,
                 listType: await listTypeAsWritten(source),
             });

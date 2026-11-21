@@ -309,10 +309,11 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         ]);
     });
 
-    it("w0044: a target with no value to change is a warning, case or not", async () => {
-        // A `<conditionalContent>` replaces itself with a `<group>` whatever
-        // the active case, so a target that is one has no value whichever
-        // case is active: the DoenetML decides it.
+    it("w0044: a target with no value to change is a warning, or an info when the case shown decides it", async () => {
+        // A shown case holding one component stands for it (COLL-3): the
+        // `<math>` has a value, and the `<p>` of the `<else>` has none,
+        // which the input deciding the case decides (DIAG-2). A `<p>`
+        // written as the target has none by its type.
         const { diagnostics, refresh, setBoolean } = await setup(`
 <p name="p">hi</p>
 <updateValue target="$p" newValue="1"/>
@@ -326,13 +327,23 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
         await refresh();
         expect(diagnostics("doenet-w0044")).eqls([
             { type: "warning", line: 3 },
-            { type: "warning", line: 9 },
         ]);
 
         await setBoolean("b", false);
         expect(diagnostics("doenet-w0044")).eqls([
             { type: "warning", line: 3 },
-            { type: "warning", line: 9 },
+            { type: "info", line: 9 },
+        ]);
+    });
+
+    it("w0044: a group holding one component with no value is a warning", async () => {
+        const { diagnostics, refresh } = await setup(`
+<group name="g"><p>hi</p></group>
+<updateValue target="$g" newValue="1"/>
+`);
+        await refresh();
+        expect(diagnostics("doenet-w0044")).eqls([
+            { type: "warning", line: 3 },
         ]);
     });
 

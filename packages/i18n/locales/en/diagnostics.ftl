@@ -148,6 +148,34 @@ variant-name-unknown = `{ $attribute }` names { $names }, which { $namesCount ->
         }
     }
 
+# Translators: $attribute is an attribute of `<variantControl>`
+# (`numVariants`, `variantNames`, `seeds`, …), which stays in English. Each
+# reference (`$n`) written in it is ignored, since a document's variants are
+# decided before anything in it, so before a reference can be read; what is
+# written beside a reference is kept. Reported once for the attribute,
+# however many references it holds.
+variant-control-reference = `{ $attribute }` of `<variantControl>` holds a reference. A document's variants are decided before anything else in it, so references can't be read there and are ignored. Write the value itself.
+
+# Translators: `variantNames` stays in English. $names lists the names
+# written again, each already in backticks, as written the second time;
+# $namesCount is how many there are. Names are compared without case, so
+# `x` and `X` are the same name.
+variant-name-repeated = `variantNames` names { $names } again. Variant names are compared without case, so each must be different. { $namesCount ->
+        [one] The name is kept where it is first written, and the repeat is ignored.
+       *[other] Each name is kept where it is first written, and the repeats are ignored.
+    }
+
+# Translators: `variantsToExclude` and `variantsToInclude` stay in English.
+# $component is the tag whose variants they are (`document`, `problem`, …).
+# $withInclude is `yes` when `variantsToInclude` is written too.
+variants-all-excluded = `variantsToExclude` excludes every variant of this { $component ->
+        [document] document
+       *[other] `<{ $component }>`
+    }{ $withInclude ->
+        [yes] {" "}that `variantsToInclude` names
+       *[no] {""}
+    }, which leaves none. Every variant is included.
+
 ## `<sideBySide>`
 
 # $component is `sideBySide` or `sbsGroup`.

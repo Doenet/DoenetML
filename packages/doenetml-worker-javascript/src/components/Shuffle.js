@@ -4,7 +4,7 @@ import {
 } from "../utils/numItems";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
-import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
+import { combinationAtIndex, permutationAtIndex } from "@doenet/utils";
 import {
     setUpVariantSeedAndRng,
     variantDescendantComponentTypes,
@@ -879,10 +879,10 @@ export default class Shuffle extends CompositeComponent {
         let numbersOfOptions = [...numVariantsByDescendant];
         numbersOfOptions.push(numberOfPermutations);
 
-        let indicesForEachOption = enumerateCombinations({
+        let indicesForEachOption = combinationAtIndex({
             numberOfOptionsByIndex: numbersOfOptions,
-            maxNumber: variantIndex,
-        })[variantIndex - 1].map((x) => x + 1);
+            index: variantIndex - 1,
+        }).map((x) => x + 1);
 
         let permutationsIndex = indicesForEachOption.pop();
 
@@ -893,10 +893,10 @@ export default class Shuffle extends CompositeComponent {
             (x) => x + 1,
         );
 
-        let permutedIndices = enumeratePermutations({
+        let permutedIndices = permutationAtIndex({
             values: indicesToPermute,
-            maxNumber: permutationsIndex,
-        })[permutationsIndex - 1];
+            index: permutationsIndex - 1,
+        });
 
         // for each descendant, get unique variant corresponding
         // to the selected variant number and include that as a subvariant

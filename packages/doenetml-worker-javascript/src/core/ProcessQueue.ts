@@ -154,6 +154,15 @@ export class ProcessQueue {
                     );
                 }
 
+                if (
+                    nextUpdateInfo.type === "update" ||
+                    nextUpdateInfo.type === "action"
+                ) {
+                    // the inputs the request made, or showed again, show no
+                    // edit that wasn't entered (D50)
+                    await this.core.commitUnenteredEdits();
+                }
+
                 nextUpdateInfo.resolve(result);
             } catch (e) {
                 console.error(e);

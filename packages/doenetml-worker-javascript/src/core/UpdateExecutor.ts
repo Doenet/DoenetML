@@ -393,8 +393,9 @@ export class UpdateExecutor {
      *     post-loop submission-event recording (and triggers an
      *     immediate save).
      *   - `setComponentNeedingUpdateValue` /
-     *     `unsetComponentNeedingUpdateValue`: flag bookkeeping for
-     *     downstream answer-submission detection.
+     *     `unsetComponentNeedingUpdateValue`: record which input the reader
+     *     is editing (`Core.componentBeingEdited`), whose edit not entered
+     *     `Core.commitUnenteredEdits` leaves alone.
      *
      * After the loop, `executeUpdateStateVariables` runs once more on
      * any leftover `newStateVariableValues`. Unless
@@ -564,13 +565,20 @@ export class UpdateExecutor {
             } else if (
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
-                this.core.cumulativeStateVariableChanges.__componentNeedingUpdateValue =
-                    this.core._components[instruction.componentIdx!]!.stateId;
+                // the input the reader is editing, whose edit is not
+                // committed when it is made (D50, `commitUnenteredEdits`)
+                this.core.componentBeingEdited = instruction.componentIdx!;
             } else if (
                 instruction.updateType === "unsetComponentNeedingUpdateValue"
             ) {
-                delete this.core.cumulativeStateVariableChanges
-                    .__componentNeedingUpdateValue;
+                // the input's edit is entered: it is not being edited, unless
+                // the reader is editing another
+                if (
+                    instruction.componentIdx === undefined ||
+                    instruction.componentIdx === this.core.componentBeingEdited
+                ) {
+                    this.core.componentBeingEdited = null;
+                }
             }
         }
 

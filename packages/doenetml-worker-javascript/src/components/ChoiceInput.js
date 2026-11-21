@@ -1,6 +1,6 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
+import { combinationAtIndex, permutationAtIndex } from "@doenet/utils";
 import {
     setUpVariantSeedAndRng,
     variantDescendantComponentTypes,
@@ -1822,10 +1822,10 @@ export default class Choiceinput extends Input {
         let numbersOfOptions = [...numVariantsByDescendant];
         numbersOfOptions.push(numberOfPermutations);
 
-        let indicesForEachOption = enumerateCombinations({
+        let indicesForEachOption = combinationAtIndex({
             numberOfOptionsByIndex: numbersOfOptions,
-            maxNumber: variantIndex,
-        })[variantIndex - 1].map((x) => x + 1);
+            index: variantIndex - 1,
+        }).map((x) => x + 1);
 
         let permutationsIndex = indicesForEachOption.pop();
 
@@ -1836,10 +1836,10 @@ export default class Choiceinput extends Input {
             (x) => x + 1,
         );
 
-        let permutedIndices = enumeratePermutations({
+        let permutedIndices = permutationAtIndex({
             values: indicesToPermute,
-            maxNumber: permutationsIndex,
-        })[permutationsIndex - 1];
+            index: permutationsIndex - 1,
+        });
 
         if (numChoicesAdjusted < numChoices) {
             // We didn't shuffle the last index, as `preserveLastChoice` was specified.

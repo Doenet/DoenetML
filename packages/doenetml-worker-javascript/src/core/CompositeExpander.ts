@@ -1340,6 +1340,15 @@ export async function changeInactiveComponentAndDescendants({
         inactive
     ) {
         component.state.isInactiveCompositeReplacement.value = inactive;
+        if (component.constructor.holdsUnenteredEdit) {
+            if (inactive) {
+                // a withheld input isn't focused
+                core.inputNoLongerFocused(component.componentIdx);
+            } else {
+                // shown again: an edit it holds is committed (D50)
+                core.inputsToCommit.add(component.componentIdx);
+            }
+        }
         await core.markUpstreamDependentsStale({
             component,
             varName: "isInactiveCompositeReplacement",

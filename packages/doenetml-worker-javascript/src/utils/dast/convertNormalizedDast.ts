@@ -1482,9 +1482,19 @@ export function expandAllUnflattenedAttributes({
                 });
             }
 
+            let attribute = unflattenedAttributes[attr];
+            if (attrDef.readBeforeReferences) {
+                const res = withoutReferences({ attribute, attrName });
+                diagnostics.push(...res.diagnostics);
+                if (!res.attribute) {
+                    continue;
+                }
+                attribute = res.attribute;
+            }
+
             let res = expandAttribute({
                 attrDef,
-                attribute: unflattenedAttributes[attr],
+                attribute,
                 allUnflattenedAttributes: unflattenedAttributes,
                 componentInfoObjects,
                 nComponents,
@@ -1576,6 +1586,48 @@ export function addDefaultPrimitiveAttributes({
         }
     }
     return { attributes: newAttributes, diagnostics, nComponents };
+}
+
+/**
+ * The attribute `attribute`, of an attribute read before references can be
+ * (`readBeforeReferences`), with any reference in it removed and the text
+ * around it kept, joined. A reference is reported once for the attribute,
+ * with `doenet-e0085`. When nothing but blank text is left, `attribute` is
+ * `undefined`: the attribute is left out, as if not written.
+ */
+function withoutReferences({
+    attribute,
+    attrName,
+}: {
+    attribute: UnflattenedAttribute;
+    attrName: string;
+}): {
+    attribute: UnflattenedAttribute | undefined;
+    diagnostics: DiagnosticRecord[];
+} {
+    if (attribute.children.every((child) => typeof child === "string")) {
+        return { attribute, diagnostics: [] };
+    }
+
+    const text = attribute.children
+        .filter((child): child is string => typeof child === "string")
+        .join("");
+
+    const diagnostics: DiagnosticRecord[] = [
+        codedDiagnostic({
+            type: "error",
+            code: "doenet-e0085",
+            args: { attribute: attrName },
+            position: attribute.position,
+            sourceDoc: attribute.sourceDoc,
+        }),
+    ];
+
+    if (text.trim() === "") {
+        return { attribute: undefined, diagnostics };
+    }
+
+    return { attribute: { ...attribute, children: [text] }, diagnostics };
 }
 
 /**

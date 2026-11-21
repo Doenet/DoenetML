@@ -1,3 +1,4 @@
+import { deepCompare } from "@doenet/utils";
 import { fingerprint } from "./fingerprint";
 
 /**
@@ -128,6 +129,25 @@ export async function buildInputResponseEvent({
     }
 
     return event;
+}
+
+/**
+ * Whether the input `component`, of a class that holds an edit not yet
+ * entered (`holdsUnenteredEdit`), shows one: its `immediateValue` differs
+ * from its `value`, compared as its `updateValue` action compares them (a
+ * math by its tree). A disabled input's edit is not entered, as its action
+ * does nothing.
+ */
+export async function hasUnenteredEdit(component) {
+    if (await component.stateValues.disabled) {
+        return false;
+    }
+    const value = await component.stateValues.value;
+    const immediateValue = await component.stateValues.immediateValue;
+    if (value?.tree !== undefined && immediateValue?.tree !== undefined) {
+        return !deepCompare(value.tree, immediateValue.tree);
+    }
+    return value !== immediateValue;
 }
 
 /**
@@ -296,6 +316,13 @@ export function returnImmediateValueStateVariableDefinition({
             initialChange,
             shadowedVariable,
         }) {
+            // Both inputs that use this hold text: a value of another type,
+            // such as the math an `<updateValue>` without `type="text"`
+            // sends, is refused rather than stored (DIAG-5, #2607).
+            if (typeof desiredStateVariableValues.immediateValue !== "string") {
+                return { success: false };
+            }
+
             // value is essential; give it the desired value
             let instructions = [
                 {
@@ -415,6 +442,7 @@ export async function inputUpdateValue({
                 },
                 {
                     updateType: "unsetComponentNeedingUpdateValue",
+                    componentIdx: this.componentIdx,
                 },
             ];
 

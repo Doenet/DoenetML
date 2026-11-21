@@ -74,6 +74,7 @@ import {
     listTypeAsWritten,
     holdUnresolvedAttributeAt,
     valueAsWritten,
+    heldValueAsWritten,
 } from "../../utils/heldChoiceAttribute";
 import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
 import {
@@ -9722,15 +9723,16 @@ async function keepChoicesReachedByModuleAttributes({
                 }
                 attribute.keepSourceIterationValue = true;
             } else {
-                const text = await valueAsWritten(sourceAttribute);
-                if (text === undefined) {
+                const held = await heldValueAsWritten(sourceAttribute);
+                if (held === undefined) {
                     continue;
                 }
                 // the value the source chose with, in place of what refers
                 // to the module attribute
                 holdAttributeComponentAt({
                     attribute,
-                    text,
+                    text: held.text,
+                    listSplitting: held.listSplitting,
                     componentInfoObjects,
                     listType: await listTypeAsWritten(sourceAttribute),
                 });

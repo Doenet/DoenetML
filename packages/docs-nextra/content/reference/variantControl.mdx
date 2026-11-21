@@ -36,6 +36,17 @@ might happen to produce identical output — though the chance grows
 smaller the larger the combination space.
 
 
+### Written out, never computed
+
+A document's variants are decided before anything else in it is made, so
+the attributes of `<variantControl>{:dn}` must be written out. A reference
+such as `numVariants="$n"` can't be read there: it is ignored, with an
+error, and anything written beside it is kept.
+
+A `<variantControl>{:dn}` never stops the document from loading. Whatever it
+can't follow is an error at the attribute, and the document loads with the
+rest. The cases are described with each attribute below.
+
 <AttrPropDisplay name='variantControl'/>
 
 
@@ -144,6 +155,10 @@ the keys used by the [`<option selectForVariants="...">{:dn}`](option)
 attribute, which pins specific options to specific named variants
 instead of leaving the selection to chance.
 
+Each name must be different, compared without case: `Alpha` and `alpha` are
+the same name. A name written again is ignored, with an error, and the first
+is kept.
+
 
 
 ---
@@ -173,3 +188,12 @@ variant at all, every variant is included. With unique variants, the
 extras dropped because there are not enough distinguishable outputs are
 not variants: in the `uniqueVariants` example above, with six variants,
 `g` is not a variant's name.
+
+An empty `variantsToInclude=""` is ignored, with an error. If the names left
+no variant at all (`variantsToExclude` naming every variant, or every one
+`variantsToInclude` names), both are ignored, with an error, and every
+variant is included.
+
+A `<variantControl>{:dn}` in a [`<problem>{:dn}`](problem) or other section
+sets that section's variants, whether or not the variants of the document,
+or of a section around it, are unique.

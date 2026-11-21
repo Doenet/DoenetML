@@ -6,7 +6,7 @@ import {
     returnSequenceValueForIndex,
     returnSequenceValues,
 } from "../utils/sequence";
-import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
+import { lettersToNumber, selectionCombinationAtIndex } from "@doenet/utils";
 
 import { textToMathFactory } from "../utils/math";
 import {
@@ -861,12 +861,12 @@ export default class SelectFromSequence extends Sequence {
             };
         }
 
-        let numbers = enumerateSelectionCombinations({
+        let numbers = selectionCombinationAtIndex({
             numberOfIndices: numToSelect,
             numberOfOptions: nOptions,
-            maxNumber: variantIndex,
             withReplacement,
-        })[variantIndex - 1];
+            index: variantIndex - 1,
+        });
         let indices = numbers.map(getSingleIndex).map((x) => x + 1);
         return { success: true, desiredVariant: { indices: indices } };
     }
