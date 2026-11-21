@@ -4349,7 +4349,9 @@ async function componentInPlaceOfProp({
 function isNumItemsOfReorderError(target, propName) {
     return (
         Boolean(target?.doenetAttributes?.reorderErrorAtLoad) &&
-        propName === "numItems"
+        // in any case: a reference to a component in error reports
+        // nothing more (DIAG-4), so not that `$s.NumItems` names nothing
+        propName?.toLowerCase() === "numitems"
     );
 }
 
