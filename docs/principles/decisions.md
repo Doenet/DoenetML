@@ -3244,5 +3244,6 @@ worked until names became case-sensitive (D51, #2624) (#2627 item 1).
 `rightHandSide`, `xOffset`, `xThreshold`, `hAlign`, `vAlign`, …), before the release that ships
 #2624, so authors meet one change rather than two. The one-release fallback (`w0197`) covers the
 old attribute spellings, since they differ only in case. A property written the old way names
-nothing, with a suggestion. Single words (`endpoints`, `eigenvalues`) are not in scope. A new
-compound name is camelCase.
+nothing, with a suggestion. Single words (`endpoints`, `eigenvalues`) are not in scope. The rename covers attributes and public
+properties alike: the implementing PR scans every declared attribute and public property for an
+all-lowercase compound, not only the names above. A new compound name is camelCase.
