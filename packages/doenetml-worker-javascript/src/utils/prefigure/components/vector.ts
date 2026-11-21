@@ -1,4 +1,5 @@
 import {
+    asFiniteNumber,
     escapeXml,
     extractFinitePointPair,
     formatNumber,
@@ -11,6 +12,24 @@ import {
     THEME_AWARE_LABEL_COLOR_ATTR,
 } from "../label";
 import type { ConverterArgs, Point } from "../types";
+
+/**
+ * `styleAttrs` with the line width rounded to a whole pixel, at least 1.
+ *
+ * PreFigure 0.7.6 reads an arrow's line width as an integer and divides by it
+ * when building the arrowhead, so a `thickness` of `2.5` or `0` makes it
+ * abandon the vector and everything drawn after it in the diagram.
+ */
+function wholePixelThickness(styleAttrs: string[], lineWidth: unknown) {
+    const width = asFiniteNumber(lineWidth);
+    if (width === null) {
+        return styleAttrs;
+    }
+    const thickness = Math.max(1, Math.round(width));
+    return styleAttrs.map((attr) =>
+        attr.startsWith("thickness=") ? `thickness="${thickness}"` : attr,
+    );
+}
 
 /**
  * Converts a vector (tail/head endpoints) to a PreFigure `<vector>` element.
@@ -62,7 +81,7 @@ export function convertVectorToPrefigure({
         `at="${escapeXml(handle)}"`,
         `tail="${escapeXml(tailText)}"`,
         `v="${escapeXml(`(${dx},${dy})`)}"`,
-        ...styleAttrs,
+        ...wholePixelThickness(styleAttrs, sv.selectedStyle?.lineWidth),
     ];
 
     const vectorXml = `<vector ${attrs.join(" ")} />`;
