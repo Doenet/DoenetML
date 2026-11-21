@@ -334,6 +334,26 @@ export async function normalizedDastToSerializedComponents(
                             typeof child === "object" &&
                             missingInPlaceOfTag.has(child),
                     );
+                    if (
+                        inPlaceOfTag &&
+                        getComponentType(node) === "variantControl"
+                    ) {
+                        // Made with `extend` or `copy`, which is an error
+                        // however the reference resolves (`doenet-e0088`):
+                        // left as written for the error to replace it.
+                        unflattenedNodes.push({
+                            type: "unflattened",
+                            componentType: "variantControl",
+                            componentIdx: idxOrString,
+                            attributes: {},
+                            doenetAttributes: { madeFromAnother: true },
+                            position: node.position,
+                            sourceDoc: node.sourceDoc,
+                            state: {},
+                            children: [],
+                        });
+                        continue;
+                    }
                     if (inPlaceOfTag) {
                         // The tag, with what its `extend` or `copy` names
                         // unresolved, is missing (D37), under its own index
@@ -1172,6 +1192,25 @@ function authorGivenName(component: SerializedComponent): string | undefined {
 }
 
 /**
+ * Whether `component` is a `<variantControl>` written with `extend`, `copy`
+ * or `copyWithState`, whether or not what it references is found. A document's
+ * variants are decided before anything in it is made, so before what the
+ * attribute references could be read: a `<variantControl>` must be written
+ * out, and one made from another is an error at load (`doenet-e0088`, D47
+ * decision 1).
+ */
+export function variantControlMadeFrom(
+    component: UnflattenedComponent,
+): boolean {
+    return (
+        component.componentType === "variantControl" &&
+        ((component.extending !== undefined &&
+            !("Ref" in component.extending)) ||
+            component.doenetAttributes?.madeFromAnother === true)
+    );
+}
+
+/**
  * Expand the intermediate form `UnflattenedComponent` to `SerializedComponent`,
  * which is the format used in the Javascript Core.
  *
@@ -1223,6 +1262,10 @@ export function expandUnflattenedToSerializedComponents({
                     code: "doenet-e0002",
                     args: { componentType: component.componentType },
                 });
+            }
+
+            if (variantControlMadeFrom(component)) {
+                throw new DiagnosticError({ code: "doenet-e0088" });
             }
 
             const expandResult = expandAllUnflattenedAttributes({
@@ -1528,6 +1571,29 @@ export function expandAllUnflattenedAttributes({
                     continue;
                 }
                 attribute = res.attribute;
+                // A blank number (`<variantControl numVariants="">`) is
+                // ignored, with an error at the attribute, rather than read
+                // as 0 or made an error that replaces the component: these
+                // never stop the document (D47 decision 1).
+                if (
+                    (attrDef.createPrimitiveOfType === "number" ||
+                        attrDef.createPrimitiveOfType === "integer") &&
+                    attribute.children.every(
+                        (child) =>
+                            typeof child === "string" && child.trim() === "",
+                    )
+                ) {
+                    diagnostics.push(
+                        codedDiagnostic({
+                            type: "error",
+                            code: "doenet-e0072",
+                            args: { attribute: attrName },
+                            position: attribute.position,
+                            sourceDoc: attribute.sourceDoc,
+                        }),
+                    );
+                    continue;
+                }
             }
 
             let res = expandAttribute({

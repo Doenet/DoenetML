@@ -114,3 +114,29 @@ export function pathOfTarget(
             : unresolvedPath;
     return path && path.length > 0 ? path : null;
 }
+
+/**
+ * The property the first part of a target's path names, with its indices as
+ * written after it (`styleDescription[1]`, `foo[2][3]`), for `doenet-w0044`.
+ * An index read from a reference (`[$n]`) is resolved by the time the path
+ * is left over, so its value is written; anything else in an index is
+ * written as `…`.
+ */
+export function propertyWithIndices(pathPart: {
+    name: string;
+    index?: { value?: unknown[] }[];
+}): string {
+    let property = pathPart.name;
+    for (const index of pathPart.index ?? []) {
+        const text = (index.value ?? [])
+            .map((item) =>
+                typeof item === "string" || typeof item === "number"
+                    ? String(item)
+                    : "…",
+            )
+            .join("")
+            .trim();
+        property += `[${text}]`;
+    }
+    return property;
+}

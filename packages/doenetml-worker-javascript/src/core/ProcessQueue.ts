@@ -114,6 +114,7 @@ export class ProcessQueue {
         while (this.queue.length > 0) {
             let nextUpdateInfo = this.queue.splice(0, 1)[0];
             let result;
+            let failed = false;
             try {
                 if (nextUpdateInfo.type === "update") {
                     if (
@@ -153,34 +154,13 @@ export class ProcessQueue {
                         `Unrecognized process type: ${(nextUpdateInfo as any).type}`,
                     );
                 }
-
-                if (
-                    nextUpdateInfo.type === "update" ||
-                    nextUpdateInfo.type === "action"
-                ) {
-                    // the inputs the request made, or showed again, show no
-                    // edit that wasn't entered (D50)
-                    await this.core.commitUnenteredEdits();
-                }
-
-                nextUpdateInfo.resolve(result);
             } catch (e) {
                 console.error(e);
                 if (e instanceof CircularDependencyError) {
-                    // The update left a cycle in the graph, and evaluating
-                    // anything that reaches it would recurse until the worker
-                    // runs out of memory (#2137). Stop the document, as a
-                    // cycle found during load does: this request and every
-                    // later one is rejected with the cycle's message, and the
-                    // viewer is told to show it in place of the document.
-                    this.stoppedByError = e.message;
-                    this.stopProcessingRequests = true;
-                    nextUpdateInfo.reject(e.message);
-                    this.rejectQueued(e.message);
-                    this.processing = false;
-                    this.core.reportDocumentStopped(e.message);
+                    this._stopDocument(e, nextUpdateInfo);
                     return;
                 }
+                failed = true;
                 nextUpdateInfo.reject(
                     typeof e === "object" &&
                         e &&
@@ -189,10 +169,58 @@ export class ProcessQueue {
                         ? (e as any).message
                         : "Error in core",
                 );
+                if (
+                    nextUpdateInfo.type !== "update" &&
+                    nextUpdateInfo.type !== "action"
+                ) {
+                    continue;
+                }
+            }
+
+            if (
+                nextUpdateInfo.type === "update" ||
+                nextUpdateInfo.type === "action"
+            ) {
+                // The inputs the request made, or showed again, show no edit
+                // that wasn't entered (D50). Outside the request's `try`: the
+                // request's work is done, so an error committing an input
+                // doesn't reject it, and each input is committed on its own
+                // (`commitUnenteredEdits`), so it doesn't drop the others
+                // (#2614 item 6). Run also after a request that failed, for
+                // what it made before it failed.
+                try {
+                    await this.core.commitUnenteredEdits();
+                } catch (e) {
+                    console.error(e);
+                    if (e instanceof CircularDependencyError) {
+                        this._stopDocument(e, nextUpdateInfo);
+                        return;
+                    }
+                }
+            }
+
+            if (!failed) {
+                nextUpdateInfo.resolve(result);
             }
         }
 
         this.processing = false;
+    }
+
+    /**
+     * The request `entry` left a cycle in the graph, and evaluating anything
+     * that reaches it would recurse until the worker runs out of memory
+     * (#2137). Stop the document, as a cycle found during load does: this
+     * request and every later one is rejected with the cycle's message, and
+     * the viewer is told to show it in place of the document.
+     */
+    _stopDocument(e: CircularDependencyError, entry: QueueEntry): void {
+        this.stoppedByError = e.message;
+        this.stopProcessingRequests = true;
+        entry.reject(e.message);
+        this.rejectQueued(e.message);
+        this.processing = false;
+        this.core.reportDocumentStopped(e.message);
     }
 
     /**

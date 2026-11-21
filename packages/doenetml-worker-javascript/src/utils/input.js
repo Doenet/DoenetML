@@ -132,16 +132,43 @@ export async function buildInputResponseEvent({
 }
 
 /**
+ * The key of the argument with which the core, not the reader, runs an
+ * input's `updateValue` action to enter an edit not entered
+ * (`Core.commitUnenteredEdits`, D50). Its value is `{ readOnly }`.
+ * - The edit is entered even when the input is disabled, which a reader's
+ *   action never is: a disabled input can't be focused, so it shows no edit
+ *   not entered (D50 decision 2). The `answered` event a blur would record
+ *   is recorded.
+ * - With `readOnly` (`flags.readOnly`), the edit is entered without an event
+ *   and without saving, so the input shows its value and nothing is saved or
+ *   reported (D50 decision 3).
+ *
+ * A symbol, so that an action sent from a renderer, whose arguments are
+ * copied without their symbol keys, can't carry it.
+ */
+export const ENTERED_BY_CORE = Symbol("enteredByCore");
+
+/**
+ * The options of `performUpdate` with which an input's `updateValue` action
+ * enters its edit (`event` the `answered` event it records), as the core
+ * asks with `enteredByCore` (`ENTERED_BY_CORE`): under `readOnly`, no event,
+ * no save, and past the read-only check.
+ */
+export function enteringUpdateOptions(enteredByCore, event) {
+    if (enteredByCore?.readOnly) {
+        return { overrideReadOnly: true, doNotSave: true };
+    }
+    return { event };
+}
+
+/**
  * Whether the input `component`, of a class that holds an edit not yet
  * entered (`holdsUnenteredEdit`), shows one: its `immediateValue` differs
  * from its `value`, compared as its `updateValue` action compares them (a
- * math by its tree). A disabled input's edit is not entered, as its action
- * does nothing.
+ * math by its tree). A disabled input can show one, which the core enters
+ * (`ENTERED_BY_CORE`).
  */
 export async function hasUnenteredEdit(component) {
-    if (await component.stateValues.disabled) {
-        return false;
-    }
     const value = await component.stateValues.value;
     const immediateValue = await component.stateValues.immediateValue;
     if (value?.tree !== undefined && immediateValue?.tree !== undefined) {
@@ -414,8 +441,10 @@ export async function inputUpdateValue({
     actionId,
     sourceInformation = {},
     skipRendererUpdate = false,
+    [ENTERED_BY_CORE]: enteredByCore,
 }) {
-    if (!(await this.stateValues.disabled)) {
+    // the core enters a disabled input's edit (`ENTERED_BY_CORE`)
+    if (enteredByCore || !(await this.stateValues.disabled)) {
         let immediateValue = await this.stateValues.immediateValue;
 
         if ((await this.stateValues.value) !== immediateValue) {
@@ -458,9 +487,18 @@ export async function inputUpdateValue({
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
-                event,
+                ...enteringUpdateOptions(enteredByCore, event),
             });
 
+            if (enteredByCore?.readOnly) {
+                // no chained action is run under `readOnly`; the renderers
+                // show the value
+                return await this.coreFunctions.updateRenderers({
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate,
+                });
+            }
             return await this.coreFunctions.triggerChainedActions({
                 componentIdx: this.componentIdx,
                 actionId,

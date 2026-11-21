@@ -291,9 +291,38 @@ describe("coded diagnostics reach the record @group4", () => {
         expect(warnings[0].message).eq(
             "Cannot reference index `$p.styleDescription[1]`",
         );
+        // the index as written, not a literal `[idx]` (#2614 item 9)
+        expect(warnings[1].args?.property).eq("styleDescription[1]");
         const { start, end } = warnings[0].position!;
         expect(doenetML.substring(start.offset, end.offset)).eq(
             `<updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />`,
+        );
+    });
+
+    // An index read from a reference is written as its value, each index
+    // after the property (#2614 item 9).
+    it("writes each index of a property no target has", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<point name="p" /><number name="n">2</number>
+<updateValue name="uv" target="$p.foo[$n][3]" newValue="x" />`,
+        });
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
+
+        const w0044 = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0044",
+        );
+        expect(w0044.length).eq(1);
+        expect(w0044[0].args).eqls({
+            source: "updateValue",
+            property: "foo[2][3]",
+            component: "point",
+        });
+        expect(w0044[0].message).eq(
+            'Invalid target for `<updateValue>`: cannot find a state variable named "foo[2][3]" on a `<point>`.',
         );
     });
 
@@ -316,6 +345,7 @@ describe("coded diagnostics reach the record @group4", () => {
         expect(warnings[0].args).eqls({
             reference: "$p.styleDescription[1]",
         });
+        expect(warnings[1].args?.property).eq("styleDescription[1]");
     });
 
     // A copy of an `<updateValue>` is a replacement, and is no more a

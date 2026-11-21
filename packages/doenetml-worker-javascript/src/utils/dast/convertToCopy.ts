@@ -11,7 +11,12 @@ import {
     UnflattenedPathPart,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
-import { addSource, isCopySource, unwrapSource } from "./convertNormalizedDast";
+import {
+    addSource,
+    isCopySource,
+    unwrapSource,
+    variantControlMadeFrom,
+} from "./convertNormalizedDast";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { codedDiagnostic } from "../diagnostics";
 
@@ -163,7 +168,11 @@ export function convertRefsToCopies({
 
         newComponent.attributes = newAttributes;
 
-        if (!newComponent.extending) {
+        if (
+            !newComponent.extending ||
+            // left as written, to be an error (`doenet-e0088`)
+            variantControlMadeFrom(newComponent)
+        ) {
             newComponents.push(newComponent);
             continue;
         }

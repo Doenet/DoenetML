@@ -36,3 +36,15 @@ export function isChildlessCopy(node: DastElement) {
         )
     );
 }
+
+/**
+ * Whether `node` is written with `extend`, `copy` or `copyWithState`,
+ * whatever is written inside it. Such a component has its source's children,
+ * so a sugar that adds the children every such component has (a
+ * `<fractionInput>`'s two boxes) is skipped for it: they come from the source.
+ */
+export function isMadeFromSource(node: DastElement) {
+    return Object.keys(node.attributes).some((attrName) =>
+        ["extend", "copy", "copywithstate"].includes(attrName.toLowerCase()),
+    );
+}

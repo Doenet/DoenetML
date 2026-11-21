@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     submitAnswer,
+    updateBooleanInputValue,
     updateFractionInputImmediateValue,
     updateFractionInputValue,
     updateFractionInputValueToImmediateValue,
@@ -633,5 +635,110 @@ describe("FractionInput tag tests @group3", async () => {
         expect(sv[ansIdx].stateValues.creditAchieved).eq(1);
         expect(sv[numBoxIdx].stateValues.creditAchieved).eq(1);
         expect(sv[denBoxIdx].stateValues.creditAchieved).eq(0);
+    });
+
+    // A `<fractionInput>` with `copy`, `copyWithState` or `extend` has its
+    // source's two boxes, and no more (#2614 item 3). It was given two of
+    // its own besides, so a copy had four, and an extend reported them as
+    // children it ignores.
+    describe("made from another fraction input", () => {
+        async function setupCopy(attribute: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <fractionInput name="fr" />
+    <booleanInput name="show" />
+    <conditionalContent name="cc">
+      <case condition="$show"><fractionInput name="c" ${attribute}="$fr" /></case>
+    </conditionalContent>
+    `,
+            });
+            async function sv(name: string) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[await resolvePathToNodeIdx(name)];
+            }
+            async function parts(name: string) {
+                return (await sv(name)).activeChildren.map(
+                    (child: any) => child.componentType,
+                );
+            }
+            async function value(name: string) {
+                return (await sv(name)).stateValues.value.tree;
+            }
+            await updateFractionInputValue({
+                latex: "2",
+                part: "numerator",
+                componentIdx: await resolvePathToNodeIdx("fr"),
+                core,
+            });
+            await updateFractionInputValue({
+                latex: "3",
+                part: "denominator",
+                componentIdx: await resolvePathToNodeIdx("fr"),
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("show"),
+                core,
+            });
+            return { core, resolvePathToNodeIdx, parts, value };
+        }
+
+        const twoParts = ["_fractionInputComponent", "_fractionInputComponent"];
+
+        it("copyWithState starts with its source's value, and is typed into on its own", async () => {
+            const { core, resolvePathToNodeIdx, parts, value } =
+                await setupCopy("copyWithState");
+            expect(await parts("cc.c")).eqls(twoParts);
+            expect(await value("cc.c")).eqls(["/", 2, 3]);
+
+            await updateFractionInputValue({
+                latex: "5",
+                part: "numerator",
+                componentIdx: await resolvePathToNodeIdx("cc.c"),
+                core,
+            });
+            expect(await value("cc.c")).eqls(["/", 5, 3]);
+            expect(await value("fr")).eqls(["/", 2, 3]);
+            expect(getDiagnosticsByType(core).warnings).eqls([]);
+        });
+
+        it("copy starts blank, and is typed into on its own", async () => {
+            const { core, resolvePathToNodeIdx, parts, value } =
+                await setupCopy("copy");
+            expect(await parts("cc.c")).eqls(twoParts);
+            expect(await value("cc.c")).eq("＿");
+
+            await updateFractionInputValue({
+                latex: "5",
+                part: "denominator",
+                componentIdx: await resolvePathToNodeIdx("cc.c"),
+                core,
+            });
+            expect(await value("cc.c")).eqls(["/", "＿", 5]);
+            expect(await value("fr")).eqls(["/", 2, 3]);
+            expect(getDiagnosticsByType(core).warnings).eqls([]);
+        });
+
+        it("extend shows its source's value, with no warning", async () => {
+            const { core, resolvePathToNodeIdx, parts, value } =
+                await setupCopy("extend");
+            expect(await parts("cc.c")).eqls(twoParts);
+            expect(await value("cc.c")).eqls(["/", 2, 3]);
+
+            await updateFractionInputValue({
+                latex: "7",
+                part: "numerator",
+                componentIdx: await resolvePathToNodeIdx("cc.c"),
+                core,
+            });
+            expect(await value("cc.c")).eqls(["/", 7, 3]);
+            expect(await value("fr")).eqls(["/", 7, 3]);
+            // no `doenet-w0169` for children it ignores
+            expect(getDiagnosticsByType(core).warnings).eqls([]);
+        });
     });
 });
