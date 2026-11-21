@@ -211,7 +211,7 @@ const TARBALL_FILE_LINE = /^npm notice \d+(\.\d+)?[kMGT]?B .+$/;
 /**
  * Drop the per-file tarball listing from npm's output.
  *
- * A dev release publishes four packages of a few thousand files each, so the
+ * A dev release publishes five packages, most of a few thousand files, so the
  * listing runs ~5800 of the step's ~6000 lines and buries anything worth
  * reading — a release that failed on a one-line `npm error` looks, at a glance,
  * like it never got as far as publishing. The Tarball Details summary that
