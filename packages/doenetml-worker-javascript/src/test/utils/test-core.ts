@@ -75,6 +75,14 @@ type CreateTestCoreOptions = {
      * `updateRenderersCallback` does, the first (`init`) included.
      */
     updateRenderersCallback?: (args: any) => void;
+    /**
+     * How the host saves and puts back the resolver, for a load that stops
+     * on a circular dependency to be rebuilt (D57): `"saved"`, the default,
+     * as the worker does; `"none"`, a host that gives no way to (the backstop
+     * is then off); `"restoreFails"`, a host whose `restoreResolver` finds
+     * nothing saved. Ignored by the Rust-core stand-in.
+     */
+    resolverSave?: "saved" | "none" | "restoreFails";
 };
 
 export async function createTestCore({
@@ -93,6 +101,7 @@ export async function createTestCore({
     errorsAfterLoad,
     sendEvent,
     updateRenderersCallback,
+    resolverSave,
 }: CreateTestCoreOptions): Promise<
     Awaited<ReturnType<typeof createTestCoreJavascript>>
 > {
@@ -129,6 +138,7 @@ export async function createTestCore({
         errorsAfterLoad,
         sendEvent,
         updateRenderersCallback,
+        resolverSave,
     });
 }
 
@@ -148,6 +158,7 @@ async function createTestCoreJavascript({
     errorsAfterLoad,
     sendEvent = () => null,
     updateRenderersCallback = () => null,
+    resolverSave = "saved",
 }: CreateTestCoreOptions) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
@@ -264,9 +275,16 @@ async function createTestCoreJavascript({
         deleteNodesFromResolver,
         resolvePath,
         updateRootNames,
-        saveResolver,
-        restoreResolver,
-        releaseSavedResolver,
+        ...(resolverSave === "none"
+            ? {}
+            : {
+                  saveResolver,
+                  restoreResolver:
+                      resolverSave === "restoreFails"
+                          ? () => false
+                          : restoreResolver,
+                  releaseSavedResolver,
+              }),
     });
 
     const scoreState = {

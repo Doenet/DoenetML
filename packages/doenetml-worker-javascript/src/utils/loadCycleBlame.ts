@@ -11,8 +11,9 @@
  * (`breakReferenceCycles`'s `loadCycle`). The rest renders.
  *
  * The node blamed is, among the authored nodes on the cycle:
- * 1. the first reference, in document order, to a sectioning component's
- *    number (`$s.sectionNumber`, `$s.title`, …: `NUMBER_PROPERTIES`);
+ * 1. the first reference, in document order, to the number of a sectioning
+ *    component on the cycle (`$s.sectionNumber`, `$s.title`, …:
+ *    `NUMBER_PROPERTIES`);
  * 2. else the first composite in document order, a reference (`$x`,
  *    `extend`, `copy`) included, as a reference is made as a composite, or
  *    is a reference read as a value (`_ref`);
@@ -223,9 +224,14 @@ export function blameLoadCycle({
         ) {
             return false;
         }
+        // to a section on the cycle: a reference to the number of another
+        // section is on the cycle only through what holds its value (the
+        // `$t.sectionNumber` in `<p name="q" hide="$q.text='1'">`), so is
+        // not where the cycle is
         const target = byIdx.get(reference!.nodeIdx);
         return (
             target !== undefined &&
+            candidates.has(target.componentIdx) &&
             inherits(target.componentType, "_sectioningComponent")
         );
     }

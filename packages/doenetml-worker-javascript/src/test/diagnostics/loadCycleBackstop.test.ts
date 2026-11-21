@@ -179,6 +179,15 @@ $cc.hidden
 </section>`,
             "$s.title",
         );
+        // the number of `t`, off the cycle, is on it only through what holds
+        // its value: the composite on the cycle is blamed (rule 2), and in
+        // it, the reference that makes the cycle
+        await expectBlamed(
+            `<section name="t"/>
+<p name="p">hi</p>
+<repeatForSequence to="1"><p name="q" hide="$q.text='1'">$t.sectionNumber</p></repeatForSequence>`,
+            "$q.text",
+        );
     });
 
     // With no reference among the components the cycle reports, the first
@@ -320,6 +329,21 @@ $r2[2].q
 <number name="m" hide="$m.hidden">2</number>`,
             }),
         ).rejects.toThrow("Circular dependency");
+    });
+
+    // A host that gives no way to put the resolver back, or whose saved
+    // resolver is gone, can't rebuild the document: it stops, as it did
+    // before the backstop.
+    it("without the resolver saved, the document stops", async () => {
+        for (const resolverSave of ["none", "restoreFails"] as const) {
+            await expect(
+                createTestCore({
+                    doenetML: `<p name="p">hi</p><number name="n" hide="$n.hidden">1</number>`,
+                    resolverSave,
+                }),
+                resolverSave,
+            ).rejects.toThrow("Circular dependency");
+        }
     });
 
     // Without the backstop, the shapes above stop the document, as they did
