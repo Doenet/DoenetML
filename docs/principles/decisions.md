@@ -3083,6 +3083,12 @@ course content, a first release may give a warning and still apply the attribute
 decides. `<document>` is not replaced by an error (#2614 item 1, done by #2618), so a wrong-case
 attribute on it is reported and ignored.
 
+**Done by #2624.** The scan found about 1,500 wrong-case names in the repo's docs and tests, so
+the fallback was taken: for one release, a wrong-case attribute is applied, with `doenet-w0197`
+naming the right spelling. The parser renames it before anything reads it, with a backstop in the
+core. Tags and properties have no fallback. Leftovers are #2627, including a decision: rename the
+all-lowercase compound names (`halign`, `xintercept`, …) to camelCase before the release.
+
 ## D52. Decisions from the review of #2603 (decided, November 2026)
 
 #2602 and #2603 type every property and an answer's responses at load where the DoenetML decides

@@ -48,14 +48,27 @@ everything they type: names in DoenetML are exact, as `$x` always was.
 keyword: `simplify="FULL"`, `hide="True"`, `<boolean>TRUE</boolean>`. The value can come
 from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't be held to a case.
 
-**Known violations (#2605).** On `main` after #2603, tag and attribute names are matched without case in
-most places, but not all:
-- a tag with `copy` or `extend` is accepted in any case (`<MATH extend="$m"/>`, `<Label copy="$l"/>`);
-  written alone, `<MATH>` is `doenet-e0002`;
-- most attributes are accepted in any case (`SIMPLIFY`, `Extend`, `COPY`, `Prefill`,
-  `NumToSelect`, `Hide`), but `Name="t"` is `doenet-e0003` ("Cannot repeat attribute name") and
-  names nothing, and `<repeat For="1 2" ValueName="v" IndexName="i">` silently makes no `$v` or `$i`;
-- property names are matched without case (`$P.X` is `$P.x`).
+**Done by #2624** (closing #2605; #2580 item 3):
+- a tag written with `copy`, `extend` or `copyWithState` is matched exactly, so `<MATH extend="$m"/>`
+  and `<Label copy="$l"/>` are `e0002`, with "Did you mean `<math>`?". In an `<answer>`,
+  `<Award copy>` no longer gets a second award;
+- a property is matched exactly: `$P.X` names nothing, with `w0104` "Did you mean `$P.x`?";
+- **for one release, a wrong-case attribute is applied, with `doenet-w0197`** (D51's fallback). The
+  warning names the right spelling and says it will be an error later. The scan found about 1,500
+  wrong-case names in the repo's docs and tests (780 of them `<graph xmin …>`), so course content
+  very likely has many. This holds for every attribute, `name`, `extend`, `copy`, `for` and
+  `valueName` included, so the example above shows `SIMPLIFY` applied with a warning for now;
+- the repo's own wrong-case names are fixed.
+
+**Known violations** (#2627):
+- several components declare all-lowercase compound names (`halign`, `xintercept`,
+  `circumradius`, `xoffset`, …) where the convention is camelCase. The docs taught `hAlign` and
+  `yIntercept`, which no longer work. For a decision: rename them before the release;
+- a `<module>`'s declared attributes, and an external reference's content (`copy="doenet:…"`),
+  are still matched without case;
+- `w0104` suggests no spelling for an array entry or alias in another case (`$P.X1`);
+- a `sortByProp` naming no property sorts silently;
+- `w0197` becomes `e0004` in a later release.
 
 ### NAME-1: nearest match wins; a tie is an error, not a guess (Tier 1)
 `$x` means the `x` in the nearest enclosing scope that contains one. If that scope contains two,

@@ -216,9 +216,8 @@ implemented it; the work to remove it is #2626.
   one live;
 - `<collect fixed|disabled|hide>` passes these to the collected copies, so they aren't the
   collect's own;
-- a collection's own property spelled in another case is the collection's when written directly
-  (`$r.numitems`) and `w0104` through a wrapper (`$g.numitems`), or each item's (`$g.Fixed`).
-  Under D51 (NAME-0, #2605) every one of them names nothing, with a suggestion of `numItems`;
+- **fixed by #2624** (D51): a collection's own property spelled in another case (`$r.numitems`,
+  `$g.Fixed`) names nothing in both builds, with a suggestion of `numItems` or `fixed`;
 - a name after a collect differs between the builds (COMP-4).
 
 ### COLL-3: a wrapper stands for its one component; with several, it is only a container (Tier 2; D41)
