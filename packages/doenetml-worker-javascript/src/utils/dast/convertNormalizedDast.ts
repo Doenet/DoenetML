@@ -284,7 +284,7 @@ export async function normalizedDastToSerializedComponents(
                     args: {
                         attribute: written,
                         suggestion: corrected,
-                        componentType: node.name,
+                        componentType,
                     },
                     position: attribute.position ?? node.position,
                     sourceDoc: attribute.sourceDoc ?? node.sourceDoc,

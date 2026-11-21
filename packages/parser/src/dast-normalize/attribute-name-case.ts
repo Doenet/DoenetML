@@ -107,8 +107,27 @@ function attributesOf(tag: string): string[] | undefined {
     return attributesByTag.get(tag);
 }
 
+/**
+ * The component type of `node` as the core reads it: a `<division>`'s is its
+ * `type` (`getComponentType` in the core's `convertNormalizedDast.ts`). So
+ * `<division type="section">` is corrected as a `<section>`, and its warning
+ * is kept by the core, which drops one on a tag that is no component type.
+ */
+function componentTypeOf(node: DastElement): string {
+    const type = node.attributes.type?.children;
+    if (
+        node.name === "division" &&
+        type?.length === 1 &&
+        type[0].type === "text"
+    ) {
+        return type[0].value;
+    }
+    return node.name;
+}
+
 function correctAttributes(node: DastElement, warnings: DastError[]) {
-    const declared = attributesOf(node.name);
+    const componentType = componentTypeOf(node);
+    const declared = attributesOf(componentType);
     const written = Object.keys(node.attributes);
     const madeFromAnother = ATTRIBUTES_OF_EVERY_TAG.some((name) =>
         written.some((w) => w.toLowerCase() === name.toLowerCase()),
@@ -153,11 +172,11 @@ function correctAttributes(node: DastElement, warnings: DastError[]) {
         warnings.push(
             codedDastError({
                 code: "doenet-w0197",
-                message: `Attribute names are case-sensitive: write \`${corrected}\`, not \`${name}\`, on a \`<${node.name}>\`. It is applied for now, but will be an error in a later release.`,
+                message: `Attribute names are case-sensitive: write \`${corrected}\`, not \`${name}\`, on a \`<${componentType}>\`. It is applied for now, but will be an error in a later release.`,
                 args: {
                     attribute: name,
                     suggestion: corrected,
-                    componentType: node.name,
+                    componentType,
                 },
                 error_type: "warning",
                 position: attribute.position ?? node.position,

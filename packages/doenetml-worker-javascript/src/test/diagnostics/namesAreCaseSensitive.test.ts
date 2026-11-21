@@ -411,6 +411,18 @@ describe("Names are case-sensitive (D51) @group4", async () => {
             ]);
         }
         {
+            // a `<division>` is its type, so is a component type, and the
+            // warning is kept
+            const { text, errors, warnings } = await load(
+                `<division type="section" Name="s"><title>T</title></division><p name="p">$s.title</p>`,
+            );
+            expect(errors).toHaveLength(0);
+            expect(warnings.map((w) => w.message)).toEqual([
+                message("Name", "name", "section"),
+            ]);
+            expect(await text("p")).eq("T");
+        }
+        {
             // written twice, in two cases: the second is an attribute the
             // copy doesn't have
             const { errors, warnings } = await load(
