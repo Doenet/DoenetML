@@ -472,6 +472,21 @@ describe("A disabled or read-only input shows no edit not entered @group2", () =
         expect(await h.answered()).eqls([]);
     });
 
+    // An action chained to the input (`triggerWith`) runs when the core
+    // enters a disabled input's edit, as when the reader enters it.
+    it("a disabled input's edit, entered, runs the actions chained to it", async () => {
+        const h = await setup(`
+    <mathInput name="mi" prefill="1" disabled="$P.x > 1"/>
+    <graph><point name="P">(0,0)</point></graph>
+    <number name="count">0</number>
+    <updateValue name="uv" target="$count" newValue="$count+1" type="number" triggerWith="$mi"/>`);
+        await h.editMath("mi", "4");
+        expect((await h.sv("count")).stateValues.value).eq(0);
+        await h.drag("P", 2);
+        expect(await h.shown("mi")).eq("4 / 4");
+        expect((await h.sv("count")).stateValues.value).eq(1);
+    });
+
     it("a reader's updateValue still does nothing for a disabled input", async () => {
         const h = await setup(`
     <mathInput name="mi" prefill="1" disabled="$b"/>

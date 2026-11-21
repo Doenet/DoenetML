@@ -266,18 +266,19 @@ export default class Core {
     definitionSetStateIds!: Set<string>;
     /**
      * The input the reader is editing: the last to receive an edit not yet
-     * entered (`setComponentNeedingUpdateValue`), until it is entered, or is
-     * withheld or deleted (`inputNoLongerFocused`), which it can't be while
-     * focused. Kept only in memory: after a reload nothing is being
-     * edited (D50).
+     * entered (`setComponentNeedingUpdateValue`), until it is entered, is
+     * withheld or deleted (`inputNoLongerFocused`), or is disabled
+     * (`_stopEditingIfDisabled`), none of which it can be while focused.
+     * Kept only in memory: after a reload nothing is being edited (D50).
      */
     componentBeingEdited: number | null = null;
     /**
      * Inputs made, or shown again, since unentered edits were last committed
      * (`commitUnenteredEdits`, D50), and the input an `extend` withheld or
-     * deleted while edited extends (`inputNoLongerFocused`): each of those
-     * that shows an edit not entered, other than the edit of the input being
-     * edited, is committed.
+     * deleted while edited extends (`inputNoLongerFocused`), and the input
+     * being edited once it is disabled (`_stopEditingIfDisabled`): each of
+     * those that shows an edit not entered, other than the edit of the input
+     * being edited, is committed.
      */
     inputsToCommit: Set<number> = new Set();
     /**

@@ -245,10 +245,10 @@ ${select}
 
         for (const attribute of ["extend", "copy", "copyWithState"]) {
             it(`with ${attribute}, the variantControl written out is followed`, async () => {
-                const { variants, errors } = await load(`
+                const { variants, errors, warnings } = await load(`
 <variantControl name="vc" numVariants="2" />
-<variantControl ${attribute}="$vc" numVariants="$n" />
-<number name="n">3</number>
+<variantControl ${attribute}="$vc" numVariants="$m" />
+<number name="m">3</number>
 ${select}
 `);
                 expect(variants).eqls(["a", "b"]);
@@ -258,6 +258,7 @@ ${select}
                 expect(errors[0].message).eq(message);
                 expect(errors[0].position?.start.line).eq(3);
                 expect(errors[0].position?.start.column).eq(1);
+                expect(warnings).eqls([]);
             });
         }
 

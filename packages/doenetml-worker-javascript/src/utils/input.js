@@ -491,7 +491,8 @@ export async function inputUpdateValue({
             });
 
             if (enteredByCore?.readOnly) {
-                // no action is run under `readOnly`; the renderers show the value
+                // no chained action is run under `readOnly`; the renderers
+                // show the value
                 return await this.coreFunctions.updateRenderers({
                     actionId,
                     sourceInformation,

@@ -639,8 +639,8 @@ describe("FractionInput tag tests @group3", async () => {
 
     // A `<fractionInput>` with `copy`, `copyWithState` or `extend` has its
     // source's two boxes, and no more (#2614 item 3). It was given two of
-    // its own besides, so a copy had four and showed `＿`, and an extend
-    // reported them as children it ignores.
+    // its own besides, so a copy had four, and an extend reported them as
+    // children it ignores.
     describe("made from another fraction input", () => {
         async function setupCopy(attribute: string) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
