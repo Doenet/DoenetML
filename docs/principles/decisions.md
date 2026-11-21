@@ -3169,3 +3169,22 @@ never true, silently (#2623 item 8).
 3. `enumeration` (the parts, `[2, 3]`) stays internal.
 4. The type-mix warning for ordering a text against a number (#2623 item 8, if decided) suggests
    `ownNumber` when the text is a `sectionNumber`.
+
+## D57. A circular dependency thrown while the document loads becomes a located `e0005` (decided, Tier 2; November 2026)
+
+The load-time cycle checks (#2471, #2513, #2618) predict what the run time waits for, and some
+shapes they miss still stop the whole document with "Circular dependency" (#2623 item 1; D14's main
+known violation).
+
+**Decided** (#2618's approach (c), then (a)):
+1. When `CircularDependencyError` is thrown while the document loads, the core catches it once.
+   - It blames one authored node on the cycle: the reference to a section's number if there is one,
+     else the first composite in document order (DIAG-4).
+   - It rebuilds with that node as `e0005`, through the load check's error path.
+   - The rest of the document renders (D14, NAME-7).
+2. The load-time prediction becomes an optimization. It should err toward missing an edge (the
+   backstop catches it) rather than adding one (a false `e0005`).
+3. A generated differential test pins the numbering check against the run time. It runs each
+   generated document with the number edges on and off, and CI runs a fixed sample.
+4. **Still a known violation:** a cycle that appears only after an update still stops the
+   document. Shapes the prediction misses may give variant-dependent outcomes (against #2471).
