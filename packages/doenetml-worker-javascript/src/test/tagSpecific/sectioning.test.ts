@@ -3557,7 +3557,7 @@ describe("Sectioning tag tests @group3", async () => {
     <conditionalContent name="cc3" condition="$s.sectionNumber = 1"><p name="p3">one</p></conditionalContent>
     <boolean name="b">$s.sectionNumber = 3</boolean>
     `;
-        const shownTexts: string[][] = [];
+        const shownParagraphs: number[][] = [];
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
             updateRenderersCallback: (batch: any) => {
@@ -3565,7 +3565,7 @@ describe("Sectioning tag tests @group3", async () => {
                     for (const state of instruction.rendererStatesToUpdate ??
                         []) {
                         if (state.componentIdx === 0) {
-                            shownTexts.push(
+                            shownParagraphs.push(
                                 (state.childrenInstructions ?? [])
                                     .filter(
                                         (child: any) =>
@@ -3610,7 +3610,7 @@ describe("Sectioning tag tests @group3", async () => {
 
         await check(true);
         // the `<p>`s first sent to the viewer
-        expect(shownTexts[0]?.length).eq(2);
+        expect(shownParagraphs[0]?.length).eq(2);
 
         await updateBooleanInputValue({
             boolean: true,

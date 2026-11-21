@@ -1158,9 +1158,10 @@ export class DependencyHandler {
      * on its path stay memoized while whatever it had not yet expanded
      * below them does not, so a reset coming up from below such a variable
      * stops short of the path. That never matters: a cycle's throw is a
-     * `CircularDependencyError`, which no guard swallows, and it ends the
-     * document whether it is raised during load or by an update, so no check
-     * runs after it.
+     * `CircularDependencyError`, which no guard swallows, and it ends this
+     * core's work whether it is raised during load (the load is abandoned and
+     * the document built again by a new core, D57) or by an update (the
+     * document stops), so no check runs after it.
      */
     resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
         if (this.circularCheckMarks.get(componentIdx, varName) !== PASSED) {

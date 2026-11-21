@@ -219,7 +219,10 @@ export class PublicDoenetMLCore {
         saveResolver?: () => void;
         /** Put back the resolver `saveResolver` saved; whether there was one. */
         restoreResolver?: () => boolean;
-        /** Drop the resolver `saveResolver` saved, once the document loaded. */
+        /**
+         * Drop the resolver `saveResolver` saved, once the load is over,
+         * whether the document loaded or stopped.
+         */
         releaseSavedResolver?: () => void;
     }) {
         this.addNodesToResolver = addNodesToResolver;
@@ -415,9 +418,10 @@ export class PublicDoenetMLCore {
      * cycle check (`breakReferenceCycles`'s `loadCycle`). The rest renders.
      *
      * Done once: if no node can be blamed, the host gave no way to put the
-     * resolver back, the backstop is off (`setLoadCycleBackstop`), or the
-     * rebuilt document stops on a cycle too, the error is thrown, and the
-     * document stops as before.
+     * resolver back, the backstop is off (`setLoadCycleBackstop`), the cycle
+     * check could not make the node blamed an error, or the rebuilt document
+     * stops on a cycle too, the error is thrown, and the document stops as
+     * before.
      */
     async rebuildAroundLoadCycle(
         error: CircularDependencyError,
@@ -476,7 +480,10 @@ export class PublicDoenetMLCore {
         return await this.core.generateDast();
     }
 
-    /** Drop what a rebuild of the load would need, once it has loaded. */
+    /**
+     * Drop what a rebuild of the load would need, once the load is over,
+     * whether the document loaded or stopped.
+     */
     _releaseRebuildData() {
         this._normalizedRootForRebuild = undefined;
         this.releaseSavedResolver?.();

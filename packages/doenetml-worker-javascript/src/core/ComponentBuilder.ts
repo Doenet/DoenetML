@@ -348,14 +348,6 @@ export async function addComponents({
 }
 
 /**
- * Walks `serializedComponents` and produces matching live component
- * instances without splicing them into any parent's defining-children
- * list — used for replacements, attribute components, error components,
- * and reference-resolution sub-trees that get attached by their caller.
- * Mutually recursive with `createChildrenThenComponent` (children are
- * built before their parent is constructed).
- */
-/**
  * The components a component being made is made in, for a cycle found
  * before it exists: the composite it is made by, and its parent
  * (`CircularDependencyError.componentIndices`).
@@ -372,6 +364,14 @@ function madeIn(ancestors: any, componentsReplacementOf: any): number[] {
     return found;
 }
 
+/**
+ * Walks `serializedComponents` and produces matching live component
+ * instances without splicing them into any parent's defining-children
+ * list — used for replacements, attribute components, error components,
+ * and reference-resolution sub-trees that get attached by their caller.
+ * Mutually recursive with `createChildrenThenComponent` (children are
+ * built before their parent is constructed).
+ */
 export async function createIsolatedComponents({
     core,
     serializedComponents,

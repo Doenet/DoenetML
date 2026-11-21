@@ -1268,8 +1268,9 @@ export default class Core {
      * Run at the end of load and after each update or action request
      * (`ProcessQueue`), never during an update. Each input is committed on
      * its own: an error committing one is logged, and the others are still
-     * committed (#2614 item 6). A cycle is not caught: it stops the
-     * document, as anywhere else. Skipped: an input withheld (committed when
+     * committed (#2614 item 6). A cycle is not caught: at load, the
+     * document is built again around it (D57, `rebuildAroundLoadCycle`);
+     * after load, it stops the document, as anywhere else. Skipped: an input withheld (committed when
      * shown again), and an input showing the edit of the input being edited,
      * with the same source (`sourceOfInput`): the input itself, what it
      * extends, or an `extend` of either.

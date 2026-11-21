@@ -184,8 +184,8 @@ impl PublicDoenetMLCore {
         self.core.restore_resolver()
     }
 
-    /// Drop the resolver saved by `save_resolver`, once the document has
-    /// loaded.
+    /// Drop the resolver saved by `save_resolver`, once the load is over,
+    /// whether the document loaded or stopped.
     pub fn release_saved_resolver(&mut self) {
         self.core.release_saved_resolver();
     }
