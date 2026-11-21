@@ -553,6 +553,12 @@ describe("Names are case-sensitive (D51) @group4", async () => {
                 reference: "$poly.VertexX2_1",
                 suggestion: "$poly.vertices[2][1]",
             },
+            {
+                // as quickly for an entry far along
+                doenetML: `<polygon name="poly" vertices="(1,2) (3,4) (5,6)"/><p name="p">$poly.VERTEX100000</p>`,
+                reference: "$poly.VERTEX100000",
+                suggestion: "$poly.vertices[100000]",
+            },
         ];
         for (const c of cases) {
             const { text, errors, warnings } = await load(c.doenetML);

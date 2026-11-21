@@ -147,18 +147,21 @@ function arrayEntryInIndexForm(
         if (indices.length > numDimensions) {
             continue;
         }
-        // An array large enough to hold the entry, to compare the entries
-        // the name gives with those the index form gives.
-        const size = Math.max(...indices, 2);
-        const arraySize = Array(numDimensions).fill(size);
+        // Compare the entries the name gives with those the index form gives
+        // in a small array, for an entry no further than its third in each
+        // dimension: which entries a name gives doesn't depend on how far
+        // along they are, and an array as large as the index written would
+        // make this as slow as that index is large (`$poly.VERTEX100000`).
+        const sample = indices.map((index) => Math.min(index, 3));
+        const arraySize = Array(numDimensions).fill(3);
         const keysOfName: string[] = description.getArrayKeysFromVarName({
             arrayEntryPrefix: prefix,
-            varEnding,
+            varEnding: sample.join("_"),
             arraySize,
             numDimensions,
         });
         const keysOfIndexForm = subarrayKeys(
-            indices.map((index) => index - 1),
+            sample.map((index) => index - 1),
             arraySize.slice(indices.length),
         );
         const sameEntries =
