@@ -51,6 +51,7 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
     hint: { toggle: [{ open: true }] },
     answer: { submitAnswer: [{}] },
     triggerSet: { triggerActions: [{}] },
+    solution: { revealSolution: [{}], closeSolution: [{}] },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -81,6 +82,9 @@ const DOC = `
 <slider name="slBound" from="0" to="10" bindValueTo="$n"/>
 <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
 <hint name="h"><p>help</p></hint>
+<solution name="sol"><p>answer</p></solution>
+<theorem><statement><p>claim</p></statement></theorem>
+<proof><p>reason</p></proof>
 <boolean name="k"/>
 <triggerSet name="t"><label>Go</label><updateValue target="$k" newValue="true"/></triggerSet>
 <answer name="a">2x</answer>
@@ -123,6 +127,7 @@ const EXPECTED_REQUESTS = [
     "slider.value",
     "choiceInput.selectedIndex",
     "hint.open",
+    "solution.open",
 ];
 
 /** What the bridge must have read, as `type.prop`: one or more per
@@ -153,6 +158,7 @@ const EXPECTED_READS = [
     "slider.step",
     "choiceInput.selectedIndex",
     "hint.open",
+    "solution.open",
     "answer.credit",
     "answer.numSubmissions",
     "section.number",

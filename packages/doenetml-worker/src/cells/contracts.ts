@@ -192,16 +192,30 @@ function flag(table: CellsTable, c: number, name: string): boolean {
     return text !== null && text.trim().toLowerCase() !== "false";
 }
 
-/** A section's title by its `label` cell: the titles of the core's
- * `SECTION_TAGS`, in order. */
-const SECTION_LABELS = [
-    "Section",
-    "Section",
-    "Section",
-    "Problem",
-    "Exercise",
-    "Example",
+/** A section's tag and the word its title shows, by its `label` cell: the
+ * core's `SECTION_TAGS`, in order. */
+const SECTION_KINDS: [tag: string, word: string][] = [
+    ["section", "Section"],
+    ["subsection", "Section"],
+    ["subsubsection", "Section"],
+    ["problem", "Problem"],
+    ["exercise", "Exercise"],
+    ["example", "Example"],
+    ["question", "Question"],
+    ["activity", "Activity"],
+    ["definition", "Definition"],
+    ["note", "Note"],
+    ["theorem", "Theorem"],
+    ["paragraphs", "Paragraphs"],
+    ["objectives", "Objectives"],
+    ["part", "Part"],
+    ["task", "Task"],
+    ["problems", "Problems"],
+    ["exercises", "Exercises"],
 ];
+
+/** Divisions drawn boxed unless `boxed="false"`, as in the current core. */
+const BOXED_BY_DEFAULT = new Set(["objectives"]);
 
 /** A section's full number ("2.1"): its own, after its nearest section
  * ancestor's when it includes it. */
@@ -592,21 +606,28 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => {
             const title = titleChild(r.table, c);
             const number = sectionNumber(r, c);
-            const kind = SECTION_LABELS[r.num(c, "label")] ?? "Section";
+            const [tag, word] = SECTION_KINDS[r.num(c, "label")] ?? [
+                "section",
+                "Section",
+            ];
+            const boxed = r.table.attr(c, "boxed");
             return {
                 title: title === null ? null : r.idOf(title),
                 titlePrefix: "",
                 codeNumber: number,
                 divisionDepth: sectionDepth(r.table, c),
-                divisionType: r.table.tag(c),
+                divisionType: tag,
                 xrefLabel: {
-                    label: kind,
+                    label: word,
                     global_ident: number,
                     local_ident: number,
                     preferred_form: "Global",
                 },
                 collapsible: false,
-                boxed: flag(r.table, c, "boxed"),
+                boxed:
+                    boxed === null
+                        ? BOXED_BY_DEFAULT.has(tag)
+                        : flag(r.table, c, "boxed"),
                 open: true,
             };
         },
@@ -724,6 +745,74 @@ export const CONTRACTS: Record<string, Contract> = {
     div: {},
     pre: {},
     blockQuote: {},
+    // Document-structure blocks beside the numbered divisions.
+    // A proof: an unnumbered division, collapsed until opened.
+    proof: {
+        props: (r, c) => {
+            const title = titleChild(r.table, c);
+            return {
+                title: title === null ? null : r.idOf(title),
+                titlePrefix: "",
+                codeNumber: "",
+                divisionDepth: sectionDepth(r.table, c),
+                divisionType: "proof",
+                xrefLabel: {
+                    label: title === null ? "Proof" : "",
+                    global_ident: "",
+                    local_ident: "",
+                    preferred_form: "Global",
+                },
+                collapsible: true,
+                boxed: flag(r.table, c, "boxed"),
+                open: flag(r.table, c, "startOpen"),
+            };
+        },
+        excludeChild: (table, _c, child) =>
+            table.componentType(child) === "title",
+    },
+    // Revealed by the reader (`revealSolution`), and closed again.
+    solution: {
+        props: (r, c) => ({
+            open: r.bool(c, "open"),
+            canBeClosed: true,
+            sectionName: "Solution",
+            hide: false,
+        }),
+    },
+    introduction: {},
+    conclusion: {},
+    statement: {},
+    // A figure's caption is drawn from `captionChild`, not as a child. Its
+    // number runs through the document apart from the sections, which the
+    // core does not keep: it is named "Figure" alone.
+    figure: {
+        props: (r, c) => {
+            const caption = childrenOfType(r.table, c, "caption")[0];
+            return {
+                caption: "",
+                captionChild: caption === undefined ? null : r.idOf(caption),
+                figureName: "Figure",
+                figureNamePrefix: caption === undefined ? "Figure" : "Figure: ",
+                suppressFigureNameInCaption: flag(
+                    r.table,
+                    c,
+                    "suppressFigureNameInCaption",
+                ),
+            };
+        },
+        excludeChild: (table, _c, child) =>
+            table.componentType(child) === "caption",
+    },
+    caption: {},
+    // Its text is the marker's tooltip. Its number runs through the
+    // document, which the core does not keep: the marker shows none.
+    footnote: {
+        props: (r, c) => ({
+            footnoteTag: "",
+            text: r.table.core.component_text(c),
+        }),
+        noChildren: true,
+    },
 };
 
 /** Component types that stand as their children. */
@@ -737,6 +826,7 @@ export const TRANSPARENT = new Set([
     "conditionalContent",
     "select",
     "case",
+    "_postponeRenderContainer",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -772,6 +862,12 @@ export const BLOCKS = new Set([
     "pre",
     "blockQuote",
     "hr",
+    "proof",
+    "solution",
+    "introduction",
+    "conclusion",
+    "statement",
+    "figure",
 ]);
 
 /** Component types with no view of their own. */

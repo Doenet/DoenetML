@@ -185,6 +185,15 @@ component_types! {
     Pre => containers::markup::PRE,
     BlockQuote => containers::markup::BLOCK_QUOTE,
     Ol => containers::markup::OL,
+    Proof => containers::blocks::proof::DEFINITION,
+    Solution => containers::blocks::solution::DEFINITION,
+    Introduction => containers::blocks::introduction::DEFINITION,
+    Conclusion => containers::blocks::conclusion::DEFINITION,
+    Statement => containers::blocks::statement::DEFINITION,
+    Figure => containers::blocks::figure::DEFINITION,
+    Caption => containers::blocks::caption::DEFINITION,
+    Footnote => containers::blocks::footnote::DEFINITION,
+    PostponeRenderContainer => containers::blocks::postpone_render_container::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -1178,7 +1187,6 @@ mod tests {
             Select,
             SelectFromSequence,
             Group,
-            Section,
             Title,
             Ref,
             List,
