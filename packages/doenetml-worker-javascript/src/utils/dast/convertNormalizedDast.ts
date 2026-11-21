@@ -1481,9 +1481,9 @@ export function expandAllUnflattenedAttributes({
 
     let attributes: Record<string, SerializedAttribute> = {};
 
-    // The `<document>` is the root, which nothing can replace: an error in
-    // its attributes is reported at the attribute, which is ignored, and the
-    // rest of the document renders (DIAG-5, #2614 item 1). Anywhere else, it
+    // The `<document>` is the root, which nothing can replace: an attribute
+    // it doesn't have, or one repeated, is reported at the attribute, which
+    // is ignored, and the rest of the document renders (DIAG-5, #2614 item 1). Anywhere else, it
     // is thrown, and the component becomes an `_error`.
     const keepComponent = componentClass.componentType === "document";
     function attributeError(

@@ -17,10 +17,12 @@
  *   no section, before the section `s`, loads. A composite given the type of
  *   a section (`<section extend="$x"/>`) makes exactly one, and is counted as
  *   one without being waited for.
- * - **A composite that can is a cycle, found at load.** A reference to the
- *   number of a section (its `sectionNumber`, `enumeration` or `title`) reads
- *   what each composite its numbering waits for (`compositesNumberingWaitsFor`)
- *   reads to expand, not the values of what it makes: edges of the graph
+ * - **A composite that can, and reads the number to expand, is a cycle,
+ *   found at load.** A reference to the number of a section (its
+ *   `sectionNumber`, `enumeration`, `title` or `titlePrefix`) reads what
+ *   each composite its numbering waits for (`compositesNumberingWaitsFor`)
+ *   reads to expand, not the values of what it makes, and a `<collect>`
+ *   reads what it collects from to expand: edges of the graph
  *   `breakReferenceCycles` searches. So `$s.title` in a section a `<repeat>`
  *   before `s` makes is no cycle, while
  *   `<repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence>`
@@ -31,6 +33,7 @@
  */
 import type { SerializedComponent } from "./types";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
+import { serializedAttributeComponent } from "../literalAttribute";
 import {
     DIVISION_SEQUENCE,
     LIST_ITEM_SEQUENCE,
@@ -126,7 +129,10 @@ function typeHelpers(componentInfoObjects: ComponentInfoObjects) {
  * a section's numbering does not wait for it (`sequenceNumbering.js`).
  *
  * A composite may make one when:
- * - it is a `<collect>`, which may collect anything;
+ * - it is a `<collect>`, unless its `componentType` is written as a tag
+ *   that is no composite, no sectioning component and no container a
+ *   numbering passes through, nor one that any of those is a kind of
+ *   (`<collect componentType="p">`), as it makes only what it collects;
  * - it is a reference (`$x`, `<group extend="$x"/>`) to a sectioning
  *   component or a container a numbering passes through, or to a composite
  *   that may make one, or one not decided from the DoenetML (an index into
@@ -149,7 +155,7 @@ export function markCompositesMakingNoSectioning({
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
 }) {
-    const { isComposite, isSectioning, writtenType } =
+    const { inherits, isComposite, isSectioning, writtenType } =
         typeHelpers(componentInfoObjects);
 
     const componentsByIdx = new Map<number, SerializedComponent>();
@@ -299,6 +305,37 @@ export function markCompositesMakingNoSectioning({
         return (items.component.children ?? []).some(childMayMake);
     }
 
+    /**
+     * Whether the `<collect>` `collect` may make one: unless its
+     * `componentType` is written as a tag that is no composite, no
+     * sectioning component and no container a numbering passes through,
+     * and that none of those is a kind of. It makes only what it collects,
+     * and a component it collects is of that type.
+     */
+    function collectMayMake(collect: SerializedComponent): boolean {
+        const written = serializedAttributeComponent(
+            collect.attributes?.componentType,
+        );
+        if (
+            !written ||
+            !written.children.every((child) => typeof child === "string")
+        ) {
+            return true;
+        }
+        const collected =
+            componentInfoObjects.componentTypeLowerCaseMapping[
+                (written.children as string[]).join("").trim().toLowerCase()
+            ];
+        if (collected === undefined) {
+            return true;
+        }
+        return Object.keys(componentInfoObjects.allComponentClasses).some(
+            (componentType) =>
+                (isComposite(componentType) || isSectioning(componentType)) &&
+                inherits(componentType, collected),
+        );
+    }
+
     function mayMake(composite: SerializedComponent): boolean {
         const idx = composite.componentIdx;
         const known = mayMakeByIdx.get(idx);
@@ -311,7 +348,7 @@ export function markCompositesMakingNoSectioning({
         deciding.add(idx);
         let result: boolean;
         if (composite.componentType === "collect") {
-            result = true;
+            result = collectMayMake(composite);
         } else if (composite.componentType === "_placeholder") {
             // the value of a repeat, an item of its `for`
             result = valueMayMake(composite);

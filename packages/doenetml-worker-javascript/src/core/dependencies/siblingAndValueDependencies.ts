@@ -402,11 +402,11 @@ export class CountAmongSiblingsDependency extends Dependency {
  *
  * - `passOverCompositesMarked`: a composite marked at load with this
  *   `doenetAttribute`, which the DoenetML shows can make none of those types,
- *   is passed over, expanded or not (`markCompositesMakingNoSectioning`). So
+ *   is passed over before it expands (`markCompositesMakingNoSectioning`). So
  *   `<conditionalContent condition="$s.sectionNumber > 1">` whose cases hold
  *   no section, before `s`, is no circular dependency.
  * - `countPlaceholdersOfTypes`: a composite given one of these types, which
- *   makes exactly one component of it, is passed over, expanded or not, and
+ *   makes exactly one component of it, is passed over before it expands, and
  *   its type is added to the value after the sibling found, as
  *   `{ componentType, placeholder: true }`, to be counted.
  *

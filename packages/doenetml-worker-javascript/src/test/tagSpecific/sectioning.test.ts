@@ -3070,6 +3070,19 @@ describe("Sectioning tag tests @group3", async () => {
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.title",
             ],
+            // a collect waits for what it collects from to expand
+            [
+                `<collect from="$r" componentType="section"/>
+<section name="s"><p name="p">hi</p></section>
+<repeatForSequence name="r" to="$s.sectionNumber"><section/></repeatForSequence>`,
+                "$s.sectionNumber",
+            ],
+            [
+                `<collect from="$g" componentType="section"/>
+<section name="s"><p name="p">hi</p></section>
+<group name="g"><repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence></group>`,
+                "$s.sectionNumber",
+            ],
             // a problem among problems is numbered the same way
             [
                 `<problems><repeatForSequence to="$b.sectionNumber"><problem/></repeatForSequence><problem name="b"><p name="p">hi</p></problem></problems>`,
@@ -3122,6 +3135,7 @@ describe("Sectioning tag tests @group3", async () => {
     <conditionalContent condition="$bi"><section name="extra"/></conditionalContent>
     <div>
       <group><text name="t">$s.title</text></group>
+      $s.enumeration
       <section name="s"/>
     </div>
     <problems>
@@ -3243,6 +3257,28 @@ describe("Sectioning tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx(name)].stateValues;
         expect((await sv("s")).sectionNumber).eq("2");
         expect((await sv("p")).text).eq("1, 3; 1, 2");
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+
+    // A `<collect>` makes only what it collects, so one whose `componentType`
+    // is a tag that is no section, nor a container the numbering passes
+    // through, can make no section, and is not waited for. It can collect
+    // from a composite after the section that reads the section's number,
+    // which it waits for. It failed with a circular dependency.
+    it("a collect of a tag that is no section reads the number of a section after it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="first"/>
+    <collect name="c" from="$r" componentType="p"/>
+    <section name="s"/>
+    <repeatForSequence name="r" to="$s.sectionNumber" valueName="v"><section><p>item $v</p></section></repeatForSequence>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("s")).sectionNumber).eq("2");
+        expect((await sv("c")).collectedComponents.length).eq(2);
         expect(getDiagnosticsByType(core).errors).eqls([]);
     });
 

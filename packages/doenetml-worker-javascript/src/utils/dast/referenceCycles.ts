@@ -91,7 +91,17 @@
  *   the attributes it is made from (`ATTRIBUTES_READ`: the `simplify` of a
  *   `<math>`, the `input` of an `<evaluate>`, so `$$f($n)` in `n`), and
  *   through what each attribute is made as;
- * - an `<award>` or a `<considerAsResponses>`, to each child.
+ * - an `<award>` or a `<considerAsResponses>`, to each child;
+ * - a reference to the number of a sectioning component
+ *   (`NUMBER_PROPERTIES`: `$s.sectionNumber`, `$s.title`, …), to the
+ *   expansion of each composite before it that its numbering waits for
+ *   (`compositesNumberingWaitsFor`, #2614 item 2). The expansion of a
+ *   composite (`expansionEdges`) is to what it is made from, to the index
+ *   of a reference and the expansion of what it is of, to the expansion of
+ *   each composite in it the numbering would wait for, and, for a
+ *   `<collect>`, to the expansion of what it collects from; not to the
+ *   values of what it holds, which the number does not read (`$s.title` in
+ *   a section a `<repeat>` before `s` makes is valid).
  *
  * A component that takes a `<label>` as its label (a `<point>`, an input)
  * has no edge to its label, and its label may read it (`<point
@@ -1541,7 +1551,8 @@ export function breakReferenceCycles({
      * (`expansionNode`): to what it is made from (`madeFromNode`), to the
      * components in the index of a reference and to the expansion of what it
      * is of, and to the expansion of each composite written in it that a
-     * numbering would wait for (`compositesWaitedForIn`). Not to the values
+     * numbering would wait for (`compositesWaitedForIn`); for a `<collect>`,
+     * to the expansion of what it collects from. Not to the values
      * of what is written in it, which the number of a section after it does
      * not read: a reference to the section's number in a section a
      * `<repeat>` before it makes is no cycle (#2614 item 2). A reference to
@@ -1596,6 +1607,32 @@ export function breakReferenceCycles({
             collectIsListFormAsWritten(composite, componentInfoObjects)
         ) {
             return edgesOf(composite);
+        } else if (type === "collect") {
+            // It waits for what it collects from to expand: to the
+            // expansion of the reference in its `from` and of what that
+            // names, a composite (`$r` of a `<repeatForSequence>`) or not
+            // (`$g` of a `<group>`, whose own expansion is to the composites
+            // in it). It reads its other attributes (`componentType`,
+            // `maxNumber`), and shows nothing written in it.
+            for (const [name, attribute] of Object.entries(
+                composite.attributes ?? {},
+            )) {
+                for (const read of componentsOfAttribute(attribute)) {
+                    if (name.toLowerCase() !== "from") {
+                        edges.push(read.componentIdx);
+                        continue;
+                    }
+                    edges.push(expansionNode(read.componentIdx));
+                    const target =
+                        read.componentType === "_copy"
+                            ? targetOf(read)
+                            : undefined;
+                    if (target) {
+                        edges.push(expansionNode(target.componentIdx));
+                    }
+                }
+            }
+            return edges;
         }
         edges.push(
             ...compositesWaitedForIn(

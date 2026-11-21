@@ -123,8 +123,7 @@ const DIVISION_PASS_THROUGH_TYPES = [
  * @property {string} name - prefixes the dependency names a numbered item
  *   reads the sequence through, keeping them apart from another sequence's.
  * @property {string} offset - the counters the children of a component that
- *   numbers them start from: for a pass-through, the counts of the items
- *   before it.
+ *   numbers them start from: for a pass-through, the counters before it.
  * @property {string} countersAfter - an item's or pass-through's counters as
  *   they stand after it.
  * @property {string} itemComponentType - the base type of the items.
