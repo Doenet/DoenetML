@@ -3153,3 +3153,19 @@ sugar worked out a type but never gave it to the awards, which read plain text a
 
 Not part of the type: `<considerAsResponses>` (what is recorded), `referencesAreResponses` (what a
 `<when>` reads), and a `forAnswer` input (reached only through a `<when>`).
+
+## D56. A section's own number is a number; `sectionNumber` stays a text (decided, Tier 1; November 2026)
+
+`sectionNumber` is the label shown: a `<section>` in a `<section>` includes its parent's number,
+so it is `"2.3"` (`enumeration.join(".")` in `SectioningComponent.js`). It can't be a number:
+section 2.10 follows 2.9, but the number 2.10 is less than 2.9. So `$s.sectionNumber > 2` is
+never true, silently (#2623 item 8).
+
+**Decided:**
+1. `sectionNumber` stays a text, the label shown.
+2. A new public property, **`ownNumber`**, is the section's own position as a number: 3 for
+   section 2.3, 2 for top-level section 2, missing for an unnumbered section (VAL-5). A list item,
+   `<problem>`, `<part>` and every other component numbered the same way gets it too.
+3. `enumeration` (the parts, `[2, 3]`) stays internal.
+4. The type-mix warning for ordering a text against a number (#2623 item 8, if decided) suggests
+   `ownNumber` when the text is a `sectionNumber`.
