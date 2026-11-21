@@ -3188,3 +3188,13 @@ known violation).
    generated document with the number edges on and off, and CI runs a fixed sample.
 4. **Still a known violation:** a cycle that appears only after an update still stops the
    document. Shapes the prediction misses may give variant-dependent outcomes (against #2471).
+
+## D58. Ordering a text against a number is a type mix (decided, Tier 1; November 2026)
+
+`$s.sectionNumber > 2` is never true, silently: `sectionNumber` is a text (D56), and `<`, `>`,
+`<=` and `>=` between a text and a number give false (#2623 item 8). `=` between them already
+works and is unchanged.
+
+**Decided:** ordering a text against a number is a type mix, with a warning at load saying the
+comparison can never be true, as D47's other type mixes are. Nothing is converted. When the text
+is a `sectionNumber`, the warning suggests `ownNumber` (D56). Implemented with PR 28 (#2582).
