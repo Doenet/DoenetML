@@ -2371,7 +2371,7 @@ describe("Graph tag tests @group2", async () => {
 
         // Read initial values once, then perform back-to-back actions.
         let initialCenter = evaluateCoordinatePair(rgStateVars.center);
-        let initialCircumradius = rgStateVars.circumradius;
+        let initialCircumradius = rgStateVars.circumRadius;
 
         // Move center to (-1, initialCenter[1])
         await movePolygonCenter({
@@ -2391,7 +2391,7 @@ describe("Graph tag tests @group2", async () => {
         rgStateVars = stateVariables[rgIdx].stateValues;
 
         let center2 = evaluateCoordinatePair(rgStateVars.center);
-        let circumradius2 = rgStateVars.circumradius;
+        let circumradius2 = rgStateVars.circumRadius;
 
         expect(center2[0]).toBeCloseTo(-2, 5);
         expect(center2[1]).toBeCloseTo(initialCenter[1], 5);

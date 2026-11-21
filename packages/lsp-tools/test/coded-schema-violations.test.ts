@@ -82,7 +82,7 @@ const BROKEN_DOENETML: Record<string, string> = {
     "an attribute the element does not have": `<p bogus="1">hi</p>`,
     "a name that does not start with a letter": `<p name="1st">hi</p>`,
     "a value outside the attribute's enumeration": `<p hide="maybe">hi</p>`,
-    "a list value outside the attribute's enumeration": `<sideBySide valigns="top sideways" />`,
+    "a list value outside the attribute's enumeration": `<sideBySide vAligns="top sideways" />`,
     "a reference joined to the text beside it in a list": `<math name="a">y</math><mathList>2$a</mathList>`,
 };
 

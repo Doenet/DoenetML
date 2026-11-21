@@ -6,7 +6,7 @@ import classNames from "classnames";
 type RowData = {
     props: {
         startBorder: BorderStyle;
-        valign: "top" | "center" | "bottom";
+        vAlign: "top" | "center" | "bottom";
     };
 };
 
@@ -21,8 +21,8 @@ export const Row: BasicComponentWithPassthroughChildren<RowData> = ({
             className={classNames({
                 [`border-inline-start-${node.data.props.startBorder}`]:
                     node.data.props.startBorder,
-                [`vertical-align-${node.data.props.valign}`]:
-                    node.data.props.valign,
+                [`vertical-align-${node.data.props.vAlign}`]:
+                    node.data.props.vAlign,
             })}
         >
             {children}

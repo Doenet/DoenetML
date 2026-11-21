@@ -30,24 +30,24 @@ export default class ConstrainToGrid extends ConstraintComponent {
             defaultValue: 1,
             public: true,
         };
-        attributes.xoffset = {
+        attributes.xOffset = {
             description: "Horizontal offset of the grid origin.",
             createComponentOfType: "number",
-            createStateVariable: "xoffset",
+            createStateVariable: "xOffset",
             defaultValue: 0,
             public: true,
         };
-        attributes.yoffset = {
+        attributes.yOffset = {
             description: "Vertical offset of the grid origin.",
             createComponentOfType: "number",
-            createStateVariable: "yoffset",
+            createStateVariable: "yOffset",
             defaultValue: 0,
             public: true,
         };
-        attributes.zoffset = {
+        attributes.zOffset = {
             description: "Depth-wise offset of the grid origin.",
             createComponentOfType: "number",
-            createStateVariable: "zoffset",
+            createStateVariable: "zOffset",
             defaultValue: 0,
             public: true,
         };
@@ -86,17 +86,17 @@ export default class ConstrainToGrid extends ConstraintComponent {
                     dependencyType: "stateVariable",
                     variableName: "dz",
                 },
-                xoffset: {
+                xOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "xoffset",
+                    variableName: "xOffset",
                 },
-                yoffset: {
+                yOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "yoffset",
+                    variableName: "yOffset",
                 },
-                zoffset: {
+                zOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "zoffset",
+                    variableName: "zOffset",
                 },
             }),
             definition: ({ dependencyValues }) => ({
@@ -113,9 +113,9 @@ export default class ConstrainToGrid extends ConstraintComponent {
                             }
 
                             let dx = dependencyValues.dx;
-                            let xoffset = dependencyValues.xoffset;
+                            let xOffset = dependencyValues.xOffset;
                             let x1constrained =
-                                Math.round((x1 - xoffset) / dx) * dx + xoffset;
+                                Math.round((x1 - xOffset) / dx) * dx + xOffset;
                             if (Number.isFinite(x1constrained)) {
                                 return {
                                     constrained: true,
@@ -136,9 +136,9 @@ export default class ConstrainToGrid extends ConstraintComponent {
                             }
 
                             let dy = dependencyValues.dy;
-                            let yoffset = dependencyValues.yoffset;
+                            let yOffset = dependencyValues.yOffset;
                             let x2constrained =
-                                Math.round((x2 - yoffset) / dy) * dy + yoffset;
+                                Math.round((x2 - yOffset) / dy) * dy + yOffset;
                             if (Number.isFinite(x2constrained)) {
                                 return {
                                     constrained: true,
@@ -159,9 +159,9 @@ export default class ConstrainToGrid extends ConstraintComponent {
                             }
 
                             let dz = dependencyValues.dz;
-                            let zoffset = dependencyValues.zoffset;
+                            let zOffset = dependencyValues.zOffset;
                             let x3constrained =
-                                Math.round((x3 - zoffset) / dz) * dz + zoffset;
+                                Math.round((x3 - zOffset) / dz) * dz + zOffset;
                             if (Number.isFinite(x3constrained)) {
                                 return {
                                     constrained: true,

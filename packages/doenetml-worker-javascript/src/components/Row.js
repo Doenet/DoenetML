@@ -47,13 +47,13 @@ export default class Row extends BaseComponent {
             public: true,
             forRenderer: true,
         };
-        attributes.halign = {
+        attributes.hAlign = {
             createComponentOfType: "text",
             toLowerCase: true,
             validValues: returnHalignValidValues(),
             description: "Default horizontal alignment for cells in this row.",
         };
-        attributes.valign = {
+        attributes.vAlign = {
             createComponentOfType: "text",
             toLowerCase: true,
             validValues: returnValignValidValues(),
@@ -121,7 +121,7 @@ export default class Row extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.halign = {
+        stateVariableDefinitions.hAlign = {
             description: "Default horizontal alignment for cells in this row.",
             public: true,
             shadowingInstructions: {
@@ -133,36 +133,36 @@ export default class Row extends BaseComponent {
             returnDependencies: () => ({
                 halignAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "halign",
+                    attributeName: "hAlign",
                     variableNames: ["value"],
                 },
                 parentHalign: {
                     dependencyType: "parentStateVariable",
-                    variableName: "halign",
+                    variableName: "hAlign",
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.halignAttr !== null) {
-                    const halign = readVocabularyValue(
+                    const hAlign = readVocabularyValue(
                         dependencyValues.halignAttr.stateValues.value,
                         HALIGN_VALUES,
                         "start",
                     );
-                    return { setValue: { halign } };
+                    return { setValue: { hAlign } };
                 } else if (
                     dependencyValues.parentHalign !== null &&
                     !usedDefault.parentHalign
                 ) {
                     return {
-                        setValue: { halign: dependencyValues.parentHalign },
+                        setValue: { hAlign: dependencyValues.parentHalign },
                     };
                 } else {
-                    return { useEssentialOrDefaultValue: { halign: true } };
+                    return { useEssentialOrDefaultValue: { hAlign: true } };
                 }
             },
         };
 
-        stateVariableDefinitions.valign = {
+        stateVariableDefinitions.vAlign = {
             description: "Default vertical alignment for cells in this row.",
             public: true,
             shadowingInstructions: {
@@ -174,31 +174,31 @@ export default class Row extends BaseComponent {
             returnDependencies: () => ({
                 valignAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "valign",
+                    attributeName: "vAlign",
                     variableNames: ["value"],
                 },
                 parentValign: {
                     dependencyType: "parentStateVariable",
-                    variableName: "valign",
+                    variableName: "vAlign",
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
                 if (dependencyValues.valignAttr !== null) {
-                    const valign = readVocabularyValue(
+                    const vAlign = readVocabularyValue(
                         dependencyValues.valignAttr.stateValues.value,
                         VALIGN_VALUES,
                         "middle",
                     );
-                    return { setValue: { valign } };
+                    return { setValue: { vAlign } };
                 } else if (
                     dependencyValues.parentValign !== null &&
                     !usedDefault.parentValign
                 ) {
                     return {
-                        setValue: { valign: dependencyValues.parentValign },
+                        setValue: { vAlign: dependencyValues.parentValign },
                     };
                 } else {
-                    return { useEssentialOrDefaultValue: { valign: true } };
+                    return { useEssentialOrDefaultValue: { vAlign: true } };
                 }
             },
         };
@@ -294,18 +294,18 @@ export default class Row extends BaseComponent {
             },
         };
 
-        // The row's *own* `halign`, with no inheritance applied: `null` unless
-        // the author wrote `halign` on this `<row>`. `halign` above cannot
+        // The row's *own* `hAlign`, with no inheritance applied: `null` unless
+        // the author wrote `hAlign` on this `<row>`. `hAlign` above cannot
         // answer this, because it has already folded in the `<tabular>`'s
         // value, and a cell has to tell the two apart — PreTeXt resolves a
         // cell's alignment as cell, then row, then col, then tabular, so a
-        // `<col halign>` outranks a `<tabular halign>` but not a `<row
-        // halign>`.
+        // `<col hAlign>` outranks a `<tabular hAlign>` but not a `<row
+        // hAlign>`.
         stateVariableDefinitions.authoredHalign = {
             returnDependencies: () => ({
                 halignAttr: {
                     dependencyType: "attributeComponent",
-                    attributeName: "halign",
+                    attributeName: "hAlign",
                     variableNames: ["value"],
                 },
             }),

@@ -47,12 +47,12 @@ Note that it is not required to display the grid in the graph; this is done for 
 
 ---
 
-### Attribute Example: xoffset, yoffset
+### Attribute Example: xOffset, yOffset
 ```doenet-editor-horiz
 <graph grid="5 5">
   <shortDescription>A grid with a draggable point that snaps to an offset grid</shortDescription>
   <point styleNumber="2" layer="2">
-    <attractToGrid dx="5" xoffset="1" dy="5" yoffset="1" includeGridlines="true"/>
+    <attractToGrid dx="5" xOffset="1" dy="5" yOffset="1" includeGridlines="true"/>
   </point>
   <point styleNumber="6" fixed>(6, 6)</point>
   <point styleNumber="6" fixed>(-4, 6)</point>
@@ -61,7 +61,7 @@ Note that it is not required to display the grid in the graph; this is done for 
 </graph>
 ```
 
-With the `xoffset` and `yoffset` attributes, the spacing of attraction gridlines can be adjusted to a 
+With the `xOffset` and `yOffset` attributes, the spacing of attraction gridlines can be adjusted to a 
 specific offset of the specified `dx` and `dy`.
 
 The grey points are included as an illustration of where the offset attraction grids occur.
@@ -69,17 +69,17 @@ The grey points are included as an illustration of where the offset attraction g
 
 ---
 
-### Attribute Example: xthreshold, ythreshold
+### Attribute Example: xThreshold, yThreshold
 ```doenet-editor-horiz
 <graph grid="2 4">
   <shortDescription>A grid with a draggable point with adjustable attraction thresholds</shortDescription>
   <point>
-    <attractToGrid dx="2" xthreshold="0.1" dy="4" ythreshold="1" />
+    <attractToGrid dx="2" xThreshold="0.1" dy="4" yThreshold="1" />
   </point>
 </graph>
 ```
 
-The `xthreshold` and `ythreshold` attributes can be used to control how close the `<point>{:dn}` must be to 
+The `xThreshold` and `yThreshold` attributes can be used to control how close the `<point>{:dn}` must be to 
 a grid for attraction to take effect. Notice the different behavior above when dragging the point 
 close to the $x$ gridlines and $y$ gridlines.
 
@@ -90,12 +90,12 @@ close to the $x$ gridlines and $y$ gridlines.
 <graph grid="1 4" size="small">
   <shortDescription>A grid with a draggable point demonstrating attractToGrid properties</shortDescription>
   <point>
-    <attractToGrid name="gridAttract" xthreshold="0.1" dy="4" yoffset="1" />
+    <attractToGrid name="gridAttract" xThreshold="0.1" dy="4" yOffset="1" />
   </point>
 </graph>
 <p><c>dx, dy</c> = $gridAttract.dx, $gridAttract.dy</p>
-<p><c>xOffset, yOffset</c> = $gridAttract.xoffset, $gridAttract.yoffset</p>
-<p><c>xThreshold, yThreshold</c> = $gridAttract.xthreshold, $gridAttract.ythreshold</p>
+<p><c>xOffset, yOffset</c> = $gridAttract.xOffset, $gridAttract.yOffset</p>
+<p><c>xThreshold, yThreshold</c> = $gridAttract.xThreshold, $gridAttract.yThreshold</p>
 ```
 
 The attributes of `<attractToGrid/>{:dn}` shown in the example above are also available as properties.

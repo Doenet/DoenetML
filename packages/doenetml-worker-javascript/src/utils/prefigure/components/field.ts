@@ -172,8 +172,8 @@ interface FieldLattice {
     grid: {
         dx: number;
         dy: number;
-        xoffset: number;
-        yoffset: number;
+        xOffset: number;
+        yOffset: number;
         stride: number;
     };
 }
@@ -187,8 +187,8 @@ function fieldLattice(
     const spacing = {
         dx: Number(sv.dx),
         dy: Number(sv.dy),
-        xoffset: Number(sv.xoffset),
-        yoffset: Number(sv.yoffset),
+        xOffset: Number(sv.xOffset),
+        yOffset: Number(sv.yOffset),
     };
     const lines = thinnedLatticeLines(
         { xMin, xMax, yMin, yMax },
@@ -241,7 +241,7 @@ function fieldLattice(
  * to the nearest index the lattice kept, a multiple of the stride, so the
  * drift of a long walk on a coarsened lattice cannot land on a line `maxMarks`
  * left out, and computes the coordinate from that index as the lattice did,
- * `index*dx + xoffset`. PreFigure then evaluates the function at exactly the
+ * `index*dx + xOffset`. PreFigure then evaluates the function at exactly the
  * points checked here.
  *
  * The formula is written as `astToPythonExpression` writes it for curves, so a
@@ -348,7 +348,7 @@ function fieldFunctionDefinitions({
     return [
         `${formulaName}(x,y)=${body}`,
         ...(normalize ? [`${unitName}(v)=normalize(v/max(abs(v)))`] : []),
-        `${name}(x,y)=${wrap(`${formulaName}(${snap("x", grid.dx, grid.xoffset)},${snap("y", grid.dy, grid.yoffset)})`)}`,
+        `${name}(x,y)=${wrap(`${formulaName}(${snap("x", grid.dx, grid.xOffset)},${snap("y", grid.dy, grid.yOffset)})`)}`,
     ]
         .map((text) => `<definition>${escapeXml(text)}</definition>`)
         .join("");

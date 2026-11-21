@@ -31,46 +31,46 @@ export default class AttractToGrid extends ConstraintComponent {
             public: true,
             description: "Depth-wise grid spacing.",
         };
-        attributes.xoffset = {
+        attributes.xOffset = {
             createComponentOfType: "number",
-            createStateVariable: "xoffset",
+            createStateVariable: "xOffset",
             defaultValue: 0,
             public: true,
             description: "Horizontal offset of the grid origin.",
         };
-        attributes.yoffset = {
+        attributes.yOffset = {
             createComponentOfType: "number",
-            createStateVariable: "yoffset",
+            createStateVariable: "yOffset",
             defaultValue: 0,
             public: true,
             description: "Vertical offset of the grid origin.",
         };
-        attributes.zoffset = {
+        attributes.zOffset = {
             createComponentOfType: "number",
-            createStateVariable: "zoffset",
+            createStateVariable: "zOffset",
             defaultValue: 0,
             public: true,
             description: "Depth-wise offset of the grid origin.",
         };
-        attributes.xthreshold = {
+        attributes.xThreshold = {
             createComponentOfType: "number",
-            createStateVariable: "xthreshold",
+            createStateVariable: "xThreshold",
             defaultValue: 0.2,
             public: true,
             description:
                 "Horizontal distance within which the position attracts to a grid line.",
         };
-        attributes.ythreshold = {
+        attributes.yThreshold = {
             createComponentOfType: "number",
-            createStateVariable: "ythreshold",
+            createStateVariable: "yThreshold",
             defaultValue: 0.2,
             public: true,
             description:
                 "Vertical distance within which the position attracts to a grid line.",
         };
-        attributes.zthreshold = {
+        attributes.zThreshold = {
             createComponentOfType: "number",
-            createStateVariable: "zthreshold",
+            createStateVariable: "zThreshold",
             defaultValue: 0.2,
             public: true,
             description:
@@ -126,29 +126,29 @@ export default class AttractToGrid extends ConstraintComponent {
                     dependencyType: "stateVariable",
                     variableName: "dz",
                 },
-                xoffset: {
+                xOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "xoffset",
+                    variableName: "xOffset",
                 },
-                yoffset: {
+                yOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "yoffset",
+                    variableName: "yOffset",
                 },
-                zoffset: {
+                zOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "zoffset",
+                    variableName: "zOffset",
                 },
-                xthreshold: {
+                xThreshold: {
                     dependencyType: "stateVariable",
-                    variableName: "xthreshold",
+                    variableName: "xThreshold",
                 },
-                ythreshold: {
+                yThreshold: {
                     dependencyType: "stateVariable",
-                    variableName: "ythreshold",
+                    variableName: "yThreshold",
                 },
-                zthreshold: {
+                zThreshold: {
                     dependencyType: "stateVariable",
-                    variableName: "zthreshold",
+                    variableName: "zThreshold",
                 },
             }),
             definition: ({ dependencyValues }) => ({
@@ -164,9 +164,9 @@ export default class AttractToGrid extends ConstraintComponent {
                             }
 
                             let dx = dependencyValues.dx;
-                            let xoffset = dependencyValues.xoffset;
+                            let xOffset = dependencyValues.xOffset;
                             let x1grid =
-                                Math.round((x1 - xoffset) / dx) * dx + xoffset;
+                                Math.round((x1 - xOffset) / dx) * dx + xOffset;
 
                             if (!Number.isFinite(x1grid)) {
                                 return {};
@@ -174,7 +174,7 @@ export default class AttractToGrid extends ConstraintComponent {
 
                             if (
                                 Math.abs(x1 - x1grid) <
-                                dependencyValues.xthreshold
+                                dependencyValues.xThreshold
                             ) {
                                 return {
                                     constrained: true,
@@ -195,16 +195,16 @@ export default class AttractToGrid extends ConstraintComponent {
                             }
 
                             let dy = dependencyValues.dy;
-                            let yoffset = dependencyValues.yoffset;
+                            let yOffset = dependencyValues.yOffset;
                             let x2grid =
-                                Math.round((x2 - yoffset) / dy) * dy + yoffset;
+                                Math.round((x2 - yOffset) / dy) * dy + yOffset;
                             if (!Number.isFinite(x2grid)) {
                                 return {};
                             }
 
                             if (
                                 Math.abs(x2 - x2grid) <
-                                dependencyValues.ythreshold
+                                dependencyValues.yThreshold
                             ) {
                                 return {
                                     constrained: true,
@@ -225,13 +225,13 @@ export default class AttractToGrid extends ConstraintComponent {
                             }
 
                             let dz = dependencyValues.dz;
-                            let zoffset = dependencyValues.zoffset;
+                            let zOffset = dependencyValues.zOffset;
                             let x3grid =
-                                Math.round((x3 - zoffset) / dz) * dz + zoffset;
+                                Math.round((x3 - zOffset) / dz) * dz + zOffset;
                             if (
                                 Number.isFinite(x3grid) &&
                                 Math.abs(x3 - x3grid) <
-                                    dependencyValues.zthreshold
+                                    dependencyValues.zThreshold
                             ) {
                                 return {
                                     constrained: true,
@@ -263,29 +263,29 @@ export default class AttractToGrid extends ConstraintComponent {
                     dependencyType: "stateVariable",
                     variableName: "dz",
                 },
-                xoffset: {
+                xOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "xoffset",
+                    variableName: "xOffset",
                 },
-                yoffset: {
+                yOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "yoffset",
+                    variableName: "yOffset",
                 },
-                zoffset: {
+                zOffset: {
                     dependencyType: "stateVariable",
-                    variableName: "zoffset",
+                    variableName: "zOffset",
                 },
-                xthreshold: {
+                xThreshold: {
                     dependencyType: "stateVariable",
-                    variableName: "xthreshold",
+                    variableName: "xThreshold",
                 },
-                ythreshold: {
+                yThreshold: {
                     dependencyType: "stateVariable",
-                    variableName: "ythreshold",
+                    variableName: "yThreshold",
                 },
-                zthreshold: {
+                zThreshold: {
                     dependencyType: "stateVariable",
-                    variableName: "zthreshold",
+                    variableName: "zThreshold",
                 },
                 includeGridlines: {
                     dependencyType: "stateVariable",

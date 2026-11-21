@@ -398,8 +398,8 @@ async function checkAllLineValues({
     core: PublicDoenetMLCore;
 }) {
     let slope = (points[1][1] - points[0][1]) / (points[1][0] - points[0][0]);
-    let xintercept = points[0][0] - points[0][1] / slope;
-    let yintercept = points[0][1] - slope * points[0][0];
+    let xIntercept = points[0][0] - points[0][1] / slope;
+    let yIntercept = points[0][1] - slope * points[0][0];
 
     for (let [ind, indexObj] of componentIndices.entries()) {
         await checkLineValues({
@@ -408,8 +408,8 @@ async function checkAllLineValues({
             P2CIdx: indexObj[2],
             points,
             slope,
-            xintercept,
-            yintercept,
+            xIntercept,
+            yIntercept,
             basedOnEquation: copiedBasedOnEquation && ind > 0,
             label,
             core,
@@ -431,8 +431,8 @@ async function checkLineValues({
     points,
     label,
     slope,
-    xintercept,
-    yintercept,
+    xIntercept,
+    yIntercept,
     basedOnEquation,
     core,
 }: {
@@ -441,8 +441,8 @@ async function checkLineValues({
     P2CIdx: number;
     points: number[][];
     slope: number;
-    xintercept: number;
-    yintercept: number;
+    xIntercept: number;
+    yIntercept: number;
     basedOnEquation: boolean;
     label?: string;
     core: PublicDoenetMLCore;
@@ -453,8 +453,8 @@ async function checkLineValues({
     let P1xs = stateVariables[P1CIdx].stateValues.xs;
     let P2xs = stateVariables[P2CIdx].stateValues.xs;
     let lineSlope = stateVariables[cIdx].stateValues.slope;
-    let lineXintercept = stateVariables[cIdx].stateValues.xintercept;
-    let lineYintercept = stateVariables[cIdx].stateValues.yintercept;
+    let lineXintercept = stateVariables[cIdx].stateValues.xIntercept;
+    let lineYintercept = stateVariables[cIdx].stateValues.yIntercept;
 
     for (let i = 0; i < 2; i++) {
         if (!basedOnEquation) {
@@ -481,22 +481,22 @@ async function checkLineValues({
     } else {
         expect(evaluateToNumber(lineSlope)).eqls(slope);
     }
-    if (Number.isFinite(xintercept)) {
-        expect(evaluateToNumber(lineXintercept)).closeTo(xintercept, 1e-12);
+    if (Number.isFinite(xIntercept)) {
+        expect(evaluateToNumber(lineXintercept)).closeTo(xIntercept, 1e-12);
     } else {
         // Note: x-intercept for horizontal lines can be Infinity or -Infinity
         // when it should really be NaN
         expect(Math.abs(evaluateToNumber(lineXintercept))).eqls(
-            Math.abs(xintercept),
+            Math.abs(xIntercept),
         );
     }
-    if (Number.isFinite(yintercept)) {
-        expect(evaluateToNumber(lineYintercept)).closeTo(yintercept, 1e-12);
+    if (Number.isFinite(yIntercept)) {
+        expect(evaluateToNumber(lineYintercept)).closeTo(yIntercept, 1e-12);
     } else {
         // Note: y-intercept for vertical lines can be Infinity or -Infinity
         // when it should really be NaN
         expect(Math.abs(evaluateToNumber(lineYintercept))).eqls(
-            Math.abs(yintercept),
+            Math.abs(yIntercept),
         );
     }
 
@@ -509,8 +509,8 @@ async function runEquationBasedTests({
     core,
     resolvePathToNodeIdx,
     coeff0,
-    coeffvar1,
-    coeffvar2,
+    coeffVar1,
+    coeffVar2,
     label,
     cantMove = false,
     variables = ["x", "y"],
@@ -519,8 +519,8 @@ async function runEquationBasedTests({
     core: PublicDoenetMLCore;
     resolvePathToNodeIdx: ResolvePathToNodeIdx;
     coeff0: number;
-    coeffvar1: number;
-    coeffvar2: number;
+    coeffVar1: number;
+    coeffVar2: number;
     label?: string;
     cantMove?: boolean;
     variables?: string[];
@@ -535,8 +535,8 @@ async function runEquationBasedTests({
     await checkAllLineEquations({
         componentIndices,
         coeff0,
-        coeffvar1,
-        coeffvar2,
+        coeffVar1,
+        coeffVar2,
         variables,
         label,
         core,
@@ -569,14 +569,14 @@ async function runEquationBasedTests({
         });
 
         if (!cantMove) {
-            coeff0 -= coeffvar1 * moveX + coeffvar2 * moveY;
+            coeff0 -= coeffVar1 * moveX + coeffVar2 * moveY;
         }
 
         await checkAllLineEquations({
             componentIndices,
             coeff0,
-            coeffvar1,
-            coeffvar2,
+            coeffVar1,
+            coeffVar2,
             variables,
             core,
         });
@@ -585,10 +585,10 @@ async function runEquationBasedTests({
     if (equationInput) {
         // change equation via math input
         coeff0 = 5;
-        coeffvar1 = -7;
-        coeffvar2 = 10;
+        coeffVar1 = -7;
+        coeffVar2 = 10;
         await updateMathInputValue({
-            latex: `${coeffvar1}${variables[0]} + ${coeffvar2}${variables[1]} + ${coeff0} = 0`,
+            latex: `${coeffVar1}${variables[0]} + ${coeffVar2}${variables[1]} + ${coeff0} = 0`,
             componentIdx: await resolvePathToNodeIdx(equationInput),
             core,
         });
@@ -596,8 +596,8 @@ async function runEquationBasedTests({
         await checkAllLineEquations({
             componentIndices,
             coeff0,
-            coeffvar1,
-            coeffvar2,
+            coeffVar1,
+            coeffVar2,
             variables,
             core,
         });
@@ -607,16 +607,16 @@ async function runEquationBasedTests({
 async function checkAllLineEquations({
     componentIndices,
     coeff0,
-    coeffvar1,
-    coeffvar2,
+    coeffVar1,
+    coeffVar2,
     variables,
     label,
     core,
 }: {
     componentIndices: number[];
     coeff0: number;
-    coeffvar1: number;
-    coeffvar2: number;
+    coeffVar1: number;
+    coeffVar2: number;
     variables: string[];
     label?: string;
     core: PublicDoenetMLCore;
@@ -625,26 +625,26 @@ async function checkAllLineEquations({
         "=",
         [
             "+",
-            ["*", coeffvar1, variables[0]],
-            ["*", coeffvar2, variables[1]],
+            ["*", coeffVar1, variables[0]],
+            ["*", coeffVar2, variables[1]],
             coeff0,
         ],
         0,
     ]);
-    const slope = -coeffvar1 / coeffvar2;
-    const xintercept = -coeff0 / coeffvar1;
-    const yintercept = -coeff0 / coeffvar2;
+    const slope = -coeffVar1 / coeffVar2;
+    const xIntercept = -coeff0 / coeffVar1;
+    const yIntercept = -coeff0 / coeffVar2;
 
     for (let componentIdx of componentIndices) {
         await checkLineEquations({
             componentIdx,
             coeff0,
-            coeffvar1,
-            coeffvar2,
+            coeffVar1,
+            coeffVar2,
             equation,
             slope,
-            xintercept,
-            yintercept,
+            xIntercept,
+            yIntercept,
             variables,
             label,
             core,
@@ -655,24 +655,24 @@ async function checkAllLineEquations({
 async function checkLineEquations({
     componentIdx,
     coeff0,
-    coeffvar1,
-    coeffvar2,
+    coeffVar1,
+    coeffVar2,
     equation,
     slope,
-    xintercept,
-    yintercept,
+    xIntercept,
+    yIntercept,
     variables,
     label,
     core,
 }: {
     componentIdx: number;
     coeff0: number;
-    coeffvar1: number;
-    coeffvar2: number;
+    coeffVar1: number;
+    coeffVar2: number;
     equation: any;
     slope: number;
-    xintercept: number;
-    yintercept: number;
+    xIntercept: number;
+    yIntercept: number;
     variables: string[];
     label?: string;
     core: PublicDoenetMLCore;
@@ -681,12 +681,12 @@ async function checkLineEquations({
     const line = stateVariables[componentIdx].stateValues;
 
     expect(line.coeff0.evaluate_to_constant()).closeTo(coeff0, 1e-12);
-    expect(line.coeffvar1.evaluate_to_constant()).closeTo(coeffvar1, 1e-12);
-    expect(line.coeffvar2.evaluate_to_constant()).closeTo(coeffvar2, 1e-12);
+    expect(line.coeffVar1.evaluate_to_constant()).closeTo(coeffVar1, 1e-12);
+    expect(line.coeffVar2.evaluate_to_constant()).closeTo(coeffVar2, 1e-12);
     expect(line.equation.equals(equation)).to.be.true;
     expect(line.slope.evaluate_to_constant()).closeTo(slope, 1e-12);
-    expect(line.xintercept.evaluate_to_constant()).closeTo(xintercept, 1e-12);
-    expect(line.yintercept.evaluate_to_constant()).closeTo(yintercept, 1e-12);
+    expect(line.xIntercept.evaluate_to_constant()).closeTo(xIntercept, 1e-12);
+    expect(line.yIntercept.evaluate_to_constant()).closeTo(yIntercept, 1e-12);
     expect(line.variables.map((v) => v.tree)).eqls(variables);
 
     if (label) {
@@ -1264,8 +1264,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
         });
     });
 
@@ -1282,8 +1282,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
             label,
         });
     });
@@ -1302,8 +1302,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
             cantMove: true,
         });
     });
@@ -1326,8 +1326,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
             label,
             cantMove: true,
         });
@@ -1342,8 +1342,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
             cantMove: true,
         });
     });
@@ -1357,8 +1357,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
         });
     });
 
@@ -1373,8 +1373,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
             label,
         });
     });
@@ -1389,8 +1389,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
             equationInput: "equation",
         });
     });
@@ -1413,15 +1413,15 @@ describe("Line tag tests @group3", async () => {
 
         const oblique =
             stateVariables[await resolvePathToNodeIdx("oblique")].stateValues;
-        expect(oblique.coeffvar1.evaluate_to_constant()).eq(-5);
-        expect(oblique.coeffvar2.evaluate_to_constant()).eq(-2);
+        expect(oblique.coeffVar1.evaluate_to_constant()).eq(-5);
+        expect(oblique.coeffVar2.evaluate_to_constant()).eq(-2);
         expect(oblique.coeff0.evaluate_to_constant()).eq(-3);
         expect(oblique.slope.evaluate_to_constant()).closeTo(-2.5, 1e-12);
 
         const vertical =
             stateVariables[await resolvePathToNodeIdx("vertical")].stateValues;
-        expect(vertical.coeffvar1.evaluate_to_constant()).eq(-5);
-        expect(vertical.coeffvar2.evaluate_to_constant()).eq(0);
+        expect(vertical.coeffVar1.evaluate_to_constant()).eq(-5);
+        expect(vertical.coeffVar2.evaluate_to_constant()).eq(0);
         expect(vertical.coeff0.evaluate_to_constant()).eq(-15);
         expect(evaluateToNumber(vertical.slope)).eq(Infinity);
     });
@@ -1450,8 +1450,8 @@ describe("Line tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             return {
                 coeffs: [
-                    sv.coeffvar1.evaluate_to_constant(),
-                    sv.coeffvar2.evaluate_to_constant(),
+                    sv.coeffVar1.evaluate_to_constant(),
+                    sv.coeffVar2.evaluate_to_constant(),
                     sv.coeff0.evaluate_to_constant(),
                 ],
                 points: sv.points.map((p: any) =>
@@ -1492,8 +1492,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
             cantMove: true,
         });
     });
@@ -1509,8 +1509,8 @@ describe("Line tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             coeff0: -3,
-            coeffvar1: 5,
-            coeffvar2: -2,
+            coeffVar1: 5,
+            coeffVar2: -2,
             variables: ["u", "v"],
             equationInput: "equation",
         });
@@ -1559,7 +1559,7 @@ describe("Line tag tests @group3", async () => {
         <pointList extend="$l.points" name="Ps" />
       </graph>
       <graph name="g2">
-        <line variables="u v" name="l" equation="$g.l.coeffvar1 u +$g.l.coeffvar2 v + $g.l.coeff0 = 0" />
+        <line variables="u v" name="l" equation="$g.l.coeffVar1 u +$g.l.coeffVar2 v + $g.l.coeff0 = 0" />
         <pointList extend="$g.l.points" name="Ps" />
       </graph>
       s
@@ -1606,11 +1606,11 @@ describe("Line tag tests @group3", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l1")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l1")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq("\uff3f");
 
         expect(
@@ -1623,11 +1623,11 @@ describe("Line tag tests @group3", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l2")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l2")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq("\uff3f");
 
         expect(
@@ -1645,11 +1645,11 @@ describe("Line tag tests @group3", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l4")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l4")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq("\uff3f");
 
         const diagnosticsByType = getDiagnosticsByType(core);
@@ -1706,11 +1706,11 @@ describe("Line tag tests @group3", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l1")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l1")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq("\uff3f");
 
         expect(
@@ -1723,11 +1723,11 @@ describe("Line tag tests @group3", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l2")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l2")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq("\uff3f");
 
         expect(
@@ -1740,11 +1740,11 @@ describe("Line tag tests @group3", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l3")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l3")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq("\uff3f");
 
         expect(
@@ -1757,11 +1757,11 @@ describe("Line tag tests @group3", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l4")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l4")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq("\uff3f");
 
         expect(
@@ -1774,11 +1774,11 @@ describe("Line tag tests @group3", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l5")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("l5")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq("\uff3f");
 
         expect(
@@ -1796,11 +1796,11 @@ describe("Line tag tests @group3", async () => {
         ).eqls(["-", ["^", "x", 2]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq(0);
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq(1);
 
         expect(
@@ -1818,11 +1818,11 @@ describe("Line tag tests @group3", async () => {
         ).eq(-1);
         expect(
             stateVariables[await resolvePathToNodeIdx("l7")].stateValues
-                .coeffvar1.tree,
+                .coeffVar1.tree,
         ).eq(0);
         expect(
             stateVariables[await resolvePathToNodeIdx("l7")].stateValues
-                .coeffvar2.tree,
+                .coeffVar2.tree,
         ).eq(0);
 
         const diagnosticsByType = getDiagnosticsByType(core);
@@ -1885,7 +1885,7 @@ describe("Line tag tests @group3", async () => {
         let point1x = point2y;
         let point1y = a;
         let slope = (point1y - point2y) / (point1x - point2x);
-        let yintercept = point2y - slope * point2x;
+        let yIntercept = point2y - slope * point2x;
 
         // points and line match constraints
         let stateVariables = await core.returnAllStateVariables(false, true);
@@ -1922,8 +1922,8 @@ describe("Line tag tests @group3", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.yintercept.evaluate_to_constant(),
-        ).closeTo(yintercept, 1e-12);
+            ].stateValues.yIntercept.evaluate_to_constant(),
+        ).closeTo(yIntercept, 1e-12);
 
         // move point 1
         point1x = -5;
@@ -1934,7 +1934,7 @@ describe("Line tag tests @group3", async () => {
         point2x = a - 1;
 
         slope = (point1y - point2y) / (point1x - point2x);
-        yintercept = point2y - slope * point2x;
+        yIntercept = point2y - slope * point2x;
 
         await movePoint({
             componentIdx: await resolvePathToNodeIdx("P1"),
@@ -1976,8 +1976,8 @@ describe("Line tag tests @group3", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.yintercept.evaluate_to_constant(),
-        ).closeTo(yintercept, 1e-12);
+            ].stateValues.yIntercept.evaluate_to_constant(),
+        ).closeTo(yIntercept, 1e-12);
 
         // move line
         stateVariables = await core.returnAllStateVariables(false, true);
@@ -2023,7 +2023,7 @@ describe("Line tag tests @group3", async () => {
         // point2x = a - 1;
 
         slope = (point1y - point2y) / (point1x - point2x);
-        yintercept = point2y - slope * point2x;
+        yIntercept = point2y - slope * point2x;
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
@@ -2059,8 +2059,8 @@ describe("Line tag tests @group3", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("l")
-            ].stateValues.yintercept.evaluate_to_constant(),
-        ).closeTo(yintercept, 1e-12);
+            ].stateValues.yIntercept.evaluate_to_constant(),
+        ).closeTo(yIntercept, 1e-12);
     });
 
     it("copy public state variables of line", async () => {
@@ -2071,8 +2071,8 @@ describe("Line tag tests @group3", async () => {
   </graph>
 
   <p name="p1">Variables are <math extend="$l.var1" name="var1" /> and <math extend="$l.var2" name="var2" />.</p>
-  <p name="p2"><m>x</m>-intercept is <math extend="$l.xintercept" name="xintercept" />.</p>
-  <p name="p3"><m>y</m>-intercept is <math extend="$l.yintercept" name="yintercept" />.</p>
+  <p name="p2"><m>x</m>-intercept is <math extend="$l.xIntercept" name="xIntercept" />.</p>
+  <p name="p3"><m>y</m>-intercept is <math extend="$l.yIntercept" name="yIntercept" />.</p>
   <p name="p4">Slope is <math extend="$l.slope" name="slope" />.</p>
   <p name="p5">Equation is <math extend="$l.equation" name="equation" />.</p>
   `,
@@ -2117,11 +2117,11 @@ describe("Line tag tests @group3", async () => {
         ).eq(-2);
         expect(
             stateVariables[await resolvePathToNodeIdx("l")].stateValues
-                .xintercept.tree,
+                .xIntercept.tree,
         ).eq(3);
         expect(
             stateVariables[await resolvePathToNodeIdx("l")].stateValues
-                .yintercept.tree,
+                .yIntercept.tree,
         ).eq(6);
         expect(
             stateVariables[await resolvePathToNodeIdx("var1")].stateValues.value
@@ -2132,11 +2132,11 @@ describe("Line tag tests @group3", async () => {
                 .tree,
         ).eq("y");
         expect(
-            stateVariables[await resolvePathToNodeIdx("xintercept")].stateValues
+            stateVariables[await resolvePathToNodeIdx("xIntercept")].stateValues
                 .value.tree,
         ).eq(3);
         expect(
-            stateVariables[await resolvePathToNodeIdx("yintercept")].stateValues
+            stateVariables[await resolvePathToNodeIdx("yIntercept")].stateValues
                 .value.tree,
         ).eq(6);
         expect(
@@ -6295,7 +6295,7 @@ describe("Line tag tests @group3", async () => {
   <graph>
     <line through="(0, $$f(0)) (pi/2, $$f(pi/2))" name="l" />
   </graph>
-  <p name="p1">y-intercept: $l.yintercept</p>
+  <p name="p1">y-intercept: $l.yIntercept</p>
   <p name="p2">slope: $l.slope</p>
 
     `,

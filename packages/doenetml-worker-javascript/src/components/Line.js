@@ -748,13 +748,13 @@ export default class Line extends GraphicalComponent {
                             dependencyType: "stateVariable",
                             variableName: "coeff0",
                         },
-                        coeffvar1: {
+                        coeffVar1: {
                             dependencyType: "stateVariable",
-                            variableName: "coeffvar1",
+                            variableName: "coeffVar1",
                         },
-                        coeffvar2: {
+                        coeffVar2: {
                             dependencyType: "stateVariable",
-                            variableName: "coeffvar2",
+                            variableName: "coeffVar2",
                         },
                         variables: {
                             dependencyType: "stateVariable",
@@ -1072,40 +1072,40 @@ export default class Line extends GraphicalComponent {
                         let numericalPoint1 = [point1x.tree, point1y.tree];
                         let numericalPoint2 = [point2x.tree, point2y.tree];
 
-                        let coeffvar1 = numericalPoint1[1] - numericalPoint2[1];
-                        let coeffvar2 = numericalPoint2[0] - numericalPoint1[0];
+                        let coeffVar1 = numericalPoint1[1] - numericalPoint2[1];
+                        let coeffVar2 = numericalPoint2[0] - numericalPoint1[0];
                         let coeff0 =
                             numericalPoint1[0] * numericalPoint2[1] -
                             numericalPoint1[1] * numericalPoint2[0];
 
-                        let sVCoeffVar1 = await stateValues.coeffvar1;
-                        let sVCoeffVar2 = await stateValues.coeffvar2;
+                        let sVCoeffVar1 = await stateValues.coeffVar1;
+                        let sVCoeffVar2 = await stateValues.coeffVar2;
 
                         let prodDiff = Math.abs(
-                            coeffvar1 * sVCoeffVar2 - sVCoeffVar1 * coeffvar2,
+                            coeffVar1 * sVCoeffVar2 - sVCoeffVar1 * coeffVar2,
                         );
 
                         let instructions = [];
 
                         if (
                             prodDiff <
-                            Math.abs(coeffvar1 * sVCoeffVar2) * 1e-12
+                            Math.abs(coeffVar1 * sVCoeffVar2) * 1e-12
                         ) {
                             // the slope didn't change, so line was translated
-                            // don't change coeffvar1 or coeffvar2, but just coeff0
+                            // don't change coeffVar1 or coeffVar2, but just coeff0
 
-                            if (coeffvar1 !== 0) {
-                                coeff0 *= sVCoeffVar1 / coeffvar1;
+                            if (coeffVar1 !== 0) {
+                                coeff0 *= sVCoeffVar1 / coeffVar1;
                             } else {
-                                coeff0 *= sVCoeffVar2 / coeffvar2;
+                                coeff0 *= sVCoeffVar2 / coeffVar2;
                             }
 
                             instructions.push({
                                 setDependency: "coeff0",
                                 desiredValue: coeff0,
                                 additionalDependencyValues: {
-                                    coeffvar1: sVCoeffVar1,
-                                    coeffvar2: sVCoeffVar2,
+                                    coeffVar1: sVCoeffVar1,
+                                    coeffVar2: sVCoeffVar2,
                                 },
                             });
                         } else {
@@ -1113,8 +1113,8 @@ export default class Line extends GraphicalComponent {
                                 setDependency: "coeff0",
                                 desiredValue: coeff0,
                                 additionalDependencyValues: {
-                                    coeffvar1,
-                                    coeffvar2,
+                                    coeffVar1,
+                                    coeffVar2,
                                 },
                             });
                         }
@@ -1130,8 +1130,8 @@ export default class Line extends GraphicalComponent {
                         };
                     }
 
-                    let coeffvar1 = point1y.subtract(point2y).simplify();
-                    let coeffvar2 = point2x.subtract(point1x).simplify();
+                    let coeffVar1 = point1y.subtract(point2y).simplify();
+                    let coeffVar2 = point2x.subtract(point1x).simplify();
                     let coeff0 = point1x
                         .multiply(point2y)
                         .subtract(point1y.multiply(point2x))
@@ -1144,8 +1144,8 @@ export default class Line extends GraphicalComponent {
                                 setDependency: "coeff0",
                                 desiredValue: coeff0,
                                 additionalDependencyValues: {
-                                    coeffvar1,
-                                    coeffvar2,
+                                    coeffVar1,
+                                    coeffVar2,
                                 },
                             },
                         ],
@@ -1342,10 +1342,10 @@ export default class Line extends GraphicalComponent {
                             returnNumberDisplayAttributeComponentShadowing(),
                     },
                     description:
-                        "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
+                        "The constant term in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0.",
                 },
                 {
-                    variableName: "coeffvar1",
+                    variableName: "coeffVar1",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "math",
@@ -1353,10 +1353,10 @@ export default class Line extends GraphicalComponent {
                             returnNumberDisplayAttributeComponentShadowing(),
                     },
                     description:
-                        "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
+                        "The coefficient of the first variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0.",
                 },
                 {
-                    variableName: "coeffvar2",
+                    variableName: "coeffVar2",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "math",
@@ -1364,7 +1364,7 @@ export default class Line extends GraphicalComponent {
                             returnNumberDisplayAttributeComponentShadowing(),
                     },
                     description:
-                        "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
+                        "The coefficient of the second variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0.",
                 },
             ],
             returnDependencies: function ({ stateValues }) {
@@ -1426,20 +1426,20 @@ export default class Line extends GraphicalComponent {
                             setValue: {
                                 equation,
                                 coeff0: blankMath,
-                                coeffvar1: blankMath,
-                                coeffvar2: blankMath,
+                                coeffVar1: blankMath,
+                                coeffVar2: blankMath,
                             },
                             sendDiagnostics: result.sendDiagnostics,
                         };
                     }
 
-                    let { coeff0, coeffvar1, coeffvar2 } = result;
+                    let { coeff0, coeffVar1, coeffVar2 } = result;
                     return {
                         setValue: {
                             equation,
                             coeff0,
-                            coeffvar1,
-                            coeffvar2,
+                            coeffVar1,
+                            coeffVar2,
                         },
                     };
                 }
@@ -1456,8 +1456,8 @@ export default class Line extends GraphicalComponent {
                         setValue: {
                             equation: blankMath,
                             coeff0: blankMath,
-                            coeffvar1: blankMath,
-                            coeffvar2: blankMath,
+                            coeffVar1: blankMath,
+                            coeffVar2: blankMath,
                         },
                         sendDiagnostics: [warning],
                     };
@@ -1474,8 +1474,8 @@ export default class Line extends GraphicalComponent {
                         setValue: {
                             equation: blankMath,
                             coeff0: blankMath,
-                            coeffvar1: blankMath,
-                            coeffvar2: blankMath,
+                            coeffVar1: blankMath,
+                            coeffVar2: blankMath,
                         },
                         conditionDiagnostics: [diagnostic],
                     };
@@ -1512,8 +1512,8 @@ export default class Line extends GraphicalComponent {
                             setValue: {
                                 equation: blankMath,
                                 coeff0: blankMath,
-                                coeffvar1: blankMath,
-                                coeffvar2: blankMath,
+                                coeffVar1: blankMath,
+                                coeffVar2: blankMath,
                             },
                             conditionDiagnostics: [diagnostic],
                         };
@@ -1526,8 +1526,8 @@ export default class Line extends GraphicalComponent {
                         setValue: {
                             equation: blankMath,
                             coeff0: blankMath,
-                            coeffvar1: blankMath,
-                            coeffvar2: blankMath,
+                            coeffVar1: blankMath,
+                            coeffVar2: blankMath,
                         },
                     };
                 }
@@ -1539,8 +1539,8 @@ export default class Line extends GraphicalComponent {
                         setValue: {
                             equation: blankMath,
                             coeff0: zero,
-                            coeffvar1: zero,
-                            coeffvar2: zero,
+                            coeffVar1: zero,
+                            coeffVar2: zero,
                         },
                     };
                 }
@@ -1549,13 +1549,13 @@ export default class Line extends GraphicalComponent {
                 // at least for case where coeffs are numbers
                 // Maybe detect case where coeffs are numbers so can do these calculation faster?
 
-                let coeffvar1 = point1y.subtract(point2y).simplify();
-                let coeffvar2 = point2x.subtract(point1x).simplify();
+                let coeffVar1 = point1y.subtract(point2y).simplify();
+                let coeffVar2 = point2x.subtract(point1x).simplify();
                 let coeff0 = point1x
                     .multiply(point2y)
                     .subtract(point1y.multiply(point2x))
                     .simplify();
-                // let equation = me.fromAst('ax+by+c=0').substitute({a:coeffvar1, b:coeffvar2, c: coeff0, x: var1, y:var2}).simplify();
+                // let equation = me.fromAst('ax+by+c=0').substitute({a:coeffVar1, b:coeffVar2, c: coeff0, x: var1, y:var2}).simplify();
                 let equation = me
                     .fromAst([
                         "=",
@@ -1563,8 +1563,8 @@ export default class Line extends GraphicalComponent {
                         0,
                     ])
                     .substitute({
-                        a: coeffvar1,
-                        b: coeffvar2,
+                        a: coeffVar1,
+                        b: coeffVar2,
                         c: coeff0,
                         x: variables[0],
                         y: variables[1],
@@ -1575,8 +1575,8 @@ export default class Line extends GraphicalComponent {
                     setValue: {
                         equation,
                         coeff0,
-                        coeffvar1,
-                        coeffvar2,
+                        coeffVar1,
+                        coeffVar2,
                     },
                 };
             },
@@ -1611,8 +1611,8 @@ export default class Line extends GraphicalComponent {
                 // if not inverting equation, must be inverting coeffs
                 if (!(
                     "coeff0" in desiredStateVariableValues &&
-                    "coeffvar1" in desiredStateVariableValues &&
-                    "coeffvar2" in desiredStateVariableValues
+                    "coeffVar1" in desiredStateVariableValues &&
+                    "coeffVar2" in desiredStateVariableValues
                 )) {
                     console.log(
                         `Haven't implemented inverting coeffs if not specifying all of them`,
@@ -1627,8 +1627,8 @@ export default class Line extends GraphicalComponent {
                         ["+", ["*", "a", "x"], ["*", "b", "y"], "c"],
                     ])
                     .substitute({
-                        a: desiredStateVariableValues.coeffvar1,
-                        b: desiredStateVariableValues.coeffvar2,
+                        a: desiredStateVariableValues.coeffVar1,
+                        b: desiredStateVariableValues.coeffVar2,
                         c: desiredStateVariableValues.coeff0,
                         x: dependencyValues.variables[0],
                         y: dependencyValues.variables[1],
@@ -1797,22 +1797,22 @@ export default class Line extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "coeff0",
                 },
-                coeffvar1: {
+                coeffVar1: {
                     dependencyType: "stateVariable",
-                    variableName: "coeffvar1",
+                    variableName: "coeffVar1",
                 },
-                coeffvar2: {
+                coeffVar2: {
                     dependencyType: "stateVariable",
-                    variableName: "coeffvar2",
+                    variableName: "coeffVar2",
                 },
             }),
             definition: function ({ dependencyValues }) {
                 let numericalCoeff0 =
                     dependencyValues.coeff0.evaluate_to_constant();
                 let numericalCoeffvar1 =
-                    dependencyValues.coeffvar1.evaluate_to_constant();
+                    dependencyValues.coeffVar1.evaluate_to_constant();
                 let numericalCoeffvar2 =
-                    dependencyValues.coeffvar2.evaluate_to_constant();
+                    dependencyValues.coeffVar2.evaluate_to_constant();
 
                 return {
                     setValue: {
@@ -1834,21 +1834,21 @@ export default class Line extends GraphicalComponent {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                coeffvar1: {
+                coeffVar1: {
                     dependencyType: "stateVariable",
-                    variableName: "coeffvar1",
+                    variableName: "coeffVar1",
                 },
-                coeffvar2: {
+                coeffVar2: {
                     dependencyType: "stateVariable",
-                    variableName: "coeffvar2",
+                    variableName: "coeffVar2",
                 },
             }),
             definition: function ({ dependencyValues }) {
                 let slope = me
                     .fromAst(["-", ["/", "a", "b"]])
                     .substitute({
-                        a: dependencyValues.coeffvar1,
-                        b: dependencyValues.coeffvar2,
+                        a: dependencyValues.coeffVar1,
+                        b: dependencyValues.coeffVar2,
                     })
                     .simplify();
 
@@ -1856,7 +1856,7 @@ export default class Line extends GraphicalComponent {
             },
         };
 
-        stateVariableDefinitions.xintercept = {
+        stateVariableDefinitions.xIntercept = {
             description: "The x-intercept of the line.",
             public: true,
             isLocation: true,
@@ -1870,25 +1870,25 @@ export default class Line extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "coeff0",
                 },
-                coeffvar1: {
+                coeffVar1: {
                     dependencyType: "stateVariable",
-                    variableName: "coeffvar1",
+                    variableName: "coeffVar1",
                 },
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    xintercept: me
+                    xIntercept: me
                         .fromAst(["-", ["/", "a", "b"]])
                         .substitute({
                             a: dependencyValues.coeff0,
-                            b: dependencyValues.coeffvar1,
+                            b: dependencyValues.coeffVar1,
                         })
                         .simplify(),
                 },
             }),
         };
 
-        stateVariableDefinitions.yintercept = {
+        stateVariableDefinitions.yIntercept = {
             description: "The y-intercept of the line.",
             public: true,
             isLocation: true,
@@ -1902,18 +1902,18 @@ export default class Line extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "coeff0",
                 },
-                coeffvar2: {
+                coeffVar2: {
                     dependencyType: "stateVariable",
-                    variableName: "coeffvar2",
+                    variableName: "coeffVar2",
                 },
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    yintercept: me
+                    yIntercept: me
                         .fromAst(["-", ["/", "a", "b"]])
                         .substitute({
                             a: dependencyValues.coeff0,
-                            b: dependencyValues.coeffvar2,
+                            b: dependencyValues.coeffVar2,
                         })
                         .simplify(),
                 },
@@ -2404,8 +2404,8 @@ function calculateCoeffsFromEquation({ equation, variables }) {
     return {
         success: true,
         coeff0: coeffs.coeff0.simplify(),
-        coeffvar1: coeffs.coeffvar1.simplify(),
-        coeffvar2: coeffs.coeffvar2.simplify(),
+        coeffVar1: coeffs.coeffVar1.simplify(),
+        coeffVar2: coeffs.coeffVar2.simplify(),
     };
 
     /**
@@ -2445,8 +2445,8 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                 if (!coeffs.success) {
                     return coeffs;
                 }
-                cv1 = ["-", coeffs.coeffvar1.tree];
-                cv2 = ["-", coeffs.coeffvar2.tree];
+                cv1 = ["-", coeffs.coeffVar1.tree];
+                cv2 = ["-", coeffs.coeffVar2.tree];
                 c0 = ["-", coeffs.coeff0.tree];
             } else if (operator === "+") {
                 // A sum where a single term was expected. `simplify` pulls a
@@ -2458,8 +2458,8 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                 // every line whose equation happened to be all-negative.
                 let sum = {
                     success: true,
-                    coeffvar1: me.fromAst(0),
-                    coeffvar2: me.fromAst(0),
+                    coeffVar1: me.fromAst(0),
+                    coeffVar2: me.fromAst(0),
                     coeff0: me.fromAst(0),
                 };
                 for (const operand of operands) {
@@ -2467,8 +2467,8 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                     if (!coeffs.success) {
                         return coeffs;
                     }
-                    sum.coeffvar1 = sum.coeffvar1.add(coeffs.coeffvar1);
-                    sum.coeffvar2 = sum.coeffvar2.add(coeffs.coeffvar2);
+                    sum.coeffVar1 = sum.coeffVar1.add(coeffs.coeffVar1);
+                    sum.coeffVar2 = sum.coeffVar2.add(coeffs.coeffVar2);
                     sum.coeff0 = sum.coeff0.add(coeffs.coeff0);
                 }
                 return sum;
@@ -2506,8 +2506,8 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                 if (!coeffs.success) {
                     return coeffs;
                 }
-                cv1 = ["/", coeffs.coeffvar1.tree, operands[1]];
-                cv2 = ["/", coeffs.coeffvar2.tree, operands[1]];
+                cv1 = ["/", coeffs.coeffVar1.tree, operands[1]];
+                cv2 = ["/", coeffs.coeffVar2.tree, operands[1]];
                 c0 = ["/", coeffs.coeff0.tree, operands[1]];
             } else if (operator === "_") {
                 if (var1.equals(me.fromAst(term))) {
@@ -2523,8 +2523,8 @@ function calculateCoeffsFromEquation({ equation, variables }) {
         }
         return {
             success: true,
-            coeffvar1: me.fromAst(cv1),
-            coeffvar2: me.fromAst(cv2),
+            coeffVar1: me.fromAst(cv1),
+            coeffVar2: me.fromAst(cv2),
             coeff0: me.fromAst(c0),
         };
     }
@@ -2532,8 +2532,8 @@ function calculateCoeffsFromEquation({ equation, variables }) {
 
 function calculatePointsFromCoeffs({
     coeff0,
-    coeffvar1,
-    coeffvar2,
+    coeffVar1,
+    coeffVar2,
     variables,
     lastPointsFromInverting,
     equationDecidedByDoenetML,
@@ -2545,10 +2545,10 @@ function calculatePointsFromCoeffs({
 
     // if any of the coefficients have var1 or var2 in them, then it's not a line
     if (
-        coeffvar1.variables(true).indexOf(var1String) !== -1 ||
-        coeffvar1.variables(true).indexOf(var2String) !== -1 ||
-        coeffvar2.variables(true).indexOf(var1String) !== -1 ||
-        coeffvar2.variables(true).indexOf(var2String) !== -1 ||
+        coeffVar1.variables(true).indexOf(var1String) !== -1 ||
+        coeffVar1.variables(true).indexOf(var2String) !== -1 ||
+        coeffVar2.variables(true).indexOf(var1String) !== -1 ||
+        coeffVar2.variables(true).indexOf(var2String) !== -1 ||
         coeff0.variables(true).indexOf(var1String) !== -1 ||
         coeff0.variables(true).indexOf(var2String) !== -1
     ) {
@@ -2564,7 +2564,7 @@ function calculatePointsFromCoeffs({
         };
     }
     let zero = me.fromAst(0);
-    if (coeffvar1.equals(zero) && coeffvar2.equals(zero)) {
+    if (coeffVar1.equals(zero) && coeffVar2.equals(zero)) {
         return {
             success: false,
             diagnostics: [
@@ -2577,12 +2577,12 @@ function calculatePointsFromCoeffs({
         };
     }
 
-    // console.log("coefficient of " + var1 + " is " + coeffvar1);
-    // console.log("coefficient of " + var2 + " is " + coeffvar2);
+    // console.log("coefficient of " + var1 + " is " + coeffVar1);
+    // console.log("coefficient of " + var2 + " is " + coeffVar2);
     // console.log("constant coefficient is " + coeff0);
 
-    let a = coeffvar1.evaluate_to_constant();
-    let b = coeffvar2.evaluate_to_constant();
+    let a = coeffVar1.evaluate_to_constant();
+    let b = coeffVar2.evaluate_to_constant();
     let c = coeff0.evaluate_to_constant();
 
     let point1x, point1y, point2x, point2y;
@@ -2645,18 +2645,18 @@ function calculatePointsFromCoeffs({
         points["1,1"] = me.fromAst(point2y);
     } else {
         // create two points that equation passes through
-        let denom = coeffvar1.pow(2).add(coeffvar2.pow(2));
-        point1x = coeffvar2
+        let denom = coeffVar1.pow(2).add(coeffVar2.pow(2));
+        point1x = coeffVar2
             .multiply(2)
-            .subtract(coeffvar1.multiply(coeff0))
+            .subtract(coeffVar1.multiply(coeff0))
             .divide(denom);
-        point1y = coeffvar1
+        point1y = coeffVar1
             .multiply(-2)
-            .subtract(coeffvar2.multiply(coeff0))
+            .subtract(coeffVar2.multiply(coeff0))
             .divide(denom);
-        point2x = coeffvar2.subtract(coeffvar1.multiply(coeff0)).divide(denom);
-        point2y = coeffvar1
-            .add(coeffvar2.multiply(coeff0))
+        point2x = coeffVar2.subtract(coeffVar1.multiply(coeff0)).divide(denom);
+        point2y = coeffVar1
+            .add(coeffVar2.multiply(coeff0))
             .multiply(-1)
             .divide(denom);
 
