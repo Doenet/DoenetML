@@ -6650,10 +6650,10 @@ describe("Function tag tests @group4", async () => {
       <point name="max" extend="$f.maximum1" />
       <point name="min" extend="$f.minimum1" />
       <pointList extend="$f.extrema" name="ext" />
-      <point name="gmax" extend="$f.globalmaximum" />
-      <point name="gmin" extend="$f.globalminimum" />
-      <point name="sup" extend="$f.globalsupremum" />
-      <point name="inf" extend="$f.globalinfimum" />
+      <point name="gmax" extend="$f.globalMaximum" />
+      <point name="gmin" extend="$f.globalMinimum" />
+      <point name="sup" extend="$f.globalSupremum" />
+      <point name="inf" extend="$f.globalInfimum" />
     `,
         });
 

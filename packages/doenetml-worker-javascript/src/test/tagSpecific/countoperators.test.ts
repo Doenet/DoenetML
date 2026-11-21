@@ -473,13 +473,13 @@ describe("Counting operator tag tests @group4", async () => {
         });
 
         it("an explicit type reaches the categories however it is spelled", async () => {
-            // DoenetML matches attribute names case-insensitively, so the two
-            // routes `type` reaches `categories` by have to match it the same
-            // way. The type the categories are *wrapped* with is copied down
-            // from the attribute as the author spelled it, while the type they
-            // are *read back* as resolves through the parent's state variable,
-            // which is matched case-insensitively. A case-sensitive copy left
-            // the two disagreeing: the categories were built as text and then
+            // An attribute in another case is still applied, under the
+            // component's spelling, with a warning (D51, for one release), so
+            // the two routes `type` reaches `categories` by have to agree. The
+            // type the categories are *wrapped* with is copied down from the
+            // attribute, while the type they are *read back* as resolves
+            // through the parent's state variable. A copy that missed the
+            // author's spelling once left the two disagreeing: the categories were built as text and then
             // reported as booleans, where `"false"` is a non-empty string and
             // so reads back as `true`, giving two categories named `true`, a
             // spurious repeated-category warning, and counts that no longer
@@ -506,7 +506,9 @@ describe("Counting operator tag tests @group4", async () => {
                     name: "pCategories",
                     text: "true, false",
                 });
-                expect(getDiagnosticsByType(core).warnings.length).eq(0);
+                expect(
+                    getDiagnosticsByType(core).warnings.map((w) => w.code),
+                ).eqls(spelling === "type" ? [] : ["doenet-w0197"]);
             }
         });
 

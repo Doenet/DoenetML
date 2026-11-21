@@ -16,9 +16,8 @@ vi.mock("hyperformula");
  * - an attribute is applied for one release under the component's spelling,
  *   with a warning (`doenet-w0197`), as D51's migration allows: the docs had
  *   taught `<graph xmin>` and the rest, so authors have written them widely.
- *   The attributes read before the core (`name`, `extend`, `copy`,
- *   `copyWithState`, a repeat's `valueName` and `indexName`) are
- *   `doenet-e0004` already.
+ *   The parser renames it before anything reads it, so this holds for every
+ *   attribute, `name`, `extend` and `copy` included.
  *
  * A keyword in an attribute's value stays case-insensitive.
  */
@@ -191,83 +190,85 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         );
     });
 
-    it("an attribute read before the core, in another case, is an unknown attribute", async () => {
+    it("every attribute in another case is applied, including those read before the core", async () => {
         const cases = [
             {
                 doenetML: `<math name="m">x</math><math name="a" COPY="$m"/><p name="p">$a</p>`,
+                text: "x",
                 written: "COPY",
                 suggestion: "copy",
                 componentType: "math",
             },
             {
                 doenetML: `<math name="m">x</math><math name="a" Extend="$m"/><p name="p">$a</p>`,
+                text: "x",
                 written: "Extend",
                 suggestion: "extend",
                 componentType: "math",
             },
             {
                 doenetML: `<math name="m">x</math><math name="a" CopyWithState="$m"/><p name="p">$a</p>`,
+                text: "x",
                 written: "CopyWithState",
                 suggestion: "copyWithState",
                 componentType: "math",
             },
+            {
+                doenetML: `<text Name="t">hi</text><p name="p">$t</p>`,
+                text: "hi",
+                written: "Name",
+                suggestion: "name",
+                componentType: "text",
+            },
+            {
+                doenetML: `<math name="m">x</math><math extend="$m" Name="a"/><p name="p">$a</p>`,
+                text: "x",
+                written: "Name",
+                suggestion: "name",
+                componentType: "math",
+            },
+            {
+                doenetML: `<p name="p"><repeat for="1 2" ValueName="v">$v</repeat></p>`,
+                text: "1, 2",
+                written: "ValueName",
+                suggestion: "valueName",
+                componentType: "repeat",
+            },
+            {
+                doenetML: `<p name="p"><repeat for="a b" valueName="v" IndexName="i">$v$i</repeat></p>`,
+                text: "a1, b2",
+                written: "IndexName",
+                suggestion: "indexName",
+                componentType: "repeat",
+            },
+            {
+                doenetML: `<p name="p"><conditionalContent Condition="true">yes</conditionalContent></p>`,
+                text: "yes",
+                written: "Condition",
+                suggestion: "condition",
+                componentType: "conditionalContent",
+            },
         ];
         for (const c of cases) {
             const { text, errors, warnings } = await load(c.doenetML);
+            expect(errors, c.doenetML).toHaveLength(0);
             expect(
-                errors.map((e) => e.code),
+                warnings.map((w) => w.code),
                 c.doenetML,
-            ).toEqual(["doenet-e0004"]);
-            expect(errors[0].message).eq(
-                `Invalid attribute "${c.written}" for a component of type \`<${c.componentType}>\`. Did you mean "${c.suggestion}"?`,
+            ).toEqual(["doenet-w0197"]);
+            expect(warnings[0].message, c.doenetML).eq(
+                `Attribute names are case-sensitive: write \`${c.suggestion}\`, not \`${c.written}\`, on a \`<${c.componentType}>\`. It is applied for now, but will be an error in a later release.`,
             );
-            expect(warnings, c.doenetML).toHaveLength(0);
-            expect(await text("p"), c.doenetML).eq("＿");
+            expect(await text("p"), c.doenetML).eq(c.text);
         }
     });
 
-    it("`Name` is an unknown attribute, and names nothing", async () => {
+    it("an attribute in another case on the document is applied too", async () => {
         const { text, errors, warnings } = await load(
-            `<text Name="t">hi</text><p name="p">$t</p>`,
-        );
-        expect(errors.map((e) => e.code)).toEqual(["doenet-e0004"]);
-        expect(errors[0].message).eq(
-            'Invalid attribute "Name" for a component of type `<text>`. Did you mean "name"?',
-        );
-        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0104"]);
-        expect(await text("p")).eq("＿");
-    });
-
-    it("a repeat's `ValueName` and `IndexName` are unknown attributes", async () => {
-        const { errors } = await load(
-            `<p name="p"><repeat for="1 2" ValueName="v" IndexName="i">$v $i</repeat></p>`,
-        );
-        expect(errors.map((e) => e.code)).toEqual(["doenet-e0004"]);
-        expect(errors[0].message).eq(
-            'Invalid attribute "ValueName" for a component of type `<repeat>`. Did you mean "valueName"?',
-        );
-    });
-
-    it("`Name` on an extend is ignored, with the suggestion", async () => {
-        const { text, errors, warnings } = await load(
-            `<math name="m">x</math><math extend="$m" Name="a"/><p name="p">$m</p>`,
-        );
-        expect(errors).toHaveLength(0);
-        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0187"]);
-        expect(warnings[0].message).eq(
-            "The `Name` attribute is ignored: a `<math>` has no such attribute. Did you mean `name`?",
-        );
-        expect(await text("p")).eq("x");
-    });
-
-    it("`Name` on the document is reported and ignored", async () => {
-        const { text, errors } = await load(
             `<document Name="d"><p name="p">hi</p></document>`,
         );
-        expect(errors.map((e) => e.code)).toEqual(["doenet-e0004"]);
-        expect(errors[0].message).eq(
-            'Invalid attribute "Name" for a component of type `<document>`. Did you mean "name"?',
-        );
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0197"]);
         expect(await text("p")).eq("hi");
     });
 

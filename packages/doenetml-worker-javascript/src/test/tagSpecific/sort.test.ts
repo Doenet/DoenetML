@@ -531,7 +531,7 @@ describe("Sort tag tests @group4", async () => {
 
 
   <p>Coords for last point: <mathInput name="cs" /></p>
-  <p name="pList"><sort sortByProp="NUMDIMENSIONS">
+  <p name="pList"><sort sortByProp="numDimensions">
     <point>(a,b)</point>
     <point>x</point>
     <point xs="s t u v" />

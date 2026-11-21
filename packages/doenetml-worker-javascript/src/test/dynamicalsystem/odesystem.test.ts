@@ -842,19 +842,19 @@ describe("odeSystem Tag Tests @group4", async () => {
   <p>RHS1: <math extend="$ode.rhs" name="rhs1b" /></p>
   <p>Both RHSs: <asList><mathList extend="$ode.rhss" name="rhssa" /></asList></p>
 
-  <p>RHS1: <math extend="$ode.rightHandSide1" name="rhs1c" /></p>
-  <p>RHS2: <math extend="$ode.rightHandSide2" name="rhs2b" /></p>
-  <p>RHS1: <math extend="$ode.rightHandSide" name="rhs1d" /></p>
-  <p>Both RHSs: <asList><mathList extend="$ode.rightHandSides" name="rhssb" /></asList></p>
+  <p>RHS1: <math extend="$ode.righthandside1" name="rhs1c" /></p>
+  <p>RHS2: <math extend="$ode.righthandside2" name="rhs2b" /></p>
+  <p>RHS1: <math extend="$ode.righthandside" name="rhs1d" /></p>
+  <p>Both RHSs: <asList><mathList extend="$ode.righthandsides" name="rhssb" /></asList></p>
   
-  <p>IC1: <math extend="$ode.initialcondition1" name="ic1a" /></p>
-  <p>IC2: <math extend="$ode.initialcondition2" name="ic2a" /></p>
-  <p>IC1: <math extend="$ode.initialcondition" name="ic1b" /></p>
-  <p>Both ICs: <asList><mathList extend="$ode.initialconditions" name="icsa" /></asList></p>
+  <p>IC1: <math extend="$ode.initialCondition1" name="ic1a" /></p>
+  <p>IC2: <math extend="$ode.initialCondition2" name="ic2a" /></p>
+  <p>IC1: <math extend="$ode.initialCondition" name="ic1b" /></p>
+  <p>Both ICs: <asList><mathList extend="$ode.initialConditions" name="icsa" /></asList></p>
 
   <p>Swap right hand sides and keep initial conditions</p>
 
-  <odeSystem name="odeswap" initialConditions="$(ode.initialconditions)">
+  <odeSystem name="odeswap" initialConditions="$(ode.initialConditions)">
     <rightHandSide>$ode.rhs2</rightHandSide>
     <rightHandSide>$ode.rhs1</rightHandSide>
   </odeSystem>

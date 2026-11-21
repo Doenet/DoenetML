@@ -38,7 +38,7 @@ describe("An award or a choice can only be copied (D42) @group4", () => {
 
     it("an extend or a copyWithState of an award is an error, whose message suggests copy", async () => {
         for (const how of ["extend", "copyWithState"]) {
-            for (const tag of ["award", "Award"]) {
+            for (const tag of ["award"]) {
                 const { core, stateVariables } = await load(
                     `${awardSetup}<answer name="ans"><${tag} name="aw2" ${how}="$aw"/></answer>`,
                 );
@@ -56,16 +56,37 @@ describe("An award or a choice can only be copied (D42) @group4", () => {
                 const message = getDiagnosticsByType(core).errors[0].message;
                 expect(message).contain(`<award copy="$aw"/>`);
                 expect(message).contain(`\`${how}\``);
-                // no award is made: the error is in its place. (`<Award>`,
-                // as a reference's tag keeps the case written, is wrapped
-                // in an award by the answer's sugar.)
-                if (tag === "award")
-                    expect(
-                        Object.values(stateVariables).filter(
-                            (c: any) => c.componentType === "award",
-                        ).length,
-                    ).eq(1);
+                // no award is made: the error is in its place
+                expect(
+                    Object.values(stateVariables).filter(
+                        (c: any) => c.componentType === "award",
+                    ).length,
+                ).eq(1);
             }
+        }
+    });
+
+    it("an `<Award>` in another case is an unknown tag, not an award (D51)", async () => {
+        for (const how of ["extend", "copyWithState", "copy"]) {
+            const { core, stateVariables } = await load(
+                `${awardSetup}<answer name="ans"><Award name="aw2" ${how}="$aw"/></answer>`,
+            );
+            expect(errorsOf(core), how).eqls([
+                {
+                    code: "doenet-e0002",
+                    args: {
+                        componentType: "Award",
+                        suggestion: "award",
+                        hasSuggestion: "true",
+                    },
+                },
+            ]);
+            // not wrapped in an award by the answer's sugar
+            expect(
+                Object.values(stateVariables).filter(
+                    (c: any) => c.componentType === "award",
+                ).length,
+            ).eq(1);
         }
     });
 

@@ -55,11 +55,7 @@ import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
-import {
-    correctAttributeNameCase,
-    nameDifferingOnlyInCase,
-    suggestionArgs,
-} from "./nameCase";
+import { nameDifferingOnlyInCase, suggestionArgs } from "./nameCase";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -624,16 +620,6 @@ export async function normalizedDastToSerializedComponents(
         throw Error("Root of dast should be a single document");
     }
     const diagnostics: DiagnosticRecord[] = [];
-
-    // An attribute name in another case is applied under the component's
-    // spelling, with a warning, before anything else reads it (D51).
-    diagnostics.push(
-        ...correctAttributeNameCase({
-            normalizedRoot: normalized_root,
-            componentInfoObjects,
-            componentTypeOf: getComponentType,
-        }),
-    );
 
     const unflattenedDocument = unflattenDastNodes(
         [documentIdx],
@@ -1574,8 +1560,8 @@ export function expandAllUnflattenedAttributes({
     }
 
     // Matched exactly (D51). One written in another case was given the
-    // class's spelling already, with a warning (`correctAttributeNameCase`),
-    // unless it is read before the core (`name`, `extend`, ...).
+    // component's spelling already, with a warning, by the parser
+    // (`attribute-name-case.ts`), for now.
     for (let attr in unflattenedAttributes) {
         const attrName = attr;
         let attrDef = Object.hasOwn(classAttributes, attr)
@@ -1848,8 +1834,8 @@ export function expandAttribute({
 
             if (attrDef.copyComponentAttributesForCreatedComponent) {
                 // Attribute names are matched exactly (D51): one the author
-                // wrote in another case was given the declared spelling
-                // before this (`correctAttributeNameCase`).
+                // wrote in another case was given the declared spelling by
+                // the parser (`attribute-name-case.ts`).
                 for (let attrName of attrDef.copyComponentAttributesForCreatedComponent) {
                     if (Object.hasOwn(allUnflattenedAttributes, attrName)) {
                         // XXX: we many need to increment component indices here

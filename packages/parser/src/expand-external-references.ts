@@ -26,8 +26,11 @@ type RemoteSource = {
 /**
  * The attributes, lowercased, that make an element from what they reference.
  */
-// Matched exactly, as every attribute name is (D51).
-const EXTEND_OR_COPY_ATTRIBUTES = ["extend", "copy", "copyWithState"];
+// Matched without regard to case, for now: this runs before the attribute
+// names are given their components' spelling (`attribute-name-case.ts`),
+// which still applies one written in another case, with a warning, for one
+// release (D51).
+const EXTEND_OR_COPY_ATTRIBUTES = ["extend", "copy", "copywithstate"];
 
 /**
  * Find any `extend`, `copy` or `copyWithState` attribute that begins with `doenet:`.
@@ -64,7 +67,10 @@ export async function expandExternalReferences(
                 }
 
                 const sourceAttributeName = Object.keys(node.attributes).find(
-                    (attrName) => EXTEND_OR_COPY_ATTRIBUTES.includes(attrName),
+                    (attrName) =>
+                        EXTEND_OR_COPY_ATTRIBUTES.includes(
+                            attrName.toLowerCase(),
+                        ),
                 );
                 if (sourceAttributeName === undefined) {
                     return;
@@ -85,7 +91,7 @@ export async function expandExternalReferences(
                 // not among the element's children: those are content, and
                 // sugar that reads them (e.g. `<select>` splitting text into
                 // options) rejects a diagnostic mixed in.
-                if (sourceAttributeName === "copyWithState") {
+                if (sourceAttributeName.toLowerCase() === "copywithstate") {
                     uriWithStateWarnings.push(
                         codedDastError({
                             code: "doenet-w0185",
@@ -190,7 +196,11 @@ export async function expandExternalReferences(
                 // Delete all `extend`, `copy` or `copyWithState` attributes from the parent.
                 // (The external reference supersedes any others.)
                 for (const attrName in parent.attributes) {
-                    if (EXTEND_OR_COPY_ATTRIBUTES.includes(attrName)) {
+                    if (
+                        EXTEND_OR_COPY_ATTRIBUTES.includes(
+                            attrName.toLowerCase(),
+                        )
+                    ) {
                         delete parent.attributes[attrName];
                     }
                 }

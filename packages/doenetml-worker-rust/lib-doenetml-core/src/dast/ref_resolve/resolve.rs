@@ -218,11 +218,9 @@ pub(super) fn branch_container_kind(
             let num_to_select = element
                 .attributes
                 .iter()
-                // Without regard to case for now: an attribute written in
-                // another case is still applied, with a warning, for one
-                // release (D51, `nameCase.ts` in the JavaScript
-                // core), so a `NumToSelect` still picks that many here.
-                .find(|attr| attr.name.eq_ignore_ascii_case("numToSelect"));
+                // Matched exactly (D51): one written in another case was
+                // given this spelling by the parser (`attribute-name-case.ts`).
+                .find(|attr| attr.name == "numToSelect");
             // A copy of a `<select>` picks as many as the one it copies,
             // unless its own `numToSelect` says otherwise.
             let is_copy = element.name == "_copy"
