@@ -3,10 +3,60 @@ import { ComponentInfoObjects } from "../componentInfoObjects";
 /**
  * Names are matched exactly, as written (NAME-0, D51): a tag, an attribute
  * and a property. This file holds what the places that report a name in
- * another case share, to suggest the name it differs from only in case. (An
- * attribute in another case is still applied for now, with a warning, by the
- * parser: `attribute-name-case.ts`.)
+ * another case share, to suggest the name it differs from only in case, and
+ * the renaming of an attribute in another case, which is still applied for
+ * now, with a warning (`doenet-w0197`): by the parser
+ * (`attribute-name-case.ts`) for what the schema lists, and here, as a
+ * backstop, for what it does not (`attributeNameCaseCorrections`).
  */
+
+/**
+ * The attributes of `written` that are written in another case than one of
+ * `known`, each with the spelling of `known` to apply it under, for now
+ * (`doenet-w0197`, D51's migration). The same rule as the parser's
+ * (`attribute-name-case.ts`), which renames those the schema lists; this is
+ * the backstop for those it does not: an attribute the schema hides
+ * (`<subsetOfRealsInput xmin>`), and every attribute of a tag the schema
+ * hides (`<panel>`). An attribute in `known`, a namespaced one (`xmlns:…`),
+ * one matching two of `known` that differ only in case, and one whose
+ * spelling in `known` is written too (`xMin="1" xmin="2"`), or was given to
+ * one before it, are left as written: an attribute the component doesn't
+ * have (`doenet-e0004`). So is one in `exclude`.
+ */
+export function attributeNameCaseCorrections({
+    written,
+    known,
+    exclude = [],
+}: {
+    written: string[];
+    known: Iterable<string>;
+    exclude?: string[];
+}): { written: string; corrected: string }[] {
+    const knownSet = new Set(known);
+    const byLowerCase = new Map<string, string | null>();
+    for (const name of knownSet) {
+        if (exclude.includes(name)) {
+            continue;
+        }
+        const lower = name.toLowerCase();
+        // Two that differ only in case match neither.
+        byLowerCase.set(lower, byLowerCase.has(lower) ? null : name);
+    }
+    const present = new Set(written);
+    const corrections: { written: string; corrected: string }[] = [];
+    for (const name of written) {
+        if (knownSet.has(name) || name.includes(":")) {
+            continue;
+        }
+        const corrected = byLowerCase.get(name.toLowerCase());
+        if (!corrected || present.has(corrected)) {
+            continue;
+        }
+        present.add(corrected);
+        corrections.push({ written: name, corrected });
+    }
+    return corrections;
+}
 
 /**
  * The one of `candidates` that `written` differs from only in case, if any,

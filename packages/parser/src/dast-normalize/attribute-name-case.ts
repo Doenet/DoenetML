@@ -18,9 +18,15 @@ import { codedDastError } from "../coded-dast-error";
  * after it matches attribute names exactly: the checks of names
  * (`enforce-valid-names.ts`), the sugar, the reference resolver (`name`,
  * `extend`, `copy`, `copyWithState`, a repeat's `for`, `valueName` and
- * `indexName`) and the JavaScript core. Making it an error in a later release
- * is a change here alone: without the rename, the attribute is one the
- * component doesn't have (`doenet-e0004`, which suggests the spelling).
+ * `indexName`) and the JavaScript core. It knows only what the schema lists:
+ * an attribute the schema hides (`<subsetOfRealsInput xmin>`), and any
+ * attribute of a tag it hides (`<h Hide>`), is renamed, with the same warning,
+ * by the JavaScript core (`correctAttributeNameCase` in
+ * `convertNormalizedDast.ts`), before it reads attributes; there, `name`,
+ * `extend`, `copy` and `copyWithState` are not, as the resolver has read them
+ * already. Making it an error in a later release is a change in these two
+ * places: without the rename, the attribute is one the component doesn't
+ * have (`doenet-e0004`, which suggests the spelling).
  *
  * An attribute is the component's when the schema lists it, or it is one every
  * tag takes (`extend`, `copy`, `copyWithState`), or, on a tag written with one

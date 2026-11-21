@@ -55,7 +55,11 @@ import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
-import { nameDifferingOnlyInCase, suggestionArgs } from "./nameCase";
+import {
+    attributeNameCaseCorrections,
+    nameDifferingOnlyInCase,
+    suggestionArgs,
+} from "./nameCase";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -180,6 +184,9 @@ function unresolvedReferenceDiagnostic(
  */
 const ATTRIBUTES_OF_EVERY_TAG = ["extend", "copy", "copyWithState"];
 
+/** The attributes of the copy a tag with `extend` or `copy` is made into. */
+const ATTRIBUTES_OF_A_COPY = ["asList", "removeEmptyArrayEntries"];
+
 /**
  * Transform the normalized dast into the serialized components used
  * to initialize the Javascript Doenet core
@@ -215,6 +222,75 @@ export async function normalizedDastToSerializedComponents(
      * (`missingTag`).
      */
     const missingInPlaceOfTag = new Set<UnflattenedComponent>();
+
+    /**
+     * Give an attribute of `node` written in another case than its
+     * component's (`<subsetOfRealsInput xmin>` for `xMin`) the component's
+     * spelling, with the warning the parser gives (`doenet-w0197`), for this
+     * release (D51's migration). The parser (`attribute-name-case.ts`) has
+     * renamed those the schema lists, before anything read them; this is the
+     * backstop for those it does not know of, an attribute the schema hides
+     * and every attribute of a tag it hides (`<panel>`), so that every
+     * attribute applied before names were case-sensitive still is, for now.
+     * Those it renamed are matched here as written, so are not warned of
+     * twice. It runs before anything in the core reads an attribute: the
+     * sugar and the checks at load read the unflattened components. Not
+     * `name`, `extend`, `copy` or `copyWithState`, which every class
+     * declares: the reference resolver has read them already, as written,
+     * so one in another case would not be applied, and is left as an
+     * attribute the component doesn't have (`doenet-e0004`, which suggests
+     * the spelling). Nor on a class that accepts any attribute, as
+     * `<module>`.
+     */
+    const correctedNodes = new Set<number>();
+    function correctAttributeNameCase(
+        node: FlatElement,
+        nodeIdx: number,
+        diagnostics: DiagnosticRecord[],
+    ) {
+        if (correctedNodes.has(nodeIdx)) {
+            return;
+        }
+        correctedNodes.add(nodeIdx);
+        const componentType = componentInfoObjects.componentTypeAsWritten(
+            getComponentType(node),
+        );
+        const componentClass =
+            componentType === undefined
+                ? undefined
+                : componentInfoObjects.allComponentClasses[componentType];
+        if (!componentClass || componentClass.acceptAnyAttribute) {
+            return;
+        }
+        const corrections = attributeNameCaseCorrections({
+            written: node.attributes.map((attribute) => attribute.name),
+            known: [
+                ...Object.keys(componentClass.createAttributesObject()),
+                ...(node.extending ? ATTRIBUTES_OF_A_COPY : []),
+            ],
+            exclude: ["name", ...ATTRIBUTES_OF_EVERY_TAG],
+        });
+        for (const { written, corrected } of corrections) {
+            const i = node.attributes.findIndex(
+                (attribute) => attribute.name === written,
+            );
+            const attribute = node.attributes[i];
+            node.attributes[i] = { ...attribute, name: corrected };
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0197",
+                    args: {
+                        attribute: written,
+                        suggestion: corrected,
+                        componentType: node.name,
+                    },
+                    position: attribute.position ?? node.position,
+                    sourceDoc: attribute.sourceDoc ?? node.sourceDoc,
+                }),
+            );
+        }
+    }
 
     /**
      * The missing tag (`BaseComponent.isMissing`) for the element `node`,
@@ -331,6 +407,7 @@ export async function normalizedDastToSerializedComponents(
             } else {
                 const node = normalized_root.nodes[idxOrString];
                 if (node.type === "element") {
+                    correctAttributeNameCase(node, idxOrString, diagnostics);
                     const children = unflattenDastNodes(
                         node.children,
                         diagnostics,
@@ -1560,8 +1637,9 @@ export function expandAllUnflattenedAttributes({
     }
 
     // Matched exactly (D51). One written in another case was given the
-    // component's spelling already, with a warning, by the parser
-    // (`attribute-name-case.ts`), for now.
+    // component's spelling already, with a warning, for now: by the parser
+    // (`attribute-name-case.ts`), or, for one the schema hides, by
+    // `correctAttributeNameCase`.
     for (let attr in unflattenedAttributes) {
         const attrName = attr;
         let attrDef = Object.hasOwn(classAttributes, attr)
@@ -1834,8 +1912,8 @@ export function expandAttribute({
 
             if (attrDef.copyComponentAttributesForCreatedComponent) {
                 // Attribute names are matched exactly (D51): one the author
-                // wrote in another case was given the declared spelling by
-                // the parser (`attribute-name-case.ts`).
+                // wrote in another case was given the declared spelling
+                // already (`attribute-name-case.ts`, `correctAttributeNameCase`).
                 for (let attrName of attrDef.copyComponentAttributesForCreatedComponent) {
                     if (Object.hasOwn(allUnflattenedAttributes, attrName)) {
                         // XXX: we many need to increment component indices here
