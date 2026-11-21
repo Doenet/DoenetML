@@ -46,6 +46,19 @@ function normalizeKey(value: unknown): string {
 }
 
 /**
+ * Maps a Doenet `positionFromAnchor` to a PreFigure `<label>` `alignment`.
+ *
+ * Both name the side of the anchor the text sits on, so `upperRight` is
+ * PreFigure's `ne`. `center`, and any value not in the map, centers the text
+ * on the anchor (`c`), as the Doenet renderer does.
+ */
+export function prefigureAlignmentForAnchorPosition(position: unknown): string {
+    return (
+        prefigurePointAlignmentByLabelPosition[normalizeKey(position)] ?? "c"
+    );
+}
+
+/**
  * Attribute that makes a PreFigure label follow the page's light/dark text
  * color. Append it to every element whose text PreFigure renders as a native
  * SVG `<text>`: `<point>`, `<line>`, `<label>`, `<xlabel>`, `<ylabel>`.

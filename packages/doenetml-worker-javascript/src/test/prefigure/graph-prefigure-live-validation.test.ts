@@ -68,6 +68,12 @@ describe("Graph prefigure renderer live validation @group4", () => {
                     }),
                     expectText: "grid (no x lines in range)",
                 },
+                {
+                    doenetML: prefigureGraph(
+                        '<text anchor="(1,2)" positionFromAnchor="upperRight">A &amp; B</text><math anchor="(-1,-2)">x^2</math><label anchor="(3,-3)">L <m>y</m></label><md anchor="(-4,4)"><mrow>a &amp;= b</mrow><mrow>c &amp;= d</mrow></md>',
+                    ),
+                    expectText: "text, math, label, and md",
+                },
             ];
 
             for (const c of cases) {
