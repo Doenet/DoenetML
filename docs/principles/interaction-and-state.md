@@ -154,7 +154,8 @@ Recent fixes show where the current representation is fragile:
   `copyWithState` made by a drag shows the edit entered, an input a drag hides enters its edit
   when shown again, and a reload enters every input's edit; `__componentNeedingUpdateValue` is
   gone. **Known violations** (#2614): an input disabled while holding an edit keeps showing it,
-  also after it is enabled; under `readOnly`, a reload shows the edit; a `<fractionInput
+  also after it is enabled (decided, D50 decision 2: it enters the edit when it becomes disabled);
+  under `readOnly`, a reload shows the edit (D50 decision 3: entered without an event); a `<fractionInput
   copyWithState>` has no parts and shows `＿`.
 - **A restored value is matched by `stateId`; since #2481 also by type** (B36). The save records
   each component's type (`__componentTypes`), and a value whose type differs from the component
