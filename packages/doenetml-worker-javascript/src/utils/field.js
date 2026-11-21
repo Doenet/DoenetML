@@ -9,6 +9,13 @@
 import { codedDiagnostic } from "./diagnostics";
 
 /**
+ * The default `markLength` of a `<slopeField>`, in pixels. The PreFigure
+ * conversion reads it to tell an author's `markLength`, which it cannot honor,
+ * from the default, which it does not warn about.
+ */
+export const SLOPE_FIELD_DEFAULT_MARK_LENGTH = 20;
+
+/**
  * The child group both field components take their function from.
  *
  * The function is written inside the component either as a bare expression,

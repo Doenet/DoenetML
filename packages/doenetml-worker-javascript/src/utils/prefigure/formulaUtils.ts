@@ -376,6 +376,24 @@ function emitApply(
     throw new UnsupportedFormulaError(fn);
 }
 
+/**
+ * The function an `apply` node's function part names, as the translation
+ * resolves it: an alias such as `asec` becomes `arcsec`, and the inverse
+ * notation `sin^(-1)` becomes `arcsin`. Null for a part that names no single
+ * function, such as `sin^2` or `log_b`.
+ */
+export function resolveAppliedFunctionName(fn: unknown): string | null {
+    if (Array.isArray(fn) && fn[0] === "^" && typeof fn[1] === "string") {
+        return fn[2] === -1 && hasOwn(INVERSE_FUNCTIONS, fn[1])
+            ? INVERSE_FUNCTIONS[fn[1]]
+            : null;
+    }
+    if (typeof fn !== "string") {
+        return null;
+    }
+    return hasOwn(FUNCTION_ALIASES, fn) ? FUNCTION_ALIASES[fn] : fn;
+}
+
 /** Short label for an AST node, used in the unsupported-feature warning. */
 function describeAst(ast: unknown): string {
     if (Array.isArray(ast)) {
@@ -573,6 +591,41 @@ export interface FormulaWarningContext {
     /** The `<tag>` or `<tag> (name)` subject the warning is about. */
     subject: string;
     position?: Position;
+}
+
+/**
+ * Rename several variable symbols at once, as `rewriteExpressionVariable`
+ * renames one.
+ *
+ * The renames are applied together rather than one after another, so a swap
+ * such as `{ y: "x", x: "y" }` (a function authored with `variables="y x"`)
+ * does not rename a symbol twice.
+ */
+export function rewriteExpressionVariables({
+    expression,
+    renames,
+}: {
+    expression: string;
+    renames: Record<string, string>;
+}): string {
+    const fromVariables = Object.keys(renames)
+        .filter((from) => from && renames[from] !== from)
+        // Longest first, so a name is not matched by a prefix of itself.
+        .sort((a, b) => b.length - a.length);
+    if (fromVariables.length === 0) {
+        return expression;
+    }
+
+    const symbolPattern = new RegExp(
+        `(^|[^A-Za-z0-9_])(${fromVariables.map(escapeRegex).join("|")})(?=$|[^A-Za-z0-9_])`,
+        "g",
+    );
+
+    return expression.replace(
+        symbolPattern,
+        (_match, before: string, symbol: string) =>
+            `${before}${renames[symbol]}`,
+    );
 }
 
 /**
