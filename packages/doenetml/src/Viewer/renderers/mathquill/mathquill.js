@@ -3104,6 +3104,59 @@ var saneKeyboardEvents = (function () {
             shouldBeSelected = !!text;
         }
         var shouldBeSelected = false;
+        // DOENET: local patch to this vendored bundle -- preserve it when
+        // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+        // The last `input` event since the last keydown (see `typedText`).
+        var lastInput = null;
+        // An Android keyboard's backspace, held back until the next keydown
+        // or a short timer (see `onKeyup`): { event, timeoutId } or null.
+        var pendingBackspace = null;
+        // How long a bare 229 keydown and keyup wait before they count as
+        // Backspace. Chrome sends the same bare pair for its own empty commit
+        // just before an on-screen keyboard's Enter; the Enter keydown came
+        // 1 to 10 ms after it on an Android 15 emulator with Gboard. 100 ms
+        // is ten times that, for slower phones, and short enough that a
+        // single deletion still looks immediate. A held backspace repeats
+        // about every 50 ms (measured, Gboard), but each
+        // repeat's keydown applies the one before it, so the timer only
+        // delays the last deletion.
+        var PENDING_BACKSPACE_MS = 100;
+        function applyPendingBackspace() {
+            if (!pendingBackspace) return;
+            var e = pendingBackspace.event;
+            clearTimeout(pendingBackspace.timeoutId);
+            pendingBackspace = null;
+            // The field may have been removed while the timer ran.
+            if (textarea.isConnected === false) return;
+            if (controller.options && controller.options.overrideKeystroke) {
+                controller.options.overrideKeystroke("Backspace", e);
+            } else {
+                controller.keystroke("Backspace", e);
+            }
+        }
+        function dropPendingBackspace() {
+            if (!pendingBackspace) return;
+            clearTimeout(pendingBackspace.timeoutId);
+            pendingBackspace = null;
+        }
+        // An `input` event that `typedText` will take as typed by an Android
+        // on-screen keyboard: one named character, not composed, after an
+        // "Unidentified" keydown with no modifiers.
+        function isOnScreenKeyboardInsert(input) {
+            return (
+                !!keydown &&
+                keydown.key === "Unidentified" &&
+                !keydown.ctrlKey &&
+                !keydown.altKey &&
+                !keydown.metaKey &&
+                !!input &&
+                input.type === "input" &&
+                input.inputType === "insertText" &&
+                !input.isComposing &&
+                textarea instanceof HTMLTextAreaElement &&
+                input.data === textarea.value
+            );
+        }
         // -*- helper subroutines -*- //
         // Determine whether there's a selection in the textarea.
         // This will always return false in IE < 9, which don't support
@@ -3125,12 +3178,33 @@ var saneKeyboardEvents = (function () {
         }
         // -*- event handlers -*- //
         function onKeydown(e) {
+            // DOENET: local patch to this vendored bundle -- preserve it when
+            // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+            // A held-back Android backspace (see `onKeyup`) is Chrome's empty
+            // commit before an on-screen keyboard's Enter if this key is
+            // Enter: drop it. Otherwise it was a backspace: apply it before
+            // this key.
+            if (pendingBackspace) {
+                if (e.key === "Enter" || e.keyCode === 13) {
+                    dropPendingBackspace();
+                } else {
+                    applyPendingBackspace();
+                }
+            }
             everyTick.trigger(e);
             if (e.target !== textarea) return;
             keydown = e;
             keypress = null;
+            lastInput = null;
             if (shouldBeSelected)
                 everyTick.listenOnce(function (e) {
+                    // DOENET (#2557): an Android keyboard's character has
+                    // replaced the selected text in the textarea; selecting
+                    // it would make `typedText` take it for a selection.
+                    if (isOnScreenKeyboardInsert(e)) {
+                        everyTick.listen(typedText);
+                        return;
+                    }
                     if (!(e && e.type === "focusout")) {
                         // re-select textarea in case it's an unrecognized key that clears
                         // the selection, then never again, 'cos next thing might be blur
@@ -3161,6 +3235,49 @@ var saneKeyboardEvents = (function () {
         function onKeyup(e) {
             everyTick.trigger(e);
             if (e.target !== textarea) return;
+            // DOENET: local patch to this vendored bundle -- preserve it when
+            // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+            // On Android the on-screen keyboard's backspace is a keydown and
+            // keyup of "Unidentified" (keyCode 229) and nothing else when
+            // there is nothing in the textarea for it to delete, which is the
+            // usual case, since typed text is taken out of it at once.
+            // A key that typed or composed anything raised an `input` event
+            // in between; one that did neither, on an empty textarea, is
+            // taken for the backspace. Chrome sends the same bare pair for an
+            // IME's empty commit or forward delete; it commits an empty string
+            // itself before an on-screen keyboard's Enter (seen with Gboard
+            // on every Enter), and then sends the Enter key. So the
+            // backspace is held back and dropped if the next keydown is Enter
+            // (`onKeydown`).
+            // Only keyCode 229, the code Chrome gives on-screen keyboard
+            // events, on both keydown and keyup: a desktop key the browser
+            // cannot name is also "Unidentified", with another keyCode, and
+            // must not delete.
+            if (
+                keydown &&
+                keydown.key === "Unidentified" &&
+                keydown.keyCode === 229 &&
+                e.key === "Unidentified" &&
+                e.keyCode === 229 &&
+                !keydown.ctrlKey &&
+                !keydown.altKey &&
+                !keydown.metaKey &&
+                !keypress &&
+                !lastInput &&
+                textarea instanceof HTMLTextAreaElement &&
+                textarea.value === ""
+            ) {
+                keydown = null;
+                applyPendingBackspace();
+                pendingBackspace = {
+                    event: e,
+                    timeoutId: setTimeout(
+                        applyPendingBackspace,
+                        PENDING_BACKSPACE_MS,
+                    ),
+                };
+                return;
+            }
             // Handle case of no keypress event being sent
             if (!!keydown && !keypress) {
                 // only check for typed text if this key can type text. Otherwise
@@ -3202,8 +3319,23 @@ var saneKeyboardEvents = (function () {
             // Furthermore, an input event with the value "u" is still processed in Linux and Chrome OS due to the down/up mismatch.
             // The end result is that a spurious "u" is sent followed by the intended character.
             // Due to how this feature works, it's vital to completely ignore Ctrl-Shift-U no matter how the input event appears to Mathquill as clearing the textarea by mistake breaks the expected input flow.
+            // DOENET: local patch to this vendored bundle -- preserve it when
+            // updating MathQuill from upstream. See Doenet/DoenetML#2557.
+            // An on-screen keyboard on Android (seen with Gboard) reports
+            // every key as a keydown of "Unidentified" (keyCode 229),
+            // then says exactly what it typed in an `input` event of type
+            // `insertText`. Ignoring every "Unidentified" keydown, as the
+            // guard below does, dropped all typing from such a keyboard. When
+            // the browser has named the one character inserted, outside a
+            // composition, take it. The Ctrl-Shift-U keydowns described
+            // above carry modifiers and are still ignored; the ChromeOS case
+            // without modifiers has not been reproduced, and if it names its
+            // character in a plain `insertText`, that character is now typed.
+            var insertedByOnScreenKeyboard =
+                isOnScreenKeyboardInsert(lastInput);
             if (
                 keydown &&
+                !insertedByOnScreenKeyboard &&
                 (keydown.key === "Unidentified" ||
                     (!keydown.altKey &&
                         keydown.ctrlKey &&
@@ -3233,12 +3365,17 @@ var saneKeyboardEvents = (function () {
             }
         }
         function onBlur() {
+            // DOENET (#2557): a backspace pressed just before leaving the
+            // field still counts.
+            applyPendingBackspace();
             keydown = null;
             keypress = null;
+            lastInput = null;
             everyTick.clearListener();
             if (textarea instanceof HTMLTextAreaElement) textarea.value = "";
         }
         function onPaste(e) {
+            applyPendingBackspace(); // DOENET (#2557)
             everyTick.trigger();
             if (e.target !== textarea) return;
             // browsers are dumb.
@@ -3264,6 +3401,8 @@ var saneKeyboardEvents = (function () {
             });
         }
         function onInput(e) {
+            // Recorded before the tick runs: `typedText` may read it.
+            lastInput = e;
             everyTick.trigger(e);
         }
         if (controller.KIND_OF_MQ === "StaticMath") {
