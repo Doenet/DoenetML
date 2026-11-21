@@ -852,11 +852,14 @@ export function breakReferenceCycles({
     /**
      * The references (`_copy`) written in `component`, in its attributes,
      * the index of its reference and its children, at any depth, in document
-     * order, into `found`.
+     * order, into `found`, each with how many of the components in
+     * `within` (below `component`) it is written in.
      */
     function gatherCopiesIn(
         component: SerializedComponent,
-        found: SerializedComponent[],
+        within: Set<number>,
+        found: { copy: SerializedComponent; depth: number }[],
+        depth = 0,
     ) {
         const inside: SerializedComponent[] = [];
         for (const attribute of Object.values(component.attributes ?? {})) {
@@ -870,9 +873,14 @@ export function breakReferenceCycles({
         }
         for (const one of inside) {
             if (one.componentType === "_copy") {
-                found.push(one);
+                found.push({ copy: one, depth });
             }
-            gatherCopiesIn(one, found);
+            gatherCopiesIn(
+                one,
+                within,
+                found,
+                depth + (within.has(one.componentIdx) ? 1 : 0),
+            );
         }
     }
 
@@ -1940,23 +1948,41 @@ export function breakReferenceCycles({
     // node blamed, or, if it is no reference, the first reference written in
     // it, to it or to another node on the cycle, which is where the author
     // wrote the cycle (`$P.x` in `<point name="P">($P.x+1, 2)</point>`,
-    // DIAG-4).
+    // DIAG-4). The first written in the most other nodes on the cycle is
+    // chosen: with that point in a `<repeatForSequence>` blamed, after a
+    // `<p>$P.y</p>`, `$P.y` is to the point but not on the cycle, and making
+    // it the error would leave the cycle unbroken.
     const forcedCycleMembers = new Set<number>();
     if (loadCycle) {
         const blamed = componentsByIdx.get(loadCycle.blamed);
         if (blamed) {
             let chosen = blamed;
             if (blamed.componentType !== "_copy") {
-                const written: SerializedComponent[] = [];
-                gatherCopiesIn(blamed, written);
-                chosen =
-                    written.find((copy) => {
-                        const target = targetOf(copy);
-                        return (
-                            target !== undefined &&
-                            loadCycle.onCycle.has(target.componentIdx)
-                        );
-                    }) ?? blamed;
+                const written: {
+                    copy: SerializedComponent;
+                    depth: number;
+                }[] = [];
+                const otherOnCycle = new Set(loadCycle.onCycle);
+                otherOnCycle.delete(blamed.componentIdx);
+                gatherCopiesIn(blamed, otherOnCycle, written);
+                const toCycle = written.filter(({ copy }) => {
+                    const target = targetOf(copy);
+                    return (
+                        target !== undefined &&
+                        loadCycle.onCycle.has(target.componentIdx)
+                    );
+                });
+                // the first of the deepest, in document order
+                const deepest = toCycle.reduce<
+                    (typeof toCycle)[number] | undefined
+                >(
+                    (best, one) =>
+                        best === undefined || one.depth > best.depth
+                            ? one
+                            : best,
+                    undefined,
+                );
+                chosen = deepest?.copy ?? blamed;
             }
             forcedCycleMembers.add(chosen.componentIdx);
             loadCycle.made = chosen.componentIdx;

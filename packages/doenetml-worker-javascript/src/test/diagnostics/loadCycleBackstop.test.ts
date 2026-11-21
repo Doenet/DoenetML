@@ -182,6 +182,37 @@ $r[1].P.x
         );
     });
 
+    // With a composite blamed, the reference made the error is the one
+    // written in a node on the cycle (the point), not an earlier reference
+    // to that node off the cycle (`$P.y`, `$n`), which would leave the cycle
+    // unbroken and the document stopped.
+    it("in a composite blamed, a reference written in the cycle is the error", async () => {
+        for (const [doenetML, blamed] of [
+            [
+                `<p name="p">hi</p>
+<repeatForSequence to="2"><p>$P.y</p><point name="P">($P.x+1, 2)</point></repeatForSequence>`,
+                "$P.x",
+            ],
+            [
+                `<p name="p">hi</p>
+<select><option><p>$P.y</p><point name="P">($P.x+1, 2)</point></option></select>`,
+                "$P.x",
+            ],
+            [
+                `<p name="p">hi</p>
+<repeatForSequence to="1"><p>$l.slope</p><line name="l" through="(0,0) ($l.slope+1,3)"/></repeatForSequence>`,
+                "$l.slope",
+            ],
+            [
+                `<p name="p">hi</p>
+<repeatForSequence to="1"><p>$n</p><number name="n" hide="$n.hidden">1</number></repeatForSequence>`,
+                "$n.hidden",
+            ],
+        ]) {
+            await expectBlamed(doenetML, blamed);
+        }
+    });
+
     // What the composites of the load that stopped added to the resolver is
     // gone: the names they made resolve to what the rebuilt document makes.
     it("names made by composites resolve after a rebuild", async () => {
