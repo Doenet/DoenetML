@@ -505,4 +505,151 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         expect(warnings).toHaveLength(0);
         expect(await text("p")).eq("2 x true true");
     });
+
+    it("a module attribute is matched exactly, one in another case applied with a warning, for now", async () => {
+        const definition = `<module name="mod"><moduleAttributes><math name="a">1</math></moduleAttributes><math name="q">$a</math></module>`;
+
+        let { text, errors, warnings } = await load(
+            `${definition}<module copy="$mod" a="5" name="m2"/><p name="p">$m2.q</p>`,
+        );
+        expect(errors).toHaveLength(0);
+        expect(warnings).toHaveLength(0);
+        expect(await text("p")).eq("5");
+
+        // #2627 item 2: `A` set `a` silently
+        ({ text, errors, warnings } = await load(
+            `${definition}<module copy="$mod" A="5" name="m2"/><p name="p">$m2.q</p>`,
+        ));
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0197"]);
+        expect(warnings[0].message).eq(
+            "Attribute names are case-sensitive: write `a`, not `A`, on a `<module>`. It is applied for now, but will be an error in a later release.",
+        );
+        expect(await text("p")).eq("5");
+
+        // Each sets the one of its own name when both are declared.
+        ({ text, errors, warnings } = await load(
+            `<module name="mod"><moduleAttributes><math name="a">1</math><math name="A">2</math></moduleAttributes><math name="q">$a</math><math name="r">$A</math></module><module copy="$mod" A="5" name="m2"/><p name="p">$m2.q $m2.r</p>`,
+        ));
+        expect(errors).toHaveLength(0);
+        expect(warnings).toHaveLength(0);
+        expect(await text("p")).eq("1 5");
+    });
+
+    it("an array entry or its alias in another case suggests the index form (NAME-2)", async () => {
+        const cases = [
+            {
+                doenetML: `<point name="P">(1,2)</point><p name="p">$P.X1</p>`,
+                reference: "$P.X1",
+                suggestion: "$P.xs[1]",
+            },
+            {
+                doenetML: `<polygon name="poly" vertices="(1,2) (3,4) (5,6)"/><p name="p">$poly.Vertex2</p>`,
+                reference: "$poly.Vertex2",
+                suggestion: "$poly.vertices[2]",
+            },
+            {
+                doenetML: `<polygon name="poly" vertices="(1,2) (3,4) (5,6)"/><p name="p">$poly.VertexX2_1</p>`,
+                reference: "$poly.VertexX2_1",
+                suggestion: "$poly.vertices[2][1]",
+            },
+        ];
+        for (const c of cases) {
+            const { text, errors, warnings } = await load(c.doenetML);
+            expect(errors, c.doenetML).toHaveLength(0);
+            expect(
+                warnings.map((w) => w.code),
+                c.doenetML,
+            ).toEqual(["doenet-w0104"]);
+            expect(warnings[0].message, c.doenetML).eq(
+                `No referent found for reference: \`${c.reference}\`. Did you mean \`${c.suggestion}\`?`,
+            );
+            expect(await text("p"), c.doenetML).eq("＿");
+        }
+
+        // and each suggestion names what the entry did
+        const { text, errors, warnings } = await load(
+            `<point name="P">(1,2)</point><polygon name="poly" vertices="(1,2) (3,4) (5,6)"/><p name="p">$P.xs[1], $P.x1; $poly.vertices[2], $poly.vertex2; $poly.vertices[2][1], $poly.vertexX2_1</p>`,
+        );
+        expect(errors).toHaveLength(0);
+        expect(warnings).toHaveLength(0);
+        expect(await text("p")).eq("1, 1; (3, 4), (3, 4); 3, 3");
+    });
+
+    it("an action's target property in another case suggests the property (w0044)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<number name="n">1</number><updateValue name="uv" target="$n.Value" newValue="2"/><point name="P">(1,2)</point><updateValue name="uv2" target="$P.X1" newValue="3"/>`,
+        });
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            actionName: "updateValue",
+            args: {},
+        });
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("uv2"),
+            actionName: "updateValue",
+            args: {},
+        });
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors).toHaveLength(0);
+        const messages = warnings
+            .filter((w) => w.code === "doenet-w0044")
+            .map((w) => w.message);
+        expect(messages).toContain(
+            'Invalid target for `<updateValue>`: cannot find a state variable named "Value" on a `<number>`. Did you mean "value"?',
+        );
+        expect(messages).toContain(
+            'Invalid target for `<updateValue>`: cannot find a state variable named "X1" on a `<point>`. Did you mean "xs[1]"?',
+        );
+    });
+
+    it("a sortByProp naming no property is a warning at load, with a suggestion in another case (#2627 item 5)", async () => {
+        const cases = [
+            {
+                sortByProp: "X",
+                message:
+                    '`sortByProp="X"` names no property of a `<point>`, so the `<sort>` can\'t compare its items by it. Did you mean `sortByProp="x"`?',
+            },
+            {
+                sortByProp: "X2",
+                message:
+                    '`sortByProp="X2"` names no property of a `<point>`, so the `<sort>` can\'t compare its items by it. Did you mean `sortByProp="x2"`?',
+            },
+            {
+                sortByProp: "height",
+                message:
+                    '`sortByProp="height"` names no property of a `<point>`, so the `<sort>` can\'t compare its items by it.',
+            },
+        ];
+        for (const { sortByProp, message } of cases) {
+            const doenetML = `<p name="p"><sort sortByProp="${sortByProp}"><point>(3,1)</point><point>(1,2)</point></sort></p>`;
+            const { text, errors, warnings } = await load(doenetML);
+            expect(errors, doenetML).toHaveLength(0);
+            expect(
+                warnings.map((w) => w.code),
+                doenetML,
+            ).toEqual(["doenet-w0198"]);
+            expect(warnings[0].message, doenetML).eq(message);
+            // left in the order written, as before
+            expect(await text("p"), doenetML).eq("(3, 1), (1, 2)");
+        }
+
+        // one each item has, as written, is not reported
+        const { text, errors, warnings } = await load(
+            `<p name="p"><sort sortByProp="y"><point>(3,2)</point><point>(1,1)</point></sort></p><p name="q"><sort sortByProp="x2"><point>(3,2)</point><point>(1,1)</point></sort></p>`,
+        );
+        expect(errors).toHaveLength(0);
+        expect(warnings).toHaveLength(0);
+        expect(await text("p")).eq("(1, 1), (3, 2)");
+        expect(await text("q")).eq("(1, 1), (3, 2)");
+    });
+
+    it("a sortByProp of a sortIndices naming no property is a warning at load too", async () => {
+        const { errors, warnings } = await load(
+            `<p name="p"><sortIndices sortByProp="Y"><point>(3,2)</point><point>(1,1)</point></sortIndices></p>`,
+        );
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0198"]);
+        expect(warnings[0].message).toContain('Did you mean `sortByProp="y"`?');
+    });
 });

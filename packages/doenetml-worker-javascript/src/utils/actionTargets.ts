@@ -21,6 +21,8 @@
  * the targets, as before, and are not passed through, so it does nothing.
  */
 import { COLLECTIONS_OF_NAMED_ITEMS } from "./wrappers";
+import type { ComponentInfoObjects } from "./componentInfoObjects";
+import { propertyDifferingOnlyInCase, suggestionArgs } from "./dast/nameCase";
 
 /** The tags that make an item for each iteration. */
 const REPEATS = new Set(["repeat", "repeatForSequence"]);
@@ -122,6 +124,33 @@ export function pathOfTarget(
  * is left over, so its value is written; anything else in an index is
  * written as `…`.
  */
+/**
+ * The arguments of `doenet-w0044` that suggest the property `pathPart`
+ * names in another case on a `componentType` (D51, DIAG-3): `Value` on a
+ * `<number>` suggests `value`, and an array entry the index form (`X1` on a
+ * `<point>` suggests `xs[1]`), with the indices written after it.
+ */
+export function propertyCaseSuggestionArgs({
+    pathPart,
+    componentType,
+    componentInfoObjects,
+}: {
+    pathPart: { name: string; index?: { value?: unknown[] }[] };
+    componentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}) {
+    const corrected = propertyDifferingOnlyInCase({
+        propName: pathPart.name,
+        componentTypes: [componentType],
+        componentInfoObjects,
+    });
+    return suggestionArgs(
+        corrected === undefined
+            ? undefined
+            : propertyWithIndices({ ...pathPart, name: corrected }),
+    );
+}
+
 export function propertyWithIndices(pathPart: {
     name: string;
     index?: { value?: unknown[] }[];
