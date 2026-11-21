@@ -11,7 +11,7 @@ Compound attribute and property names are camelCase (D60). The names some compon
 - `<regularPolygon>`: `circumradius` and `inradius` are `circumRadius` and `inRadius`;
 - `<line>`, `<bestFitLine>`, `<equilibriumLine>`: the properties `xintercept`, `yintercept`, `coeffvar1` and `coeffvar2` are `xIntercept`, `yIntercept`, `coeffVar1` and `coeffVar2`;
 - `<odeSystem>`: the properties `righthandside`, `righthandsides` and `righthandside1`, `righthandside2`, … are `rightHandSide`, `rightHandSides` and `rightHandSide1`, `rightHandSide2`, …;
-- `<pegboard>`, `<attractToGrid>`, `<constrainToGrid>`, `<slopeField>`, `<vectorField>`: `xoffset`, `yoffset` and `zoffset` are `xOffset`, `yOffset` and `zOffset`, and `<attractToGrid>`'s `xthreshold`, `ythreshold` and `zthreshold` are `xThreshold`, `yThreshold` and `zThreshold`;
+- `<pegboard>`, `<attractToGrid>`, `<constrainToGrid>`, `<slopeField>`, `<vectorField>`: `xoffset` and `yoffset` are `xOffset` and `yOffset`; `<attractToGrid>`, `<constrainToGrid>`: `zoffset` is `zOffset`; and `<attractToGrid>`'s `xthreshold`, `ythreshold` and `zthreshold` are `xThreshold`, `yThreshold` and `zThreshold`;
 - `<tabular>`, `<row>`, `<col>`, `<cell>`: `halign` is `hAlign`; `<tabular>`, `<row>`, `<sideBySide>`, `<sbsGroup>`: `valign` is `vAlign`; `<sideBySide>`, `<sbsGroup>`: `valigns` is `vAligns`, with entries `vAlign1`, `vAlign2`, …;
 - `<function>` and the function operators: `xscale` and `yscale` are `xScale` and `yScale`, as they already were on a `<graph>`.
 

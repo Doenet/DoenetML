@@ -117,6 +117,48 @@ const RENAMED_ATTRIBUTES: {
         text: "4",
     },
     {
+        newName: "hAlign",
+        oldName: "halign",
+        componentType: "col",
+        doenetML: `<tabular><col name="co" hAlign="end"/><row><cell>a</cell></row></tabular><p name="p">$co.hAlign</p>`,
+        text: "end",
+    },
+    {
+        newName: "vAlign",
+        oldName: "valign",
+        componentType: "sideBySide",
+        doenetML: `<sideBySide name="s" vAlign="bottom"><p>a</p><p>b</p></sideBySide><p name="p">$s.vAligns</p>`,
+        text: "bottom, bottom",
+    },
+    {
+        newName: "yOffset",
+        oldName: "yoffset",
+        componentType: "slopeField",
+        doenetML: `<graph><slopeField name="sf" yOffset="0.5">x</slopeField></graph><p name="p">$sf.yOffset</p>`,
+        text: "0.5",
+    },
+    {
+        newName: "yThreshold",
+        oldName: "ythreshold",
+        componentType: "attractToGrid",
+        doenetML: `<graph><point><attractToGrid name="a" yThreshold="0.1"/></point></graph><p name="p">$a.yThreshold</p>`,
+        text: "0.1",
+    },
+    {
+        newName: "zThreshold",
+        oldName: "zthreshold",
+        componentType: "attractToGrid",
+        doenetML: `<graph><point><attractToGrid name="a" zThreshold="0.1"/></point></graph><p name="p">$a.zThreshold</p>`,
+        text: "0.1",
+    },
+    {
+        newName: "yScale",
+        oldName: "yscale",
+        componentType: "derivative",
+        doenetML: `<derivative name="d" yScale="4">x^2</derivative><p name="p">$d.yScale</p>`,
+        text: "4",
+    },
+    {
         // an attribute the schema hides, renamed by the core's backstop
         newName: "xLabel",
         oldName: "xlabel",
@@ -208,6 +250,74 @@ const RENAMED_PROPERTIES: {
         newReference: "$a.yOffset",
         oldReference: "$a.yoffset",
         text: "0.5",
+    },
+    {
+        setup: `<graph><regularPolygon name="rp" numVertices="4" inRadius="3"/></graph>`,
+        newReference: "$rp.inRadius",
+        oldReference: "$rp.inradius",
+        text: "3",
+    },
+    {
+        setup: `<graph><pegboard name="pb" xOffset="0.5"/></graph>`,
+        newReference: "$pb.xOffset",
+        oldReference: "$pb.xoffset",
+        text: "0.5",
+    },
+    {
+        setup: `<graph><point><constrainToGrid name="c" zOffset="0.5"/></point></graph>`,
+        newReference: "$c.zOffset",
+        oldReference: "$c.zoffset",
+        text: "0.5",
+    },
+    {
+        setup: `<graph><point><attractToGrid name="a" xThreshold="0.1"/></point></graph>`,
+        newReference: "$a.xThreshold",
+        oldReference: "$a.xthreshold",
+        text: "0.1",
+    },
+    {
+        setup: `<graph><point><attractToGrid name="a" yThreshold="0.1"/></point></graph>`,
+        newReference: "$a.yThreshold",
+        oldReference: "$a.ythreshold",
+        text: "0.1",
+    },
+    {
+        setup: `<graph><point><attractToGrid name="a" zThreshold="0.1"/></point></graph>`,
+        newReference: "$a.zThreshold",
+        oldReference: "$a.zthreshold",
+        text: "0.1",
+    },
+    {
+        setup: `<function name="f" xScale="4">x^2</function>`,
+        newReference: "$f.xScale",
+        oldReference: "$f.xscale",
+        text: "4",
+    },
+    {
+        setup: `<tabular><row name="r" vAlign="top"><cell>a</cell></row></tabular>`,
+        newReference: "$r.vAlign",
+        oldReference: "$r.valign",
+        text: "top",
+    },
+    {
+        setup: `<sideBySide name="s" vAligns="top bottom"><p>a</p><p>b</p></sideBySide>`,
+        newReference: "$s.vAligns",
+        oldReference: "$s.valigns",
+        text: "top, bottom",
+    },
+    {
+        // an array entry
+        setup: `<sideBySide name="s" vAligns="top bottom"><p>a</p><p>b</p></sideBySide>`,
+        newReference: "$s.vAlign2",
+        oldReference: "$s.valign2",
+        text: "bottom",
+        suggested: false,
+    },
+    {
+        setup: `<subsetOfRealsInput name="s" xLabel="t"/>`,
+        newReference: "$s.xLabel",
+        oldReference: "$s.xlabel",
+        text: "t",
     },
 ];
 
