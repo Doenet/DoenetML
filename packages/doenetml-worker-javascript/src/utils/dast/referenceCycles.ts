@@ -97,7 +97,9 @@
  *   expansion of each composite before it that its numbering waits for
  *   (`compositesNumberingWaitsFor`, #2614 item 2). The expansion of a
  *   composite (`expansionEdges`) is to what it is made from, to the index
- *   of a reference and the expansion of what it is of, to the expansion of
+ *   of a reference and the expansion of what it is of (and, for an item of
+ *   a repeat or a select, `$r[1]`, of the composites written in the item,
+ *   though not to its values), to the expansion of
  *   each composite in it the numbering would wait for, and, for a
  *   `<collect>`, to the expansion of what it collects from; not to the
  *   values of what it holds, which the number does not read (`$s.title` in
@@ -142,6 +144,7 @@ import { errorComponentState } from "./errors";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { collectIsListFormAsWritten } from "./listForms";
 import {
+    compositesExpandedIn,
     compositesNumberingWaitsFor,
     compositesWaitedForIn,
     NUMBER_PROPERTIES,
@@ -887,6 +890,16 @@ export function breakReferenceCycles({
     }
 
     /**
+     * The composites an item of which (`$r[1]`) is made from what is written
+     * in an iteration or in an option, whichever the item is.
+     */
+    const ITEMS_OF_TEMPLATES = new Set([
+        "repeat",
+        "repeatForSequence",
+        "select",
+    ]);
+
+    /**
      * The edges from the responses of the `<answer>` `answer`: to its
      * awards, which it reads every value written in to find its responses,
      * to what it takes as responses, and to its inputs.
@@ -1200,14 +1213,41 @@ export function breakReferenceCycles({
      * The edges for the reference `from` that names `target` with `path`
      * left after it (`null` for the whole of it): what it reads there, as
      * listed in the comment at the top.
+     *
+     * With `forExpansion`, what a copy of it waits for to expand
+     * (`expansionEdges`), not the value of a component it names, which is
+     * copied whole (`$r[1]` of a `<repeatForSequence>` whose `<p>` shows
+     * `$s.sectionNumber`, before `s`, is no cycle): the expansion of a
+     * composite it names or indexes and of the composites in the item
+     * (`compositesExpandedIn`), or of those a numbering would wait for in a
+     * component that is no composite. A property it names is read as for
+     * its value.
      */
     function readEdges(
         from: SerializedComponent,
         target: SerializedComponent,
         path: any[] | null,
+        forExpansion = false,
     ): number[] {
         if (path === null || path.length === 0) {
-            return [target.componentIdx];
+            if (!forExpansion) {
+                return [target.componentIdx];
+            }
+            // copied as a reference to it is: a composite, once it and the
+            // composites it shows have expanded (`$r[1].q` of a `<group
+            // name="q">` in the template)
+            return isComposite(target.componentType)
+                ? [
+                      expansionNode(target.componentIdx),
+                      ...compositesExpandedIn(
+                          target.children ?? [],
+                          componentInfoObjects,
+                          from,
+                      ).map((found) => expansionNode(found.componentIdx)),
+                  ]
+                : compositesWaitedForIn([target], componentInfoObjects).map(
+                      (found) => expansionNode(found.componentIdx),
+                  );
         }
         const targetType = typeOf(target);
         if (targetType === undefined) {
@@ -1278,7 +1318,24 @@ export function breakReferenceCycles({
                 // (`$r[1]` in the template of `<repeat name="r">`, which
                 // holds itself in its first iteration). An index that is not
                 // a number names one decided when the document runs: in a
-                // template, `$r[$i - 1]` names the one before.
+                // template, `$r[$i - 1]` names the one before. A copy of it
+                // waits for it to expand and, for an iteration of a repeat
+                // or an option of a `<select>`, for the composites the item
+                // shows, not for its value.
+                if (forExpansion) {
+                    return [
+                        expansionNode(target.componentIdx),
+                        ...(ITEMS_OF_TEMPLATES.has(targetType)
+                            ? compositesExpandedIn(
+                                  target.children ?? [],
+                                  componentInfoObjects,
+                                  from,
+                              ).map((found) =>
+                                  expansionNode(found.componentIdx),
+                              )
+                            : []),
+                    ];
+                }
                 return literal
                     ? [target.componentIdx]
                     : [madeFromNode(target.componentIdx)];
@@ -1312,6 +1369,7 @@ export function breakReferenceCycles({
                             namePart.index?.length > 0
                                 ? [{ name: "", index: namePart.index }, ...rest]
                                 : rest,
+                            forExpansion,
                         ),
                     );
                 }
@@ -1340,6 +1398,7 @@ export function breakReferenceCycles({
                             namePart.index?.length > 0
                                 ? [{ name: "", index: namePart.index }, ...rest]
                                 : rest,
+                            forExpansion,
                         ),
                     );
                 }
@@ -1585,6 +1644,7 @@ export function breakReferenceCycles({
                             composite,
                             target,
                             reference!.unresolvedPath,
+                            true,
                         ),
                     );
                     // A path into a composite (`$r[1]`, `$cc.hidden`) is

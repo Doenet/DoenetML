@@ -3095,6 +3095,13 @@ describe("Sectioning tag tests @group3", async () => {
 <repeatForSequence name="r" to="$s.sectionNumber"><p/></repeatForSequence>`,
                 "$s.sectionNumber",
             ],
+            // an item of a repeat is copied once the composites in it have
+            // expanded, even one that makes no section
+            [
+                `$r[1]<section name="s"><p name="p">hi</p></section>
+<repeatForSequence name="r" to="2"><section/><conditionalContent condition="$s.sectionNumber = 1"><p/></conditionalContent></repeatForSequence>`,
+                "$s.sectionNumber",
+            ],
             // a problem among problems is numbered the same way
             [
                 `<problems><repeatForSequence to="$b.sectionNumber"><problem/></repeatForSequence><problem name="b"><p name="p">hi</p></problem></problems>`,
@@ -3246,6 +3253,47 @@ describe("Sectioning tag tests @group3", async () => {
         expect((await sv("o")).title).eq("Before Summary");
         expect((await sv("ph")).text).eq("see 8");
         expect((await sv("pd")).text).eq("see 8");
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+
+    // A reference to an item of a composite (`$r[1]`, `$r[2].q`, `$r.q`)
+    // waits for the composite to expand, and for the composites written in
+    // the item, before it is copied; not for the values of what the item
+    // shows. So an item copied before a section can show that section's
+    // number. Finding the cycle at load through the values in the item
+    // reported each of these as `doenet-e0005`.
+    it("a reference to an item of a composite before a section, whose items show the section's number, loads", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="first"/>
+    $r[1]
+    $r[2].q
+    $r.q
+    $sel[1]
+    <section name="s"/>
+    <repeatForSequence name="r" to="2" valueName="v"><p name="q">item $v of $s.sectionNumber</p><group><conditionalContent condition="$s.sectionNumber = 2"><p>two</p></conditionalContent></group></repeatForSequence>
+    <select name="sel"><option><section name="t"><p name="pt">see $s.title</p></section></option></select>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("s")).sectionNumber).eq("3");
+        expect((await sv("pt")).text).eq("see Section 3");
+        // the items of `r` and their four copies
+        const texts = Object.values(stateVariables)
+            .filter((component: any) => component.componentType === "p")
+            .map((component: any) => component.stateValues.text)
+            .sort();
+        expect(texts).eqls([
+            ...Array(3).fill("item 1 of 3"),
+            ...Array(3).fill("item 2 of 3"),
+            "see Section 3",
+            "see Section 3",
+            "two",
+            "two",
+            "two",
+        ]);
         expect(getDiagnosticsByType(core).errors).eqls([]);
     });
 

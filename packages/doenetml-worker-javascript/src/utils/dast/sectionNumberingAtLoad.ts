@@ -445,6 +445,75 @@ export function compositesWaitedForIn(
 }
 
 /**
+ * The composites among `components` (what is written in an iteration of a
+ * repeat, in the options of a `<select>` or in a composite a path names)
+ * that a reference to an item of it (`$r[1]`, `$r[1].q`) waits for to
+ * expand before it is copied: each composite written there, or in an
+ * `<option>` or a `<case>` there, marked as making no section or not, apart
+ * from one that may be shown as a list (a `<group>`, a `<repeat>`, a
+ * reference), which is copied whole, and from `except`, the reference
+ * itself. Not those in a component that is no composite, nor in a
+ * composite, nor a `<setup>`. Found by running documents: a
+ * `<conditionalContent>` in a `<group>` in the item is not waited for.
+ */
+export function compositesExpandedIn(
+    components: (SerializedComponent | string)[],
+    componentInfoObjects: ComponentInfoObjects,
+    except?: SerializedComponent,
+): SerializedComponent[] {
+    const { isComposite } = typeHelpers(componentInfoObjects);
+
+    const found: SerializedComponent[] = [];
+
+    function visit(component: SerializedComponent | string) {
+        if (
+            typeof component !== "object" ||
+            component === null ||
+            component === except
+        ) {
+            return;
+        }
+        const componentType = component.componentType;
+        if (componentType === "setup" || componentType === "_repeatSetup") {
+            return;
+        }
+        if (BRANCH_TYPES.includes(componentType)) {
+            (component.children ?? []).forEach(visit);
+        } else if (
+            isComposite(componentType) &&
+            !mayBeShownAsList(componentType, componentInfoObjects)
+        ) {
+            found.push(component);
+        }
+    }
+    components.forEach(visit);
+    return found;
+}
+
+/**
+ * Whether a composite of type `componentType` has an `asList` attribute: a
+ * reference to an item that holds it copies it whole, and does not wait for
+ * it to expand (`stopAtListComposites` in `Copy.js`'s `targets`).
+ */
+function mayBeShownAsList(
+    componentType: string,
+    componentInfoObjects: ComponentInfoObjects,
+) {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[componentType];
+    if (!componentClass) {
+        return false;
+    }
+    let result = shownAsListByClass.get(componentClass);
+    if (result === undefined) {
+        result = "asList" in (componentClass.createAttributesObject?.() ?? {});
+        shownAsListByClass.set(componentClass, result);
+    }
+    return result;
+}
+const shownAsListByClass = new WeakMap<object, boolean>();
+
+/**
  * The composites the number of the section `section` waits for, which a
  * reference to its number reads (`NUMBER_PROPERTIES`, `breakReferenceCycles`):
  * each composite written before it among the components it is numbered
