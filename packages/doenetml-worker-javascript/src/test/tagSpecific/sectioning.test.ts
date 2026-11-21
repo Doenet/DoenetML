@@ -3271,7 +3271,7 @@ describe("Sectioning tag tests @group3", async () => {
     $r.q
     $sel[1]
     <section name="s"/>
-    <repeatForSequence name="r" to="2" valueName="v"><p name="q">item $v of $s.sectionNumber</p><group><conditionalContent condition="$s.sectionNumber = 2"><p>two</p></conditionalContent></group></repeatForSequence>
+    <repeatForSequence name="r" to="2" valueName="v"><p name="q">item $v of $s.sectionNumber</p><group><conditionalContent><case condition="$s.sectionNumber = 3"><p>three</p></case></conditionalContent></group></repeatForSequence>
     <select name="sel"><option><section name="t"><p name="pt">see $s.title</p></section></option></select>
     `,
         });
@@ -3290,11 +3290,45 @@ describe("Sectioning tag tests @group3", async () => {
             ...Array(3).fill("item 2 of 3"),
             "see Section 3",
             "see Section 3",
-            "two",
-            "two",
-            "two",
+            "three",
+            "three",
+            "three",
         ]);
         expect(getDiagnosticsByType(core).errors).eqls([]);
+    });
+
+    // A name declared in the cases of a `<conditionalContent>` or the options
+    // of a `<select>` is copied once the container has expanded, and what it
+    // names is read as a path is: so a reference to it before a section,
+    // where it only shows the section's number or title, is no cycle. It was
+    // `doenet-e0005`, where it loaded before this check.
+    it("a name in the branches of a composite after a section, which shows the section's number, read before it, loads", async () => {
+        for (const doenetML of [
+            `$cc.q<section name="s"/><conditionalContent name="cc"><case condition="true"><p name="q">$s.sectionNumber</p></case><else><p name="q">$s.sectionNumber</p></else></conditionalContent>`,
+            `$cc[1].q<section name="s"/><conditionalContent name="cc"><case condition="true"><p name="q">$s.sectionNumber</p></case><else><p name="q">$s.sectionNumber</p></else></conditionalContent>`,
+            `$sel.q<section name="s"/><select name="sel"><option><p name="q">$s.sectionNumber</p></option><option><p name="q">$s.sectionNumber</p></option></select>`,
+            `$sel[1].q<section name="s"/><select name="sel"><option><p name="q">$s.sectionNumber</p></option></select>`,
+            `<div>$sel[1].q</div><section name="s"/><select name="sel"><option><p name="q">$s.title</p></option></select>`,
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sNumber =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                    .sectionNumber;
+            expect(sNumber, doenetML).eq("1");
+            // the paragraph shown and its copy before the section
+            const shown = doenetML.includes("$s.title") ? "Section 1" : sNumber;
+            const texts = Object.values(stateVariables)
+                .filter((component: any) => component.componentType === "p")
+                .map((component: any) => component.stateValues.text);
+            expect(texts, doenetML).eqls([shown, shown]);
+            expect(getDiagnosticsByType(core).errors, doenetML).eqls([]);
+        }
     });
 
     // The value of a `<repeat>` is an item of its `for`, so a repeat whose

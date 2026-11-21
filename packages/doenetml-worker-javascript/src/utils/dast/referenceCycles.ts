@@ -1629,8 +1629,40 @@ export function breakReferenceCycles({
             }
             const reference = referenceOf(composite);
             const target = targetOf(composite);
-            if (branchReads.has(composite) || target === composite) {
+            if (target === composite) {
                 return edgesOf(composite);
+            }
+            const branchRead = branchReads.get(composite);
+            if (branchRead) {
+                // A name the branches of a `<conditionalContent>` or the
+                // options of a `<select>` declare (`$cc.q`, `$sel[1].q`): it
+                // is copied once the container has expanded, which reads what
+                // decides the branch shown, and what it names in each branch
+                // is read as a path is, by its expansion, not its value. So
+                // `$cc.q` before `s`, of a `<p name="q">` that shows
+                // `$s.sectionNumber`, is no cycle.
+                edges.push(
+                    ...indexComponents(reference?.unresolvedPath).map(
+                        (index) => index.componentIdx,
+                    ),
+                    expansionNode(branchRead.container),
+                );
+                for (const idx of branchRead.named) {
+                    const named = nodeFor(idx);
+                    if (named) {
+                        edges.push(
+                            ...readEdges(
+                                composite,
+                                named,
+                                branchRead.rest.length > 0
+                                    ? branchRead.rest
+                                    : null,
+                                true,
+                            ),
+                        );
+                    }
+                }
+                return edges;
             }
             edges.push(
                 ...indexComponents(reference?.unresolvedPath).map(
