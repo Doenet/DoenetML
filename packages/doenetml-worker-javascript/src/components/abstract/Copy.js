@@ -4574,13 +4574,9 @@ export async function replacementFromProp({
                 // A component in error has no properties and nothing an
                 // index selects, and its error is reported where it is
                 // (DIAG-5): `$r[1].hidden` of a `<repeat>` in `doenet-e0005`
-                // reports nothing more.
-                return {
-                    serializedReplacements: [],
-                    propVariablesCopiedByReplacement: [],
-                    diagnostics,
-                    nComponents,
-                };
+                // reports nothing more: a blank, as a reference to a
+                // component in error is (VAL-5).
+                return blankReplacement();
             }
 
             if (unresolvedPath[0].name === "") {
