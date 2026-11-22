@@ -925,6 +925,7 @@ describe("Text tag tests @group2", async () => {
 <codeEditor name="ce0" staticName="a&#36;1"/>
 <codeEditor name="ce1" staticName="a&dollar;b"/>
 <codeEditor name="ce2" staticName="&#36;"/>
+<codeEditor name="ce4" staticName="&#36;(x)"/>
 <codeEditor name="ce3" extend="$ce0" staticName="b&#36;2"/>
 <p name="p" permid="p&#36;1">hi</p>
 `,
@@ -936,6 +937,8 @@ describe("Text tag tests @group2", async () => {
         expect(await primitive("ce1", "staticName")).eq("a$b");
         expect(await primitive("ce2", "staticName")).eq("$");
         expect(await primitive("ce3", "staticName")).eq("b$2");
+        // the zero-width space keeping `$(x)` text is removed
+        expect(await primitive("ce4", "staticName")).eq("$(x)");
         expect(await primitive("p", "permid")).eq("p$1");
         expect(getDiagnosticsByType(core).errors).eqls([]);
         const stateVariables = await core.returnAllStateVariables(false, true);
