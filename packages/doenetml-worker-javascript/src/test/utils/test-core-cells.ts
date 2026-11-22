@@ -27,6 +27,7 @@ import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "../../CoreWo
 // path, as `test-core.ts` reads `doenetml/src/flags`: the worker's
 // package exports only its `dist/`.
 import { CellsTable, NONE } from "../../../../doenetml-worker/src/cells/table";
+import { resolveRendererAction } from "../../../../doenetml-worker/src/cells/actions";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -221,6 +222,129 @@ const polygonReaders: Record<string, Reader> = {
     center: (g) => pt(g, "cx", "cy"),
 };
 
+/** A tuple of two numbers, as the current core's `coords` of a vector. */
+const vec2 = (g: Get, x: string, y: string) =>
+    me.fromAst(["vector", g(x), g(y)]);
+
+const vectorReaders: Record<string, Reader> = {
+    tail: (g) => pt(g, "tailX", "tailY"),
+    head: (g) => pt(g, "headX", "headY"),
+    displacement: (g) => pt(g, "x", "y"),
+    numericalEndpoints: (g) => [
+        npt(g, "tailX", "tailY"),
+        npt(g, "headX", "headY"),
+    ],
+    x: (g) => M(g("x")),
+    y: (g) => M(g("y")),
+    magnitude: (g) => M(g("magnitude")),
+    displacementCoords: (g) => vec2(g, "x", "y"),
+    value: (g) => vec2(g, "x", "y"),
+    numDimensions: () => 2,
+};
+
+const rayReaders: Record<string, Reader> = {
+    endpoint: (g) => pt(g, "endpointX", "endpointY"),
+    through: (g) => pt(g, "throughX", "throughY"),
+    direction: (g) => pt(g, "directionX", "directionY"),
+    numericalEndpoint: (g) => npt(g, "endpointX", "endpointY"),
+    numericalThroughpoint: (g) => npt(g, "throughX", "throughY"),
+    directionCoords: (g) => vec2(g, "directionX", "directionY"),
+    numDimensions: () => 2,
+};
+
+const angleReaders: Record<string, Reader> = {
+    radians: (g) => M(g("radians")),
+    value: (g) => M(g("radians")),
+    angle: (g) => M(g("radians")),
+    degrees: (g) => M(g("degrees")),
+};
+
+/** A rectangle's and a regular polygon's sizes are numbers in the current
+ * core; the vertices read as a polygon's. */
+const rectangleReaders: Record<string, Reader> = {
+    ...polygonReaders,
+    width: (g) => g("width"),
+    height: (g) => g("height"),
+    area: (g) => g("area"),
+    perimeter: (g) => g("perimeter"),
+};
+const regularPolygonReaders: Record<string, Reader> = {
+    ...polygonReaders,
+    circumradius: (g) => g("circumradius"),
+    radius: (g) => g("circumradius"),
+    inradius: (g) => g("inradius"),
+    apothem: (g) => g("inradius"),
+    sideLength: (g) => g("sideLength"),
+    perimeter: (g) => g("perimeter"),
+    area: (g) => g("area"),
+    numSides: (g) => g("numVertices"),
+};
+
+/** A numeric operator's value is a math in the current core: the number
+ * the cells core computes, as an expression. */
+const mathOperatorReaders: Record<string, Reader> = {
+    value: (g) => M(g("value")),
+    text: textOf,
+};
+const booleanOperatorReaders: Record<string, Reader> = {
+    value: (g) => g("value") !== 0,
+    text: textOf,
+};
+
+/** The entries of a value list (ADR 0041), as the numbers they are. */
+const listNumbers: Reader = (_g, x) =>
+    Array.from(x.cells.propCells(x.idx, "numbers")).map((c) =>
+        x.cells.value(c),
+    );
+/** A list of numbers (`sequence`, the samplers): `numbers`, and the state
+ * variable the current core computes them in (`valuesVariable`). */
+function numberListReaders(valuesVariable?: string): Record<string, Reader> {
+    const readers: Record<string, Reader> = {
+        numbers: listNumbers,
+        numEntries: (g) => g("numComponents"),
+        numValues: (g) => g("numComponents"),
+        text: textOf,
+    };
+    if (valuesVariable) readers[valuesVariable] = listNumbers;
+    return readers;
+}
+/** A list operator's results are maths in the current core. */
+const mathListOperatorReaders: Record<string, Reader> = {
+    maths: (g, x) => (listNumbers(g, x) as number[]).map(M),
+    operatorResults: (g, x) => (listNumbers(g, x) as number[]).map(M),
+    numEntries: (g) => g("numComponents"),
+    numValues: (g) => g("numComponents"),
+    text: textOf,
+};
+
+/** A section's full number as its parts ([2, 1] for "2.1"): its own,
+ * after its nearest section ancestor's when it includes it, as the bridge
+ * composes it (`cells/contracts.ts`). */
+function sectionEnumeration(cells: Cells, c: number): number[] {
+    const own = cells.value(cells.propCells(c, "number")[0]);
+    if (cells.value(cells.propCells(c, "includeParentNumber")[0]) !== 0) {
+        for (
+            let p = cells.table.parent(c);
+            p !== null;
+            p = cells.table.parent(p)
+        ) {
+            if (cells.table.componentType(p) === "section") {
+                return [...sectionEnumeration(cells, p), own];
+            }
+        }
+    }
+    return [own];
+}
+const sectionReaders: Record<string, Reader> = {
+    sectionNumber: (_g, x) => sectionEnumeration(x.cells, x.idx).join("."),
+    enumeration: (_g, x) => sectionEnumeration(x.cells, x.idx),
+    creditAchieved: (g) => g("creditAchieved"),
+    percentCreditAchieved: (g) => g("percentCreditAchieved"),
+    weight: (g) => g("weight"),
+    aggregateScores: (g) => g("aggregateScores") !== 0,
+    includeParentNumber: (g) => g("includeParentNumber") !== 0,
+};
+
 /**
  * JavaScript-core state variable name -> reader over the cells core's props,
  * per component type.
@@ -290,6 +414,11 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     polygon: polygonReaders,
     triangle: polygonReaders,
+    rectangle: rectangleReaders,
+    regularPolygon: regularPolygonReaders,
+    vector: vectorReaders,
+    ray: rayReaders,
+    angle: angleReaders,
     mathInput: mathReaders,
     math: mathReaders,
     // The current core's number values are plain numbers.
@@ -324,6 +453,133 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     answer: answerReaders,
     award: awardReaders,
+    ...Object.fromEntries(
+        [
+            "abs",
+            "sign",
+            "floor",
+            "ceil",
+            "round",
+            "setSmallToZero",
+            "wrapNumberPeriodic",
+            "clampNumber",
+            "sum",
+            "product",
+            "mean",
+            "median",
+            "variance",
+            "standardDeviation",
+            "count",
+            "min",
+            "max",
+            "mod",
+            "gcd",
+            "lcm",
+            "argMin",
+            "argMax",
+        ].map((t) => [t, mathOperatorReaders]),
+    ),
+    ...Object.fromEntries(
+        [
+            "and",
+            "or",
+            "xor",
+            "iff",
+            "implies",
+            "not",
+            "isInteger",
+            "isNumber",
+            "isBetween",
+        ].map((t) => [t, booleanOperatorReaders]),
+    ),
+    // An integer is a number in the current core; an intComma and a
+    // pluralize are texts, the grouped number and the word.
+    integer: {
+        value: (g) => g("value"),
+        valueForDisplay: (g) => g("value"),
+        text: textOf,
+    },
+    intComma: { value: textOf, text: textOf },
+    pluralize: {
+        value: (_g, x) => x.cells.text(x.cell("value")!),
+        text: (_g, x) => x.cells.text(x.cell("value")!),
+    },
+    latex: { value: textOf, text: textOf },
+    sequence: numberListReaders("sequenceValues"),
+    sampleRandomNumbers: numberListReaders("sampledValues"),
+    selectRandomNumbers: numberListReaders("selectedValues"),
+    samplePrimeNumbers: numberListReaders("sampledValues"),
+    selectPrimeNumbers: numberListReaders("selectedValues"),
+    ...Object.fromEntries(
+        [
+            "cumulativeSum",
+            "cumulativeProduct",
+            "cumulativeMin",
+            "cumulativeMax",
+            "differences",
+        ].map((t) => [t, mathListOperatorReaders]),
+    ),
+    // The text containers whose text the current core computes.
+    ...Object.fromEntries(
+        [
+            "em",
+            "alert",
+            "term",
+            "q",
+            "sq",
+            "c",
+            "attr",
+            "span",
+            "tag",
+            "tagc",
+            "tage",
+            "ndash",
+            "mdash",
+            "nbsp",
+            "ellipsis",
+            "lq",
+            "rq",
+            "lsq",
+            "rsq",
+            "li",
+            "caption",
+            "footnote",
+            "asList",
+        ].map((t) => [t, containerReaders]),
+    ),
+    solution: { open: (g) => g("open") !== 0 },
+    // The divisions are sections in the cells core.
+    ...Object.fromEntries(
+        [
+            "section",
+            "subsection",
+            "subsubsection",
+            "problem",
+            "exercise",
+            "example",
+            "question",
+            "activity",
+            "definition",
+            "note",
+            "theorem",
+            "paragraphs",
+            "objectives",
+            "part",
+            "task",
+            "problems",
+            "exercises",
+        ].map((t) => [t, sectionReaders]),
+    ),
+};
+
+/** Actions the bridge's renderer table resolves (`cells/actions.ts`) whose
+ * arguments are the current core's, per component type. */
+const BRIDGE_ACTIONS: Record<string, string[]> = {
+    vector: ["moveVector"],
+    ray: ["moveRay"],
+    rectangle: ["movePolygon"],
+    regularPolygon: ["movePolygon"],
+    solution: ["revealSolution", "closeSolution"],
 };
 
 function stripPositions(o: any): any {
@@ -475,7 +731,11 @@ export async function createTestCoreCells({
             {},
             {
                 get(_target, name) {
-                    if (typeof name !== "string") return undefined;
+                    // Not a state variable: what `await` looks for when
+                    // a test returns the state values from an async
+                    // function.
+                    if (typeof name !== "string" || name === "then")
+                        return undefined;
                     assertCurrent(takenAt, `\`${componentType}.${name}\``);
                     return stateValue(componentIdx, componentType, name);
                 },
@@ -601,6 +861,20 @@ export async function createTestCoreCells({
                 console.log(
                     `[cells] ${componentType}#${componentIdx}.${actionName} ${JSON.stringify(args)}`,
                 );
+            }
+            // The shapes whose drags the bridge resolves with the same
+            // arguments as the current core's actions: a ray's and a
+            // vector's both ends, a rectangle's held opposite corner.
+            if (BRIDGE_ACTIONS[componentType]?.includes(actionName)) {
+                const effect = resolveRendererAction(
+                    table,
+                    componentIdx,
+                    actionName,
+                    args,
+                );
+                if (effect?.kind === "request") request(effect.pairs);
+                else if (effect?.kind === "points") request(effect.pairs, true);
+                return;
             }
             switch (actionName) {
                 case "movePoint":
