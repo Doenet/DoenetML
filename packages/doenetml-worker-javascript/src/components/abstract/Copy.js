@@ -2621,6 +2621,12 @@ export default class Copy extends CompositeComponent {
             sourceToSerialize === replacementSourceComponent &&
             component.componentType === "_copy" &&
             component.attributes._createComponentOfType === undefined &&
+            // an answer records the component itself as a response
+            !component.attributes.isResponse &&
+            !component.attributes.isPotentialResponse &&
+            // an attribute takes what it can hold of a component, not its
+            // value (`grid="$P"`)
+            !writtenInAnAttribute(component, components) &&
             componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType:
                     replacementSourceComponent.componentType,
@@ -8008,6 +8014,30 @@ async function isBareReferenceToOneThing(
  * `$m[2]` once `m` is a scalar). The copy then names no source, so it is
  * made from its source again once that makes something.
  */
+/**
+ * Whether `component` is written in an attribute of one of its ancestors
+ * (`grid="$P"` of a `<graph>`), rather than among their children.
+ */
+function writtenInAnAttribute(component, components) {
+    let child = component;
+    for (const ancestor of component.ancestors ?? []) {
+        const parent = components[ancestor.componentIdx];
+        if (!parent) {
+            return false;
+        }
+        if (
+            Object.values(parent.attributes ?? {}).some(
+                (attribute) =>
+                    attribute?.component?.componentIdx === child.componentIdx,
+            )
+        ) {
+            return true;
+        }
+        child = parent;
+    }
+    return false;
+}
+
 async function blankInPlaceOfNothing({
     component,
     components,
