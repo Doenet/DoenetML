@@ -333,8 +333,24 @@ export function propertyTypeReader({
         tag: string,
         node: SerializedComponent | undefined,
     ): boolean | undefined {
-        if (!allClasses[tag] || isComposite(tag)) {
+        if (!allClasses[tag]) {
             return undefined;
+        }
+        if (isComposite(tag)) {
+            // A composite that makes only components that hold no math, as
+            // its class declares (`allowInSchemaAsComponent`: a `<lorem>`
+            // makes texts or paragraphs), holds none; what any other makes
+            // isn't known here.
+            const makes = allClasses[tag].allowInSchemaAsComponent;
+            return Array.isArray(makes) &&
+                makes.length > 0 &&
+                makes.every(
+                    (made: string) =>
+                        !isComposite(made) &&
+                        isMathType(made, undefined) === false,
+                )
+                ? false
+                : undefined;
         }
         if (allClasses[tag].listEntryComponentType !== undefined) {
             // the list of its entries, not one math

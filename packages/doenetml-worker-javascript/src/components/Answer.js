@@ -90,6 +90,30 @@ function responseTypesAtLoad(atLoad, numEntries) {
     return undefined;
 }
 
+/**
+ * The type of each of `responses`, for the `submitted` event, which a host
+ * reads to show them (the editor's responses tab, `formatResponse`): those
+ * decided from the DoenetML when the document loaded (TYPE-2), one per
+ * entry. Where the DoenetML doesn't decide them (no reference may read them,
+ * `doenet-e0091`), each is named by the kind of value it holds, only to show
+ * it: a math-expression a `math`, else a `text`, `number` or `boolean`.
+ */
+function responseTypesForEvent(atLoad, responses) {
+    const decided = responseTypesAtLoad(atLoad, responses.length);
+    if (decided) {
+        return decided;
+    }
+    return responses.map((response) =>
+        response instanceof me.class
+            ? "math"
+            : typeof response === "number"
+              ? "number"
+              : typeof response === "boolean"
+                ? "boolean"
+                : "text",
+    );
+}
+
 export default class Answer extends InlineComponent {
     constructor(args) {
         super(args);
@@ -2912,9 +2936,10 @@ export default class Answer extends InlineComponent {
                 result: {
                     response: currentResponses,
                     responseText,
-                    componentTypes:
-                        this.state.currentResponses.shadowingInstructions
-                            .createComponentOfType,
+                    componentTypes: responseTypesForEvent(
+                        this.doenetAttributes?.propertyTypes?.currentResponses,
+                        currentResponses,
+                    ),
                     creditAchieved,
                     ...attemptCountsForEvent({
                         numSubmissions,

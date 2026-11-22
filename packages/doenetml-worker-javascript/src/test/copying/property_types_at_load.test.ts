@@ -171,6 +171,25 @@ describe("Every property's type is decided at load (D45) @group4", () => {
         expect(d.warnings.map((w) => w.split(":")[0])).eqls(["doenet-w0107"]);
     });
 
+    it("a choiceInput whose choices hold a lorem is a text, as a lorem makes only texts or paragraphs", async () => {
+        const d = await load(`
+<choiceInput name="ci" preselectChoice="1">
+  <choice><lorem generateWords="3" /></choice>
+  <choice><lorem generateWords="3" /></choice>
+</choiceInput>
+<p name="p1"><text extend="$ci.selectedValue" name="t" /></p>
+<p name="p2"><point extend="$ci.selectedValue" /></p>
+`);
+        // typed at load, so a tag made from it is checked then
+        expect(d.errors).eqls([e0065("point", "$ci.selectedValue", "text")]);
+        expect(
+            d.core.core._components[await d.resolvePathToNodeIdx("ci")]
+                .doenetAttributes.propertyTypes,
+        ).eqls({ selectedValues: "text" });
+        expect((await d.shown("t")).type).eq("text");
+        expect((await d.shown("t")).text.split(" ").length).eq(3);
+    });
+
     it("a choiceInput of maths whose choice's LaTeX doesn't parse has a blank math for it", async () => {
         const d = await load(`
 <choiceInput name="ci" preselectChoice="1"><choice><m>\\frac{</m></choice><choice><math>x</math></choice></choiceInput>
