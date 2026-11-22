@@ -26,7 +26,7 @@ import { codedDastError } from "../coded-dast-error";
 import { createErrorNode } from "./create-error-node";
 import {
     OffsetToPositionMap,
-    attributeValueText,
+    attributeValueTextWithOffsets,
     createOffsetToPositionMap,
     entityToString,
     extractContent,
@@ -172,25 +172,27 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         }
                         continue;
                     }
-                    let attrChildren: DastAttribute["children"] = attrValue
-                        ? [
-                              ...reprocessTextForMacros(
-                                  {
-                                      type: "text",
-                                      value: attributeValueText(
-                                          attrValue,
-                                          source,
-                                      ),
-                                      position: lezerNodeToPosition(
-                                          attrValue,
-                                          offsetMap,
-                                          true,
-                                      ),
-                                  } as DastText,
-                                  offsetMap,
-                              ),
-                          ]
-                        : [];
+                    const valueText = attrValue
+                        ? attributeValueTextWithOffsets(attrValue, source)
+                        : undefined;
+                    let attrChildren: DastAttribute["children"] =
+                        attrValue && valueText
+                            ? [
+                                  ...reprocessTextForMacros(
+                                      {
+                                          type: "text",
+                                          value: valueText.text,
+                                          position: lezerNodeToPosition(
+                                              attrValue,
+                                              offsetMap,
+                                              true,
+                                          ),
+                                      } as DastText,
+                                      offsetMap,
+                                      valueText.sourceOffsets,
+                                  ),
+                              ]
+                            : [];
                     // Attributes with no specified value are assigned the value "true".
                     // E.g. `<foo bar />` is the same as `<foo bar="true" />`
                     attrEntries.push({
@@ -516,10 +518,17 @@ function isInsideAttribute(error: SyntaxNode, openTag: SyntaxNode): boolean {
 
 /**
  * Process a text node and expose any macros within as DastNodes.
+ *
+ * `sourceOffsets`, when given, maps each offset into `textNode.value` to the
+ * offset from `textNode`'s start where it was written
+ * (`attributeValueTextWithOffsets`). It is needed when the value was decoded
+ * from what was written, as an attribute's is: `<a x="&lt; $y"/>` has `$y` at
+ * 2 in the value and at 5 in the source.
  */
 function reprocessTextForMacros(
     textNode: DastText,
     offsetToPositionMap: OffsetToPositionMap,
+    sourceOffsets?: number[],
 ): (DastText | DastMacro | DastFunctionMacro)[] {
     if (!textNode.value.includes("$")) {
         return [textNode];
@@ -535,6 +544,15 @@ function reprocessTextForMacros(
     // the position data for all nodes in the parsed array.
     const nodesToProcess = findNodesWithPositionInfo(parsed);
     nodesToProcess.forEach((n) => {
+        if (sourceOffsets && n.position) {
+            const { start, end } = n.position;
+            if (start.offset != null) {
+                start.offset = sourceOffsets[start.offset] ?? start.offset;
+            }
+            if (end.offset != null) {
+                end.offset = sourceOffsets[end.offset] ?? end.offset;
+            }
+        }
         updateNodePositionData(n, textNode, offsetToPositionMap);
     });
     return parsed;

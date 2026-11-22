@@ -1205,8 +1205,14 @@ extend-award-or-choice = `<{ $componentType }>` records the submissions of the `
 # vector and coords. $componentType is the tag the extend or copy is written
 # as, $sourceType the type of what it is made from, and $source the reference,
 # as written (`$t`); all three are DoenetML, so they stay in English, as do
-# `extend`, `copy`, `bindValueTo`, `prefill` and `.text`.
-type-change-unrelated = A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
+# `extend`, `copy`, `bindValueTo`, `prefill` and `.text`. A
+# `<variantControl>` shows nothing, so writing the reference by itself is no
+# advice for one; it is told why instead.
+type-change-unrelated =
+    { $sourceType ->
+        [variantControl] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. A `<variantControl>` shows nothing, and nothing can be read from it.
+       *[other] A `<{ $componentType }>` can't be made from `{ $source }`, which gives a `<{ $sourceType }>`. To show it as it is, write `{ $source }`.
+    }
 
 # $hasPrefill is "true" when the input has a `prefill` attribute.
 type-change-input-from-value =
