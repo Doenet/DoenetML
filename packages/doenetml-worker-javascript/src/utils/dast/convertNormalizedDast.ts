@@ -44,7 +44,7 @@ import {
 } from "./typeChangeAtLoad";
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
-import { breakReferenceCycles } from "./referenceCycles";
+import { breakReferenceCycles, type LoadCycle } from "./referenceCycles";
 import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
 import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
@@ -192,6 +192,16 @@ export async function normalizedDastToSerializedComponents(
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
     ) => void,
+    {
+        loadCycle,
+    }: {
+        /**
+         * What a load that stopped on a circular dependency blamed, when the
+         * document is rebuilt (D57, `blameLoadCycle`): made `doenet-e0005`
+         * by the cycle check (`breakReferenceCycles`).
+         */
+        loadCycle?: LoadCycle;
+    } = {},
 ): Promise<{
     document: SerializedComponent;
     nComponents: number;
@@ -947,6 +957,7 @@ export async function normalizedDastToSerializedComponents(
             serializedComponents: sugarResult.components,
             componentInfoObjects,
             branchReads,
+            loadCycle,
         }),
     );
 
