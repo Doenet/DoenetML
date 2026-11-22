@@ -76,6 +76,35 @@ const NAMES_BELONG_TO_ITEMS = new Set([
     "collect",
 ]);
 
+/**
+ * What the type checks at load read of the branches of a
+ * `<conditionalContent>` or a `<select>` (`typeChangeAtLoad.ts`), so that a
+ * name in branches is followed by the one every-branch rule (COMP-11):
+ *
+ * - `containerAt`: the container the component at `idx` is (through copies),
+ *   for a name after it, or, with `indexed`, after an index into its picks
+ *   (a `<select>` of any number of picks);
+ * - `declares`: whether every branch of `container` declares the names
+ *   `names`, once, with one tag (`ok`), none does (`none`), or not
+ *   (`missing`, `types`, `skip`), as `branchDeclaration` decides it;
+ * - `named`: the components the names `names` name in the branches of
+ *   `container`;
+ * - `parts`: its cases (and `<else>`) or options.
+ */
+export type BranchReader = {
+    containerAt(idx: number, indexed: boolean): SerializedComponent | undefined;
+    declares(
+        container: SerializedComponent,
+        names: string[],
+        indexed: boolean,
+    ): string;
+    named(
+        container: SerializedComponent,
+        names: string[],
+    ): SerializedComponent[] | null;
+    parts(container: SerializedComponent): SerializedComponent[] | undefined;
+};
+
 /** The attributes that say how many a chooser or sampler picks. */
 const PICK_ATTRIBUTES = ["numToSelect", "numSamples"];
 
@@ -88,10 +117,13 @@ export function checkNamesAfterCollectionsAtLoad({
     serializedComponents,
     componentInfoObjects,
     sources,
+    branches,
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
     sources: readonly string[];
+    /** The every-branch rule of the type checks (`typeChangeAtLoad.ts`). */
+    branches?: BranchReader;
 }): DiagnosticRecord[] {
     const diagnostics: DiagnosticRecord[] = [];
     const { componentsByIdx, copiesByCreatedIdx } = documentReferents({
@@ -189,7 +221,7 @@ export function checkNamesAfterCollectionsAtLoad({
             node.componentType === "_copy" &&
             ref &&
             ref.nodeIdx >= 0 &&
-            !(ref.unresolvedPath?.length > 0)
+            !((ref.unresolvedPath?.length ?? 0) > 0)
         ) {
             return writtenInside(ref.nodeIdx, name, seen);
         }
@@ -203,7 +235,7 @@ export function checkNamesAfterCollectionsAtLoad({
             if (
                 childRef &&
                 childRef.nodeIdx >= 0 &&
-                !(childRef.unresolvedPath?.length > 0) &&
+                !((childRef.unresolvedPath?.length ?? 0) > 0) &&
                 writtenInside(childRef.nodeIdx, name, seen)
             ) {
                 return true;
@@ -232,7 +264,7 @@ export function checkNamesAfterCollectionsAtLoad({
                 if (
                     ref &&
                     ref.nodeIdx >= 0 &&
-                    !(ref.unresolvedPath?.length > 0) &&
+                    !((ref.unresolvedPath?.length ?? 0) > 0) &&
                     (written === undefined || !holdsContent(node))
                 ) {
                     return collectionAt(ref.nodeIdx, name, seen);
@@ -240,7 +272,9 @@ export function checkNamesAfterCollectionsAtLoad({
                 return undefined;
             }
             return collectionWritten(written, node, () =>
-                ref && ref.nodeIdx >= 0 && !(ref.unresolvedPath?.length > 0)
+                ref &&
+                ref.nodeIdx >= 0 &&
+                !((ref.unresolvedPath?.length ?? 0) > 0)
                     ? collectionAt(ref.nodeIdx, name, seen)
                     : undefined,
             );
@@ -349,7 +383,9 @@ export function checkNamesAfterCollectionsAtLoad({
         seen.add(node.componentIdx);
         const ref = refOf(node);
         if (node.componentType === "_copy") {
-            return ref && ref.nodeIdx >= 0 && !(ref.unresolvedPath?.length > 0)
+            return ref &&
+                ref.nodeIdx >= 0 &&
+                !((ref.unresolvedPath?.length ?? 0) > 0)
                 ? writtenCollection(ref.nodeIdx, seen)
                 : undefined;
         }
@@ -469,97 +505,124 @@ export function checkNamesAfterCollectionsAtLoad({
         return namesBelow(node, new Set()).has(name);
     }
 
-    /** The tags that show one of their branches (COMP-11). */
-    function branchesOf(node: SerializedComponent) {
-        if (node.componentType === "conditionalContent") {
-            return (node.children ?? []).filter(
-                (child): child is SerializedComponent =>
-                    typeof child === "object" &&
-                    (child.componentType === "case" ||
-                        child.componentType === "else"),
-            );
-        }
-        if (
-            node.componentType === "select" &&
-            collectionWritten("select", node, () => undefined) === undefined
-        ) {
-            return optionsOf(node);
-        }
-        return undefined;
+    /**
+     * A container standing for one item of the repeat or select of several
+     * `node`, with what is written in it as its one branch, so that a name
+     * after an index into its items (`$o[1].t`) is read by the every-branch
+     * rule (`branches.named`), as a name in a branch is.
+     */
+    function itemAsBranch(node: SerializedComponent): SerializedComponent {
+        return {
+            componentType: "select",
+            componentIdx: -2 - node.componentIdx,
+            attributes: {},
+            children: [
+                {
+                    componentType: "option",
+                    componentIdx: -2 - node.componentIdx - 1e9,
+                    attributes: {},
+                    children: (node.children ?? []).filter(
+                        (child) =>
+                            typeof child === "string" ||
+                            !child.componentType.startsWith("_repeat"),
+                    ),
+                } as SerializedComponent,
+            ],
+        } as SerializedComponent;
     }
 
-    /** The `<option>`s of the `<select>` written as `node`. */
-    function optionsOf(node: SerializedComponent) {
-        return (node.children ?? []).filter(
-            (child): child is SerializedComponent =>
-                typeof child === "object" && child.componentType === "option",
+    /** Whether an index into `node` picks one of its items (a repeat's). */
+    function takesItemIndex(node: SerializedComponent | undefined) {
+        return (
+            node?.componentType === "repeat" ||
+            node?.componentType === "repeatForSequence"
         );
     }
 
     /**
-     * The components named `name` written below `node`, not inside a
-     * `<repeat>`, a `<collect>` or a `<select>` that picks several below it,
-     * whose names are reached through them. One every branch of a
-     * `<conditionalContent>` or a one-pick `<select>` below it declares once
-     * counts once, as the one its first branch declares (`$cc.r` of a case
-     * holding a `<conditionalContent>` that holds `r`); one only some of
-     * them declare, or one declares twice, counts as more than one, so that
-     * it isn't followed.
+     * The collection the branches of `container` each stand for, through the
+     * one component each holds (COLL-3), at any depth of containers held so
+     * (`$cc.x` of a case holding a `<pointList>`, or holding a
+     * `<conditionalContent>` whose cases each hold one), with the number of
+     * containers passed through (`levels`). `undefined` when they don't all
+     * stand for one, of one tag.
      */
-    function namedBelow(
-        node: SerializedComponent,
+    function branchesStandFor(
+        container: SerializedComponent,
         name: string,
-        found: SerializedComponent[] = [],
-    ) {
-        for (const child of node.children ?? []) {
-            if (typeof child !== "object") {
-                continue;
-            }
-            if (nameOf(child) === name) {
-                found.push(child);
-                continue;
-            }
-            const branches = branchesOf(child);
-            if (branches) {
-                const one = inEveryBranch(branches, name);
-                if (one) {
-                    found.push(one);
-                } else {
-                    const named = branches.flatMap((branch) =>
-                        namedBelow(branch, name),
-                    );
-                    if (named.length > 0) {
-                        found.push(...named, child);
-                    }
-                }
-            } else if (!NAMES_BELONG_TO_ITEMS.has(child.componentType)) {
-                namedBelow(child, name, found);
-            }
+        seen: Set<number> = new Set(),
+    ):
+        | { node: SerializedComponent; collection: string; levels: number }
+        | undefined {
+        if (seen.has(container.componentIdx) || !branches) {
+            return undefined;
         }
-        return found;
-    }
-
-    /**
-     * The component named `name` each of `branches` declares once, as the
-     * first declares it, or `undefined` when they don't each declare one.
-     */
-    function inEveryBranch(branches: SerializedComponent[], name: string) {
-        const named = branches.map((branch) => namedBelow(branch, name));
-        return named.length > 0 && named.every((n) => n.length === 1)
-            ? named[0][0]
-            : undefined;
+        seen.add(container.componentIdx);
+        const parts = branches.parts(container);
+        if (!parts || parts.length === 0) {
+            return undefined;
+        }
+        let found:
+            | { node: SerializedComponent; collection: string; levels: number }
+            | undefined;
+        for (const part of parts) {
+            let content = contentOf(part);
+            // through a `<group>` holding one component, as the one sugar
+            // makes of what a case holds (COLL-3)
+            while (
+                content.length === 1 &&
+                typeof content[0] === "object" &&
+                content[0].componentType === "group"
+            ) {
+                content = contentOf(content[0]);
+            }
+            const [one] = content;
+            if (content.length !== 1 || typeof one !== "object") {
+                return undefined;
+            }
+            const inner = branches.containerAt(one.componentIdx, false);
+            const here = inner
+                ? branchesStandFor(inner, name, seen)
+                : (() => {
+                      const collection = collectionOf(one, name, new Set());
+                      return collection === undefined
+                          ? undefined
+                          : { node: one, collection, levels: 0 };
+                  })();
+            if (
+                !here ||
+                (found &&
+                    (found.collection !== here.collection ||
+                        found.levels !== here.levels))
+            ) {
+                return undefined;
+            }
+            found ??= here;
+        }
+        return found && { ...found, levels: found.levels + 1 };
     }
 
     /**
      * The collection a reference reaches along what the resolver left of its
      * path (`path`, after the component at `idx`), with the index of the name
-     * or property after it (`at`): the component itself, or one reached
-     * through a name every case or option of a `<conditionalContent>` or a
-     * one-pick `<select>` declares (`$cc.r.P`, COMP-11), through an index
-     * into the items of a `<repeat>` or a `<select>` (`$o[1].r.P`), or that
-     * the one component of every case or option is (`$cc.x` of a case
-     * holding a list), which it stands for (COLL-3). `undefined` when no
-     * collection is followed by a name or property.
+     * or property after it (`at`) and the index to suggest before it
+     * (`index`):
+     *
+     * - the component itself (`$r.P`);
+     * - one a name reaches through the branches of a `<conditionalContent>`
+     *   or a `<select>` (one that picks one, or any after an index into its
+     *   picks), read by the every-branch rule of the type checks
+     *   (`branches.named`, COMP-11), one name at a time, up to the first
+     *   collection: `$cc.r.P`, `$r.P` of a repeat in a case, `$s[1].t.T`. A
+     *   name not every branch declares, or declared twice, is not followed
+     *   (it is `doenet-w0183` or ambiguous there), and one naming components
+     *   of different tags in different branches is left to `doenet-w0184`;
+     * - one a name reaches after an index into the items of a repeat
+     *   (`$o[1].t.T`), read the same way in what is written in it;
+     * - one every branch stands for, through the one component each holds
+     *   (`$cc.x`, `$cc[1].x` of a case holding a list, COLL-3).
+     *
+     * `undefined` when no collection is followed by a name or property.
      */
     function collectionOnPath(
         idx: number,
@@ -567,107 +630,109 @@ export function checkNamesAfterCollectionsAtLoad({
     ):
         | { nodeIdx: number; at: number; collection: string; index: string }
         | undefined {
-        let node: SerializedComponent | undefined =
-            componentsByIdx.get(idx) ?? copiesByCreatedIdx.get(idx);
-        let nodeIdx = idx;
-        // inside an item of `node`, a repeat or a select
-        let inItem = false;
-        // after an index into the branch `node` shows (`$cc[1]`)
-        let inBranch = false;
-        for (let at = 0; at < path.length && node; at++) {
+        const [first] = path;
+        if (typeof first?.name === "string" && first.name !== "") {
+            const collection = collectionAt(idx, first.name);
+            if (collection !== undefined) {
+                return { nodeIdx: idx, at: 0, collection, index: "[1]" };
+            }
+        }
+        if (!branches) {
+            return undefined;
+        }
+        const node = componentsByIdx.get(idx) ?? copiesByCreatedIdx.get(idx);
+        const indexed =
+            path.length > 1 &&
+            first?.name === "" &&
+            (first.index ?? []).length === 1;
+        let container = branches.containerAt(idx, indexed);
+        // after an index into the branch a container shows (`$cc[1]`)
+        let inBranch = indexed && container !== undefined;
+        if (!container && indexed && node && takesItemIndex(node)) {
+            container = itemAsBranch(node);
+        }
+        if (!container) {
+            return undefined;
+        }
+        let names: string[] = [];
+        for (let at = indexed ? 1 : 0; at < path.length; at++) {
             const part = path[at];
-            const name = part?.name;
-            if (typeof name !== "string") {
+            if (typeof part?.name !== "string" || part.name === "") {
                 return undefined;
             }
-            if (name === "") {
-                // an index into the branch a `<conditionalContent>` or a
-                // one-pick `<select>` shows, which stands for what it holds
-                // (`$cc[1].x`, as `$cc.x`)
-                if (
-                    !inItem &&
-                    !inBranch &&
-                    (part.index ?? []).length === 1 &&
-                    branchesOf(node)
-                ) {
-                    inBranch = true;
-                    continue;
-                }
-                // an index into the items of a repeat or a select, whose
-                // names are what is written in it
-                if (
-                    !inItem &&
-                    (part.index ?? []).length === 1 &&
-                    NAMES_BELONG_TO_ITEMS.has(node.componentType) &&
-                    node.componentType !== "collect"
-                ) {
-                    inItem = true;
-                    continue;
-                }
-                return undefined;
-            }
-            if (!inItem) {
-                const collection = collectionAt(nodeIdx, name);
-                if (collection !== undefined && !inBranch) {
-                    return { nodeIdx, at, collection, index: "[1]" };
-                }
-            }
-            const branches = inItem ? undefined : branchesOf(node);
-            let next: SerializedComponent | undefined;
-            if (inItem) {
-                if (node.componentType === "select") {
-                    // a pick is one of its options
-                    next = inEveryBranch(optionsOf(node), name);
-                } else {
-                    const named = namedBelow(node, name);
-                    next = named.length === 1 ? named[0] : undefined;
-                }
-            } else if (branches && branches.length > 0) {
-                const named = branches.map((branch) =>
-                    namedBelow(branch, name),
-                );
-                if (named.every((n) => n.length === 1)) {
-                    next = named[0][0];
-                } else if (named.every((n) => n.length === 0)) {
-                    // the one component every branch holds, standing for it
-                    const ones = branches.map((branch) => {
-                        const content = contentOf(branch);
-                        return content.length === 1 &&
-                            typeof content[0] === "object"
-                            ? collectionOf(content[0], name, new Set())
-                            : undefined;
-                    });
-                    if (
-                        ones.every(
-                            (one) => one !== undefined && one === ones[0],
-                        )
-                    ) {
-                        const [one] = contentOf(
-                            branches[0],
-                        ) as SerializedComponent[];
-                        // `$cc[1][1].x`: the branch, then an item of what it
-                        // holds
-                        return {
-                            nodeIdx: one.componentIdx,
-                            at,
-                            collection: ones[0]!,
-                            index: inBranch ? "[1]" : "[1][1]",
-                        };
-                    }
+            names.push(part.name);
+            const declared = branches.declares(
+                container,
+                names,
+                indexed && names.length === 1,
+            );
+            const next = path[at + 1];
+            if (declared === "none") {
+                if (names.length > 1) {
                     return undefined;
                 }
+                // no branch declares it: a property after what every branch
+                // stands for
+                const stood = branchesStandFor(container, part.name);
+                if (!stood) {
+                    return undefined;
+                }
+                return {
+                    nodeIdx: stood.node.componentIdx,
+                    at,
+                    collection: stood.collection,
+                    index: "[1]".repeat(stood.levels + (inBranch ? 0 : 1)),
+                };
             }
-            if (!next) {
+            if (declared !== "ok") {
+                // a branch lacks it (`doenet-w0183`), or they differ in tag
+                // (`doenet-w0184`), as decided by the checks after this
                 return undefined;
             }
-            node = next;
-            nodeIdx = next.componentIdx;
+            const named = branches.named(container, names) ?? [];
+            if (named.length === 0) {
+                return undefined;
+            }
             inBranch = false;
-            inItem =
-                (part.index ?? []).length === 1 &&
-                NAMES_BELONG_TO_ITEMS.has(next.componentType) &&
-                next.componentType !== "collect";
-            if ((part.index ?? []).length > 0 && !inItem) {
+            const index = part.index ?? [];
+            if (index.length > 0) {
+                // an index into one item of each (`$cc.r[1].q.Q`), read in
+                // what is written in it
+                if (
+                    index.length === 1 &&
+                    typeof next?.name === "string" &&
+                    next.name !== "" &&
+                    named.length === 1 &&
+                    takesItemIndex(named[0])
+                ) {
+                    container = itemAsBranch(named[0]);
+                    names = [];
+                    continue;
+                }
+                return undefined;
+            }
+            if (typeof next?.name !== "string" || next.name === "") {
+                return undefined;
+            }
+            const collections = named.map((component) =>
+                collectionOf(component, next.name, new Set()),
+            );
+            if (
+                collections.every(
+                    (collection) =>
+                        collection !== undefined &&
+                        collection === collections[0],
+                )
+            ) {
+                return {
+                    nodeIdx: named[0].componentIdx,
+                    at: at + 1,
+                    collection: collections[0]!,
+                    index: "[1]",
+                };
+            }
+            if (collections.some((collection) => collection !== undefined)) {
+                // a collection in some branches only: types that differ
                 return undefined;
             }
         }

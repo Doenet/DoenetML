@@ -86,6 +86,8 @@ import { TAGS_MAKING_THEIR_CONTENT } from "../../components/abstract/Copy";
 import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
 import { ownSettingOfWrapper } from "../wrappers";
 import { propertyTypeReader } from "./propertyTypesAtLoad";
+import { checkNamesAfterCollectionsAtLoad } from "./namesAfterCollectionsAtLoad";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
 export type TypeChangeAtLoadError = {
@@ -480,13 +482,18 @@ export function reportTypeChangesAtLoad({
 export function checkTypeChangesAtLoad({
     serializedComponents,
     componentInfoObjects,
+    sources = [],
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
+    /** The DoenetML, for the suggestions of `doenet-w0200`. */
+    sources?: readonly string[];
 }): {
     branchNameWarnings: BranchNameWarning[];
     collectionItemWarnings: CollectionItemWarning[];
     branchReads: Map<SerializedComponent, BranchRead>;
+    /** a name or a property after a collection (D59, `doenet-w0200`) */
+    nameAfterCollectionDiagnostics: DiagnosticRecord[];
 } {
     const branchNameWarnings: BranchNameWarning[] = [];
     const collectionItemWarnings: CollectionItemWarning[] = [];
@@ -4094,8 +4101,34 @@ export function checkTypeChangesAtLoad({
         }
     }
 
+    // A name or a property after a collection names nothing (D59), decided
+    // first, with the every-branch rule below for a name in branches, so
+    // that the checks below leave a reference decided there as it is.
+    const nameAfterCollectionDiagnostics = checkNamesAfterCollectionsAtLoad({
+        serializedComponents,
+        componentInfoObjects,
+        sources,
+        branches: {
+            containerAt: (idx, indexed) => branchContainerAt(idx, indexed),
+            declares: (container, names, indexed) =>
+                branchDeclaration(container, names, new Set(), indexed).status,
+            named: (container, names) => visibleNamed(container, names),
+            parts: (container) => {
+                const kind = branchKind(container, true);
+                return kind
+                    ? partsOf(container, kind)?.map(({ part }) => part)
+                    : undefined;
+            },
+        },
+    });
+
     collectNames(serializedComponents);
     visit(serializedComponents);
 
-    return { branchNameWarnings, collectionItemWarnings, branchReads };
+    return {
+        branchNameWarnings,
+        collectionItemWarnings,
+        branchReads,
+        nameAfterCollectionDiagnostics,
+    };
 }

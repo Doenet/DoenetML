@@ -55,7 +55,6 @@ import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
-import { checkNamesAfterCollectionsAtLoad } from "./namesAfterCollectionsAtLoad";
 import { markReferencesToVariantControls } from "./variantControlReferences";
 import { nameDifferingOnlyInCase, suggestionArgs } from "./nameCase";
 import {
@@ -807,26 +806,24 @@ export async function normalizedDastToSerializedComponents(
         }),
     );
 
-    // A name or a property after a collection is the collection's own, so
-    // anything else after one names nothing (D59, `doenet-w0200`). Decided
-    // from the tags as written, before the type checks, which leave a
-    // reference decided here as it is.
-    diagnostics.push(
-        ...checkNamesAfterCollectionsAtLoad({
-            serializedComponents: sugarResult.components,
-            componentInfoObjects,
-            sources: normalized_root.sources,
-        }),
-    );
-
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag
     // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
-    const { branchNameWarnings, collectionItemWarnings, branchReads } =
-        checkTypeChangesAtLoad({
-            serializedComponents: sugarResult.components,
-            componentInfoObjects,
-        });
+    // First among them: a name or a property after a collection is the
+    // collection's own, so anything else after one names nothing (D59,
+    // `doenet-w0200`, `namesAfterCollectionsAtLoad.ts`), with the
+    // every-branch rule for a collection reached through branches.
+    const {
+        branchNameWarnings,
+        collectionItemWarnings,
+        branchReads,
+        nameAfterCollectionDiagnostics,
+    } = checkTypeChangesAtLoad({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        sources: normalized_root.sources,
+    });
+    diagnostics.push(...nameAfterCollectionDiagnostics);
     // A reference to a name the branches of a `<conditionalContent>` or a
     // one-pick `<select>` do not all declare with one tag names nothing
     // (D13, D22), so that what it names never changes type with the active

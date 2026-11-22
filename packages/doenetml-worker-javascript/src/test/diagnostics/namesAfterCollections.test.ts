@@ -440,6 +440,36 @@ describe("A collection reached through a branch or an item (D59, review cycle 4)
     });
 });
 
+describe("A collection followed by the every-branch rule (D59, COMP-11)", () => {
+    it("through cases each holding a container holding a list, and a name of different tags in different cases", async () => {
+        const repeat = `<repeat name="r" for="1 2" valueName="v"><point name="P">($v,1)</point></repeat>`;
+        const { texts, diagnostics } = await both(
+            `<conditionalContent name="cc"><case condition="true"><conditionalContent><case condition="true"><pointList>(1,2) (3,4)</pointList></case></conditionalContent></case></conditionalContent>
+<conditionalContent name="d1"><case condition="true">${repeat}</case><else><math name="r">x</math></else></conditionalContent>
+<conditionalContent name="d2"><case condition="true"><math name="r">x</math></case><else>${repeat}</else></conditionalContent>
+<p name="p1">$cc.x</p><p name="p2">$cc[1].x</p><p name="p3">$d1.r.P</p><p name="p4">$d2.r.P</p>
+<p name="i1">$cc[1][1][2].x</p>`,
+            ["p1", "p2", "p3", "p4", "i1"],
+            { withMessages: true },
+        );
+        // `$cc.x` and `$cc[1].x` were each entry's (`1, 3`), with no warning
+        expect(texts).eqls({ p1: "＿", p2: "＿", p3: "＿", p4: "＿", i1: "3" });
+        // the suggestion reaches an entry through each container
+        expect(
+            diagnostics
+                .filter((d) => d.includes("w0200"))
+                .map((d) => d.replace(/^.*such as `([^`]*)`\.$/, "$1")),
+        ).eqls(["$cc[1][1][1].x", "$cc[1][1][1].x"]);
+        // A name a `<repeat>` in one case and a `<math>` in the other: the
+        // every-branch rule decides it, whichever case comes first.
+        expect(
+            diagnostics
+                .filter((d) => !d.includes("w0200"))
+                .map((d) => d.split(":")[0]),
+        ).eqls(["warning doenet-w0183", "warning doenet-w0183"]);
+    });
+});
+
 describe("A tag made from a name or a property after a collection (D59)", () => {
     it("is missing, with the warning", async () => {
         for (const source of [
