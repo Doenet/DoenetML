@@ -138,6 +138,12 @@ export type CollectionItemWarning = {
     code: string;
     args: Record<string, any>;
     kind: "index" | "property";
+    /**
+     * For an index after options or cases that each hold several, the name
+     * the component it would have selected has in every one of them, if it
+     * has the same one (`$s[1].q` for `$s[1][1]`).
+     */
+    childName?: string;
 };
 
 /**
@@ -3780,6 +3786,67 @@ export function checkTypeChangesAtLoad({
      * `null` when it holds a component in error, about which nothing more
      * is said.
      */
+    /**
+     * The name of the component the literal index `index` selects among
+     * what each of `parts` holds, when it is the same in all of them, as
+     * `$s[1].q` names it in place of `$s[1][1]` (`doenet-w0191`).
+     */
+    function sharedChildName(
+        parts: { part: SerializedComponent }[],
+        index: any,
+    ): string | undefined {
+        const value = index?.value;
+        const k =
+            Array.isArray(value) &&
+            value.length === 1 &&
+            typeof value[0] === "string" &&
+            /^\s*[1-9]\d*\s*$/.test(value[0])
+                ? Number(value[0])
+                : undefined;
+        if (k === undefined) {
+            return undefined;
+        }
+        let shared: string | undefined;
+        for (const { part } of parts) {
+            let items = withoutSugarGroup(part.children ?? []).filter(
+                (child) =>
+                    typeof child === "string"
+                        ? child.trim() !== ""
+                        : child.componentType !== "setup" &&
+                          child.componentType !== "_repeatSetup",
+            );
+            if (
+                items.length === 1 &&
+                typeof items[0] === "object" &&
+                items[0].componentType === "group"
+            ) {
+                items = withoutSugarGroup(items[0].children ?? []).filter(
+                    (child) =>
+                        typeof child === "string"
+                            ? child.trim() !== ""
+                            : child.componentType !== "setup",
+                );
+            }
+            const item = items[k - 1];
+            const nameAttribute: any =
+                typeof item === "object" ? item.attributes?.name : undefined;
+            const name =
+                typeof nameAttribute?.primitive?.value === "string"
+                    ? nameAttribute.primitive.value
+                    : literalText(nameAttribute);
+            if (
+                name === undefined ||
+                name === "" ||
+                name.startsWith("_") ||
+                (shared !== undefined && name !== shared)
+            ) {
+                return undefined;
+            }
+            shared = name;
+        }
+        return shared;
+    }
+
     function partItems(
         part: SerializedComponent,
     ):
@@ -3969,6 +4036,10 @@ export function checkTypeChangesAtLoad({
                 copy,
                 kind,
                 code: "doenet-w0191",
+                childName:
+                    kind === "index" && !anyOne
+                        ? sharedChildName(parts, firstIndex[1])
+                        : undefined,
                 args: {
                     what: kind,
                     branch,

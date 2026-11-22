@@ -1064,7 +1064,13 @@ export async function normalizedDastToSerializedComponents(
     // reaches in its options or cases, decided at load from every one of them
     // (#2520 item 1, #2452): a warning at the reference, which is left as it
     // is.
-    for (const { copy, code, args, kind } of collectionItemWarnings) {
+    for (const {
+        copy,
+        code,
+        args,
+        kind,
+        childName,
+    } of collectionItemWarnings) {
         const ref: any = copy.extending
             ? unwrapSource(copy.extending as any)
             : undefined;
@@ -1074,14 +1080,32 @@ export async function normalizedDastToSerializedComponents(
         );
         const extra: Record<string, string> = {};
         if (code === "doenet-w0191") {
-            const suggestion = referenceNamingTheItem(
-                ref,
-                kind,
-                reference,
-                normalized_root.sources,
-            );
+            // the component the index would select, when it has the same
+            // name in each (`$s[1].q` for `$s[1][1]`), else a name to give it
+            const naming =
+                childName !== undefined
+                    ? referenceNamingTheChild(
+                          ref,
+                          childName,
+                          reference,
+                          normalized_root.sources,
+                      )
+                    : undefined;
+            const suggestion =
+                naming ??
+                referenceNamingTheItem(
+                    ref,
+                    kind,
+                    reference,
+                    normalized_root.sources,
+                );
             extra.suggestion = suggestion ?? "";
-            extra.hasSuggestion = suggestion === undefined ? "false" : "true";
+            extra.hasSuggestion =
+                naming !== undefined
+                    ? "named"
+                    : suggestion === undefined
+                      ? "false"
+                      : "true";
         }
         diagnostics.push(
             codedDiagnostic({
@@ -2935,6 +2959,49 @@ function getComponentType(element: FlatElement) {
  * (`$s[1].P.x`): with no index, a name or a property after it names nothing
  * (`doenet-w0200`, D59).
  */
+/**
+ * The reference `reference` (as written, `$s[1][1]`) of the copy whose
+ * resolution is `ref`, with its second index replaced by `.name`
+ * (`$s[1].q`): the component that index would have selected, named in every
+ * option or case (`doenet-w0191`). `undefined` when where it is written is
+ * not known from the positions in the DoenetML.
+ */
+function referenceNamingTheChild(
+    ref: any,
+    name: string,
+    reference: string,
+    sources: readonly string[],
+) {
+    const path: any[] = ref?.unresolvedPath ?? [];
+    const original: any[] = ref?.originalPath ?? [];
+    const start = original[0]?.position?.start?.offset;
+    const end = original[original.length - 1]?.position?.end?.offset;
+    const source = sources[original[0]?.sourceDoc ?? 0];
+    const index = path[0]?.index?.[1]?.position;
+    // the index, brackets and all
+    const from = index?.start?.offset;
+    const to = index?.end?.offset;
+    if (
+        source === undefined ||
+        typeof start !== "number" ||
+        typeof end !== "number" ||
+        Number.isNaN(from) ||
+        Number.isNaN(to) ||
+        source[from] !== "[" ||
+        source[to - 1] !== "]" ||
+        from <= start ||
+        to > end
+    ) {
+        return undefined;
+    }
+    const written = source.substring(start, end);
+    const at0 = reference.indexOf(written);
+    if (at0 < 0) {
+        return undefined;
+    }
+    return `${reference.slice(0, at0)}${source.substring(start, from)}.${name}${source.substring(to, end)}`;
+}
+
 function referenceNamingTheItem(
     ref: any,
     kind: "index" | "property",

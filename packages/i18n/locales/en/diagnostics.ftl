@@ -686,6 +686,7 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
             }
         }
     } several. { $hasSuggestion ->
+        [named] The component it would select has the same name in each: write `{ $suggestion }`.
         [true] Give the component you mean a name in each, such as `name="P"`, and write `{ $suggestion }`.
        *[other] Give the component you mean a name in each, and write that name after a `.`.
     }
