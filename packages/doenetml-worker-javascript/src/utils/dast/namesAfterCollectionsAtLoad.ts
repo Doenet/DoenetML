@@ -159,10 +159,11 @@ export function checkNamesAfterCollectionsAtLoad({
      */
     function collectionAt(
         idx: number,
+        name: string,
         seen: Set<number> = new Set(),
     ): string | undefined {
         const node = componentsByIdx.get(idx) ?? copiesByCreatedIdx.get(idx);
-        return node ? collectionOf(node, seen) : undefined;
+        return node ? collectionOf(node, name, seen) : undefined;
     }
 
     /**
@@ -213,6 +214,7 @@ export function checkNamesAfterCollectionsAtLoad({
 
     function collectionOf(
         node: SerializedComponent,
+        name: string,
         seen: Set<number>,
     ): string | undefined {
         if (seen.has(node.componentIdx)) {
@@ -233,22 +235,28 @@ export function checkNamesAfterCollectionsAtLoad({
                     !(ref.unresolvedPath?.length > 0) &&
                     (written === undefined || !holdsContent(node))
                 ) {
-                    return collectionAt(ref.nodeIdx, seen);
+                    return collectionAt(ref.nodeIdx, name, seen);
                 }
                 return undefined;
             }
             return collectionWritten(written, node, () =>
                 ref && ref.nodeIdx >= 0 && !(ref.unresolvedPath?.length > 0)
-                    ? collectionAt(ref.nodeIdx, seen)
+                    ? collectionAt(ref.nodeIdx, name, seen)
                     : undefined,
             );
         }
         if (node.componentType === "group") {
             const content = contentOf(node);
-            if (content.length !== 1 || typeof content[0] !== "object") {
+            if (
+                content.length !== 1 ||
+                typeof content[0] !== "object" ||
+                // the name is the one component's, which a group of one
+                // reaches by it (`$q.r[1]` of a group holding a group `r`)
+                nameOf(content[0]) === name
+            ) {
                 return undefined;
             }
-            return collectionOf(content[0], seen);
+            return collectionOf(content[0], name, seen);
         }
         return collectionWritten(node.componentType, node, () => undefined);
     }
@@ -340,7 +348,7 @@ export function checkNamesAfterCollectionsAtLoad({
         if (typeof first?.name !== "string" || first.name === "") {
             return;
         }
-        const collection = collectionAt(ref.nodeIdx);
+        const collection = collectionAt(ref.nodeIdx, first.name);
         if (
             collection === undefined ||
             isOwnProperty(collection, first.name) ||
@@ -513,13 +521,24 @@ function contentOf(group: SerializedComponent) {
     );
 }
 
+/**
+ * The name `node` is written with: its `name`, or, for a tag written with
+ * `extend` or `copy`, the name the copy gives what it makes.
+ */
+function nameOf(node: SerializedComponent) {
+    return (
+        literalText(node.attributes?.name) ??
+        literalText(node.attributes?._createComponentName)
+    );
+}
+
 /** Whether a component written below `node` is named `name`. */
 function declaresBelow(node: SerializedComponent, name: string): boolean {
     for (const child of node.children ?? []) {
         if (typeof child !== "object") {
             continue;
         }
-        if (literalText(child.attributes?.name) === name) {
+        if (nameOf(child) === name) {
             return true;
         }
         if (declaresBelow(child, name)) {

@@ -203,10 +203,23 @@ describe("A name or a property after a collection names nothing (D59)", () => {
             `<pointList name="pl"><point name="P">(1,2)</point><point>(3,4)</point></pointList>
 <pointList name="pl2" extend="$pl"/>
 <sort name="so"><number name="n">3</number><number>1</number></sort>
-<p name="p1">$pl.P</p><p name="p2">$pl2.P.x</p><p name="p3">$so.n</p>`,
-            ["p1", "p2", "p3"],
+<math name="m">x</math>
+<mathList name="l"><math name="h" extend="$m"/><math name="k" copy="$m"/> 2</mathList>
+<mathList name="e" extend="$l"/>
+<group name="g2"><group name="r"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></group>
+<group name="q" extend="$g2"/>
+<p name="p1">$pl.P</p><p name="p2">$pl2.P.x</p><p name="p3">$so.n</p><p name="p4">$e.h $e.k</p><p name="p5">$q.r[1]</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
         );
-        expect(texts).eqls({ p1: "(1, 2)", p2: "1", p3: "3" });
+        // A name on a tag written with `extend` or `copy` in the list, and a
+        // group named on the way to a collection (`$q.r`, the group `r`).
+        expect(texts).eqls({
+            p1: "(1, 2)",
+            p2: "1",
+            p3: "3",
+            p4: "x x",
+            p5: "1",
+        });
         expect(diagnostics).eqls([]);
     });
 
