@@ -3118,6 +3118,14 @@ describe("Sectioning tag tests @group3", async () => {
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.ownNumber",
             ],
+            // only the load-time numbering check sees this one: without
+            // `ownnumber` among its properties, the choice check gives
+            // e0074 instead
+            [
+                `<select numToSelect="$s.ownNumber"><option><section/></option><option><section/></option></select>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
+            ],
         ] as const) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
@@ -3208,6 +3216,38 @@ describe("Sectioning tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
                     .text,
             ).eq("2, 2");
+        });
+
+        it("two references that a repeat's count reads are each e0005", async () => {
+            // Without `ownnumber` among the numbering check's properties,
+            // the load backstop can't blame these and the document stops.
+            const doenetML = `<repeat for="$s.ownNumber $s.ownNumber" valueName="v"><section/></repeat>
+<section name="s"><p name="p">hi</p></section>`;
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("hi");
+            const { errors, warnings } = getDiagnosticsByType(core);
+            expect(warnings).eqls([]);
+            expect(errors.map((error: any) => error.code)).eqls([
+                "doenet-e0005",
+                "doenet-e0005",
+            ]);
+            expect(
+                errors.map((error: any) =>
+                    doenetML.slice(
+                        error.position.start.offset,
+                        error.position.end.offset,
+                    ),
+                ),
+            ).eqls(["$s.ownNumber", "$s.ownNumber"]);
         });
 
         it("follows the count as it changes", async () => {
