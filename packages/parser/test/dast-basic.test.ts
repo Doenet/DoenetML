@@ -129,6 +129,25 @@ describe("DAST", async () => {
         expect(attrChildren(`<a n="&dollar;(x)"/>`)).toEqual(["$", "​(x)"]);
         expect(attrChildren(`<a n="&#36;$f"/>`)).toEqual(["$", "​", "macro"]);
         expect(attrChildren(`<a n="&#36;1"/>`)).toEqual(["$", "1"]);
+        // what follows can be a reference too, decoded before macros are read
+        expect(attrChildren(`<a n="&#36;&#40;x)"/>`)).toEqual([
+            "$",
+            "\u200B(x)",
+        ]);
+        expect(attrChildren(`<a n="&#36;&#121;"/>`)).toEqual(["$", "\u200By"]);
+        expect(attrChildren(`<a n="&dollar;&lpar;x)"/>`)).toEqual([
+            "$",
+            "\u200B(x)",
+        ]);
+        expect(attrChildren(`<a n="&#36;&#36;&#102;"/>`)).toEqual([
+            "$",
+            "\u200B",
+            "$",
+            "\u200Bf",
+        ]);
+        // nothing follows that a macro could start with: no space added
+        expect(attrChildren(`<a n="&#36;&#36;"/>`)).toEqual(["$", "$"]);
+        expect(attrChildren(`<a n="&#36;"/>`)).toEqual(["$"]);
     });
 
     it("preserves ampersands 2", () => {
