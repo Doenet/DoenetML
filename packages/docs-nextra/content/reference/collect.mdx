@@ -177,17 +177,18 @@ be used with the `from` attribute inside the `<collect>{:dn}` component.
 
 
 <p>The collected radii are:
-$collectRadii.radius</p>
+<repeat for="$collectRadii" valueName="c">$c.radius</repeat></p>
 
 <p>The second radius is: 
   $collectRadii[2].radius</p>
 ```
 
-To access an individual property of a group of
-collected components, refer to the name of the `<collect>{:dn}`
-followed by the property name, such as `radius` in this example.
+To read a property of every collected component, use a
+`<repeat>{:dn}` over the `<collect>{:dn}`, as for the radii here. A property
+right after the `<collect>{:dn}`, such as `$collectRadii.radius`, is the
+`<collect>{:dn}`'s own, and names nothing.
 
-In order to access a specific component's property,
+To access a specific component's property,
 use the index of the component in square brackets, 
 such as `$collectRadii[2].radius`.
 
