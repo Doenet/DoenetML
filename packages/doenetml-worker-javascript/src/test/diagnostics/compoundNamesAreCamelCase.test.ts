@@ -178,10 +178,11 @@ const RENAMED_PROPERTIES: {
     oldReference: string;
     text: string;
     /**
-     * `false` where no spelling is suggested yet: an array entry in another
-     * case (#2627 item 4, PR 42 of #2509).
+     * The suggestion, where it is not `newReference`: an array entry in
+     * another case is suggested in the index form (NAME-2, #2628), on the
+     * array's own name.
      */
-    suggested?: false;
+    suggestion?: string;
 }[] = [
     {
         setup: `<line name="l" through="(0,1) (1,0)"/>`,
@@ -225,7 +226,7 @@ const RENAMED_PROPERTIES: {
         newReference: "$o.rightHandSide1",
         oldReference: "$o.righthandside1",
         text: "x",
-        suggested: false,
+        suggestion: "$o.rhss[1]",
     },
     {
         setup: `<graph><regularPolygon name="rp" numVertices="4" circumRadius="3"/></graph>`,
@@ -311,7 +312,7 @@ const RENAMED_PROPERTIES: {
         newReference: "$s.vAlign2",
         oldReference: "$s.valign2",
         text: "bottom",
-        suggested: false,
+        suggestion: "$s.vAligns[2]",
     },
     {
         setup: `<subsetOfRealsInput name="s" xLabel="t"/>`,
@@ -373,15 +374,9 @@ describe("Compound names are camelCase (D60) @group4", async () => {
             expect(warnings[0].message, doenetML).toContain(
                 `No referent found for reference: \`${c.oldReference}\``,
             );
-            if (c.suggested === false) {
-                expect(warnings[0].message, doenetML).not.toContain(
-                    "Did you mean",
-                );
-            } else {
-                expect(warnings[0].message, doenetML).toContain(
-                    `Did you mean \`${c.newReference}\`?`,
-                );
-            }
+            expect(warnings[0].message, doenetML).toContain(
+                `Did you mean \`${c.suggestion ?? c.newReference}\`?`,
+            );
             expect(await text("p"), doenetML).eq("＿");
         }
     });

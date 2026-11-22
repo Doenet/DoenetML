@@ -18,6 +18,6 @@ Compound attribute and property names are camelCase (D60). The names some compon
 Before names became case-sensitive (D51), the camelCase spellings already worked, and the documentation taught several of them (`$line1.yIntercept`, `hAlign`, `circumRadius`); the documentation uses them again.
 
 - **An attribute** written the old way (`<cell halign="center">`) differs from the new name only in case, so for this release it is still applied, with a warning (`doenet-w0197`) that it will be an error in a later release.
-- **A property** written the old way (`$line1.yintercept`) names nothing, shown as a blank, with `doenet-w0104` suggesting the new spelling (`$line1.yIntercept`). An array entry written the old way (`$o.righthandside1`) names nothing too, but no spelling is suggested yet.
+- **A property** written the old way (`$line1.yintercept`) names nothing, shown as a blank, with `doenet-w0104` suggesting the new spelling (`$line1.yIntercept`). So does an array entry written the old way, with the index form suggested (`$sbs.valign2` → `$sbs.vAligns[2]`).
 
 A new compound name is camelCase.
