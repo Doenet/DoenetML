@@ -9,7 +9,8 @@
  * with one node on the cycle made `doenet-e0005` (D57,
  * `PublicDoenetMLCore.rebuildAroundLoadCycle`); if it is raised again, the
  * document is built again with one more node blamed, up to five times (D61
- * decision 2), and then stops. Raised by an update after load, the request queue stops the
+ * decision 2); past that, or when no more can be blamed, the document
+ * stops. Raised by an update after load, the request queue stops the
  * document (`ProcessQueue.executeProcesses`).
  */
 export class CircularDependencyError extends Error {

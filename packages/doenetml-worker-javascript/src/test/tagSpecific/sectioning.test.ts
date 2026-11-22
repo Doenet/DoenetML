@@ -3181,6 +3181,27 @@ describe("Sectioning tag tests @group3", async () => {
                 "1",
                 `<conditionalContent condition="$s.sectionNumber = 1"><section/></conditionalContent>`,
             ],
+            // the same with the condition on a `<case>`
+            [
+                `<group><conditionalContent><case condition="$s.sectionNumber = 2"><section/></case></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "1",
+                undefined,
+            ],
+            [
+                `<group><conditionalContent><case condition="$s.sectionNumber = 1"><section/></case></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "1",
+                `<conditionalContent><case condition="$s.sectionNumber = 1"><section/></case></conditionalContent>`,
+            ],
+            // an `<option>`'s `selectWeight` only weighs which option is
+            // chosen: the one option is, and `s` is 2
+            [
+                `<group><select><option selectWeight="$s.sectionNumber"><section/></option></select></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "2",
+                undefined,
+            ],
         ] as const) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
