@@ -177,10 +177,11 @@ literal `b`, whereas `$ab` would look for a component named `ab`.
 
 ### Writing a literal `$`
 
-A `$` followed by a letter, an underscore, or `(` starts a reference. To show a
-dollar sign there instead, write it as `&dollar;` or `&#36;`. This works in
-text and in attribute values alike. A `$` followed by anything else, such as a
-space or a digit, is already plain text.
+A `$` followed by a letter, an underscore, or `(` starts a reference, and so
+does `$$` followed by one of those, as in `$$f(2)`, which evaluates a function.
+To show a dollar sign there instead, write it as `&dollar;` or `&#36;`. This
+works in text and in attribute values alike. A `$` followed by anything else,
+such as a space or a digit, is already plain text.
 
 ```doenet-editor-horiz
 <p name="price">The fee is $5, written in code as &dollar;fee.</p>

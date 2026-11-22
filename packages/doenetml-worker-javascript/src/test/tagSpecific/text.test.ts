@@ -946,4 +946,36 @@ describe("Text tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("hi");
     });
+
+    it("a `$` written out that starts no reference, in an attribute read as text at load", async () => {
+        // handed over in pieces too, so joined: text, not `doenet-e0090`
+        const written = ["a$1", "x$", "$ x", "a$$", "$1", "a$(1"];
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: written
+                .map(
+                    (value, i) =>
+                        `<codeEditor name="ce${i}" staticName="${value}"/>`,
+                )
+                .join("\n"),
+        });
+        for (const [i, value] of written.entries()) {
+            expect(
+                (core as any).core._components[
+                    await resolvePathToNodeIdx(`ce${i}`)
+                ].attributes.staticName.primitive.value,
+            ).eq(value);
+        }
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+
+        // a reference there is still an error
+        for (const value of ["a$t", "&#36;$t"]) {
+            const { core } = await createTestCore({
+                doenetML: `<text name="t">q</text><codeEditor staticName="${value}"/>`,
+            });
+            expect(
+                getDiagnosticsByType(core).errors.map((e) => e.code),
+                value,
+            ).eqls(["doenet-e0090"]);
+        }
+    });
 });
