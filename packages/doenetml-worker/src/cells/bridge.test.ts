@@ -1099,3 +1099,140 @@ describe("function operators and triangles", () => {
         });
     });
 });
+
+describe("derived geometry", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const send = (
+            id: number,
+            component: string,
+            actionName: string,
+            args: object,
+        ) =>
+            bridge.dispatch({ component, actionName, componentIdx: id, args })
+                .payload as Record<number, ElementUpdate>;
+        return { bridge, all, send };
+    }
+    const props = (e: { data: unknown }) => (e.data as any).props;
+    const childIds = (children: unknown[]) =>
+        children.flatMap((c) =>
+            c !== null && typeof c === "object" && "id" in c
+                ? [(c as { id: number }).id]
+                : [],
+        );
+
+    it("draws a best-fit line as a line that follows its data and does not move", async () => {
+        const { all, send } = await open(`<graph>
+<point name="P1">(1,2)</point><point name="P2">(1,6)</point>
+<point name="P3">(7,3)</point><point name="P4">(7,-1)</point>
+<bestFitLine data="$P1 $P2 $P3 $P4"/>
+</graph>`);
+        const [fit] = all("line");
+        // y = -0.5x + 4.5, through two of its points.
+        const [[x1, y1], [x2, y2]] = props(fit).numericalPoints;
+        expect(y1).toBeCloseTo(-0.5 * x1 + 4.5);
+        expect(y2).toBeCloseTo(-0.5 * x2 + 4.5);
+        expect(x1).not.toBeCloseTo(x2);
+        expect(
+            send(fit.data.id, "line", "moveLine", {
+                point1coords: [0, 0],
+                point2coords: [1, 1],
+            }),
+        ).toEqual({});
+        // A data point moved refits it: through (1,-2), (1,6), (7,3) and
+        // (7,-1), the line through the means at each x, (1, 2) and (7, 1).
+        const [p1] = all("point");
+        const payload = send(p1.data.id, "point", "move", { x: 1, y: -2 });
+        const [[a, b], [c, d]] = (payload[fit.data.id]?.changedState as any)
+            .numericalPoints;
+        expect(b).toBeCloseTo((13 - a) / 6);
+        expect(d).toBeCloseTo((13 - c) / 6);
+    });
+
+    it("draws an intersection as a point, left out while the lines do not cross", async () => {
+        const { all, send } = await open(`<graph>
+<point name="A">(0,0)</point>
+<line name="l1" through="$A (1,1)"/>
+<line name="l2" through="(0,2) (1,1)"/>
+<intersection>$l1 $l2</intersection>
+</graph>`);
+        const [graph] = all("graph");
+        const [a, crossing] = all("point");
+        expect(props(crossing)).toEqual({
+            x: { math_object: "1" },
+            y: { math_object: "1" },
+        });
+        expect(childIds(graph.children)).toContain(crossing.data.id);
+        // The same line: no crossing.
+        let payload = send(a.data.id, "point", "move", { x: 0, y: 2 });
+        expect(childIds(payload[graph.data.id].newChildren!)).not.toContain(
+            crossing.data.id,
+        );
+        payload = send(a.data.id, "point", "move", { x: 0, y: 1 });
+        expect(childIds(payload[graph.data.id].newChildren!)).toContain(
+            crossing.data.id,
+        );
+        // It does not move.
+        expect(send(crossing.data.id, "point", "move", { x: 5, y: 5 })).toEqual(
+            {},
+        );
+    });
+
+    it("draws a parabola as a curve through its samples", async () => {
+        const { all } = await open(`<graph xmin="-2" xmax="2">
+<parabola through="(1,2) (3,4)"/>
+</graph>`);
+        const [curve] = all("polyline");
+        const vertices = props(curve).numericalVertices;
+        expect(vertices).toHaveLength(200);
+        // y = x² - 3x + 4.
+        expect(vertices[0]).toEqual([-2, 14]);
+        expect(vertices[199]).toEqual([2, 2]);
+    });
+
+    it("draws equilibrium points and lines and endpoints with their flags, and switches them", async () => {
+        const { all, send } = await open(`<graph>
+<equilibriumPoint switchable>(4,0)</equilibriumPoint>
+<equilibriumPoint stable="false">(7,0)</equilibriumPoint>
+<endpoint open>(1,0)</endpoint>
+<equilibriumLine through="(0,1) (1,2)" switchAble/>
+</graph>`);
+        const [stable, unstable, end] = all("point");
+        expect(props(stable)).toEqual({
+            x: { math_object: "4" },
+            y: { math_object: "0" },
+            open: false,
+            switchable: true,
+        });
+        expect(props(unstable)).toMatchObject({
+            open: true,
+            switchable: false,
+        });
+        expect(props(end)).toMatchObject({ open: true, switchable: false });
+        const [line] = all("line");
+        expect(props(line)).toEqual({
+            numericalPoints: [
+                [0, 1],
+                [1, 2],
+            ],
+            dashed: false,
+            switchable: true,
+        });
+
+        let payload = send(stable.data.id, "point", "switchPoint", {});
+        expect(payload[stable.data.id]?.changedState).toEqual({ open: true });
+        // Not switchable: nothing.
+        expect(send(unstable.data.id, "point", "switchPoint", {})).toEqual({});
+        expect(send(end.data.id, "point", "switchPoint", {})).toEqual({});
+        payload = send(line.data.id, "line", "switchLine", {});
+        expect(payload[line.data.id]?.changedState).toEqual({ dashed: true });
+        // They move as a point and a line do.
+        payload = send(stable.data.id, "point", "move", { x: 3, y: 1 });
+        expect(payload[stable.data.id]?.changedState).toEqual({
+            x: { math_object: "3" },
+            y: { math_object: "1" },
+        });
+    });
+});

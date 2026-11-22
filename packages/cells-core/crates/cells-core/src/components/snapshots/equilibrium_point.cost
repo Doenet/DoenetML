@@ -1,0 +1,4 @@
+stable by default; a point to drag: cells 10 · essential 7 · constant 3 · instrs 0 · components 3
+not stable: cells 10 · essential 7 · constant 3 · instrs 0 · components 3
+stable from an input, which the switch writes: cells 10 · essential 7 · constant 3 · instrs 0 · components 4
+a copy shares its point and its flag: cells 10 · essential 7 · constant 3 · instrs 0 · components 5
