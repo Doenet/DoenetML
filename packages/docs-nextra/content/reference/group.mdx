@@ -89,12 +89,3 @@ written in the list names that component after the group too: with
 `<point name="P">{:dn}` written in a `<pointList name="pl">{:dn}`, `$g.P` of
 `<group name="g">$pl</group>{:dn}` is that point, as `$pl.P` is.
 
-A `<group>{:dn}` made with `extend` from a `<repeat>{:dn}` holds its
-iterations, followed by anything written in the `<group>{:dn}`, and follows
-the number of iterations as it changes:
-`<group extend="$r"><text>end</text></group>{:dn}`. With no iterations, it
-holds just what is written in it. What the reader enters in it, such as
-an answer typed into an input written in the `<group>{:dn}`, is kept as the
-number changes. An attribute written on it, such as
-`hide`, is the `<group>{:dn}`'s, not each iteration's.
-

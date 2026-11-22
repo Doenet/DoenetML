@@ -2085,24 +2085,8 @@ export default class Copy extends CompositeComponent {
         // made from one component, which can be one named in a case
         // (`sourceCaseOf`)
         const oneSource = !heldCase && sourceNums.length === 1;
-        // A `<group>` made from several, as the iterations of a `<repeat>`
-        // (`<group extend="$r"/>`), or from none, holds them all, followed by
-        // the children written in it (REF-4), rather than one source taking
-        // them (`wrapInWrittenGroup`, #2638 item 7).
-        const groupOfSeveral =
-            !heldCase &&
-            (await isGroupOfSeveralSources(
-                component,
-                replacementSourceIdentities,
-                componentInfoObjects,
-            ));
-        // of which, those shown: not an iteration a `<repeat>` withholds
-        // while it has fewer
-        const shownSourceNums = groupOfSeveral
-            ? await shownSources(replacementSourceIdentities, components)
-            : undefined;
 
-        for (let sourceNum of shownSourceNums ?? sourceNums) {
+        for (let sourceNum of sourceNums) {
             let numComponentsForSource;
 
             if (component.attributes._createComponentOfType?.primitive) {
@@ -2127,17 +2111,7 @@ export default class Copy extends CompositeComponent {
                 sourceNum,
                 components,
                 nComponents,
-                // A group of several is made again, whole, when its sources
-                // change (`calculateReplacementChanges`), and what the reader
-                // did in it is kept by `stateId` (SAVE-1), so each source's
-                // copy is counted on its own, from the source's place, not
-                // after what was made before.
-                stateIdInfo: groupOfSeveral
-                    ? {
-                          prefix: `${component.stateId}|item${sourceNum}|`,
-                          num: 0,
-                      }
-                    : stateIdInfo,
+                stateIdInfo,
                 allDoenetMLs,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
@@ -2148,12 +2122,10 @@ export default class Copy extends CompositeComponent {
 
                 copyInChildren:
                     Number(sourceNum) === 0 &&
-                    !groupOfSeveral &&
                     component.attributes._copyInChildren?.primitive.value,
                 heldCase,
                 heldMadeFrom,
                 madeFrom: workspace.madeFrom,
-                attributesOnWrapper: groupOfSeveral,
             });
 
             diagnostics.push(...results.diagnostics);
@@ -2266,35 +2238,6 @@ export default class Copy extends CompositeComponent {
                 reportTypeChange(workspace, info);
                 recordIndexNamesNothing(workspace, info);
             }
-        }
-
-        workspace.groupOfSeveral = false;
-        if (groupOfSeveral && typeChange?.level !== "info") {
-            const wrapped = wrapInWrittenGroup({
-                component,
-                replacements,
-                componentInfoObjects,
-                compositeAttributesObj,
-                nComponents,
-                diagnostics,
-                components,
-            });
-            replacements = wrapped.replacements;
-            nComponents = wrapped.nComponents;
-            workspace.groupOfSeveral = true;
-            workspace.sourceIndices = shownSourceNums.map(
-                (num) => replacementSourceIdentities[num].componentIdx,
-            );
-            workspace.numReplacementsBySource = [1];
-            workspace.numNonStringReplacementsBySource = [1];
-            // its name and index, as the copy's one replacement
-            addAttributesToSingleReplacement(
-                replacements,
-                component,
-                componentInfoObjects,
-            );
-            workspace.replacementsCreated = stateIdInfo.num;
-            return { replacements, diagnostics, nComponents };
         }
 
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
@@ -2434,7 +2377,6 @@ export default class Copy extends CompositeComponent {
         inPlaceOfProp,
         heldMadeFrom,
         madeFrom,
-        attributesOnWrapper = false,
     }) {
         // console.log(`create replacement for sourceNum ${sourceNum}`);
         // console.log(
@@ -2828,9 +2770,7 @@ export default class Copy extends CompositeComponent {
                 repl.attributes = {};
             }
             const res = convertUnresolvedAttributesForComponentType({
-                // those written on a `<group>` made from several sources are
-                // the one group's (`wrapInWrittenGroup`), not each source's
-                attributes: attributesOnWrapper ? {} : component.attributes,
+                attributes: component.attributes,
                 componentType: repl.componentType,
                 componentInfoObjects,
                 compositeAttributesObj,
@@ -3071,7 +3011,6 @@ export default class Copy extends CompositeComponent {
         components,
         workspace,
         componentInfoObjects,
-        allDoenetMLs,
 
         resolveItem,
         publicAliasSubstitutions,
@@ -3155,66 +3094,6 @@ export default class Copy extends CompositeComponent {
 
         let replacementSourceIdentities =
             await component.stateValues.replacementSourceIdentities;
-
-        // A `<group>` made from several sources holds them all
-        // (`wrapInWrittenGroup`): made again, whole, when its sources change,
-        // and left as it is otherwise, as what each holds is a copy that
-        // follows its source.
-        if (
-            (workspace.groupOfSeveral ||
-                (await isGroupOfSeveralSources(
-                    component,
-                    replacementSourceIdentities,
-                    componentInfoObjects,
-                ))) &&
-            !(await component.stateValues.targetInactive)
-        ) {
-            const sources = (
-                await shownSources(replacementSourceIdentities, components)
-            ).map((num) => replacementSourceIdentities[num].componentIdx);
-            if (
-                workspace.groupOfSeveral &&
-                sources.length === workspace.sourceIndices.length &&
-                sources.every((idx, i) => idx === workspace.sourceIndices[i])
-            ) {
-                return {
-                    replacementChanges: unwithheldChanges(component),
-                    diagnostics,
-                    nComponents,
-                };
-            }
-            const made = await this.createReplacementsFromSources({
-                component,
-                components,
-                nComponents,
-                workspace,
-                allDoenetMLs,
-                componentInfoObjects,
-                resolveItem,
-                publicAliasSubstitutions,
-            });
-            return {
-                replacementChanges: [
-                    ...unwithheldChanges(component),
-                    {
-                        changeType: "add",
-                        changeTopLevelReplacements: true,
-                        firstReplacementInd: 0,
-                        numberReplacementsToReplace:
-                            component.replacements.length,
-                        serializedReplacements: made.replacements,
-                        // what the reader did in it is applied to what is
-                        // made again with the same `stateId`s (SAVE-1): the
-                        // children written in the group, and the copies of
-                        // the sources still shown
-                        keepSavedState: true,
-                    },
-                ],
-                diagnostics: [...diagnostics, ...made.diagnostics],
-                nComponents: made.nComponents,
-            };
-        }
-
         if (
             !(await component.stateValues.extendedComponent) ||
             !replacementSourceIdentities
@@ -6661,119 +6540,6 @@ function namesNothing(numNonStringReplacementsBySource, madeBlankBySource) {
     return numNonStringReplacementsBySource.every(
         (n, ind) => !(n > 0) || madeBlankBySource[ind],
     );
-}
-
-/**
- * Whether `component` is a `<group>` written with `extend` or `copy`
- * (`_copyInChildren`) made from several sources, as the iterations of a
- * `<repeat>` or the picks of a `<select>` of several are, or from none, as
- * a `<repeat>` with no iterations, so that it holds the children written
- * in it whether it loads with none or comes to have none. Not from no case
- * of a `<conditionalContent>`, which stands for what it shows (COMP-11), and
- * whose case, once shown, is withheld rather than removed (one source).
- */
-async function isGroupOfSeveralSources(
-    component,
-    replacementSourceIdentities,
-    componentInfoObjects,
-) {
-    const written =
-        component.attributes._createComponentOfType?.primitive?.value;
-    if (
-        !component.attributes._copyInChildren?.primitive?.value ||
-        written === undefined ||
-        componentInfoObjects.componentTypeAsWritten(written) !== "group" ||
-        !Array.isArray(replacementSourceIdentities)
-    ) {
-        return false;
-    }
-    if (replacementSourceIdentities.length > 1) {
-        return true;
-    }
-    if (replacementSourceIdentities.length === 1) {
-        return false;
-    }
-    const extendedType = (await component.stateValues.extendedComponent)
-        ?.componentType;
-    return (
-        extendedType !== undefined &&
-        !componentInfoObjects.isInheritedComponentType({
-            inheritedComponentType: extendedType,
-            baseComponentType: "conditionalContent",
-        })
-    );
-}
-
-/**
- * The keys of `replacementSourceIdentities` that are shown: not an
- * iteration a `<repeat>` withholds while it has fewer
- * (`isInactiveCompositeReplacement`).
- */
-async function shownSources(replacementSourceIdentities, components) {
-    const shown = [];
-    for (const num of Object.keys(replacementSourceIdentities ?? [])) {
-        const source =
-            components[replacementSourceIdentities[num]?.componentIdx];
-        if (!(await source?.stateValues.isInactiveCompositeReplacement)) {
-            shown.push(num);
-        }
-    }
-    return shown;
-}
-
-/**
- * The one `<group>` an `extend` or `copy` written as `<group>` makes of
- * the `replacements` of its several sources (`<group extend="$r"/>` of a
- * `<repeat>` holds its iterations, as `<group>$r</group>` does), with the
- * attributes written on it, then the children written in it (REF-4).
- * Without it, the several would be no one `<group>`, which made an empty
- * one (#2638 item 7).
- */
-function wrapInWrittenGroup({
-    component,
-    replacements,
-    componentInfoObjects,
-    compositeAttributesObj,
-    nComponents,
-    diagnostics,
-    components,
-}) {
-    // The same `stateId`s however many sources it holds, as it is made again
-    // when they change, and what the reader did in it is kept by them.
-    const stateIdInfo = { prefix: `${component.stateId}|group|`, num: 0 };
-    const res = convertUnresolvedAttributesForComponentType({
-        attributes: component.attributes,
-        componentType: "group",
-        componentInfoObjects,
-        compositeAttributesObj,
-        nComponents,
-        stateIdInfo,
-    });
-    nComponents = res.nComponents;
-    const group = {
-        type: "serialized",
-        componentType: "group",
-        componentIdx: nComponents++,
-        stateId: `${component.stateId}|group`,
-        attributes: res.attributes,
-        doenetAttributes: {},
-        state: {},
-        children: replacements,
-    };
-    const wrapped = [group];
-    if (component.serializedChildren.length > 0) {
-        nComponents = addChildrenFromComposite({
-            replacements: wrapped,
-            children: component.serializedChildren,
-            componentInfoObjects,
-            nComponents,
-            stateIdInfo,
-            diagnostics,
-            link: true,
-            components,
-        });
-    }
-    return { replacements: wrapped, nComponents };
 }
 
 /** The change that shows any replacements `component` withholds. */
