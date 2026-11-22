@@ -2961,34 +2961,15 @@ function referenceNamingTheChild(
     reference: string,
     sources: readonly string[],
 ) {
-    const path: any[] = ref?.unresolvedPath ?? [];
-    const original: any[] = ref?.originalPath ?? [];
-    const start = original[0]?.position?.start?.offset;
-    const end = original[original.length - 1]?.position?.end?.offset;
-    const source = sources[original[0]?.sourceDoc ?? 0];
-    const index = path[0]?.index?.[1]?.position;
+    const source = sources[ref?.originalPath?.[0]?.sourceDoc ?? 0];
     // the index, brackets and all
+    const index = ref?.unresolvedPath?.[0]?.index?.[1]?.position;
     const from = index?.start?.offset;
     const to = index?.end?.offset;
-    if (
-        source === undefined ||
-        typeof start !== "number" ||
-        typeof end !== "number" ||
-        Number.isNaN(from) ||
-        Number.isNaN(to) ||
-        source[from] !== "[" ||
-        source[to - 1] !== "]" ||
-        from <= start ||
-        to > end
-    ) {
+    if (source?.[from] !== "[" || source?.[to - 1] !== "]") {
         return undefined;
     }
-    const written = source.substring(start, end);
-    const at0 = reference.indexOf(written);
-    if (at0 < 0) {
-        return undefined;
-    }
-    return `${reference.slice(0, at0)}${source.substring(start, from)}.${name}${source.substring(to, end)}`;
+    return replaceInReference(ref, reference, sources, from, to, `.${name}`);
 }
 
 /**
@@ -3010,11 +2991,6 @@ function referenceNamingTheItem(
     name = "P",
 ) {
     const path: any[] = ref?.unresolvedPath ?? [];
-    const original: any[] = ref?.originalPath ?? [];
-    const start = original[0]?.position?.start?.offset;
-    const end = original[original.length - 1]?.position?.end?.offset;
-    const sourceDoc = original[0]?.sourceDoc ?? 0;
-    const source = sources[sourceDoc];
     let at: number | undefined;
     if (path[0]?.name !== "") {
         // before the `.` of the property
@@ -3026,23 +3002,44 @@ function referenceNamingTheItem(
         // at the `[` of the second index
         at = path[0]?.index?.[1]?.position?.start?.offset;
     }
+    return replaceInReference(ref, reference, sources, at, at, `.${name}`);
+}
+
+/**
+ * The reference `reference` (as written) of the copy whose resolution is
+ * `ref`, with what is written from the offset `from` to `to` in the
+ * DoenetML replaced by `text`, keeping what is written before the path
+ * (`$`, `$$`). `undefined` when that span is not within the path.
+ */
+function replaceInReference(
+    ref: any,
+    reference: string,
+    sources: readonly string[],
+    from: number | undefined,
+    to: number | undefined,
+    text: string,
+) {
+    const original: any[] = ref?.originalPath ?? [];
+    const start = original[0]?.position?.start?.offset;
+    const end = original[original.length - 1]?.position?.end?.offset;
+    const source = sources[original[0]?.sourceDoc ?? 0];
     if (
         source === undefined ||
         typeof start !== "number" ||
         typeof end !== "number" ||
-        typeof at !== "number" ||
-        Number.isNaN(at) ||
-        at <= start ||
-        at > end
+        typeof from !== "number" ||
+        typeof to !== "number" ||
+        Number.isNaN(from) ||
+        Number.isNaN(to) ||
+        from <= start ||
+        to > end
     ) {
         return undefined;
     }
-    // what is written before the path (`$`, `$$`)
     const written = source.substring(start, end);
     const at0 = reference.indexOf(written);
     if (at0 < 0) {
         return undefined;
     }
-    const dollars = reference.slice(0, at0);
-    return `${dollars}${source.substring(start, at)}.${name}${source.substring(at, end)}`;
+    return `${reference.slice(0, at0)}${source.substring(start, from)}${text}${source.substring(to, end)}`;
 }

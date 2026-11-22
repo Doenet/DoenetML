@@ -3800,26 +3800,7 @@ export function checkTypeChangesAtLoad({
         }
         let shared: string | undefined;
         for (const { part } of parts) {
-            let items = withoutSugarGroup(part.children ?? []).filter(
-                (child) =>
-                    typeof child === "string"
-                        ? child.trim() !== ""
-                        : child.componentType !== "setup" &&
-                          child.componentType !== "_repeatSetup",
-            );
-            if (
-                items.length === 1 &&
-                typeof items[0] === "object" &&
-                items[0].componentType === "group"
-            ) {
-                items = withoutSugarGroup(items[0].children ?? []).filter(
-                    (child) =>
-                        typeof child === "string"
-                            ? child.trim() !== ""
-                            : child.componentType !== "setup",
-                );
-            }
-            const item = items[k - 1];
+            const item = heldItems(part)[k - 1];
             const nameAttribute: any =
                 typeof item === "object" ? item.attributes?.name : undefined;
             const name =
@@ -3840,6 +3821,31 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * What one option or case `part` holds: its children but blank text and
+     * its `<setup>`, where a `<group>` written as the one component stands
+     * for what it holds, as an index or a property passes into it
+     * (Doenet/DoenetML#2643 item 5).
+     */
+    function heldItems(part: SerializedComponent) {
+        const held = (holder: SerializedComponent) =>
+            withoutSugarGroup(holder.children ?? []).filter((child) =>
+                typeof child === "string"
+                    ? child.trim() !== ""
+                    : child.componentType !== "setup" &&
+                      child.componentType !== "_repeatSetup",
+            );
+        let items = held(part);
+        while (
+            items.length === 1 &&
+            typeof items[0] === "object" &&
+            items[0].componentType === "group"
+        ) {
+            items = held(items[0]);
+        }
+        return items;
+    }
+
+    /**
      * What one option or case of a `<select>` or `<conditionalContent>`
      * holds, for `checkCollectionItems`: nothing, one component (its tag,
      * `undefined` when the DoenetML does not give it or it is itself a
@@ -3854,12 +3860,7 @@ export function checkTypeChangesAtLoad({
         | { kind: "one"; type?: string; component?: SerializedComponent }
         | { kind: "several"; count: number }
         | null {
-        const items = withoutSugarGroup(part.children ?? []).filter((child) =>
-            typeof child === "string"
-                ? child.trim() !== ""
-                : child.componentType !== "setup" &&
-                  child.componentType !== "_repeatSetup",
-        );
+        const items = heldItems(part);
         if (
             items.some(
                 (item) =>
@@ -3877,12 +3878,6 @@ export function checkTypeChangesAtLoad({
         const [item] = items;
         if (typeof item === "string") {
             return { kind: "one", type: "text" };
-        }
-        if (item.componentType === "group") {
-            // A `<group>` written as the one component stands for what it
-            // holds, as an index or a property passes into it
-            // (Doenet/DoenetML#2643 item 5)
-            return partItems(item);
         }
         // A reference as the one component (`<option>$m</option>`) counts
         // as what it names, when that is one component whose tag the
