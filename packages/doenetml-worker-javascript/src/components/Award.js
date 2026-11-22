@@ -1009,9 +1009,10 @@ function addResponsesToDescendantsWithReference(components, reference) {
                     if (!component.attributes) {
                         component.attributes = {};
                     }
-                    let foundIsResponse = Object.keys(component.attributes)
-                        .map((x) => x.toLowerCase())
-                        .includes("isresponse");
+                    let foundIsResponse = Object.hasOwn(
+                        component.attributes,
+                        "isResponse",
+                    );
                     if (
                         !foundIsResponse &&
                         component.componentType === "_ref"

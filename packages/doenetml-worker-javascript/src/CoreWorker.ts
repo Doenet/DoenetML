@@ -20,6 +20,8 @@ import {
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 import type { ErrorsAfterLoad } from "./core/DiagnosticsManager";
+import { CircularDependencyError } from "./core/dependencies/CircularDependencyError";
+import { blameLoadCycle, loadCycleBackstopOn } from "./utils/loadCycleBlame";
 
 // Type signatures for callbacks
 
@@ -75,6 +77,31 @@ export type RequestSolutionView = (componentIdx: number) => Promise<{
     allowView: boolean;
 }>;
 
+/** Whether the component `componentIdx` in `document` is an `_error`. */
+function madeAnError(document: any, componentIdx: number): boolean {
+    const stack = [document];
+    while (stack.length > 0) {
+        const component = stack.pop();
+        if (typeof component !== "object" || component === null) {
+            continue;
+        }
+        if (component.componentIdx === componentIdx) {
+            return component.componentType === "_error";
+        }
+        for (const attribute of Object.values(
+            component.attributes ?? {},
+        ) as any[]) {
+            stack.push(
+                attribute?.component,
+                ...(attribute?.references ?? []),
+                ...(attribute?.children ?? []),
+            );
+        }
+        stack.push(...(component.children ?? []));
+    }
+    return false;
+}
+
 /**
  * A wrapper around `Core` that contains the arguments for constructing
  * core that are determined from the initial call to `initializeWorker`.
@@ -119,6 +146,17 @@ export class PublicDoenetMLCore {
         skip_parent_search: boolean,
     ) => RefResolution;
     updateRootNames?: (reportAll: boolean) => RootNameChanges;
+    /**
+     * What a load that stops on a circular dependency is rebuilt from (D57,
+     * `rebuildAroundLoadCycle`): the resolver as it was before the document
+     * was converted (`saveResolver`, put back by `restoreResolver`), and the
+     * normalized DAST, converted again. Kept only while the document loads,
+     * and only when the host gives both callbacks.
+     */
+    saveResolver?: () => void;
+    restoreResolver?: () => boolean;
+    releaseSavedResolver?: () => void;
+    _normalizedRootForRebuild?: NormalizedRoot;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -150,6 +188,9 @@ export class PublicDoenetMLCore {
         deleteNodesFromResolver,
         resolvePath,
         updateRootNames,
+        saveResolver,
+        restoreResolver,
+        releaseSavedResolver,
     }: {
         activityId: string;
         docId: string;
@@ -171,6 +212,18 @@ export class PublicDoenetMLCore {
             skip_parent_search: boolean,
         ) => RefResolution;
         updateRootNames?: (reportAll: boolean) => RootNameChanges;
+        /**
+         * Save the resolver, before the document is converted, so that a load
+         * that stops on a circular dependency can be rebuilt from it (D57).
+         */
+        saveResolver?: () => void;
+        /** Put back the resolver `saveResolver` saved; whether there was one. */
+        restoreResolver?: () => boolean;
+        /**
+         * Drop the resolver `saveResolver` saved, once the load is over,
+         * whether the document loaded or stopped.
+         */
+        releaseSavedResolver?: () => void;
     }) {
         this.addNodesToResolver = addNodesToResolver;
         this.replaceIndexResolutionsInResolver =
@@ -178,8 +231,20 @@ export class PublicDoenetMLCore {
         this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
         this.updateRootNames = updateRootNames;
+        this.saveResolver = saveResolver;
+        this.restoreResolver = restoreResolver;
+        this.releaseSavedResolver = releaseSavedResolver;
+        this._normalizedRootForRebuild = undefined;
 
         let componentInfoObjects = createComponentInfoObjects();
+
+        if (saveResolver && restoreResolver) {
+            // Before the conversion, which adds to the resolver and may
+            // change `normalizedRoot`: a rebuild starts from both as they are
+            // now (`rebuildAroundLoadCycle`).
+            saveResolver();
+            this._normalizedRootForRebuild = structuredClone(normalizedRoot);
+        }
 
         const {
             document: root,
@@ -292,6 +357,9 @@ export class PublicDoenetMLCore {
         };
 
         if (this.initialized) {
+            // what the document was converted to, kept for blaming a cycle
+            // the load stops on (`rebuildAroundLoadCycle`)
+            const serializedDocument = coreArgs.serializedDocument;
             this.core = new Core(coreArgs);
             // The core now owns the only needed reference to the serialized
             // document (and releases it once consumed in `generateDast`);
@@ -299,7 +367,19 @@ export class PublicDoenetMLCore {
             // serialized copy of the document for the life of the session.
             this.coreBaseArgs!.serializedDocument = undefined;
             try {
-                const result = await this.core.generateDast();
+                let result;
+                try {
+                    result = await this.core.generateDast();
+                } catch (e) {
+                    if (!(e instanceof CircularDependencyError)) {
+                        throw e;
+                    }
+                    result = await this.rebuildAroundLoadCycle(
+                        e,
+                        serializedDocument,
+                        coreArgs,
+                    );
+                }
                 return { success: true as const, ...result };
             } catch (e) {
                 console.error(e);
@@ -314,6 +394,8 @@ export class PublicDoenetMLCore {
                             ? e.message
                             : "",
                 };
+            } finally {
+                this._releaseRebuildData();
             }
         } else {
             let errMsg =
@@ -325,6 +407,87 @@ export class PublicDoenetMLCore {
                 errMsg,
             };
         }
+    }
+
+    /**
+     * The load of the document stopped on the circular dependency `error`
+     * (D57, D14, NAME-7): a cycle the load-time checks didn't predict. Blame
+     * one authored node on it (`blameLoadCycle`), and build the document
+     * once more, from the resolver and the normalized DAST as they were
+     * before the first conversion, with that node made `doenet-e0005` by the
+     * cycle check (`breakReferenceCycles`'s `loadCycle`). The rest renders.
+     *
+     * Done once: if no node can be blamed, the host gave no way to put the
+     * resolver back, the backstop is off (`setLoadCycleBackstop`), the cycle
+     * check could not make the node blamed an error, or the rebuilt document
+     * stops on a cycle too, the error is thrown, and the document stops as
+     * before.
+     */
+    async rebuildAroundLoadCycle(
+        error: CircularDependencyError,
+        serializedDocument: any,
+        coreArgs: any,
+    ) {
+        const normalizedRoot = this._normalizedRootForRebuild;
+        const failedCore = this.core!;
+        if (
+            !loadCycleBackstopOn() ||
+            !normalizedRoot ||
+            !this.restoreResolver ||
+            !serializedDocument
+        ) {
+            throw error;
+        }
+        const blame = blameLoadCycle({
+            componentIndices: error.componentIndices,
+            stateVariables: error.stateVariables,
+            components: failedCore._components,
+            document: serializedDocument,
+            componentInfoObjects: coreArgs.componentInfoObjects,
+        });
+        if (blame === undefined) {
+            throw error;
+        }
+        failedCore.abandonLoad();
+        this.core = null;
+        this._normalizedRootForRebuild = undefined;
+
+        if (!this.restoreResolver()) {
+            throw error;
+        }
+        const { document, nComponents, diagnostics } =
+            await normalizedDastToSerializedComponents(
+                normalizedRoot,
+                coreArgs.componentInfoObjects,
+                this.addNodesToResolver!,
+                { loadCycle: blame },
+            );
+        if (blame.made === undefined || !madeAnError(document, blame.made)) {
+            // the node blamed wasn't one the cycle check could make an error
+            throw error;
+        }
+        // the variant infos `initializeWorker` reported, now of this document
+        await returnAllPossibleVariants(
+            document,
+            coreArgs.componentInfoObjects,
+            diagnostics,
+        );
+        this.core = new Core({
+            ...coreArgs,
+            serializedDocument: document,
+            nComponentsInit: nComponents,
+            preliminaryDiagnostics: diagnostics,
+        });
+        return await this.core.generateDast();
+    }
+
+    /**
+     * Drop what a rebuild of the load would need, once the load is over,
+     * whether the document loaded or stopped.
+     */
+    _releaseRebuildData() {
+        this._normalizedRootForRebuild = undefined;
+        this.releaseSavedResolver?.();
     }
 
     /**

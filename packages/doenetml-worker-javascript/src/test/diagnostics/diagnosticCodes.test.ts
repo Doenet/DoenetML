@@ -320,6 +320,8 @@ describe("coded diagnostics reach the record @group4", () => {
             source: "updateValue",
             property: "foo[2][3]",
             component: "point",
+            suggestion: "",
+            hasSuggestion: "false",
         });
         expect(w0044[0].message).eq(
             'Invalid target for `<updateValue>`: cannot find a state variable named "foo[2][3]" on a `<point>`.',

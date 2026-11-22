@@ -509,6 +509,17 @@ export class CoreWorker {
             function deleteNodesFromResolver(node_list: NodeList) {
                 doenetCore.delete_nodes_from_resolver(node_list);
             }
+            // so that a load stopping on a circular dependency is rebuilt from
+            // the resolver as it was before (D57)
+            function saveResolver() {
+                doenetCore.save_resolver();
+            }
+            function restoreResolver() {
+                return doenetCore.restore_resolver();
+            }
+            function releaseSavedResolver() {
+                doenetCore.release_saved_resolver();
+            }
 
             const initializedResult =
                 await this.javascriptCore.initializeWorker({
@@ -522,6 +533,9 @@ export class CoreWorker {
                     deleteNodesFromResolver,
                     resolvePath,
                     updateRootNames,
+                    saveResolver,
+                    restoreResolver,
+                    releaseSavedResolver,
                 });
             this.javascript_initialized = true;
             // The JavaScript core has consumed the normalized DAST; free the
@@ -755,6 +769,17 @@ export class CoreWorker {
         function deleteNodesFromResolver(node_list: NodeList) {
             doenetCore.delete_nodes_from_resolver(node_list);
         }
+        // so that a load stopping on a circular dependency is rebuilt from
+        // the resolver as it was before (D57)
+        function saveResolver() {
+            doenetCore.save_resolver();
+        }
+        function restoreResolver() {
+            return doenetCore.restore_resolver();
+        }
+        function releaseSavedResolver() {
+            doenetCore.release_saved_resolver();
+        }
 
         await this.javascriptCore.initializeWorker({
             activityId: "a",
@@ -767,6 +792,9 @@ export class CoreWorker {
             deleteNodesFromResolver,
             resolvePath,
             updateRootNames,
+            saveResolver,
+            restoreResolver,
+            releaseSavedResolver,
         });
         this.javascript_initialized = true;
         // The JavaScript core has consumed the normalized DAST; free the

@@ -9,11 +9,13 @@ import {
     compositeTargetsDependency,
     pathOfTarget,
     propertyWithIndices,
+    propertyCaseSuggestionArgs,
     targetsAmongReplacements,
 } from "../utils/actionTargets";
 const { mod } = me.math;
 import { nanoid } from "nanoid";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { suggestionArgs } from "../utils/dast/nameCase";
 import { levelFromSource } from "../utils/decidedByDoenetML";
 import { missingTargetDecided, noValueTargetLevel } from "./UpdateValue";
 
@@ -589,7 +591,7 @@ export default class AnimateFromSequence extends BaseComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentInfoObjects }) {
                 let targets = null;
                 let diagnostics = [];
                 const targetDecided = missingTargetDecided({
@@ -634,6 +636,14 @@ export default class AnimateFromSequence extends BaseComponent {
                                             source: "animateFromSequence",
                                             property: prop,
                                             component: target.componentType,
+                                            // a property in another case
+                                            // names nothing (D51)
+                                            ...propertyCaseSuggestionArgs({
+                                                pathPart: path[0],
+                                                componentType:
+                                                    target.componentType,
+                                                componentInfoObjects,
+                                            }),
                                         },
                                     }),
                                 );
@@ -646,6 +656,7 @@ export default class AnimateFromSequence extends BaseComponent {
                                             source: "animateFromSequence",
                                             property: "value",
                                             component: target.componentType,
+                                            ...suggestionArgs(undefined),
                                         },
                                     }),
                                 );

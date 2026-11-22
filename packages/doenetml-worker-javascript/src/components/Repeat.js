@@ -1050,23 +1050,18 @@ async function holdAtSourceIterationValue({
 }) {
     const attribute = repl.attributes[attrName];
     delete attribute.keepSourceIterationValue;
-    const lowerName = attrName.toLowerCase();
     let text;
     if (attribute.type === "unresolved") {
         // A choosing tag written with `copy` or `extend` (a `_copy`): the
         // value the source's wrapper gave what it made
         const madeBySource = components[src.originalIdx]?.replacements?.[0];
-        const sourceAttribute = Object.entries(
-            madeBySource?.attributes ?? {},
-        ).find(([name]) => name.toLowerCase() === lowerName)?.[1]?.component;
+        const sourceAttribute = madeBySource?.attributes?.[attrName]?.component;
         text = await valueAsWritten(sourceAttribute);
         if (text !== undefined) {
             holdUnresolvedAttributeAt({ attribute, text });
         }
     } else if (attribute.type === "component") {
-        const sourceAttribute = Object.entries(src.attributes ?? {}).find(
-            ([name]) => name.toLowerCase() === lowerName,
-        )?.[1]?.component;
+        const sourceAttribute = src.attributes?.[attrName]?.component;
         const source = components[sourceAttribute?.originalIdx];
         const held = await heldValueAsWritten(source);
         if (held !== undefined) {

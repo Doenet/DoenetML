@@ -334,6 +334,7 @@ export async function expandCompositeComponent({
         // again here would do so without end.
         throw new CircularDependencyError(
             core.dependencies.getCircularDependencyMessage([component]),
+            [component.componentIdx],
         );
     }
 
