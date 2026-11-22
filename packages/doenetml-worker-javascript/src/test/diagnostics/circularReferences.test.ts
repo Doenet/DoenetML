@@ -1373,6 +1373,11 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
             "a boolean hidden by whether a number beside it is hidden",
             '<number name="n">1</number><boolean hide="$n.hidden">$n.hidden</boolean>',
         ],
+        [
+            "2643",
+            "a curve's control vectors, always hidden, hidden by whether a vector in them is",
+            '<graph><curve through="(1,2) (3,4)"><bezierControls><controlVectors hide="$v.hidden"><vector name="v">(1,0)</vector></controlVectors></bezierControls></curve></graph>',
+        ],
         // a math or a number reads a point's value, not a copy of it
         // (Doenet/DoenetML#2643 item 1)
         [

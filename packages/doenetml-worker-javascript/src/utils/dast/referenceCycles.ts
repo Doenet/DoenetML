@@ -1795,6 +1795,23 @@ export function breakReferenceCycles({
                 hiding;
                 hiding = parentOf.get(hiding.componentIdx)
             ) {
+                const hidingType = typeOf(hiding);
+                if (
+                    hidingType !== undefined &&
+                    !isComposite(hidingType) &&
+                    componentInfoObjects.publicStateVariableInfo[hidingType]
+                        ?.stateVariableDescriptions &&
+                    !(
+                        "hidden" in
+                        componentInfoObjects.publicStateVariableInfo[hidingType]
+                            .stateVariableDescriptions
+                    )
+                ) {
+                    // one whose `hidden` is its own, reading neither its
+                    // `hide` nor what it is in (a `<controlVectors>`, always
+                    // hidden): what is in it reads no further
+                    break;
+                }
                 for (const [name, attribute] of Object.entries(
                     hiding.attributes ?? {},
                 )) {
