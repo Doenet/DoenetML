@@ -469,6 +469,29 @@ export async function normalizedDastToSerializedComponents(
         };
     }
 
+    /**
+     * The component type of the element an attribute written twice is on,
+     * for the parser's `doenet-w0201` warning `node`, which it named
+     * `componentType` from the tag as written. A `<division>` is the tag its
+     * `type` names (`getComponentType`), which the parser did not yet know
+     * there, so it is read off the element the warning is in (the parser
+     * puts it among the element's children): `<division type="foo">`, or a
+     * `<division>` with no `type`, is no component type (`doenet-e0002`).
+     * (A `doenet-w0197` already names a `<division>`'s `type`.)
+     */
+    function repeatedOnComponentType(
+        node: { parent?: number },
+        componentType: string,
+    ): string {
+        if (componentType !== "division" || node.parent === undefined) {
+            return componentType;
+        }
+        const parent = normalized_root.nodes[node.parent];
+        return parent?.type === "element"
+            ? getComponentType(parent)
+            : componentType;
+    }
+
     function unflattenDastNodes(
         indicesOrStrings: UntaggedContent[],
         diagnostics: DiagnosticRecord[],
@@ -587,10 +610,13 @@ export async function normalizedDastToSerializedComponents(
                                 codeAndArgs.code === "doenet-w0201") &&
                             typeof codeAndArgs.args?.componentType ===
                                 "string" &&
-                            // a `<division>` is the tag its `type` names
-                            codeAndArgs.args.componentType !== "division" &&
                             componentInfoObjects.componentTypeAsWritten(
-                                codeAndArgs.args.componentType,
+                                codeAndArgs.code === "doenet-w0201"
+                                    ? repeatedOnComponentType(
+                                          node,
+                                          codeAndArgs.args.componentType,
+                                      )
+                                    : codeAndArgs.args.componentType,
                             ) === undefined
                         ) {
                             // The parser corrected `name`, `extend`, `copy`

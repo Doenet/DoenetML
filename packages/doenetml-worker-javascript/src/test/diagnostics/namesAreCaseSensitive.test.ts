@@ -773,6 +773,28 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         expect(await text("p")).eq("2 x");
     });
 
+    it("an attribute written twice on a division is a warning only when its type is a component type (D62)", async () => {
+        const { errors, warnings } = await load(
+            `<division name="d" type="section" type="subsection"><title>T</title></division>`,
+        );
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0201"]);
+
+        // an error, so nothing of it is used, and no warning that it is
+        for (const doenetML of [
+            `<division name="d" name="e" type="foo"><title>T</title></division>`,
+            `<division name="d" name="e"><title>T</title></division>`,
+            `<division Name="d"><title>T</title></division>`,
+        ]) {
+            const { errors, warnings } = await load(doenetML);
+            expect(
+                errors.map((e) => e.code),
+                doenetML,
+            ).toEqual(["doenet-e0002"]);
+            expect(warnings, doenetML).toHaveLength(0);
+        }
+    });
+
     it("a sortByProp of a sortIndices is checked too", async () => {
         const { text, errors, warnings } = await load(
             `<p name="p"><sortIndices sortByProp="Y"><point>(3,2)</point><point>(1,1)</point></sortIndices></p><p name="q"><sortIndices sortByProp="height"><point>(3,2)</point><point>(1,1)</point></sortIndices></p>`,
