@@ -790,6 +790,41 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         expect(await named.text("p")).eq("");
     });
 
+    it("an attribute a collect passes on, in another case, is applied with a warning, for now (D51)", async () => {
+        // A `<collect>` accepts any attribute, passing it to what it
+        // collects, so the schema doesn't list `displayDigits` or `hide` on
+        // it, and the parser leaves them as written; the core corrects them
+        // to the spelling of the tag `componentType` names.
+        const doenetML = `<group name="g"><math>1.2345</math></group><p name="p"><collect componentType="Math" DisplayDigits="2" from="$g"/></p>`;
+        const { text, errors, warnings } = await load(doenetML);
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual([
+            "doenet-w0197",
+            "doenet-w0197",
+        ]);
+        expect(warnings[1].message).eq(
+            "Attribute names are case-sensitive: write `displayDigits`, not `DisplayDigits`, on a `<collect>`. It is applied for now, but will be an error in a later release.",
+        );
+        expect(warnings[1].position?.start.offset).eq(
+            doenetML.indexOf("DisplayDigits"),
+        );
+        expect(await text("p")).eq("1.2");
+
+        const hidden = await load(
+            `<group name="g"><math>1</math></group><p name="p"><collect componentType="math" Hide from="$g"/></p>`,
+        );
+        expect(hidden.warnings.map((w) => w.code)).toEqual(["doenet-w0197"]);
+        expect(await hidden.text("p")).eq("");
+
+        // with the type from a reference, which tag it names is not known
+        // at load, so the attribute is left as written, and not applied
+        const fromReference = await load(
+            `<text name="t">math</text><group name="g"><math>1.2345</math></group><p name="p"><collect componentType="$t" DisplayDigits="2" from="$g"/></p>`,
+        );
+        expect(fromReference.warnings).toHaveLength(0);
+        expect(await fromReference.text("p")).eq("1.23");
+    });
+
     it("an attribute written twice in the same case is a warning at the second; the first is used (D62)", async () => {
         const doenetML = `<math name="m" simplify="full" simplify="none">x+x</math><p name="p">$m</p>`;
         const { text, errors, warnings } = await load(doenetML);

@@ -246,9 +246,11 @@ export async function normalizedDastToSerializedComponents(
      * so the parser corrects those on every tag, listed or not; one still
      * in another case here was written beside its spelling
      * (`copy="$a" Copy="$b"`), and is an attribute the tag doesn't have
-     * (`doenet-w0187`, which suggests the spelling). Nor on a class that
-     * accepts any attribute, as `<module>`, though a value naming a tag is
-     * corrected on one (`<collect componentType>`, `correctValueNameCase`).
+     * (`doenet-w0187`, which suggests the spelling). On a class that
+     * accepts any attribute, only when it names the tag it passes them to
+     * (`attributesOfNamedType`, `<collect componentType>`); so not on a
+     * `<module>`. A value naming a tag is corrected first
+     * (`correctValueNameCase`).
      */
     const correctedNodes = new Set<number>();
     function correctAttributeNameCase(
@@ -271,16 +273,29 @@ export async function normalizedDastToSerializedComponents(
             return;
         }
         const attributesObject = componentClass.createAttributesObject();
-        const corrections = componentClass.acceptAnyAttribute
-            ? []
-            : attributeNameCaseCorrections({
-                  written: node.attributes.map((attribute) => attribute.name),
-                  known: [
-                      ...Object.keys(attributesObject),
-                      ...(node.extending ? ATTRIBUTES_OF_A_COPY : []),
-                  ],
-                  exclude: ["name", ...ATTRIBUTES_OF_EVERY_TAG],
-              });
+        // First, so that the type a value names is known below.
+        correctValueNameCase(
+            node,
+            componentType!,
+            attributesObject,
+            diagnostics,
+        );
+        const known = componentClass.acceptAnyAttribute
+            ? attributesOfNamedType(node, attributesObject)
+            : [
+                  ...Object.keys(attributesObject),
+                  ...(node.extending ? ATTRIBUTES_OF_A_COPY : []),
+              ];
+        const corrections =
+            known === undefined
+                ? []
+                : attributeNameCaseCorrections({
+                      written: node.attributes.map(
+                          (attribute) => attribute.name,
+                      ),
+                      known,
+                      exclude: ["name", ...ATTRIBUTES_OF_EVERY_TAG],
+                  });
         for (const { written, corrected } of corrections) {
             const i = node.attributes.findIndex(
                 (attribute) => attribute.name === written,
@@ -301,12 +316,45 @@ export async function normalizedDastToSerializedComponents(
                 }),
             );
         }
-        correctValueNameCase(
-            node,
-            componentType!,
-            attributesObject,
-            diagnostics,
-        );
+    }
+
+    /**
+     * On a class that accepts any attribute, the attributes that apply: when
+     * one of its attributes names a tag, written as text
+     * (`<collect componentType="math">`), its own and those of the tag it
+     * names, to which it passes the rest (`<collect DisplayDigits="2">` is
+     * corrected to `displayDigits`). Otherwise `undefined`, and none is
+     * corrected: on a `<module>`, an attribute its definition declares is not
+     * the module's own (the parser corrects those), nor is a `_copy`'s.
+     */
+    function attributesOfNamedType(
+        node: FlatElement,
+        attributesObject: Record<string, any>,
+    ): string[] | undefined {
+        for (const attribute of node.attributes) {
+            if (
+                !attributesObject[attribute.name]?.valueNamesComponentType ||
+                !attribute.children.every(
+                    (child: UntaggedContent) => typeof child === "string",
+                )
+            ) {
+                continue;
+            }
+            const named = componentInfoObjects.componentTypeAsWritten(
+                (attribute.children as string[]).join("").trim(),
+            );
+            const namedClass =
+                named === undefined
+                    ? undefined
+                    : componentInfoObjects.allComponentClasses[named];
+            if (namedClass) {
+                return [
+                    ...Object.keys(attributesObject),
+                    ...Object.keys(namedClass.createAttributesObject()),
+                ];
+            }
+        }
+        return undefined;
     }
 
     /**
