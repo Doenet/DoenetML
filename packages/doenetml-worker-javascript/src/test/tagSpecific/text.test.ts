@@ -887,6 +887,8 @@ describe("Text tag tests @group2", async () => {
 <text name="t3" extend="$t1"/>
 <math name="m">&dollar;x</math>
 <mathInput name="mi" prefill="&#36;x"/>
+<text name="ownSpace">$&#x200B;q</text>
+<textInput name="ownSpaceAttr" prefill="$&#x200B;q"/>
 `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -906,5 +908,9 @@ describe("Text tag tests @group2", async () => {
         // math reads it as written, where the space was blank
         expect((await value("m")).tree).eqls(["unit", "$", "x"]);
         expect((await value("mi")).tree).eqls(["unit", "$", "x"]);
+        // Incidental: a zero-width space the author writes right after a
+        // `$` is removed too, as the worker can't tell it from the parser's.
+        expect(await value("ownSpace")).eq("$q");
+        expect(await value("ownSpaceAttr")).eq("$q");
     });
 });
