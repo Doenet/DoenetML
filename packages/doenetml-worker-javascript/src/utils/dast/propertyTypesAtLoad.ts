@@ -20,23 +20,24 @@
  * | `<tally>`'s `categories` | its `type` with `categories` written (text by default), else a number when every value is a number by its tag, else a text |
  * | `<markers>`' `markers` | a text when any is a `<text>`, else a number |
  * | a selectable type's `value`, `values` | its `type`, else a number |
- * | `<answer>`'s `currentResponses`, `submittedResponses` | each response's: its input's type, or its component's tag (an empty text with no `value` or `values`); the one type they share when their number or order is not known; not decided for some (`answerResponseTypes`) |
+ * | `<answer>`'s `currentResponses`, `submittedResponses` | each response's: its input's type, or its component's tag (an empty text with no `value` or `values`), also when it may be missing (D52 decision 1); a property made into points or vectors as what wraps it (D52 decision 2); the type of each entry when their number and order are known, else the one type they share; else not decided (`answerResponseTypes`) |
  *
  * What is decided is marked on the component
  * (`doenetAttributes.propertyTypes`, by variable name), and on a tag made
  * with `extend` or `copy` of one, from what it copies and what is written in
- * it. The run time reads it in place of working the type out from values
- * (`ChoiceInput.js`, `CountOperators.js`, `Markers.js`), and a copy passes
- * it on (`Copy.js`). The checks at load read it too: a reference written as
- * a tag (`typeChangeAtLoad.ts`), and the one-type checks of a `<sort>`, a
+ * it. The run time reads it, and never works a type out: a reference to the
+ * property makes components of the types marked
+ * (`StateVariableInitializer.ts`), and a copy passes them on (`Copy.js`). The
+ * checks at load read it too: a reference written as a tag
+ * (`typeChangeAtLoad.ts`), and the one-type checks of a `<sort>`, a
  * `<shuffle>` and a repeat's `for` (`reorderedItemsAtLoad.ts`).
  *
- * A type that can't be decided from the DoenetML (a choice holding a
- * reference to what the DoenetML doesn't type, a `<group>` in a `<tally>`)
- * is not marked. The run time then works it out as before: a tag made from
- * it (`<point extend="$ci"/>`) is checked once the document runs, and a
- * reference written as a tag of a composite that holds it is `doenet-e0067`
- * at load (TYPE-3).
+ * A type that can't be decided from the DoenetML (an answer's responses of
+ * more than one type beside a list whose length can change, a choice holding
+ * a `<repeat>` of what isn't typed) is not marked, and a reference that reads
+ * it is an error at load, `doenet-e0090`, in place of the reference
+ * (TYPE-3, `referencesToUndecidedTypes`). The component itself still works:
+ * an answer grades and records its responses as before.
  *
  * Also reported here: an `<answer>` reading a response from a
  * `<conditionalContent>` that is of one type in one case and of another in
@@ -58,7 +59,7 @@ import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
 /**
  * What `doenetAttributes.propertyTypes` holds: a type by variable name, or,
  * for an array whose entries may differ in type (an `<answer>`'s responses,
- * TYPE-2), the type of each entry.
+ * TYPE-2), the type of each entry (none for an answer with no responses).
  */
 export type PropertyTypes = Record<string, string | string[]>;
 
@@ -520,13 +521,13 @@ export function propertyTypeReader({
             return type === "math" || type === "boolean" ? type : "number";
         }
         reader ??= itemReader({ componentInfoObjects, referents });
-        const { items, unknown } = reader.itemsOfChildren(
-            children,
-            new Set([node.componentIdx]),
+        // each component a wrapper of several (a `<group>`) holds, as the
+        // tally counts each
+        const seen = new Set([node.componentIdx]);
+        const { items, unknown } = reader.eachComponent(
+            reader.itemsOfChildren(children, seen),
+            seen,
         );
-        // A wrapper of several (a `<group>`), whose components are counted
-        // each, is not read here.
-        const several = items.some((item) => item.kind !== "one");
         if (
             items.some(
                 (item) => item.kind === "one" && !inherits(item.tag, "number"),
@@ -534,7 +535,7 @@ export function propertyTypeReader({
         ) {
             return "text";
         }
-        if (unknown || several) {
+        if (unknown) {
             return undefined;
         }
         return items.length > 0 ? "number" : "text";

@@ -166,11 +166,16 @@ can be obtain with square brackets.  For example, the second response can be acc
 Each response has a type: its input's type (a math for a `<mathInput>{:dn}`, a text for a
 `<textInput>{:dn}`), or the tag of the component it is (an empty text for a component with
 no value, such as a `<line>{:dn}`). Responses may differ in type, so `currentResponses[2]`
-has the type of the second response. The types are usually decided from what is written,
-before anything is entered. A few are known only once the page is in use, such as a
-response that can be missing (a `<choiceInput>{:dn}` with nothing selected), or responses
-of different types beside a list whose length can change. A response a `<conditionalContent>{:dn}`
+has the type of the second response. The types are decided from what is written,
+before anything is entered. A response that is missing, such as a `<choiceInput>{:dn}` with
+nothing selected, keeps its type, and is a blank. A response a `<conditionalContent>{:dn}`
 holds must have the same type in every case.
+
+When responses of different types are in places known only once the page is in use, such
+as beside a list whose length can change, which response has which type isn't decided by
+what is written. Referring to them, as `$ans`, `$ans.currentResponses` or
+`currentResponses[2]`, is then an error. Refer to a response whose place is known, or give
+the responses one type.
 
 
 

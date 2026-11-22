@@ -597,4 +597,87 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             types: ["text"],
         });
     });
+
+    it("an extend of an answer through a composite holding one gets the same errors (#2606 item 7)", async () => {
+        // `<answer extend="$cc"/>` of a `<conditionalContent>` holding an
+        // `<answer>` in every case extends it (REF-7, D32), so what it would
+        // change of it is an error at load, as for an extend of the answer
+        // itself; the same for a `<select>` and a `<choiceInput>` in a
+        // `<group>`. Appearance attributes stay allowed.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<booleanInput name="b"/>
+<conditionalContent name="cc">
+  <case condition="$b"><answer><mathInput/><award><when>true</when></award></answer></case>
+  <else><answer><mathInput/><award><when>true</when></award></answer></else>
+</conditionalContent>
+<answer name="e1" extend="$cc" weight="2"/>
+<answer name="e2" extend="$cc"><textInput/></answer>
+<answer name="e3" extend="$cc" showCorrectness="false"/>
+<select name="s"><option><answer><mathInput/><award><when>true</when></award></answer></option></select>
+<answer name="e4" extend="$s" weight="3"/>
+<group name="g"><choiceInput><choice>a</choice></choiceInput></group>
+<choiceInput name="e5" extend="$g"><choice>b</choice></choiceInput>
+`,
+        });
+        expect(errors(core)).eqls([
+            "doenet-e0083: An `extend` of an `<answer>` shares its responses and credit with `$cc`, which grades them, so it can't change `weight`. To grade with a different `weight`, use `copy`.",
+            "doenet-e0084: What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `$cc`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.",
+            "doenet-e0083: An `extend` of an `<answer>` shares its responses and credit with `$s`, which grades them, so it can't change `weight`. To grade with a different `weight`, use `copy`.",
+            "doenet-e0058: Choices written inside an `extend` of a `<choiceInput>` would be new choices, but an extend shares its selection with `$g`, which has no such choice. To offer more choices, use `copy`.",
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const [name, type] of [
+            ["e1", "_error"],
+            ["e2", "_error"],
+            ["e3", "answer"],
+            ["e4", "_error"],
+            ["e5", "_error"],
+        ]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].componentType,
+                name,
+            ).eq(type);
+        }
+    });
+
+    it("a copyWithState of an answer may write children of its own, and is an answer of its own (D52 decision 3)", async () => {
+        // As for `copy`, and unlike `extend`, an award or input written
+        // inside it is allowed: it is an answer of its own that starts from
+        // a snapshot of its source (CPY-2), with its own responses, typed by
+        // what it copies and what is written in it, and its own credit.
+        const { core: core2, resolvePathToNodeIdx: resolve2 } =
+            await createTestCore({
+                doenetML: `
+<answer name="ans"><mathInput name="mi" prefill="x"/><award><when>$mi = x</when></award></answer>
+<answer name="ans2" copyWithState="$ans"><textInput name="ti"/><award credit="0.5"><when>$ti = a</when></award></answer>
+<p name="p2">$ans2.currentResponses</p>
+`,
+            });
+        expect(errors(core2)).eqls([]);
+        const ans2Idx = await resolve2("ans2");
+        expect(
+            core2.core._components[ans2Idx].doenetAttributes.propertyTypes
+                .currentResponses,
+        ).eqls(["math", "text"]);
+        await submitAnswer({
+            componentIdx: await resolve2("ans"),
+            core: core2,
+        });
+        let stateVariables = await core2.returnAllStateVariables(false, true);
+        // its own credit, not changed by submitting the source
+        expect(stateVariables[ans2Idx].stateValues.creditAchieved).eq(0);
+        await updateTextInputValue({
+            text: "a",
+            componentIdx: await resolve2("ans2.ti"),
+            core: core2,
+        });
+        await submitAnswer({ componentIdx: ans2Idx, core: core2 });
+        stateVariables = await core2.returnAllStateVariables(false, true);
+        expect(stateVariables[ans2Idx].stateValues.creditAchieved).eq(1);
+        expect(
+            stateVariables[ans2Idx].stateValues.submittedResponses.map(String),
+        ).eqls(["x", "a"]);
+        expect(stateVariables[ans2Idx].componentType).eq("answer");
+    });
 });

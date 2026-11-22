@@ -23,8 +23,10 @@
  *   y is a composite), a tag `<U extend="$y"/>` is a `U`, and a property
  *   `$P.x` of a component that is not a composite has the type of the
  *   property, which its component declares or the DoenetML decides
- *   (`propertyTypesAtLoad.ts`, TYPE, D45); one the DoenetML does not decide
- *   (an `<answer>`'s responses) is `doenet-e0067` (TYPE-3).
+ *   (`propertyTypesAtLoad.ts`, TYPE, D45). A reference to one the DoenetML
+ *   does not decide is already an error, `doenet-e0090`, in its place
+ *   (TYPE-3, `referencesToUndecidedTypes`); one only a composite reaches is
+ *   `doenet-e0067`.
  *
  * Different types that could each become a `T` are an error too: the author
  * wraps the reference, `<math>$cc</math>`, to read whatever it holds as one
@@ -47,7 +49,9 @@
  * component of the property's type, and one made from an input whose value's
  * type the DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>` of
  * texts) as one made from that value. One whose type the DoenetML doesn't
- * decide (`$a.currentResponses[1]` of an `<answer>`) is left to run time.
+ * decide (`$a.currentResponses[1]` of an `<answer>` whose responses' places
+ * are known only as it runs) is an error at load, `doenet-e0090`, before
+ * this check (TYPE-3).
  *
  * An index written as a literal into a selector whose `numToSelect` is
  * written (`<math extend="$s[2]"/>` of a one-pick `<select>`) names nothing
