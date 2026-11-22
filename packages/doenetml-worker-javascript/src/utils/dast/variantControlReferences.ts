@@ -15,9 +15,11 @@
  *   nothing reads, silently.
  *
  * Each is now `doenet-w0199` at the reference, which names nothing (a blank,
- * D37). A `<variantControl>` written with `extend`, `copy` or
- * `copyWithState` is `doenet-e0088` (`convertToCopy.ts`), and another tag
- * made from one is decided by the type checks (REF-5).
+ * D37). So is a tag made from a property of one
+ * (`<number extend="$vc.numVariants"/>`), which is then missing. A
+ * `<variantControl>` written with `extend`, `copy` or `copyWithState` is
+ * `doenet-e0088` (`convertToCopy.ts`), and another tag made from one itself
+ * (`<text extend="$vc"/>`) is decided by the type checks (REF-5).
  */
 import type { DiagnosticRecord } from "@doenet/utils";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
@@ -51,12 +53,7 @@ export function markReferencesToVariantControls({
             if (component.componentType === "variantControl") {
                 variantControls.add(component.componentIdx);
             }
-            const extending: any = component.extending;
-            if (
-                component.componentType === "_copy" &&
-                extending &&
-                "Ref" in extending
-            ) {
+            if (component.componentType === "_copy" && component.extending) {
                 references.push(component);
             }
             for (const attribute of Object.values(
@@ -92,11 +89,20 @@ export function markReferencesToVariantControls({
 
     const diagnostics: DiagnosticRecord[] = [];
     for (const copy of references) {
-        const ref = (copy.extending as any).Ref;
+        const [sourceKey, ref] = Object.entries(copy.extending as any)[0] as [
+            string,
+            any,
+        ];
         if (!variantControls.has(ref?.nodeIdx)) {
             continue;
         }
         const property = ref.unresolvedPath?.[0]?.name;
+        if (sourceKey !== "Ref" && !(ref.unresolvedPath?.length > 0)) {
+            // a tag made from the `<variantControl>` itself: a
+            // `<variantControl>` is `doenet-e0088`, another tag a type
+            // change (REF-5)
+            continue;
+        }
         const isAttribute =
             typeof property === "string" && attributeNames.includes(property);
         diagnostics.push(
@@ -117,7 +123,7 @@ export function markReferencesToVariantControls({
         );
         // a blank, as a reference that names nothing is (D37, `Copy.js`)
         copy.extending = {
-            Ref: {
+            [sourceKey]: {
                 ...ref,
                 nodeIdx: -1,
                 unresolvedPath: null,

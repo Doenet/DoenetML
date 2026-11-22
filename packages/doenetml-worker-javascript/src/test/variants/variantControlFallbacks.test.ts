@@ -352,6 +352,40 @@ ${select}
             ).eq("＿ ＿ ＿");
         });
 
+        it("a tag made from one of its properties is missing, with the same warning", async () => {
+            const { warnings, errors, stateVariables, resolvePathToNodeIdx } =
+                await load(
+                    `
+<variantControl name="vc" numVariants="3" />
+<p name="p"><number extend="$vc.numVariants"/> <text copy="$vc.seeds"/></p>
+${select}
+`,
+                    { componentName: "p" },
+                );
+            expect(errors).eqls([]);
+            expect(warnings.map((w) => w.message)).eqls([
+                `\`$vc.numVariants\` ${start}: \`numVariants\` is one of its attributes, not a property.`,
+                `\`$vc.seeds\` ${start}: \`seeds\` is one of its attributes, not a property.`,
+            ]);
+            expect(warnings.every((w) => w.code === "doenet-w0199")).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("＿ ＿");
+        });
+
+        it("a tag made from the variantControl itself is a type change", async () => {
+            const { warnings, errors } = await load(
+                `
+<variantControl name="vc" numVariants="3" />
+<text extend="$vc"/>
+${select}
+`,
+            );
+            expect(warnings).eqls([]);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0065"]);
+        });
+
         it("where a variantControl can be written, it makes none", async () => {
             const { variants, warnings, errors } = await load(
                 `
