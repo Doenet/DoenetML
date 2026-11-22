@@ -530,9 +530,9 @@ describe("Value lists as list components @group4", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="P" displayDigits="2">(1.23456, 2.34567)</point>
-    <cumulativeSum name="c">1 2 3</cumulativeSum>
+    <math name="m" functionSymbols="f g h" />
     <p name="pxs">$P.xs</p>
-    <p name="ptext">$c.text</p>
+    <p name="ptext">$m.functionSymbols</p>
     <mathList name="l" extend="$P.xs" />
     <p name="pl">$l</p>
     <mathInput name="mi" bindValueTo="$l[2]" />
@@ -549,7 +549,10 @@ describe("Value lists as list components @group4", async () => {
 
         expect(
             await textsOf(core, resolvePathToNodeIdx, ["pxs", "ptext", "pl"]),
-        ).eqls({ pxs: "1.2, 2.3", ptext: "1, 3, 6", pl: "1.2, 2.3" });
+            // (an array of texts of a math, where it was `$c.text` of a
+            // `<cumulativeSum>`, which names nothing since D59: a list's text is
+            // not a property of its own)
+        ).eqls({ pxs: "1.2, 2.3", ptext: "f, g, h", pl: "1.2, 2.3" });
 
         await updateMathInputValue({
             latex: "7",

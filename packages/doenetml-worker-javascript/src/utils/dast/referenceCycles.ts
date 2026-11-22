@@ -305,8 +305,8 @@ export const PROPERTIES_READ: [string, string[]][] = [
     [
         "mathList",
         [
-            "latex",
-            "text",
+            // (its `text` and `latex` are its entries', which name nothing
+            // after it, D59)
             "numComponents",
             "mergeMathLists",
             "displayDigits",
@@ -326,7 +326,7 @@ export const PROPERTIES_READ: [string, string[]][] = [
             "avoidScientificNotation",
         ],
     ],
-    ["textList", ["text", "numComponents"]],
+    ["textList", ["numComponents"]],
     ["booleanList", ["numComponents"]],
     ["_inlineRenderInlineChildren", ["text"]],
     ["_textOrInline", ["value", "text"]],

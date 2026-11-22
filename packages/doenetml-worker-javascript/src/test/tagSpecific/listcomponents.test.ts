@@ -589,14 +589,15 @@ describe("List operator results as children @group4", async () => {
     <math name="mExpr">$c[2].value + 1</math>
     <text name="tText">$c[2].text</text>
     <number name="nDigits">$c[2].displayDigits</number>
-    <p name="pAllValue">$c.value</p>
-    <p name="pAllText">$c.text</p>
+    <p name="pAllValue">$c</p>
+    <p name="pAllText"><text>$c</text></p>
+    <p name="pOld">$c.value $c.text</p>
     <p name="pAllFixed">$c.fixed</p>
     <p name="pEachFixed">$c[1].fixed $c[2].fixed</p>
     <p name="pAllDigits">$c.displayDigits</p>
     <p name="pAllStyle">$c.styleNumber</p>
     <p name="pSum"><sum><repeat for="$c" valueName="ev">$ev.number</repeat></sum></p>
-    <p name="pNumbers">$s[2].math $s[2].text $s.text</p>
+    <p name="pNumbers">$s[2].math $s[2].text $s</p>
     <text name="tNumbers">$s[$i].text</text>
     `,
         });
@@ -616,6 +617,9 @@ describe("List operator results as children @group4", async () => {
             nDigits: "3",
             pAllValue: "1.23, 3.7, 7.41",
             pAllText: "1.23, 3.7, 7.41",
+            // a list's value and text are not properties of its own (D59);
+            // they were each entry's read together
+            pOld: "＿ ＿",
             // a collection's own setting (COLL-2); each result is fixed
             pAllFixed: "false",
             pEachFixed: "true true",
@@ -624,6 +628,7 @@ describe("List operator results as children @group4", async () => {
             // each result's `number`, read by a repeat: `$c.number` was each
             // entry's (D41); a property after a list is its own (D59)
             pSum: "12.35",
+            // `$s` for the indices: `$s.text` names nothing (D59)
             pNumbers: "2 2 1, 2, 3",
             tNumbers: "2",
         });

@@ -672,9 +672,17 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         _inlineRenderInlineChildren: "em",
         _textOrInline: "title",
     };
+    // A list's text and LaTeX were each entry's, read together; they are not
+    // properties of its own, so a name after the list names nothing, with no
+    // cycle (D59, below).
+    const notOwnOfList = (tag: string, property: string) =>
+        tag.endsWith("List") && ["text", "latex"].includes(property);
     for (const [base, properties] of PROPERTIES_READ) {
         const tag = tagOf[base] ?? base;
         for (const property of properties) {
+            if (notOwnOfList(tag, property)) {
+                continue;
+            }
             const doenetML = `<${tag} name="x">${contentOf[tag] ?? "a"} $x.${property}</${tag}>`;
             it(`a property made from what is written: ${doenetML}`, async () => {
                 const { errors, rest } = await errorsAndRest(doenetML);
@@ -684,6 +692,22 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
             });
         }
     }
+
+    it("a list's text or LaTeX in what is written names nothing, rather than a cycle (D59)", async () => {
+        for (const doenetML of [
+            `<mathList name="x">1 2 $x.latex</mathList>`,
+            `<mathList name="x">1 2 $x.text</mathList>`,
+            `<textList name="x">a b $x.text</textList>`,
+        ]) {
+            const { errors, rest, core } = await errorsAndRest(doenetML);
+            expect(errors, doenetML).eqls([]);
+            expect(rest).eq("rest");
+            expect(
+                getDiagnosticsByType(core).warnings.map((w: any) => w.code),
+                doenetML,
+            ).eqls(["doenet-w0199"]);
+        }
+    });
 
     // Every property of an input listed as made from where its value starts
     // (`INPUTS`), and the input as a whole, in each such attribute.

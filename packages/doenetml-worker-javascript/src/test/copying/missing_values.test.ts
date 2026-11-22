@@ -1866,12 +1866,17 @@ describe("A value computed from a missing input (D40) @group2", () => {
     <mathList name="ml">1 $nothing 3</mathList>
     <booleanList name="bl">true $nothing</booleanList>
     <textList name="tl">a $nothing</textList>
-    <p name="p">[$nl.text][$bl.text][$tl.text][$ml.latex][$nl[2].text]</p>
+    <p name="p">[<text>$nl</text>][<text>$bl</text>][<text>$tl</text>][$ml[1].latex, $ml[2].latex, $ml[3].latex][$nl[2].text]</p>
+    <p name="pOld">[$nl.text][$ml.latex]</p>
     <p name="p2">[$ml[3].matrixSize][$ml[2].matrixSize][$ml[1].matrixSize]</p>
     `,
-            ["p", "p2"],
+            ["p", "p2", "pOld"],
         );
+        // the list's text read as a text, and each entry's LaTeX: a list's
+        // text and LaTeX are not properties of its own (D59), so
+        // `$nl.text` and `$ml.latex` name nothing
         expect(texts.p).eq("[1, ＿, 3][true, ＿][a, ＿][1, ＿, 3][＿]");
+        expect(texts.pOld).eq("[＿][＿]");
         // each entry's by index: `$ml.matrixSize` was every entry's (D41); a
         // property after a list is its own (D59)
         expect(texts.p2).eq("[1, 1][＿][1, 1]");
