@@ -699,7 +699,7 @@ export default class Choiceinput extends Input {
         // doesn't decide it, it is worked out from the choices only for the
         // values it holds and records as a response: no reference reads it
         // as a type, as one that reads its values is an error at load
-        // (TYPE-3, `doenet-e0090`), and its `selectedValues` declare none.
+        // (TYPE-3, `doenet-e0091`), and its `selectedValues` declare none.
         stateVariableDefinitions.componentType = {
             returnDependencies: () => ({
                 propertyTypes: {

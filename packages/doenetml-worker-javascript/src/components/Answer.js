@@ -46,7 +46,7 @@ const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix", "angle"];
  * the entry directly — `$ans.submittedResponse` in an expression such as
  * `<feedback condition="$ans.submittedResponse = z">` — needs one. An entry
  * whose type the DoenetML doesn't decide is read as a `math`: no reference
- * reads it (`doenet-e0090`), and it is blank or not as before
+ * reads it (`doenet-e0091`), and it is blank or not as before
  * (`responseIsBlank`). An entry that is not a bare tree, or whose type
  * neither is in `MATH_RESPONSE_TYPES` nor inherits from one of them, is
  * returned unchanged.

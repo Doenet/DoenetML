@@ -135,14 +135,13 @@ export function checkNamesAfterCollectionsAtLoad({
         any
     >;
 
-    // Without case, as a type written as a value is read
-    // (`_createComponentOfType`); a tag is exact already (D51).
+    // Matched exactly, as a tag is (NAME-0, D51), and a tag written as a
+    // value (`<collect componentType>`, D62), which was given the tag's
+    // spelling before the document loads if written in another case.
     function canonicalType(type: string | undefined) {
         return type === undefined
             ? undefined
-            : componentInfoObjects.componentTypeLowerCaseMapping[
-                  type.toLowerCase()
-              ];
+            : componentInfoObjects.componentTypeAsWritten(type);
     }
 
     function isComposite(componentType: string) {
@@ -937,7 +936,7 @@ export function checkNamesAfterCollectionsAtLoad({
             ...component.doenetAttributes,
             noReferent: true,
         };
-        if (owner && attributeName?.toLowerCase() === "target") {
+        if (owner && attributeName === "target") {
             // an action's target, which would report again that it has none
             // (`doenet-w0043`) when the action acts
             owner.doenetAttributes = {
@@ -1028,17 +1027,14 @@ function literalText(attribute: SerializedAttribute | undefined) {
     return undefined;
 }
 
-/** An attribute of `component`, matched without regard to case. */
+/**
+ * An attribute of `component`, matched exactly (NAME-0, D51): one written
+ * in another case was given the component's spelling before the document
+ * loads (`doenet-w0197`), or is an attribute the component doesn't have.
+ */
 function attributeOf(component: SerializedComponent, name: string) {
-    const lower = name.toLowerCase();
-    for (const [attrName, attribute] of Object.entries(
-        component.attributes ?? {},
-    )) {
-        if (attrName.toLowerCase() === lower) {
-            return attribute;
-        }
-    }
-    return undefined;
+    const attributes = component.attributes ?? {};
+    return Object.hasOwn(attributes, name) ? attributes[name] : undefined;
 }
 
 /**

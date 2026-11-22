@@ -53,8 +53,11 @@ import { findAttributeKey } from "./dast-attribute-utils";
  * generator runs `createAttributesObject()` against the real class, so any
  * future addition there will fail that pin-test).
  *
- * Stored lowercased for case-insensitive comparison; runtime matches names
- * case-insensitively.  Attributes starting with `_` (such as
+ * Stored lowercased and compared without case, as the core still compares
+ * them (`existingModuleAttrNames.includes(childName.toLowerCase())` in
+ * `ModuleAttributes.js`): a declared name that differs from one of the
+ * `<module>`'s own only in case is not used as a module attribute either.
+ * Attributes starting with `_` (such as
  * `_createComponentOfType`) are left out: a `<moduleAttributes>` child's name
  * must start with a letter, so none can collide with them.
  */
@@ -114,7 +117,7 @@ function readPrimitiveNameAttribute(el: DastElement): string | undefined {
 /**
  * Metadata captured for one author-declared attribute on a `<module>`.
  *
- * `componentType` is the lowercased tag name of the child element that
+ * `componentType` is the tag name, as written, of the child element that
  * carried the `name=` attribute inside `<moduleAttributes>` — e.g. `"point"`
  * for `<point name="center">`.  Surfaced verbatim in the completion and
  * help-panel descriptions so authors see what type of value the original
@@ -154,17 +157,20 @@ function readDeclaredDefaultValueText(el: DastElement): string | undefined {
 }
 
 /**
- * Lowercased map from attribute name to declared-attribute metadata for a
- * `<module>` definition's `<moduleAttributes>` child.
+ * Map from attribute name, as declared, to declared-attribute metadata for a
+ * `<module>` definition's `<moduleAttributes>` child. Names are matched
+ * exactly (NAME-0, D51), as the core matches them (`moduleAttributesWritten`
+ * in `utils/moduleAttributeNames.ts`); one written on the instance in
+ * another case is the schema check's `doenet-w0197`.
  *
  * Behavior:
  *   - Returns an empty map when `moduleDefn` is not a `<module>` element
- *     (case-insensitive name check).
+ *     (tag matched exactly: `<Module>` is no component).
  *   - Returns an empty map when `<moduleAttributes>` is absent, or present
  *     but contains no qualifying children.
  *   - For each direct child element of `<moduleAttributes>` that has a
- *     primitive `name` attribute, lowercases the name and records the
- *     child's lowercased tag name as `componentType`.
+ *     primitive `name` attribute, records the name as declared, and the
+ *     child's tag name as `componentType`.
  *   - Skips children whose name collides with `RESERVED_MODULE_ATTRIBUTE_NAMES`
  *     — the runtime ignores those (silent warning), so synthesizing a
  *     "declared" entry for `hide` / `name` / `copy` would mislead the
@@ -176,11 +182,11 @@ function readDeclaredDefaultValueText(el: DastElement): string | undefined {
 export function getModuleDeclaredAttributes(
     moduleDefn: DastElement,
 ): Map<string, DeclaredModuleAttribute> {
-    if (moduleDefn.name.toLowerCase() !== "module") return new Map();
+    if (moduleDefn.name !== "module") return new Map();
 
     const attrsBlock = moduleDefn.children.find(
         (c): c is DastElement =>
-            c.type === "element" && c.name.toLowerCase() === "moduleattributes",
+            c.type === "element" && c.name === "moduleAttributes",
     );
     if (!attrsBlock) return new Map();
 
@@ -189,8 +195,7 @@ export function getModuleDeclaredAttributes(
         if (child.type !== "element") continue;
         const name = readPrimitiveNameAttribute(child);
         if (name === undefined) continue;
-        const lowered = name.toLowerCase();
-        if (RESERVED_MODULE_ATTRIBUTE_NAMES.has(lowered)) continue;
+        if (RESERVED_MODULE_ATTRIBUTE_NAMES.has(name.toLowerCase())) continue;
         // LSP-side tie-breaker: when `<moduleAttributes>` declares the
         // same name twice (e.g. `<point name="dup"/><number name="dup"/>`),
         // the synthesized SchemaAttribute can only carry one component
@@ -200,28 +205,25 @@ export function getModuleDeclaredAttributes(
         // pick first because the help/completion surfaces need a single
         // metadata payload per name.  An author-authored duplicate is
         // already its own diagnostic at runtime (warns on the second).
-        if (declared.has(lowered)) continue;
+        if (declared.has(name)) continue;
         const meta: DeclaredModuleAttribute = {
-            componentType: child.name.toLowerCase(),
+            componentType: child.name,
         };
         const defaultText = readDeclaredDefaultValueText(child);
         if (defaultText !== undefined) meta.defaultValueText = defaultText;
-        declared.set(lowered, meta);
+        declared.set(name, meta);
     }
     return declared;
 }
 
 /**
  * Build a merged `SchemaAttribute[]` from the canonical `<module>` schema
- * list plus synthesized entries for each `declared` name not already present
- * (case-insensitive).  Used by the completion path so author-declared names
+ * list plus synthesized entries for each `declared` name not already present.  Used by the completion path so author-declared names
  * appear in the attribute-name dropdown alongside canonical ones.
  *
  * Synthesized entries carry:
- *   - `name`: the lowercased declared name (matches how the runtime stores
- *     and looks them up — see `ModuleAttributes.js:107-108`).  Validation is
- *     case-insensitive everywhere, so the lowercase form is the canonical
- *     representation for the synthesized entry.
+ *   - `name`: the declared name, as declared, which is how the core matches
+ *     it (`moduleAttributesWritten`).
  *   - `description`: the declared child's component type wrapped in backticks
  *     so the markdown-rendered help panel and autocomplete dropdown surface
  *     it as inline code — e.g. "Author-declared module attribute
@@ -235,12 +237,10 @@ export function mergeDeclaredIntoSchemaAttributes(
 ): SchemaAttribute[] {
     if (declared.size === 0) return canonical;
 
-    const canonicalLowered = new Set(
-        canonical.map((a) => a.name.toLowerCase()),
-    );
+    const canonicalNames = new Set(canonical.map((a) => a.name));
     const merged = canonical.slice();
     for (const [name, meta] of declared) {
-        if (canonicalLowered.has(name)) continue;
+        if (canonicalNames.has(name)) continue;
         const synthesized: SchemaAttribute = {
             name,
             description: describeDeclaredModuleAttribute(meta),
@@ -344,7 +344,7 @@ export async function resolveCopyExtendReference(
     moduleElement: DastElement,
     adapter: RustResolverAdapter,
 ): Promise<DastElement | null> {
-    if (moduleElement.name.toLowerCase() !== "module") return null;
+    if (moduleElement.name !== "module") return null;
 
     const referencePath =
         readBareReferencePath(moduleElement, "copy") ??
@@ -358,13 +358,13 @@ export async function resolveCopyExtendReference(
     );
     if (!target) return null;
     if (target === moduleElement) return null;
-    if (target.name.toLowerCase() !== "module") return null;
+    if (target.name !== "module") return null;
 
     return target;
 }
 
 /**
- * For a `<module copy="$x" .../>` instance, return a lowercased map from
+ * For a `<module copy="$x" .../>` instance, return a map from
  * each attribute name declared by `$x`'s `<moduleAttributes>` block to its
  * declared metadata (currently just the child element's component type).
  *
@@ -392,8 +392,10 @@ export async function getEffectiveModuleAttributes(
 
 /**
  * Walk a DAST tree and return every `<module>` element that authored a
- * `copy=`, `copyWithState=` or `extend=` attribute (case-insensitive on the element name AND
- * the attribute key — `findAttributeKey` already does the latter).  Used
+ * `copy=`, `copyWithState=` or `extend=` attribute (the element name matched
+ * exactly; the attribute key without case — `findAttributeKey` — as the
+ * parser, for one release, still applies `Copy` as `copy`, with
+ * `doenet-w0197`).  Used
  * by the precompute pass on `AutoCompleter` so we only fire per-instance
  * resolution for sites that could be augmented, not every `<module>` in
  * the document.
@@ -410,7 +412,7 @@ export function collectModuleInstancesWithCopyOrExtend(
     const walk = (node: DastNodes) => {
         if (node.type !== "element") return;
         if (
-            node.name.toLowerCase() === "module" &&
+            node.name === "module" &&
             (findAttributeKey(node, "copy") !== undefined ||
                 findAttributeKey(node, "copyWithState") !== undefined ||
                 findAttributeKey(node, "extend") !== undefined)

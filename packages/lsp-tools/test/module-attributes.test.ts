@@ -96,7 +96,7 @@ describe("RESERVED_MODULE_ATTRIBUTE_NAMES", () => {
         );
     });
 
-    it("is stored lowercase (case-insensitive lookup contract)", () => {
+    it("is stored lowercase (compared without case, as the core still compares them)", () => {
         for (const name of RESERVED_MODULE_ATTRIBUTE_NAMES) {
             expect(name).toBe(name.toLowerCase());
         }
@@ -128,7 +128,7 @@ describe("getModuleDeclaredAttributes", () => {
         expect(getModuleDeclaredAttributes(el)).toEqual(new Map());
     });
 
-    it("collects names lowercased and records each child's component type", () => {
+    it("collects names as declared and records each child's component type", () => {
         const el = elementNamed(
             `<module name="m"><moduleAttributes>
                 <point name="Center">(0,0)</point>
@@ -139,28 +139,29 @@ describe("getModuleDeclaredAttributes", () => {
         );
         expect(getModuleDeclaredAttributes(el)).toEqual(
             declared({
-                center: { componentType: "point", defaultValueText: "(0,0)" },
+                Center: { componentType: "point", defaultValueText: "(0,0)" },
                 color: { componentType: "number", defaultValueText: "2" },
-                radius: { componentType: "number", defaultValueText: "4" },
+                RADIUS: { componentType: "number", defaultValueText: "4" },
             }),
         );
     });
 
-    it("lowercases mixed-case component-type tag names", () => {
-        // The runtime treats element names case-insensitively (the wrapping
-        // and reading code already normalizes them).  Storing the component
-        // type lowercased keeps the description payload deterministic
-        // regardless of how the author cased the original tag.
+    it("keeps names that differ only in case apart", () => {
+        // Names are matched exactly (NAME-0, D51), as the core matches them
+        // (`moduleAttributesWritten`): `a` and `A` are two module attributes.
         const el = elementNamed(
             `<module name="m"><moduleAttributes>
-                <POINT name="center">(0,0)</POINT>
+                <number name="a">1</number>
+                <number name="A">2</number>
             </moduleAttributes></module>`,
             "module",
         );
-        expect(getModuleDeclaredAttributes(el).get("center")).toEqual({
-            componentType: "point",
-            defaultValueText: "(0,0)",
-        });
+        expect(getModuleDeclaredAttributes(el)).toEqual(
+            declared({
+                a: { componentType: "number", defaultValueText: "1" },
+                A: { componentType: "number", defaultValueText: "2" },
+            }),
+        );
     });
 
     it("skips nameless children", () => {
@@ -204,32 +205,26 @@ describe("getModuleDeclaredAttributes", () => {
         );
     });
 
-    it("case-insensitive on the <moduleAttributes> wrapper name", () => {
+    it("matches the <moduleAttributes> wrapper name exactly", () => {
+        // `<MODULEATTRIBUTES>` is no component (`doenet-e0002`), so it
+        // declares nothing.
         const el = elementNamed(
             `<module name="m"><MODULEATTRIBUTES>
                 <text name="kept">x</text>
             </MODULEATTRIBUTES></module>`,
             "module",
         );
-        expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({
-                kept: { componentType: "text", defaultValueText: "x" },
-            }),
-        );
+        expect(getModuleDeclaredAttributes(el)).toEqual(new Map());
     });
 
-    it("case-insensitive on the <module> wrapper name", () => {
+    it("matches the <module> wrapper name exactly", () => {
         const el = elementNamed(
             `<MODULE name="m"><moduleAttributes>
                 <text name="kept">x</text>
             </moduleAttributes></MODULE>`,
             "module",
         );
-        expect(getModuleDeclaredAttributes(el)).toEqual(
-            declared({
-                kept: { componentType: "text", defaultValueText: "x" },
-            }),
-        );
+        expect(getModuleDeclaredAttributes(el)).toEqual(new Map());
     });
 
     it("considers only the FIRST <moduleAttributes> child (matches runtime walk)", () => {
@@ -294,7 +289,7 @@ describe("getModuleDeclaredAttributes", () => {
             "module",
         );
         const result = getModuleDeclaredAttributes(el);
-        expect(result.get("p")?.defaultValueText).toBe("(3,4)");
+        expect(result.get("P")?.defaultValueText).toBe("(3,4)");
         expect(result.get("n")?.defaultValueText).toBe("5");
         expect(result.get("t")?.defaultValueText).toBe("hello");
     });
@@ -433,7 +428,7 @@ describe("mergeDeclaredIntoSchemaAttributes", () => {
         expect("defaultValue" in synth[1]).toBe(false);
     });
 
-    it("does not duplicate names already in canonical (case-insensitive)", () => {
+    it("does not duplicate names already in canonical", () => {
         // `hide` is canonical lowercase; declared lowercase `hide` mustn't
         // double-add (the union-semantics in `isAllowedAttribute` already
         // accepts canonical names; a synthesized duplicate would render

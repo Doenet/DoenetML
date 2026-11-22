@@ -3,7 +3,7 @@
  * makes it: the types decided from the DoenetML when the document loads
  * (`doenetAttributes.propertyTypes`, `propertyTypesAtLoad.ts`, TYPE-2), one
  * per entry. `undefined` when the DoenetML doesn't decide them, when no
- * reference may read them (`doenet-e0090`).
+ * reference may read them (`doenet-e0091`).
  *
  * `variableName` is `submittedResponses` (the default) or
  * `currentResponses`. Read from the core, as the run time never works a

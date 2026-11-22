@@ -4577,7 +4577,7 @@ export async function replacementFromProp({
             !arrayStateVarObj.shadowingInstructions.createComponentOfType
         ) {
             // A type the DoenetML doesn't decide (TYPE-3): a reference that
-            // reads it is an error at load (`doenet-e0090`), so one only the
+            // reads it is an error at load (`doenet-e0091`), so one only the
             // run time finds makes nothing.
             return {
                 serializedReplacements: [],

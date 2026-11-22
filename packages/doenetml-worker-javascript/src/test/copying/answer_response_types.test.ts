@@ -26,8 +26,8 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
     const e0065 = (T: string, source: string, sourceType: string) =>
         `doenet-e0065: A \`<${T}>\` can't be made from \`${source}\`, which gives a \`<${sourceType}>\`. To show it as it is, write \`${source}\`.`;
 
-    const e0090 = (source: string) =>
-        `doenet-e0090: \`${source}\` reads an \`<answer>\`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read the input or component that gives the response instead, or give the responses one type.`;
+    const e0091 = (source: string) =>
+        `doenet-e0091: \`${source}\` reads an \`<answer>\`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read the input or component that gives the response instead, or give the responses one type.`;
 
     function errors(core: any) {
         return getDiagnosticsByType(core).errors.map(
@@ -218,8 +218,8 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         // text: its type isn't decided, so a reference to it, or to the
         // whole, is an error at load (TYPE-3).
         expect(errors(core)).eqls([
-            e0090("$ans.currentResponses[1]"),
-            e0090("$ans"),
+            e0091("$ans.currentResponses[1]"),
+            e0091("$ans"),
         ]);
         await submitAnswer({
             componentIdx: await resolvePathToNodeIdx("ans"),
@@ -602,9 +602,9 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         // runs, so not typed, and a reference that reads them is an error at
         // load (TYPE-3), also for a place that would hold a text here.
         expect(errors(core)).eqls([
-            e0090("$a1"),
-            e0090("$a2.currentResponses[3]"),
-            e0090("$a3.submittedResponse2"),
+            e0091("$a1"),
+            e0091("$a2.currentResponses[3]"),
+            e0091("$a3.submittedResponse2"),
         ]);
         // The answers grade and record as before.
         expect(await submitted(core, resolvePathToNodeIdx, "a1")).eqls({
@@ -637,7 +637,7 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         // A `<point>` or `<text>` made from `$a` reads its submitted
         // responses, whose types aren't decided (TYPE-3); the copy reads
         // none of its properties.
-        expect(errors(core)).eqls([e0090("$a"), e0090("$a")]);
+        expect(errors(core)).eqls([e0091("$a"), e0091("$a")]);
         expect(
             (core as any).core._components[await resolvePathToNodeIdx("a2")]
                 .componentType,
@@ -658,7 +658,7 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         // back a round, and with an error in that choice in place of the
         // reference, the choices' type is decided, so `$ci` is not a second
         // error.
-        expect(errors(core)).eqls([e0090("$a.currentResponse1")]);
+        expect(errors(core)).eqls([e0091("$a.currentResponse1")]);
     });
 
     it("isResponse written with no value on a tag made with extend, or on a collect, is read as true", async () => {

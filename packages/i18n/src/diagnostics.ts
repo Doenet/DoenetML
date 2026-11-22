@@ -298,6 +298,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0198": "sort-by-prop-names-nothing",
     "doenet-w0199": "reference-to-variant-control",
     "doenet-w0200": "reference-name-after-collection",
+    "doenet-w0201": "attribute-written-twice",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -388,7 +389,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0087": "variants-all-excluded",
     "doenet-e0088": "variant-control-made-from",
     "doenet-e0089": "attribute-not-a-number",
-    "doenet-e0090": "property-type-undecided",
+    "doenet-e0090": "attribute-written-as-reference",
+    "doenet-e0091": "property-type-undecided",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",
@@ -457,8 +459,8 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         // Neither can be reached from authored DoenetML since names are
         // case-sensitive (D51, #2627 item 6). A tag that is no component
         // type, written with `copy` or `extend`, is `e0002` before a copy is
-        // made; the parser keeps one of an attribute written twice in one
-        // case (silently, for now), so the core never sees both, and of one
+        // made; the parser keeps the first of an attribute written twice in
+        // one case (with `w0201`, D62), so the core never sees both, and of one
         // written in two cases, one not given the component's spelling stays
         // an attribute the component doesn't have (`e0004`).
         "doenet-w0065",

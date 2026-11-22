@@ -1649,7 +1649,7 @@ export async function initializeStateVariable({
  * `doenetAttributes.propertyTypes`, `propertyTypesAtLoad.ts`), for an array
  * one type for every entry or the type of each. A type the DoenetML doesn't
  * decide stays unset: a reference that reads it is an error at load
- * (`doenet-e0090`), and one only the run time finds makes nothing
+ * (`doenet-e0091`), and one only the run time finds makes nothing
  * (`Copy.js`). A type is never worked out as the document runs.
  */
 function setTypeDecidedAtLoad({

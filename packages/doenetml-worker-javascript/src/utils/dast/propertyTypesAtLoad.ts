@@ -35,7 +35,7 @@
  * A type that can't be decided from the DoenetML (an answer's responses of
  * more than one type beside a list whose length can change, a choice holding
  * a `<repeat>` of what isn't typed) is not marked, and a reference that reads
- * it is an error at load, `doenet-e0090`, in place of the reference
+ * it is an error at load, `doenet-e0091`, in place of the reference
  * (TYPE-3, `referencesToUndecidedTypes`). The component itself still works:
  * an answer grades and records its responses as before.
  *
@@ -148,12 +148,11 @@ export function propertyTypeReader({
      */
     const decided = new Map<number, PropertyTypes | null>();
 
+    // matched exactly, as a tag is (NAME-0, D51)
     function canonical(type: string | undefined) {
         return type === undefined
             ? undefined
-            : componentInfoObjects.componentTypeLowerCaseMapping[
-                  type.toLowerCase()
-              ];
+            : componentInfoObjects.componentTypeAsWritten(type);
     }
 
     function inherits(componentType: string, base: string) {
@@ -303,7 +302,7 @@ export function propertyTypeReader({
         }
         if (component.componentType === "_error") {
             // an error, as one in place of a reference whose type isn't
-            // decided (`doenet-e0090`), holds no math
+            // decided (`doenet-e0091`), holds no math
             return false;
         }
         if (component.componentType === "_copy") {
@@ -1752,7 +1751,7 @@ export function markPropertyTypesAtLoad({
 
 /**
  * What a property whose type the DoenetML doesn't decide is, for the wording
- * of `doenet-e0090`: an `<answer>`'s responses, a `<choiceInput>`'s values,
+ * of `doenet-e0091`: an `<answer>`'s responses, a `<choiceInput>`'s values,
  * or another.
  */
 function undecidedWhat(variableName: string) {
@@ -1771,7 +1770,7 @@ function undecidedWhat(variableName: string) {
  * bare `$a` of one, which reads its `submittedResponses`. A reference that
  * reads such a property needs its type, whether it makes a component of it
  * or reads its value in an expression, so each is an error at load,
- * `doenet-e0090`, in place of the reference, with `what` the kind of
+ * `doenet-e0091`, in place of the reference, with `what` the kind of
  * property for its wording. A tag of another type made from the whole
  * `<answer>` (`<point extend="$a"/>`) reads it as a bare `$a` does. (A tag of
  * its own type, `<answer copy="$a"/>`, copies it, and reads no property.)

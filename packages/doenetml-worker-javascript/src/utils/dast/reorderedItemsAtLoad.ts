@@ -190,12 +190,13 @@ export function itemReader({
         return item.kind === "one" && inherits(item.tag, base);
     }
 
+    // Matched exactly, as a tag is (NAME-0, D51), and a tag written as a
+    // value (`<collect componentType>`, D62), which was given the tag's
+    // spelling before the document loads if written in another case.
     function canonical(type: string | undefined) {
         return type === undefined
             ? undefined
-            : componentInfoObjects.componentTypeLowerCaseMapping[
-                  type.toLowerCase()
-              ];
+            : componentInfoObjects.componentTypeAsWritten(type);
     }
 
     /** The tag of the entries of the list `component`, if known. */
@@ -1072,11 +1073,21 @@ export function checkReorderedItemsAtLoad({
     /**
      * `doenet-w0198` for a `<sort>` or `<sortIndices>` `component` whose
      * `sortByProp` names no property of an item it sorts (DIAG-3, #2627
-     * item 5), with a suggestion when it names one in another case (D51):
-     * the sort can't compare its items by it, which the author would
-     * otherwise not be told. Only items the DoenetML says the tag of are
+     * item 5): the sort can't compare its items by it, which the author
+     * would otherwise not be told. An item made from text the author wrote
+     * (`<sort sortByProp="x">3 1 2</sort>`, whose pieces are numbers) is
+     * read too (#2627 item 13). Only items the DoenetML says the tag of are
      * read, as for the errors above, and a `sortByProp` that isn't written
-     * as text (a reference) isn't checked.
+     * as text isn't checked (one written as a reference is an error,
+     * `doenet-e0090`).
+     *
+     * A `sortByProp` is a name, matched exactly (NAME-0, D62). One that
+     * names, in another case, a property every item read has in one
+     * spelling (`sortByProp="X"` of points) is applied in that spelling for
+     * this release, with `doenet-w0197`, as an attribute in another case is
+     * (D51): the value is rewritten here, before the sort reads it. Where
+     * the items don't agree on one, it is `doenet-w0198`, suggesting the
+     * spelling of the first item lacking it, if it has one.
      */
     function sortByPropWarning(component: SerializedComponent) {
         const attribute: any = component.attributes?.sortByProp;
@@ -1086,11 +1097,13 @@ export function checkReorderedItemsAtLoad({
             return undefined;
         }
         const { items } = itemsOfChildren(component.children ?? [], new Set());
-        const lacking = items.find(
-            (item) =>
+        const read = items.filter(
+            (item): item is Item & { kind: "one" } =>
                 item.kind === "one" &&
-                item.piece === undefined &&
-                item.tag in componentInfoObjects.allComponentClasses &&
+                item.tag in componentInfoObjects.allComponentClasses,
+        );
+        const lacking = read.find(
+            (item) =>
                 !typeHasProperty({
                     componentType: item.tag,
                     propName,
@@ -1100,6 +1113,49 @@ export function checkReorderedItemsAtLoad({
         if (lacking === undefined) {
             return undefined;
         }
+        const suggestionFor = (tag: string) =>
+            propertyDifferingOnlyInCase({
+                propName,
+                componentTypes: [tag],
+                componentInfoObjects,
+                // named alone, so an entry by its name (`x1`)
+                entriesByIndex: false,
+            });
+        const suggestion = suggestionFor(lacking.tag);
+        const position = attribute.position ?? component.position;
+        const sourceDoc = attribute.sourceDoc ?? component.sourceDoc;
+        if (
+            suggestion !== undefined &&
+            attribute.type === "primitive" &&
+            read.every(
+                (item) =>
+                    typeHasProperty({
+                        componentType: item.tag,
+                        propName: suggestion,
+                        componentInfoObjects,
+                    }) &&
+                    !typeHasProperty({
+                        componentType: item.tag,
+                        propName,
+                        componentInfoObjects,
+                    }),
+            )
+        ) {
+            attribute.primitive = { ...attribute.primitive, value: suggestion };
+            return codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0197",
+                args: {
+                    kind: "value",
+                    attribute: "sortByProp",
+                    value: propName,
+                    suggestion,
+                    componentType: component.componentType,
+                },
+                position,
+                sourceDoc,
+            });
+        }
         return codedDiagnostic({
             type: "warning",
             code: "doenet-w0198",
@@ -1107,18 +1163,10 @@ export function checkReorderedItemsAtLoad({
                 component: component.componentType,
                 property: propName,
                 item: lacking.tag,
-                ...suggestionArgs(
-                    propertyDifferingOnlyInCase({
-                        propName,
-                        componentTypes: [lacking.tag],
-                        componentInfoObjects,
-                        // named alone, so an entry by its name (`x1`)
-                        entriesByIndex: false,
-                    }),
-                ),
+                ...suggestionArgs(suggestion),
             },
-            position: attribute.position ?? component.position,
-            sourceDoc: attribute.sourceDoc ?? component.sourceDoc,
+            position,
+            sourceDoc,
         });
     }
 
