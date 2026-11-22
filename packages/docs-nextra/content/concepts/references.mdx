@@ -175,6 +175,19 @@ literal `b`, whereas `$ab` would look for a component named `ab`.
 <p>$(a)b is the value of a followed by the letter b.</p>
 ```
 
+### Writing a literal `$`
+
+A `$` followed by a letter, an underscore, or `(` starts a reference. To show a
+dollar sign there instead, write it as `&dollar;` or `&#36;`. This works in
+text and in attribute values alike. A `$` followed by anything else, such as a
+space or a digit, is already plain text.
+
+```doenet-editor-horiz
+<p name="price">The fee is $5, written in code as &dollar;fee.</p>
+
+<p>Show &#36;(x) as text: <text>&#36;(x)</text></p>
+```
+
 ### Writing a reference as a different tag
 
 A tag you write makes that tag. `<math extend="$t"/>{:dn}` or
