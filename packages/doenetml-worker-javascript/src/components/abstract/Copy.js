@@ -2092,16 +2092,16 @@ export default class Copy extends CompositeComponent {
         // (`sourceCaseOf`)
         const oneSource = !heldCase && sourceNums.length === 1;
         // A `<group>` made from several, as the iterations of a `<repeat>`
-        // (`<group extend="$r"/>`), holds them all, followed by the children
-        // written in it (REF-4), rather than one source taking them
-        // (`wrapInWrittenGroup`, #2638 item 7).
+        // (`<group extend="$r"/>`), or from none, holds them all, followed by
+        // the children written in it (REF-4), rather than one source taking
+        // them (`wrapInWrittenGroup`, #2638 item 7).
         const groupOfSeveral =
             !heldCase &&
-            isGroupOfSeveralSources(
+            (await isGroupOfSeveralSources(
                 component,
                 replacementSourceIdentities,
                 componentInfoObjects,
-            );
+            ));
         // of which, those shown: not an iteration a `<repeat>` withholds
         // while it has fewer
         const shownSourceNums = groupOfSeveral
@@ -2149,6 +2149,7 @@ export default class Copy extends CompositeComponent {
                 heldCase,
                 heldMadeFrom,
                 madeFrom: workspace.madeFrom,
+                attributesOnWrapper: groupOfSeveral,
             });
 
             diagnostics.push(...results.diagnostics);
@@ -2430,6 +2431,7 @@ export default class Copy extends CompositeComponent {
         inPlaceOfProp,
         heldMadeFrom,
         madeFrom,
+        attributesOnWrapper = false,
     }) {
         // console.log(`create replacement for sourceNum ${sourceNum}`);
         // console.log(
@@ -2823,7 +2825,9 @@ export default class Copy extends CompositeComponent {
                 repl.attributes = {};
             }
             const res = convertUnresolvedAttributesForComponentType({
-                attributes: component.attributes,
+                // those written on a `<group>` made from several sources are
+                // the one group's (`wrapInWrittenGroup`), not each source's
+                attributes: attributesOnWrapper ? {} : component.attributes,
                 componentType: repl.componentType,
                 componentInfoObjects,
                 compositeAttributesObj,
@@ -3155,11 +3159,11 @@ export default class Copy extends CompositeComponent {
         // follows its source.
         if (
             (workspace.groupOfSeveral ||
-                isGroupOfSeveralSources(
+                (await isGroupOfSeveralSources(
                     component,
                     replacementSourceIdentities,
                     componentInfoObjects,
-                )) &&
+                ))) &&
             !(await component.stateValues.targetInactive)
         ) {
             const sources = (
@@ -6639,24 +6643,44 @@ function namesNothing(numNonStringReplacementsBySource, madeBlankBySource) {
     );
 }
 
-/** The change that shows any replacements `component` withholds. */
 /**
  * Whether `component` is a `<group>` written with `extend` or `copy`
  * (`_copyInChildren`) made from several sources, as the iterations of a
- * `<repeat>` or the picks of a `<select>` of several are.
+ * `<repeat>` or the picks of a `<select>` of several are, or from none, as
+ * a `<repeat>` with no iterations, so that it holds the children written
+ * in it whether it loads with none or comes to have none. Not from no case
+ * of a `<conditionalContent>`, which stands for what it shows (COMP-11), and
+ * whose case, once shown, is withheld rather than removed (one source).
  */
-function isGroupOfSeveralSources(
+async function isGroupOfSeveralSources(
     component,
     replacementSourceIdentities,
     componentInfoObjects,
 ) {
     const written =
         component.attributes._createComponentOfType?.primitive?.value;
+    if (
+        !component.attributes._copyInChildren?.primitive?.value ||
+        written === undefined ||
+        componentInfoObjects.componentTypeAsWritten(written) !== "group" ||
+        !Array.isArray(replacementSourceIdentities)
+    ) {
+        return false;
+    }
+    if (replacementSourceIdentities.length > 1) {
+        return true;
+    }
+    if (replacementSourceIdentities.length === 1) {
+        return false;
+    }
+    const extendedType = (await component.stateValues.extendedComponent)
+        ?.componentType;
     return (
-        Boolean(component.attributes._copyInChildren?.primitive?.value) &&
-        written !== undefined &&
-        componentInfoObjects.componentTypeAsWritten(written) === "group" &&
-        (replacementSourceIdentities?.length ?? 0) > 1
+        extendedType !== undefined &&
+        !componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: extendedType,
+            baseComponentType: "conditionalContent",
+        })
     );
 }
 
@@ -6730,6 +6754,7 @@ function wrapInWrittenGroup({
     return { replacements: wrapped, nComponents };
 }
 
+/** The change that shows any replacements `component` withholds. */
 function unwithheldChanges(component) {
     return component.replacementsToWithhold > 0
         ? [

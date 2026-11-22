@@ -753,6 +753,25 @@ describe("Names after collections, round 2 (#2638)", () => {
         ]);
     });
 
+    it("a name written in a list, after a group standing for it, in each iteration of a repeat and its copies (item 5)", async () => {
+        // Before: blanks, with no message, as what the name is resolved from
+        // was the template's list, not the iteration's.
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2" valueName="v"><pointList name="pl"><point name="P">($v,2)</point></pointList><group name="g">$pl</group><point name="q" extend="$g.P"/><math name="m">$g.P.x</math></repeat>
+<repeat name="r2" extend="$r"/><repeat name="r3" copy="$r"/>
+<p name="p1">$r[1].q</p><p name="p2">$r[2].q</p><p name="p3">$r[2].m</p><p name="p4">$r2[2].q</p><p name="p5">$r3[2].q</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        expect(texts).eqls({
+            p1: "(1, 2)",
+            p2: "(2, 2)",
+            p3: "2",
+            p4: "(2, 2)",
+            p5: "(2, 2)",
+        });
+        expect(diagnostics).eqls([]);
+    });
+
     it("w0191 speaks of a pick or the case shown, not of each item (item 6)", async () => {
         const { diagnostics } = await both(
             `<select name="s"><option><point>(1,2)</point><point>(3,4)</point></option><option><point>(5,6)</point></option></select>
@@ -777,48 +796,64 @@ describe("Names after collections, round 2 (#2638)", () => {
 <group name="g2" extend="$r"><text>x</text></group>
 <group name="g3" copy="$r"><text>x</text></group>
 <group name="g4" extend="$s"><text>x</text></group>
-<p name="p1">$g</p><p name="p2">$g2</p><p name="p3">$g3</p><p name="p4">$g4</p>`,
-            ["p1", "p2", "p3", "p4"],
+<group name="g5" extend="$r" hide><text>x</text></group>
+<repeatForSequence name="r0" length="0" valueName="v"><point>($v,1)</point></repeatForSequence>
+<group name="g6" extend="$r0"><text>x</text></group>
+<p name="p1">$g</p><p name="p2">$g2</p><p name="p3">$g3</p><p name="p4">$g4</p>
+<p name="p5">$g5</p><p name="p6">$g5.hidden</p><p name="p7">$g6</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
         );
+        // `hide` is the one group's, which a copy of it does not take, not
+        // each iteration's; and the children written in it are held with
+        // no iterations, as when the count comes to 0 (below).
         expect(texts).eqls({
             p1: "(1, 1)(2, 1)",
             p2: "(1, 1)(2, 1)x",
             p3: "(1, 1)(2, 1)x",
             p4: "aax",
+            p5: "(1, 1)(2, 1)x",
+            p6: "true",
+            p7: "x",
         });
         expect(diagnostics).eqls([]);
     });
 
-    it("a group extending a repeat follows its count", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<mathInput name="n" prefill="2"/>
+    it("a group extending a repeat follows its count, from any count it loads with", async () => {
+        for (const prefill of ["2", "0", "1"]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<mathInput name="n" prefill="${prefill}"/>
 <repeatForSequence name="r" length="$n" valueName="v"><point>($v,1)</point></repeatForSequence>
 <group name="g" extend="$r"><text>x</text></group>
 <p name="p">$g</p>`,
-        });
-        const text = async () =>
-            (await core.returnAllStateVariables(false, true))[
-                await resolvePathToNodeIdx("p")
-            ].stateValues.text;
-        expect(await text()).eq("(1, 1)(2, 1)x");
-        const expected: [string, string][] = [
-            ["3", "(1, 1)(2, 1)(3, 1)x"],
-            ["1", "(1, 1)x"],
-            ["0", "x"],
-            ["2", "(1, 1)(2, 1)x"],
-        ];
-        for (const [latex, shown] of expected) {
-            await updateMathInputValue({
-                latex,
-                componentIdx: await resolvePathToNodeIdx("n"),
-                core,
             });
-            expect(await text(), `n = ${latex}`).eq(shown);
+            const text = async () =>
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("p")
+                ].stateValues.text;
+            const shownFor: Record<string, string> = {
+                "0": "x",
+                "1": "(1, 1)x",
+                "2": "(1, 1)(2, 1)x",
+                "3": "(1, 1)(2, 1)(3, 1)x",
+            };
+            expect(await text(), `loaded with ${prefill}`).eq(
+                shownFor[prefill],
+            );
+            for (const latex of ["3", "1", "0", "2"]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+                expect(await text(), `${prefill}, then n = ${latex}`).eq(
+                    shownFor[latex],
+                );
+            }
+            expect(
+                core.core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                ),
+            ).eqls([]);
         }
-        expect(
-            core.core!.diagnostics.filter(
-                (d: any) => !d.code?.startsWith("doenet-a"),
-            ),
-        ).eqls([]);
     });
 });
