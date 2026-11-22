@@ -76,9 +76,10 @@ export default class Markers extends BaseComponent {
             description: "The list of marker values.",
             public: true,
             isArray: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // its type is decided when the document loads (TYPE, D45,
+            // `propertyTypesAtLoad.ts`): a text when any marker is one,
+            // else a number
+            shadowingInstructions: {},
             entryPrefixes: ["item"],
             returnDependencies: () => ({
                 markerType: {
@@ -98,7 +99,6 @@ export default class Markers extends BaseComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let markers = [];
-                let componentType = dependencyValues.markerType;
 
                 if (dependencyValues.markerType === "text") {
                     markers = dependencyValues.textChildren.map(
@@ -111,14 +111,9 @@ export default class Markers extends BaseComponent {
                     markers.sort((a, b) => {
                         return a - b;
                     }); //sort in number order
-                } else {
-                    componentType = "text"; // use "text" for case when "empty"
                 }
 
-                return {
-                    setValue: { markers },
-                    setCreateComponentOfType: { markers: componentType },
-                };
+                return { setValue: { markers } };
             },
         };
 

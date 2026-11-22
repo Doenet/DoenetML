@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { responseTypes } from "../utils/responseTypes";
 import { cleanLatex } from "../utils/math";
 import {
     focusChanged,
@@ -3982,7 +3983,8 @@ Enter any letter:
                     submitted: stateValues.submittedResponses.map((x: any) =>
                         x instanceof me.class ? x.tree : x,
                     ),
-                    types: stateValues.submittedResponsesComponentType,
+                    // decided at load (TYPE-2)
+                    types: await responseTypes(core, a2),
                 };
             }
 
@@ -4149,6 +4151,9 @@ Enter any letter:
         });
 
         it("copies made at run time, before and after one is remade", async () => {
+            // What each reference names is known only as the document runs,
+            // so the response's type isn't decided (TYPE-3): a reference to
+            // the answer's responses would be an error at load.
             const runTimeDefinitions = `
             <mathInput name="i" prefill="1" />
             <repeatForSequence name="r" length="3" valueName="v"><point name="q">($v,2)</point></repeatForSequence>
@@ -4163,7 +4168,7 @@ Enter any letter:
                             credit: 1,
                             numResponses: 1,
                             submitted: [1],
-                            types: ["math"],
+                            types: undefined,
                         },
                     },
                 });
@@ -4178,13 +4183,13 @@ Enter any letter:
                         credit: 1,
                         numResponses: 1,
                         submitted: [1],
-                        types: ["math"],
+                        types: undefined,
                     },
                     afterUpdate: {
                         credit: 0,
                         numResponses: 1,
                         submitted: [2],
-                        types: ["math"],
+                        types: undefined,
                     },
                 },
             });
@@ -4202,26 +4207,34 @@ Enter any letter:
             <group name="g"><text>a</text><point name="gp">(1,2)</point></group>
             <group name="g2" extend="$g" />
             <select name="s"><option><math>x</math></option></select>`;
-            const math = (submitted: any) => ({
+            // A path the document resolves when it loads (`$g.gp.x`) is
+            // typed then; one through an extend (`$g2.gp.x`), or the math a
+            // `<select>` picks, is known only as the document runs, so the
+            // response's type isn't decided (TYPE-3).
+            const math = (submitted: any, decided: boolean) => ({
                 atLoad: {
                     credit: 1,
                     numResponses: 1,
                     submitted: [submitted],
-                    types: ["math"],
+                    types: decided ? ["math"] : undefined,
                 },
             });
             for (const a1HasInput of [true, false]) {
                 for (const [when, refs, expected] of [
-                    ["$g.gp.x = 1 and $n = 3", "$g.gp.x", math(1)],
-                    ["$g2.gp.x = 1 and $n = 3", "$g2.gp.x", math(1)],
+                    ["$g.gp.x = 1 and $n = 3", "$g.gp.x", math(1, true)],
+                    ["$g2.gp.x = 1 and $n = 3", "$g2.gp.x", math(1, false)],
                     [
                         "<math>$g.gp.x + 1</math> = 2 and $n = 3",
                         "$g.gp.x",
-                        math(1),
+                        math(1, true),
                     ],
-                    ["$s = x and $n = 3", "$s", math("x")],
-                    ["<math>$s</math> = x and $n = 3", "$s", math("x")],
-                    ["<math>$s + 1</math> = x + 1 and $n = 3", "$s", math("x")],
+                    ["$s = x and $n = 3", "$s", math("x", false)],
+                    ["<math>$s</math> = x and $n = 3", "$s", math("x", false)],
+                    [
+                        "<math>$s + 1</math> = x + 1 and $n = 3",
+                        "$s",
+                        math("x", false),
+                    ],
                 ] as const) {
                     await checkAgainstWrittenOut({
                         a1HasInput,
@@ -10792,6 +10805,7 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             core,
         });
         const before = await core.returnAllStateVariables(false, true);
+        const coreBefore = core;
 
         await core.saveImmediately();
         ({ core, resolvePathToNodeIdx } = await createTestCore({
@@ -10799,7 +10813,19 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             initialState: scoreState.state,
         }));
         const after = await core.returnAllStateVariables(false, true);
-        return { before, after, resolvePathToNodeIdx };
+        const coreAfter = core;
+        /**
+         * The types of the submitted responses of `name`, before the reload
+         * and after it: those the DoenetML decides (TYPE-2, TYPE-4).
+         */
+        async function typesOf(name: string) {
+            const idx = await resolvePathToNodeIdx(name);
+            return [
+                await responseTypes(coreBefore, idx),
+                await responseTypes(coreAfter, idx),
+            ];
+        }
+        return { before, after, resolvePathToNodeIdx, typesOf };
     }
 
     it("a math response is read as a math by expressions outside the answer", async () => {
@@ -10850,38 +10876,34 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await updateMathInputValue({
-                    latex: "3",
-                    componentIdx: await resolvePathToNodeIdx("mi"),
-                    core,
-                });
-                await updateTextInputValue({
-                    text: "hello",
-                    componentIdx: await resolvePathToNodeIdx("ti"),
-                    core,
-                });
-                await updateBooleanInputValue({
-                    boolean: true,
-                    componentIdx: await resolvePathToNodeIdx("bi"),
-                    core,
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await updateMathInputValue({
+                        latex: "3",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    await updateTextInputValue({
+                        text: "hello",
+                        componentIdx: await resolvePathToNodeIdx("ti"),
+                        core,
+                    });
+                    await updateBooleanInputValue({
+                        boolean: true,
+                        componentIdx: await resolvePathToNodeIdx("bi"),
+                        core,
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["math", "text", "boolean", "number", "point"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "math",
-                "text",
-                "boolean",
-                "number",
-                "point",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0].tree).eq(3);
             expect(submittedResponses[1]).eq("hello");
             expect(submittedResponses[2]).eq(true);
@@ -10902,27 +10924,24 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await core.requestAction({
-                    componentIdx: await resolvePathToNodeIdx("S"),
-                    actionName: "setToR",
-                    args: {},
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await core.requestAction({
+                        componentIdx: await resolvePathToNodeIdx("S"),
+                        actionName: "setToR",
+                        args: {},
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["label", "subsetOfReals", "matrix", "angle"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "label",
-                "subsetOfReals",
-                "matrix",
-                "angle",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0]).eq("hello");
             expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
             expect(submittedResponses[1].toString()).eq("ℝ");
@@ -10953,26 +10972,27 @@ describe("An answer's submitted responses through a reload @group4", async () =>
     </answer>
     `;
 
-        const { before, after, resolvePathToNodeIdx } = await submitAndReload({
-            doenetML,
-            async inputs(core, resolvePathToNodeIdx) {
-                await submitAnswer({
-                    componentIdx: await resolvePathToNodeIdx("ans2"),
-                    core,
-                });
-            },
-        });
+        const { before, after, resolvePathToNodeIdx, typesOf } =
+            await submitAndReload({
+                doenetML,
+                async inputs(core, resolvePathToNodeIdx) {
+                    await submitAnswer({
+                        componentIdx: await resolvePathToNodeIdx("ans2"),
+                        core,
+                    });
+                },
+            });
 
         const ansIdx = await resolvePathToNodeIdx("ans");
         const ans2Idx = await resolvePathToNodeIdx("ans2");
+        for (const types of await typesOf("ans")) {
+            expect(types).eqls(["subsetOfReals", "subsetOfReals", "math"]);
+        }
+        for (const types of await typesOf("ans2")) {
+            expect(types).eqls(["subsetOfReals"]);
+        }
         for (const sv of [before, after]) {
-            const { submittedResponses, submittedResponsesComponentType } =
-                sv[ansIdx].stateValues;
-            expect(submittedResponsesComponentType).eqls([
-                "subsetOfReals",
-                "subsetOfReals",
-                "math",
-            ]);
+            const { submittedResponses } = sv[ansIdx].stateValues;
             expect(submittedResponses[0]).not.toBeInstanceOf(me.class);
             expect(submittedResponses[0].toString()).eq("(2,3) U {2}");
             expect(submittedResponses[1]).not.toBeInstanceOf(me.class);
@@ -10984,9 +11004,6 @@ describe("An answer's submitted responses through a reload @group4", async () =>
             ]);
 
             expect(sv[ans2Idx].stateValues.creditAchieved).eq(1);
-            expect(
-                sv[ans2Idx].stateValues.submittedResponsesComponentType,
-            ).eqls(["subsetOfReals"]);
             expect(
                 sv[ans2Idx].stateValues.submittedResponses[0],
             ).not.toBeInstanceOf(me.class);

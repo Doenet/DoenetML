@@ -98,6 +98,7 @@
     "doenet-e0088": "variant-control-made-from",
     "doenet-e0089": "attribute-not-a-number",
     "doenet-e0090": "attribute-written-as-reference",
+    "doenet-e0091": "property-type-undecided",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",

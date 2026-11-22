@@ -6,9 +6,8 @@
  * - `doenet-e0076`: items of more than one type, as a `<number>` and a
  *   `<text>`, or a `<math>` and a `<group>` of several components. Of a
  *   `<tally>` or `<markers>` too, whose categories or markers are of one
- *   type (D45 decision 6): there a wrapper of several components, whose
- *   components a tally counts each, is left out, so only items that are
- *   one component each, of different types, are an error, and the tag
+ *   type (D45 decision 6): there each component a wrapper of several holds
+ *   (a `<group>`) counts on its own, as the tally counts it, and the tag
  *   becomes the error, as a `<sortIndices>` does;
  * - `doenet-e0077`: a `<sort>` or `<sortIndices>` of an item holding
  *   several components (a
@@ -858,9 +857,30 @@ export function itemReader({
         return key === "content" ? undefined : key;
     }
 
+    /**
+     * The items `items`, with each that holds several components (a
+     * `<group>`, an iteration) replaced by the items of what it holds, as a
+     * `<tally>` or `<markers>` reads each component a wrapper holds.
+     */
+    function eachComponent(items: Items, seen: Set<number>): Items {
+        const result: Items = { items: [], unknown: items.unknown };
+        for (const item of items.items) {
+            if (item.kind === "one") {
+                result.items.push(item);
+                continue;
+            }
+            merge(
+                result,
+                eachComponent(itemsOfChildren(item.children, seen), seen),
+            );
+        }
+        return result;
+    }
+
     return {
         itemsOf,
         itemsOfChildren,
+        eachComponent,
         typeOf,
         isOf,
         inherits,
@@ -891,11 +911,17 @@ export function checkReorderedItemsAtLoad({
         componentInfoObjects,
         typeRepeatValues: true,
     });
-    const { itemsOfChildren, typeOf, isOf, describe, repeatForError } =
-        itemReader({
-            componentInfoObjects,
-            referents,
-        });
+    const {
+        itemsOfChildren,
+        eachComponent,
+        typeOf,
+        isOf,
+        describe,
+        repeatForError,
+    } = itemReader({
+        componentInfoObjects,
+        referents,
+    });
 
     /**
      * The error of the `<sort>`, `<sortIndices>` or `<shuffle>` `component`,
@@ -904,7 +930,13 @@ export function checkReorderedItemsAtLoad({
     function reorderError(
         component: SerializedComponent,
     ): ReorderErrorAtLoad | undefined {
-        const { items } = itemsOfChildren(component.children ?? [], new Set());
+        const written = itemsOfChildren(component.children ?? [], new Set());
+        // A `<tally>` or `<markers>` reads each component a wrapper holds
+        // (a `<group>` of a number and a text), so each counts on its own
+        // (D45 decision 6, #2606 item 6).
+        const { items } = ORDERS.has(component.componentType)
+            ? written
+            : eachComponent(written, new Set());
         if (SORTS.has(component.componentType)) {
             const several = items.find((item) => item.kind === "several");
             if (several?.kind === "several") {
@@ -921,11 +953,6 @@ export function checkReorderedItemsAtLoad({
         }
         const firstOfType = new Map<string, Item>();
         for (const item of items) {
-            if (!ORDERS.has(component.componentType) && item.kind !== "one") {
-                // A `<tally>` or `<markers>` reads each component a wrapper
-                // holds, so a wrapper of several is not one item of its own.
-                continue;
-            }
             const key = typeOf(item);
             if (key !== undefined && !firstOfType.has(key)) {
                 firstOfType.set(key, item);

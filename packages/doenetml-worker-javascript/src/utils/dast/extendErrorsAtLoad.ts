@@ -46,6 +46,12 @@ import {
     PARTS_OF_CHOOSING_TAGS,
 } from "../../components/abstract/Copy";
 
+/**
+ * The composites an extend written as the tag they hold reaches through
+ * (`heldOfType`).
+ */
+const HOLDERS = new Set(["conditionalContent", "select", "group"]);
+
 /** What `doenetAttributes.extendErrorsAtLoad` holds: each error found. */
 export type ExtendErrorAtLoad = { code: DiagnosticCode; args: DiagnosticArgs };
 
@@ -186,7 +192,101 @@ export function checkExtendErrorsAtLoad({
             }
             return below;
         }
+        const writtenType = writtenTypeOf(copy);
+        if (
+            writtenType !== undefined &&
+            !isOfType(node.componentType, writtenType) &&
+            HOLDERS.has(node.componentType)
+        ) {
+            // An extend written as the tag a composite holds
+            // (`<answer extend="$cc"/>` of a `<conditionalContent>` holding
+            // an `<answer>` in every case) extends what it holds (#2606 item
+            // 7), so the same errors apply.
+            return heldOfType(node, writtenType, visiting);
+        }
         return node;
+    }
+
+    /**
+     * The one component of type `writtenType` the composite `node` holds in
+     * every branch (each case of a `<conditionalContent>` with an `<else>`,
+     * each option of a `<select>`, a `<group>`), the first branch's, which an
+     * extend of it written as that tag extends. `undefined` when a branch
+     * holds anything else, or there may be none.
+     */
+    function heldOfType(
+        node: SerializedComponent,
+        writtenType: string,
+        visiting: Set<SerializedComponent>,
+    ): SerializedComponent | undefined {
+        const objects = (pieces: (SerializedComponent | string)[]) => {
+            if (
+                pieces.some(
+                    (piece) => typeof piece === "string" && piece.trim() !== "",
+                )
+            ) {
+                return undefined;
+            }
+            return pieces.filter(
+                (piece): piece is SerializedComponent =>
+                    typeof piece === "object",
+            );
+        };
+        /** The one component of `writtenType` `pieces` hold, if so. */
+        const oneOf = (
+            pieces: (SerializedComponent | string)[],
+        ): SerializedComponent | undefined => {
+            const held = objects(pieces);
+            if (held?.length !== 1) {
+                return undefined;
+            }
+            const [only] = held;
+            if (isOfType(only.componentType, writtenType)) {
+                return only;
+            }
+            if (only.componentType === "_copy") {
+                const below = sourceOf(only, visiting);
+                return below && isOfType(below.componentType, writtenType)
+                    ? below
+                    : undefined;
+            }
+            return HOLDERS.has(only.componentType)
+                ? heldOfType(only, writtenType, visiting)
+                : undefined;
+        };
+        if (node.componentType === "group") {
+            return oneOf(node.children ?? []);
+        }
+        const branches = objects(node.children ?? []);
+        if (!branches || branches.length === 0) {
+            return undefined;
+        }
+        if (node.componentType === "conditionalContent") {
+            // with an `<else>` (sugar makes it a `<case>` with no
+            // `condition`), one case is always shown
+            const hasElse = branches.some(
+                (branch) =>
+                    branch.componentType === "case" &&
+                    branch.attributes?.condition === undefined,
+            );
+            if (!hasElse) {
+                return undefined;
+            }
+        } else if (
+            node.componentType === "select" &&
+            node.attributes?.numToSelect !== undefined
+        ) {
+            return undefined;
+        }
+        let first: SerializedComponent | undefined;
+        for (const branch of branches) {
+            const held = oneOf(branch.children ?? []);
+            if (!held) {
+                return undefined;
+            }
+            first ??= held;
+        }
+        return first;
     }
 
     /**

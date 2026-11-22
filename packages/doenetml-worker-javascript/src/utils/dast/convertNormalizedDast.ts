@@ -54,7 +54,10 @@ import { checkChoiceParametersAtLoad } from "./choiceParametersAtLoad";
 import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
-import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
+import {
+    markPropertyTypesAtLoad,
+    referencesToUndecidedTypes,
+} from "./propertyTypesAtLoad";
 import { markReferencesToVariantControls } from "./variantControlReferences";
 import {
     authoredComponentTypes,
@@ -968,6 +971,54 @@ export async function normalizedDastToSerializedComponents(
             componentInfoObjects,
         }),
     );
+    // A reference that reads a property whose type the DoenetML doesn't
+    // decide needs that type, so it is an error at load, in place of the
+    // reference (TYPE-3, `doenet-e0091`). A type that read what such a
+    // reference holds (a choice holding `$a.currentResponses[2]`) is then
+    // decided again, from the error in its place.
+    // Each round can only decide more, so it ends.
+    for (;;) {
+        const undecided = referencesToUndecidedTypes({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        });
+        if (undecided.length === 0) {
+            break;
+        }
+        for (const { copy, what } of undecided) {
+            const originalPath = copy.extending
+                ? (unwrapSource(copy.extending as any) as any)?.originalPath
+                : undefined;
+            const diagnostic = codedDiagnostic({
+                type: "error",
+                code: "doenet-e0091",
+                args: {
+                    source: doenetMLReferenceAsWritten(
+                        originalPath,
+                        normalized_root.sources,
+                    ),
+                    what,
+                },
+                position: copy.position,
+                sourceDoc: copy.sourceDoc,
+            });
+            diagnostics.push(diagnostic);
+            const errorComponent = copy as any;
+            errorComponent.componentType = "_error";
+            errorComponent.state = errorComponentState(
+                diagnostic.message,
+                diagnostic,
+            );
+            errorComponent.attributes = {};
+            errorComponent.children = [];
+            errorComponent.doenetAttributes = {};
+            delete errorComponent.extending;
+        }
+        markPropertyTypesAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+        });
+    }
 
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag
