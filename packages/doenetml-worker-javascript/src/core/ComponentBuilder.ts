@@ -348,6 +348,23 @@ export async function addComponents({
 }
 
 /**
+ * The components a component being made is made in, for a cycle found
+ * before it exists: the composite it is made by, and its parent
+ * (`CircularDependencyError.componentIndices`).
+ */
+function madeIn(ancestors: any, componentsReplacementOf: any): number[] {
+    const found: number[] = [];
+    if (componentsReplacementOf?.componentIdx !== undefined) {
+        found.push(componentsReplacementOf.componentIdx);
+    }
+    const parentIdx = ancestors?.[0]?.componentIdx;
+    if (parentIdx !== undefined) {
+        found.push(parentIdx);
+    }
+    return found;
+}
+
+/**
  * Walks `serializedComponents` and produces matching live component
  * instances without splicing them into any parent's defining-children
  * list — used for replacements, attribute components, error components,
@@ -658,6 +675,16 @@ export async function createChildrenThenComponent({
                             core.dependencies.getCircularDependencyMessage([
                                 serializedComponent,
                             ]),
+                            [
+                                ...(e instanceof CircularDependencyError
+                                    ? e.componentIndices
+                                    : []),
+                                serializedComponent.componentIdx,
+                                ...madeIn(ancestors, componentsReplacementOf),
+                            ],
+                            e instanceof CircularDependencyError
+                                ? e.stateVariables
+                                : [],
                         );
                     } else {
                         throw e;
@@ -780,6 +807,12 @@ export async function createChildrenThenComponent({
                     core.dependencies.getCircularDependencyMessage([
                         serializedComponent,
                     ]),
+                    // not made yet: what it is made in stands for it
+                    // (`blameLoadCycle`)
+                    [
+                        serializedComponent.componentIdx,
+                        ...madeIn(ancestors, componentsReplacementOf),
+                    ],
                 );
             }
             if (core._components[idx]) {
@@ -790,6 +823,12 @@ export async function createChildrenThenComponent({
                     core.dependencies.getCircularDependencyMessage([
                         serializedComponent,
                     ]),
+                    // not made yet: what it is made in stands for it
+                    // (`blameLoadCycle`)
+                    [
+                        serializedComponent.componentIdx,
+                        ...madeIn(ancestors, componentsReplacementOf),
+                    ],
                 );
             }
         }
@@ -839,6 +878,10 @@ export async function createChildrenThenComponent({
 
     if (componentsReplacementOf) {
         newComponent.replacementOf = componentsReplacementOf;
+        // the component it was copied from (`originalIdx`), such as what is
+        // written in a repeat's template, so a cycle through it found at load
+        // is blamed where the author wrote it (`blameLoadCycle`)
+        newComponent.madeFromIdx = serializedComponent.originalIdx;
     }
 
     if (serializedComponent.adaptedFrom) {

@@ -26,6 +26,10 @@
             "import": "./dist/list-separation.js",
             "types": "./dist/list-separation.d.ts"
         },
+        "./attribute-name-case": {
+            "import": "./dist/attribute-name-case.js",
+            "types": "./dist/attribute-name-case.d.ts"
+        },
         "./*": {
             "import": "./dist/*.js"
         }

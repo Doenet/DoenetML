@@ -17,11 +17,13 @@ import {
 import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { suggestionArgs } from "../utils/dast/nameCase";
 import { levelFromSource } from "../utils/decidedByDoenetML";
 import {
     compositeTargetsDependency,
     pathOfTarget,
     propertyWithIndices,
+    propertyCaseSuggestionArgs,
     targetsAmongReplacements,
 } from "../utils/actionTargets";
 
@@ -535,7 +537,7 @@ export default class UpdateValue extends InlineComponent {
 
                 return dependencies;
             },
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentInfoObjects }) {
                 let targets = null;
                 let diagnostics = [];
                 const targetDecided = missingTargetDecided({
@@ -585,6 +587,14 @@ export default class UpdateValue extends InlineComponent {
                                             source: "updateValue",
                                             property: prop,
                                             component: target.componentType,
+                                            // a property in another case
+                                            // names nothing (D51)
+                                            ...propertyCaseSuggestionArgs({
+                                                pathPart: path[0],
+                                                componentType:
+                                                    target.componentType,
+                                                componentInfoObjects,
+                                            }),
                                         },
                                     }),
                                 );
@@ -597,6 +607,7 @@ export default class UpdateValue extends InlineComponent {
                                             source: "updateValue",
                                             property: "value",
                                             component: target.componentType,
+                                            ...suggestionArgs(undefined),
                                         },
                                     }),
                                 );

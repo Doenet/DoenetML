@@ -22,6 +22,8 @@ const DoenetMLs = {
     stuvwx: `<section name="s">$s.creditAchieved<number name="n"/><point name="P" y="$s.creditAchieved"/><math extend="$P[$n]" /></section>`,
     yzabcd: `<number name="which">2</number>`,
     efghij: `<number copy="doenet:yzabcd" />`,
+    klmnop: `<math Name="m" simplify="full">x+x</math>`,
+    qrstuv: `<math Copy="doenet:klmnop" />`,
 };
 
 /**
@@ -226,7 +228,7 @@ describe("Expand external references", async () => {
         });
     });
 
-    it("load in external content via copy, case-insensitive match", async () => {
+    it("load in external content via copy in another case: applied, with a warning, for now (D51)", async () => {
         const source = `<p cOpY="doenet:abcdef" />`;
 
         const dast = filterPositionInfo(
@@ -241,7 +243,13 @@ describe("Expand external references", async () => {
             `<p name="par">hi</p>`,
         ]);
 
-        expect(dast.children.length).eq(1);
+        expect(dast.children.length).eq(2);
+        expect(dast.children[1]).toMatchObject({
+            type: "error",
+            code: "doenet-w0197",
+            error_type: "warning",
+            args: { attribute: "cOpY", suggestion: "copy", componentType: "p" },
+        });
         const p = dast.children[0];
         expect(p).eqls({
             type: "element",
@@ -691,5 +699,69 @@ describe("Expand external references", async () => {
                 'Invalid DoenetML retrieved from copy="doenet:abcdef": it did not match the component type "text"',
             type: "error",
         });
+    });
+
+    it("matches the attributes of external content exactly, giving one in another case its spelling first (D51)", async () => {
+        // The external `Name` is the external document's `name`, and the
+        // written `Simplify` takes precedence over the external `simplify`,
+        // each with `doenet-w0197`, as normalization would give them.
+        const dast = filterPositionInfo(
+            await expandExternalReferences(
+                lezerToDast(`<math copy="doenet:klmnop" Simplify="none" />`),
+                fetchExternalDoenetML,
+            ),
+        ) as DastRoot;
+        const math = dast.children.find(isDastElement)!;
+        expect(Object.keys(math.attributes).sort()).eqls([
+            "simplify",
+            "source-1:name",
+            "source:sequence",
+        ]);
+        expect(math.attributes.simplify.children).eqls([
+            { type: "text", value: "none" },
+        ]);
+        const warnings = extractDastErrors(dast);
+        expect(
+            warnings.map((w) => [
+                w.code,
+                w.args?.attribute,
+                w.args?.suggestion,
+            ]),
+        ).toEqual(
+            expect.arrayContaining([
+                ["doenet-w0197", "Simplify", "simplify"],
+                ["doenet-w0197", "Name", "name"],
+            ]),
+        );
+        expect(warnings).toHaveLength(2);
+
+        // and normalization warns of neither again
+        const normalized = normalizeDocumentDast(dast);
+        expect(
+            extractDastErrors(normalized).filter(
+                (w) => w.code === "doenet-w0197",
+            ),
+        ).toHaveLength(2);
+    });
+
+    it("follows an external reference in another case inside fetched content", async () => {
+        const dast = filterPositionInfo(
+            await expandExternalReferences(
+                lezerToDast(`<math copy="doenet:qrstuv" />`),
+                fetchExternalDoenetML,
+            ),
+        ) as DastRoot;
+        const math = dast.children.find(isDastElement)!;
+        expect(math.children).eqls([
+            { type: "text", value: "x+x", source_doc: 2 },
+        ]);
+        expect(
+            extractDastErrors(dast).map((w) => [w.code, w.args?.attribute]),
+        ).toEqual(
+            expect.arrayContaining([
+                ["doenet-w0197", "Copy"],
+                ["doenet-w0197", "Name"],
+            ]),
+        );
     });
 });

@@ -1267,8 +1267,9 @@ export default class Core {
      * Run at the end of load and after each update or action request
      * (`ProcessQueue`), never during an update. Each input is committed on
      * its own: an error committing one is logged, and the others are still
-     * committed (#2614 item 6). A cycle is not caught: it stops the
-     * document, as anywhere else. Skipped: an input withheld (committed when
+     * committed (#2614 item 6). A cycle is not caught: at load, the
+     * document is built again around it (D57, `rebuildAroundLoadCycle`);
+     * after load, it stops the document, as anywhere else. Skipped: an input withheld (committed when
      * shown again), and an input showing the edit of the input being edited,
      * with the same source (`sourceOfInput`): the input itself, what it
      * extends, or an `extend` of either.
@@ -1614,6 +1615,20 @@ export default class Core {
         } catch (e) {
             console.error(e);
         }
+    }
+
+    /**
+     * This core's load stopped on a circular dependency, and the document is
+     * being built again by another (D57, `rebuildAroundLoadCycle`): stop
+     * what this one started without saving anything, as nothing it made was
+     * shown.
+     */
+    abandonLoad(): void {
+        this.processQueue.stopProcessingRequests = true;
+        this.rendererInstructionBuilder.cancelDeferredRendererUpdate();
+        this.rendererInstructionBuilder.cancelIdleRendererFlush();
+        this.statePersistence.reset();
+        this.actionTriggerScheduler.reset();
     }
 
     async terminate(): Promise<void> {

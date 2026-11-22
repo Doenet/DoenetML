@@ -6,6 +6,11 @@ import type { DastAttribute, DastElement, DastError, DastRoot } from "../types";
 import { visitIncludingPathIndices } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 import { codedDastError } from "../coded-dast-error";
+import {
+    ATTRIBUTES_OF_A_COPY,
+    ATTRIBUTES_OF_EVERY_TAG,
+    attributeNameCaseCorrections,
+} from "../attribute-name-case";
 
 /**
  * Attribute names are case-sensitive (NAME-0, D51), but for one release an
@@ -74,12 +79,6 @@ export const pluginCorrectAttributeNameCase: Plugin<
     };
 };
 
-/** Attributes every tag takes, which no component declares. */
-const ATTRIBUTES_OF_EVERY_TAG = ["extend", "copy", "copyWithState"];
-
-/** The attributes of the copy a tag with `extend` or `copy` is made into. */
-const ATTRIBUTES_OF_A_COPY = ["asList", "removeEmptyArrayEntries"];
-
 /** The attributes the schema lists for a tag, aliases included. */
 function attributesOf(tag: string): string[] | undefined {
     return attributeNamesOfTag(tag);
@@ -103,7 +102,15 @@ function componentTypeOf(node: DastElement): string {
     return node.name;
 }
 
-function correctAttributes(node: DastElement, warnings: DastError[]) {
+/**
+ * Give each attribute of `node` written in another case than its
+ * component's the component's spelling, pushing a `doenet-w0197` warning
+ * for each onto `warnings`. Also run by `expand-external-references.ts`, on
+ * an element with an external reference and on the external content merged
+ * into it, before their attributes are merged, which happens before this
+ * plugin runs.
+ */
+export function correctAttributes(node: DastElement, warnings: DastError[]) {
     const componentType = componentTypeOf(node);
     const declared = attributesOf(componentType);
     const written = Object.keys(node.attributes);
@@ -119,33 +126,22 @@ function correctAttributes(node: DastElement, warnings: DastError[]) {
               ...(madeFromAnother ? ATTRIBUTES_OF_A_COPY : []),
           ]
         : ["name", ...ATTRIBUTES_OF_EVERY_TAG];
-    const knownSet = new Set(known);
-    const byLowerCase = new Map<string, string | null>();
-    for (const name of known) {
-        const lower = name.toLowerCase();
-        const existing = byLowerCase.get(lower);
-        // Two that differ only in case match neither.
-        byLowerCase.set(
-            lower,
-            existing === undefined || existing === name ? name : null,
-        );
+    const corrections = new Map(
+        attributeNameCaseCorrections({ written, known }).map(
+            ({ written, corrected }) => [written, corrected],
+        ),
+    );
+    if (corrections.size === 0) {
+        return;
     }
-
-    const present = new Set(written);
-    let renamed = false;
     const newAttributes: Record<string, DastAttribute> = {};
     for (const name of written) {
         const attribute = node.attributes[name];
-        const corrected =
-            knownSet.has(name) || name.includes(":")
-                ? undefined
-                : byLowerCase.get(name.toLowerCase());
-        if (!corrected || present.has(corrected)) {
+        const corrected = corrections.get(name);
+        if (corrected === undefined) {
             newAttributes[name] = attribute;
             continue;
         }
-        present.add(corrected);
-        renamed = true;
         newAttributes[corrected] = { ...attribute, name: corrected };
         warnings.push(
             codedDastError({
@@ -162,7 +158,5 @@ function correctAttributes(node: DastElement, warnings: DastError[]) {
             }),
         );
     }
-    if (renamed) {
-        node.attributes = newAttributes;
-    }
+    node.attributes = newAttributes;
 }

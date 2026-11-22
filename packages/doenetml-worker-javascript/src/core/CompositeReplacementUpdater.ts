@@ -1446,8 +1446,9 @@ export class CompositeReplacementUpdater {
             //
             // `addBlockersFromChangedReplacements` is deliberately *outside*
             // the guard. It reaches `addBlocker`, whose cycle check throws
-            // the `CircularDependencyError` that reports a cycle (#387) and
-            // is what several documents rely on to fail to build at all.
+            // the `CircularDependencyError` that reports a cycle (#387): at
+            // load, the document is built again around it (D57); after load,
+            // the document stops.
             // Catching that here would turn a reported cycle into a document
             // that carries on resolving one.
             let indexParentComposite: any = null;

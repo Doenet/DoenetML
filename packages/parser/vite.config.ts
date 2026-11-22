@@ -32,6 +32,9 @@ export default defineConfig({
                 // the worker imports it, and the main entry would bring the
                 // whole parser and its entity map into the worker's bundle.
                 "list-separation": "./src/list-separation.ts",
+                // The rule for an attribute written in another case, which the
+                // core applies too (D51), without the parser around it.
+                "attribute-name-case": "./src/attribute-name-case.ts",
             },
             formats: ["es"],
         },
