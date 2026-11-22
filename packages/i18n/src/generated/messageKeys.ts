@@ -422,6 +422,7 @@ export type MessageKey =
     | "reference-branches-hold-several"
     | "reference-property-partly-held"
     | "reference-property-after-several"
+    | "reference-name-after-collection"
     | "component-action-unavailable"
     | "action-target-not-shown"
     | "data-frame-inconsistent-row-lengths"
@@ -1137,6 +1138,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-branches-hold-several",
     "reference-property-partly-held",
     "reference-property-after-several",
+    "reference-name-after-collection",
     "component-action-unavailable",
     "action-target-not-shown",
     "data-frame-inconsistent-row-lengths",

@@ -4543,11 +4543,11 @@ describe("Point tag tests @group4", async () => {
       <setup>
         <collect componentType="point" from="$thePoints" name="colAllPoints" />
       </setup>
-    <p name="pAllX">x-coordinates: <mathList extend="$colAllPoints.x1" /></p>
-    <p name="pAllY">y-coordinates: <mathList extend="$colAllPoints.x2" /></p>
-    <p name="pAllZ">z-coordinates: <mathList extend="$colAllPoints.x3" /></p>
-    <p name="pAllAll">All individual coordinates: <mathList extend="$colAllPoints.xs" /></p>
-    <p>Coordinates: <mathList extend="$colAllPoints.coords" name="coordsAll" /></p>
+    <p name="pAllX">x-coordinates: <mathList><repeat for="$colAllPoints" valueName="cItem">$cItem.x1</repeat></mathList></p>
+    <p name="pAllY">y-coordinates: <mathList><repeat for="$colAllPoints" valueName="cItem">$cItem.x2</repeat></mathList></p>
+    <p name="pAllZ">z-coordinates: <mathList><repeat for="$colAllPoints" valueName="cItem">$cItem.x3</repeat></mathList></p>
+    <p name="pAllAll">All individual coordinates: <mathList><repeat for="$colAllPoints" valueName="cItem">$cItem.xs</repeat></mathList></p>
+    <p>Coordinates: <mathList name="coordsAll"><repeat for="$colAllPoints" valueName="cItem">$cItem.coords</repeat></mathList></p>
     </section>
 
     <section><title>Extracting from point 3</title>

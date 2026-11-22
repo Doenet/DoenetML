@@ -268,17 +268,6 @@ describe("A choice's parameter a reader can change is an error at load @group4",
             written: `mean="$ml[1].anchor"`,
         },
         {
-            tag: "<selectRandomNumbers mean> from the anchor of every entry of a list that references a math in a graph, which a reader drags",
-            doenetML: `<graph><math name="a">x</math></graph>
-<mathList name="ml">$a y</mathList>
-<p name="p">A <selectRandomNumbers name="s" mean="$ml.anchor"/> B</p>`,
-            attribute: "mean",
-            componentType: "selectRandomNumbers",
-            reference: "$ml.anchor",
-            changeableType: "math",
-            written: `mean="$ml.anchor"`,
-        },
-        {
             tag: "<selectRandomNumbers mean> from the anchor of a number in a repeat that a number in a graph extends, which shares the anchor a reader drags",
             doenetML: `<repeat name="r" for="1"><number name="n">3</number></repeat>
 <graph><number extend="$r[1].n"/></graph>
@@ -621,13 +610,30 @@ describe("A choice's parameter a reader can change is an error at load @group4",
         }
     });
 
+    it("a property after a list reads no entry's anchor, so is not a parameter a reader changes (D59)", async () => {
+        // `$ml.anchor` was every entry's anchor, one of them the anchor of
+        // a math a reader drags (`e0070`); a property after a list is the
+        // list's own, so it names nothing (`w0200`). `$ml[1].anchor` is the
+        // entry's (above).
+        const { core } = await createTestCore({
+            doenetML: `<graph><math name="a">x</math></graph>
+<mathList name="ml">$a y</mathList>
+<p name="p">A <selectRandomNumbers name="s" mean="$ml.anchor"/> B</p>`,
+        });
+        const { errors, warnings } = getDiagnosticsByType(core);
+        expect(errors).eqls([]);
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0200"]);
+    });
+
     it("a property of a choice in error reports nothing more", async () => {
         // the `_error` in the choice's place has no `value`, but its error
-        // is reported already, at the parameter (DIAG-4, DIAG-5)
+        // is reported already, at the parameter (DIAG-4, DIAG-5). (After a
+        // select that picks several, only its own properties are read:
+        // `$s.value` names nothing whether or not it is in error, D59.)
         for (const doenetML of [
             `<mathInput name="n" prefill="2"/>
 <p name="p">A <select name="s" numToSelect="$n">u v w</select> B</p>
-<p name="q">$s.value $s.selectedIndices</p>`,
+<p name="q">$s.numItems</p>`,
             // written as a tag too
             `<mathInput name="n" prefill="2"/>
 <p name="p">A <selectFromSequence name="s" to="$n"/> B</p>

@@ -491,7 +491,7 @@ describe("Text tag tests @group2", async () => {
     </graph>
 
     <collect componentType="text" from="$g2" name="collect1" />
-    <pointList extend="$collect1.anchor" name="tacoords" />
+    <pointList name="tacoords">$collect1[1].anchor $collect1[2].anchor</pointList>
 
     <graph name="g3">
       <text extend="$t1.value" name="t1b" />
@@ -499,7 +499,7 @@ describe("Text tag tests @group2", async () => {
     </graph>
 
     <collect componentType="text" from="$g3" name="collect2" />
-    <pointList extend="$collect2.anchor" name="tbcoords" />
+    <pointList name="tbcoords">$collect2[1].anchor $collect2[2].anchor</pointList>
 
     <p name="p1"><text extend="$t1" name="t1c"/> <text extend="$t2" name="t2c"/></p>
 

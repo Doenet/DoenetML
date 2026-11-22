@@ -125,7 +125,7 @@ Sometimes you don't want to reveal how many answers there should be — you want
 
 <setup>
   <collect from="$r" componentType="mathInput" name="c" />
-  <mathList name="values" extend="$c.value" />
+  <mathList name="values"><repeat for="$c" valueName="input">$input.value</repeat></mathList>
 </setup>
 
 <answer unorderedCompare matchPartial>
@@ -133,7 +133,7 @@ Sometimes you don't want to reveal how many answers there should be — you want
 </answer>
 ```
 
-Typing a number into the first input creates that many solution boxes. `<collect>{:dn}` gathers them, and the `<mathList>{:dn}` of their values is compared — `unorderedCompare{:dn}` so order doesn't matter, `matchPartial{:dn}` so a partly-right set earns partial credit — against the expected solutions `2{:dn}` and `-5{:dn}`.
+Typing a number into the first input creates that many solution boxes. `<collect>{:dn}` gathers them, a `<repeat>{:dn}` over the `<collect>{:dn}` reads the value of each, and the `<mathList>{:dn}` of their values is compared — `unorderedCompare{:dn}` so order doesn't matter, `matchPartial{:dn}` so a partly-right set earns partial credit — against the expected solutions `2{:dn}` and `-5{:dn}`.
 
 ---
 

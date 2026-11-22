@@ -12784,7 +12784,8 @@ describe("Math tag tests @group3", async () => {
             <math name="math2">$math.latex</math>
             <math name="l2">$l.latex</math>
             <math name="al2">$al.latex</math>
-            <math name="ml2">$ml.latex</math>
+            <!-- a list's LaTeX is not a property of its own (D59): read each entry's -->
+            <math name="ml2">$ml[1].latex, $ml[2].latex</math>
           </p>
           `,
         });

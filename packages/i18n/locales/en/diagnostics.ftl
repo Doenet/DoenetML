@@ -693,9 +693,9 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
 # Decided at load from every option or case. $reference is the reference as
 # written, with its `$`; $property the property and $lackingType the tag of a
 # component that lacks it, both as written. $container is the container's
-# name when $hasName is `true`, else its tag name. $branch is `option`,
-# `case`, or `item` (the items of a `<repeat>`, of types that differ through
-# its `for` or a `<conditionalContent>` in it). A name in only some options
+# name when $hasName is `true`, else its tag name. $branch is `option` or
+# `case`. (`item`, for the items of a `<repeat>`, is no longer given: a
+# property after a repeat names nothing, `doenet-w0200`, D59.) A name in only some options
 # or cases names nothing from outside
 # (`doenet-w0183`), so the message does not suggest reading one by name.
 
@@ -709,8 +709,8 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
     } a component that has `{ $property }`.
 
 # A property after a `<group>` that holds several components: `$g.x` on a
-# `<group name="g">` holding two points, `$r.x` or `$r[1].x` after a repeat
-# whose template holds two (said as "each item holds 2"; authors are not
+# `<group name="g">` holding two points, `$r[1].x` after a repeat whose
+# template holds two (`$r.x` names nothing, `doenet-w0200`) (said as "each item holds 2"; authors are not
 # told of iterations as groups), `$s.x` after a pick that holds two, or `$cc.x` after
 # the case a `<conditionalContent>` shows, holding two (D41). A group holding
 # one component stands for it, and the property is that component's; with
@@ -738,6 +738,22 @@ reference-property-after-several =
         [reference] To read the property of a child, write it as a tag with a name, such as `{ $tag }`, and write `{ $suggestion }`.
        *[unnamed] To read the property of a child, give it a name, such as `name="P"`, and write `{ $suggestion }`.
     }
+
+# A name or a property after a collection (a list, `<sequence>`, `<collect>`,
+# `<sort>`, `<shuffle>`, `<repeat>`, a list operator, or a `<select>` or other
+# random chooser that picks several): it is the collection's own (`numItems`,
+# `hide`, `fixed`, `disabled`, and those the tag declares), never each item's
+# (D59), so `$pl.x` and `$r.P` name nothing. $reference is the reference as
+# the author wrote it, with its `$`. $name is the name or property after the
+# collection, and $component the collection's tag, both as written. $kind is
+# `name` when $name is the name of a component written in the collection's
+# items (anywhere in the document, for a `<collect>`), else `property`.
+# $suggestion is the reference with an index put after the
+# collection (`$pl[1].x`).
+reference-name-after-collection = `{ $reference }` names nothing: { $kind ->
+        [name] a name after a `<{ $component }>` does not reach into its items.
+       *[property] a `<{ $component }>` has no property `{ $name }` of its own, and a property after it does not reach into its items.
+    } To read it from one item, give its index, such as `{ $suggestion }`.
 
 ## `<callAction>`
 
@@ -2269,10 +2285,11 @@ repeat-for-items-of-several-types = { $reason ->
 # described by $itemKind: "group", a `<group>` of $itemCount components, or
 # "item", the items of the collection $item, each holding $itemCount
 # components. The message names what to write instead: a `<collect>` of the
-# components, of the tag $firstType of the first of them, or a name in each
-# item; and, for a `<sort>`, a `<shuffle>`, which keeps them together.
+# components, of the tag $firstType of the first of them (a name after the
+# collection names nothing, D59); and, for a `<sort>`, a `<shuffle>`, which
+# keeps them together.
 sort-item-of-several = { $itemKind ->
-        [item] `<{ $component }>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort one component of each, name it (`<{ $component }>$r.n</{ $component }>` sorts the `n` of each item of `r`), or sort a `<collect>` of the components (`<collect componentType="{ $firstType }" from="$r"/>`).
+        [item] `<{ $component }>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort their components, sort a `<collect>` of them (`<collect componentType="{ $firstType }" from="$r"/>` of a repeat `r`).
        *[group] `<{ $component }>` can't compare a `<group>` of { $itemCount } components. To sort its components, sort a `<collect>` of them (`<collect componentType="{ $firstType }" from="$g"/>` of a group `g`), or write them in the `<{ $component }>` without the group.
     }{ $component ->
         [sort] {" "}Use `<shuffle>` to keep each item's components together.

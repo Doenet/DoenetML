@@ -643,7 +643,9 @@ describe("TextList tag tests @group3", async () => {
             doenetML: `
     <textList name="tl">apple banana</textList>
 
-    <p name="pText">Text: $tl.text</p>
+    <p name="pText">Text: <text>$tl</text></p>
+    <p name="pEntry">$tl[2].text</p>
+    <p name="pOld">$tl.text</p>
 
     `,
         });
@@ -653,6 +655,15 @@ describe("TextList tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("pText")].stateValues
                 .text,
         ).eq("Text: apple, banana");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pEntry")].stateValues
+                .text,
+        ).eq("banana");
+        // A list's text is not a property of its own (D59): `$tl.text` names
+        // nothing.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pOld")].stateValues.text,
+        ).eq("＿");
     });
 
     it("definition and inverse based on shadowed value from a textList prop", async () => {

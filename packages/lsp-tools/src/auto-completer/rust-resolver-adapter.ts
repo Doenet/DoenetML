@@ -709,11 +709,13 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Whether the core leaves a name after `element` for each of its items
-     * (`names_per_item` in the core's resolver, D41 decision 1): a
-     * `<repeat>` or `<repeatForSequence>`, a `<select>` that picks several,
-     * and a `<collect>` (a name it holds more than once), none written with
-     * `copy` or `extend`.
+     * Whether the core leaves a name after `element` unresolved
+     * (`names_per_item` in the core's resolver): a `<repeat>` or
+     * `<repeatForSequence>`, a `<select>` that picks several, and a
+     * `<collect>` (a name it holds more than once), none written with `copy`
+     * or `extend`. A name after one of these is the collection's own, so
+     * names nothing (D59); a name after one of its items (`$r[1].x`) is the
+     * item's.
      */
     _namesPerItem(element: DastElement): boolean {
         if (isRepeatLikeElement(element)) {
@@ -727,14 +729,14 @@ export class RustResolverAdapter {
 
     /**
      * `_core.resolvePath`, reading a name after a collection whose items each
-     * hold their own names (`$rep.x`, `$rep[2].x`) in what is written inside
-     * it, as the members an item has. The core leaves such a name for the
-     * runtime to resolve in each item (D41 decision 1), but completions and
-     * help are read from the DoenetML as written: the name is resolved from
-     * a component written inside the collection, so the search reaches the
-     * collection's own names, and kept only if it is one written inside it.
-     * Whether an index is needed before such a name is decided by the
-     * callers, as before.
+     * hold their own names (`$rep[2].x`) in what is written inside it, as the
+     * members an item has. The core leaves such a name unresolved
+     * (`_namesPerItem`), but completions and help are read from the DoenetML
+     * as written: the name is resolved from a component written inside the
+     * collection, and kept only if it is one written inside it. The callers
+     * require an index before it: with none (`$rep.x`), a name after a
+     * collection names nothing (D59), and only the collection's own
+     * properties are offered after `$rep.`.
      */
     async _resolvePath(args: {
         path: { path: Array<FlatPathPartForResolver> };

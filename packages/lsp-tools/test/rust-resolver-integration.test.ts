@@ -104,6 +104,33 @@ async function createCompleterWithAdapter(
 describe.skipIf(!wasmAvailable)(
     "RustResolverAdapter integration (real WASM)",
     () => {
+        it("after a collection offers its own properties, and an item's after an index (D59)", async () => {
+            const labelsAt = async (source: string) => {
+                const { completer } = await createCompleterWithAdapter(source);
+                const items = await completer.getCompletionItems(source.length);
+                return items.map((i) => i.label);
+            };
+            const docs = [
+                `<repeat name="r" for="1 2" valueName="v"><point name="P">($v,1)</point></repeat>\n$r`,
+                `<pointList name="r">(1,2) (3,4)</pointList>\n$r`,
+                `<select name="r" numToSelect="2"><option><point name="P">(1,2)</point></option><option><point name="P">(3,4)</point></option></select>\n$r`,
+            ];
+            for (const doc of docs) {
+                // the collection's own: `numItems` and its settings, never
+                // an item's name or property
+                const own = await labelsAt(doc + ".");
+                expect(own, doc).toContain("numItems");
+                expect(own, doc).toContain("fixed");
+                expect(own, doc).not.toContain("P");
+                expect(own, doc).not.toContain("x");
+            }
+            // after an index, the item's names
+            expect(await labelsAt(docs[0] + "[1].")).toEqual(
+                expect.arrayContaining(["P", "v"]),
+            );
+            expect(await labelsAt(docs[2] + "[1].")).toContain("P");
+        });
+
         it("simple $name. resolution returns the named element", async () => {
             const source = `<section name="s1"><p name="p1">hello</p></section>\n$s1.`;
             const { adapter } = await createCoreAndAdapter(source);

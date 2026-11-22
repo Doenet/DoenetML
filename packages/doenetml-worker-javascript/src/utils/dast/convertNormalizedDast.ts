@@ -809,11 +809,21 @@ export async function normalizedDastToSerializedComponents(
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag
     // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
-    const { branchNameWarnings, collectionItemWarnings, branchReads } =
-        checkTypeChangesAtLoad({
-            serializedComponents: sugarResult.components,
-            componentInfoObjects,
-        });
+    // First among them: a name or a property after a collection is the
+    // collection's own, so anything else after one names nothing (D59,
+    // `doenet-w0200`, `namesAfterCollectionsAtLoad.ts`), with the
+    // every-branch rule for a collection reached through branches.
+    const {
+        branchNameWarnings,
+        collectionItemWarnings,
+        branchReads,
+        nameAfterCollectionDiagnostics,
+    } = checkTypeChangesAtLoad({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        sources: normalized_root.sources,
+    });
+    diagnostics.push(...nameAfterCollectionDiagnostics);
     // A reference to a name the branches of a `<conditionalContent>` or a
     // one-pick `<select>` do not all declare with one tag names nothing
     // (D13, D22), so that what it names never changes type with the active
@@ -888,14 +898,7 @@ export async function normalizedDastToSerializedComponents(
     // reaches in its options or cases, decided at load from every one of them
     // (#2520 item 1, #2452): a warning at the reference, which is left as it
     // is.
-    for (const {
-        copy,
-        code,
-        args,
-        kind,
-        childName,
-        childReference,
-    } of collectionItemWarnings) {
+    for (const { copy, code, args, kind } of collectionItemWarnings) {
         const ref: any = copy.extending
             ? unwrapSource(copy.extending as any)
             : undefined;
@@ -913,29 +916,6 @@ export async function normalizedDastToSerializedComponents(
             );
             extra.suggestion = suggestion ?? "";
             extra.hasSuggestion = suggestion === undefined ? "false" : "true";
-        }
-        if (code === "doenet-w0193") {
-            // a property after a repeat whose template holds several: the
-            // reference with a child's name put before the property
-            const suggestion = referenceNamingTheItem(
-                ref,
-                kind,
-                reference,
-                normalized_root.sources,
-                childName,
-            );
-            extra.suggestion = suggestion ?? reference;
-            if (childName !== undefined) {
-                extra.child = "named";
-            } else if (childReference) {
-                extra.child = "reference";
-                extra.tag = `<${childReference.type} extend="${doenetMLReferenceAsWritten(
-                    childReference.originalPath,
-                    normalized_root.sources,
-                )}" name="P"/>`;
-            } else {
-                extra.child = "unnamed";
-            }
         }
         diagnostics.push(
             codedDiagnostic({
@@ -2706,8 +2686,9 @@ function getComponentType(element: FlatElement) {
  * any (`$s.P.x`, `$s[1].P[2]`, `$s[1].P.x`): what to write to read the
  * component named `P` in each option or case (`doenet-w0191`). `undefined`
  * when where to put it is not known from the positions in the DoenetML.
- * After a `<select>` that picks several, `$s.P.x` reads `P` in each pick
- * (D41 decision 1).
+ * After a `<select>` that picks several, only the indexed form reaches here
+ * (`$s[1].P.x`): with no index, a name or a property after it names nothing
+ * (`doenet-w0200`, D59).
  */
 function referenceNamingTheItem(
     ref: any,

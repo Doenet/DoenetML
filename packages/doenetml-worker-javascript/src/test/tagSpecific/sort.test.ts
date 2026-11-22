@@ -1442,6 +1442,8 @@ describe("Sort tag tests @group4", async () => {
             ).eq("5");
         });
 
+        // Each item by index: a property after the sort itself is the sort's
+        // own, so `$s.x` names nothing (D59).
         it("a prop reference follows the reorder", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -1454,7 +1456,7 @@ describe("Sort tag tests @group4", async () => {
     </graph>
     <sort name="s" hide="false">$A $B $C $D $E</sort>
     <p name="pList">$s</p>
-    <p name="pProp">$s.x</p>
+    <p name="pProp">$s[1].x, $s[2].x, $s[3].x, $s[4].x, $s[5].x</p>
   `,
             });
 
@@ -1824,9 +1826,10 @@ describe("Sort tag tests @group4", async () => {
         ).eq("[＿]");
         const warnings = getDiagnosticsByType(core).warnings;
         expect(warnings.map((w) => [w.code, w.message])).eqls([
+            // not a property of the sort's own, so it names nothing (D59)
             [
-                "doenet-w0104",
-                "No referent found for reference: `$s.sortByComponent`",
+                "doenet-w0200",
+                "`$s.sortByComponent` names nothing: a `<sort>` has no property `sortByComponent` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$s[1].sortByComponent`.",
             ],
         ]);
     });

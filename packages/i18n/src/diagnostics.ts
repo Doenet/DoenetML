@@ -297,6 +297,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0197": "attribute-name-case",
     "doenet-w0198": "sort-by-prop-names-nothing",
     "doenet-w0199": "reference-to-variant-control",
+    "doenet-w0200": "reference-name-after-collection",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

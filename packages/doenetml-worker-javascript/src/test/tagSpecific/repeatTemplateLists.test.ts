@@ -120,8 +120,8 @@ describe("Repeat templates that are one value @group3", async () => {
     <p name="pnamed">$rn[2].n $rm[2].m $rt[2].t $rb[2].b $rp[2].P</p>
     <p name="pindexed">$rn[2] $rm[2] $rt[2] $rb[2] $rp[2]</p>
     <p name="pprop">$rp[2].P.x $rp[3].y</p>
-    <p name="pacross">$rp.x</p>
-    <p name="nacross"><sum>$rp.y</sum></p>
+    <p name="pacross"><repeat for="$rp" valueName="ev">$ev.x</repeat></p>
+    <p name="nacross"><sum><repeat for="$rp" valueName="ev">$ev.y</repeat></sum></p>
     <repeatForSequence from="1" to="3" indexName="j" name="rref">
       <math name="m">$rm[$j] + $rp[$j].P.y</math>
     </repeatForSequence>
@@ -152,6 +152,8 @@ describe("Repeat templates that are one value @group3", async () => {
             pnamed: "42 2 x² + 2 b2 false (2, 2)",
             pindexed: "42 2 x² + 2 b2 false (2, 2)",
             pprop: "2 3",
+            // every point's, read by a repeat over `rp`: `$rp.x` was each
+            // point's (D41); a property after a repeat is its own (D59)
             pacross: "1, 2, 3",
             nacross: "6",
             pref: "x² + 2 + 1, 2 x² + 2 + 2, 3 x² + 2 + 3",
@@ -172,7 +174,7 @@ describe("Repeat templates that are one value @group3", async () => {
         </point>
       </repeatForSequence>
     </graph>
-    <p name="pxs">$Ps.x</p>
+    <p name="pxs"><repeat for="$Ps" valueName="ev">$ev.x</repeat></p>
     `,
         });
 
@@ -369,7 +371,7 @@ describe("Repeat templates that are one value @group3", async () => {
       </repeatForSequence>
     </graph>
     <p name="pPs">$Ps</p>
-    <p name="pys">$Ps.y</p>
+    <p name="pys"><repeat for="$Ps" valueName="ev">$ev.y</repeat></p>
     `,
         });
 

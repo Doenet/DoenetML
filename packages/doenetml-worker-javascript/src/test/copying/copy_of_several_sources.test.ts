@@ -26,10 +26,9 @@ describe("A copy of several sources @group1", async () => {
         });
     });
 
-    // `$g.coords` has three sources: the first point, the repeat and the
-    // last point. (Each iteration of `g` holds one component, so the
-    // property passes into it; after a group of several it would name
-    // nothing, D41 decision 3.) When `n` changes, the copy remakes the repeat's
+    // `$g` has three sources: the first point, the repeat and the last
+    // point. (It was `$g.coords`, which names nothing since D59: a property
+    // after a repeat is the repeat's own.) When `n` changes, the copy remakes the repeat's
     // replacements and the last point's, clearing the counts from the middle
     // source on. The old indexing cleared the first two sources' counts
     // instead. What is rendered is the same either way, so this checks that
@@ -38,7 +37,7 @@ describe("A copy of several sources @group1", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<mathInput name="n" prefill="1"/>
 <repeat name="g" for="0 1 9" valueName="k"><conditionalContent><case condition="$k=1"><repeatForSequence length="$n" valueName="v"><point>($v,1)</point></repeatForSequence></case><else><point>($k,$k)</point></else></conditionalContent></repeat>
-<p name="coords">$g.coords</p>`,
+<p name="coords">$g</p>`,
         });
         const nIdx = await resolvePathToNodeIdx("n");
         const coordsIdx = await resolvePathToNodeIdx("coords");

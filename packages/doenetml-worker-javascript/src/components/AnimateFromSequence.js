@@ -446,7 +446,14 @@ export default class AnimateFromSequence extends BaseComponent {
                 stateValues,
                 componentInfoObjects,
             }) {
-                let dependencies = {};
+                let dependencies = {
+                    // a target after a collection, which names nothing,
+                    // reported at load (`doenet-w0200`, D59)
+                    targetNamesNothingAtLoad: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "targetNamesNothingAtLoad",
+                    },
+                };
 
                 if (stateValues.targetComponent !== null) {
                     // whether the target can come to give targets
@@ -481,8 +488,9 @@ export default class AnimateFromSequence extends BaseComponent {
                 }
                 let diagnostics = [];
                 if (
-                    targetIdentities === null ||
-                    targetIdentities.length === 0
+                    (targetIdentities === null ||
+                        targetIdentities.length === 0) &&
+                    !dependencyValues.targetNamesNothingAtLoad
                 ) {
                     // No target is what the DoenetML says, a warning. A
                     // target that is a composite with no replacements now,
@@ -562,8 +570,8 @@ export default class AnimateFromSequence extends BaseComponent {
                                 dependencyType:
                                     "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
-                                // what is left of the path after a name
-                                // resolved in each item (`$r.mi.value`)
+                                // what is left of the path after the target,
+                                // a property of it (`$P.x`)
                                 unresolvedPath: path,
                                 // So that an index in the path that cannot be
                                 // applied is reported as the reference the

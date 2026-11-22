@@ -2677,7 +2677,7 @@ describe("Evaluate tag tests @group2", async () => {
     <point name="B" x="3" y="6" />
   </graph>
   <collect name="col" componentType="point" from="$_graph1" />
-  <mathList name="input3" extend="$col.x" />
+  <mathList name="input3"><repeat for="$col" valueName="cItem">$cItem.x</repeat></mathList>
 
   <p>Separate inputs: <mathInput name="input4a" prefill="2" /> 
   <mathInput name="input4b" prefill="3" /></p>
