@@ -45,6 +45,7 @@ import type { SerializedComponent, SerializedAttribute } from "./types";
 import { documentReferents } from "./valueReferences";
 import { propertyTypeReader } from "./propertyTypesAtLoad";
 import { codedDiagnostic } from "../diagnostics";
+import { unwrapSource } from "./convertNormalizedDast";
 
 /** The types an award compares its content as. */
 type AnswerType = "math" | "text" | "boolean";
@@ -145,6 +146,68 @@ export function decideAnswerTypesAtLoad({
             inheritedComponentType: componentType,
             baseComponentType: base,
         });
+    }
+
+    /**
+     * The type a component of `tag` is compared as by an award, by its tag,
+     * as the answer's sugar reads it: a math or number (or a list of them)
+     * is a math, a text (or list) a text, a boolean (or list) a boolean.
+     * `undefined` for any other (an `<m>`, a `<point>`), which an award
+     * may adapt.
+     */
+    function tagComparedAs(tag: string): AnswerType | undefined {
+        if (
+            ["math", "number", "mathList", "numberList"].some((t) =>
+                inherits(tag, t),
+            )
+        ) {
+            return "math";
+        }
+        if (["text", "textList"].some((t) => inherits(tag, t))) {
+            return "text";
+        }
+        if (
+            !inherits(tag, "when") &&
+            ["boolean", "booleanList"].some((t) => inherits(tag, t))
+        ) {
+            return "boolean";
+        }
+        return undefined;
+    }
+
+    /**
+     * The type the component `c`, written in an award, is compared as, and
+     * the tag to name it by: a tag (also one made with `extend` or `copy`)
+     * by its tag; a bare reference by its referent's tag, or, for an input,
+     * by the type of its value; a reference to a property by the property's
+     * type, as decided at load (TYPE-1). `undefined` when not known, or of
+     * no type an award compares.
+     */
+    function comparedTypeOf(
+        c: SerializedComponent,
+    ): { type: AnswerType; tag: string } | undefined {
+        const tag = tagOfComponent(c);
+        const isReference =
+            c.componentType === "_copy" &&
+            c.attributes?._createComponentOfType === undefined;
+        const ref: any =
+            isReference && c.extending
+                ? unwrapSource(c.extending as any)
+                : undefined;
+        const path: unknown[] = ref?.unresolvedPath ?? [];
+        if (
+            isReference &&
+            (path.length > 0 || (tag && inherits(tag, "_input")))
+        ) {
+            const read = responseRead(c, true).type;
+            const type = comparedAs(read);
+            return type === undefined ? undefined : { type, tag: tag ?? read! };
+        }
+        if (tag === undefined) {
+            return undefined;
+        }
+        const type = tagComparedAs(tag);
+        return type === undefined ? undefined : { type, tag };
     }
 
     function isBlank(child: SerializedComponent | string) {
@@ -252,10 +315,9 @@ export function decideAnswerTypesAtLoad({
                 if (typeof c !== "object") {
                     continue;
                 }
-                const read = responseRead(c, true).type;
-                const type = comparedAs(read);
-                if (type !== undefined) {
-                    typed.push({ type, tag: read!, component: c });
+                const found = comparedTypeOf(c);
+                if (found !== undefined) {
+                    typed.push({ ...found, component: c });
                 }
             }
             return typed;
@@ -284,7 +346,9 @@ export function decideAnswerTypesAtLoad({
                                 inputType,
                             },
                         }),
-                        position: writtenAttribute?.position ?? answer.position,
+                        position:
+                            (writtenAttribute as any)?.position ??
+                            answer.position,
                         sourceDoc: answer.sourceDoc,
                     });
                 }
