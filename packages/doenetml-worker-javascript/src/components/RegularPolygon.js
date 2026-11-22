@@ -60,44 +60,44 @@ export default class RegularPolygon extends Polygon {
         // if center and vertex or two vertices are specified
         // then the following size attributes are ignored
 
-        // circumradius and radius are the same thing and either attribute can be used
-        // If both specified, circumradius is used
-        attributes.circumradius = {
+        // circumRadius and radius are the same thing and either attribute can be used
+        // If both specified, circumRadius is used
+        attributes.circumRadius = {
             createComponentOfType: "number",
             description:
                 "Distance from center to a vertex (circumscribed-circle radius).",
         };
         attributes.radius = {
             createComponentOfType: "number",
-            description: "Alias for circumradius.",
+            description: "Alias for circumRadius.",
         };
 
-        // inradius and apothem are the same thing and either attribute can be used
-        // If both specified, inradius is used.
-        // If circumradius is specified, inradius is ignored
-        attributes.inradius = {
+        // inRadius and apothem are the same thing and either attribute can be used
+        // If both specified, inRadius is used.
+        // If circumRadius is specified, inRadius is ignored
+        attributes.inRadius = {
             createComponentOfType: "number",
             description:
                 "Distance from center to the midpoint of a side (inscribed-circle radius).",
         };
         attributes.apothem = {
             createComponentOfType: "number",
-            description: "Alias for inradius.",
+            description: "Alias for inRadius.",
         };
 
-        // if circumradius or inradius is specified, sideLength is ignored
+        // if circumRadius or inRadius is specified, sideLength is ignored
         attributes.sideLength = {
             createComponentOfType: "number",
             description: "Length of each side of the regular polygon.",
         };
 
-        // if circumradius, inradius, or sideLength is specified, perimeter is ignored
+        // if circumRadius, inRadius, or sideLength is specified, perimeter is ignored
         attributes.perimeter = {
             createComponentOfType: "number",
             description: "Total perimeter of the regular polygon.",
         };
 
-        // if circumradius, inradius, sideLength, or perimeter is specified, area is ignored
+        // if circumRadius, inRadius, sideLength, or perimeter is specified, area is ignored
         attributes.area = {
             createComponentOfType: "number",
             description: "Total area enclosed by the regular polygon.",
@@ -500,7 +500,7 @@ export default class RegularPolygon extends Polygon {
                 return {
                     circumradiusAttr: {
                         dependencyType: "attributeComponent",
-                        attributeName: "circumradius",
+                        attributeName: "circumRadius",
                         variableNames: ["value"],
                     },
                     radiusAttr: {
@@ -582,7 +582,7 @@ export default class RegularPolygon extends Polygon {
                 return {
                     inradiusAttr: {
                         dependencyType: "attributeComponent",
-                        attributeName: "inradius",
+                        attributeName: "inRadius",
                         variableNames: ["value"],
                     },
                     apothemAttr: {
@@ -899,35 +899,35 @@ export default class RegularPolygon extends Polygon {
                         center = dependencyValues.essentialCenter;
                     }
 
-                    let circumradius;
+                    let circumRadius;
 
                     if (dependencyValues.specifiedCircumradius !== null) {
-                        circumradius = dependencyValues.specifiedCircumradius;
+                        circumRadius = dependencyValues.specifiedCircumradius;
                     } else if (dependencyValues.specifiedInradius !== null) {
-                        circumradius =
+                        circumRadius =
                             dependencyValues.specifiedInradius /
                             Math.cos(Math.PI / numVertices);
                     } else if (dependencyValues.specifiedSideLength !== null) {
-                        circumradius =
+                        circumRadius =
                             dependencyValues.specifiedSideLength /
                             (2 * Math.sin(Math.PI / numVertices));
                     } else if (dependencyValues.specifiedPerimeter !== null) {
-                        circumradius =
+                        circumRadius =
                             dependencyValues.specifiedPerimeter /
                             (2 * numVertices * Math.sin(Math.PI / numVertices));
                     } else if (dependencyValues.specifiedArea !== null) {
-                        circumradius = Math.sqrt(
+                        circumRadius = Math.sqrt(
                             dependencyValues.specifiedArea /
                                 ((numVertices / 2) *
                                     Math.sin((2 * Math.PI) / numVertices)),
                         );
                     } else {
-                        circumradius = dependencyValues.essentialCircumradius;
+                        circumRadius = dependencyValues.essentialCircumradius;
                     }
 
                     unconstrainedDirectionWithRadius =
                         dependencyValues.essentialDirection.map(
-                            (x) => x * circumradius,
+                            (x) => x * circumRadius,
                         );
                 } else if (dependencyValues.haveSpecifiedCenter) {
                     // base polygon on center and first vertex
@@ -947,35 +947,35 @@ export default class RegularPolygon extends Polygon {
                     // one vertex, no center
                     // use vertex, direction, and a measure of size
 
-                    let circumradius;
+                    let circumRadius;
 
                     if (dependencyValues.specifiedCircumradius !== null) {
-                        circumradius = dependencyValues.specifiedCircumradius;
+                        circumRadius = dependencyValues.specifiedCircumradius;
                     } else if (dependencyValues.specifiedInradius !== null) {
-                        circumradius =
+                        circumRadius =
                             dependencyValues.specifiedInradius /
                             Math.cos(Math.PI / numVertices);
                     } else if (dependencyValues.specifiedSideLength !== null) {
-                        circumradius =
+                        circumRadius =
                             dependencyValues.specifiedSideLength /
                             (2 * Math.sin(Math.PI / numVertices));
                     } else if (dependencyValues.specifiedPerimeter !== null) {
-                        circumradius =
+                        circumRadius =
                             dependencyValues.specifiedPerimeter /
                             (2 * numVertices * Math.sin(Math.PI / numVertices));
                     } else if (dependencyValues.specifiedArea !== null) {
-                        circumradius = Math.sqrt(
+                        circumRadius = Math.sqrt(
                             dependencyValues.specifiedArea /
                                 ((numVertices / 2) *
                                     Math.sin((2 * Math.PI) / numVertices)),
                         );
                     } else {
-                        circumradius = dependencyValues.essentialCircumradius;
+                        circumRadius = dependencyValues.essentialCircumradius;
                     }
 
                     unconstrainedDirectionWithRadius =
                         dependencyValues.essentialDirection.map(
-                            (x) => x * circumradius,
+                            (x) => x * circumRadius,
                         );
 
                     let vertex =
@@ -1011,7 +1011,7 @@ export default class RegularPolygon extends Polygon {
                     let sideLength = Math.sqrt(
                         sideVector[0] ** 2 + sideVector[1] ** 2,
                     );
-                    let inradius =
+                    let inRadius =
                         sideLength / (2 * Math.tan(Math.PI / numVertices));
 
                     let inradiusDirection = [
@@ -1020,8 +1020,8 @@ export default class RegularPolygon extends Polygon {
                     ];
 
                     center = [
-                        midpoint[0] + inradiusDirection[0] * inradius,
-                        midpoint[1] + inradiusDirection[1] * inradius,
+                        midpoint[0] + inradiusDirection[0] * inRadius,
+                        midpoint[1] + inradiusDirection[1] * inRadius,
                     ];
 
                     unconstrainedDirectionWithRadius = [
@@ -1776,7 +1776,7 @@ export default class RegularPolygon extends Polygon {
             },
         };
 
-        stateVariableDefinitions.circumradius = {
+        stateVariableDefinitions.circumRadius = {
             description: "The radius of the circumscribed circle.",
             isLocation: true,
             public: true,
@@ -1804,12 +1804,12 @@ export default class RegularPolygon extends Polygon {
                     evaluateToNumber(x),
                 );
 
-                let circumradius = Math.sqrt(
+                let circumRadius = Math.sqrt(
                     (vertex1[0] - center[0]) ** 2 +
                         (vertex1[1] - center[1]) ** 2,
                 );
 
-                return { setValue: { circumradius } };
+                return { setValue: { circumRadius } };
             },
             inverseDefinition({
                 desiredStateVariableValues,
@@ -1832,7 +1832,7 @@ export default class RegularPolygon extends Polygon {
                     directionWithRadius[0] ** 2 + directionWithRadius[1] ** 2,
                 );
 
-                let desiredRadius = desiredStateVariableValues.circumradius;
+                let desiredRadius = desiredStateVariableValues.circumRadius;
 
                 let desiredDirectionWithRadius = directionWithRadius.map(
                     (x) => (x / previousRadius) * desiredRadius,
@@ -1857,12 +1857,12 @@ export default class RegularPolygon extends Polygon {
 
         stateVariableDefinitions.radius = {
             isAlias: true,
-            targetVariableName: "circumradius",
+            targetVariableName: "circumRadius",
             description:
-                "Distance from center to a vertex (alias for circumradius).",
+                "Distance from center to a vertex (alias for circumRadius).",
         };
 
-        stateVariableDefinitions.inradius = {
+        stateVariableDefinitions.inRadius = {
             description: "The radius of the inscribed circle.",
             isLocation: true,
             public: true,
@@ -1872,9 +1872,9 @@ export default class RegularPolygon extends Polygon {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                circumradius: {
+                circumRadius: {
                     dependencyType: "stateVariable",
-                    variableName: "circumradius",
+                    variableName: "circumRadius",
                 },
                 numVertices: {
                     dependencyType: "stateVariable",
@@ -1882,18 +1882,18 @@ export default class RegularPolygon extends Polygon {
                 },
             }),
             definition({ dependencyValues }) {
-                let circumradius = dependencyValues.circumradius;
+                let circumRadius = dependencyValues.circumRadius;
                 let numVertices = dependencyValues.numVertices;
 
-                let inradius = circumradius * Math.cos(Math.PI / numVertices);
+                let inRadius = circumRadius * Math.cos(Math.PI / numVertices);
 
-                return { setValue: { inradius } };
+                return { setValue: { inRadius } };
             },
             inverseDefinition({
                 desiredStateVariableValues,
                 dependencyValues,
             }) {
-                let desiredInradius = desiredStateVariableValues.inradius;
+                let desiredInradius = desiredStateVariableValues.inRadius;
                 let numVertices = dependencyValues.numVertices;
 
                 let desiredCircumradius =
@@ -1903,7 +1903,7 @@ export default class RegularPolygon extends Polygon {
                     success: true,
                     instructions: [
                         {
-                            setDependency: "circumradius",
+                            setDependency: "circumRadius",
                             desiredValue: desiredCircumradius,
                         },
                     ],
@@ -1913,9 +1913,9 @@ export default class RegularPolygon extends Polygon {
 
         stateVariableDefinitions.apothem = {
             isAlias: true,
-            targetVariableName: "inradius",
+            targetVariableName: "inRadius",
             description:
-                "Distance from center to the midpoint of a side (alias for inradius).",
+                "Distance from center to the midpoint of a side (alias for inRadius).",
         };
 
         stateVariableDefinitions.sideLength = {
@@ -1928,9 +1928,9 @@ export default class RegularPolygon extends Polygon {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                circumradius: {
+                circumRadius: {
                     dependencyType: "stateVariable",
-                    variableName: "circumradius",
+                    variableName: "circumRadius",
                 },
                 numVertices: {
                     dependencyType: "stateVariable",
@@ -1938,11 +1938,11 @@ export default class RegularPolygon extends Polygon {
                 },
             }),
             definition({ dependencyValues }) {
-                let circumradius = dependencyValues.circumradius;
+                let circumRadius = dependencyValues.circumRadius;
                 let numVertices = dependencyValues.numVertices;
 
                 let sideLength =
-                    circumradius * (2 * Math.sin(Math.PI / numVertices));
+                    circumRadius * (2 * Math.sin(Math.PI / numVertices));
 
                 return { setValue: { sideLength } };
             },
@@ -1960,7 +1960,7 @@ export default class RegularPolygon extends Polygon {
                     success: true,
                     instructions: [
                         {
-                            setDependency: "circumradius",
+                            setDependency: "circumRadius",
                             desiredValue: desiredCircumradius,
                         },
                     ],
@@ -1978,9 +1978,9 @@ export default class RegularPolygon extends Polygon {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                circumradius: {
+                circumRadius: {
                     dependencyType: "stateVariable",
-                    variableName: "circumradius",
+                    variableName: "circumRadius",
                 },
                 numVertices: {
                     dependencyType: "stateVariable",
@@ -1988,11 +1988,11 @@ export default class RegularPolygon extends Polygon {
                 },
             }),
             definition({ dependencyValues }) {
-                let circumradius = dependencyValues.circumradius;
+                let circumRadius = dependencyValues.circumRadius;
                 let numVertices = dependencyValues.numVertices;
 
                 let perimeter =
-                    circumradius *
+                    circumRadius *
                     (2 * numVertices * Math.sin(Math.PI / numVertices));
 
                 return { setValue: { perimeter } };
@@ -2012,7 +2012,7 @@ export default class RegularPolygon extends Polygon {
                     success: true,
                     instructions: [
                         {
-                            setDependency: "circumradius",
+                            setDependency: "circumRadius",
                             desiredValue: desiredCircumradius,
                         },
                     ],
@@ -2030,9 +2030,9 @@ export default class RegularPolygon extends Polygon {
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                circumradius: {
+                circumRadius: {
                     dependencyType: "stateVariable",
-                    variableName: "circumradius",
+                    variableName: "circumRadius",
                 },
                 numVertices: {
                     dependencyType: "stateVariable",
@@ -2040,11 +2040,11 @@ export default class RegularPolygon extends Polygon {
                 },
             }),
             definition({ dependencyValues }) {
-                let circumradius = dependencyValues.circumradius;
+                let circumRadius = dependencyValues.circumRadius;
                 let numVertices = dependencyValues.numVertices;
 
                 let area =
-                    circumradius ** 2 *
+                    circumRadius ** 2 *
                     ((numVertices / 2) * Math.sin((2 * Math.PI) / numVertices));
 
                 return { setValue: { area } };
@@ -2066,7 +2066,7 @@ export default class RegularPolygon extends Polygon {
                     success: true,
                     instructions: [
                         {
-                            setDependency: "circumradius",
+                            setDependency: "circumRadius",
                             desiredValue: desiredCircumradius,
                         },
                     ],
@@ -2175,7 +2175,7 @@ export default class RegularPolygon extends Polygon {
             {
                 updateType: "updateValue",
                 componentIdx: this.componentIdx,
-                stateVariable: "circumradius",
+                stateVariable: "circumRadius",
                 value: Math.max(1e-15, radius),
                 sourceDetails,
             },

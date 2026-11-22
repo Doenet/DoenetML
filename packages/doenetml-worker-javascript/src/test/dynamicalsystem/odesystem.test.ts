@@ -842,10 +842,10 @@ describe("odeSystem Tag Tests @group4", async () => {
   <p>RHS1: <math extend="$ode.rhs" name="rhs1b" /></p>
   <p>Both RHSs: <asList><mathList extend="$ode.rhss" name="rhssa" /></asList></p>
 
-  <p>RHS1: <math extend="$ode.righthandside1" name="rhs1c" /></p>
-  <p>RHS2: <math extend="$ode.righthandside2" name="rhs2b" /></p>
-  <p>RHS1: <math extend="$ode.righthandside" name="rhs1d" /></p>
-  <p>Both RHSs: <asList><mathList extend="$ode.righthandsides" name="rhssb" /></asList></p>
+  <p>RHS1: <math extend="$ode.rightHandSide1" name="rhs1c" /></p>
+  <p>RHS2: <math extend="$ode.rightHandSide2" name="rhs2b" /></p>
+  <p>RHS1: <math extend="$ode.rightHandSide" name="rhs1d" /></p>
+  <p>Both RHSs: <asList><mathList extend="$ode.rightHandSides" name="rhssb" /></asList></p>
   
   <p>IC1: <math extend="$ode.initialCondition1" name="ic1a" /></p>
   <p>IC2: <math extend="$ode.initialCondition2" name="ic2a" /></p>

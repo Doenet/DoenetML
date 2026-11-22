@@ -39207,13 +39207,13 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "description": "Scale factor used along the x-axis.",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "description": "Scale factor used along the y-axis.",
                     "defaultValue": 1,
                     "type": "number"
@@ -39480,14 +39480,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -40186,13 +40186,13 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "description": "Scale factor used along the x-axis.",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "description": "Scale factor used along the y-axis.",
                     "defaultValue": 1,
                     "type": "number"
@@ -40459,14 +40459,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -41165,13 +41165,13 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "description": "Scale factor used along the x-axis.",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "description": "Scale factor used along the y-axis.",
                     "defaultValue": 1,
                     "type": "number"
@@ -41436,14 +41436,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -64697,13 +64697,13 @@
                     "description": "The right-hand-side expression of the first ODE in the system."
                 },
                 {
-                    "name": "righthandside",
+                    "name": "rightHandSide",
                     "type": "math",
                     "isArray": false,
                     "description": "The right-hand-side expression of the first ODE in the system."
                 },
                 {
-                    "name": "righthandsides",
+                    "name": "rightHandSides",
                     "type": "math",
                     "isArray": true,
                     "description": "The right-hand-side expressions of each ODE in the system.",
@@ -66931,19 +66931,19 @@
                     "name": "coeff0",
                     "type": "math",
                     "isArray": false,
-                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The constant term in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar1",
+                    "name": "coeffVar1",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar2",
+                    "name": "coeffVar2",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -66952,13 +66952,13 @@
                     "description": "The slope of the line (2D only)."
                 },
                 {
-                    "name": "xintercept",
+                    "name": "xIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The x-intercept of the line."
                 },
                 {
-                    "name": "yintercept",
+                    "name": "yIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The y-intercept of the line."
@@ -71130,7 +71130,7 @@
                     "type": "_componentSizeList"
                 },
                 {
-                    "name": "valign",
+                    "name": "vAlign",
                     "description": "Default vertical alignment for all panels.",
                     "values": [
                         "top",
@@ -71154,7 +71154,7 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "valigns",
+                    "name": "vAligns",
                     "description": "Per-panel vertical alignment values.",
                     "values": [
                         "top",
@@ -71272,7 +71272,7 @@
                     ]
                 },
                 {
-                    "name": "valigns",
+                    "name": "vAligns",
                     "type": "text",
                     "isArray": true,
                     "description": "Vertical alignment of each child.",
@@ -71406,7 +71406,7 @@
                     "type": "_componentSizeList"
                 },
                 {
-                    "name": "valign",
+                    "name": "vAlign",
                     "description": "Default vertical alignment for all panels.",
                     "values": [
                         "top",
@@ -71430,7 +71430,7 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "valigns",
+                    "name": "vAligns",
                     "description": "Per-panel vertical alignment values.",
                     "values": [
                         "top",
@@ -71548,7 +71548,7 @@
                     ]
                 },
                 {
-                    "name": "valigns",
+                    "name": "vAligns",
                     "type": "text",
                     "isArray": true,
                     "description": "Vertical alignment of each child.",
@@ -85329,19 +85329,19 @@
                     "name": "coeff0",
                     "type": "math",
                     "isArray": false,
-                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The constant term in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar1",
+                    "name": "coeffVar1",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar2",
+                    "name": "coeffVar2",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -85350,13 +85350,13 @@
                     "description": "The slope of the line (2D only)."
                 },
                 {
-                    "name": "xintercept",
+                    "name": "xIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The x-intercept of the line."
                 },
                 {
-                    "name": "yintercept",
+                    "name": "yIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The y-intercept of the line."
@@ -89817,23 +89817,23 @@
                     "type": "point"
                 },
                 {
-                    "name": "circumradius",
+                    "name": "circumRadius",
                     "description": "Distance from center to a vertex (circumscribed-circle radius).",
                     "type": "number"
                 },
                 {
                     "name": "radius",
-                    "description": "Alias for circumradius.",
+                    "description": "Alias for circumRadius.",
                     "type": "number"
                 },
                 {
-                    "name": "inradius",
+                    "name": "inRadius",
                     "description": "Distance from center to the midpoint of a side (inscribed-circle radius).",
                     "type": "number"
                 },
                 {
                     "name": "apothem",
-                    "description": "Alias for inradius.",
+                    "description": "Alias for inRadius.",
                     "type": "number"
                 },
                 {
@@ -90139,13 +90139,13 @@
                     "description": "The area enclosed by the polygon."
                 },
                 {
-                    "name": "circumradius",
+                    "name": "circumRadius",
                     "type": "number",
                     "isArray": false,
                     "description": "The radius of the circumscribed circle."
                 },
                 {
-                    "name": "inradius",
+                    "name": "inRadius",
                     "type": "number",
                     "isArray": false,
                     "description": "The radius of the inscribed circle."
@@ -90166,13 +90166,13 @@
                     "name": "radius",
                     "type": "number",
                     "isArray": false,
-                    "description": "Distance from center to a vertex (alias for circumradius)."
+                    "description": "Distance from center to a vertex (alias for circumRadius)."
                 },
                 {
                     "name": "apothem",
                     "type": "number",
                     "isArray": false,
-                    "description": "Distance from center to the midpoint of a side (alias for inradius)."
+                    "description": "Distance from center to the midpoint of a side (alias for inRadius)."
                 }
             ],
             "top": true,
@@ -102826,13 +102826,13 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "description": "Scale factor used along the x-axis.",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "description": "Scale factor used along the y-axis.",
                     "defaultValue": 1,
                     "type": "number"
@@ -103087,14 +103087,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -103676,13 +103676,13 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "description": "Scale factor used along the x-axis.",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "description": "Scale factor used along the y-axis.",
                     "defaultValue": 1,
                     "type": "number"
@@ -103906,14 +103906,14 @@
                     "description": "Whether to expand the function's formula."
                 },
                 {
-                    "name": "xscale",
+                    "name": "xScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the x-axis.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yscale",
+                    "name": "yScale",
                     "type": "number",
                     "isArray": false,
                     "description": "Scale factor used along the y-axis.",
@@ -107275,7 +107275,7 @@
                     "type": "integer"
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "description": "Horizontal alignment for the cell's content.",
                     "defaultValue": "start",
                     "values": [
@@ -107452,7 +107452,7 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Horizontal alignment of the cell's content (start, center, end, or justify)."
@@ -107614,7 +107614,7 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "description": "Default horizontal alignment for cells in this row.",
                     "defaultValue": "start",
                     "values": [
@@ -107644,7 +107644,7 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "valign",
+                    "name": "vAlign",
                     "description": "Default vertical alignment for cells in this row.",
                     "defaultValue": "middle",
                     "values": [
@@ -107824,13 +107824,13 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Default horizontal alignment for cells in this row."
                 },
                 {
-                    "name": "valign",
+                    "name": "vAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Default vertical alignment for cells in this row."
@@ -108162,7 +108162,7 @@
                     "type": "componentSize"
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "description": "Horizontal alignment for cells in this column.",
                     "highlighted": true,
                     "defaultValue": null,
@@ -108286,7 +108286,7 @@
                     "highlighted": true
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Horizontal alignment for cells in this column.",
@@ -108647,7 +108647,7 @@
                     "type": "componentSize"
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "description": "Default horizontal alignment for cells.",
                     "defaultValue": "start",
                     "values": [
@@ -108677,7 +108677,7 @@
                     "type": "keyword"
                 },
                 {
-                    "name": "valign",
+                    "name": "vAlign",
                     "description": "Default vertical alignment for cells.",
                     "defaultValue": "middle",
                     "values": [
@@ -108859,14 +108859,14 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "halign",
+                    "name": "hAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Default horizontal alignment for cells.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "valign",
+                    "name": "vAlign",
                     "type": "text",
                     "isArray": false,
                     "description": "Default vertical alignment for cells.",
@@ -110772,13 +110772,13 @@
                     "type": "number"
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "description": "Horizontal offset of the peg grid origin.",
                     "defaultValue": 0,
                     "type": "number"
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "description": "Vertical offset of the peg grid origin.",
                     "defaultValue": 0,
                     "type": "number"
@@ -110828,14 +110828,14 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the peg grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the peg grid origin.",
@@ -110983,19 +110983,19 @@
                     "type": "number"
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "description": "Horizontal offset of the grid origin.",
                     "defaultValue": 0,
                     "type": "number"
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "description": "Vertical offset of the grid origin.",
                     "defaultValue": 0,
                     "type": "number"
                 },
                 {
-                    "name": "zoffset",
+                    "name": "zOffset",
                     "description": "Depth-wise offset of the grid origin.",
                     "defaultValue": 0,
                     "type": "number"
@@ -111045,21 +111045,21 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "zoffset",
+                    "name": "zOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Depth-wise offset of the grid origin.",
@@ -111366,37 +111366,37 @@
                     "type": "number"
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "description": "Horizontal offset of the grid origin.",
                     "defaultValue": 0,
                     "type": "number"
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "description": "Vertical offset of the grid origin.",
                     "defaultValue": 0,
                     "type": "number"
                 },
                 {
-                    "name": "zoffset",
+                    "name": "zOffset",
                     "description": "Depth-wise offset of the grid origin.",
                     "defaultValue": 0,
                     "type": "number"
                 },
                 {
-                    "name": "xthreshold",
+                    "name": "xThreshold",
                     "description": "Horizontal distance within which the position attracts to a grid line.",
                     "defaultValue": 0.2,
                     "type": "number"
                 },
                 {
-                    "name": "ythreshold",
+                    "name": "yThreshold",
                     "description": "Vertical distance within which the position attracts to a grid line.",
                     "defaultValue": 0.2,
                     "type": "number"
                 },
                 {
-                    "name": "zthreshold",
+                    "name": "zThreshold",
                     "description": "Depth-wise distance within which the position attracts to a grid line.",
                     "defaultValue": 0.2,
                     "type": "number"
@@ -111456,42 +111456,42 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "zoffset",
+                    "name": "zOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Depth-wise offset of the grid origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "xthreshold",
+                    "name": "xThreshold",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal distance within which the position attracts to a grid line.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "ythreshold",
+                    "name": "yThreshold",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical distance within which the position attracts to a grid line.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "zthreshold",
+                    "name": "zThreshold",
                     "type": "number",
                     "isArray": false,
                     "description": "Depth-wise distance within which the position attracts to a grid line.",
@@ -131367,19 +131367,19 @@
                     "name": "coeff0",
                     "type": "math",
                     "isArray": false,
-                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The constant term in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar1",
+                    "name": "coeffVar1",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
-                    "name": "coeffvar2",
+                    "name": "coeffVar2",
                     "type": "math",
                     "isArray": false,
-                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffVar1·x + coeffVar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -131388,13 +131388,13 @@
                     "description": "The slope of the line (2D only)."
                 },
                 {
-                    "name": "xintercept",
+                    "name": "xIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The x-intercept of the line."
                 },
                 {
-                    "name": "yintercept",
+                    "name": "yIntercept",
                     "type": "math",
                     "isArray": false,
                     "description": "The y-intercept of the line."
@@ -132356,13 +132356,13 @@
                     "type": "number"
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "description": "Horizontal offset of the lattice origin.",
                     "defaultValue": 0,
                     "type": "number"
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "description": "Vertical offset of the lattice origin.",
                     "defaultValue": 0,
                     "type": "number"
@@ -132424,14 +132424,14 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the lattice origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the lattice origin.",
@@ -132757,13 +132757,13 @@
                     "type": "number"
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "description": "Horizontal offset of the lattice origin.",
                     "defaultValue": 0,
                     "type": "number"
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "description": "Vertical offset of the lattice origin.",
                     "defaultValue": 0,
                     "type": "number"
@@ -132835,14 +132835,14 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "xoffset",
+                    "name": "xOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Horizontal offset of the lattice origin.",
                     "fromAttribute": true
                 },
                 {
-                    "name": "yoffset",
+                    "name": "yOffset",
                     "type": "number",
                     "isArray": false,
                     "description": "Vertical offset of the lattice origin.",

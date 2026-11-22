@@ -59,7 +59,7 @@ export function returnFieldVariablesAttribute() {
 /**
  * The lattice attributes both field components take.
  *
- * `dx`, `dy`, `xoffset` and `yoffset` deliberately match `<pegboard>`, which
+ * `dx`, `dy`, `xOffset` and `yOffset` deliberately match `<pegboard>`, which
  * describes the same lattice.
  *
  * @param {string} markNoun plural noun for the marks ("marks", "arrows"), used
@@ -90,17 +90,17 @@ export function returnFieldLatticeAttributes({
             forRenderer: true,
             description: `Vertical spacing between ${markNoun}.`,
         },
-        xoffset: {
+        xOffset: {
             createComponentOfType: "number",
-            createStateVariable: "xoffset",
+            createStateVariable: "xOffset",
             defaultValue: 0,
             public: true,
             forRenderer: true,
             description: "Horizontal offset of the lattice origin.",
         },
-        yoffset: {
+        yOffset: {
             createComponentOfType: "number",
-            createStateVariable: "yoffset",
+            createStateVariable: "yOffset",
             defaultValue: 0,
             public: true,
             forRenderer: true,

@@ -79,6 +79,28 @@ export class EssentialValueWriter {
     }
 
     /**
+     * Log a change refused because `componentIdx` (the component asked to
+     * change, or a source it shadows) is `fixed` or has `fixLocation`, and
+     * tell `core.onChangeRefused`, if set, unless the change was asked for
+     * by an action another action set off (a triggered or chained action).
+     */
+    refuseChange(
+        componentIdx: ComponentIdx,
+        stateVariable: string,
+        reason: "fixed" | "fixLocation",
+        message: string,
+    ) {
+        reportInternalError(message);
+        if (this.core.actionTriggerScheduler.triggeredActionDepth === 0) {
+            this.core.onChangeRefused?.({
+                componentIdx,
+                stateVariable,
+                reason,
+            });
+        }
+    }
+
+    /**
      * Public bulk-write entry point. Applies `newStateVariableValues` to the
      * live component tree, then flushes any composite-replacement work the
      * writes triggered:
@@ -974,7 +996,10 @@ export class EssentialValueWriter {
             !stateVarObj.ignoreFixed &&
             (await component.stateValues.fixed)
         ) {
-            reportInternalError(
+            this.refuseChange(
+                component.componentIdx,
+                stateVariable,
+                "fixed",
                 `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixed is true.`,
             );
             return;
@@ -985,7 +1010,10 @@ export class EssentialValueWriter {
             stateVarObj.isLocation &&
             (await component.stateValues.fixLocation)
         ) {
-            reportInternalError(
+            this.refuseChange(
+                component.componentIdx,
+                stateVariable,
+                "fixLocation",
                 `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation is true.`,
             );
             return;
@@ -1007,7 +1035,10 @@ export class EssentialValueWriter {
                     break;
                 }
                 if (await source.stateValues.fixLocation) {
-                    reportInternalError(
+                    this.refuseChange(
+                        source.componentIdx,
+                        stateVariable,
+                        "fixLocation",
                         `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation of ${source.componentIdx} is true.`,
                     );
                     return;
@@ -1360,7 +1391,10 @@ export class EssentialValueWriter {
                             !stateVarObj.ignoreFixed &&
                             (await baseComponent.stateValues.fixed)
                         ) {
-                            reportInternalError(
+                            this.refuseChange(
+                                baseComponent.componentIdx,
+                                stateVariable,
+                                "fixed",
                                 `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixed is true.`,
                             );
                             return;
@@ -1372,7 +1406,10 @@ export class EssentialValueWriter {
                             stateVarObj.isLocation &&
                             (await baseComponent.stateValues.fixLocation)
                         ) {
-                            reportInternalError(
+                            this.refuseChange(
+                                baseComponent.componentIdx,
+                                stateVariable,
+                                "fixLocation",
                                 `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixLocation is true.`,
                             );
                             return;

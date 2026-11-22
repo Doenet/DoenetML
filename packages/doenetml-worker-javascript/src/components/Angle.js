@@ -369,8 +369,8 @@ export default class Angle extends GraphicalComponent {
                             "points",
                             "numDimensions",
                             "coeff0",
-                            "coeffvar1",
-                            "coeffvar2",
+                            "coeffVar1",
+                            "coeffVar2",
                             "nearestPoint",
                         ],
                     };
@@ -1020,11 +1020,11 @@ function calculateLineIntersection(line1, line2) {
     }
 
     // only implement for constant coefficients
-    let a1 = line1.stateValues.coeffvar1.evaluate_to_constant();
-    let b1 = line1.stateValues.coeffvar2.evaluate_to_constant();
+    let a1 = line1.stateValues.coeffVar1.evaluate_to_constant();
+    let b1 = line1.stateValues.coeffVar2.evaluate_to_constant();
     let c1 = line1.stateValues.coeff0.evaluate_to_constant();
-    let a2 = line2.stateValues.coeffvar1.evaluate_to_constant();
-    let b2 = line2.stateValues.coeffvar2.evaluate_to_constant();
+    let a2 = line2.stateValues.coeffVar1.evaluate_to_constant();
+    let b2 = line2.stateValues.coeffVar2.evaluate_to_constant();
     let c2 = line2.stateValues.coeff0.evaluate_to_constant();
 
     if (!(

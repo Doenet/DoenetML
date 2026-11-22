@@ -114,14 +114,14 @@ keeps the proportions it has on screen.
 
 ---
 
-### Attribute Example: halign
+### Attribute Example: hAlign
 
 
 ```doenet-editor-horiz
 <table>
   <tabular topBorder="minor" bottomBorder="minor">
     <col />
-    <col halign="end" />
+    <col hAlign="end" />
     <row>
       <cell>Pennsylvania</cell>
       <cell>19</cell>
@@ -132,7 +132,7 @@ keeps the proportions it has on screen.
     </row>
     <row>
       <cell>Total</cell>
-      <cell halign="center">23</cell>
+      <cell hAlign="center">23</cell>
     </row>
   </tabular>
 </table>
@@ -140,18 +140,18 @@ keeps the proportions it has on screen.
 
 
 
-The `halign` attribute sets the horizontal alignment of every `<cell>{:dn}` in
+The `hAlign` attribute sets the horizontal alignment of every `<cell>{:dn}` in
 the column, which is the usual way to right-align a column of numbers. The
 available options are `start`, `center`, `end`, and `justify`; `start` and
 `end` follow the writing direction, so `end` is the right edge in a
 left-to-right document and the left edge in a right-to-left one. An empty
 `<col />{:dn}` is a placeholder that leaves its column alone — here it holds
-the first column's place so that `halign="end"` lands on the second.
+the first column's place so that `hAlign="end"` lands on the second.
 
 A `<col>{:dn}` is the third of four places an alignment can come from. A
-`<cell>{:dn}` uses its own `halign` if it has one, then its `<row>{:dn}`'s,
-then its column's, then the `<tabular>{:dn}`'s — so the `<cell halign="center">{:dn}`
-in the last row above outranks the column, and a `<row halign="…">{:dn}` would
+`<cell>{:dn}` uses its own `hAlign` if it has one, then its `<row>{:dn}`'s,
+then its column's, then the `<tabular>{:dn}`'s — so the `<cell hAlign="center">{:dn}`
+in the last row above outranks the column, and a `<row hAlign="…">{:dn}` would
 too.
 
 
@@ -183,7 +183,7 @@ too.
 `endBorder` draws a dividing line down the trailing edge of the column — its
 right edge in a left-to-right document — and `topBorder` draws one across the
 top of it. Both accept `none` (default), `minor`, `medium`, and `major`. As
-with `halign`, a `<cell endBorder="…">{:dn}` of its own takes precedence over
+with `hAlign`, a `<cell endBorder="…">{:dn}` of its own takes precedence over
 the column's, including `endBorder="none"` to leave a gap in the line.
 
 A `<cell colSpan="…">{:dn}` covers more than one column, so it follows two of
@@ -202,7 +202,7 @@ there is no cell edge in the middle of the span to draw it on.
 ```doenet-editor-horiz
 <table>
   <tabular>
-    <col name="col1" width="40%" halign="end" endBorder="minor" />
+    <col name="col1" width="40%" hAlign="end" endBorder="minor" />
     <col />
     <row>
       <cell>1</cell>
@@ -212,7 +212,7 @@ there is no cell edge in the middle of the span to draw it on.
 </table>
 
 <p><c>width</c> = $col1.width</p>
-<p><c>halign</c> = $col1.halign</p>
+<p><c>hAlign</c> = $col1.hAlign</p>
 <p><c>endBorder</c> = $col1.endBorder</p>
 ```
 
