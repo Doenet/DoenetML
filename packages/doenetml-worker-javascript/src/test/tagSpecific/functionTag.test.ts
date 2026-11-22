@@ -111,7 +111,7 @@ describe("Function tag tests @group4", async () => {
     it("function with single minimum, change x-scale", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <function xscale="3" minima="(2)" name="f" />
+    <function xScale="3" minima="(2)" name="f" />
     `,
         });
 
@@ -129,7 +129,7 @@ describe("Function tag tests @group4", async () => {
     it("function with single minimum, change x-scale and y-scale", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <function xscale="3" yscale="5" minima="(2)" name="f" />
+    <function xScale="3" yScale="5" minima="(2)" name="f" />
     `,
         });
 
@@ -165,7 +165,7 @@ describe("Function tag tests @group4", async () => {
     it("function with single maximum, change x-scale", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <function xscale="3" maxima="(3)" name="f" />
+    <function xScale="3" maxima="(3)" name="f" />
     `,
         });
 
@@ -183,7 +183,7 @@ describe("Function tag tests @group4", async () => {
     it("function with single maximum, change x-scale and y-scale", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <function xscale="3" yscale="5" maxima="(3)" name="f" />
+    <function xScale="3" yScale="5" maxima="(3)" name="f" />
     `,
         });
 
@@ -1108,7 +1108,7 @@ describe("Function tag tests @group4", async () => {
             doenetML: `
     <function through="(0,2) (2,1) (3,2)" name="f" styleNumber="1" />
     <function extend="$f" through="(1,5) (4,2)" name="g" styleNumber="2" />
-    <function extend="$f" throughslopes="1 2 -3" name="h" styleNumber="3" />
+    <function extend="$f" throughSlopes="1 2 -3" name="h" styleNumber="3" />
     `,
         });
 
@@ -3979,9 +3979,9 @@ describe("Function tag tests @group4", async () => {
     <point name="P2">(3,4)</point>
     <point name="P3">(-5,7)</point>
     <point name="P4">(8,-1)</point>
-    <function name="f1" yscale="5" maxima="($f2.numMaxima,$f2.numMinima)" through="(-8,5) (9,10)" />
+    <function name="f1" yScale="5" maxima="($f2.numMaxima,$f2.numMinima)" through="(-8,5) (9,10)" />
     
-    <function name="f2" yscale="$f1.yscale" through="$P1 $P2 $P3 $P4 " maxima="(0, )" />
+    <function name="f2" yScale="$f1.yScale" through="$P1 $P2 $P3 $P4 " maxima="(0, )" />
          `,
         });
 
@@ -4012,10 +4012,10 @@ describe("Function tag tests @group4", async () => {
             expect(f1.maxima[0][0]).eq(maxf1[0]);
             expect(f1.maxima[0][1]).eq(maxf1[1]);
 
-            expect(f1.xscale).eq(1);
-            expect(f1.yscale).eq(5);
-            expect(f2.xscale).eq(1);
-            expect(f2.yscale).eq(5);
+            expect(f1.xScale).eq(1);
+            expect(f1.yScale).eq(5);
+            expect(f2.xScale).eq(1);
+            expect(f2.yScale).eq(5);
         }
 
         await check_items({ numMaxf2: 2, numMinf2: 1, maxf1: [2, 1] });
@@ -4051,12 +4051,12 @@ describe("Function tag tests @group4", async () => {
     <mathInput name="mi1" />
     <mathInput name="mi2" />
     
-    <function xscale="$mi1" name="f1">$mi2 x^3+1</function>
+    <function xScale="$mi1" name="f1">$mi2 x^3+1</function>
     
     <function extend="$f1" name="f1a" />
     
-    <p name="p1">$f1a.xscale</p>
-    <p name="p2">$f1.xscale</p>
+    <p name="p1">$f1a.xScale</p>
+    <p name="p2">$f1.xScale</p>
     
     `,
         });
@@ -6650,10 +6650,10 @@ describe("Function tag tests @group4", async () => {
       <point name="max" extend="$f.maximum1" />
       <point name="min" extend="$f.minimum1" />
       <pointList extend="$f.extrema" name="ext" />
-      <point name="gmax" extend="$f.globalmaximum" />
-      <point name="gmin" extend="$f.globalminimum" />
-      <point name="sup" extend="$f.globalsupremum" />
-      <point name="inf" extend="$f.globalinfimum" />
+      <point name="gmax" extend="$f.globalMaximum" />
+      <point name="gmin" extend="$f.globalMinimum" />
+      <point name="sup" extend="$f.globalSupremum" />
+      <point name="inf" extend="$f.globalInfimum" />
     `,
         });
 

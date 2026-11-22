@@ -465,8 +465,8 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
 </setup>
 
 <graph
-    ymin="-8"
-    ymax="8"
+    yMin="-8"
+    yMax="8"
     displayXAxis="false"
     displayYAxis="false">
   <shortDescription>A graph of balloons</shortDescription>

@@ -1391,10 +1391,9 @@ export function convertRepeatsToLists({
         if (created?.type !== "primitive") {
             return false;
         }
-        const type =
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                String(created.primitive.value).toLowerCase()
-            ];
+        const type = componentInfoObjects.componentTypeAsWritten(
+            String(created.primitive.value),
+        );
         return (
             type !== undefined &&
             componentInfoObjects.isInheritedComponentType({

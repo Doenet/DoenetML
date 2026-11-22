@@ -998,11 +998,12 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
     <p name="p">[<mathList>$l[5] 2</mathList>][<numberList>$nl[5] 2</numberList>][<textList>$tl[5] x</textList>][<mathList>$nothing 2</mathList>][<numberList>0 $r.x 9</numberList>][<mathList><math extend="$nothing"/> 2</mathList>][<numberList><number>$nothing</number> 2</numberList>]</p>
     `);
         expect(text).eq("[＿, 2][＿, 2][＿, x][＿, 2][0, ＿, 9][＿, 2][＿, 2]");
-        expect(warnings.map((w) => w.code)).eqls([
+        // `$r.x` names nothing: a property after a repeat is its own (D59)
+        expect(warnings.map((w) => w.code).sort()).eqls([
             "doenet-w0104",
             "doenet-w0104",
             "doenet-w0104",
-            "doenet-w0104",
+            "doenet-w0200",
         ]);
     });
 
@@ -1582,8 +1583,9 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
     });
 
     it("gives a property computed from each entry's value the blank for a blank entry", async () => {
-        // `$pl.y` reads the `y` of every entry, which, for a blank point, is
-        // a blank, not the `0` of the blank point's second coordinate.
+        // The `y` of every entry, read by a repeat over the list (`$pl.y`
+        // names nothing, as a property after a list is its own, D59), is a
+        // blank for a blank point, not the `0` of its second coordinate.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput name="i" prefill="5"/>
@@ -1592,13 +1594,13 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
     <pointList name="pl">(5,6) $pts[$i]</pointList>
     <numberList name="nl">7 $l[$i]</numberList>
     <collect name="c" from="$pl" componentType="point"/>
-    <p name="p1">$pl.y; $pl.xs; $c.y</p>
-    <p name="p2"><math>$pl.y</math>; <mathList copy="$pl.y"/>; $nl.math</p>
+    <p name="p1"><repeat for="$pl" valueName="ev">$ev.y</repeat>; $pl[1].xs, $pl[2].xs; <repeat for="$c" valueName="ev">$ev.y</repeat></p>
+    <p name="p2"><math><repeat for="$pl" valueName="ev">$ev.y</repeat></math>; <math copy="$pl[2].y"/>; <repeat for="$nl" valueName="ev">$ev.math</repeat></p>
     `,
         });
         expect(await texts(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls({
             p1: "6, ＿; 5, 6, ＿; 6, ＿",
-            p2: "6, ＿; 6, ＿; 7, ＿",
+            p2: "6, ＿; ＿; 7, ＿",
         });
 
         await updateMathInputValue({
@@ -1609,7 +1611,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
         // the unlinked copy keeps what it was made with
         expect(await texts(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls({
             p1: "6, 2; 5, 6, 1, 2; 6, 2",
-            p2: "6, 2; 6, ＿; 7, 1",
+            p2: "6, 2; ＿; 7, 1",
         });
     });
 
@@ -1864,13 +1866,20 @@ describe("A value computed from a missing input (D40) @group2", () => {
     <mathList name="ml">1 $nothing 3</mathList>
     <booleanList name="bl">true $nothing</booleanList>
     <textList name="tl">a $nothing</textList>
-    <p name="p">[$nl.text][$bl.text][$tl.text][$ml.latex][$nl[2].text]</p>
-    <p name="p2">[$ml.matrixSize][$ml[2].matrixSize][$ml[1].matrixSize]</p>
+    <p name="p">[<text>$nl</text>][<text>$bl</text>][<text>$tl</text>][$ml[1].latex, $ml[2].latex, $ml[3].latex][$nl[2].text]</p>
+    <p name="pOld">[$nl.text][$ml.latex]</p>
+    <p name="p2">[$ml[3].matrixSize][$ml[2].matrixSize][$ml[1].matrixSize]</p>
     `,
-            ["p", "p2"],
+            ["p", "p2", "pOld"],
         );
+        // the list's text read as a text, and each entry's LaTeX: a list's
+        // text and LaTeX are not properties of its own (D59), so
+        // `$nl.text` and `$ml.latex` name nothing
         expect(texts.p).eq("[1, ＿, 3][true, ＿][a, ＿][1, ＿, 3][＿]");
-        expect(texts.p2).eq("[1, 1, ＿, 1, 1][＿][1, 1]");
+        expect(texts.pOld).eq("[＿][＿]");
+        // each entry's by index: `$ml.matrixSize` was every entry's (D41); a
+        // property after a list is its own (D59)
+        expect(texts.p2).eq("[1, 1][＿][1, 1]");
     });
 
     it("reads a property that holds null as missing, never as null", async () => {
@@ -1967,14 +1976,17 @@ describe("A value computed from a missing input (D40) @group2", () => {
         expect(await text()).eq("[3][＿]");
     });
 
-    it("keeps an unlinked copy of a property of several components as made through a reload, where one held null", async () => {
+    it("keeps unlinked copies of a property of several components as made through a reload, where one held null", async () => {
         // Only the image whose aspect ratio held null when the copy was
         // made gives nothing; a reload decides it by image, not for all.
+        // Copied per item by a repeat over the collect: `$c.aspectRatio`
+        // was each image's (D41); a property after a collect is its own
+        // (D59).
         const doenetML = `
     <graph name="gr"><image source="./a.png" name="ia"/><image source="./b.png" name="ib" aspectRatio="2"/></graph>
     <mathInput name="mi" bindValueTo="$ia.aspectRatio"/>
     <collect name="c" componentType="image" from="$gr"/>
-    <p name="p">[<mathList copy="$c.aspectRatio"/>]</p>
+    <p name="p">[<repeat for="$c" valueName="ev"><math copy="$ev.aspectRatio"/></repeat>]</p>
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
@@ -1987,20 +1999,20 @@ describe("A value computed from a missing input (D40) @group2", () => {
             return stateVariables[await resolvePathToNodeIdx("p")].stateValues
                 .text;
         }
-        expect(await text()).eq("[2]");
+        expect(await text()).eq("[＿, 2]");
         await updateMathInputValue({
             latex: "1/2",
             componentIdx: await resolvePathToNodeIdx("mi"),
             core,
         });
-        expect(await text()).eq("[2]");
+        expect(await text()).eq("[＿, 2]");
 
         await core.saveImmediately();
         ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
             initialState: scoreState.state,
         }));
-        expect(await text()).eq("[2]");
+        expect(await text()).eq("[＿, 2]");
     });
 });
 
@@ -2096,65 +2108,50 @@ describe("Missing content read by a math and a list (#2516, #2525) @group2", () 
         ).eq("[＿, 3][false]");
     });
 
-    it("marks the blank entries of a list of a property of every entry", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <pointList name="pl">(1,2) $nothing</pointList>
-    <p name="p">$pl.y</p>
-    `,
-        });
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const pIdx = await resolvePathToNodeIdx("p");
-        expect(stateVariables[pIdx].stateValues.text).eq("2, ＿");
-        const list = Object.values<any>(stateVariables).find(
-            (c) =>
-                c.componentType === "mathList" &&
-                (core.core as any)._components[c.componentIdx]?.parentIdx ===
-                    pIdx,
-        );
-        expect(list.stateValues.entriesMissing).eqls([false, true]);
-    });
-
-    it("marks a blank entry of a list of a property of every entry only while the entry is blank", async () => {
+    it("reads the blank entries of a property of every entry, by a repeat, while they are blank", async () => {
+        // `$pl.y` read the y of every entry, as a list whose blank entries
+        // were marked (D41, #2525); a property after a list is the list's
+        // own (D59), so it names nothing, and every entry's is read by a
+        // repeat over the list
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pointList name="pts">(3,4)</pointList>
     <mathInput name="i" prefill="5"/>
     <pointList name="pl">(1,2) $pts[$i]</pointList>
-    <p name="p">$pl.y</p>
+    <p name="p"><repeat for="$pl" valueName="ev">$ev.y</repeat></p>
+    <p name="old">$pl.y</p>
     `,
         });
-        const pIdx = await resolvePathToNodeIdx("p");
         async function shown() {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
             );
-            const list = Object.values<any>(stateVariables).find(
-                (c) =>
-                    c.componentType === "mathList" &&
-                    (core.core as any)._components[c.componentIdx]
-                        ?.parentIdx === pIdx,
-            );
-            return {
-                text: stateVariables[pIdx].stateValues.text,
-                entriesMissing: list.stateValues.entriesMissing,
-            };
+            return [
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                stateVariables[await resolvePathToNodeIdx("old")].stateValues
+                    .text,
+            ];
         }
-        expect(await shown()).eqls({
-            text: "2, ＿",
-            entriesMissing: [false, true],
-        });
+        expect(await shown()).eqls(["2, ＿", "＿"]);
+        expect(
+            core
+                .core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                )
+                .map((d: any) => d.code),
+        ).eqls(["doenet-w0200"]);
         for (const [latex, expected] of [
-            ["1", { text: "2, 4", entriesMissing: [false, false] }],
-            ["7", { text: "2, ＿", entriesMissing: [false, true] }],
+            ["1", "2, 4"],
+            ["7", "2, ＿"],
         ] as const) {
             await updateMathInputValue({
                 latex,
                 componentIdx: await resolvePathToNodeIdx("i"),
                 core,
             });
-            expect(await shown()).eqls(expected);
+            expect(await shown()).eqls([expected, "＿"]);
         }
     });
 

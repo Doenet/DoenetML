@@ -27,7 +27,7 @@ function compositeWhoseExpansionThrows(error: Error) {
         allDoenetMLs: [],
         flags: {},
         dependencies: { resolveItem: async () => ({}) },
-        publicCaseInsensitiveAliasSubstitutions: () => [],
+        publicAliasSubstitutions: () => [],
     } as unknown as Core;
     return { core, component };
 }

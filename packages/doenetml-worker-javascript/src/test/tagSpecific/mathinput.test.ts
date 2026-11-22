@@ -4771,21 +4771,21 @@ describe("MathInput tag tests @group2", async () => {
     <text>a</text>
     <p>a: <mathInput name="a" displayDigits="5" prefill="sin(2x)"/></p>
     <p>a2: <math extend="$a.value" name="a2" /></p>
-    <p>a3: <math extend="$a.immediatevalue" name="a3" /></p>
+    <p>a3: <math extend="$a.immediateValue" name="a3" /></p>
   
     <p>b: <math name="b" displayDigits="10" displaySmallAsZero="false">10e^(3y)</math></p>
     <p>b2: <mathInput name="b2" bindValueTo="$b"  displayDigits="3" /></p>
     <p>b3: <math extend="$b2.value" name="b3" /></p>
-    <p>b4: <math extend="$b2.immediatevalue" name="b4" /></p>
+    <p>b4: <math extend="$b2.immediateValue" name="b4" /></p>
 
     <p>c: <mathInput name="c" displayDigits="5" prefill="sin(2x)" displaySmallAsZero /></p>
     <p>c2: <math extend="$c.value" name="c2" /></p>
-    <p>c3: <math extend="$c.immediatevalue" name="c3" /></p>
+    <p>c3: <math extend="$c.immediateValue" name="c3" /></p>
 
     <p>d: <math name="d" displayDigits="10" displaySmallAsZero="false">10e^(3y)</math></p>
     <p>d2: <mathInput name="d2" bindValueTo="$d"  displayDigits="3" displaySmallAsZero /></p>
     <p>d3: <math extend="$d2.value" name="d3" /></p>
-    <p>d4: <math extend="$d2.immediatevalue" name="d4" /></p>
+    <p>d4: <math extend="$d2.immediateValue" name="d4" /></p>
     `,
         });
 

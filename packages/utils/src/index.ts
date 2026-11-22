@@ -1,6 +1,7 @@
 export * from "./ast/logging";
 export * from "./diagnostics/types";
 export * from "./diagnostics/coded";
+export * from "./headless/types";
 export * from "./keyboard/keyboardShortcuts";
 export * from "./keyboard/pointerType";
 export * from "./media/cid";

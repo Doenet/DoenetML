@@ -1192,8 +1192,9 @@ describe("NumberList tag tests @group4", async () => {
             doenetML: `
     <numberList name="nl">7 -8</numberList>
 
-    <p name="pText">Text: $nl.text</p>
-    <p name="pLatex">Latex: $nl.latex</p>
+    <p name="pText">Text: <text>$nl</text></p>
+    <p name="pLatex">Latex: $nl[1].latex, $nl[2].latex</p>
+    <p name="pOld">$nl.text $nl.latex</p>
 
     `,
         });
@@ -1207,6 +1208,11 @@ describe("NumberList tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("pLatex")].stateValues
                 .text,
         ).eq("Latex: 7, -8");
+        // A list's text and LaTeX are not properties of its own (D59):
+        // `$nl.text` and `$nl.latex` name nothing.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pOld")].stateValues.text,
+        ).eq("＿ ＿");
     });
 
     it("definition and inverse based on shadowed value from a numberList prop", async () => {

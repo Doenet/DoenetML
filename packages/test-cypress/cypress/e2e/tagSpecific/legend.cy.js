@@ -545,7 +545,7 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-    <graph xmin="-100" xmax="0" ymin="-10" ymax="10">
+    <graph xMin="-100" xMax="0" yMin="-10" yMax="10">
         <function name="f">x^2</function>
         <legend boxed><label forObject="$f">a fairly long legend label</label></legend>
     </graph>
@@ -1000,7 +1000,7 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
                 {
                     doenetML: `
     <mathInput name="xMax" prefill="10" />
-    <graph xmin="0" xmax="$xMax" ymin="-10" ymax="10">
+    <graph xMin="0" xMax="$xMax" yMin="-10" yMax="10">
         <function name="f">x</function>
         <legend boxed position="upperRight"><label forObject="$f">a fairly long legend label</label></legend>
     </graph>
@@ -1035,7 +1035,7 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
                 {
                     doenetML: `
     <mathInput name="w" prefill="450" />
-    <graph width="$w" xmin="0" xmax="10" ymin="-10" ymax="10">
+    <graph width="$w" xMin="0" xMax="10" yMin="-10" yMax="10">
         <function name="f">x</function>
         <legend boxed position="upperRight"><label forObject="$f">a fairly long legend label</label></legend>
     </graph>
@@ -1085,7 +1085,7 @@ describe("Legend Tag Tests", { tags: ["@group2"] }, function () {
                     doenetML: `
     <mathInput name="xMax" prefill="10" />
     <mathInput name="w" prefill="450" />
-    <graph width="$w" xmin="0" xmax="$xMax" ymin="-10" ymax="10">
+    <graph width="$w" xMin="0" xMax="$xMax" yMin="-10" yMax="10">
         <function name="f">x</function>
         <legend boxed position="upperLeft"><label forObject="$f">a fairly long legend label</label></legend>
     </graph>

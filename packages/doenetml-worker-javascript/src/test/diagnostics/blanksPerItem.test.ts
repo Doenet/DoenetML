@@ -10,14 +10,16 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 /**
- * A property after a collection whose items include ones lacking it, or
- * items that are wrappers of several components, gives one blank `＿` per
- * such item, in every parent (D40 decisions 1 and 5, D41 decision 3,
+ * A property after a `<conditionalContent>` or a `<group>` whose items
+ * include ones lacking it, or items that are wrappers of several components,
+ * gives one blank `＿` per such item, in every parent (D40 decisions 1 and 5, D41 decision 3,
  * VAL-5): a `<p>`, a `<text>`, a `<math>` (which holds the blanks as it
  * holds the items' values), a `<mathList>`, a `<number>` (missing), an
  * attribute, `bindValueTo` and an `extend`. A collection with no items
- * gives nothing. At each step, the same values and diagnostics after a
- * reload (DIAG-6).
+ * gives nothing. After a collection (a repeat, a select that picks several,
+ * a list), a property or a name names nothing, decided at load, as the
+ * collection's own properties are the only ones after it (D59). At each
+ * step, the same values and diagnostics after a reload (DIAG-6).
  */
 
 /** Where `$R.x` is read, `R` replaced by the collection's name. */
@@ -75,6 +77,24 @@ const point12: Values = {
 };
 
 /**
+ * The values of a reference that names nothing (`$nothing`), as one after a
+ * collection does (D59, `doenet-w0200`): a blank, or missing in a parent
+ * that needs a value, and a missing tag.
+ */
+const nothing: Values = {
+    p: "＿",
+    t: "＿",
+    m: "＿ + 1",
+    ml: "＿",
+    nm: "NaN",
+    pQ: "(＿, 3)",
+    pL: "＿",
+    bv: "＿",
+    me: "＿",
+    ne: "NaN",
+};
+
+/**
  * The values when the items are points with these x's: a `<number>` of
  * several is their product, and the line is through what `$R.x` and `(5,6)`
  * give.
@@ -105,97 +125,17 @@ type Step = {
 
 const n = Object.keys(parents).length;
 const severalWarning = { "warning doenet-w0193": n };
-// A repeat's template holding several is decided at load, from the
-// template, so its warning stays at 0 iterations (#2548 item 3, DIAG-7).
+// A repeat whose number of iterations follows `n`.
 const repeat = (count: string, template: string) =>
     `<mathInput name="n" prefill="${count}"/><repeatForSequence name="r" length="$n" valueName="v">${template}</repeatForSequence>`;
 const twoPoints = `<point>($v,1)</point><point>($v,2)</point>`;
 
 const cases: {
     name: string;
-    /**
-     * Whether the collection holds several items (a select that picks two,
-     * a repeat), so that a tag made from the property (`me`, `ne`) is an
-     * error at load (#2548 item 1, REF-5), as one made from the collection
-     * itself is (`doenet-e0064`).
-     */
-    severalItems?: boolean;
     source: string;
     ref: string;
     steps: Step[];
 }[] = [
-    {
-        name: "picks of a select, one lacking the property",
-        severalItems: true,
-        source: `<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><text>hi</text></option></select>`,
-        ref: "s",
-        steps: [
-            {
-                values: {
-                    p: "1, ＿",
-                    t: "1, ＿",
-                    m: "(1, ＿) + 1",
-                    ml: "1, ＿",
-                    nm: "NaN",
-                    pQ: "((1, ＿), 3)",
-                    pL: "＿",
-                    bv: "1, ＿",
-                    me: "＿",
-                    ne: "NaN",
-                },
-                diagnostics: { "warning doenet-w0192": n },
-            },
-        ],
-    },
-    {
-        name: "picks of a select, one holding several",
-        severalItems: true,
-        source: `<select name="s" numToSelect="2"><option><point>(1,2)</point><point>(3,4)</point></option><option><point>(5,6)</point></option></select>`,
-        ref: "s",
-        steps: [
-            {
-                values: {
-                    p: "＿, 5",
-                    t: "＿, 5",
-                    m: "(＿, 5) + 1",
-                    ml: "＿, 5",
-                    nm: "NaN",
-                    pQ: "((＿, 5), 3)",
-                    pL: "＿",
-                    bv: "＿, 5",
-                    me: "＿",
-                    ne: "NaN",
-                },
-                diagnostics: {
-                    "warning doenet-w0191": n,
-                    "info doenet-w0193": n,
-                },
-            },
-        ],
-    },
-    {
-        name: "picks of a select, each having it (the shape the blanks keep)",
-        severalItems: true,
-        source: `<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point></option></select>`,
-        ref: "s",
-        steps: [
-            {
-                values: {
-                    p: "1, 3",
-                    t: "1, 3",
-                    m: "(1, 3) + 1",
-                    ml: "1, 3",
-                    nm: "3",
-                    pQ: "((1, 3), 3)",
-                    pL: "0 = 2 y",
-                    bv: "1, 3",
-                    me: "＿",
-                    ne: "NaN",
-                },
-                diagnostics: {},
-            },
-        ],
-    },
     {
         name: "a group of several",
         source: `<group name="g"><point>(1,2)</point><point>(3,4)</point></group>`,
@@ -271,129 +211,52 @@ const cases: {
             },
         ],
     },
-    {
-        name: "iterations of several, 2 → 1 → 0 → 3 → 1",
-        severalItems: true,
-        source: repeat("2", twoPoints),
-        ref: "r",
+    // A name or a property after a collection is the collection's own
+    // (D59): anything else names nothing, decided at load, whatever the
+    // items hold and however many there are, as a reference that names
+    // nothing does in every parent (`nothing`).
+    ...[
+        ["2", twoPoints, "r", "two points"],
+        ["0", twoPoints, "r", "two points"],
+        [
+            "2",
+            `<point name="P">($v,1)</point><text>a</text>`,
+            "r.P",
+            "a point and a text",
+        ],
+        ["2", `<point>($v,1)</point>`, "r", "one point"],
+    ].map(([count, template, ref, holding]) => ({
+        name: `after ${count} iterations of ${holding}: \`$${ref}.x\``,
+        source: repeat(count, template),
+        ref,
         steps: [
-            { values: blanks(2), diagnostics: severalWarning },
             {
-                set: ["n", "1"],
-                values: blanks(1),
-                diagnostics: severalWarning,
-            },
-            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
-            {
-                set: ["n", "3"],
-                values: blanks(3),
-                diagnostics: severalWarning,
+                values: nothing,
+                diagnostics: { "warning doenet-w0200": n },
             },
             {
-                set: ["n", "1"],
-                values: blanks(1),
-                diagnostics: severalWarning,
+                set: ["n", "3"] as [string, string],
+                values: nothing,
+                diagnostics: { "warning doenet-w0200": n },
             },
         ],
-    },
-    {
-        name: "iterations of several, from 0: 0 → 1 → 2 → 0",
-        severalItems: true,
-        source: repeat("0", twoPoints),
-        ref: "r",
+    })),
+    ...[
+        `<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><text>hi</text></option></select>`,
+        `<select name="s" numToSelect="2"><option><point name="P">(1,2)</point><text>a</text></option><option><point name="P">(2,4)</point></option></select>`,
+        `<pointList name="s">(1,2) (3,4)</pointList>`,
+    ].map((source) => ({
+        name: `after ${source}`,
+        source,
+        ref: source.includes('name="P"') ? "s.P" : "s",
         steps: [
-            { values: blanks(0), diagnostics: severalWarning },
             {
-                set: ["n", "1"],
-                values: blanks(1),
-                diagnostics: severalWarning,
-            },
-            {
-                set: ["n", "2"],
-                values: blanks(2),
-                diagnostics: severalWarning,
-            },
-            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
-        ],
-    },
-    {
-        name: "iterations of several, from 0: 0 → 2",
-        severalItems: true,
-        source: repeat("0", twoPoints),
-        ref: "r",
-        steps: [
-            { values: blanks(0), diagnostics: severalWarning },
-            {
-                set: ["n", "2"],
-                values: blanks(2),
-                diagnostics: severalWarning,
+                values: nothing,
+                diagnostics: { "warning doenet-w0200": n },
             },
         ],
-    },
-    {
-        name: "iterations of a point and a text, 2 → 1 → 0 → 2",
-        severalItems: true,
-        source: repeat("2", `<point>($v,1)</point><text>a</text>`),
-        ref: "r",
-        steps: [
-            { values: blanks(2), diagnostics: severalWarning },
-            {
-                set: ["n", "1"],
-                values: blanks(1),
-                diagnostics: severalWarning,
-            },
-            { set: ["n", "0"], values: blanks(0), diagnostics: severalWarning },
-            {
-                set: ["n", "2"],
-                values: blanks(2),
-                diagnostics: severalWarning,
-            },
-        ],
-    },
-    {
-        // A name after a repeat reaches into each item (D41 decision 1,
-        // COLL-2): `$r.P.x` is the x of each iteration's `P`, whatever else
-        // the template holds.
-        // (Not 1: `<number extend>` of a property of the one item left is
-        // `NaN` live and `1` after a reload, #2548 item 6, as for `$r.x`.)
-        name: "a name in each iteration of several, 2 → 3",
-        severalItems: true,
-        source: repeat("2", `<point name="P">($v,1)</point><text>a</text>`),
-        ref: "r.P",
-        steps: [
-            { values: points("0 = y", "1", "2"), diagnostics: {} },
-            {
-                set: ["n", "3"],
-                values: points("0 = y", "1", "2", "3"),
-                diagnostics: {},
-            },
-        ],
-    },
-    {
-        name: "a name in each pick of several",
-        severalItems: true,
-        source: `<select name="s" numToSelect="2"><option><point name="P">(1,2)</point><text>a</text></option><option><point name="P">(2,4)</point></option></select>`,
-        ref: "s.P",
-        steps: [{ values: points("0 = y", "1", "2"), diagnostics: {} }],
-    },
+    })),
 ];
-
-/**
- * The values and diagnostics when the tags made from the property (`me`,
- * `ne`) are in error at load: they report that error only, so each code the
- * other parents give is given by two fewer.
- */
-function tagsInError(step: Step) {
-    const diagnostics: Record<string, number> = {};
-    for (const [key, count] of Object.entries(step.diagnostics)) {
-        diagnostics[key] = count === n ? n - 2 : count;
-    }
-    diagnostics["error doenet-e0064"] = 2;
-    return {
-        values: { ...step.values, me: "error", ne: "error" },
-        diagnostics,
-    };
-}
 
 async function state(core: any, resolvePathToNodeIdx: any) {
     const stateVariables = await core.returnAllStateVariables(false, true);
@@ -417,8 +280,8 @@ async function state(core: any, resolvePathToNodeIdx: any) {
     return { values, diagnostics };
 }
 
-describe("A blank for each item lacking a property, in every parent (#2452, D40, D41)", () => {
-    for (const { name, source, ref, steps, severalItems } of cases) {
+describe("A blank for each item lacking a property, in every parent (#2452, D40, D41, D59)", () => {
+    for (const { name, source, ref, steps } of cases) {
         it(name, async () => {
             const doenetML =
                 source +
@@ -445,9 +308,10 @@ describe("A blank for each item lacking a property, in every parent (#2452, D40,
                         });
                     }
                 }
-                const expected = severalItems
-                    ? tagsInError(step)
-                    : { values: step.values, diagnostics: step.diagnostics };
+                const expected = {
+                    values: step.values,
+                    diagnostics: step.diagnostics,
+                };
                 const label = `step ${ind}${step.set ? ` (${step.set.join(" = ")})` : ""}`;
                 expect(
                     await state(core, resolvePathToNodeIdx),

@@ -97,10 +97,10 @@ describe("Spreadsheet tag tests @group1", async () => {
             doenetML: `
     <spreadsheet name="spreadsheet1">
         <cell name="cell1">first</cell>
-        <cell name="cell2" colnum="C" rownum="3">hello</cell>
+        <cell name="cell2" colNum="C" rowNum="3">hello</cell>
         <cell name="cell3">bye</cell>
-        <cell name="cell4" colnum="B">before</cell>
-        <cell name="cell5" rownum="2">above</cell>
+        <cell name="cell4" colNum="B">before</cell>
+        <cell name="cell5" rowNum="2">above</cell>
     </spreadsheet>
   `,
         });
@@ -188,18 +188,18 @@ describe("Spreadsheet tag tests @group1", async () => {
             doenetML: `
     <spreadsheet name="ss1">
         <cell name="c1">first</cell>
-        <cell name="c2" colnum="C" rownum="3">hello</cell>
+        <cell name="c2" colNum="C" rowNum="3">hello</cell>
         <cell name="c3">bye</cell>
-        <cell name="c4" colnum="4" rownum="4">last</cell>
-        <cell name="c5" colnum="B" rownum="A">mid</cell>
+        <cell name="c4" colNum="4" rowNum="4">last</cell>
+        <cell name="c5" colNum="B" rowNum="A">mid</cell>
     </spreadsheet>
 
     <spreadsheet name="ss2">
         <cell extend="$c4" name="c4a" />
-        <cell colnum="A" extend="$c2" name="c2a" />
+        <cell colNum="A" extend="$c2" name="c2a" />
         <cell extend="$c3" name="c3a" />
-        <cell colnum="2" rownum="4" extend="$c1" name="c1a" />
-        <cell rownum="2" extend="$c5" name="c5a" />
+        <cell colNum="2" rowNum="4" extend="$c1" name="c1a" />
+        <cell rowNum="2" extend="$c5" name="c5a" />
     </spreadsheet>
 
     <spreadsheet extend="$ss1" name="ss1a" />
@@ -341,18 +341,18 @@ describe("Spreadsheet tag tests @group1", async () => {
             doenetML: `
   <spreadsheet name="ss1">
     <cell name="c1">first</cell>
-    <cell name="c2" colnum="C" rownum="3">hello</cell>
+    <cell name="c2" colNum="C" rowNum="3">hello</cell>
     <cell name="c3">bye</cell>
-    <cell name="c4" colnum="4" rownum="4">last</cell>
-    <cell name="c5" colnum="B" rownum="A">mid</cell>
+    <cell name="c4" colNum="4" rowNum="4">last</cell>
+    <cell name="c5" colNum="B" rowNum="A">mid</cell>
   </spreadsheet>
 
   <spreadsheet name="ss2">
-    <cell colnum="D" rownum="4" extend="$ss1.cellD4" name="c4a" />
-    <cell colnum="A" rownum="3" extend="$ss1.cellC3" name="c2a" />
+    <cell colNum="D" rowNum="4" extend="$ss1.cellD4" name="c4a" />
+    <cell colNum="A" rowNum="3" extend="$ss1.cellC3" name="c2a" />
     <cell extend="$ss1.cellD3" name="c3a" />
-    <cell colnum="2" rownum="4" extend="$ss1.cellA1" name="c1a" />
-    <cell rownum="2" colnum="b" extend="$ss1.cellb1" name="c5a" />
+    <cell colNum="2" rowNum="4" extend="$ss1.cellA1" name="c1a" />
+    <cell rowNum="2" colNum="b" extend="$ss1.cellb1" name="c5a" />
   </spreadsheet>
 
   <spreadsheet extend="$ss1" name="ss1a" />
@@ -493,10 +493,10 @@ describe("Spreadsheet tag tests @group1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <spreadsheet name="spreadsheet1">
-    <row><cell name="cell1">A1</cell><cell name="cell2">B1</cell><cell name="cell3" colnum="D">D1</cell></row>
-    <row><cell name="cell4" colnum="2">B2</cell><cell name="cell5">C2</cell></row>
-    <row rownum="5"><cell name="cell6">A5</cell><cell name="cell7" colnum="F">F5</cell></row>
-    <row><cell name="cell8" colnum="3">C6</cell><cell name="cell9">D6</cell></row>
+    <row><cell name="cell1">A1</cell><cell name="cell2">B1</cell><cell name="cell3" colNum="D">D1</cell></row>
+    <row><cell name="cell4" colNum="2">B2</cell><cell name="cell5">C2</cell></row>
+    <row rowNum="5"><cell name="cell6">A5</cell><cell name="cell7" colNum="F">F5</cell></row>
+    <row><cell name="cell8" colNum="3">C6</cell><cell name="cell9">D6</cell></row>
     <cell name="cell10">A7</cell>
 </spreadsheet>
   `,
@@ -592,10 +592,10 @@ describe("Spreadsheet tag tests @group1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1">
-  <column><cell name="cell1">A1</cell><cell name="cell2">A2</cell><cell name="cell3" rownum="D">A4</cell></column>
-  <column><cell name="cell4" rownum="2">B2</cell><cell name="cell5">B3</cell></column>
-  <column colnum="5"><cell name="cell6">E1</cell><cell name="cell7" rownum="F">E6</cell></column>
-  <column><cell name="cell8" rownum="3">F3</cell><cell name="cell9">F4</cell></column>
+  <column><cell name="cell1">A1</cell><cell name="cell2">A2</cell><cell name="cell3" rowNum="D">A4</cell></column>
+  <column><cell name="cell4" rowNum="2">B2</cell><cell name="cell5">B3</cell></column>
+  <column colNum="5"><cell name="cell6">E1</cell><cell name="cell7" rowNum="F">E6</cell></column>
+  <column><cell name="cell8" rowNum="3">F3</cell><cell name="cell9">F4</cell></column>
   <cell name="cell10">G1</cell>
   </spreadsheet>
   `,
@@ -690,21 +690,21 @@ describe("Spreadsheet tag tests @group1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1">
-    <cellBlock rownum="2" colnum="3">
-        <row rownum="2"><cell name="cell1">C3</cell><cell name="cell2">D3</cell></row>
-        <column colnum="3"><cell name="cell3">E2</cell><cell name="cell4">E3</cell></column>
+    <cellBlock rowNum="2" colNum="3">
+        <row rowNum="2"><cell name="cell1">C3</cell><cell name="cell2">D3</cell></row>
+        <column colNum="3"><cell name="cell3">E2</cell><cell name="cell4">E3</cell></column>
     </cellBlock>
     <cell name="cell5">F2</cell>
     <cellBlock>
         <cell name="cell6">G2</cell>
-        <cell name="cell7" rownum="3">G4</cell>
+        <cell name="cell7" rowNum="3">G4</cell>
     </cellBlock>
-    <cellBlock rownum="5">
+    <cellBlock rowNum="5">
         <cell name="cell8">G5</cell><cell name="cell9">H5</cell>
     </cellBlock>
-    <cellBlock colnum="A">
+    <cellBlock colNum="A">
         <cell name="cell10">A5</cell>
-        <cell name="cell11" rownum="2" colnum="2">B6</cell>
+        <cell name="cell11" rowNum="2" colNum="2">B6</cell>
     </cellBlock>
     <cell name="cell12">C5</cell>
   </spreadsheet>
@@ -815,19 +815,19 @@ describe("Spreadsheet tag tests @group1", async () => {
             doenetML: `
   <spreadsheet name="spreadsheet1">
     <row><cell>A1</cell><cell>B1</cell><cell>C1</cell></row>
-    <column><cell rownum="2">A2</cell><cell>A3</cell><cell>A4</cell></column>
-    <cellBlock rownum="2">
+    <column><cell rowNum="2">A2</cell><cell>A3</cell><cell>A4</cell></column>
+    <cellBlock rowNum="2">
         <cell>B2</cell><cell>C2</cell><cell>D2</cell>
-        <row rownum="2"><cell>B3</cell><cell>C3</cell><cell>D3</cell></row>
+        <row rowNum="2"><cell>B3</cell><cell>C3</cell><cell>D3</cell></row>
     </cellBlock>
-    <cell rownum="4">B4</cell><cell>C4</cell><cell>D4</cell>
-    <cell rownum="1">D1</cell>
+    <cell rowNum="4">B4</cell><cell>C4</cell><cell>D4</cell>
+    <cell rowNum="1">D1</cell>
   </spreadsheet>
 
   <spreadsheet name="spreadsheet2">
     $spreadsheet1.rangeC3D4
     $spreadsheet1.rangeA1B4
-    <cellBlock rownum="3" colnum="1" extend="$spreadsheet1.rangeD2C1" />
+    <cellBlock rowNum="3" colNum="1" extend="$spreadsheet1.rangeD2C1" />
   </spreadsheet>
   `,
         });
@@ -938,18 +938,18 @@ describe("Spreadsheet tag tests @group1", async () => {
             doenetML: `
   <spreadsheet name="spreadsheet1">
     <row><cell>A1</cell><cell>B1</cell><cell>C1</cell></row>
-    <column><cell rownum="2">A2</cell><cell>A3</cell><cell>A4</cell></column>
-    <cellBlock rownum="2">
+    <column><cell rowNum="2">A2</cell><cell>A3</cell><cell>A4</cell></column>
+    <cellBlock rowNum="2">
         <cell>B2</cell><cell>C2</cell><cell>D2</cell>
-        <row rownum="2"><cell>B3</cell><cell>C3</cell><cell>D3</cell></row>
+        <row rowNum="2"><cell>B3</cell><cell>C3</cell><cell>D3</cell></row>
     </cellBlock>
-    <cell rownum="4">B4</cell><cell>C4</cell><cell>D4</cell>
-    <cell rownum="1">D1</cell>
+    <cell rowNum="4">B4</cell><cell>C4</cell><cell>D4</cell>
+    <cell rowNum="1">D1</cell>
   </spreadsheet>
 
   <spreadsheet name="spreadsheet2">
-    <row extend="$spreadsheet1.row2" rownum="3" />
-    <column extend="$spreadsheet1.column3" colnum="5" />
+    <row extend="$spreadsheet1.row2" rowNum="3" />
+    <column extend="$spreadsheet1.column3" colNum="5" />
     $spreadsheet1.rowA
     $spreadsheet1.columnB
   </spreadsheet>
@@ -1090,12 +1090,12 @@ describe("Spreadsheet tag tests @group1", async () => {
             doenetML: `
   <spreadsheet name="spreadsheet1" minNumRows="3" minNumColumns="3">
     <cell>A1</cell><cell>B1</cell><cell>C1</cell>
-    <cell rownum="2" colnum="1">A2</cell><cell>B2</cell><cell>C2</cell>
-    <cell rownum="3" colnum="1">A3</cell><cell>B3</cell><cell>C3</cell>
+    <cell rowNum="2" colNum="1">A2</cell><cell>B2</cell><cell>C2</cell>
+    <cell rowNum="3" colNum="1">A3</cell><cell>B3</cell><cell>C3</cell>
   </spreadsheet>
 
   <spreadsheet name="spreadsheet2">
-    <cellBlock extend="$spreadsheet1.cells" rownum="3" colnum="2" />
+    <cellBlock extend="$spreadsheet1.cells" rowNum="3" colNum="2" />
   </spreadsheet>
   `,
         });
@@ -1181,15 +1181,15 @@ describe("Spreadsheet tag tests @group1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <spreadsheet name="spreadsheet1">
-    <cell colnum="5">alpha</cell>
+    <cell colNum="5">alpha</cell>
     <cell>beta</cell>
-    <cell rownum="2">gamma</cell>
+    <cell rowNum="2">gamma</cell>
   </spreadsheet>
   
   <spreadsheet name="spreadsheet2">
     $spreadsheet1.rangeE1F2
-    <cellBlock extend="$spreadsheet1.rangeE1F2" colnum="4" />
-    <cellBlock extend="$spreadsheet1.rangeE1F2" rownum="3" />
+    <cellBlock extend="$spreadsheet1.rangeE1F2" colNum="4" />
+    <cellBlock extend="$spreadsheet1.rangeE1F2" rowNum="3" />
   </spreadsheet>  
   `,
         });

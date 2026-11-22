@@ -93,25 +93,25 @@ describe("Line-family labels", { tags: ["@group3"] }, function () {
         postDoenetML(`
   <text name="loaded">loaded</text>
 
-  <graph name="graphLine" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="graphLine" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <line through="(8,2) (10,4)" labelPosition="upperright">
       <label>${lineLabel}</label>
     </line>
   </graph>
 
-  <graph name="graphLineSegment" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="graphLineSegment" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <lineSegment endpoints="(-10,-5) (-8,-3)" labelPosition="upperleft">
       <label>${lineSegmentLabel}</label>
     </lineSegment>
   </graph>
 
-  <graph name="graphRay" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="graphRay" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <ray endpoint="(8,-8)" through="(10,-6)" labelPosition="right">
       <label>${rayLabel}</label>
     </ray>
   </graph>
 
-  <graph name="graphVector" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="graphVector" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <vector tail="(-8,8)" head="(-10,6)" labelPosition="left">
       <label>${vectorLabel}</label>
     </vector>
@@ -130,19 +130,19 @@ describe("Line-family labels", { tags: ["@group3"] }, function () {
         postDoenetML(`
   <text name="loaded">loaded</text>
 
-  <graph name="graphVector" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="graphVector" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <vector head="(3,-2)"><label><m>x^2</m></label></vector>
   </graph>
 
-  <graph name="graphPolyline" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="graphPolyline" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <polyline vertices="(-5,4) (-2,7) (1,4)"><label><m>y^2</m></label></polyline>
   </graph>
 
-  <graph name="graphLineSegment" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="graphLineSegment" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <lineSegment endpoints="(-8,-5) (-3,-8)"><label><m>z^2</m></label></lineSegment>
   </graph>
 
-  <graph name="graphPolygon" xmin="-10" xmax="10" ymin="-10" ymax="10">
+  <graph name="graphPolygon" xMin="-10" xMax="10" yMin="-10" yMax="10">
     <polygon vertices="(5,5) (8,5) (8,8)"><label><m>w^2</m></label></polygon>
   </graph>
         `);

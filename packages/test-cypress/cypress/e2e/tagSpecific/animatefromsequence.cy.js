@@ -1059,7 +1059,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
     it("check that calculated default value does not change on reload", () => {
         let doenetML = `
             <p>Animation mode: <textInput name="anmode" prefill="increase" /></p>
-            <animateFromSequence name="an" animationmode="$anmode" />
+            <animateFromSequence name="an" animationMode="$anmode" />
             <p>Animation direction: <text extend="$an.currentAnimationDirection" name="cad" /></p>
             `;
 

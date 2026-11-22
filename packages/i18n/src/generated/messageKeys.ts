@@ -339,6 +339,8 @@ export type MessageKey =
     | "variant-control-reference"
     | "variant-name-repeated"
     | "variants-all-excluded"
+    | "variant-control-made-from"
+    | "reference-to-variant-control"
     | "side-by-side-absolute-widths"
     | "side-by-side-absolute-margins"
     | "side-by-side-no-block-child"
@@ -420,6 +422,7 @@ export type MessageKey =
     | "reference-branches-hold-several"
     | "reference-property-partly-held"
     | "reference-property-after-several"
+    | "reference-name-after-collection"
     | "component-action-unavailable"
     | "action-target-not-shown"
     | "data-frame-inconsistent-row-lengths"
@@ -497,6 +500,7 @@ export type MessageKey =
     | "latex-not-read-as-math"
     | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
+    | "attribute-name-case"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
@@ -520,6 +524,7 @@ export type MessageKey =
     | "type-change-property-not-one-value"
     | "type-change-value-not-convertible"
     | "attribute-empty"
+    | "attribute-not-a-number"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -641,6 +646,7 @@ export type MessageKey =
     | "copy-with-state-attribute-reaches-choice"
     | "reorder-items-of-several-types"
     | "sort-needs-sort-by-prop"
+    | "sort-by-prop-names-nothing"
     | "answer-responses-of-several-types"
     | "repeat-for-items-of-several-types"
     | "sort-item-of-several"
@@ -1049,6 +1055,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "variant-control-reference",
     "variant-name-repeated",
     "variants-all-excluded",
+    "variant-control-made-from",
+    "reference-to-variant-control",
     "side-by-side-absolute-widths",
     "side-by-side-absolute-margins",
     "side-by-side-no-block-child",
@@ -1130,6 +1138,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-branches-hold-several",
     "reference-property-partly-held",
     "reference-property-after-several",
+    "reference-name-after-collection",
     "component-action-unavailable",
     "action-target-not-shown",
     "data-frame-inconsistent-row-lengths",
@@ -1207,6 +1216,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "latex-not-read-as-math",
     "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
+    "attribute-name-case",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
     "extend-attribute-changes-content",
@@ -1230,6 +1240,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "type-change-property-not-one-value",
     "type-change-value-not-convertible",
     "attribute-empty",
+    "attribute-not-a-number",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",
@@ -1351,6 +1362,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-with-state-attribute-reaches-choice",
     "reorder-items-of-several-types",
     "sort-needs-sort-by-prop",
+    "sort-by-prop-names-nothing",
     "answer-responses-of-several-types",
     "repeat-for-items-of-several-types",
     "sort-item-of-several",

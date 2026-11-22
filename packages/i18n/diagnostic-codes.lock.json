@@ -95,6 +95,8 @@
     "doenet-e0085": "variant-control-reference",
     "doenet-e0086": "variant-name-repeated",
     "doenet-e0087": "variants-all-excluded",
+    "doenet-e0088": "variant-control-made-from",
+    "doenet-e0089": "attribute-not-a-number",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",
@@ -336,5 +338,9 @@
     "doenet-w0193": "reference-property-after-several",
     "doenet-w0194": "matrix-math-child-ignored",
     "doenet-w0195": "action-target-not-one-value",
-    "doenet-w0196": "latex-not-read-as-math"
+    "doenet-w0196": "latex-not-read-as-math",
+    "doenet-w0197": "attribute-name-case",
+    "doenet-w0198": "sort-by-prop-names-nothing",
+    "doenet-w0199": "reference-to-variant-control",
+    "doenet-w0200": "reference-name-after-collection"
 }

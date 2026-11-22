@@ -5,7 +5,7 @@ import {
     thinnedLatticeLines,
 } from "./fieldLattice";
 
-const grid = { dx: 1, dy: 1, xoffset: 0, yoffset: 0 };
+const grid = { dx: 1, dy: 1, xOffset: 0, yOffset: 0 };
 const bounds = { xMin: -3, xMax: 3, yMin: -3, yMax: 3 };
 
 describe("latticeRange", () => {
@@ -22,7 +22,7 @@ describe("latticeRange", () => {
         expect(
             latticeRange(
                 { xMin: -1, xMax: 5, yMin: 0, yMax: 1 },
-                { dx: 2, dy: 1, xoffset: 0.5, yoffset: 0 },
+                { dx: 2, dy: 1, xOffset: 0.5, yOffset: 0 },
             ),
         ).toEqual({ minXind: -0, maxXind: 2, minYind: 0, maxYind: 1 });
     });
@@ -52,7 +52,7 @@ describe("thinnedLatticeLines", () => {
             thinnedLatticeLines(bounds, { ...grid, dx: 1e-20 }, 2500),
         ).toEqual({ xs: [], ys: [], stride: 1 });
         expect(
-            thinnedLatticeLines(bounds, { ...grid, xoffset: 1e17 }, 2500),
+            thinnedLatticeLines(bounds, { ...grid, xOffset: 1e17 }, 2500),
         ).toEqual({ xs: [], ys: [], stride: 1 });
     });
 

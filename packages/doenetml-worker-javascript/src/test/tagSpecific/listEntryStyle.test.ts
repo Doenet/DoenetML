@@ -364,10 +364,13 @@ describe("The style of an entry of a list @group4", async () => {
             green4,
             red1,
         ]);
+        // `$c.styleNumber` was each entry's (D41); a property after a
+        // collect is its own (D59), and a collect has no `styleNumber`, so
+        // it names nothing (`doenet-w0200`)
         expect(
             stateVariables[await resolvePathToNodeIdx("pprop")].stateValues
                 .text,
-        ).eq("3 2 3, 2");
+        ).eq("3 2 ＿");
         // an entry neither the list nor its source sets a style for takes
         // the style of where the component made from it is
         expect(await drawnIn(core, resolvePathToNodeIdx, "pd")).eqls([

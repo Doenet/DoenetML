@@ -87,13 +87,14 @@ impl Ref {
     }
 }
 
-/// Whether a name after `element` reaches into each of its items (D41 decision 1, COLL-2):
-/// a `<repeat>` or `<repeatForSequence>`, whose iterations each hold what its template
-/// declares, and a `<select>` that is not a branch container (it picks several, or a number
-/// not written as a literal), whose picks each hold what an option declares.
-/// `$r.P` is then every iteration's `P`, never one iteration's alone (NAME-3), so the
-/// resolver does not resolve the name, which would reach the template or be ambiguous among
-/// the iterations: it stops at the collection, and the worker resolves the name in each item.
+/// Whether a name after `element` is left unresolved there: a `<repeat>` or
+/// `<repeatForSequence>`, whose iterations each hold what its template declares, and a
+/// `<select>` that is not a branch container (it picks several, or a number not written as a
+/// literal), whose picks each hold what an option declares. A name after such a collection is
+/// the collection's own, never an item's (D59, COLL-2), so the resolver does not resolve it,
+/// which would reach the template: it stops at the collection, and the worker reports that the
+/// name names nothing, with a suggestion of an index (`$r[1].P`). After an index
+/// (`$r[1].P`), the name is resolved in the item by the worker.
 /// A `<conditionalContent>` and a one-pick `<select>` reach their one item through
 /// [`Ref::Branches`] instead.
 pub(super) fn names_per_item(
@@ -114,11 +115,10 @@ pub(super) fn names_per_item(
     }
 }
 
-/// Whether a name after `element` that is ambiguous among what it holds reaches into each of
-/// its items instead (D41 decision 1, COLL-2): a `<collect>`, whose items are copies of the
-/// components it gathers, each holding their own names (`$c.P` for a `P` in each collected
-/// `<group>`). A name it holds once, such as that of a component it collected (`$c.A`, the
-/// copy of `A`), still names that one.
+/// Whether a name after `element` that is ambiguous among what it holds is left unresolved
+/// there instead: a `<collect>`, whose items are copies of the components it gathers, each
+/// holding their own names (`$c.P` for a `P` in each collected `<group>`). As after any
+/// collection, the worker reports that such a name names nothing (D59).
 pub(super) fn names_per_item_if_ambiguous(element: &FlatElement) -> bool {
     element.name == "collect"
         && element.extending.is_none()
@@ -211,20 +211,20 @@ pub(super) fn branch_container_kind(
         element.name.clone()
     };
     match tag.as_str() {
-        "conditionalContent" | "conditionalcontent" => {
-            Some(BranchContainerKind::ConditionalContent)
-        }
+        "conditionalContent" => Some(BranchContainerKind::ConditionalContent),
         "select" => {
             let num_to_select = element
                 .attributes
                 .iter()
-                .find(|attr| attr.name.eq_ignore_ascii_case("numToSelect"));
+                // Matched exactly (D51): one written in another case was
+                // given this spelling by the parser (`attribute-name-case.ts`).
+                .find(|attr| attr.name == "numToSelect");
             // A copy of a `<select>` picks as many as the one it copies,
             // unless its own `numToSelect` says otherwise.
             let is_copy = element.name == "_copy"
                 || element.extending.is_some()
                 || element.attributes.iter().any(|attr| {
-                    // matched without regard to case, as `ref_expand` matches them
+                    // matched exactly, as `ref_expand` matches them
                     crate::dast::ref_expand::is_extend_or_copy_attribute(&attr.name)
                 });
             match num_to_select {
@@ -325,14 +325,14 @@ pub struct NodeResolverData {
     /// group of several would have selected (`ChildIndex::child_idx`) skips it (#2520 item 6).
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub(super) setup: bool,
-    /// Whether a name after the node reaches into each of its items, as for a `<repeat>`,
+    /// Whether a name after the node is left unresolved there, as for a `<repeat>`,
     /// a `<repeatForSequence>` and a `<select>` that picks several (see [`names_per_item`]):
-    /// a path stops at the node with the name left unresolved, and the worker resolves it
-    /// in each item (D41 decision 1, COLL-2, NAME-3).
+    /// a path stops at the node with the name left unresolved, and the worker decides it
+    /// (D59, COLL-2, NAME-3).
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub(super) names_per_item: bool,
-    /// Whether a name after the node that is ambiguous among what it holds reaches into each
-    /// of its items instead, as for a `<collect>` (see [`names_per_item_if_ambiguous`]).
+    /// Whether a name after the node that is ambiguous among what it holds is left unresolved
+    /// there instead, as for a `<collect>` (see [`names_per_item_if_ambiguous`]).
     #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub(super) names_per_item_if_ambiguous: bool,
 }
@@ -340,7 +340,10 @@ pub struct NodeResolverData {
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
 /// recreated.
-#[derive(Debug, Serialize)]
+///
+/// It is `Clone` so that the worker can save it before a document loads and
+/// restore it if the load is rebuilt (`Core::save_resolver`).
+#[derive(Debug, Serialize, Clone)]
 pub struct Resolver {
     /// List of the node resolver data for a node at a given index shifted by `1`
     /// so that `node_resolver_data[i+1]` gives the data for node `i`
@@ -458,7 +461,8 @@ impl Resolver {
         while let Some(part) = path.next() {
             if !part.name.is_empty() && node_data.names_per_item {
                 // A name after a collection whose items each hold their own names
-                // (`$r.P`) is resolved in each item by the worker (see [`names_per_item`]).
+                // (`$r.P`) is left to the worker, for which it names nothing (see
+                // [`names_per_item`]).
                 let remaining_path: Vec<FlatPathPart> =
                     iter::once(part.clone()).chain(path.cloned()).collect();
                 return Ok(RefResolution {
@@ -550,7 +554,7 @@ impl Resolver {
                             node_data = &self.node_resolver_data[current_idx + 1];
                         }
                         Ref::Ambiguous(_) if node_data.names_per_item_if_ambiguous => {
-                            // Left for the worker to resolve in each item (`$c.P`).
+                            // Left to the worker, for which it names nothing (`$c.P`).
                             let remaining_path: Vec<FlatPathPart> =
                                 iter::once(part.clone()).chain(path.cloned()).collect();
                             return Ok(RefResolution {

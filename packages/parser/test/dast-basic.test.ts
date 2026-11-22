@@ -98,6 +98,103 @@ describe("DAST", async () => {
         }
     });
 
+    it("decodes numeric character references in attribute values", () => {
+        // `&#x33;` and `&#51;` are each the character `3`, as in text; a
+        // named entity beside them is decoded too, each in place (#2623
+        // item 6).
+        const attrText = (source: string) => {
+            const el = lezerToDast(source).children[0] as any;
+            return el.attributes.n.children
+                .map((c: DastText) => c.value)
+                .join("");
+        };
+        expect(attrText(`<a n="&#x33;"/>`)).toBe("3");
+        expect(attrText(`<a n="&#51;"/>`)).toBe("3");
+        expect(attrText(`<a n='1&#x32;3'/>`)).toBe("123");
+        expect(attrText(`<a n="&#50;&amp;&#x34;"/>`)).toBe("2&4");
+        expect(attrText(`<a n="&lt;&#x1F600;&gt;"/>`)).toBe("<\u{1F600}>");
+    });
+
+    it("a macro in an attribute after a character reference is located where it is written", () => {
+        // The value is read for macros once decoded, and a reference is
+        // shorter decoded (`&lt;` is `<`), so each position is mapped back to
+        // the source (#2637 item 2).
+        const located = (source: string) => {
+            const el = lezerToDast(source).children[0] as any;
+            return el.attributes.x.children.map((c: any) => [
+                c.type,
+                source.slice(c.position.start.offset, c.position.end.offset),
+                c.position.start.column,
+            ]);
+        };
+        expect(located(`<a x="&lt; $nothing"/>`)).toEqual([
+            ["text", "&lt; ", 7],
+            ["macro", "$nothing", 12],
+        ]);
+        expect(located(`<a x="&#x33; $nothing"/>`)).toEqual([
+            ["text", "&#x33; ", 7],
+            ["macro", "$nothing", 14],
+        ]);
+        expect(located(`<a x='&lt;$(y)'/>`)).toEqual([
+            ["text", "&lt;", 7],
+            ["macro", "$(y)", 11],
+        ]);
+        // a `$` written as a reference, with the zero-width space after it
+        // that keeps it text, written nowhere
+        expect(located(`<a x="&#36;$f &amp;&amp; $g.h[2]"/>`)).toEqual([
+            ["text", "&#36;", 7],
+            ["text", "", 12],
+            ["macro", "$f", 12],
+            ["text", " &amp;&amp; ", 14],
+            ["macro", "$g.h[2]", 26],
+        ]);
+
+        // the parts of a macro's path too
+        const source = `<a x="&lt;&gt; $g.h[2]"/>`;
+        const macro = (lezerToDast(source).children[0] as any).attributes.x
+            .children[1];
+        const at = (n: any) =>
+            source.slice(n.position.start.offset, n.position.end.offset);
+        expect(macro.path.map(at)).toEqual(["g", "h[2]"]);
+        expect(at(macro.path[1].index[0])).toEqual("[2]");
+        expect(at(macro.path[1].index[0].value[0])).toEqual("2");
+    });
+
+    it("a `$` written as a reference in an attribute starts no macro", () => {
+        // The decoded value is read for macros, so `&#36;(x)` and
+        // `&#36;$f` would otherwise become references; a zero-width space
+        // keeps them text, as for a following letter.
+        const attrChildren = (source: string) => {
+            const el = lezerToDast(source).children[0] as any;
+            return el.attributes.n.children.map((c: any) =>
+                c.type === "text" ? c.value : c.type,
+            );
+        };
+        expect(attrChildren(`<a n="&#36;(x)"/>`)).toEqual(["$", "​(x)"]);
+        expect(attrChildren(`<a n="&dollar;(x)"/>`)).toEqual(["$", "​(x)"]);
+        expect(attrChildren(`<a n="&#36;$f"/>`)).toEqual(["$", "​", "macro"]);
+        expect(attrChildren(`<a n="&#36;1"/>`)).toEqual(["$", "1"]);
+        // what follows can be a reference too, decoded before macros are read
+        expect(attrChildren(`<a n="&#36;&#40;x)"/>`)).toEqual([
+            "$",
+            "\u200B(x)",
+        ]);
+        expect(attrChildren(`<a n="&#36;&#121;"/>`)).toEqual(["$", "\u200By"]);
+        expect(attrChildren(`<a n="&dollar;&lpar;x)"/>`)).toEqual([
+            "$",
+            "\u200B(x)",
+        ]);
+        expect(attrChildren(`<a n="&#36;&#36;&#102;"/>`)).toEqual([
+            "$",
+            "\u200B",
+            "$",
+            "\u200Bf",
+        ]);
+        // nothing follows that a macro could start with: no space added
+        expect(attrChildren(`<a n="&#36;&#36;"/>`)).toEqual(["$", "$"]);
+        expect(attrChildren(`<a n="&#36;"/>`)).toEqual(["$"]);
+    });
+
     it("preserves ampersands 2", () => {
         const dast: DastRoot = {
             type: "root",

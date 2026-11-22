@@ -12,7 +12,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-    <choiceInput name="choiceInput1" inline placeholder="Choose animal">
+    <choiceInput name="choiceInput1" inline placeHolder="Choose animal">
       <choice name="choice1">cat</choice>
       <choice name="choice2">dog</choice>
       <choice name="choice3" disabled>monkey</choice>
@@ -162,7 +162,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-    <choiceInput name="choiceInput1" inline placeholder="Choose animal">
+    <choiceInput name="choiceInput1" inline placeHolder="Choose animal">
       <choice name="choice1">cat</choice>
       <choice name="choice2">dog</choice>
       <choice name="choice3" hide>monkey</choice>
@@ -659,7 +659,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
     <p><text>a</text></p>
     <p><text>a</text></p>
     <p>
-      <choiceInput inline name="choiceInputBottom" placeholder="Choose letter">
+      <choiceInput inline name="choiceInputBottom" placeHolder="Choose letter">
         <choice>a</choice>
         <choice>b</choice>
         <choice>c</choice>
@@ -702,7 +702,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
     <p><text>a</text></p>
     <p><text>a</text></p>
     <p>
-      <choiceInput inline name="choiceInputMath" placeholder="Choose">
+      <choiceInput inline name="choiceInputMath" placeHolder="Choose">
         <choice><m>\\frac{1}{2}</m></choice>
         <choice><m>\\frac{1}{3}</m></choice>
         <choice><m>\\frac{1}{4}</m></choice>
@@ -767,7 +767,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
     <p><text>a</text></p>
     <p><text>a</text></p>
     <p>
-      <choiceInput inline name="choiceInputGrow" placeholder="Choose">
+      <choiceInput inline name="choiceInputGrow" placeHolder="Choose">
         <choice>x</choice>
         <choice>y</choice>
       </choiceInput>
@@ -854,7 +854,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
     <p><text>a</text></p>
     <p><text>a</text></p>
     <p>
-      <choiceInput inline name="choiceInputAbove" placeholder="Choose">
+      <choiceInput inline name="choiceInputAbove" placeHolder="Choose">
         <choice>x</choice>
         <choice>y</choice>
       </choiceInput>
@@ -953,7 +953,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
     <p><text>a</text></p>
     <p><text>a</text></p>
     <p>
-      <choiceInput inline name="choiceInputClipped" placeholder="Choose letter">
+      <choiceInput inline name="choiceInputClipped" placeHolder="Choose letter">
         <choice>a</choice>
         <choice>b</choice>
         <choice>c</choice>
@@ -1919,7 +1919,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         <styleDefinition styleNumber="3" textColor="red" />
     </setup>
 
-    <choiceInput name="ci" inline placeholder="Choose fruit">
+    <choiceInput name="ci" inline placeHolder="Choose fruit">
       <choice><text styleNumber="2">apple</text></choice>
       <choice><text styleNumber="3">banana</text></choice>
       <choice><text>cherry</text></choice>
@@ -1969,7 +1969,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-    <choiceInput name="ci" inline placeholder="Choose word">
+    <choiceInput name="ci" inline placeHolder="Choose word">
       <choice>inline</choice>
       <choice>choice</choice>
       <choice>input</choice>
@@ -2011,7 +2011,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-    <choiceInput name="ci" inline selectMultiple placeholder="Choose fruit">
+    <choiceInput name="ci" inline selectMultiple placeHolder="Choose fruit">
       <choice><text>apple</text></choice>
       <choice><text>banana</text></choice>
     </choiceInput>
@@ -2049,7 +2049,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-    <choiceInput name="ci" inline placeholder="Choose animal">
+    <choiceInput name="ci" inline placeHolder="Choose animal">
       <choice hide>cat</choice>
       <choice>dog</choice>
       <choice>mouse</choice>
@@ -2091,7 +2091,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                 {
                     doenetML: `
     <booleanInput name="b" />
-    <choiceInput name="ci" inline hide="$b" placeholder="Choose animal">
+    <choiceInput name="ci" inline hide="$b" placeHolder="Choose animal">
       <choice>cat</choice>
       <choice>dog</choice>
     </choiceInput>

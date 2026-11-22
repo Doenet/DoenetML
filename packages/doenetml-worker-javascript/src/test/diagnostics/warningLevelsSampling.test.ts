@@ -272,7 +272,9 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
     it("w0043: a target that holds nothing, and cannot come to, is a warning", async () => {
         // An action's target is written to by the action, so whether it
         // can change says nothing here: what can change is which
-        // replacements or entries it gives.
+        // replacements or entries it gives. An index past an entry's
+        // coordinates is read through one entry (`$ml2[1].xs[5]`): a
+        // property after a list is the list's own (D59).
         const { diagnostics, refresh } = await setup(`
 <conditionalContent name="cc">
   <case condition="false"><math>1</math></case>
@@ -287,13 +289,13 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
 <repeatForSequence name="r2" from="1" to="$mi" valueName="v"><math>$v</math></repeatForSequence>
 <updateValue target="$r2" newValue="2"/>
 <mathList name="ml2">1 2</mathList>
-<updateValue target="$ml2.xs[5]" newValue="2"/>
+<updateValue target="$ml2[1].xs[5]" newValue="2"/>
 <number name="n">5</number>
-<updateValue target="$ml2.xs[$n]" newValue="2"/>
+<updateValue target="$ml2[1].xs[$n]" newValue="2"/>
 <mathInput name="i" prefill="5"/>
-<updateValue target="$ml2.xs[$i]" newValue="2"/>
+<updateValue target="$ml2[1].xs[$i]" newValue="2"/>
 <mathList name="ml3">$mi 2</mathList>
-<updateValue target="$ml3.xs[5]" newValue="2"/>
+<updateValue target="$ml3[1].xs[5]" newValue="2"/>
 `);
         await refresh();
         expect(diagnostics("doenet-w0043")).eqls([

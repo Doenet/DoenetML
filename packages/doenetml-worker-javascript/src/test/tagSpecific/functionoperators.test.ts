@@ -1937,15 +1937,15 @@ describe("Function Operator tag tests @group1", async () => {
       <function name="f3" variables="x y z">sin(x)yz</function>
       <function name="f4" variables="z y x">$f3.formula</function>
       
-      <derivative derivvariables="z" name="df1" >$f1</derivative>
+      <derivative derivVariables="z" name="df1" >$f1</derivative>
       <derivative name="df2">$f2</derivative>
       <function variable="x" name="df2a">$df2.formula</function>
-      <derivative derivvariables="z y" name="df3zy">$f3</derivative>
-      <derivative derivvariable="y" name="df3y">$f3</derivative>
-      <derivative derivvariables="z" name="df3zya">$df3y</derivative>
-      <derivative derivvariables="z y" name="df4zy">$f4</derivative>
+      <derivative derivVariables="z y" name="df3zy">$f3</derivative>
+      <derivative derivVariable="y" name="df3y">$f3</derivative>
+      <derivative derivVariables="z" name="df3zya">$df3y</derivative>
+      <derivative derivVariables="z y" name="df4zy">$f4</derivative>
       <derivative name="df4z">$f4</derivative>
-      <derivative derivvariable="y" name="df4yz">$df4z</derivative>
+      <derivative derivVariable="y" name="df4yz">$df4z</derivative>
       <function variables="x" name="df4zya">$df4zy.formula</function>
       <function variable="x" name="df4yza">$df4yz.formula</function>
       </section>

@@ -397,6 +397,21 @@ export class CountAmongSiblingsDependency extends Dependency {
  * need not wait for a `<text>` before it, which can't change the count, and
  * that text can read the number (`<text extend="$s.sectionNumber"/>` before
  * `s`).
+ *
+ * Two options pass over more (#2614 item 2):
+ *
+ * - `passOverCompositesMarked`: a composite marked at load with this
+ *   `doenetAttribute`, which the DoenetML shows can make none of those types,
+ *   is passed over before it expands (`markCompositesMakingNoSectioning`). So
+ *   `<conditionalContent condition="$s.sectionNumber > 1">` whose cases hold
+ *   no section, before `s`, is no circular dependency.
+ * - `countPlaceholdersOfTypes`: a composite given one of these types, which
+ *   makes exactly one component of it, is passed over before it expands, and
+ *   its type is added to the value after the sibling found, as
+ *   `{ componentType, placeholder: true }`, to be counted.
+ *
+ * With `fromEndOfChildren`, it is the last such child of the component
+ * itself, rather than of its parent before it.
  */
 export class NearestPrecedingSiblingDependency extends Dependency {
     static dependencyType = "nearestPrecedingSibling";
@@ -422,6 +437,41 @@ export class NearestPrecedingSiblingDependency extends Dependency {
             );
         }
         this.componentTypes = this.definition.componentTypes;
+        this.passOverCompositesMarked =
+            this.definition.passOverCompositesMarked;
+        this.countPlaceholdersOfTypes =
+            this.definition.countPlaceholdersOfTypes ?? [];
+        this.fromEndOfChildren = Boolean(this.definition.fromEndOfChildren);
+        // The types of the composites passed over to be counted
+        // (`countPlaceholdersOfTypes`), nearest first.
+        this.placeholderTypes = [];
+    }
+
+    /**
+     * The type a composite was given (`<section extend="$x"/>`), if it is one
+     * of `countPlaceholdersOfTypes`.
+     */
+    countedType(composite: any): string | undefined {
+        const given =
+            composite?.attributes?._createComponentOfType?.primitive?.value;
+        if (typeof given !== "string") {
+            return undefined;
+        }
+        const componentType =
+            this.dependencyHandler.componentInfoObjects.componentTypeAsWritten(
+                given,
+            );
+        return this.isOfTypes(componentType, this.countPlaceholdersOfTypes)
+            ? componentType
+            : undefined;
+    }
+
+    /** Whether `composite` was marked at load as making none of the types. */
+    isPassedOver(composite: any) {
+        return Boolean(
+            this.passOverCompositesMarked &&
+            composite?.doenetAttributes?.[this.passOverCompositesMarked],
+        );
     }
 
     /** Whether `componentType` is, or inherits from, one of `baseTypes`. */
@@ -440,17 +490,55 @@ export class NearestPrecedingSiblingDependency extends Dependency {
     }
 
     async determineDownstreamComponents() {
+        const result = await this.findDownstreamComponents();
+        if (!result.success) {
+            this.placeholdersFound = [];
+        }
+        // what is counted after the sibling found can change while it does
+        // not
+        const placeholderTypes = this.placeholdersFound ?? [];
+        if (
+            placeholderTypes.length !== this.placeholderTypes.length ||
+            placeholderTypes.some(
+                (type: string, ind: number) =>
+                    type !== this.placeholderTypes[ind],
+            )
+        ) {
+            this.componentIdentitiesChanged = true;
+        }
+        this.placeholderTypes = placeholderTypes;
+        return result;
+    }
+
+    async getValue(args?: any) {
+        const result = await super.getValue(args);
+        if (this.placeholderTypes.length > 0) {
+            result.value = [
+                ...result.value,
+                ...this.placeholderTypes.map((componentType: string) => ({
+                    componentType,
+                    placeholder: true,
+                })),
+            ];
+        }
+        return result;
+    }
+
+    async findDownstreamComponents() {
+        this.placeholdersFound = [];
         const component = this.dependencyHandler._components[this.componentIdx];
 
-        if (component?.parentIdx == undefined) {
+        if (this.fromEndOfChildren) {
+            this.parentIdx = this.componentIdx;
+        } else if (component?.parentIdx == undefined) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };
+        } else {
+            this.parentIdx = component.parentIdx;
         }
-
-        this.parentIdx = component.parentIdx;
         const parent: any = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
@@ -480,11 +568,13 @@ export class NearestPrecedingSiblingDependency extends Dependency {
         }
 
         const activeChildren: any[] = parent.activeChildren ?? [];
-        const position = activeChildren.findIndex(
-            (child) =>
-                typeof child === "object" &&
-                child?.componentIdx === this.componentIdx,
-        );
+        const position = this.fromEndOfChildren
+            ? activeChildren.length
+            : activeChildren.findIndex(
+                  (child) =>
+                      typeof child === "object" &&
+                      child?.componentIdx === this.componentIdx,
+              );
 
         if (position === -1) {
             // Not among its parent's children (yet, or any more): wait for
@@ -548,6 +638,15 @@ export class NearestPrecedingSiblingDependency extends Dependency {
             if (unexpandedIdx !== undefined) {
                 const composite =
                     this.dependencyHandler._components[unexpandedIdx];
+                const counted = this.countedType(composite);
+                if (counted !== undefined) {
+                    // makes exactly one of a type counted
+                    this.placeholdersFound.push(counted);
+                    continue;
+                }
+                if (this.isPassedOver(composite)) {
+                    continue;
+                }
                 if (composite) {
                     await this.addBlockerForUnexpandedComposite(composite);
                 }

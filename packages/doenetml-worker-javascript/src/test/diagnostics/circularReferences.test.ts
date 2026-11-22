@@ -672,9 +672,17 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
         _inlineRenderInlineChildren: "em",
         _textOrInline: "title",
     };
+    // A list's text and LaTeX were each entry's, read together; they are not
+    // properties of its own, so a name after the list names nothing, with no
+    // cycle (D59, below).
+    const notOwnOfList = (tag: string, property: string) =>
+        tag.endsWith("List") && ["text", "latex"].includes(property);
     for (const [base, properties] of PROPERTIES_READ) {
         const tag = tagOf[base] ?? base;
         for (const property of properties) {
+            if (notOwnOfList(tag, property)) {
+                continue;
+            }
             const doenetML = `<${tag} name="x">${contentOf[tag] ?? "a"} $x.${property}</${tag}>`;
             it(`a property made from what is written: ${doenetML}`, async () => {
                 const { errors, rest } = await errorsAndRest(doenetML);
@@ -684,6 +692,22 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
             });
         }
     }
+
+    it("a list's text or LaTeX in what is written names nothing, rather than a cycle (D59)", async () => {
+        for (const doenetML of [
+            `<mathList name="x">1 2 $x.latex</mathList>`,
+            `<mathList name="x">1 2 $x.text</mathList>`,
+            `<textList name="x">a b $x.text</textList>`,
+        ]) {
+            const { errors, rest, core } = await errorsAndRest(doenetML);
+            expect(errors, doenetML).eqls([]);
+            expect(rest).eq("rest");
+            expect(
+                getDiagnosticsByType(core).warnings.map((w: any) => w.code),
+                doenetML,
+            ).eqls(["doenet-w0200"]);
+        }
+    });
 
     // Every property of an input listed as made from where its value starts
     // (`INPUTS`), and the input as a whole, in each such attribute.
@@ -1509,18 +1533,23 @@ describe("An index past the end in a group shown by a reference @group2", async 
 });
 
 /**
- * Cycles the load-time check does not find yet: each still stops the
- * document when it is reached. A number reading a property of itself that
- * is not listed (`$n.hide`, `$n.styleNumber`) is one; the documents of
- * "Circular references created after load" close their cycles this way, to
- * reach that safety net. A new edge in `referenceCycles.ts` that finds one
- * moves it to the tests above, and those documents need another.
+ * Cycles the load-time check does not find yet. Each stopped the document
+ * when it was reached; since D57 (#2623 item 1), one reached as the document
+ * loads is caught by the run-time backstop (`loadCycleBlame.ts`), and the
+ * reference that closes it is `doenet-e0005` where it is written, with the
+ * rest rendered. A number reading a property of itself that is not listed
+ * (`$n.hide`, `$n.styleNumber`) is one; the documents of "Circular
+ * references created after load" close their cycles this way after load,
+ * where a cycle still stops the document. A new edge in
+ * `referenceCycles.ts` that finds one moves it to the tests above, and
+ * those documents need another.
  */
 describe("Reference cycles not found at load @group2", async () => {
-    for (const [description, doenetML] of [
+    for (const [description, doenetML, blamed] of [
         [
             "a number reading a property of itself not listed",
             `<number name="n">$n.hide</number>`,
+            "$n.hide",
         ],
         // Doenet/DoenetML#2515's comment: shapes whose points read the shape.
         // A shape is read coordinate by coordinate, and points reading each
@@ -1530,32 +1559,51 @@ describe("Reference cycles not found at load @group2", async () => {
         [
             "a polygon whose vertex reads the polygon",
             `<polygon name="q" vertices="(1,2) (3,4) $q.vertex1"/>`,
+            "$q.vertex1",
         ],
         [
             "a line through a point that reads the line",
             `<line name="l" through="(0,0) ($l.slope+1,3)"/>`,
+            "$l.slope",
         ],
         [
             "an angle through a point that reads the angle",
             `<angle name="a" through="(1,0) (0,0) ($a.radians,1)"/>`,
+            "$a.radians",
         ],
         [
             "a point constrained to a line through it",
             `<point name="P"><constraints><constrainTo>$l</constrainTo></constraints>(1,2)</point><line name="l" through="$P (3,4)"/>`,
+            "$l",
         ],
         [
             "a point attracted to a polygon through it",
             `<point name="P"><constraints><attractTo>$g</attractTo></constraints>(1,2)</point><polygon name="g" vertices="$P (3,4) (5,1)"/>`,
+            "$g",
         ],
         [
             "a point whose coordinate reads the same coordinate",
             `<point name="P">($P.x+1, 2)</point>`,
+            "$P.x",
         ],
     ]) {
-        it(`${description} still stops the document`, async () => {
-            await expect(createTestCore({ doenetML })).rejects.toThrow(
-                "Circular dependency involving these components",
+        it(`${description} is an error at load, and the rest renders`, async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p name="sentinel">ok</p>${doenetML}`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
             );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("sentinel")]
+                    .stateValues.text,
+            ).eq("ok");
+            const { errors } = getDiagnosticsByType(core);
+            expect(errors.map((error) => error.code)).eqls(["doenet-e0005"]);
+            const { start, end } = errors[0].position!;
+            const written = `<p name="sentinel">ok</p>${doenetML}`;
+            expect(written.slice(start.column - 1, end.column - 1)).eq(blamed);
         });
     }
 });

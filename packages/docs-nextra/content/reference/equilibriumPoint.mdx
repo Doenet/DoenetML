@@ -19,7 +19,7 @@ The component otherwise accepts the full set of `<point>{:dn}` attributes (coord
 
 
 ```doenet-editor-horiz
-<graph xmin="-2" xmax="6" ymin="-1" ymax="1">
+<graph xMin="-2" xMax="6" yMin="-1" yMax="1">
   <shortDescription>Three equilibrium points on the x-axis: two stable, one unstable</shortDescription>
   <equilibriumPoint>(0, 0)<label>stable</label></equilibriumPoint>
   <equilibriumPoint stable="false">(2, 0)<label>unstable</label></equilibriumPoint>
@@ -40,7 +40,7 @@ Three equilibria on the $x$-axis: the filled points are stable and the open poin
 
 
 ```doenet-editor-horiz
-<graph xmin="-2" xmax="6" ymin="-1" ymax="1">
+<graph xMin="-2" xMax="6" yMin="-1" yMax="1">
   <shortDescription>Two clickable equilibrium points whose stability the learner can toggle</shortDescription>
   <equilibriumPoint switchable name="A">(0, 0)</equilibriumPoint>
   <equilibriumPoint switchable name="B">(3, 0)</equilibriumPoint>
@@ -64,7 +64,7 @@ rendering). Use this for interactive exercises where the learner must classify e
 ```doenet-editor-horiz
 <booleanInput name="b1" prefill="true"><label>Left equilibrium stable</label></booleanInput>
 <booleanInput name="b2" prefill="false"><label>Right equilibrium stable</label></booleanInput>
-<graph xmin="-6" xmax="6" ymin="-1" ymax="1">
+<graph xMin="-6" xMax="6" yMin="-1" yMax="1">
   <shortDescription>Two equilibrium points whose stability is driven by boolean inputs</shortDescription>
   <equilibriumPoint stable="$b1">(-3, 0)</equilibriumPoint>
   <equilibriumPoint stable="$b2">(3, 0)</equilibriumPoint>
@@ -84,7 +84,7 @@ The `stable` attribute accepts any boolean expression, so the rendering can be d
 
 
 ```doenet-editor-horiz
-<graph xmin="-2" xmax="6" ymin="-1" ymax="1">
+<graph xMin="-2" xMax="6" yMin="-1" yMax="1">
   <shortDescription>A clickable equilibrium point</shortDescription>
   <equilibriumPoint name="eq" switchable>(2, 0)</equilibriumPoint>
 </graph>

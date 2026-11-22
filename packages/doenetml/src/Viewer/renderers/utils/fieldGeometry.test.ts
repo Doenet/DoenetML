@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildSlopeFieldData, buildVectorFieldData } from "./fieldGeometry";
 
-const grid = { dx: 1, dy: 1, xoffset: 0, yoffset: 0 };
+const grid = { dx: 1, dy: 1, xOffset: 0, yOffset: 0 };
 const bounds = { xMin: -3, xMax: 3, yMin: -3, yMax: 3 };
 const square = { unitX: 20, unitY: 20 };
 
@@ -213,8 +213,8 @@ describe("buildSlopeFieldData", () => {
         for (const badGrid of [
             { ...grid, dx: NaN },
             { ...grid, dy: NaN },
-            { ...grid, xoffset: NaN },
-            { ...grid, yoffset: NaN },
+            { ...grid, xOffset: NaN },
+            { ...grid, yOffset: NaN },
         ]) {
             const { numMarks, dataX } = buildSlopeFieldData({
                 f: () => 1,

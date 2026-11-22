@@ -286,7 +286,7 @@ export default class ODESystem extends InlineComponent {
                 addAttributeComponentsShadowingStateVariables:
                     returnNumberDisplayAttributeComponentShadowing(),
             },
-            entryPrefixes: ["rhs", "righthandside"],
+            entryPrefixes: ["rhs", "rightHandSide"],
             returnArraySizeDependencies: () => ({
                 numDimensions: {
                     dependencyType: "stateVariable",
@@ -334,13 +334,13 @@ export default class ODESystem extends InlineComponent {
             description:
                 "The right-hand-side expression of the first ODE in the system.",
         };
-        stateVariableDefinitions.righthandside = {
+        stateVariableDefinitions.rightHandSide = {
             isAlias: true,
             targetVariableName: "rhs1",
             description:
                 "The right-hand-side expression of the first ODE in the system.",
         };
-        stateVariableDefinitions.righthandsides = {
+        stateVariableDefinitions.rightHandSides = {
             isAlias: true,
             targetVariableName: "rhss",
             description:

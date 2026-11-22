@@ -68,10 +68,7 @@ impl ComponentProps for _External {
     fn get_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
         None
     }
-    fn get_public_local_prop_index_from_name_case_insensitive(
-        &self,
-        _name: &str,
-    ) -> Option<LocalPropIdx> {
+    fn get_public_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
         None
     }
 }

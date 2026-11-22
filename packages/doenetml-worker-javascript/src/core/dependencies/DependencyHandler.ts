@@ -123,6 +123,8 @@ export class DependencyHandler {
      * clears it on entry besides.
      */
     _circularPathComponents: ComponentIdx[];
+    /** The variable of each component on `_circularPathComponents`. */
+    _circularPathVarNames: string[];
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
@@ -216,6 +218,7 @@ export class DependencyHandler {
 
         this.circularCheckMarks = new CircularCheckMarks();
         this._circularPathComponents = [];
+        this._circularPathVarNames = [];
 
         this.dependencyTypes = {};
         dependencyTypeClasses.forEach(
@@ -1003,6 +1006,7 @@ export class DependencyHandler {
         varName: string;
     }) {
         this._circularPathComponents.length = 0;
+        this._circularPathVarNames.length = 0;
         this._searchForCircularDependency(componentIdx, varName);
     }
 
@@ -1012,12 +1016,31 @@ export class DependencyHandler {
             // The path runs from the variable the search started at through
             // the variable reached twice (which is somewhere on it) to the
             // variable that closed the cycle.
+            // the cycle itself runs from where the variable reached twice is
+            // on the path
+            let start = this._circularPathComponents.length - 1;
+            while (
+                start > 0 &&
+                !(
+                    this._circularPathComponents[start] === componentIdx &&
+                    this._circularPathVarNames[start] === varName
+                )
+            ) {
+                start--;
+            }
             throw new CircularDependencyError(
                 this.getCircularDependencyMessage(
                     this._circularPathComponents.map(
                         (idx) => this.components[idx],
                     ),
                 ),
+                this._circularPathComponents.slice(start),
+                this._circularPathComponents
+                    .slice(start)
+                    .map((idx, i) => [
+                        idx,
+                        this._circularPathVarNames[start + i],
+                    ]),
             );
         }
         if (mark === PASSED) {
@@ -1026,6 +1049,7 @@ export class DependencyHandler {
 
         this.circularCheckMarks.set(componentIdx, varName, ON_PATH);
         this._circularPathComponents.push(componentIdx);
+        this._circularPathVarNames.push(varName);
         try {
             const downDeps =
                 this.downstreamDependencies[componentIdx]?.[varName];
@@ -1045,6 +1069,7 @@ export class DependencyHandler {
             }
         } finally {
             this._circularPathComponents.pop();
+            this._circularPathVarNames.pop();
             this.circularCheckMarks.set(componentIdx, varName, PASSED);
         }
     }
@@ -1139,9 +1164,10 @@ export class DependencyHandler {
      * on its path stay memoized while whatever it had not yet expanded
      * below them does not, so a reset coming up from below such a variable
      * stops short of the path. That never matters: a cycle's throw is a
-     * `CircularDependencyError`, which no guard swallows, and it ends the
-     * document whether it is raised during load or by an update, so no check
-     * runs after it.
+     * `CircularDependencyError`, which no guard swallows, and it ends this
+     * core's work whether it is raised during load (the load is abandoned and
+     * the document built again by a new core, D57) or by an update (the
+     * document stops), so no check runs after it.
      */
     resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
         if (this.circularCheckMarks.get(componentIdx, varName) !== PASSED) {
@@ -2063,15 +2089,20 @@ export class DependencyHandler {
             { type: blockerType, code: blockerCode },
         );
         if (cycle) {
+            // a code is the component's index, then, for a blocker of a
+            // state variable (stateVariable, determineDependencies,
+            // recalculateDownstreamComponents), the variable; the others,
+            // such as a composite to expand, have none
+            const codes = cycle.map(({ code }) => code.split("|"));
+            const cycleIndices = codes.map((parts) => Number(parts[0]));
             throw new CircularDependencyError(
                 this.getCircularDependencyMessage(
-                    cycle.map(
-                        ({ code }) =>
-                            this.components[
-                                code.split("|")[0] as unknown as number
-                            ],
-                    ),
+                    cycleIndices.map((idx) => this.components[idx]),
                 ),
+                cycleIndices,
+                codes
+                    .filter((parts) => parts[1] !== undefined)
+                    .map((parts) => [Number(parts[0]), parts[1]]),
             );
         }
 

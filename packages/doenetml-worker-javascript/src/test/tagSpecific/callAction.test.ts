@@ -102,7 +102,7 @@ describe("callAction tag tests @group4", async () => {
 
     <section extend="$theGraphs" name="theGraphs2" />
 
-    <p>points from graph: <collect componentType="point" from="$theGraphs.g" name="col" hide /><mathList extend="$col.coords" name="ps" /></p>
+    <p>points from graph: <collect componentType="point" from="$theGraphs.g" name="col" hide /><mathList name="ps"><repeat for="$col" valueName="v">$v.coords</repeat></mathList></p>
     <callAction name="addPoint" target="$theGraphs.g" actionName="addChildren">
       <label>add point</label>
       <point>(3,4)</point>
@@ -488,7 +488,7 @@ describe("callAction tag tests @group4", async () => {
       <point name="P">(1,2)</point>
     </graph>
     
-    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList extend="$col.coords" name="ps" /></p>
+    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList name="ps"><repeat for="$col" valueName="v">$v.coords</repeat></mathList></p>
 
     <callAction name="addPoint" target="$g" actionName="addChildren" triggerWith="$rs">
       <label>add point</label>
@@ -514,7 +514,7 @@ describe("callAction tag tests @group4", async () => {
         <point name="P">(1,2)</point>
       </graph>
       
-      <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList extend="$col.coords" name="ps" /></p>
+      <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList name="ps"><repeat for="$col" valueName="v">$v.coords</repeat></mathList></p>
 
       <callAction name="addPoint" target="$g" actionName="addChildren" triggerWith="$rs">
         <label>add point</label>
@@ -652,7 +652,7 @@ describe("callAction tag tests @group4", async () => {
       <point name="P">(1,2)</point>
     </graph>
         
-    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList extend="$col.coords" name="ps" /></p>
+    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList name="ps"><repeat for="$col" valueName="v">$v.coords</repeat></mathList></p>
 
     <callAction name="addPoint" target="$g" actionName="addChildren" triggerWith="$rs $in">
       <label>add point</label>
@@ -2111,7 +2111,7 @@ describe("callAction tag tests @group4", async () => {
       <point name="P">(1,2)</point>
     </graph>
 
-    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList extend="$col.coords" name="ps" /></p>
+    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList name="ps"><repeat for="$col" valueName="v">$v.coords</repeat></mathList></p>
 
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
@@ -2237,7 +2237,7 @@ describe("callAction tag tests @group4", async () => {
       <point name="P">(1,2)</point>
     </graph>
 
-    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList extend="$col.coords" name="ps" /></p>
+    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList name="ps"><repeat for="$col" valueName="v">$v.coords</repeat></mathList></p>
 
     <p name="nums"><sampleRandomNumbers name="s" numSamples="7" type="discreteUniform" from="1" to="6" /></p>
 
@@ -2402,7 +2402,7 @@ describe("callAction tag tests @group4", async () => {
       <point name="P">(1,2)</point>
     </graph>
     
-    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList extend="$col.coords" name="ps" /></p>
+    <p>points from graph: <collect componentType="point" from="$g" name="col" hide /><mathList name="ps"><repeat for="$col" valueName="v">$v.coords</repeat></mathList></p>
 
     <callAction name="addPoint" target="$g" actionName="addChildren" triggerWith="$addOne">
       <label>add point</label>

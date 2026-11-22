@@ -32,6 +32,9 @@
         "./schema": {
             "import": "./dist/schema.js"
         },
+        "./attribute-names": {
+            "import": "./dist/attribute-names.js"
+        },
         "./*json": {
             "import": "./dist/generated/*json"
         }

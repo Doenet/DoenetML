@@ -8,7 +8,7 @@ import {
  * Settings for one column of a `<tabular>`, modeled on PreTeXt's `<col>`.
  *
  * PreTeXt puts column-level settings on empty `<col>` elements that precede
- * the rows, and allows exactly the four here: `width`, `halign`, `top` and
+ * the rows, and allows exactly the four here: `width`, `hAlign`, `top` and
  * `right`. The two borders are spelled `topBorder` and `endBorder` to match
  * the writing-direction-relative names the rest of the DoenetML tabular
  * vocabulary already uses (see `utils/tabularAttributes.ts`); `endBorder` is
@@ -17,7 +17,7 @@ import {
  * Every attribute defaults to `null` rather than to a concrete value, because
  * a column setting is an *override*: the `<tabular>` collects the non-null
  * ones into `columnSpecs`, and a cell falls back to its column only after its
- * own attribute has come up empty. For `halign` the row is consulted in
+ * own attribute has come up empty. For `hAlign` the row is consulted in
  * between (PreTeXt's cell → row → col → tabular order); for `endBorder` there
  * is no row step, because a `<row>` has no trailing-edge border. `topBorder`
  * is not a fallback chain at all — neither a `<cell>` nor a `<row>` has one,
@@ -51,10 +51,10 @@ export default class Col extends BaseComponent {
             public: true,
             highlighted: true,
         };
-        attributes.halign = {
+        attributes.hAlign = {
             description: "Horizontal alignment for cells in this column.",
             createComponentOfType: "text",
-            createStateVariable: "halign",
+            createStateVariable: "hAlign",
             defaultValue: null,
             public: true,
             highlighted: true,

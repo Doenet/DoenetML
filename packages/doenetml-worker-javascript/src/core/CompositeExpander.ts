@@ -334,6 +334,7 @@ export async function expandCompositeComponent({
         // again here would do so without end.
         throw new CircularDependencyError(
             core.dependencies.getCircularDependencyMessage([component]),
+            [component.componentIdx],
         );
     }
 
@@ -411,8 +412,7 @@ async function expandMarkedComposite({
             allDoenetMLs: core.allDoenetMLs,
             flags: core.flags,
             resolveItem: core.dependencies.resolveItem.bind(core.dependencies),
-            publicCaseInsensitiveAliasSubstitutions:
-                core.publicCaseInsensitiveAliasSubstitutions.bind(core),
+            publicAliasSubstitutions: core.publicAliasSubstitutions.bind(core),
         });
 
         // If `core._components` changed in length while `createSerializedReplacements` was executing,
@@ -738,8 +738,7 @@ async function expandShadowingComposite({
             components: core._components,
             nComponents: newNComponents,
             stateIdInfo,
-            publicCaseInsensitiveAliasSubstitutions:
-                core.publicCaseInsensitiveAliasSubstitutions.bind(core),
+            publicAliasSubstitutions: core.publicAliasSubstitutions.bind(core),
         });
 
         for (const diagnostic of verificationResult.diagnostics) {
@@ -1040,9 +1039,9 @@ export async function replaceCompositeChildren({
                 // A composite given a type makes exactly one component,
                 // so it is replaced by a single placeholder.
                 let componentType =
-                    core.componentInfoObjects.componentTypeLowerCaseMapping[
-                        child.attributes._createComponentOfType.primitive.value.toLowerCase()
-                    ];
+                    core.componentInfoObjects.componentTypeAsWritten(
+                        child.attributes._createComponentOfType.primitive.value,
+                    );
                 replacements = [
                     {
                         componentType,

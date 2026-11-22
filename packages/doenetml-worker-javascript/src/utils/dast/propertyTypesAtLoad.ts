@@ -52,7 +52,7 @@ import { sequenceEntryComponentType } from "../sequence";
 import { kindOfComponentType } from "../componentKinds";
 import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
-import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
+import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
 
 /**
  * What `doenetAttributes.propertyTypes` holds: a type by variable name, or,
@@ -677,7 +677,7 @@ export function propertyTypeReader({
         if (!componentClass || typeof name !== "string" || name === "") {
             return false;
         }
-        const [variableName] = publicCaseInsensitiveAliasSubstitutions({
+        const [variableName] = publicAliasSubstitutions({
             stateVariables: [name],
             componentClass,
             componentInfoObjects,
@@ -1400,7 +1400,7 @@ export function propertyTypeReader({
         if (!componentClass) {
             return undefined;
         }
-        const [variableName] = publicCaseInsensitiveAliasSubstitutions({
+        const [variableName] = publicAliasSubstitutions({
             stateVariables: [name],
             componentClass,
             componentInfoObjects,

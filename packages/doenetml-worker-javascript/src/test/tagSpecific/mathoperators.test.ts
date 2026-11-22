@@ -2131,28 +2131,28 @@ describe("Math operator tests @group2", async () => {
       <clampNumber name="clampNumber2">-55.3</clampNumber>
       <clampNumber name="clampNumber3">0.3</clampNumber>
 
-      <clampNumber name="clampNumber4" lowervalue="10" uppervalue="40">55.3</clampNumber>
-      <clampNumber name="clampNumber5" lowervalue="10" uppervalue="40">-55.3</clampNumber>
-      <clampNumber name="clampNumber6" lowervalue="10" uppervalue="40">12</clampNumber>
+      <clampNumber name="clampNumber4" lowerValue="10" upperValue="40">55.3</clampNumber>
+      <clampNumber name="clampNumber5" lowerValue="10" upperValue="40">-55.3</clampNumber>
+      <clampNumber name="clampNumber6" lowerValue="10" upperValue="40">12</clampNumber>
 
-      <clampNumber name="clampNumber7" lowervalue="10" uppervalue="40"><math>55.3</math></clampNumber>
-      <clampNumber name="clampNumber8" lowervalue="10" uppervalue="40"><number>-55.3</number></clampNumber>
-      <clampNumber name="clampNumber9" lowervalue="10" uppervalue="40"><number>12</number></clampNumber>
+      <clampNumber name="clampNumber7" lowerValue="10" upperValue="40"><math>55.3</math></clampNumber>
+      <clampNumber name="clampNumber8" lowerValue="10" upperValue="40"><number>-55.3</number></clampNumber>
+      <clampNumber name="clampNumber9" lowerValue="10" upperValue="40"><number>12</number></clampNumber>
 
-      <clampNumber name="clampNumber10" lowervalue="10" uppervalue="40">x+y</clampNumber>
-      <clampNumber name="clampNumber11" lowervalue="10" uppervalue="40"><math>x+y</math></clampNumber>
+      <clampNumber name="clampNumber10" lowerValue="10" upperValue="40">x+y</clampNumber>
+      <clampNumber name="clampNumber11" lowerValue="10" upperValue="40"><math>x+y</math></clampNumber>
 
       <number name="a">4</number>
 
-      <clampNumber name="clampNumber12" lowervalue="10" uppervalue="40">12$a</clampNumber>
-      <clampNumber name="clampNumber13" lowervalue="10" uppervalue="40">-12$a</clampNumber>
-      <clampNumber name="clampNumber14" lowervalue="10" uppervalue="40">3$a</clampNumber>
+      <clampNumber name="clampNumber12" lowerValue="10" upperValue="40">12$a</clampNumber>
+      <clampNumber name="clampNumber13" lowerValue="10" upperValue="40">-12$a</clampNumber>
+      <clampNumber name="clampNumber14" lowerValue="10" upperValue="40">3$a</clampNumber>
 
       <!-- Bounding an unbounded value at the bound is what a clamp is for, so
            an infinite input must reach the clamp rather than be rejected
            alongside the symbolic inputs above, which have no value at all. -->
-      <clampNumber name="clampNumber15" lowervalue="10" uppervalue="40">Infinity</clampNumber>
-      <clampNumber name="clampNumber16" lowervalue="10" uppervalue="40">-Infinity</clampNumber>
+      <clampNumber name="clampNumber15" lowerValue="10" upperValue="40">Infinity</clampNumber>
+      <clampNumber name="clampNumber16" lowerValue="10" upperValue="40">-Infinity</clampNumber>
 
       <clampNumber extend="$clampNumber1" name="clampNumber1b" />
       <clampNumber extend="$clampNumber5" name="clampNumber5b" />
@@ -2397,22 +2397,22 @@ describe("Math operator tests @group2", async () => {
       <wrapNumberPeriodic name="wrapNumberPeriodic2">-55.3</wrapNumberPeriodic>
       <wrapNumberPeriodic name="wrapNumberPeriodic3">0.3</wrapNumberPeriodic>
 
-      <wrapNumberPeriodic name="wrapNumberPeriodic4" lowervalue="10" uppervalue="40">55.3</wrapNumberPeriodic>
-      <wrapNumberPeriodic name="wrapNumberPeriodic5" lowervalue="10" uppervalue="40">-55.3</wrapNumberPeriodic>
-      <wrapNumberPeriodic name="wrapNumberPeriodic6" lowervalue="10" uppervalue="40">12</wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic4" lowerValue="10" upperValue="40">55.3</wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic5" lowerValue="10" upperValue="40">-55.3</wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic6" lowerValue="10" upperValue="40">12</wrapNumberPeriodic>
 
-      <wrapNumberPeriodic name="wrapNumberPeriodic7" lowervalue="10" uppervalue="40"><math>55.3</math></wrapNumberPeriodic>
-      <wrapNumberPeriodic name="wrapNumberPeriodic8" lowervalue="10" uppervalue="40"><number>-55.3</number></wrapNumberPeriodic>
-      <wrapNumberPeriodic name="wrapNumberPeriodic9" lowervalue="10" uppervalue="40"><number>12</number></wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic7" lowerValue="10" upperValue="40"><math>55.3</math></wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic8" lowerValue="10" upperValue="40"><number>-55.3</number></wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic9" lowerValue="10" upperValue="40"><number>12</number></wrapNumberPeriodic>
 
-      <wrapNumberPeriodic name="wrapNumberPeriodic10" lowervalue="10" uppervalue="40">x+y</wrapNumberPeriodic>
-      <wrapNumberPeriodic name="wrapNumberPeriodic11" lowervalue="10" uppervalue="40"><math>x+y</math></wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic10" lowerValue="10" upperValue="40">x+y</wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic11" lowerValue="10" upperValue="40"><math>x+y</math></wrapNumberPeriodic>
 
       <number name="a">4</number>
 
-      <wrapNumberPeriodic name="wrapNumberPeriodic12" lowervalue="10" uppervalue="40">12$a</wrapNumberPeriodic>
-      <wrapNumberPeriodic name="wrapNumberPeriodic13" lowervalue="10" uppervalue="40">-12$a</wrapNumberPeriodic>
-      <wrapNumberPeriodic name="wrapNumberPeriodic14" lowervalue="10" uppervalue="40">3$a</wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic12" lowerValue="10" upperValue="40">12$a</wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic13" lowerValue="10" upperValue="40">-12$a</wrapNumberPeriodic>
+      <wrapNumberPeriodic name="wrapNumberPeriodic14" lowerValue="10" upperValue="40">3$a</wrapNumberPeriodic>
 
       <wrapNumberPeriodic extend="$wrapNumberPeriodic1" name="wrapNumberPeriodic1b" />
       <wrapNumberPeriodic extend="$wrapNumberPeriodic5" name="wrapNumberPeriodic5b" />
@@ -2648,10 +2648,10 @@ describe("Math operator tests @group2", async () => {
       <graph name="graph1">
         <point name="P1" layer="1">(6,7)</point>
         <point name="P2">
-          (<clampNumber lowervalue="-2" uppervalue="5">
+          (<clampNumber lowerValue="-2" upperValue="5">
             $P1.x
           </clampNumber>,
-          <wrapNumberPeriodic lowervalue="-2" uppervalue="5">
+          <wrapNumberPeriodic lowerValue="-2" upperValue="5">
             $P1.y
           </wrapNumberPeriodic>
           )

@@ -34,7 +34,8 @@ import { DependencyHandler } from "./core/dependencies";
 import { ActionTriggerScheduler } from "./core/ActionTriggerScheduler";
 import { AutoSubmitManager } from "./core/AutoSubmitManager";
 import { addComponents } from "./core/ComponentBuilder";
-import { hasUnenteredEdit } from "./utils/input";
+import { ENTERED_BY_CORE, hasUnenteredEdit } from "./utils/input";
+import { CircularDependencyError } from "./core/dependencies/CircularDependencyError";
 import { CompositeReplacementUpdater } from "./core/CompositeReplacementUpdater";
 import {
     DiagnosticsManager,
@@ -265,18 +266,32 @@ export default class Core {
     definitionSetStateIds!: Set<string>;
     /**
      * The input the reader is editing: the last to receive an edit not yet
-     * entered (`setComponentNeedingUpdateValue`), until it is entered, or is
-     * withheld or deleted (`inputNoLongerFocused`), which it can't be while
-     * focused. Kept only in memory: after a reload nothing is being
-     * edited (D50).
+     * entered (`setComponentNeedingUpdateValue`), until it is entered, is
+     * withheld or deleted (`inputNoLongerFocused`), or is disabled
+     * (`_stopEditingIfDisabled`), none of which it can be while focused.
+     * Kept only in memory: after a reload nothing is being edited (D50).
      */
     componentBeingEdited: number | null = null;
     /**
+     * Called each time a change an action asks for is refused because a
+     * component, or a source it shadows, is `fixed` or has `fixLocation`. Not
+     * called for a change asked for by an action that action set off (one
+     * triggered by a change, or chained to it). Unset in a viewer, where a
+     * refused change is only logged; the headless core sets it to reject the
+     * action that asked for the change.
+     */
+    onChangeRefused?: (refusal: {
+        componentIdx: ComponentIdx;
+        stateVariable: string;
+        reason: "fixed" | "fixLocation";
+    }) => void;
+    /**
      * Inputs made, or shown again, since unentered edits were last committed
      * (`commitUnenteredEdits`, D50), and the input an `extend` withheld or
-     * deleted while edited extends (`inputNoLongerFocused`): each of those
-     * that shows an edit not entered, other than the edit of the input being
-     * edited, is committed.
+     * deleted while edited extends (`inputNoLongerFocused`), and the input
+     * being edited once it is disabled (`_stopEditingIfDisabled`): each of
+     * those that shows an edit not entered, other than the edit of the input
+     * being edited, is committed.
      */
     inputsToCommit: Set<number> = new Set();
     /**
@@ -1085,20 +1100,6 @@ export default class Core {
         );
     }
 
-    findCaseInsensitiveMatches({
-        stateVariables,
-        componentClass,
-    }: {
-        stateVariables: any;
-        componentClass: any;
-    }): any {
-        return nameResolver.findCaseInsensitiveMatches({
-            stateVariables,
-            componentClass,
-            componentInfoObjects: this.componentInfoObjects,
-        });
-    }
-
     matchPublicStateVariables({
         stateVariables,
         componentClass,
@@ -1127,14 +1128,14 @@ export default class Core {
         });
     }
 
-    publicCaseInsensitiveAliasSubstitutions({
+    publicAliasSubstitutions({
         stateVariables,
         componentClass,
     }: {
         stateVariables: any;
         componentClass: any;
     }): any {
-        return nameResolver.publicCaseInsensitiveAliasSubstitutions({
+        return nameResolver.publicAliasSubstitutions({
             stateVariables,
             componentClass,
             componentInfoObjects: this.componentInfoObjects,
@@ -1255,15 +1256,32 @@ export default class Core {
      * entered, or withheld while the reader edited it; or it is extended by
      * an input withheld or deleted while the reader edited it.
      *
+     * A disabled input can't be focused, so it is treated as one withheld
+     * (D50 decision 2): one made disabled is committed as it is made, and
+     * the input being edited is committed once it is disabled, and is no
+     * longer being edited. Its edit is entered with the `answered` event a
+     * blur would record. Under `flags.readOnly`, an edit is entered with no
+     * event and nothing saved (D50 decision 3). Both are asked of the action
+     * with `ENTERED_BY_CORE`, which a reader's action can't carry.
+     *
      * Run at the end of load and after each update or action request
-     * (`ProcessQueue`), never during an update. Skipped: an input withheld
-     * (committed when shown again), a disabled one (`hasUnenteredEdit`), and
-     * an input showing the edit of the input being edited, with the same
-     * source (`sourceOfInput`): the input itself, what it extends, or an
-     * `extend` of either.
+     * (`ProcessQueue`), never during an update. Each input is committed on
+     * its own: an error committing one is logged, and the others are still
+     * committed (#2614 item 6). A cycle is not caught: at load, the
+     * document is built again around it (D57, `rebuildAroundLoadCycle`);
+     * after load, it stops the document, as anywhere else. Skipped: an input withheld (committed when
+     * shown again), and an input showing the edit of the input being edited,
+     * with the same source (`sourceOfInput`): the input itself, what it
+     * extends, or an `extend` of either.
      */
     async commitUnenteredEdits(): Promise<void> {
-        while (this.inputsToCommit.size > 0) {
+        while (true) {
+            // checked again after each round: committing an input can
+            // disable the input being edited
+            await this._stopEditingIfDisabled();
+            if (this.inputsToCommit.size === 0) {
+                break;
+            }
             const candidates = [...this.inputsToCommit];
             this.inputsToCommit.clear();
             const edited =
@@ -1271,22 +1289,68 @@ export default class Core {
                     ? null
                     : this.sourceOfInput(this.componentBeingEdited);
             for (const componentIdx of candidates) {
-                const component = this._components[componentIdx];
-                if (
-                    !component ||
-                    this.sourceOfInput(componentIdx) === edited ||
-                    (await component.stateValues
-                        .isInactiveCompositeReplacement) ||
-                    !(await hasUnenteredEdit(component))
-                ) {
-                    continue;
+                try {
+                    await this._commitUnenteredEdit(componentIdx, edited);
+                } catch (e) {
+                    if (e instanceof CircularDependencyError) {
+                        throw e;
+                    }
+                    console.error(e);
                 }
-                await this.performAction({
-                    componentIdx,
-                    actionName: "updateValue",
-                    args: {},
-                });
             }
+        }
+    }
+
+    /**
+     * Commit the edit not entered of the input `componentIdx`, unless it is
+     * gone, withheld, shows no such edit, or shows the edit of the input
+     * being edited, whose source is `edited` (`commitUnenteredEdits`).
+     */
+    async _commitUnenteredEdit(
+        componentIdx: number,
+        edited: number | null,
+    ): Promise<void> {
+        const component = this._components[componentIdx];
+        if (
+            !component ||
+            this.sourceOfInput(componentIdx) === edited ||
+            (await component.stateValues.isInactiveCompositeReplacement) ||
+            !(await hasUnenteredEdit(component))
+        ) {
+            return;
+        }
+        await this.performAction({
+            componentIdx,
+            actionName: "updateValue",
+            args: {
+                [ENTERED_BY_CORE]: { readOnly: Boolean(this.flags.readOnly) },
+            },
+        });
+    }
+
+    /**
+     * If the input being edited is now disabled, it isn't focused: nothing
+     * is being edited, and it is committed (D50 decision 2,
+     * `commitUnenteredEdits`).
+     */
+    async _stopEditingIfDisabled(): Promise<void> {
+        const editedIdx = this.componentBeingEdited;
+        if (editedIdx === null) {
+            return;
+        }
+        const edited = this._components[editedIdx];
+        let disabled = false;
+        try {
+            disabled = Boolean(await edited?.stateValues.disabled);
+        } catch (e) {
+            if (e instanceof CircularDependencyError) {
+                throw e;
+            }
+            console.error(e);
+        }
+        if (disabled) {
+            this.componentBeingEdited = null;
+            this.inputsToCommit.add(editedIdx);
         }
     }
 
@@ -1551,6 +1615,20 @@ export default class Core {
         } catch (e) {
             console.error(e);
         }
+    }
+
+    /**
+     * This core's load stopped on a circular dependency, and the document is
+     * being built again by another (D57, `rebuildAroundLoadCycle`): stop
+     * what this one started without saving anything, as nothing it made was
+     * shown.
+     */
+    abandonLoad(): void {
+        this.processQueue.stopProcessingRequests = true;
+        this.rendererInstructionBuilder.cancelDeferredRendererUpdate();
+        this.rendererInstructionBuilder.cancelIdleRendererFlush();
+        this.statePersistence.reset();
+        this.actionTriggerScheduler.reset();
     }
 
     async terminate(): Promise<void> {

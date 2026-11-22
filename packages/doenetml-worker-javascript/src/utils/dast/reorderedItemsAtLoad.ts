@@ -68,6 +68,8 @@ import { unwrapSource } from "./convertNormalizedDast";
 import { attributeOf, literalText } from "./choiceErrorsAtLoad";
 import { sequenceEntryComponentType } from "../sequence";
 import { kindOfComponentType } from "../componentKinds";
+import { typeHasProperty } from "./typeChangeAtLoad";
+import { propertyDifferingOnlyInCase, suggestionArgs } from "./nameCase";
 
 /**
  * An item of a `<sort>` or `<shuffle>`: one component, of the tag `tag`, or
@@ -1040,6 +1042,59 @@ export function checkReorderedItemsAtLoad({
         };
     }
 
+    /**
+     * `doenet-w0198` for a `<sort>` or `<sortIndices>` `component` whose
+     * `sortByProp` names no property of an item it sorts (DIAG-3, #2627
+     * item 5), with a suggestion when it names one in another case (D51):
+     * the sort can't compare its items by it, which the author would
+     * otherwise not be told. Only items the DoenetML says the tag of are
+     * read, as for the errors above, and a `sortByProp` that isn't written
+     * as text (a reference) isn't checked.
+     */
+    function sortByPropWarning(component: SerializedComponent) {
+        const attribute: any = component.attributes?.sortByProp;
+        const propName =
+            attribute === undefined ? undefined : literalText(attribute);
+        if (!propName) {
+            return undefined;
+        }
+        const { items } = itemsOfChildren(component.children ?? [], new Set());
+        const lacking = items.find(
+            (item) =>
+                item.kind === "one" &&
+                item.piece === undefined &&
+                item.tag in componentInfoObjects.allComponentClasses &&
+                !typeHasProperty({
+                    componentType: item.tag,
+                    propName,
+                    componentInfoObjects,
+                }),
+        );
+        if (lacking === undefined) {
+            return undefined;
+        }
+        return codedDiagnostic({
+            type: "warning",
+            code: "doenet-w0198",
+            args: {
+                component: component.componentType,
+                property: propName,
+                item: lacking.tag,
+                ...suggestionArgs(
+                    propertyDifferingOnlyInCase({
+                        propName,
+                        componentTypes: [lacking.tag],
+                        componentInfoObjects,
+                        // named alone, so an entry by its name (`x1`)
+                        entriesByIndex: false,
+                    }),
+                ),
+            },
+            position: attribute.position ?? component.position,
+            sourceDoc: attribute.sourceDoc ?? component.sourceDoc,
+        });
+    }
+
     const seen = new Set<SerializedComponent>();
     function visit(components: (SerializedComponent | string)[]) {
         for (const component of components) {
@@ -1088,6 +1143,13 @@ export function checkReorderedItemsAtLoad({
                 component.extending === undefined
             ) {
                 const mark = reorderError(component);
+                const warning =
+                    mark || !SORTS.has(component.componentType)
+                        ? undefined
+                        : sortByPropWarning(component);
+                if (warning) {
+                    diagnostics.push(warning);
+                }
                 if (mark) {
                     const diagnostic = {
                         ...reorderErrorDiagnostic(mark),

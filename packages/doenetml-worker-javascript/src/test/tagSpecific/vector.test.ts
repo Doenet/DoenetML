@@ -1760,7 +1760,7 @@ describe("Vector Tag Tests @group4", function () {
     it("constrain to vector, different scales from graph", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
+    <graph xMin="-110" xMax="110" yMin="-0.11" yMax="0.11">
         <vector name="l" head="(-1,-0.05)" tail="(1,0.05)"/>
         <point name="P" x="100" y="0" >
             <constrainTo relativeToGraphScales>$l</constrainTo>
@@ -4785,14 +4785,14 @@ describe("Vector Tag Tests @group4", function () {
             doenetML: `
   <graph name="g0">
     <vector name="vdrag" head="(1,1)" />
-    <vector name="vnoheaddrag" head="(1,2)" headdraggable="false" />
-    <vector name="vnotaildrag" head="(1,3)" taildraggable="false" />
-    <vector name="vnoheadtaildrag" head="(1,4)" headdraggable="false" taildraggable="false" />
+    <vector name="vnoheaddrag" head="(1,2)" headDraggable="false" />
+    <vector name="vnotaildrag" head="(1,3)" tailDraggable="false" />
+    <vector name="vnoheadtaildrag" head="(1,4)" headDraggable="false" tailDraggable="false" />
 
     <vector name="vnodrag" head="(1,5)" draggable="false" />
-    <vector name="vnodragheaddrag" head="(1,6)" draggable="false" headdraggable />
-    <vector name="vnodragtaildrag" head="(1,7)" draggable="false" taildraggable />
-    <vector name="vnodragheadtaildrag" head="(1,8)" draggable="false" headdraggable taildraggable />
+    <vector name="vnodragheaddrag" head="(1,6)" draggable="false" headDraggable />
+    <vector name="vnodragtaildrag" head="(1,7)" draggable="false" tailDraggable />
+    <vector name="vnodragheadtaildrag" head="(1,8)" draggable="false" headDraggable tailDraggable />
   </graph>
 
   <graph extend="$g0" name="g1" />
@@ -5857,9 +5857,9 @@ describe("Vector Tag Tests @group4", function () {
 
     <p><vector name="no_style">(1,1)</vector> is <text name="tsd_no_style">$no_style.textStyleDescription</text>, i.e., the text color is <text name="tc_no_style">$no_style.textColor</text> and the background color is <text name="bc_no_style">$no_style.backgroundColor</text>.</p>
 
-    <p><vector name="fixed_style" stylenumber="2">(1,-1)</vector> is <text name="tsd_fixed_style">$fixed_style.textStyleDescription</text>, i.e., the text color is <text name="tc_fixed_style">$fixed_style.textColor</text> and the background color is <text name="bc_fixed_style">$fixed_style.backgroundColor</text>.</p>
+    <p><vector name="fixed_style" styleNumber="2">(1,-1)</vector> is <text name="tsd_fixed_style">$fixed_style.textStyleDescription</text>, i.e., the text color is <text name="tc_fixed_style">$fixed_style.textColor</text> and the background color is <text name="bc_fixed_style">$fixed_style.backgroundColor</text>.</p>
 
-    <p><vector name="variable_style" stylenumber="$sn">(-1,1)</vector> is <text name="tsd_variable_style">$variable_style.textStyleDescription</text>, i.e., the text color is <text name="tc_variable_style">$variable_style.textColor</text> and the background color is <text name="bc_variable_style">$variable_style.backgroundColor</text>.</p>
+    <p><vector name="variable_style" styleNumber="$sn">(-1,1)</vector> is <text name="tsd_variable_style">$variable_style.textStyleDescription</text>, i.e., the text color is <text name="tc_variable_style">$variable_style.textColor</text> and the background color is <text name="bc_variable_style">$variable_style.backgroundColor</text>.</p>
 
     <graph>
       <vector extend="$no_style" anchor="(1,2)" />

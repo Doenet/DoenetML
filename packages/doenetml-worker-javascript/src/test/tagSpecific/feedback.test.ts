@@ -935,7 +935,7 @@ describe("Feedback tag tests @group1", async () => {
             doenetML: `
   <p><answer type="text" name="ans">hello there</answer></p>
   <feedback name="f" condition="$(ans.creditAchieved) != 1 and $(ans.responseHasBeenSubmitted) ">
-    <p name="p">Your response <em>$ans.submittedresponse</em> is incorrect.</p>
+    <p name="p">Your response <em>$ans.submittedResponse</em> is incorrect.</p>
   </feedback>
   `,
         });

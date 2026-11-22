@@ -3,6 +3,22 @@ import { LoremIpsum } from "lorem-ipsum";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 
 /**
+ * The values of the attributes that decide what a `<lorem>` generates, in
+ * a fixed order.
+ */
+async function loremParameters(component) {
+    return [
+        await component.stateValues.minSentencesPerParagraph,
+        await component.stateValues.maxSentencesPerParagraph,
+        await component.stateValues.minWordsPerSentence,
+        await component.stateValues.maxWordsPerSentence,
+        await component.stateValues.generateWords,
+        await component.stateValues.generateSentences,
+        await component.stateValues.generateParagraphs,
+    ];
+}
+
+/**
  * Latin in every language, deliberately.
  *
  * `<lorem>` is placeholder text: its job is to have the shape of prose and
@@ -179,6 +195,8 @@ export default class Lorem extends CompositeComponent {
 
         let diagnostics = [];
 
+        workspace.parametersUsed = await loremParameters(component);
+
         const lorem = new LoremIpsum({
             sentencesPerParagraph: {
                 max: await component.stateValues.maxSentencesPerParagraph,
@@ -285,6 +303,23 @@ export default class Lorem extends CompositeComponent {
         nComponents,
         workspace,
     }) {
+        // The text depends only on these parameters and the variant. When
+        // they haven't changed, neither does the text: nothing is replaced.
+        // Generating it again would draw new random text whenever anything
+        // the parameters read was marked stale, and a parameter that reads
+        // the number of a section (`generateParagraphs="$s.sectionNumber"`)
+        // is marked stale when the paragraphs are replaced, so it never
+        // settled: a false circular dependency (#2623 item 3).
+        const parameters = await loremParameters(component);
+        if (
+            workspace.parametersUsed &&
+            parameters.every((value, i) =>
+                Object.is(value, workspace.parametersUsed[i]),
+            )
+        ) {
+            return { replacementChanges: [], diagnostics: [], nComponents };
+        }
+
         let diagnostics = [];
 
         let replacementResults = await this.createSerializedReplacements({

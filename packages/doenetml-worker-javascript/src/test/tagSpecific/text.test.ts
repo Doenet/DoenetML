@@ -323,8 +323,8 @@ describe("Text tag tests @group2", async () => {
     <p>Style number: <mathInput prefill="1" name="sn" /></p>
 
     <p><text name="no_style">One</text> is <text name="tsd_no_style">$no_style.textStyleDescription</text>, i.e., the text color is <text name="tc_no_style">$no_style.textColor</text> and the background color is <text name="bc_no_style">$no_style.backgroundColor</text>.</p>
-    <p><text name="fixed_style" stylenumber="2">Two</text> is <text name="tsd_fixed_style">$fixed_style.textStyleDescription</text>, i.e., the text color is <text name="tc_fixed_style">$fixed_style.textColor</text> and the background color is <text name="bc_fixed_style">$fixed_style.backgroundColor</text>.</p>
-    <p><text name="variable_style" stylenumber="$sn">Three</text> is <text name="tsd_variable_style">$variable_style.textStyleDescription</text>, i.e., the text color is <text name="tc_variable_style">$variable_style.textColor</text> and the background color is <text name="bc_variable_style">$variable_style.backgroundColor</text>.</p>
+    <p><text name="fixed_style" styleNumber="2">Two</text> is <text name="tsd_fixed_style">$fixed_style.textStyleDescription</text>, i.e., the text color is <text name="tc_fixed_style">$fixed_style.textColor</text> and the background color is <text name="bc_fixed_style">$fixed_style.backgroundColor</text>.</p>
+    <p><text name="variable_style" styleNumber="$sn">Three</text> is <text name="tsd_variable_style">$variable_style.textStyleDescription</text>, i.e., the text color is <text name="tc_variable_style">$variable_style.textColor</text> and the background color is <text name="bc_variable_style">$variable_style.backgroundColor</text>.</p>
 
     <graph>
       $no_style{anchor="(1,2)"}
@@ -491,7 +491,7 @@ describe("Text tag tests @group2", async () => {
     </graph>
 
     <collect componentType="text" from="$g2" name="collect1" />
-    <pointList extend="$collect1.anchor" name="tacoords" />
+    <pointList name="tacoords">$collect1[1].anchor $collect1[2].anchor</pointList>
 
     <graph name="g3">
       <text extend="$t1.value" name="t1b" />
@@ -499,7 +499,7 @@ describe("Text tag tests @group2", async () => {
     </graph>
 
     <collect componentType="text" from="$g3" name="collect2" />
-    <pointList extend="$collect2.anchor" name="tbcoords" />
+    <pointList name="tbcoords">$collect2[1].anchor $collect2[2].anchor</pointList>
 
     <p name="p1"><text extend="$t1" name="t1c"/> <text extend="$t2" name="t2c"/></p>
 
@@ -868,5 +868,49 @@ describe("Text tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("tl")].stateValues.texts,
         ).eqls(["Hello there", "friend!"]);
+    });
+
+    it("a `$` written as a reference is a `$` in the value", async () => {
+        // The parser keeps a `$` written as a reference from starting a
+        // reference with a zero-width space after it; the value has none
+        // (#2637 item 3), in an attribute and in content.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<textInput name="paren" prefill="&#36;(x)"/>
+<textInput name="letter" prefill="&dollar;x"/>
+<textInput name="reference" prefill="&#36;&#36;&#102;"/>
+<textInput name="between" prefill="a &#36;y b"/>
+<textInput name="beforeDigit" prefill="&#36;1"/>
+<text name="t1">&dollar;x</text>
+<text name="t2">&#36;(x)</text>
+<p name="p">&dollar;p and &#36;q</p>
+<text name="t3" extend="$t1"/>
+<math name="m">&dollar;x</math>
+<mathInput name="mi" prefill="&#36;x"/>
+<text name="ownSpace">$&#x200B;q</text>
+<textInput name="ownSpaceAttr" prefill="$&#x200B;q"/>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const value = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.value;
+        expect(await value("paren")).eq("$(x)");
+        expect(await value("letter")).eq("$x");
+        expect(await value("reference")).eq("$$f");
+        expect(await value("between")).eq("a $y b");
+        expect(await value("beforeDigit")).eq("$1");
+        expect(await value("t1")).eq("$x");
+        expect(await value("t2")).eq("$(x)");
+        expect(await value("t3")).eq("$x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("$p and $q");
+        // math reads it as written, where the space was blank
+        expect((await value("m")).tree).eqls(["unit", "$", "x"]);
+        expect((await value("mi")).tree).eqls(["unit", "$", "x"]);
+        // Incidental: a zero-width space the author writes right after a
+        // `$` is removed too, as the worker can't tell it from the parser's.
+        expect(await value("ownSpace")).eq("$q");
+        expect(await value("ownSpaceAttr")).eq("$q");
     });
 });

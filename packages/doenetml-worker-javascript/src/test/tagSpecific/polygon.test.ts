@@ -3980,7 +3980,7 @@ describe("Polygon tag tests @group2", async () => {
     it("constrain to polygon, different scales from graph", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-  <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
+  <graph xMin="-110" xMax="110" yMin="-0.11" yMax="0.11">
     <polygon vertices="(-50,-0.02) (-40,0.07) (70,0.06) (10,-0.01)" name="p" />
     <point x="0" y="0.01" name="A">
         <constrainTo relativeToGraphScales>$p</constrainTo>

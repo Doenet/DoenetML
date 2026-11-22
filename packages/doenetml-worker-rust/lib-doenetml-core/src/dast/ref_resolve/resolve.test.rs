@@ -1010,10 +1010,11 @@ fn references_can_span_three_source_documents() {
 }
 
 #[test]
-fn a_name_after_a_repeat_or_a_select_of_several_is_left_for_each_item() {
-    // `$r.P` is the `P` of each item (D41 decision 1, COLL-2), never the one the template
-    // declares or one item's alone (NAME-3): the path stops at the collection with the name
-    // left for the worker to resolve in each item. An index first (`$r[1].P`) is not affected.
+fn a_name_after_a_repeat_or_a_select_of_several_is_left_unresolved() {
+    // `$r.P` is never the `P` the template declares (NAME-3): the path stops at the
+    // collection with the name left unresolved, and the worker reports that it names
+    // nothing, as a name after a collection is the collection's own (D59, COLL-2). An index
+    // first (`$r[1].P`) is not affected.
     for (dast, tag) in [
         (
             r#"<repeat name="r" for="1 2"><point name="P" /></repeat><p />"#,
@@ -1061,10 +1062,10 @@ fn a_name_after_a_repeat_or_a_select_of_several_is_left_for_each_item() {
 }
 
 #[test]
-fn a_name_after_a_repeat_is_left_for_each_item_wherever_it_is_written() {
+fn a_name_after_a_repeat_is_left_unresolved_wherever_it_is_written() {
     // Inside the repeat's own template, inside an outer repeat, and with the repeat in
     // `<setup>`, `$r.P` still stops at the repeat named (the `which`th `<repeat>`), with `P`
-    // left for each item; `$o.r.P` stops at the outer one.
+    // left unresolved; `$o.r.P` stops at the outer one.
     for (dast, path, which, unresolved) in [
         (
             r#"<repeat name="r" for="1 2"><point name="P" /><p /></repeat>"#,

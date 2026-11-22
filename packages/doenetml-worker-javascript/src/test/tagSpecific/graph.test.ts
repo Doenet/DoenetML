@@ -515,7 +515,7 @@ describe("Graph tag tests @group2", async () => {
     it("set xScale and yScale keeps non-zero midpoint", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+    <graph name="g" xMin="2" xMax="8" yMin="-3" yMax="7" />
 
     <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
     <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
@@ -664,7 +664,7 @@ describe("Graph tag tests @group2", async () => {
     it("set xScale and yScale rejects non-finite values", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+    <graph name="g" xMin="2" xMax="8" yMin="-3" yMax="7" />
 
     <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
     <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
@@ -712,7 +712,7 @@ describe("Graph tag tests @group2", async () => {
     it("set xScale and yScale rejects non-positive values", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph name="g" xmin="2" xmax="8" ymin="-3" ymax="7" />
+    <graph name="g" xMin="2" xMax="8" yMin="-3" yMax="7" />
 
     <p>Change xScale: <mathInput name="xScaleInput" bindValueTo="$g.xScale" /></p>
     <p>Change yScale: <mathInput name="yScaleInput" bindValueTo="$g.yScale" /></p>
@@ -761,7 +761,7 @@ describe("Graph tag tests @group2", async () => {
     it("set xScale and yScale through graph-parent limits", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph name="g" xmin="1" xmax="7" ymin="-5" ymax="3">
+    <graph name="g" xMin="1" xMax="7" yMin="-5" yMax="3">
         <graph name="child" />
     </graph>
 
@@ -2129,7 +2129,7 @@ describe("Graph tag tests @group2", async () => {
     it("display digits and decimals, overwrite in copies", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph name="g" size="small" xmin="-45.03232523423" xmax="8.2857234234" ymin="-5.582342383823423" ymax="7.83710375032" />
+    <graph name="g" size="small" xMin="-45.03232523423" xMax="8.2857234234" yMin="-5.582342383823423" yMax="7.83710375032" />
     <graph name="gdg3" displayDigits="5" extend="$g" />
     <graph name="gdc5" displayDecimals="5" extend="$g" />
     <graph name="gdg3a" displayDigits="5" extend="$gdc5" />
@@ -2223,14 +2223,14 @@ describe("Graph tag tests @group2", async () => {
             doenetML: `
     <graph name="g1">
       <vector tail="(3,4)">(4,-5)</vector>
-      <graph name="g1inner" xmin="-2" xmax="5" ymin="-3" ymax="4">
+      <graph name="g1inner" xMin="-2" xMax="5" yMin="-3" yMax="4">
         <point>(6,9)
             <constrainToGraph />
         </point>
       </graph>
     </graph>
     
-    <graph xmin="-15" xmax="15" ymin="-15" ymax="15" name="g2">
+    <graph xMin="-15" xMax="15" yMin="-15" yMax="15" name="g2">
       <circle center="(-5,-4)" />
       $g1
     </graph>
@@ -2371,7 +2371,7 @@ describe("Graph tag tests @group2", async () => {
 
         // Read initial values once, then perform back-to-back actions.
         let initialCenter = evaluateCoordinatePair(rgStateVars.center);
-        let initialCircumradius = rgStateVars.circumradius;
+        let initialCircumradius = rgStateVars.circumRadius;
 
         // Move center to (-1, initialCenter[1])
         await movePolygonCenter({
@@ -2391,7 +2391,7 @@ describe("Graph tag tests @group2", async () => {
         rgStateVars = stateVariables[rgIdx].stateValues;
 
         let center2 = evaluateCoordinatePair(rgStateVars.center);
-        let circumradius2 = rgStateVars.circumradius;
+        let circumradius2 = rgStateVars.circumRadius;
 
         expect(center2[0]).toBeCloseTo(-2, 5);
         expect(center2[1]).toBeCloseTo(initialCenter[1], 5);
