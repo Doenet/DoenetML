@@ -1,4 +1,4 @@
-import { contentGivesACoordinate } from "./coordinateContent";
+import { contentGivesACoordinate, holdsOneTuple } from "./coordinateContent";
 
 /**
  * Missing values and missing components (D37, VAL-5).
@@ -118,7 +118,8 @@ export function contentNamesNothingDefinition(
          * #2596). A blank takes part in a math, which can hold it, but not
          * in a point, which can't; a blank in one coordinate of a tuple is in
          * that coordinate's math (`<point>($nothing, 2)</point>` is
-         * `(＿, 2)`).
+         * `(＿, 2)`), so content that is one tuple (`coords="($nothing,
+         * 2)"`, `holdsOneTuple`) never names nothing as a whole.
          */
         anyChild?: boolean;
         /**
@@ -195,6 +196,12 @@ export function contentNamesNothingDefinition(
                         ),
                     },
                 };
+            }
+            if (anyChild && holdsOneTuple(dependencyValues.children)) {
+                // `coords="($nothing, 2)"`: each reference is in one
+                // coordinate, which holds the blank, as in
+                // `<point>($nothing, 2)</point>`
+                return { setValue: { contentNamesNothing: false } };
             }
             let found = false;
             for (const child of dependencyValues.children) {

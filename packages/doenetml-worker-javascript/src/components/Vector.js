@@ -1291,10 +1291,24 @@ export default class Vector extends GraphicalComponent {
                     ],
                     childGroups: ["pointsAndVectors"],
                 },
+                // a missing vector, made from a head or tail that is
+                // missing, has no dimensions to disagree (#2596): the
+                // point's are those of its blank
+                valueMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 // console.log(`numDimensions definition`)
                 // console.log(dependencyValues)
+
+                if (dependencyValues.valueMissing) {
+                    return {
+                        setValue: { numDimensions: NaN },
+                        checkForActualChange: { numDimensions: true },
+                    };
+                }
 
                 let numDimensions;
                 if (dependencyValues.basedOnDisplacement) {

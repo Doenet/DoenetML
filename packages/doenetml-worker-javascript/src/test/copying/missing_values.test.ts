@@ -2519,22 +2519,33 @@ describe("Missing values, round 4 (#2596) @group2", () => {
       <point name="B">$Q</point>
       <point name="C">($nothing, 2)</point>
       <point name="D">(1, $nothing + 2)</point>
+      <point name="E" coords="($nothing, 2)"/>
+      <vector name="F" displacement="(1, $nothing)"/>
     </graph>
-    <p name="p">[$A][$B][$C][$D]</p>
+    <p name="p">[$A][$B][$C][$D][$E][$F]</p>
     `,
         });
         // A blank in one coordinate takes part in that coordinate's math
-        // (D37).
+        // (D37), written as content or as `coords` or `displacement`.
         expect(
             await missingAndShown(core, resolvePathToNodeIdx, [
                 "A",
                 "B",
                 "C",
                 "D",
+                "E",
+                "F",
             ]),
         ).eqls({
-            missing: { A: false, B: false, C: false, D: false },
-            text: "[2][(1, 2)][(＿, 2)][(1, ＿ + 2)]",
+            missing: {
+                A: false,
+                B: false,
+                C: false,
+                D: false,
+                E: false,
+                F: false,
+            },
+            text: "[2][(1, 2)][(＿, 2)][(1, ＿ + 2)][(＿, 2)][(1, ＿)]",
         });
     });
 
@@ -2705,6 +2716,13 @@ describe("Missing values, round 4 (#2596) @group2", () => {
             "_blank",
             "vector",
         ]);
+        // a missing vector has no dimensions to disagree
+        const { warnings, infos } = getDiagnosticsByType(core);
+        expect(
+            [...warnings, ...infos].filter(
+                (d: any) => d.code === "doenet-w0008",
+            ),
+        ).eqls([]);
 
         await updateMathInputValue({
             latex: "2",

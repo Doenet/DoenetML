@@ -11,9 +11,46 @@
  * attributes override entirely is a warning at load (`doenet-w0202`).
  */
 import { codedDiagnostic } from "./diagnostics";
+import { breakEmbeddedStringByCommas } from "../components/commonsugar/breakstrings";
 
 /** The attributes that give a point's coordinates one by one. */
 export const COORDINATE_ATTRIBUTES = ["x", "y", "z"];
+
+/**
+ * Whether `children`, the content of a `<coords>` or of a point, are one
+ * tuple written in parentheses (`(1, $nothing)`), as a point's sugar breaks
+ * into coordinates (`Point.breakIntoXsOrCoords`). A reference that names
+ * nothing among them is then in one coordinate, whose math holds the blank:
+ * `coords="($nothing, 2)"` is `(＿, 2)`, as `<point>($nothing, 2)</point>`
+ * is.
+ */
+export function holdsOneTuple(children: any[]): boolean {
+    if (children.length === 0) {
+        return false;
+    }
+    const first = children[0];
+    const last = children[children.length - 1];
+    if (typeof first !== "string" || typeof last !== "string") {
+        return false;
+    }
+    const pieces = [...children];
+    if (pieces.length === 1) {
+        const s = first.trim();
+        if (s[0] !== "(" || s[s.length - 1] !== ")") {
+            return false;
+        }
+        pieces[0] = s.slice(1, -1);
+    } else {
+        const s = first.trimStart();
+        const t = last.trimEnd();
+        if (s[0] !== "(" || t[t.length - 1] !== ")") {
+            return false;
+        }
+        pieces[0] = s.slice(1);
+        pieces[pieces.length - 1] = t.slice(0, -1);
+    }
+    return breakEmbeddedStringByCommas({ childrenList: pieces }).success;
+}
 
 /**
  * Whether content of `contentDimensions` coordinates gives a coordinate of
