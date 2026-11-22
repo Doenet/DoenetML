@@ -33,6 +33,12 @@
 //! | `Reduce{op, n}`          | n inputs → one value: a sum, a        | none: an operator component's result is not set by a request, as in  | none              |
 //! |                          | statistic or a connective             | the current core                                                     |                   |
 //! | `Wrap`                   | (x, lo, hi) → x wrapped into [lo, hi) | projection: the requested value wrapped, written to x                | x                 |
+//! | `Pair{by}`               | (P, Q) → (A, B), by [`PairBy`]        | each coordinate apart: a point and an offset keep the offset unless  | P, Q              |
+//! |                          |                                       | the far point is asked; a midpoint and an offset move both ends      |                   |
+//! | `Extent`                 | (a, b) → the distance from a to b     | both ends about their midpoint, the order kept, a negative size 0    | a, b              |
+//! | `AngleAt{reflex}`        | (P1, V, P3) → the angle at V          | none: an angle through points is not set by a request                | none              |
+//! | `RegularPolygon{n, by}`  | (P, Q) → the n vertices about a       | one vertex: turn and scale about the center; several: the center     | P, Q              |
+//! |                          | center, by [`RegularBy`]              | moves to their mean, the first sets the turn and size                |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
@@ -40,6 +46,7 @@
 use crate::index::CellIdx;
 use crate::program::Range;
 use crate::tick::invert::PointRequest;
+use std::f64::consts::{PI, TAU};
 
 /// The point a rigid shape rotates or dilates about.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -76,6 +83,51 @@ impl RigidOpts {
         translate: true,
         pivot: Pivot::Centroid,
     };
+}
+
+/// How a [`VecOp::Pair`] makes its two points `A`, `B` from its two input
+/// points `P`, `Q`, coordinate by coordinate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PairBy {
+    /// `A = P`, `B = P + Q`: a point and an offset (a ray's endpoint and
+    /// direction, a rectangle's corner and size). A request on `A` alone
+    /// keeps the offset.
+    Offset,
+    /// `A = P - Q`, `B = P`: the far point and the offset back from it. A
+    /// request on `B` alone keeps the offset.
+    Back,
+    /// `A = P`, `B = 2Q - P`: a point and the midpoint. A request on `A`
+    /// alone keeps the midpoint.
+    Mirror,
+    /// `A = P - Q/2`, `B = P + Q/2`: the midpoint and the offset. A
+    /// request on one end keeps the other.
+    Center,
+}
+
+/// Which of the two angles at a vertex a [`VecOp::AngleAt`] gives, as
+/// `chooseReflexAngle` says.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Reflex {
+    /// The one of at most π.
+    Never,
+    /// The one counterclockwise from the first ray to the second.
+    Allowed,
+    /// The one of at least π.
+    Always,
+}
+
+/// How a [`VecOp::RegularPolygon`] finds its center `C` and first vertex
+/// `V` from its two input points `P`, `Q`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RegularBy {
+    /// `C = P`, `V = Q`.
+    CenterVertex,
+    /// `C = P`, `V = P + Q`.
+    CenterOffset,
+    /// `V = P`, `C = P + Q`.
+    VertexOffset,
+    /// `V = P`, and `Q` the next vertex counterclockwise.
+    Adjacent,
 }
 
 /// What an inverse produces: scalar input requests, and point groups that the
@@ -195,6 +247,32 @@ pub enum VecOp {
     /// Input 0 wrapped periodically into the interval between inputs 1
     /// and 2 ([`wrap_periodic`]). A request writes input 0 wrapped.
     Wrap,
+    /// Inputs (px, py, qx, qy); outputs (ax, ay, bx, by): two points made
+    /// from a point and an offset or a midpoint, as `by` says. A ray's or
+    /// a vector's two points, a rectangle's opposite corners.
+    Pair {
+        /// How the outputs follow from the inputs.
+        by: PairBy,
+    },
+    /// Inputs (a, b); output the distance from `a` to `b`: a rectangle's
+    /// width or height. A request moves both ends about their midpoint.
+    Extent,
+    /// Inputs (x1, y1, x, y, x3, y3); output the angle at (x, y) from the
+    /// ray through the first point to the ray through the third, in
+    /// radians, NaN when a coordinate is not finite. No inverse.
+    AngleAt {
+        /// Which of the two angles.
+        reflex: Reflex,
+    },
+    /// Inputs (px, py, qx, qy); outputs the `n` vertices of a regular
+    /// polygon, counterclockwise from its first vertex `V` about its
+    /// center `C`, which follow from the inputs as `by` says.
+    RegularPolygon {
+        /// How many vertices.
+        n: u8,
+        /// How the center and first vertex follow from the inputs.
+        by: RegularBy,
+    },
 }
 
 /// What a [`VecOp::Reduce`] computes of its inputs, as the current core's
@@ -490,6 +568,9 @@ impl VecOp {
             VecOp::SequencePick { n_exclude } => 4 + n_exclude as usize,
             VecOp::Reduce { n, .. } => n as usize,
             VecOp::Wrap => 3,
+            VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => 4,
+            VecOp::Extent => 2,
+            VecOp::AngleAt { .. } => 6,
         }
     }
 
@@ -512,6 +593,9 @@ impl VecOp {
             VecOp::Choose { n } => first(n as usize + 1) & !1,
             VecOp::Clamp | VecOp::Wrap => 1,
             VecOp::Centroid { n } => first(2 * n as usize),
+            VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => first(4),
+            VecOp::Extent => first(2),
+            VecOp::AngleAt { .. } => 0,
         }
     }
 
@@ -573,8 +657,12 @@ impl VecOp {
             | VecOp::Clamp
             | VecOp::SequencePick { .. }
             | VecOp::Reduce { .. }
-            | VecOp::Wrap => 1,
+            | VecOp::Wrap
+            | VecOp::Extent
+            | VecOp::AngleAt { .. } => 1,
             VecOp::WeightedMean { .. } | VecOp::Centroid { .. } => 2,
+            VecOp::Pair { .. } => 4,
+            VecOp::RegularPolygon { n, .. } => 2 * n as usize,
         }
     }
 
@@ -672,6 +760,19 @@ impl VecOp {
             }
             VecOp::Reduce { op, n } => out[0] = op.eval(&inp[..n as usize]),
             VecOp::Wrap => out[0] = wrap_periodic(inp[0], inp[1], inp[2]),
+            VecOp::Pair { by } => {
+                for j in 0..2 {
+                    let (a, b) = pair(by, inp[j], inp[2 + j]);
+                    out[j] = a;
+                    out[2 + j] = b;
+                }
+            }
+            VecOp::Extent => out[0] = (inp[1] - inp[0]).abs(),
+            VecOp::AngleAt { reflex } => out[0] = angle_at(inp, reflex),
+            VecOp::RegularPolygon { n, by } => {
+                let ([cx, cy], [vx, vy]) = regular_center_vertex(n as usize, by, inp);
+                regular_vertices(n as usize, [cx, cy], [vx - cx, vy - cy], out);
+            }
         }
     }
 
@@ -833,7 +934,157 @@ impl VecOp {
                 );
                 true
             }
+            VecOp::Pair { by } => {
+                let mut next = [inp[0], inp[1], inp[2], inp[3]];
+                for j in 0..2 {
+                    let (asked_a, asked_b) = (desired[j].is_some(), desired[2 + j].is_some());
+                    let (a, b) = (want(j), want(2 + j));
+                    let q = inp[2 + j];
+                    let (np, nq) = match by {
+                        PairBy::Offset => (a, if asked_b { b - a } else { q }),
+                        PairBy::Back => (b, if asked_a { b - a } else { q }),
+                        PairBy::Mirror => (a, if asked_b { (a + b) / 2.0 } else { q }),
+                        PairBy::Center => ((a + b) / 2.0, b - a),
+                    };
+                    next[j] = np;
+                    next[2 + j] = nq;
+                }
+                write_points(inputs, inp, &next, out)
+            }
+            VecOp::Extent => {
+                let Some(w) = desired[0].filter(|w| !w.is_nan()) else {
+                    return false;
+                };
+                let (a, b) = (inp[0], inp[1]);
+                let mid = (a + b) / 2.0;
+                let half = w.max(0.0) / 2.0 * if b < a { -1.0 } else { 1.0 };
+                if !mid.is_finite() || !half.is_finite() {
+                    return false;
+                }
+                out.write(inputs[0], mid - half);
+                out.write(inputs[1], mid + half);
+                true
+            }
+            VecOp::AngleAt { .. } => false,
+            VecOp::RegularPolygon { n, by } => {
+                let n = n as usize;
+                let Some(first) = (0..2 * n).find(|&k| desired[k].is_some()) else {
+                    return false;
+                };
+                let k = first / 2;
+                let one = (0..2 * n).all(|i| desired[i].is_none() || i / 2 == k);
+                // One vertex turns and scales the polygon about its center;
+                // several move the center to their mean, as the current
+                // core does, and the first sets the turn and size.
+                let (center, _) = regular_center_vertex(n, by, inp);
+                let center = if one {
+                    center
+                } else {
+                    let (sx, sy) = (0..n).fold((0.0, 0.0), |(sx, sy), i| {
+                        (sx + want(2 * i), sy + want(2 * i + 1))
+                    });
+                    [sx / n as f64, sy / n as f64]
+                };
+                let (dx, dy) = (want(2 * k) - center[0], want(2 * k + 1) - center[1]);
+                let (s, c) = (-(k as f64) * TAU / n as f64).sin_cos();
+                let u = [dx * c - dy * s, dx * s + dy * c];
+                let v = [center[0] + u[0], center[1] + u[1]];
+                let next = match by {
+                    RegularBy::CenterVertex => [center[0], center[1], v[0], v[1]],
+                    RegularBy::CenterOffset => [center[0], center[1], u[0], u[1]],
+                    RegularBy::VertexOffset => [v[0], v[1], -u[0], -u[1]],
+                    RegularBy::Adjacent => {
+                        let (s, c) = (TAU / n as f64).sin_cos();
+                        let next = [
+                            center[0] + u[0] * c - u[1] * s,
+                            center[1] + u[0] * s + u[1] * c,
+                        ];
+                        [v[0], v[1], next[0], next[1]]
+                    }
+                };
+                write_points(inputs, inp, &next, out)
+            }
         }
+    }
+}
+
+/// Writes the two input points (inputs 0, 1 and 2, 3) an inverse moved to
+/// `next`, each as a point group of its own when it changed; false when
+/// one is not finite.
+fn write_points(inputs: &[CellIdx], inp: &[f64], next: &[f64; 4], out: &mut Produced) -> bool {
+    if next.iter().any(|v| !v.is_finite()) {
+        return false;
+    }
+    for i in 0..2 {
+        let (x, y) = (next[2 * i], next[2 * i + 1]);
+        if x != inp[2 * i] || y != inp[2 * i + 1] {
+            out.group(vec![PointRequest {
+                cells: [inputs[2 * i], inputs[2 * i + 1]],
+                values: [x, y],
+            }]);
+        }
+    }
+    true
+}
+
+/// One coordinate of a [`VecOp::Pair`]'s two outputs from its inputs'.
+fn pair(by: PairBy, p: f64, q: f64) -> (f64, f64) {
+    match by {
+        PairBy::Offset => (p, p + q),
+        PairBy::Back => (p - q, p),
+        PairBy::Mirror => (p, 2.0 * q - p),
+        PairBy::Center => (p - q / 2.0, p + q / 2.0),
+    }
+}
+
+/// The angle at `(inp[2], inp[3])` from the ray through `(inp[0], inp[1])`
+/// counterclockwise to the ray through `(inp[4], inp[5])`, in `[0, 2π)`,
+/// then the one `reflex` chooses; NaN when a coordinate is not finite.
+fn angle_at(inp: &[f64], reflex: Reflex) -> f64 {
+    if inp[..6].iter().any(|v| !v.is_finite()) {
+        return f64::NAN;
+    }
+    let (vx, vy) = (inp[2], inp[3]);
+    let mut r = (inp[5] - vy).atan2(inp[4] - vx) - (inp[1] - vy).atan2(inp[0] - vx);
+    if r < 0.0 {
+        r += TAU;
+    }
+    match reflex {
+        Reflex::Never if r > PI => TAU - r,
+        Reflex::Always if r <= PI => TAU - r,
+        _ => r,
+    }
+}
+
+/// A regular polygon's center and first vertex from its inputs.
+fn regular_center_vertex(n: usize, by: RegularBy, inp: &[f64]) -> ([f64; 2], [f64; 2]) {
+    let (p, q) = ([inp[0], inp[1]], [inp[2], inp[3]]);
+    match by {
+        RegularBy::CenterVertex => (p, q),
+        RegularBy::CenterOffset => (p, [p[0] + q[0], p[1] + q[1]]),
+        RegularBy::VertexOffset => ([p[0] + q[0], p[1] + q[1]], p),
+        // The center is an inradius from the side's midpoint, to its left.
+        RegularBy::Adjacent => {
+            let (sx, sy) = (q[0] - p[0], q[1] - p[1]);
+            let inradius = 0.5 / (PI / n as f64).tan();
+            (
+                [
+                    (p[0] + q[0]) / 2.0 - sy * inradius,
+                    (p[1] + q[1]) / 2.0 + sx * inradius,
+                ],
+                p,
+            )
+        }
+    }
+}
+
+/// The `n` vertices about `center`, the first at `center + u`, turning
+/// counterclockwise, into `out`.
+fn regular_vertices(n: usize, center: [f64; 2], u: [f64; 2], out: &mut [f64]) {
+    for k in 0..n {
+        let (s, c) = (k as f64 * TAU / n as f64).sin_cos();
+        out[2 * k] = center[0] + u[0] * c - u[1] * s;
+        out[2 * k + 1] = center[1] + u[0] * s + u[1] * c;
     }
 }
 
@@ -1169,6 +1420,33 @@ mod writes {
                 n: 4,
             },
             VecOp::Wrap,
+            VecOp::Pair { by: PairBy::Offset },
+            VecOp::Pair { by: PairBy::Back },
+            VecOp::Pair { by: PairBy::Mirror },
+            VecOp::Pair { by: PairBy::Center },
+            VecOp::Extent,
+            VecOp::AngleAt {
+                reflex: Reflex::Never,
+            },
+            VecOp::AngleAt {
+                reflex: Reflex::Always,
+            },
+            VecOp::RegularPolygon {
+                n: 3,
+                by: RegularBy::CenterVertex,
+            },
+            VecOp::RegularPolygon {
+                n: 4,
+                by: RegularBy::CenterOffset,
+            },
+            VecOp::RegularPolygon {
+                n: 5,
+                by: RegularBy::VertexOffset,
+            },
+            VecOp::RegularPolygon {
+                n: 6,
+                by: RegularBy::Adjacent,
+            },
         ]
     }
 
@@ -1272,15 +1550,18 @@ mod writes {
             | VecOp::PolarDirection { .. }
             | VecOp::ProjectCircle
             | VecOp::ProjectLine => points(1).collect(),
-            VecOp::LinePointsFromCoeffs => points(2).collect(),
+            VecOp::LinePointsFromCoeffs | VecOp::Pair { .. } => points(2).collect(),
             VecOp::Centroid { .. } => points(1).collect(),
+            VecOp::RegularPolygon { n, .. } => points(n as usize).collect(),
             VecOp::First { .. }
             | VecOp::Choose { .. }
             | VecOp::WeightedMean { .. }
             | VecOp::Clamp
             | VecOp::SequencePick { .. }
             | VecOp::Reduce { .. }
-            | VecOp::Wrap => (0..op.n_out()).map(|k| vec![k]).collect(),
+            | VecOp::Wrap
+            | VecOp::Extent
+            | VecOp::AngleAt { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
         }
     }
 

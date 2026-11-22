@@ -255,6 +255,13 @@ scalar_ops! {
         eval: a.powf(b),
         drops,
     }
+    /// The square root of `a`, NaN below 0: a regular polygon's
+    /// circumradius from its area. A request writes its square; a
+    /// negative one is dropped.
+    Sqrt(a) {
+        eval: a.sqrt(),
+        exact |d| (d >= 0.0).then_some((A, d * d)),
+    }
     /// `a`: a held element's own cell for a value it reads from another
     /// element's, so the hold is on its cell and not on the other's.
     Copy(a) {

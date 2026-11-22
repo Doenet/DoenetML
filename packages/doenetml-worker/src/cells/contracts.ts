@@ -874,7 +874,80 @@ export const CONTRACTS: Record<string, Contract> = {
     isInteger: BOOLEAN_OPERATOR,
     isNumber: BOOLEAN_OPERATOR,
     isBetween: BOOLEAN_OPERATOR,
+    // Geometry: rays, vectors, rectangles, regular polygons and angles. A
+    // ray and the polygons are drawn only in a graph, and send nothing
+    // elsewhere.
+    ray: {
+        props: (r, c, inGraph) =>
+            inGraph
+                ? {
+                      numericalEndpoint: [
+                          r.num(c, "endpointX"),
+                          r.num(c, "endpointY"),
+                      ],
+                      numericalThroughpoint: [
+                          r.num(c, "throughX"),
+                          r.num(c, "throughY"),
+                      ],
+                  }
+                : {},
+    },
+    // In a graph an arrow, outside one its displacement, as math.
+    vector: {
+        props: (r, c, inGraph) => {
+            if (!inGraph) {
+                const [x, y] = [r.num(c, "x"), r.num(c, "y")];
+                return {
+                    latex: `\\left( ${mathNumber(x)}, ${mathNumber(y)} \\right)`,
+                    renderMode: "inline",
+                };
+            }
+            const draggable = flagOr(r.table, c, "draggable", true);
+            return {
+                numericalEndpoints: [
+                    [r.num(c, "tailX"), r.num(c, "tailY")],
+                    [r.num(c, "headX"), r.num(c, "headY")],
+                ],
+                headDraggable: flagOr(r.table, c, "headDraggable", draggable),
+                tailDraggable: flagOr(r.table, c, "tailDraggable", draggable),
+            };
+        },
+    },
+    rectangle: {
+        props: (r, c, inGraph) =>
+            inGraph
+                ? { numericalVertices: pairs(r, r.table.listCells(c)) }
+                : {},
+    },
+    regularPolygon: {
+        props: (r, c, inGraph) =>
+            inGraph
+                ? { numericalVertices: pairs(r, r.table.listCells(c)) }
+                : {},
+    },
+    // Its measure, in radians or, with `inDegrees`, in degrees.
+    angle: {
+        props: (r, c) => {
+            const decimals = r.table.attrThrough(c, "displayDecimals");
+            const latex = flag(r.table, c, "inDegrees")
+                ? `${formatNumber(r.num(c, "degrees"), decimals)}^\\circ`
+                : formatNumber(r.num(c, "radians"), decimals);
+            return { latex };
+        },
+        noChildren: true,
+    },
 };
+
+/** A literal on/off attribute, `fallback` when it is absent. */
+function flagOr(
+    table: CellsTable,
+    c: number,
+    name: string,
+    fallback: boolean,
+): boolean {
+    const text = table.attrThrough(c, name);
+    return text === null ? fallback : text.trim().toLowerCase() !== "false";
+}
 
 /** Component types that stand as their children. */
 export const TRANSPARENT = new Set([

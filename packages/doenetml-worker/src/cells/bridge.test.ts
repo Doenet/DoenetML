@@ -633,6 +633,87 @@ describe("step 3 components", () => {
         ]);
         expect(props("ol")).toEqual({ listDepth: { Ol: 1 } });
     });
+
+    it("draws and moves rays, vectors, rectangles and regular polygons, and shows angles", async () => {
+        const { all, props, send, changed } = await open(`<graph>
+<ray endpoint="(1,2)" through="(3,2)"/>
+<vector tail="(0,0)" head="(1,2)" headDraggable="false"/>
+<rectangle width="2" height="1"/>
+<regularPolygon numVertices="4" circumradius="2"/>
+</graph>
+<p><ray/><vector>(3, 4)</vector></p>
+<p><angle through="(1,0) (0,0) (0,1)"/> <angle degrees="45" inDegrees/></p>`);
+        expect(props("ray")).toEqual({
+            numericalEndpoint: [1, 2],
+            numericalThroughpoint: [3, 2],
+        });
+        // Outside a graph a ray sends nothing, a vector its displacement.
+        expect(props("ray", 1)).toEqual({});
+        expect(props("vector")).toEqual({
+            numericalEndpoints: [
+                [0, 0],
+                [1, 2],
+            ],
+            headDraggable: false,
+            tailDraggable: true,
+        });
+        expect(props("vector", 1)).toEqual({
+            latex: "\\left( 3, 4 \\right)",
+            renderMode: "inline",
+        });
+        expect(props("rectangle").numericalVertices).toEqual([
+            [0, 0],
+            [2, 0],
+            [2, 1],
+            [0, 1],
+        ]);
+        const square = props("regularPolygon").numericalVertices;
+        expect(square).toHaveLength(4);
+        expect(square[0]).toEqual([2, 0]);
+        expect(all("angle").map((e) => (e.data as any).props)).toEqual([
+            { latex: String(Number((Math.PI / 2).toPrecision(10))) },
+            { latex: "45^\\circ" },
+        ]);
+
+        // A ray's drag moves both points.
+        let payload = send("ray", "moveRay", {
+            endpointcoords: [0, 0],
+            throughcoords: [1, 1],
+        });
+        expect(changed(payload, "ray")).toEqual({
+            numericalEndpoint: [0, 0],
+            numericalThroughpoint: [1, 1],
+        });
+        // A vector's tail dragged alone: its head stays.
+        payload = send("vector", "moveVector", { tailcoords: [-1, -1] });
+        expect(changed(payload, "vector")).toEqual({
+            numericalEndpoints: [
+                [-1, -1],
+                [1, 2],
+            ],
+        });
+        // A rectangle's corner dragged: the opposite corner holds.
+        payload = send("rectangle", "movePolygon", {
+            pointCoords: { 1: [5, -1] },
+        });
+        expect(changed(payload, "rectangle")).toEqual({
+            numericalVertices: [
+                [0, -1],
+                [5, -1],
+                [5, 1],
+                [0, 1],
+            ],
+        });
+        // A regular polygon's vertex dragged turns it about its center.
+        payload = send("regularPolygon", "movePolygon", {
+            pointCoords: { 0: [0, 3] },
+        });
+        const turned = changed(payload, "regularPolygon").numericalVertices;
+        const near = (got: number[], want: number[]) =>
+            want.forEach((v, j) => expect(got[j]).toBeCloseTo(v));
+        near(turned[0], [0, 3]);
+        near(turned[1], [-3, 0]);
+    });
 });
 
 describe("sectioning and document-structure blocks", () => {

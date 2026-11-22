@@ -223,6 +223,11 @@ component_types! {
     IsInteger => operators::is_integer::DEFINITION,
     IsNumber => operators::is_number::DEFINITION,
     IsBetween => operators::is_between::DEFINITION,
+    Ray => geometry::ray::DEFINITION,
+    Vector => geometry::vector::DEFINITION,
+    Rectangle => geometry::rectangle::DEFINITION,
+    RegularPolygon => geometry::regular_polygon::DEFINITION,
+    Angle => geometry::angle::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

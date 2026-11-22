@@ -52,6 +52,28 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
     answer: { submitAnswer: [{}] },
     triggerSet: { triggerActions: [{}] },
     solution: { revealSolution: [{}], closeSolution: [{}] },
+    ray: {
+        moveRay: [{ endpointcoords: [1, 1], throughcoords: [2, 3] }],
+    },
+    vector: {
+        moveVector: [
+            { tailcoords: [1, 1], headcoords: [2, 3] },
+            { headcoords: [4, 4] },
+            { tailcoords: [0, 1] },
+        ],
+    },
+    rectangle: {
+        movePolygon: [
+            { pointCoords: { 0: [1, 1], 1: [2, 1], 2: [2, 2], 3: [1, 2] } },
+            { pointCoords: { 1: [3, 1] } },
+        ],
+    },
+    regularPolygon: {
+        movePolygon: [
+            { pointCoords: { 0: [1, 1], 1: [2, 1], 2: [1, 2] } },
+            { pointCoords: { 1: [3, 1] } },
+        ],
+    },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -68,7 +90,12 @@ const DOC = `
   <collect name="pts" componentType="point" from="$g2"/>
   <polyline name="pl" vertices="$pts"/>
   <function name="f">x^2</function>
+  <ray name="ry" endpoint="(0,0)" direction="(1,1)"/>
+  <vector name="v" tail="(1,1)" head="(2,3)"/>
+  <rectangle name="rc" center="(1,1)" width="2"/>
+  <regularPolygon name="rp" numVertices="5"/>
 </graph>
+<p><vector>(1, 2)</vector> <angle through="(1,0) (0,0) (0,1)"/></p>
 <graph name="g2"><point>(0,0)</point><point>(1,1)</point></graph>
 <graph name="bound" xmin="$n" xmax="$n + 20"><point>(5,5)</point></graph>
 <numberInput name="n" value="1"/>
@@ -128,6 +155,12 @@ const EXPECTED_REQUESTS = [
     "choiceInput.selectedIndex",
     "hint.open",
     "solution.open",
+    "ray.endpointX",
+    "ray.throughY",
+    "vector.tailX",
+    "vector.headY",
+    "rectangle.list[0]",
+    "regularPolygon.list[0]",
 ];
 
 /** What the bridge must have read, as `type.prop`: one or more per
@@ -164,6 +197,12 @@ const EXPECTED_READS = [
     "section.number",
     "section.label",
     "case.active",
+    "ray.throughX",
+    "vector.x",
+    "vector.tailY",
+    "rectangle.list[0]",
+    "regularPolygon.list[0]",
+    "angle.radians",
 ];
 
 beforeAll(async () => {

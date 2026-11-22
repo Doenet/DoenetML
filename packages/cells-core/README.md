@@ -42,7 +42,9 @@ blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
 `standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
 from text and references) and the boolean ones `and`, `or`, `xor`, `iff`,
-`implies`, `not`, `isInteger`, `isNumber` and `isBetween`. A `<math>` tuple of three or more entries is a tuple
+`implies`, `not`, `isInteger`, `isNumber` and `isBetween`, and the shapes
+`ray`, `vector`, `rectangle`, `regularPolygon` (a literal number of
+vertices) and `angle` (by points or a measure). A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

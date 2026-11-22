@@ -18,8 +18,8 @@ pub use instr::{
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, Op, OpSpec, js_round};
 pub use vector::{
-    MAX_VEC_IN, Pivot, Produced, Reduction, RigidOpts, VecOp, fewest_in_sequence, sequence_count,
-    sequence_index,
+    MAX_VEC_IN, PairBy, Pivot, Produced, Reduction, Reflex, RegularBy, RigidOpts, VecOp,
+    fewest_in_sequence, sequence_count, sequence_index,
 };
 
 /// What a cell's `f64` means: a number, a string id into the document's string
