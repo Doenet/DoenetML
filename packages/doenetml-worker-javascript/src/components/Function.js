@@ -3423,7 +3423,7 @@ export default class Function extends InlineComponent {
                 let { localMinima, globalMinimum, globalInfimum } =
                     find_local_global_minima({
                         domain: dependencyValues.domain,
-                        xscale: dependencyValues.xScale,
+                        xScale: dependencyValues.xScale,
                         isInterpolatedFunction:
                             dependencyValues.isInterpolatedFunction,
                         xs: dependencyValues.xs,
@@ -3932,7 +3932,7 @@ export default class Function extends InlineComponent {
                 let { localMaxima, globalMaximum, globalSupremum } =
                     find_local_global_maxima({
                         domain: dependencyValues.domain,
-                        xscale: dependencyValues.xScale,
+                        xScale: dependencyValues.xScale,
                         isInterpolatedFunction:
                             dependencyValues.isInterpolatedFunction,
                         xs: dependencyValues.xs,

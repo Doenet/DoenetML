@@ -386,6 +386,36 @@ describe("Compound names are camelCase (D60) @group4", async () => {
         }
     });
 
+    it("a function child's renamed xScale still sets how far extrema are sought", async () => {
+        // With an infinite domain, extrema are sought within 100·xScale of
+        // the origin. A function built from a function child (and each piece
+        // of a piecewise function) searches with the child's state, which
+        // must hand on the child's `xScale`: with the default of 1, the
+        // extrema at x = 500 are not found.
+        const { text, errors, warnings } = await load(`
+            <function name="f"><function xScale="10">(x-500)^2</function></function>
+            <function name="g"><function xScale="10">-(x-500)^2</function></function>
+            <piecewiseFunction name="pw">
+                <function domain="(-infinity,0)">x^2+1</function>
+                <function domain="[0,infinity)" xScale="10">(x-500)^2</function>
+            </piecewiseFunction>
+            <piecewiseFunction name="pw2">
+                <function domain="(-infinity,0)">-x^2-1</function>
+                <function domain="[0,infinity)" xScale="10">-(x-500)^2</function>
+            </piecewiseFunction>
+            <p name="fMin">$f.minima</p>
+            <p name="gMax">$g.maxima</p>
+            <p name="pwMin">$pw.minima</p>
+            <p name="pw2Max">$pw2.maxima</p>
+        `);
+        expect(errors).toHaveLength(0);
+        expect(warnings).toHaveLength(0);
+        expect(await text("fMin")).eq("(500, 0)");
+        expect(await text("gMax")).eq("(500, 0)");
+        expect(await text("pwMin")).eq("(500, 0)");
+        expect(await text("pw2Max")).eq("(500, 0)");
+    });
+
     /**
      * Every attribute, public property, array entry prefix and alias written
      * in all lowercase, of every component, the schema's hidden ones
