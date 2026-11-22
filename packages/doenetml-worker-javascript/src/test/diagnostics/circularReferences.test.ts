@@ -1159,51 +1159,32 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
             '<point name="a"><label><p>$b</p></label></point><point name="b" extend="$a"/>',
             ["doenet-e0005 1:27-29"],
         ],
-        // A whole reference to a point in a label, a text, an m or a group
-        // is a copy of it, label and all, as in a paragraph: through an
-        // extend or a copy of the point, it held itself, and the worker hung
-        // (Doenet/DoenetML#2643 item 1)
-        [
-            "2643",
-            "an extend of a point, as the point's label",
-            '<point name="a"><label>$b</label></point><point name="b" extend="$a"/>',
-            ["doenet-e0005 1:24-26"],
-        ],
-        [
-            "2643",
-            "an extend of a point, beside text in the point's label, in a graph",
-            '<graph><point name="a"><label>x $b</label></point><point name="b" extend="$a"/></graph>',
-            ["doenet-e0005 1:33-35"],
-        ],
+        // A point made with `copy` pastes the DoenetML of what it copies,
+        // the reference to itself in its label included, which stopped the
+        // document when it was made ("duplicate componentIdx"): an error at
+        // load (found, not fixed, Doenet/DoenetML#2645). With `extend` it
+        // reads the point's value (below).
         [
             "2643",
             "a copy of a point, as the point's label",
             '<point name="a"><label>$b</label></point><point name="b" copy="$a"/>',
             ["doenet-e0005 1:24-26"],
         ],
+        // A line, a vector or a circle has no math or text value to read
+        // where a value is read, so a reference to one in a label is a copy
+        // of it, label and all; through an extend of it in its own label it
+        // held itself, and the worker hung (Doenet/DoenetML#2643 item 1)
         [
             "2643",
-            "an extend of a point, in a text in the point's label",
-            '<point name="a"><label><text>$b</text></label></point><point name="b" extend="$a"/>',
-            ["doenet-e0005 1:30-32"],
+            "an extend of a line, as the line's label",
+            '<line name="a" through="(1,2) (3,4)"><label>$b</label></line><line name="b" extend="$a"/>',
+            ["doenet-e0005 1:45-47"],
         ],
         [
             "2643",
-            "an extend of a point, in an m in the point's label",
-            '<point name="a"><label><m>$b</m></label></point><point name="b" extend="$a"/>',
-            ["doenet-e0005 1:27-29"],
-        ],
-        [
-            "2643",
-            "an extend of a point, in a group in the point's label",
-            '<point name="a"><label><group>$b</group></label></point><point name="b" extend="$a"/>',
-            ["doenet-e0005 1:31-33"],
-        ],
-        [
-            "2643",
-            "two points, each the other's label",
-            '<point name="a"><label>$b</label></point><point name="b"><label>$a</label></point>',
-            ["doenet-e0005 1:24-26", "doenet-e0005 1:65-67"],
+            "an extend of a circle, as the circle's label",
+            '<circle name="a"><label>$b</label></circle><circle name="b" extend="$a"/>',
+            ["doenet-e0005 1:25-27"],
         ],
         // whether a component is hidden reads its own `hide` and the
         // `hide` of what it is written in (Doenet/DoenetML#2643 item 10)
@@ -1378,8 +1359,40 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
             "a curve's control vectors, always hidden, hidden by whether a vector in them is",
             '<graph><curve through="(1,2) (3,4)"><bezierControls><controlVectors hide="$v.hidden"><vector name="v">(1,0)</vector></controlVectors></bezierControls></curve></graph>',
         ],
-        // a math or a number reads a point's value, not a copy of it
-        // (Doenet/DoenetML#2643 item 1)
+        // where a value is read (a label, a text, an m, a math, a number,
+        // through a group), a point is read as its value, not copied with its
+        // label, so an extend of a point in the point's label holds nothing
+        // of itself (VAL-10, Doenet/DoenetML#2643 item 1); it hung the worker
+        [
+            "2643",
+            "an extend of a point, as the point's label",
+            '<point name="a"><label>$b</label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "an extend of a point, beside text in the point's label, in a graph",
+            '<graph><point name="a"><label>x $b</label></point><point name="b" extend="$a"/></graph>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in a text in the point's label",
+            '<point name="a"><label><text>$b</text></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in an m in the point's label",
+            '<point name="a"><label><m>$b</m></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in a group in the point's label",
+            '<point name="a"><label><group>$b</group></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "two points, each the other's label",
+            '<point name="a"><label>$b</label></point><point name="b"><label>$a</label></point>',
+        ],
         [
             "2643",
             "an extend of a point, in a math in the point's label",
@@ -2976,5 +2989,63 @@ describe("Composites in a loop that none can be singled out of @group2", async (
         expect(logged).toContain(
             "Error: Seem to have an infinite loop while calculating replacement changes. Circular dependency involving these components: <conditionalContent> (line 2).",
         );
+    });
+});
+
+/**
+ * Where a value is read (a `<label>`, a `<text>`, an `<m>`), a reference to
+ * a point reads its value, as in a `<math>` (VAL-10), rather than copying the
+ * point, label and all. A reference in a point's label to an extend of the
+ * point copied the label holding it, without end, and hung the worker
+ * (Doenet/DoenetML#2643 item 1).
+ */
+describe("A point read where a value is read, in its own label through an extend @group2", async () => {
+    it("shows the point's coordinates, and follows them", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<graph>
+<point name="a">(1,2)<label>$b</label></point>
+<point name="b" extend="$a"/>
+<point name="c">(3,4)<label>at <text>$d</text></label></point>
+<point name="d" extend="$c"/>
+</graph>`,
+        });
+        async function labels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return Promise.all(
+                ["a", "b", "c", "d"].map(
+                    async (name) =>
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.label,
+                ),
+            );
+        }
+        expect(getDiagnosticsByType(core).errors).eqls([]);
+        expect(await labels()).eqls([
+            "\\(\\left( 1, 2 \\right)\\)",
+            "\\(\\left( 1, 2 \\right)\\)",
+            "at (3, 4)",
+            "at (3, 4)",
+        ]);
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("b"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("c"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        expect(await labels()).eqls([
+            "\\(\\left( 5, 6 \\right)\\)",
+            "\\(\\left( 5, 6 \\right)\\)",
+            "at (7, 8)",
+            "at (7, 8)",
+        ]);
     });
 });

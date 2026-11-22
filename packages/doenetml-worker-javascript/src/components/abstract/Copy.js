@@ -2568,6 +2568,73 @@ export default class Copy extends CompositeComponent {
         // Therefore, we copy the primary state variable
         // and copy the essential state of the source.
 
+        /**
+         * The value of the source in place of a copy of it, where the copy
+         * is in a context that reads a value (a `<label>`, a `<text>`, an
+         * `<m>`, a `<math>`, …, `getSelfReferentialFallbackPropName`) and
+         * the source has a math or text `value`; `undefined` otherwise.
+         */
+        async function valueInPlaceOfCopy() {
+            const fallbackPropName = getSelfReferentialFallbackPropName({
+                componentAncestors: component.ancestors,
+                componentInfoObjects,
+                replacementSourceComponentType:
+                    replacementSourceComponent.componentType,
+            });
+            if (!fallbackPropName) {
+                return undefined;
+            }
+            const fallbackResults = await replacementFromProp({
+                component,
+                components,
+                nComponents,
+                stateIdInfo,
+                replacementSource: replacementSourceComponent,
+                propName: fallbackPropName,
+                allDoenetMLs,
+                compositeAttributesObj,
+                componentInfoObjects,
+                numComponentsForSource,
+                publicAliasSubstitutions,
+            });
+            diagnostics.push(...fallbackResults.diagnostics);
+            nComponents = fallbackResults.nComponents;
+            return {
+                serializedReplacements: fallbackResults.serializedReplacements,
+                propVariablesCopiedByReplacement:
+                    fallbackResults.propVariablesCopiedByReplacement,
+                diagnostics,
+                nComponents,
+            };
+        }
+
+        // A `$` reference to a graphical component (a `<point>`, …) where a
+        // value is read (`<label>$P</label>`, `<text>$P</text>`) reads its
+        // value, as it does in a `<math>` (VAL-10). A copy of the component
+        // would hold its label too, which, for a label holding a reference to
+        // an extend of the component, holds the copy again, without end
+        // (Doenet/DoenetML#2643 item 1). A reference written as content (in a
+        // `<p>`) is still a copy of the component, label and all.
+        if (
+            link &&
+            !heldCase &&
+            sourceToSerialize === replacementSourceComponent &&
+            component.componentType === "_copy" &&
+            component.attributes._createComponentOfType === undefined &&
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType:
+                    replacementSourceComponent.componentType,
+                baseComponentType: "_graphical",
+            })
+        ) {
+            const asValue = await valueInPlaceOfCopy();
+            if (asValue) {
+                // made again only when the source is another component, as
+                // for a copy inside its source (`sourceContainsCopy`)
+                return { ...asValue, sourceContainsCopy: true };
+            }
+        }
+
         let serializedReplacements;
         // Where the copy was made from, when that is a component named in a
         // case of a `<conditionalContent>` (`sourceCaseOf`)
@@ -2653,43 +2720,14 @@ export default class Copy extends CompositeComponent {
                 // unchanged. Any other component (e.g. <point>, <math>) establishes its own
                 // context, so we stop there. For example, `$a` inside
                 // `<label><math>$a</math></label>` uses math's context rather than label's.
-                const fallbackPropName = getSelfReferentialFallbackPropName({
-                    componentAncestors: component.ancestors,
-                    componentInfoObjects,
-                    replacementSourceComponentType:
-                        replacementSourceComponent.componentType,
-                });
-
-                if (fallbackPropName) {
-                    try {
-                        let fallbackResults = await replacementFromProp({
-                            component,
-                            components,
-                            nComponents,
-                            stateIdInfo,
-                            replacementSource: replacementSourceComponent,
-                            propName: fallbackPropName,
-                            allDoenetMLs,
-                            compositeAttributesObj,
-                            componentInfoObjects,
-                            numComponentsForSource,
-                            publicAliasSubstitutions,
-                        });
-                        diagnostics.push(...fallbackResults.diagnostics);
-                        nComponents = fallbackResults.nComponents;
-                        return {
-                            serializedReplacements:
-                                fallbackResults.serializedReplacements,
-                            propVariablesCopiedByReplacement:
-                                fallbackResults.propVariablesCopiedByReplacement,
-                            diagnostics,
-                            nComponents,
-                            sourceContainsCopy: true,
-                        };
-                    } catch (innerError) {
-                        // Fall through to the circular dependency handler below
-                        // so this still reports as the original self-reference.
+                try {
+                    const fallback = await valueInPlaceOfCopy();
+                    if (fallback) {
+                        return { ...fallback, sourceContainsCopy: true };
                     }
+                } catch (innerError) {
+                    // Fall through to the circular dependency handler below
+                    // so this still reports as the original self-reference.
                 }
             }
 
@@ -3681,6 +3719,8 @@ export default class Copy extends CompositeComponent {
             // in a copy `S2` of `S`, which names `S2`) is replaced by the
             // circular-dependency error, or by the source's value
             // (`replacementForSource`), neither of which shadows the source.
+            // So is a reference to a graphical component where a value is
+            // read (`<label>$P</label>`, `valueInPlaceOfCopy`).
             // The copy stays inside the source while the source is the same
             // component, so it would be made the same way again. Remaking it
             // would change the source's descendants, which would mark the

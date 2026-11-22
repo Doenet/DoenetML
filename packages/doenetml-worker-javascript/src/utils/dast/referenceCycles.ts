@@ -54,13 +54,13 @@
  * - a whole reference to a graphical component (a `<point>`, a `<line>`, …)
  *   that copies the component, label and all, to its `<label>`, and those of
  *   what it extends: one written as content (in a `<p>`, a `<span>`, an
- *   `<em>`), and a `$` reference anywhere the value-reference pass leaves it
- *   a copy rather than reading its value (in a `<label>`, a `<text>`, an
- *   `<m>`, a `<group>`; not in a `<math>` or a `<number>`), so that `$b` in
- *   the label of `a` holds itself when `b` extends or copies `a`
- *   (Doenet/DoenetML#2643 item 1). `$P` in a `<p>` in the label of `P` holds
- *   itself; inside `P` but not as content, `<label>$P</label>`, it reads P's
- *   value and does not (#1384);
+ *   `<em>`), so that `$b` in a `<p>` in the label of `a` holds itself when
+ *   `b` extends or copies `a`, and a `$` reference anywhere else the
+ *   value-reference pass leaves it a copy. Where a value is read (a
+ *   `<label>`, a `<text>`, an `<m>`, a `<math>`, through a `<group>`), one
+ *   with a math or text value is read as that value, not copied (VAL-10,
+ *   Doenet/DoenetML#2643 item 1), so `<label>$b</label>` in `a` reads b's
+ *   value, as `<label>$P</label>` in `P` reads P's (#1384);
  * - a reference to the `hidden` of a component (`$n.hidden`), to the
  *   components in its `hide` and in the `hide` of each component it is
  *   written in, as whether it is hidden reads whether they are
@@ -168,6 +168,7 @@ import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { collectIsListFormAsWritten } from "./listForms";
+import { getSelfReferentialFallbackPropName } from "../copy";
 import {
     planReferentAdapterReference,
     planValueReference,
@@ -1335,12 +1336,14 @@ export function breakReferenceCycles({
     /**
      * Whether `copy`, a whole reference to the component `target`, makes a
      * copy of it, label and all, rather than reading its value. It does when
-     * it is written as content (`writtenAsContent`), and wherever else the
-     * value-reference pass leaves it a copy, as it does for a point in a
-     * `<label>`, a `<text>`, an `<m>` or a `<group>`, which show the copy
-     * (`valueReferences.ts`, `planValueReference`), but for a reference
-     * inside what it names: `<label>$P</label>` in the label of `P` reads
-     * P's value (#1384). A `<math>` or a `<number>` reads the value.
+     * it is written as content (`writtenAsContent`: in a `<p>`, an `<em>`),
+     * and wherever else the value-reference pass leaves it a copy, but not
+     * where a value is read (a `<label>`, a `<text>`, an `<m>`, a `<math>`,
+     * through a `<group>`: `getSelfReferentialFallbackPropName`) of a
+     * graphical component with a math or text value, which is read as that
+     * value (`valueInPlaceOfCopy` in `Copy.js`, VAL-10), and not inside what
+     * it names: `<label>$P</label>` in the label of `P` reads P's value
+     * (#1384).
      */
     function copiesTargetsLabel(
         copy: SerializedComponent,
@@ -1366,6 +1369,43 @@ export function breakReferenceCycles({
         const parent = parentOf.get(copy.componentIdx);
         const targetType = typeOf(target);
         if (!parent || targetType === undefined) {
+            return false;
+        }
+        const ancestors: { componentClass: any }[] = [];
+        for (
+            let ancestor: SerializedComponent | undefined = parent;
+            ancestor;
+            ancestor = parentOf.get(ancestor.componentIdx)
+        ) {
+            const ancestorClass =
+                componentInfoObjects.allComponentClasses[
+                    ancestor.componentType
+                ];
+            if (!ancestorClass) {
+                break;
+            }
+            ancestors.push({ componentClass: ancestorClass });
+        }
+        const unlinkedCopy =
+            target.componentType === "_copy" &&
+            target.extending !== undefined &&
+            ("CopyAttribute" in target.extending ||
+                "CopyWithStateAttribute" in target.extending);
+        if (
+            !unlinkedCopy &&
+            inherits(targetType, "_graphical") &&
+            getSelfReferentialFallbackPropName({
+                componentAncestors: ancestors,
+                componentInfoObjects,
+                replacementSourceComponentType: targetType,
+            }) !== undefined
+        ) {
+            // where a value is read, a graphical component with a math or a
+            // text value is read as its value, not copied (`Copy.js`,
+            // `valueInPlaceOfCopy`). Not one made with `copy`, which pastes
+            // the DoenetML of what it copies, the reference to itself in its
+            // label included, which stops the document when it is made
+            // (Doenet/DoenetML#2645, found, not fixed)
             return false;
         }
         const parentClass =
@@ -1908,8 +1948,7 @@ export function breakReferenceCycles({
                     // `<p>` in the `<label>` of `P` holds itself, though as
                     // the value of the label it does not (#1384). An extend
                     // of a component holds its label too (`<point name="b"
-                    // extend="$a"/>`, `$b` in a's label, as content or as
-                    // the label's own, Doenet/DoenetML#2643 item 1).
+                    // extend="$a"/>`, `$b` in a `<p>` in a's label).
                     const seen = new Set<SerializedComponent>();
                     let labelled: SerializedComponent | undefined = target;
                     while (labelled && !seen.has(labelled)) {
