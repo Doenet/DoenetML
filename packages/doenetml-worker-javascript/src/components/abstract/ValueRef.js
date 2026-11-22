@@ -5,6 +5,7 @@ import {
     pathHasIndexComponents,
     referenceSlotDefinitions,
     emptyValueOfType,
+    missingResponseValue,
     referentOrFallback,
     unorderedDefinition,
     valueMissingDefinition,
@@ -1069,7 +1070,18 @@ function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
         },
         definition({ dependencyValues, componentInfoObjects }) {
             if (dependencyValues.valueMissing) {
-                return { setValue: { valueAsResponse: me.fromAst("\uff3f") } };
+                // a missing value of its type (D52 decision 1)
+                return {
+                    setValue: {
+                        valueAsResponse: missingResponseValue(
+                            missingResponseType(
+                                dependencyValues,
+                                referencedComponentType,
+                            ),
+                            componentInfoObjects,
+                        ),
+                    },
+                };
             }
             if (dependencyValues.wholeReferent) {
                 return {
@@ -1127,7 +1139,10 @@ function componentTypeAsResponseDefinition(
         definition({ dependencyValues }) {
             let componentTypeAsResponse = referencedComponentType;
             if (dependencyValues.valueMissing) {
-                componentTypeAsResponse = "math";
+                componentTypeAsResponse = missingResponseType(
+                    dependencyValues,
+                    referencedComponentType,
+                );
             } else if (dependencyValues.wholeReferent) {
                 componentTypeAsResponse = wholeReferentResponse(
                     dependencyValues.wholeReferent,
@@ -1140,6 +1155,28 @@ function componentTypeAsResponseDefinition(
         definition.stateVariablesDeterminingDependencies = ["referentInfo"];
     }
     return definition;
+}
+
+/**
+ * The type a reference with nothing to read is recorded as by an `<answer>`
+ * (D52 decision 1: a missing response has its entry's type): the type of
+ * what it reads (`referencedComponentType`), or, for a reference to a whole
+ * component, the type that component is recorded as. A blank math when no
+ * type is known (a reference that names nothing).
+ */
+function missingResponseType(dependencyValues, referencedComponentType) {
+    if (dependencyValues.wholeReferent) {
+        return (
+            dependencyValues.wholeReferent.stateValues?.componentType ??
+            dependencyValues.wholeReferent.componentType ??
+            "math"
+        );
+    }
+    // `_missing` is what a reference that names nothing is made as
+    return referencedComponentType === undefined ||
+        referencedComponentType === "_missing"
+        ? "math"
+        : referencedComponentType;
 }
 
 /**

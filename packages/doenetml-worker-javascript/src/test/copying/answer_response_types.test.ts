@@ -294,7 +294,7 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         };
     }
 
-    it("a property whose entries are made into points or vectors is not decided as a math", async () => {
+    it("a property whose entries are made into points or vectors has that type at load", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <polyline name="pl" vertices="(1,2) (3,4)"/>
@@ -306,9 +306,48 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
 <answer name="a3"><award><when>$v.displacement = (1,2)</when></award></answer>
 <answer name="a4"><award><when>$pg.vertex1 = (0,0)</when></award></answer>
 <answer name="a5"><award><when>$pg.vertexX1_1 = 0</when></award></answer>
+<line name="l" through="(0,0) (1,1)"/>
+<answer name="a6"><award><when>$l.points[1] = (0,0)</when></award></answer>
+<booleanInput name="b"/>
+<conditionalContent><case condition="$b">
+  <text extend="$c.center"/>
+  <text extend="$v.displacement"/>
+</case></conditionalContent>
+<point name="P" extend="$pl.vertices[2]"/>
+<math name="m" extend="$pl.vertices[2][1]"/>
 `,
         });
-        expect(errors(core)).eqls([]);
+        // D52 decision 2: typed at load as what wraps them, so a tag made
+        // from one is checked at load, also in a case not shown
+        expect(errors(core)).eqls([
+            e0065("text", "$c.center", "point"),
+            e0065("text", "$v.displacement", "vector"),
+        ]);
+        for (const [name, type] of [
+            ["a1", "point"],
+            ["a2", "point"],
+            ["a3", "vector"],
+            ["a4", "point"],
+            ["a5", "math"],
+            ["a6", "point"],
+        ]) {
+            const answer =
+                core.core._components[await resolvePathToNodeIdx(name)];
+            expect(
+                answer.doenetAttributes.propertyTypes.currentResponses,
+                name,
+            ).eq(type);
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P")].stateValues.xs.map(
+                String,
+            ),
+        ).eqls(["3", "4"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
+        ).eq(3);
         expect((await submitted(core, resolvePathToNodeIdx, "a1")).types).eqls([
             "point",
             "point",
@@ -327,52 +366,83 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         ]);
     });
 
-    it("a response that may be missing is not decided, as it is recorded as a blank math", async () => {
+    it("a response that may be missing has its entry's type, decided at load, and is recorded as a missing value of it", async () => {
+        // D52 decision 1 (VAL-5, D37: a missing T is still a T): a text is
+        // the blank `＿`, a math a blank math, a number `NaN`, and a boolean,
+        // which has no blank, `false`, as `<boolean/>` is. A reference that
+        // names nothing has no type of its own, and is a blank math.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <choiceInput name="ci"><choice>dog</choice><choice>cat</choice></choiceInput>
 <pointList name="pl">(1,2)</pointList>
+<textList name="tl">a</textList>
 <answer name="a1"><award><when>$ci = dog</when></award><considerAsResponses>$ci</considerAsResponses></answer>
 <answer name="a2"><mathInput name="mi"/><award><when><number isResponse>2$mi</number> = 6</when></award></answer>
 <answer name="a3"><award><when><boolean isResponse>$nothing</boolean></when></award></answer>
 <answer name="a4"><award><when>true</when></award><considerAsResponses><polygon vertices="(0,0) $pl[3] (1,1)"/></considerAsResponses></answer>
-<answer name="a5"><award><when><number isResponse>5</number> = 5</when></award></answer>
+<answer name="a5"><award><when>true</when></award><considerAsResponses>$tl[2] $pl[2] $nothing</considerAsResponses></answer>
+<answer name="a6"><award><when><number isResponse>5</number> = 5</when></award></answer>
 <p name="p1">$a1.submittedResponses</p>
 <p name="p2">$a2.submittedResponses</p>
 <p name="p3">$a3.submittedResponses</p>
 <p name="p4">$a4.submittedResponses</p>
+<p name="p5">$a5.submittedResponses</p>
+<p name="p6"><text extend="$a1.submittedResponse1"/> <point extend="$a5.currentResponses[2]"/></p>
 `,
         });
+        // each is typed at load, before anything runs
+        expect(errors(core)).eqls([]);
+        for (const [name, types] of [
+            ["a1", "text"],
+            ["a2", ["math", "number"]],
+            ["a3", "boolean"],
+            // a component with no value is an empty text, also when missing
+            ["a4", "text"],
+            ["a5", ["text", "point", "math"]],
+            ["a6", "number"],
+        ] as const) {
+            const answer =
+                core.core._components[await resolvePathToNodeIdx(name)];
+            expect(
+                answer.doenetAttributes.propertyTypes.currentResponses,
+                name,
+            ).eqls(types);
+        }
+
         expect(await submitted(core, resolvePathToNodeIdx, "a1")).eqls({
             values: ["＿"],
-            types: ["math"],
+            types: ["text"],
         });
         expect(await submitted(core, resolvePathToNodeIdx, "a2")).eqls({
-            values: ["＿", "＿"],
-            types: ["math", "math"],
+            values: ["＿", "NaN"],
+            types: ["math", "number"],
         });
         expect(await submitted(core, resolvePathToNodeIdx, "a3")).eqls({
-            values: ["＿"],
-            types: ["math"],
+            values: ["false"],
+            types: ["boolean"],
         });
         expect(await submitted(core, resolvePathToNodeIdx, "a4")).eqls({
             values: ["＿"],
-            types: ["math"],
+            types: ["text"],
         });
-        // one with nothing to be missing is decided
-        const a5 = core.core._components[await resolvePathToNodeIdx("a5")];
-        expect(a5.doenetAttributes.propertyTypes.currentResponses).eq("number");
+        expect(await submitted(core, resolvePathToNodeIdx, "a5")).eqls({
+            values: ["＿", "＿", "＿"],
+            types: ["text", "point", "math"],
+        });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (const [name, text] of [
             ["p1", "＿"],
-            ["p2", "＿, ＿"],
-            ["p3", "＿"],
+            ["p2", "＿, NaN"],
+            ["p3", "false"],
             ["p4", "＿"],
+            ["p5", "＿, ＿, ＿"],
+            ["p6", "＿ ＿"],
         ]) {
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .text,
+                name,
             ).eq(text);
         }
     });

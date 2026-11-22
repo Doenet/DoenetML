@@ -14,6 +14,7 @@ import {
     returnLabelChildIndDefinition,
 } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { missingResponseValue } from "./abstract/referenceSlotDefinitions";
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
@@ -1948,6 +1949,8 @@ export default class Answer extends InlineComponent {
             }) {
                 let currentResponses = [];
                 let componentType = [];
+                // the responses that are missing (D37), by place
+                const missingAt = [];
 
                 let responseComponents = [];
 
@@ -2015,24 +2018,17 @@ export default class Answer extends InlineComponent {
                     ) {
                         // A value reference: the referenced value as it is
                         // on the referent, not what the reference presents
-                        // (`$n` in a `<math>` is the number), and a blank
-                        // math when it has nothing to read.
+                        // (`$n` in a `<math>` is the number), and a missing
+                        // value of its type when it has nothing to read.
+                        if (component.stateValues.valueMissing) {
+                            missingAt.push(currentResponses.length);
+                        }
                         currentResponses.push(
                             component.stateValues.valueAsResponse,
                         );
                         componentType.push(
                             component.stateValues.componentTypeAsResponse,
                         );
-                        continue;
-                    }
-
-                    if (component.stateValues.valueMissing) {
-                        // A missing component (D37), such as
-                        // `<boolean extend="$nothing"/>`, holds the value of
-                        // `<T/>`, but is recorded as one blank math, as a
-                        // value reference with nothing to read is.
-                        currentResponses.push(me.fromAst("\uff3f"));
-                        componentType.push("math");
                         continue;
                     }
 
@@ -2053,6 +2049,33 @@ export default class Answer extends InlineComponent {
                         ct = "point";
                     } else if (ct === "vectorList") {
                         ct = "vector";
+                    }
+
+                    if (component.stateValues.valueMissing) {
+                        // A missing component (D37), such as
+                        // `<boolean extend="$nothing"/>`, is recorded as one
+                        // missing value of its type (D52 decision 1), as a
+                        // value reference with nothing to read is.
+                        // The type it is recorded as when not missing (as
+                        // below): its own, else, with no value, a math for a
+                        // function and an empty text for anything else.
+                        const missingType =
+                            component.stateValues.value !== undefined ||
+                            Array.isArray(component.stateValues.values)
+                                ? ct
+                                : component.stateValues.formula instanceof
+                                    me.class
+                                  ? "math"
+                                  : "text";
+                        missingAt.push(currentResponses.length);
+                        currentResponses.push(
+                            missingResponseValue(
+                                missingType,
+                                componentInfoObjects,
+                            ),
+                        );
+                        componentType.push(missingType);
+                        continue;
                     }
 
                     if (component.stateValues.subsetValue !== undefined) {
@@ -2087,15 +2110,26 @@ export default class Answer extends InlineComponent {
                 // document loads (TYPE-2, `propertyTypesAtLoad.ts`); the one
                 // worked out here, from the same tags, is read only where it
                 // wasn't decided.
+                const typesAtLoad = responseTypesAtLoad(
+                    globalDependencyValues.propertyTypes?.currentResponses,
+                    currentResponses.length,
+                );
+                if (typesAtLoad) {
+                    // A missing response is a missing value of the type the
+                    // DoenetML gives it (D52 decision 1), which a reference
+                    // with nothing to read may not know (`$ci` of a
+                    // `<choiceInput>` with nothing selected).
+                    for (const ind of missingAt) {
+                        currentResponses[ind] = missingResponseValue(
+                            typesAtLoad[ind],
+                            componentInfoObjects,
+                        );
+                    }
+                }
                 return {
                     setValue: { currentResponses },
                     setCreateComponentOfType: {
-                        currentResponses:
-                            responseTypesAtLoad(
-                                globalDependencyValues.propertyTypes
-                                    ?.currentResponses,
-                                currentResponses.length,
-                            ) ?? componentType,
+                        currentResponses: typesAtLoad ?? componentType,
                     },
                 };
             },

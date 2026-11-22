@@ -562,152 +562,39 @@ export function propertyTypeReader({
      * (`Answer.js`'s `currentResponses`): an input as its value's type, a
      * reference (`$mi`, a value reference) as what it reads, a list as its
      * entries, of any number, and any other component by what it has
-     * (`responseRead`).
+     * (`responseRead`). A response that is missing when the document runs
+     * (an index past the end, a reference to a `<choiceInput>` with nothing
+     * selected) is recorded as a missing value of the same type (D52
+     * decision 1), so whether it may be missing doesn't change its type.
      */
     function responseOf(component: SerializedComponent | string): Response {
-        const response = responseRead(component);
-        // A response missing when the document runs (an index past the end,
-        // a property holding no value, a reference that names nothing) is
-        // recorded as one blank math, whatever its type (`currentResponses`),
-        // so one that may be missing is decided here only as a math.
-        return response.type !== "math" && mayBeMissing(component)
-            ? { type: undefined, count: undefined }
-            : response;
+        return responseRead(component);
     }
 
     /**
-     * Whether the response `component` may be missing when the document
-     * runs: a reference, or a tag made from one, with an index or a
-     * property, or that names nothing (marked `missing` at load); a
-     * reference to a `<choiceInput>`, which holds no value while nothing is
-     * selected; a component of a type that is missing while what it is made
-     * from is (`canBecomeMissing` in `BaseComponent.js`: `<number
-     * isResponse>2$mi</number>`, a polygon with a vertex `$pl[3]`), when a
-     * reference is written in it; or a reference to any of these.
+     * The type of the entry an index into a list the author writes names
+     * (`$ml[3]` of a `<mathList>`), its entry type, also past its end, where
+     * it is missing of that type. `undefined` for any other reference.
      */
-    function mayBeMissing(
-        component: SerializedComponent | string,
-        seen: Set<number> = new Set(),
-    ): boolean {
-        if (typeof component === "string" || seen.has(component.componentIdx)) {
-            return false;
+    function listEntryOfReference(ref: {
+        nodeIdx: number;
+        unresolvedPath: any[] | null;
+    }) {
+        const path = ref.unresolvedPath ?? [];
+        if (
+            path.length !== 1 ||
+            path[0]?.name !== "" ||
+            (path[0].index ?? []).length !== 1
+        ) {
+            return undefined;
         }
-        if (component.componentType !== "_copy") {
-            // a tag made from a reference that names nothing (D37)
-            return (
-                Boolean(component.doenetAttributes?.missing) ||
-                (missingWithWhatItIsMadeFrom(component.componentType) &&
-                    holdsReference(component))
-            );
-        }
-        const ref = refOf(component);
-        if (!ref || ref.nodeIdx < 0 || (ref.unresolvedPath ?? []).length > 0) {
-            return true;
-        }
-        // a reference to what is missing
-        const node =
-            componentsByIdx.get(ref.nodeIdx) ??
-            copiesByCreatedIdx.get(ref.nodeIdx);
-        if (node === undefined || seen.has(node.componentIdx)) {
-            return false;
-        }
-        const nodeTag = tagOfComponent(node);
-        if (nodeTag !== undefined && inherits(nodeTag, "choiceInput")) {
-            return true;
-        }
-        return mayBeMissing(node, new Set(seen).add(component.componentIdx));
-    }
-
-    /**
-     * Whether a component of `componentType` is missing while what it is
-     * made from is (the class side of `canBecomeMissing`, `BaseComponent.js`).
-     */
-    function missingWithWhatItIsMadeFrom(componentType: string) {
-        const componentClass = allClasses[componentType];
-        return Boolean(
-            componentClass &&
-            (componentClass.missingWhenContentMissing ||
-                componentClass.missingWhenComputedFromMissing ||
-                componentClass.missingWhenContentNamesNothing ||
-                componentClass.missingWhenEntriesMissing?.length > 0 ||
-                componentClass.missingWhenPointsMissing?.length > 0),
-        );
-    }
-
-    /** Whether a reference is written in `component`, or its attributes. */
-    function holdsReference(component: SerializedComponent): boolean {
-        const pieces: (SerializedComponent | string)[] = [
-            ...(component.children ?? []),
-        ];
-        for (const attribute of Object.values(component.attributes ?? {})) {
-            const attr: any = attribute;
-            if (attr.type === "component" && attr.component) {
-                pieces.push(attr.component);
-            } else if (Array.isArray(attr.children)) {
-                pieces.push(...attr.children);
-            } else if (Array.isArray(attr.references)) {
-                pieces.push(...attr.references);
-            }
-        }
-        return pieces.some(
-            (piece) =>
-                typeof piece === "object" &&
-                piece !== null &&
-                (piece.componentType === "_copy" || holdsReference(piece)),
-        );
-    }
-
-    /**
-     * Whether the property the reference `component` names is made, when
-     * the document runs, into components that wrap its entries (`$c.center`
-     * a `<point>`, `$pl.vertices` points, `$v.displacement` a `<vector>`:
-     * `returnWrappingComponents` in `Core.js`), not a component of the type
-     * its class declares.
-     */
-    function wrapsEntries(component: SerializedComponent) {
-        const ref = refOf(component);
-        const path = ref?.unresolvedPath ?? [];
-        if (!ref || ref.nodeIdx < 0 || path.length !== 1) {
-            return false;
-        }
-        const componentType = referentType(ref.nodeIdx);
-        const componentClass =
-            componentType === undefined ? undefined : allClasses[componentType];
-        const name = path[0]?.name;
-        if (!componentClass || typeof name !== "string" || name === "") {
-            return false;
-        }
-        const [variableName] = publicAliasSubstitutions({
-            stateVariables: [name],
-            componentClass,
-            componentInfoObjects,
-        });
-        const info: any =
-            componentInfoObjects.publicStateVariableInfo[componentType!];
-        if (variableName === undefined || !info) {
-            return false;
-        }
-        const description = info.stateVariableDescriptions[variableName];
-        const prefix = description
+        const tag = referentType(ref.nodeIdx);
+        return tag === undefined
             ? undefined
-            : Object.keys(info.arrayEntryPrefixes ?? {})
-                  .filter((p) => variableName.startsWith(p))
-                  .sort((a, b) => b.length - a.length)[0];
-        const entry = prefix ? info.arrayEntryPrefixes[prefix] : undefined;
-        const wrapping =
-            description?.wrappingComponents ?? entry?.wrappingComponents;
-        const numDimensions = description
-            ? description.isArray
-                ? (description.numDimensions ?? 1)
-                : 0
-            : (entry?.numDimensions ?? 0);
-        return (
-            (wrapping ?? []).some((wrap: unknown[]) => wrap.length > 0) &&
-            (path[0].index ?? []).length < numDimensions
-        );
+            : allClasses[tag]?.listEntryComponentType;
     }
 
-    /** The response `component` is read as, if it is not missing. */
+    /** The response `component` is read as. */
     function responseRead(component: SerializedComponent | string): Response {
         if (typeof component === "string") {
             return { type: "text", count: 1 };
@@ -719,13 +606,17 @@ export function propertyTypeReader({
             tagOf(component) === undefined
         ) {
             const ref = refOf(component);
+            if (ref && ref.nodeIdx < 0) {
+                // names nothing: recorded as a blank math
+                return { type: "math", count: 1 };
+            }
+            const entry = ref && listEntryOfReference(ref);
+            if (entry !== undefined) {
+                return { type: entry, count: 1 };
+            }
             if (ref && (ref.unresolvedPath ?? []).length > 0) {
                 const property = propertyOfReference(component);
-                if (
-                    !property ||
-                    "undecided" in property ||
-                    wrapsEntries(component)
-                ) {
+                if (!property || "undecided" in property) {
                     return { type: undefined, count: undefined };
                 }
                 return property.several
@@ -1420,6 +1311,8 @@ export function propertyTypeReader({
         let arrayVariable = variableName;
         let several = false;
         let entryNameIndex: number | undefined;
+        let entryWrapping: unknown[][] | undefined;
+        let entryDimensions: number | undefined;
         if (description) {
             several =
                 Boolean(description.isArray) &&
@@ -1436,6 +1329,8 @@ export function propertyTypeReader({
             arrayVariable = entry.arrayVariableName;
             description = info.stateVariableDescriptions[arrayVariable];
             several = numIndices < entry.numDimensions;
+            entryWrapping = entry.wrappingComponents;
+            entryDimensions = entry.numDimensions;
             // the entry a name such as `currentResponse2` names, of an array
             // of one dimension, whose entries have none left
             const ending = variableName.substring(prefix.length);
@@ -1449,6 +1344,20 @@ export function propertyTypeReader({
         }
         if (!description?.public) {
             return undefined;
+        }
+        // Entries made, when the document runs, into components that wrap
+        // them (`returnWrappingComponents` in `Core.js`): `$c.center` is a
+        // `<point>`, `$pl.vertices` points and `$v.displacement` a
+        // `<vector>`, of the type of the component that wraps them, not of
+        // the one its class declares (D52 decision 2, TYPE-1).
+        const wrapped = wrappedType({
+            wrapping: entryWrapping ?? description.wrappingComponents,
+            dimensionsLeft:
+                (entryDimensions ?? description.numDimensions ?? 1) -
+                numIndices,
+        });
+        if (wrapped) {
+            return { ...wrapped, variableName: arrayVariable };
         }
         const declared = description.createComponentOfType;
         if (typeof declared === "string") {
@@ -1470,6 +1379,34 @@ export function propertyTypeReader({
         return type === undefined
             ? { undecided: true, variableName: arrayVariable }
             : { type, several, variableName: arrayVariable };
+    }
+
+    /**
+     * The type of the components that wrap the entries of a property
+     * (`wrapping`, its `wrappingComponents`, from the outermost), with
+     * `dimensionsLeft` of its dimensions not indexed: the wrapper of as many
+     * dimensions as are left, and `several` when more are left than are
+     * wrapped. `undefined` when none are wrapped.
+     */
+    function wrappedType({
+        wrapping,
+        dimensionsLeft,
+    }: {
+        wrapping: unknown[][] | undefined;
+        dimensionsLeft: number;
+    }): { type: string; several: boolean } | undefined {
+        if (!wrapping || dimensionsLeft <= 0) {
+            return undefined;
+        }
+        const numWrapped = wrapping.length;
+        const wrappers =
+            wrapping[Math.max(0, numWrapped - dimensionsLeft)] ?? [];
+        const outer: any = wrappers[0];
+        const type = typeof outer === "string" ? outer : outer?.componentType;
+        if (typeof type !== "string") {
+            return undefined;
+        }
+        return { type, several: dimensionsLeft > numWrapped };
     }
 
     /**
