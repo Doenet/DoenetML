@@ -76,8 +76,9 @@ export function removeBlankStringChildren(
  *
  * The parser writes a zero-width space after such a `$` where what follows
  * could start a reference, so the `$` stays text: in an attribute, whose
- * value it reads for references once decoded, before a letter, `_`, `(` or
- * `$` (`&#36;(x)`); in content, before a letter or `_` (`&dollar;x`). The
+ * value it reads for references once decoded, before a letter, `_` or `(`,
+ * or a `$` before one of those (`&#36;(x)`, `&#36;$f`); in content, before
+ * a letter or `_` (`&dollar;x`). The
  * space is kept in the parsed document, so that printing it again keeps the
  * `$` text, and is removed here, where the text is read as a value, so the
  * value is what the author wrote (`$(x)`, #2637 item 3).
