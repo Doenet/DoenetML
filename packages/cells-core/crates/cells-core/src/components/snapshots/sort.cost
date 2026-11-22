@@ -1,0 +1,5 @@
+numbers in increasing order: cells 17 · essential 0 · constant 17 · instrs 0 · components 2
+an operand from an input moves in the order: cells 11 · essential 1 · constant 6 · instrs 1 · components 5
+a shuffle holds every operand once, in the order the seed drew: cells 18 · essential 0 · constant 18 · instrs 0 · components 3
+a shuffled value follows its operand, in the place drawn: cells 13 · essential 1 · constant 6 · instrs 2 · components 5
+text is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2

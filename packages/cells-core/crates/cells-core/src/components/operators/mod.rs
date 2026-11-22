@@ -24,6 +24,10 @@ pub(crate) mod not;
 pub(crate) mod round;
 pub(crate) mod variance;
 
+pub(crate) mod index_of;
+pub(crate) mod scan;
+pub(crate) mod sort;
+
 use crate::compile::api::{
     ChildValue, ElemWiring, GivenId, ListPiece, PlanCtx, Port, Source, ValueChildren, Wire,
 };

@@ -239,6 +239,22 @@ component_types! {
     Article => containers::layout::ARTICLE,
     Book => containers::layout::BOOK,
     AxisLabel => containers::layout::AXIS_LABEL,
+    CumulativeSum => operators::scan::DEFINITION,
+    CumulativeProduct => operators::scan::CUMULATIVE_PRODUCT,
+    CumulativeMin => operators::scan::CUMULATIVE_MIN,
+    CumulativeMax => operators::scan::CUMULATIVE_MAX,
+    Differences => operators::scan::DIFFERENCES,
+    ArgMin => operators::index_of::DEFINITION,
+    ArgMax => operators::index_of::ARG_MAX,
+    IndexOf => operators::index_of::INDEX_OF,
+    SearchSorted => operators::index_of::SEARCH_SORTED,
+    Sort => operators::sort::DEFINITION,
+    Shuffle => operators::sort::SHUFFLE,
+    Sequence => values::sequence::DEFINITION,
+    SelectRandomNumbers => structure::select_random_numbers::DEFINITION,
+    SampleRandomNumbers => structure::sample_random_numbers::DEFINITION,
+    SelectPrimeNumbers => structure::select_prime_numbers::DEFINITION,
+    SamplePrimeNumbers => structure::sample_prime_numbers::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

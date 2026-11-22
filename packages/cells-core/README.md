@@ -46,9 +46,16 @@ from text and references) and the boolean ones `and`, `or`, `xor`, `iff`,
 `ray`, `vector`, `rectangle`, `regularPolygon` (a literal number of
 vertices) and `angle` (by points or a measure), the formatted values
 `integer`, `intComma` (a number, English grouping) and `pluralize` (one
-literal word, or a number and a word), and the layout containers `table`
+literal word, or a number and a word), the layout containers `table`
 (unnumbered), `sbsGroup`, `asList`, `latex`, `xLabel` and `yLabel` (not
-drawn) and the PreTeXt wrappers `pretext`, `article` and `book`. A `<math>` tuple of three or more entries is a tuple
+drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
+operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
+`cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
+`indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
+numbers), `sequence` (numbers, literal parameters), and
+`selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
+`gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
+from the document seed. A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

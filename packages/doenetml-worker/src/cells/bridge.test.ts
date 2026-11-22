@@ -950,3 +950,74 @@ describe("the layout containers and the formatted values", () => {
         ).toEqual(["point"]);
     });
 });
+
+describe("random selections, sequences, reordering and list operators", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const texts = () =>
+            all("text").map((e) => (e.data as any).props.value as string);
+        const send = (component: string, actionName: string, args: object) =>
+            bridge.dispatch({
+                component,
+                actionName,
+                componentIdx: all(component)[0].data.id,
+                args,
+            }).payload as Record<number, ElementUpdate>;
+        return { bridge, all, texts, send };
+    }
+
+    it("draws computed lists of numbers as the text of their entries, without their operands", async () => {
+        const { all, texts, send } = await open(`
+<numberInput name="a" value="5"/>
+<cumulativeSum>1 $a 2</cumulativeSum>
+<cumulativeProduct>1 2 3</cumulativeProduct>
+<cumulativeMin>3 1 4</cumulativeMin>
+<cumulativeMax>3 1 4</cumulativeMax>
+<differences>30 75 87</differences>
+<sort>5 3 1</sort>
+<sequence from="2" to="10" step="4"/>
+<selectPrimeNumbers to="5" numToSelect="3" sort/>
+<argMax>3 9 2</argMax> <indexOf target="2">3 9 2</indexOf>`);
+        expect(texts()).toEqual([
+            "1, 6, 8",
+            "1, 2, 6",
+            "3, 1, 1",
+            "3, 3, 4",
+            "45, 12",
+            "1, 3, 5",
+            "2, 6, 10",
+            "2, 3, 5",
+        ]);
+        for (const e of all("text")) {
+            expect(e.children).toEqual([]);
+        }
+        expect((all("argMax")[0].data as any).props).toEqual({
+            latex: "2",
+            renderMode: "inline",
+        });
+        expect((all("indexOf")[0].data as any).props.latex).toBe("3");
+
+        const payload = send("numberInput", "updateValue", { value: 10 });
+        expect(payload[all("text")[0].data.id]?.changedState).toEqual({
+            value: "1, 11, 13",
+        });
+    });
+
+    it("draws the numbers a sampler or a shuffle drew, the same on every load", async () => {
+        const source = `<selectRandomNumbers type="discreteUniform" from="1" to="6" numToSelect="4"/>
+<sampleRandomNumbers numSamples="2"/>
+<samplePrimeNumbers numSamples="3"/>
+<shuffle>1 2 3 4</shuffle>`;
+        const first = (await open(source)).texts();
+        expect(first).toHaveLength(4);
+        const dice = first[0].split(", ").map(Number);
+        expect(dice).toHaveLength(4);
+        for (const x of dice) {
+            expect(Number.isInteger(x) && x >= 1 && x <= 6).toBe(true);
+        }
+        expect(first[3].split(", ").map(Number).sort()).toEqual([1, 2, 3, 4]);
+        expect((await open(source)).texts()).toEqual(first);
+    });
+});

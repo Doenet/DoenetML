@@ -1,0 +1,10 @@
+from and to, by every name and by index: cells 7 · essential 0 · constant 7 · instrs 0 · components 3
+nothing given: one to ten: cells 12 · essential 0 · constant 12 · instrs 0 · components 2
+from, step and length: cells 6 · essential 0 · constant 6 · instrs 0 · components 2
+to alone counts from 1: cells 6 · essential 0 · constant 6 · instrs 0 · components 2
+to and length end at to: cells 6 · essential 0 · constant 6 · instrs 0 · components 2
+from, to and length give the step: cells 8 · essential 0 · constant 8 · instrs 0 · components 2
+a negative step, stopping before to: cells 6 · essential 0 · constant 6 · instrs 0 · components 2
+excluded values are left out: cells 6 · essential 0 · constant 6 · instrs 0 · components 2
+an empty sequence: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
+a count that follows a reference is refused: cells 3 · essential 0 · constant 3 · instrs 0 · components 3

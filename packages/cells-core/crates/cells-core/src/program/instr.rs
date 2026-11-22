@@ -298,6 +298,20 @@ mod arity {
                 n: 3,
                 by: RegularBy::CenterVertex,
             }),
+            OpSpec::Vec(VecOp::Scan {
+                op: crate::program::Scan::Sum,
+                n: 3,
+            }),
+            OpSpec::Vec(VecOp::Sort {
+                n: 3,
+                decreasing: true,
+            }),
+            OpSpec::Vec(VecOp::Shuffle { n: 3 }),
+            OpSpec::Vec(VecOp::Draws {
+                dist: crate::program::Dist::Uniform,
+                n: 2,
+                n_exclude: 0,
+            }),
             OpSpec::Sym(SymKind::Instantiate {
                 template: Handle::new(0),
                 post: Post::None,
@@ -340,9 +354,13 @@ mod arity {
                 VecOp::Extent => 18,
                 VecOp::AngleAt { .. } => 19,
                 VecOp::RegularPolygon { .. } => 20,
+                VecOp::Scan { .. } => 21,
+                VecOp::Sort { .. } => 22,
+                VecOp::Shuffle { .. } => 23,
+                VecOp::Draws { .. } => 24,
             },
             OpSpec::Sym(k) => {
-                21 + match k {
+                25 + match k {
                     SymKind::Instantiate { .. } => 0,
                     SymKind::Evaluate => 1,
                     SymKind::EvalAt => 2,
@@ -356,7 +374,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 29;
+    const N_TAGS: usize = 33;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
