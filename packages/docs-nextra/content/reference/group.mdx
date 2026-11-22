@@ -84,5 +84,15 @@ holding one component stands for it, so a property after it is that
 component's. A `<group>{:dn}` holding only a reference to a `<repeat>{:dn}`
 stands for the `<repeat>{:dn}`, so a property after it is the
 `<repeat>{:dn}`'s own, such as `numItems`, as after the `<repeat>{:dn}`
-itself.
+itself. A `<group>{:dn}` holding only a list stands for the list, so a name
+written in the list names that component after the group too: with
+`<point name="P">{:dn}` written in a `<pointList name="pl">{:dn}`, `$g.P` of
+`<group name="g">$pl</group>{:dn}` is that point, as `$pl.P` is.
+
+A `<group>{:dn}` made with `extend` from a `<repeat>{:dn}` holds its
+iterations, followed by anything written in the `<group>{:dn}`, and follows
+the number of iterations as it changes:
+`<group extend="$r"><text>end</text></group>{:dn}`. With no iterations, it
+holds just what is written in it. An attribute written on it, such as
+`hide`, is the `<group>{:dn}`'s, not each iteration's.
 

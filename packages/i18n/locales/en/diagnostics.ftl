@@ -748,8 +748,8 @@ reference-property-after-several =
 # the author wrote it, with its `$`. $name is the name or property after the
 # collection, and $component the collection's tag, both as written. $kind is
 # `item` when $name is the name of one of the collection's items itself (a
-# point a `<collect>` collects, or one a `<repeat>` in a `<sort>` makes each
-# time), `name` when it is the name of a component written in the
+# point a `<collect>` collects, or one a `<repeat>` or a `<select>` of several
+# in a `<sort>`, a `<shuffle>` or a list makes each time), `name` when it is the name of a component written in the
 # collection's items (anywhere in the document, for a `<collect>`), else
 # `property`. $suggestion is the reference with an index put after the
 # collection (`$pl[1].x`), or, for `item`, an index in place of the name

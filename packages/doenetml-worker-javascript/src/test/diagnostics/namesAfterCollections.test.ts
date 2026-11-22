@@ -682,15 +682,17 @@ describe("Names after collections, round 2 (#2638)", () => {
 
     it("a name from a repeat in a sort or shuffle, and one a collect holds as an item, suggest the index alone (items 2, 3)", async () => {
         // Before: `$so.P` and `$sh.P` were blanks with `w0105` "Multiple
-        // referents", and `$c.A` suggested `$c[1].A`, which names nothing.
+        // referents", `$sh2.T` was the picked text, and `$c.A` suggested
+        // `$c[1].A`, which names nothing.
         const { texts, diagnostics } = await both(
             `<sort name="so"><repeat for="3 1" valueName="v"><point name="P">($v,1)</point></repeat></sort>
 <shuffle name="sh"><repeat for="3 1" valueName="v"><point name="P">($v,1)</point></repeat></shuffle>
+<shuffle name="sh2"><select numToSelect="2"><option><text name="T">a</text></option><option><text>b</text></option></select></shuffle>
 <section name="sec"><point name="A">(1,2)</point></section>
 <collect name="c" from="$sec" componentType="point"/>
 <p name="p1">$so.P</p><p name="p2">$sh.P</p><p name="p3">$so[1]</p><p name="p4">$so.P.x</p>
-<p name="p5">$c.A</p><p name="p6">$c[1]</p>`,
-            ["p1", "p2", "p3", "p4", "p5", "p6"],
+<p name="p5">$c.A</p><p name="p6">$c[1]</p><p name="p7">$sh2.T</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
             { withMessages: true },
         );
         expect(texts).eqls({
@@ -700,10 +702,12 @@ describe("Names after collections, round 2 (#2638)", () => {
             p4: "＿",
             p5: "＿",
             p6: "(1, 2)",
+            p7: "＿",
         });
         expect(diagnostics).eqls([
             "warning doenet-w0200: `$c.A` names nothing: `A` is an item of the `<collect>`, and a name after it does not reach into its items. To read an item, give its index, such as `$c[1]`.",
             "warning doenet-w0200: `$sh.P` names nothing: `P` is an item of the `<shuffle>`, and a name after it does not reach into its items. To read an item, give its index, such as `$sh[1]`.",
+            "warning doenet-w0200: `$sh2.T` names nothing: `T` is an item of the `<shuffle>`, and a name after it does not reach into its items. To read an item, give its index, such as `$sh2[1]`.",
             "warning doenet-w0200: `$so.P.x` names nothing: `P` is an item of the `<sort>`, and a name after it does not reach into its items. To read an item, give its index, such as `$so[1].x`.",
             "warning doenet-w0200: `$so.P` names nothing: `P` is an item of the `<sort>`, and a name after it does not reach into its items. To read an item, give its index, such as `$so[1]`.",
         ]);
@@ -742,13 +746,24 @@ describe("Names after collections, round 2 (#2638)", () => {
             `<p name="q">x</p><select name="s" extend="$q"/>
 <repeat name="r" for="1 2" valueName="v"><repeat extend="$r"/></repeat>
 <repeat name="o" for="1 2"><repeat copy="$o"/></repeat>
-<p name="p1">$s[1].value</p><p name="p2">$s[1]</p><p name="p3">$r[1].hidden</p><p name="p4">$o[1].x</p>`,
-            ["p1", "p2", "p3", "p4"],
+<foo name="f"/><text name="t">a</text><point name="P" extend="$t"/>
+<p name="p1">$s[1].value</p><p name="p2">$s[1]</p><p name="p3">$r[1].hidden</p><p name="p4">$o[1].x</p>
+<p name="p5">$f[1]</p><p name="p6">$P[1]</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6"],
         );
-        expect(texts).eqls({ p1: "＿", p2: "＿", p3: "＿", p4: "＿" });
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "＿",
+        });
         expect(diagnostics).eqls([
+            "error doenet-e0002",
             "error doenet-e0005",
             "error doenet-e0005",
+            "error doenet-e0065",
             "error doenet-e0065",
         ]);
     });
@@ -824,9 +839,28 @@ describe("Names after collections, round 2 (#2638)", () => {
 <group name="g5" extend="$r" hide><text>x</text></group>
 <repeatForSequence name="r0" length="0" valueName="v"><point>($v,1)</point></repeatForSequence>
 <group name="g6" extend="$r0"><text>x</text></group>
+<group name="g7" copyWithState="$r"><text>x</text></group>
+<sort name="so" hide><number>3</number><number>1</number></sort>
+<shuffle name="sh" hide><number>2</number><number>2</number></shuffle>
+<group name="g8" extend="$so"/>
+<group name="g9" extend="$sh"/>
+<group name="g10" extend="$g2"/>
 <p name="p1">$g</p><p name="p2">$g2</p><p name="p3">$g3</p><p name="p4">$g4</p>
-<p name="p5">$g5</p><p name="p6">$g5.hidden</p><p name="p7">$g6</p>`,
-            ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
+<p name="p5">$g5</p><p name="p6">$g5.hidden</p><p name="p7">$g6</p>
+<p name="p8">$g7</p><p name="p9">$g8</p><p name="p10">$g9</p><p name="p11">$g10</p>`,
+            [
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "p5",
+                "p6",
+                "p7",
+                "p8",
+                "p9",
+                "p10",
+                "p11",
+            ],
         );
         // `hide` is the one group's, which a copy of it does not take, not
         // each iteration's; and the children written in it are held with
@@ -839,6 +873,10 @@ describe("Names after collections, round 2 (#2638)", () => {
             p5: "(1, 1)(2, 1)x",
             p6: "true",
             p7: "x",
+            p8: "(1, 1)(2, 1)x",
+            p9: "13",
+            p10: "22",
+            p11: "(1, 1)(2, 1)x",
         });
         expect(diagnostics).eqls([]);
     });

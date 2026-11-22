@@ -4262,10 +4262,6 @@ async function diagnosticForUnusedIndex({
     const extendedComponent = await component.stateValues.extendedComponent;
     if (
         !extendedComponent ||
-        // a component in error is reported where it is, and nothing more is
-        // reported of a reference to it (DIAG-5): `$s[1]` of a `<select>`
-        // in error
-        replacementSource.componentType === "_error" ||
         componentInfoObjects.isCompositeComponent({
             componentType: extendedComponent.componentType,
             includeNonStandard: true,
