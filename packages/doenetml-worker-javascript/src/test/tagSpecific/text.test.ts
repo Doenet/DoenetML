@@ -869,4 +869,48 @@ describe("Text tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("tl")].stateValues.texts,
         ).eqls(["Hello there", "friend!"]);
     });
+
+    it("a `$` written as a reference is a `$` in the value", async () => {
+        // The parser keeps a `$` written as a reference from starting a
+        // reference with a zero-width space after it; the value has none
+        // (#2637 item 3), in an attribute and in content.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<textInput name="paren" prefill="&#36;(x)"/>
+<textInput name="letter" prefill="&dollar;x"/>
+<textInput name="reference" prefill="&#36;&#36;&#102;"/>
+<textInput name="between" prefill="a &#36;y b"/>
+<textInput name="beforeDigit" prefill="&#36;1"/>
+<text name="t1">&dollar;x</text>
+<text name="t2">&#36;(x)</text>
+<p name="p">&dollar;p and &#36;q</p>
+<text name="t3" extend="$t1"/>
+<math name="m">&dollar;x</math>
+<mathInput name="mi" prefill="&#36;x"/>
+<text name="ownSpace">$&#x200B;q</text>
+<textInput name="ownSpaceAttr" prefill="$&#x200B;q"/>
+`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const value = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.value;
+        expect(await value("paren")).eq("$(x)");
+        expect(await value("letter")).eq("$x");
+        expect(await value("reference")).eq("$$f");
+        expect(await value("between")).eq("a $y b");
+        expect(await value("beforeDigit")).eq("$1");
+        expect(await value("t1")).eq("$x");
+        expect(await value("t2")).eq("$(x)");
+        expect(await value("t3")).eq("$x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("$p and $q");
+        // math reads it as written, where the space was blank
+        expect((await value("m")).tree).eqls(["unit", "$", "x"]);
+        expect((await value("mi")).tree).eqls(["unit", "$", "x"]);
+        // Incidental: a zero-width space the author writes right after a
+        // `$` is removed too, as the worker can't tell it from the parser's.
+        expect(await value("ownSpace")).eq("$q");
+        expect(await value("ownSpaceAttr")).eq("$q");
+    });
 });
