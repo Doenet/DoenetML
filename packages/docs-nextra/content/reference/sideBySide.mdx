@@ -87,4 +87,24 @@ percent. When `widths` and `margins` attributes are both applied, margins are ap
 
 
 
+---
 
+### Attribute Example: vAlign, vAligns
+
+
+```doenet-example
+<sideBySide vAlign="middle">
+  <p><lorem generateWords="40"/></p>
+  <p>Centered beside the longer paragraph.</p>
+</sideBySide>
+<hr/>
+
+<sideBySide vAligns="top bottom">
+  <p><lorem generateWords="40"/></p>
+  <p>At the bottom.</p>
+</sideBySide>
+```
+
+
+
+The `vAlign` attribute sets the vertical alignment of every portion: `top` (the default), `middle` or `bottom`. The `vAligns` attribute sets it for each portion in turn, and a portion it doesn't reach is at the top. When both are written, `vAligns` is used and `vAlign` is ignored.

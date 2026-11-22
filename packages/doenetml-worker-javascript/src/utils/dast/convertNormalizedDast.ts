@@ -197,14 +197,15 @@ export async function normalizedDastToSerializedComponents(
         index_resolution: IndexResolution,
     ) => void,
     {
-        loadCycle,
+        loadCycles,
     }: {
         /**
-         * What a load that stopped on a circular dependency blamed, when the
-         * document is rebuilt (D57, `blameLoadCycle`): made `doenet-e0005`
-         * by the cycle check (`breakReferenceCycles`).
+         * What each load that stopped on a circular dependency blamed, when
+         * the document is rebuilt (D57, D61 decision 2, `blameLoadCycle`):
+         * each made `doenet-e0005` by the cycle check
+         * (`breakReferenceCycles`).
          */
-        loadCycle?: LoadCycle;
+        loadCycles?: LoadCycle[];
     } = {},
 ): Promise<{
     document: SerializedComponent;
@@ -227,6 +228,14 @@ export async function normalizedDastToSerializedComponents(
      * (`missingTag`).
      */
     const missingInPlaceOfTag = new Set<UnflattenedComponent>();
+
+    /**
+     * Whether any element is a `<variantControl>`, noted as each is
+     * unflattened, so that the check of references to one
+     * (`markReferencesToVariantControls`) walks the document only when one
+     * is written, which few documents do.
+     */
+    let variantControlWritten = false;
 
     /**
      * Give an attribute of `node` written in another case than its
@@ -414,6 +423,9 @@ export async function normalizedDastToSerializedComponents(
                 const node = normalized_root.nodes[idxOrString];
                 if (node.type === "element") {
                     correctAttributeNameCase(node, idxOrString, diagnostics);
+                    if (getComponentType(node) === "variantControl") {
+                        variantControlWritten = true;
+                    }
                     const children = unflattenDastNodes(
                         node.children,
                         diagnostics,
@@ -937,13 +949,16 @@ export async function normalizedDastToSerializedComponents(
 
     // A reference to a `<variantControl>` names nothing, with a warning that
     // says it shows nothing and nothing can be read from it (#2623 item 7).
-    diagnostics.push(
-        ...markReferencesToVariantControls({
-            serializedComponents: sugarResult.components,
-            componentInfoObjects,
-            sources: normalized_root.sources,
-        }),
-    );
+    // Only a document with one written needs the walk (#2637 item 6).
+    if (variantControlWritten) {
+        diagnostics.push(
+            ...markReferencesToVariantControls({
+                serializedComponents: sugarResult.components,
+                componentInfoObjects,
+                sources: normalized_root.sources,
+            }),
+        );
+    }
 
     // What a property or an index after a `<select>` or `<conditionalContent>`
     // reaches in its options or cases, decided at load from every one of them
@@ -999,7 +1014,7 @@ export async function normalizedDastToSerializedComponents(
             serializedComponents: sugarResult.components,
             componentInfoObjects,
             branchReads,
-            loadCycle,
+            loadCycles,
         }),
     );
 

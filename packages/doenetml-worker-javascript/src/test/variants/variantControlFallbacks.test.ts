@@ -385,6 +385,11 @@ ${select}
             );
             expect(warnings).eqls([]);
             expect(errors.map((e) => e.code)).eqls(["doenet-e0065"]);
+            // writing `$vc` would show nothing (`doenet-w0199`), so the
+            // error doesn't advise it (DIAG-3, #2637 item 1)
+            expect(errors[0].message).eq(
+                "A `<text>` can't be made from `$vc`, which gives a `<variantControl>`. A `<variantControl>` shows nothing, and nothing can be read from it.",
+            );
         });
 
         it("where a variantControl can be written, it makes none", async () => {
