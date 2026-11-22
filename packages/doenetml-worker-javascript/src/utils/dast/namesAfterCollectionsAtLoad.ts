@@ -453,6 +453,25 @@ export function checkNamesAfterCollectionsAtLoad({
         );
     }
 
+    /**
+     * Whether `name`, written after the collection at `idx`, is a name its
+     * items have, rather than a property: one written in the collection (a
+     * `<repeat>`'s template, a `<select>`'s options), or, for a `<collect>`,
+     * whose items are written elsewhere, anywhere. A name written elsewhere
+     * that is also a property of the items (`$pl.x` beside a `<math
+     * name="x">`) is a property.
+     */
+    function isItemName(idx: number, collection: string, name: string) {
+        if (!allNames.has(name)) {
+            return false;
+        }
+        const node = writtenCollection(idx);
+        if (collection === "collect" || !node) {
+            return true;
+        }
+        return namesBelow(node, new Set()).has(name);
+    }
+
     /** Check the reference `component`, a `_copy` or a target. */
     function check(
         component: SerializedComponent,
@@ -489,7 +508,9 @@ export function checkNamesAfterCollectionsAtLoad({
         const args = {
             name: first.name,
             component: collection,
-            kind: allNames.has(first.name) ? "name" : "property",
+            kind: isItemName(ref.nodeIdx, collection, first.name)
+                ? "name"
+                : "property",
             suggestion:
                 withIndex(
                     ref,

@@ -258,6 +258,22 @@ describe("A name or a property after a collection names nothing (D59)", () => {
         expect(diagnostics).eqls(["warning doenet-w0104"]);
     });
 
+    it("calls a property a property, though a component elsewhere has that name", async () => {
+        const { texts, diagnostics } = await both(
+            `<math name="x">1</math>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<repeat name="r" for="1 2" valueName="v"><point>($v,3)</point></repeat>
+<p name="p1">$pl.x</p><p name="p2">$r.x</p>`,
+            ["p1", "p2"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({ p1: "＿", p2: "＿" });
+        expect(diagnostics).eqls([
+            "warning doenet-w0199: `$pl.x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$pl[1].x`.",
+            "warning doenet-w0199: `$r.x` names nothing: a `<repeat>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$r[1].x`.",
+        ]);
+    });
+
     it("after the value and index names of a repeat", async () => {
         const { texts, diagnostics } = await both(
             `<repeat name="r" for="3 5" valueName="v" indexName="i"><math name="m">$v+1</math></repeat>
