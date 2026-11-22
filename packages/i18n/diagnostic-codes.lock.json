@@ -345,5 +345,7 @@
     "doenet-w0198": "sort-by-prop-names-nothing",
     "doenet-w0199": "reference-to-variant-control",
     "doenet-w0200": "reference-name-after-collection",
-    "doenet-w0201": "attribute-written-twice"
+    "doenet-w0201": "attribute-written-twice",
+    "doenet-w0202": "boolean-number-mix",
+    "doenet-w0203": "text-ordered-against-number"
 }

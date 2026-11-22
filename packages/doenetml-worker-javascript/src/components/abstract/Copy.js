@@ -8921,7 +8921,10 @@ async function typeChangeStatus({
             return mismatch({
                 level,
                 code: "doenet-e0065",
-                args: { sourceType },
+                args:
+                    rule.kind === "booleanNumber"
+                        ? { sourceType, mix: rule.mix }
+                        : { sourceType },
             });
         }
         if (rule.valueCheck && readValue) {

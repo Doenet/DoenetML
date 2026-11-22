@@ -1037,54 +1037,38 @@ describe("What still changes at run time, without changing what the component is
 <group name="g"><math>$mi</math></group>
 <conditionalContent name="cc"><case condition="$b"><math>(5,6)</math></case><else><math>$mi</math></else></conditionalContent>
 <p name="p1"><point name="P" extend="$g"/></p>
-<p name="p2"><boolean name="B" extend="$g"/></p>
 <p name="p3"><point name="Q" extend="$cc"/></p>
 <p name="p5" extend="$p1"/>
 `);
-        const names = ["p1", "p2", "p3", "p5"];
+        const names = ["p1", "p3", "p5"];
         expect(await d.texts(names)).eqls({
             p1: "＿",
-            p2: "＿",
             p3: "＿",
             p5: "＿",
         });
         for (const name of ["P", "Q"]) {
             expect(await d.typeOf(name), name).eq("point");
         }
-        expect(await d.typeOf("B")).eq("boolean");
         expect(d.newDiagnostics()).eqls(
             [
-                ["point", "g", 6],
-                ["boolean", "g", 7],
-                ["point", "cc", 8],
-            ].map(([T, x, line]) => ({
+                ["g", 6],
+                ["cc", 7],
+            ].map(([x, line]) => ({
                 code: "doenet-i0053",
                 type: "info",
                 line,
-                message:
-                    T === "point"
-                        ? `A \`<point>\` can't be made from \`$${x}\` while its value, x, isn't a tuple of coordinates, so it is missing until it is.`
-                        : `A \`<boolean>\` can't be made from \`$${x}\` while its value, x, isn't true or false, so it is missing until it is.`,
+                message: `A \`<point>\` can't be made from \`$${x}\` while its value, x, isn't a tuple of coordinates, so it is missing until it is.`,
             })),
         );
 
         await d.setMath("mi", "(1,2)");
         expect(await d.texts(names)).eqls({
             p1: "(1, 2)",
-            p2: "＿",
             p3: "(1, 2)",
             p5: "(1, 2)",
         });
         expect(await d.typeOf("P")).eq("point");
-        expect(d.newDiagnostics()).eqls([
-            {
-                code: "doenet-i0053",
-                type: "info",
-                line: 7,
-                message:
-                    "A `<boolean>` can't be made from `$g` while its value, (1, 2), isn't true or false, so it is missing until it is.",
-            },
-        ]);
+        expect(d.newDiagnostics()).eqls([]);
 
         // A case of the same type: only the value is checked.
         await d.setBoolean("b", true);
@@ -1093,11 +1077,7 @@ describe("What still changes at run time, without changing what the component is
         expect(await d.texts(["p3"])).eqls({ p3: "(7, 8)" });
 
         await d.setMath("mi", "1");
-        expect(await d.texts(["p1", "p2", "B"])).eqls({
-            p1: "＿",
-            p2: "true",
-            B: "true",
-        });
+        expect(await d.texts(["p1"])).eqls({ p1: "＿" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
             ["doenet-i0053", 6],
         ]);
@@ -1295,17 +1275,15 @@ describe("What still changes at run time, without changing what the component is
 <p name="p1">$P</p>
 <p name="p2"><math name="m" extend="$cc2" displayDigits="2"/></p>
 <p name="p3"><math extend="$cc"/></p>
-<p name="p4"><boolean extend="$cc2"/></p>
 <p name="p5"><point copy="$cc"/></p>
 <p name="p6" extend="$p2"/>
 <p name="p7">$cc</p>
 `);
-        const names = ["p1", "p2", "p3", "p4", "p5", "p6", "p7"];
+        const names = ["p1", "p2", "p3", "p5", "p6", "p7"];
         expect(await d.texts(names)).eqls({
             p1: "(3, 4)",
             p2: "2",
             p3: "(3, 4)",
-            p4: "true",
             p5: "(3, 4)",
             p6: "2",
             p7: "(3, 4)",
@@ -1318,7 +1296,6 @@ describe("What still changes at run time, without changing what the component is
             p1: "(1, 2)",
             p2: "3.1",
             p3: "(1, 2)",
-            p4: "true",
             // a copy stays as it was made
             p5: "(3, 4)",
             p6: "3.1",
@@ -1357,7 +1334,6 @@ describe("What still changes at run time, without changing what the component is
             p1: "(5, 6)",
             p2: "3.1",
             p3: "(5, 6)",
-            p4: "true",
             // a copy made again from the case it was made from (#2441)
             p5: "(3, 4)",
             p6: "3.1",
@@ -1727,26 +1703,20 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         }
     });
 
-    it("a boolean from a text input, and a number and a math from a boolean input, follow and write back", async () => {
+    // A number or a math is not made from a boolean input (D47 decision 3),
+    // an error at load (`copying/type_change.test.ts`)
+    it("a boolean from a text input follows and writes back", async () => {
         const d = await setup(`
 <textInput name="ti" prefill="true"/>
-<booleanInput name="bi" prefill="true"/>
 <p name="p1"><boolean extend="$ti" name="B"/></p>
-<p name="p2"><math extend="$bi" name="M"/></p>
-<p name="p3"><number extend="$bi" name="N"/></p>
 <booleanInput name="biB" bindValueTo="$B"/>
-<mathInput name="miM" bindValueTo="$M"/>
 `);
-        expect(await shown(d, ["p1", "p2", "p3"])).eqls({
-            p1: "true",
-            p2: "1",
-            p3: "1",
-        });
+        expect(await shown(d, ["p1"])).eqls({ p1: "true" });
 
         await d.setText("ti", "maybe");
         expect(await shown(d, ["p1"])).eqls({ p1: "＿" });
         expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
-            ["doenet-i0053", 4],
+            ["doenet-i0053", 3],
         ]);
         await d.setText("ti", "False");
         expect(await shown(d, ["p1"])).eqls({ p1: "false" });
@@ -1755,23 +1725,6 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         // written back as the word
         await d.setBoolean("biB", true);
         expect(await shown(d, ["ti", "p1"])).eqls({ ti: "true", p1: "true" });
-
-        await d.setBoolean("bi", false);
-        expect(await shown(d, ["p2", "p3"])).eqls({ p2: "0", p3: "0" });
-
-        // `1` and `0` written back as true and false
-        await d.setMath("miM", "1");
-        expect(await shown(d, ["bi", "p2", "p3"])).eqls({
-            bi: "true",
-            p2: "1",
-            p3: "1",
-        });
-        await d.setMath("miM", "0");
-        expect(await shown(d, ["bi", "p2", "p3"])).eqls({
-            bi: "false",
-            p2: "0",
-            p3: "0",
-        });
     });
 
     it("the one component a composite stands for through references follows it as it changes", async () => {

@@ -4381,6 +4381,77 @@ Enter any letter:
         }
     });
 
+    // `credit` on an award or a choice takes a boolean, as in 0.7: true is
+    // full credit and false none. It is made as a `<number convertBoolean>`,
+    // the author asking for 1 or 0, so it is no type mix (D47 decision 3,
+    // #2582).
+    it("credit takes a boolean, a boolean expression, true, or a booleanInput", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="t">true</boolean>
+    <boolean name="f">false</boolean>
+    <number name="n">3</number>
+    <booleanInput name="bi" prefill="true"><label>bi</label></booleanInput>
+    <answer name="a1"><award credit="$t"><when>true</when></award></answer>
+    <answer name="a2"><award credit="$f"><when>true</when></award></answer>
+    <answer name="a3"><award credit="$n > 2"><when>true</when></award></answer>
+    <answer name="a4"><award credit="$t and not $f"><when>true</when></award></answer>
+    <answer name="a5"><award credit="true"><when>true</when></award></answer>
+    <answer name="a6"><award credit="$bi"><when>true</when></award></answer>
+    <answer name="a7">
+        <choiceInput name="ci"><label>ci</label>
+            <choice credit="$t">yes</choice>
+            <choice credit="$f">no</choice>
+        </choiceInput>
+    </answer>
+    `,
+        });
+
+        async function creditOf(name: string) {
+            const answerIdx = await resolvePathToNodeIdx(name);
+            await submitAnswer({ componentIdx: answerIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[answerIdx].stateValues.creditAchieved;
+        }
+
+        expect(await creditOf("a1")).eq(1);
+        expect(await creditOf("a2")).eq(0);
+        expect(await creditOf("a3")).eq(1);
+        expect(await creditOf("a4")).eq(1);
+        expect(await creditOf("a5")).eq(1);
+        expect(await creditOf("a6")).eq(1);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        expect(await creditOf("a6")).eq(0);
+
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            selectedIndices: [1],
+            core,
+        });
+        expect(await creditOf("a7")).eq(1);
+        await updateSelectedIndices({
+            componentIdx: await resolvePathToNodeIdx("ci"),
+            selectedIndices: [2],
+            core,
+        });
+        expect(await creditOf("a7")).eq(0);
+
+        // none of them is a type mix
+        expect(
+            core.core!.diagnostics.filter((d: any) =>
+                ["doenet-w0202", "doenet-e0065"].includes(d.code),
+            ),
+        ).eqls([]);
+    });
+
     it("award credit from boolean", async () => {
         let options = ["meow", "woof", "squeak", "blub"];
         for (let ind = 1; ind <= 4; ind++) {

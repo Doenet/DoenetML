@@ -1818,6 +1818,12 @@ export function checkTypeChangesAtLoad({
                 return undefined;
             }
             const rule = becomes(valueType, writtenType);
+            if (rule.kind === "booleanNumber") {
+                return {
+                    code: "doenet-e0065",
+                    args: { sourceType: valueType, mix: rule.mix },
+                };
+            }
             return rule.allowed || rule.kind !== "unrelated"
                 ? undefined
                 : { code: "doenet-e0065", args: { sourceType: valueType } };
@@ -1842,6 +1848,14 @@ export function checkTypeChangesAtLoad({
         }
         if (rule.kind === "container") {
             return { code: "doenet-e0063", args: { sourceType } };
+        }
+        if (rule.kind === "booleanNumber") {
+            // a boolean as a number, or a number as a boolean (D47
+            // decisions 3 and 4), with the way to ask
+            return {
+                code: "doenet-e0065",
+                args: { sourceType, mix: rule.mix },
+            };
         }
         return { code: "doenet-e0065", args: { sourceType } };
     }
@@ -1917,7 +1931,10 @@ export function checkTypeChangesAtLoad({
             if (!rule.allowed) {
                 return {
                     code: "doenet-e0065",
-                    args: { sourceType },
+                    args:
+                        rule.kind === "booleanNumber"
+                            ? { sourceType, mix: rule.mix }
+                            : { sourceType },
                 };
             }
         }

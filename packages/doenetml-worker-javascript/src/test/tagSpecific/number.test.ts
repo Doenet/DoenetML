@@ -2276,8 +2276,9 @@ describe("Number tag tests @group3", async () => {
         ).eqls(NaN);
     });
 
-    // A boolean is `1` or `0` as a number (REF-5), with or without
-    // `convertBoolean` (#2566); `convertBoolean` reads the content as logic
+    // `convertBoolean` is the one place a boolean is read as `1` or `0` (D47
+    // decision 3, #2582): without it, a boolean in a number is a type mix, a
+    // blank with a warning at load
     it("convertBoolean", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -2300,18 +2301,31 @@ describe("Number tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
         ).eq(0);
+        for (const name of ["n3", "n4", "n5", "n6"]) {
+            const stateValues =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            // a blank, as `<number>$nothing</number>` is (D40)
+            expect(stateValues.valueMissing, name).eq(true);
+        }
         expect(
-            stateVariables[await resolvePathToNodeIdx("n3")].stateValues.value,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("n4")].stateValues.value,
-        ).eq(0);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("n5")].stateValues.value,
-        ).eq(1);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("n6")].stateValues.value,
-        ).eq(0);
+            core
+                .core!.diagnostics.filter((d: any) => d.code === "doenet-w0202")
+                .map((d: any) => [d.position.start.line, d.message]),
+        ).eqls(
+            [
+                [6, "b1"],
+                [7, "b2"],
+                [8, "b1"],
+                [9, "b2"],
+            ].map(([line, b]) => [
+                line,
+                "`$" +
+                    b +
+                    "` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write `<number convertBoolean>$" +
+                    b +
+                    "</number>`.",
+            ]),
+        );
     });
 
     it("a number with convertBoolean of one boolean writes 1 or 0 back as true or false", async () => {
