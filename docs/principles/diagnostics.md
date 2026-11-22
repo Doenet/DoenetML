@@ -162,7 +162,9 @@ renders. A reference to a component in error is missing (VAL-5): it shows a blan
 reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 
 **Known violations:**
-- state-variable cycles throw, and the document fails to load (D14, NAME-7);
+- **fixed by #2625** (D57): a state-variable cycle thrown while the document loads is rebuilt as
+  `e0005` at one authored node, and the rest renders. **Left** (#2633): two cycles at load, and a
+  cycle after an update or first reached after load, still stop the document (D14, NAME-7);
 - a loop where no composite can be singled out still stops the document (#2425);
 - **fixed by #2574** (closing #2536): an unknown name in `variantsToInclude` or
   `variantsToExclude` is ignored with **`doenet-e0079`** at the attribute, and the document loads
@@ -289,5 +291,6 @@ reaches it takes its error explicitly:
   selection failure is an error, proven at load where a value decides it (above). #2511 retired the fluke codes `e0052`/`e0053` and `coprime`'s
   `i0057`: a selection never fails by chance (SEL-4);
 - state-variable cycles that throw (D14) through what #2513 doesn't cover: a property or
-  attribute not in its tables, `$$f($n)`, an index into a `<repeat>` in its own template (#2515);
+  attribute not in its tables, `$$f($n)`, an index into a `<repeat>` in its own template (#2515).
+  Since #2625 (D57) each is `e0005` when the load reaches it;
 - exceptions during interaction (DIAG-5). B36's on reload was fixed by #2481.

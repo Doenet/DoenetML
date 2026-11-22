@@ -432,14 +432,25 @@ the values of what it holds. A cycle through it is `e0005` at the reference, and
 <section name="s"/>
 ```
 
-**Known violations** (#2623): the load check predicts what the run time waits for, fitted to
-probes rather than derived from it. Some shapes still stop the document with a circular dependency:
-a path whose value reads the number (`$r[1].x` of a point reading `$s.sectionNumber`), `$g` of a
-group holding a section and a composite reading the number, a name reached through an inner
-`<conditionalContent>` whose condition reads `s`, and a `<collect>` of sections from a `<p>` that
-holds such a composite. Others stop it for reasons outside the numbering: a composite in a section
-reading that section's own `$s.title`, `$cc.q.title` of a section in a branch, and a `<collect>`
-inside the group it collects from.
+**Done by #2625** (D57, #2623 item 1): a circular dependency thrown while the document loads is
+caught once. One authored node on the cycle is blamed (a reference to a section's number on the
+cycle, else the first reference or composite, else the first component written), and the
+document is rebuilt with it as `e0005`; the rest renders. Every shape the load check missed now
+loads this way: `$r[1].x` of a point reading `$s.sectionNumber`, `$cc.hidden` with
+`hide="$s.sectionNumber=1"`, a composite in a section reading its own `$s.title`, a `<collect>`
+inside the group it collects from, and the seven shapes #2515 listed (`$n.hide` in `n`, `$P.x`
+in `P`, `$l.slope` in a line through a point reading it, …). A generated differential test pins
+the section-number check against the run time (`sectionNumberingDifferential.test.ts`).
+
+**Known violations** (#2633):
+- the section-number edges give a false `e0005` for a `<conditionalContent>` before `s` whose
+  condition reads the number and whose case may make a section: four in the test's sample of
+  150. For a decision: an edge only to a composite whose count the number can change;
+- two independent cycles at load still stop the document (the rebuild meets the second). For a
+  decision: repeat the backstop, with a cap;
+- in a chain of copies, the blame can fall on a middle reference that doesn't break the cycle;
+- a cycle that appears only after an update, or that the load never reaches (a hidden point
+  reading its own coordinate in a repeat, read later), still stops the document (D14).
 
 Known violations:
 - **fixed by #2547** (#2515's eight items, #2521 item 4), each `e0005` at load, with the attributes

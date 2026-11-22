@@ -538,6 +538,10 @@ removes child indexing everywhere, not only for choices (#2424, and with no depr
 **Recommendation.** Every cycle is an error on the authored component, and the rest renders.
 This is also the direction of ADRs 0013 and 0014.
 
+**Status:** composite cycles since early; reference cycles found at load since #2471/#2513;
+every cycle thrown while the document loads since #2625 (D57). Left (#2633): two cycles at load,
+and a cycle after an update.
+
 **Tests that change:** the `rejects.toThrow` assertions in
 `T/diagnostics/circularReferences.test.ts:27-67`, `:722`, `:755`, and
 `value_references.test.ts:596`.
@@ -3177,7 +3181,7 @@ never true, silently (#2623 item 8).
 4. The type-mix warning for ordering a text against a number (#2623 item 8, if decided) suggests
    `ownNumber` when the text is a `sectionNumber`.
 
-## D57. A circular dependency thrown while the document loads becomes a located `e0005` (decided, Tier 2; November 2026)
+## D57. A circular dependency thrown while the document loads becomes a located `e0005` (decided, Tier 2; November 2026; done by #2625)
 
 The load-time cycle checks (#2471, #2513, #2618) predict what the run time waits for, and some
 shapes they miss still stop the whole document with "Circular dependency" (#2623 item 1; D14's main
@@ -3190,7 +3194,11 @@ known violation).
    - It rebuilds with that node as `e0005`, through the load check's error path.
    - The rest of the document renders (D14, NAME-7).
 2. The load-time prediction becomes an optimization. It should err toward missing an edge (the
-   backstop catches it) rather than adding one (a false `e0005`).
+   backstop catches it) rather than adding one (a false `e0005`). **Amended by #2625's finding:**
+   this doesn't hold for an edge to a composite whose count the number changes
+   (`<repeatForSequence to="$s.sectionNumber">`). That cycle runs away without throwing, so only
+   the edge stops it. Edges stay for those; an edge to a case that can only flip may be dropped
+   (#2633 item 1, for a decision).
 3. A generated differential test pins the numbering check against the run time. It runs each
    generated document with the number edges on and off, and CI runs a fixed sample.
 4. **Still a known violation:** a cycle that appears only after an update still stops the
