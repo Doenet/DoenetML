@@ -64,10 +64,15 @@ from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't 
 - several components declare all-lowercase compound names (`halign`, `xintercept`,
   `circumradius`, `xoffset`, …) where the convention is camelCase. The docs taught `hAlign` and
   `yIntercept`, which no longer work. Decided (D60): rename them to camelCase before the release;
-- a `<module>`'s declared attributes, and an external reference's content (`copy="doenet:…"`),
-  are still matched without case;
-- `w0104` suggests no spelling for an array entry or alias in another case (`$P.X1`);
-- a `sortByProp` naming no property sorts silently;
+- **fixed by #2628:** a `<module>`'s declared attributes and an external reference's content are
+  matched exactly (with `w0197` for the fallback release); `w0104` for an array entry or alias in
+  another case suggests the index form (`$poly.Vertex2` → `$poly.vertices[2]`), and `w0044` the
+  property; a `sortByProp` naming no property is **`doenet-w0198`** at load; `w0065` and `e0003`
+  are retired;
+- the language server still matches tag names and a module's declared attributes without case;
+- an attribute written twice in the same case is collapsed silently (for a decision: a warning);
+- a tag name written as a value (`<collect componentType="Point">`) is read without case (for a
+  decision: exact, as a name, with `w0197` for one release);
 - `w0197` becomes `e0004` in a later release.
 
 ### NAME-1: nearest match wins; a tie is an error, not a guess (Tier 1)
