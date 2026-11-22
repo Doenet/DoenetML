@@ -468,6 +468,34 @@ describe("A collection followed by the every-branch rule (D59, COMP-11)", () => 
                 .map((d) => d.split(":")[0]),
         ).eqls(["warning doenet-w0183", "warning doenet-w0183"]);
     });
+
+    it("a repeat's value and index after an index, an item holding a list, and a collection in some cases only (review cycle 6)", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="o" for="(1,2) (3,4)" valueName="v" indexName="i"><pointList>(7,8) (9,10)</pointList></repeat>
+<conditionalContent name="cc"><case condition="true"><repeat name="r" for="1 2" valueName="w"><point name="P">($w,1)</point></repeat></case><else><group name="r"><point name="P">(5,5)</point></group></else></conditionalContent>
+<conditionalContent name="dd"><case condition="true"><select name="s" numToSelect="2"><option><point>(1,1)</point></option><option><point>(2,2)</point></option></select></case><else><select name="s"><option><point>(3,3)</point></option></select></else></conditionalContent>
+<p name="v1">$o[1].v.x</p><p name="v2">$o[2].v</p><p name="v3">$o[2].i</p>
+<p name="p1">$o[1].x</p><p name="i1">$o[2][2].x</p>
+<p name="p2">$cc.r.P</p><p name="p3">$dd.s.x</p>`,
+            ["v1", "v2", "v3", "p1", "i1", "p2", "p3"],
+            { withMessages: true },
+        );
+        // The value and index of an item are its own, though the item holds
+        // only a list; `$cc.r.P` was a blank with no warning, and `$dd.s.x`
+        // each pick's `x` (`1, 2`) while the first case is active.
+        expect(texts).eqls({
+            v1: "1",
+            v2: "(3, 4)",
+            v3: "2",
+            p1: "＿",
+            i1: "9",
+            p2: "＿",
+            p3: "＿",
+        });
+        expect(
+            diagnostics.map((d) => d.replace(/^.*such as `([^`]*)`\.$/, "$1")),
+        ).eqls(["$cc.r[1].P", "$dd.s[1].x", "$o[1][1].x"]);
+    });
 });
 
 describe("A tag made from a name or a property after a collection (D59)", () => {

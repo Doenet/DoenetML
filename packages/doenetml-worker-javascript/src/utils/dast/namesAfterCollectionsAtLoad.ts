@@ -531,6 +531,19 @@ export function checkNamesAfterCollectionsAtLoad({
         } as SerializedComponent;
     }
 
+    /**
+     * Whether `name` is the `valueName` or `indexName` of the repeat `node`,
+     * which an item has though nothing written in it declares it (`$o[1].v`).
+     */
+    function namedBySetup(node: SerializedComponent, name: string) {
+        return (node.children ?? []).some(
+            (child) =>
+                typeof child === "object" &&
+                child.componentType.startsWith("_repeat") &&
+                (nameOf(child) === name || declaresBelow(child, name)),
+        );
+    }
+
     /** Whether an index into `node` picks one of its items (a repeat's). */
     function takesItemIndex(node: SerializedComponent | undefined) {
         return (
@@ -615,10 +628,14 @@ export function checkNamesAfterCollectionsAtLoad({
      *   (`branches.named`, COMP-11), one name at a time, up to the first
      *   collection: `$cc.r.P`, `$r.P` of a repeat in a case, `$s[1].t.T`. A
      *   name not every branch declares, or declared twice, is not followed
-     *   (it is `doenet-w0183` or ambiguous there), and one naming components
-     *   of different tags in different branches is left to `doenet-w0184`;
+     *   (it is `doenet-w0183` or ambiguous there). One naming components of
+     *   different tags, or a collection in some branches only, is left to
+     *   that rule when it reports the whole reference (`doenet-w0183`,
+     *   `doenet-w0184`), and is otherwise the first collection among them
+     *   (`inSomeBranches`);
      * - one a name reaches after an index into the items of a repeat
-     *   (`$o[1].t.T`), read the same way in what is written in it;
+     *   (`$o[1].t.T`), read the same way in what is written in it, but not
+     *   its value or index (`$o[1].v`, `namedBySetup`);
      * - one every branch stands for, through the one component each holds
      *   (`$cc.x`, `$cc[1].x` of a case holding a list, COLL-3).
      *
@@ -646,18 +663,30 @@ export function checkNamesAfterCollectionsAtLoad({
             first?.name === "" &&
             (first.index ?? []).length === 1;
         let container = branches.containerAt(idx, indexed);
-        // after an index into the branch a container shows (`$cc[1]`)
-        let inBranch = indexed && container !== undefined;
+        // the repeat whose item `container` stands for (`itemAsBranch`)
+        let itemOf: SerializedComponent | undefined;
         if (!container && indexed && node && takesItemIndex(node)) {
             container = itemAsBranch(node);
+            itemOf = node;
         }
         if (!container) {
             return undefined;
         }
+        // after an index into the branch a container shows (`$cc[1]`), or
+        // into the items of a repeat (`$o[1]`)
+        let inBranch = indexed;
         let names: string[] = [];
         for (let at = indexed ? 1 : 0; at < path.length; at++) {
             const part = path[at];
             if (typeof part?.name !== "string" || part.name === "") {
+                return undefined;
+            }
+            if (
+                names.length === 0 &&
+                itemOf &&
+                namedBySetup(itemOf, part.name)
+            ) {
+                // the item's value or index (`$o[1].v`), not a name in it
                 return undefined;
             }
             names.push(part.name);
@@ -684,9 +713,21 @@ export function checkNamesAfterCollectionsAtLoad({
                     index: "[1]".repeat(stood.levels + (inBranch ? 0 : 1)),
                 };
             }
+            if (declared === "types") {
+                // components of different tags, of which only some may be
+                // collections (`r` a `<repeat>` in one case and a `<group>`
+                // in another)
+                return inSomeBranches(
+                    container,
+                    names,
+                    path,
+                    at,
+                    indexed && names.length === 1,
+                );
+            }
             if (declared !== "ok") {
-                // a branch lacks it (`doenet-w0183`), or they differ in tag
-                // (`doenet-w0184`), as decided by the checks after this
+                // a branch lacks it (`doenet-w0183`), or they declare it
+                // twice, as decided by the checks after this
                 return undefined;
             }
             const named = branches.named(container, names) ?? [];
@@ -706,6 +747,8 @@ export function checkNamesAfterCollectionsAtLoad({
                     takesItemIndex(named[0])
                 ) {
                     container = itemAsBranch(named[0]);
+                    itemOf = named[0];
+                    inBranch = true;
                     names = [];
                     continue;
                 }
@@ -732,8 +775,73 @@ export function checkNamesAfterCollectionsAtLoad({
                 };
             }
             if (collections.some((collection) => collection !== undefined)) {
-                // a collection in some branches only: types that differ
-                return undefined;
+                // a collection in some branches only (a `<select>` that
+                // picks several in one case and one in another)
+                return inSomeBranches(
+                    container,
+                    names,
+                    path,
+                    at,
+                    indexed && names.length === 1,
+                );
+            }
+            itemOf = undefined;
+        }
+        return undefined;
+    }
+
+    /**
+     * For the names `names` (up to `path[at]`), which name components of
+     * which only some are collections in the branches of `container`, or
+     * components of different tags: the first collection among them, so
+     * that what follows it names nothing (D59), unless the every-branch rule
+     * reports the reference already (`doenet-w0183`, `doenet-w0184`), as it
+     * does when what the whole path names differs between branches. Without
+     * this, such a reference would read a pick's items while one branch is
+     * active and the component in another, with no warning.
+     */
+    function inSomeBranches(
+        container: SerializedComponent,
+        names: string[],
+        path: any[],
+        at: number,
+        /** for a name after an index into picks (`branches.declares`) */
+        indexed: boolean,
+    ):
+        | { nodeIdx: number; at: number; collection: string; index: string }
+        | undefined {
+        const next = path[at + 1];
+        if (
+            !branches ||
+            (path[at].index ?? []).length > 0 ||
+            typeof next?.name !== "string" ||
+            next.name === ""
+        ) {
+            return undefined;
+        }
+        // the names of the whole path, up to an index
+        const whole = [...names];
+        for (const part of path.slice(at + 1)) {
+            if (typeof part?.name !== "string" || part.name === "") {
+                break;
+            }
+            whole.push(part.name);
+            if ((part.index ?? []).length > 0) {
+                break;
+            }
+        }
+        if (branches.declares(container, whole, indexed) !== "ok") {
+            return undefined;
+        }
+        for (const component of branches.named(container, names) ?? []) {
+            const collection = collectionOf(component, next.name, new Set());
+            if (collection !== undefined) {
+                return {
+                    nodeIdx: component.componentIdx,
+                    at: at + 1,
+                    collection,
+                    index: "[1]",
+                };
             }
         }
         return undefined;
