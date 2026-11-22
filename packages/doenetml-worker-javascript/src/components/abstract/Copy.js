@@ -1368,8 +1368,8 @@ export default class Copy extends CompositeComponent {
                     // A property whose class declares no type, as the
                     // `selectedValues` of a `<choiceInput>`, which the
                     // DoenetML decides at load: one a tag can be made from
-                    // is checked at load, and, as a math's is, against its
-                    // value, decided again as it changes (#2488).
+                    // is checked at load, and against its value as a math's
+                    // is, checked again as the value changes (#2488).
                     return {
                         setValue: {
                             typeChangeValueCheck: typeChangeRule({

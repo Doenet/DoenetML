@@ -168,14 +168,16 @@ Each response has a type: its input's type (a math for a `<mathInput>{:dn}`, a t
 no value, such as a `<line>{:dn}`). Responses may differ in type, so `currentResponses[2]`
 has the type of the second response. The types are decided from what is written,
 before anything is entered. A response that is missing, such as a `<choiceInput>{:dn}` with
-nothing selected, keeps its type, and is a blank. A response a `<conditionalContent>{:dn}`
+nothing selected, keeps its type: a missing math or text is a blank, a number is `NaN`, and a
+boolean is `false`. A response a `<conditionalContent>{:dn}`
 holds must have the same type in every case.
 
 When responses of different types are in places known only once the page is in use, such
 as beside a list whose length can change, which response has which type isn't decided by
 what is written. Referring to them, as `$ans`, `$ans.currentResponses` or
-`currentResponses[2]`, is then an error. Refer to a response whose place is known, or give
-the responses one type.
+`currentResponses[2]`, is then an error, whichever response it names. Refer to the input
+that gives a response instead (`$mi` for a `<mathInput name="mi"/>{:dn}`), or give the
+responses one type.
 
 
 

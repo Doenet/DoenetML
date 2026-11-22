@@ -2262,7 +2262,7 @@ answer-responses-of-several-types = An `<answer>` reads a response from this `<c
 # values, and `other` for any other property.
 property-type-undecided =
     { $what ->
-        [responses] `{ $source }` reads an `<answer>`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read a response whose place is known, or give the responses one type.
+        [responses] `{ $source }` reads an `<answer>`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read the input or component that gives the response instead, or give the responses one type.
         [choices] `{ $source }` reads a `<choiceInput>`'s values, but whether they are maths or texts isn't decided by what is written in its choices. Write each choice's content so that its type is known.
        *[other] `{ $source }` reads a property whose type isn't decided by what is written, so it can't be read.
     }

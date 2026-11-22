@@ -27,7 +27,7 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         `doenet-e0065: A \`<${T}>\` can't be made from \`${source}\`, which gives a \`<${sourceType}>\`. To show it as it is, write \`${source}\`.`;
 
     const e0090 = (source: string) =>
-        `doenet-e0090: \`${source}\` reads an \`<answer>\`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read a response whose place is known, or give the responses one type.`;
+        `doenet-e0090: \`${source}\` reads an \`<answer>\`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read the input or component that gives the response instead, or give the responses one type.`;
 
     function errors(core: any) {
         return getDiagnosticsByType(core).errors.map(
@@ -674,8 +674,9 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         // `<answer extend="$cc"/>` of a `<conditionalContent>` holding an
         // `<answer>` in every case extends it (REF-7, D32), so what it would
         // change of it is an error at load, as for an extend of the answer
-        // itself; the same for a `<select>` and a `<choiceInput>` in a
-        // `<group>`. Appearance attributes stay allowed.
+        // itself; the same for a `<select>`, and for a `<choiceInput>`'s
+        // errors. (Through a `<group>` these were already found.)
+        // Appearance attributes stay allowed.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <booleanInput name="b"/>
@@ -688,15 +689,15 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
 <answer name="e3" extend="$cc" showCorrectness="false"/>
 <select name="s"><option><answer><mathInput/><award><when>true</when></award></answer></option></select>
 <answer name="e4" extend="$s" weight="3"/>
-<group name="g"><choiceInput><choice>a</choice></choiceInput></group>
-<choiceInput name="e5" extend="$g"><choice>b</choice></choiceInput>
+<select name="sc"><option><choiceInput><choice>a</choice></choiceInput></option></select>
+<choiceInput name="e5" extend="$sc"><choice>b</choice></choiceInput>
 `,
         });
         expect(errors(core)).eqls([
             "doenet-e0083: An `extend` of an `<answer>` shares its responses and credit with `$cc`, which grades them, so it can't change `weight`. To grade with a different `weight`, use `copy`.",
             "doenet-e0084: What is written inside an `extend` of an `<answer>` would be new inputs, awards or responses, but an extend shares its responses and credit with `$cc`. To make an answer that grades more, use `copy`. An extend may be given a `<label>`.",
             "doenet-e0083: An `extend` of an `<answer>` shares its responses and credit with `$s`, which grades them, so it can't change `weight`. To grade with a different `weight`, use `copy`.",
-            "doenet-e0058: Choices written inside an `extend` of a `<choiceInput>` would be new choices, but an extend shares its selection with `$g`, which has no such choice. To offer more choices, use `copy`.",
+            "doenet-e0058: Choices written inside an `extend` of a `<choiceInput>` would be new choices, but an extend shares its selection with `$sc`, which has no such choice. To offer more choices, use `copy`.",
         ]);
         const stateVariables = await core.returnAllStateVariables(false, true);
         for (const [name, type] of [
