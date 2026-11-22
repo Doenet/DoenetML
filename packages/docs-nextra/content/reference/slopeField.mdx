@@ -98,7 +98,7 @@ to writing the expression out.
 
 In a graph with `renderer="prefigure"`, the field is drawn as PreFigure's own slope field, so an
 [`<annotation>{:dn}`](annotation) can describe it as a single object. PreFigure draws the field once,
-at the graph's axis limits, on the same lattice: `dx`, `dy`, `xoffset`, `yoffset` and `maxMarks`
+at the graph's axis limits, on the same lattice: `dx`, `dy`, `xOffset`, `yOffset` and `maxMarks`
 mean what they mean above, and a lattice point outside the function's `domain` gets no mark.
 
 A few things are drawn differently:
@@ -186,16 +186,16 @@ scaled.
 
 ---
 
-### Attribute Example: xoffset, yoffset
+### Attribute Example: xOffset, yOffset
 
 ```doenet-editor-horiz
 <graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5" identicalAxisScales>
   <shortDescription>A slope field whose lattice is shifted half a unit</shortDescription>
-  <slopeField xoffset="0.5" yoffset="0.5">y</slopeField>
+  <slopeField xOffset="0.5" yOffset="0.5">y</slopeField>
 </graph>
 ```
 
-`xoffset` and `yoffset` shift the lattice so a mark falls at `(xoffset, yoffset)`. Both default to
+`xOffset` and `yOffset` shift the lattice so a mark falls at `(xOffset, yOffset)`. Both default to
 0, which puts a mark at the origin.
 
 

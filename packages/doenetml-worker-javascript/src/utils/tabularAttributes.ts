@@ -94,7 +94,7 @@ export function returnValignValidValues(): ValueEntry[] {
  * declarations ask for before matching. The `<row>` and `<cell>` versions have
  * no `createStateVariable` and reach their state variables as a raw text
  * component, so they normalize here instead and all three components accept
- * `halign="Center"` and `halign="center"` alike.
+ * `hAlign="Center"` and `hAlign="center"` alike.
  */
 export function readVocabularyValue(
     value: unknown,

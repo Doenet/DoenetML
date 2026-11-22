@@ -923,7 +923,7 @@ export default class PiecewiseFunction extends Function {
                     childGroups: ["functions"],
                     variableNames: [
                         "domain",
-                        "xscale",
+                        "xScale",
                         "isInterpolatedFunction",
                         "xs",
                         "coeffs",

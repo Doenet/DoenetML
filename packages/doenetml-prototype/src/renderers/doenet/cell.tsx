@@ -8,7 +8,7 @@ type CellData = {
         bottomBorder: BorderStyle;
         endBorder: BorderStyle;
         colspan: number;
-        halign: "start" | "center" | "end" | "justify";
+        hAlign: "start" | "center" | "end" | "justify";
         header: boolean;
     };
 };
@@ -38,8 +38,8 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
                     node.data.props.bottomBorder,
                 [`border-inline-end-${node.data.props.endBorder}`]:
                     node.data.props.endBorder,
-                [`text-align-${node.data.props.halign}`]:
-                    node.data.props.halign,
+                [`text-align-${node.data.props.hAlign}`]:
+                    node.data.props.hAlign,
             })}
             colSpan={node.data.props.colspan}
         >

@@ -6138,8 +6138,8 @@ describe("Evaluate tag tests @group2", async () => {
   <function name="interpThrough" extend="$interp" through="(0,1) (1,0) (2,1)" />
   <function name="interpMaxima" extend="$interp" maxima="(1.5,3)" />
   <function name="interpExtrema" maxima="(1,1)" minima="(3,0)" />
-  <function name="interpXscale" extend="$interpExtrema" xscale="5" />
-  <function name="interpYscale" extend="$interpExtrema" yscale="5" />
+  <function name="interpXscale" extend="$interpExtrema" xScale="5" />
+  <function name="interpYscale" extend="$interpExtrema" yScale="5" />
   <graph>
     <curve><function name="inCurve" extend="$f" /></curve>
     <curve variable="t"><function name="inCurveT" extend="$f" /></curve>

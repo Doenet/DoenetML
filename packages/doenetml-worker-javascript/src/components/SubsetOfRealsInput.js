@@ -31,7 +31,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        // xMin/xMax/width/height/dx/xlabel are declared on the descriptor
+        // xMin/xMax/width/height/dx/xLabel are declared on the descriptor
         // but currently do nothing (the renderer hard-codes width="808" /
         // height="80" and ignores the rest; dx="1" actively breaks
         // negative-point input). Hidden from the schema (and therefore the
@@ -73,10 +73,10 @@ export default class SubsetOfRealsInput extends BlockComponent {
             forRenderer: true,
             excludeFromSchema: true,
         };
-        attributes.xlabel = {
+        attributes.xLabel = {
             description: "Label rendered for the x axis.",
             createComponentOfType: "text",
-            createStateVariable: "xlabel",
+            createStateVariable: "xLabel",
             defaultValue: "",
             public: true,
             forRenderer: true,

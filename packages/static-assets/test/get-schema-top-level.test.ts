@@ -168,43 +168,43 @@ describe("generated schema top-level elements", () => {
     });
 
     describe("list-valued enumerated attributes are marked with isList", () => {
-        it("sideBySide.valigns carries values, autocompleteValues, and isList", () => {
+        it("sideBySide.vAligns carries values, autocompleteValues, and isList", () => {
             const schema = getSchema();
             const elementsByName = Object.fromEntries(
                 schema.elements.map((element) => [element.name, element]),
             );
 
-            const valigns = elementsByName.sideBySide.attributes.find(
-                (attribute) => attribute.name === "valigns",
+            const vAligns = elementsByName.sideBySide.attributes.find(
+                (attribute) => attribute.name === "vAligns",
             );
-            expect(valigns).toBeDefined();
-            if (!valigns) {
-                throw new Error("Expected sideBySide.valigns attribute");
+            expect(vAligns).toBeDefined();
+            if (!vAligns) {
+                throw new Error("Expected sideBySide.vAligns attribute");
             }
-            expect(valigns.type).toBe("keyword");
-            expect(valigns.isList).toBe(true);
-            expect(valigns.values).toEqual(["top", "middle", "bottom"]);
+            expect(vAligns.type).toBe("keyword");
+            expect(vAligns.isList).toBe(true);
+            expect(vAligns.values).toEqual(["top", "middle", "bottom"]);
             expect(
-                valigns.autocompleteValues?.map((entry) => entry.value),
+                vAligns.autocompleteValues?.map((entry) => entry.value),
             ).toEqual(["top", "middle", "bottom"]);
         });
 
-        it("does not mark the scalar valign attribute as a list", () => {
+        it("does not mark the scalar vAlign attribute as a list", () => {
             const schema = getSchema();
             const elementsByName = Object.fromEntries(
                 schema.elements.map((element) => [element.name, element]),
             );
 
-            const valign = elementsByName.sideBySide.attributes.find(
-                (attribute) => attribute.name === "valign",
+            const vAlign = elementsByName.sideBySide.attributes.find(
+                (attribute) => attribute.name === "vAlign",
             );
-            expect(valign).toBeDefined();
-            if (!valign) {
-                throw new Error("Expected sideBySide.valign attribute");
+            expect(vAlign).toBeDefined();
+            if (!vAlign) {
+                throw new Error("Expected sideBySide.vAlign attribute");
             }
-            expect(valign.type).toBe("keyword");
-            expect(valign.isList).toBeUndefined();
-            expect(valign.values).toEqual(["top", "middle", "bottom"]);
+            expect(vAlign.type).toBe("keyword");
+            expect(vAlign.isList).toBeUndefined();
+            expect(vAlign.values).toEqual(["top", "middle", "bottom"]);
         });
     });
 });

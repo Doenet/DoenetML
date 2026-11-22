@@ -202,12 +202,12 @@ describe("Graph Reference Test @group2", async () => {
                 expect(
                     stateVariables[
                         line
-                    ].stateValues.xintercept.evaluate_to_constant(),
+                    ].stateValues.xIntercept.evaluate_to_constant(),
                 ).closeTo(xinterceptA, 1e-12);
                 expect(
                     stateVariables[
                         line
-                    ].stateValues.yintercept.evaluate_to_constant(),
+                    ].stateValues.yIntercept.evaluate_to_constant(),
                 ).closeTo(yinterceptA, 1e-12);
             }
             for (let line of linesB) {
@@ -219,12 +219,12 @@ describe("Graph Reference Test @group2", async () => {
                 expect(
                     stateVariables[
                         line
-                    ].stateValues.xintercept.evaluate_to_constant(),
+                    ].stateValues.xIntercept.evaluate_to_constant(),
                 ).closeTo(xinterceptB, 1e-12);
                 expect(
                     stateVariables[
                         line
-                    ].stateValues.yintercept.evaluate_to_constant(),
+                    ].stateValues.yIntercept.evaluate_to_constant(),
                 ).closeTo(yinterceptB, 1e-12);
             }
         }

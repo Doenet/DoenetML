@@ -77,11 +77,11 @@ visually wider "columns" within a table.
 
 ---
 
-### Attribute Example: halign
+### Attribute Example: hAlign
 
 
 ```doenet-editor-horiz
- <table><title><attr>halign</attr> examples</title>
+ <table><title><attr>hAlign</attr> examples</title>
     <tabular topBorder="minor" bottomBorder="minor" startBorder="minor" endBorder="minor">
       <row>
         <cell>start</cell>
@@ -90,10 +90,10 @@ visually wider "columns" within a table.
         <cell>end</cell>
       </row>
       <row>
-        <cell halign="start">🟣</cell>
-        <cell halign="center">🔴</cell>
-        <cell halign="justify">🟢</cell>
-        <cell halign="end">🔵</cell>
+        <cell hAlign="start">🟣</cell>
+        <cell hAlign="center">🔴</cell>
+        <cell hAlign="justify">🟢</cell>
+        <cell hAlign="end">🔵</cell>
       </row>
     </tabular>
   </table>    
@@ -101,13 +101,13 @@ visually wider "columns" within a table.
 
 
 
-The `halign` attribute governs the horizontal alignment of 
+The `hAlign` attribute governs the horizontal alignment of 
 content within the `<cell>{:dn}`. Valid values are `start` (default), `center`,
 `end`, and `justify`. `start` and `end` follow the writing direction: `start` is
 the left edge in a left-to-right document and the right edge in a right-to-left
 one.
 
-A cell with no `halign` of its own takes one from its
+A cell with no `hAlign` of its own takes one from its
 [`<row>{:dn}`](row_table), then from its column's [`<col>{:dn}`](col), then from
 the [`<tabular>{:dn}`](tabular), in that order.
 
@@ -204,13 +204,13 @@ The `prefill` attribute provides another way to specify content within the cell.
   <table>
     <tabular topBorder="minor">
       <row>
-        <cell name="c1" bottomBorder="major" halign="center"><math>pi/4</math></cell>
+        <cell name="c1" bottomBorder="major" hAlign="center"><math>pi/4</math></cell>
         <cell name="c2" endBorder="minor" prefill="A"/>
       </row>
     </tabular>
   </table> 
   <p>First cell, <c>colSpan</c> = $c1.colSpan</p>
-  <p>First cell, <c>halign</c> = $c1.halign</p>
+  <p>First cell, <c>hAlign</c> = $c1.hAlign</p>
   <p>First cell, <c>bottomBorder</c> = $c1.bottomBorder</p>
   <p>Second cell, <c>endBorder</c> = $c2.endBorder</p>
   <p>Second cell, <c>prefill</c> = $c2.prefill</p>

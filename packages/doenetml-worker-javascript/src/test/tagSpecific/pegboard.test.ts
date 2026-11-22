@@ -35,7 +35,7 @@ describe("Pegboard tag tests @group4", async () => {
             doenetML: `
   <graph>
     <pegboard name="a" />
-    <pegboard name="b" dx="0.5" dy="2" xoffset="0.25" yoffset="-1" />
+    <pegboard name="b" dx="0.5" dy="2" xOffset="0.25" yOffset="-1" />
   </graph>
   `,
         });
@@ -46,12 +46,12 @@ describe("Pegboard tag tests @group4", async () => {
 
         expect(a.stateValues.dx).eq(1);
         expect(a.stateValues.dy).eq(1);
-        expect(a.stateValues.xoffset).eq(0);
-        expect(a.stateValues.yoffset).eq(0);
+        expect(a.stateValues.xOffset).eq(0);
+        expect(a.stateValues.yOffset).eq(0);
 
         expect(b.stateValues.dx).eq(0.5);
         expect(b.stateValues.dy).eq(2);
-        expect(b.stateValues.xoffset).eq(0.25);
-        expect(b.stateValues.yoffset).eq(-1);
+        expect(b.stateValues.xOffset).eq(0.25);
+        expect(b.stateValues.yOffset).eq(-1);
     });
 });

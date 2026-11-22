@@ -19,7 +19,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
   <number hide="true" name="numPoints">1</number>
 
   <point name="P1" hide="true" x="-1.5" y="0">
-    <attractToGrid dx="0.2" xthreshold="0.05"/>
+    <attractToGrid dx="0.2" xThreshold="0.05"/>
   </point>
 
     

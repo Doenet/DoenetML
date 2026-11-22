@@ -71,11 +71,11 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         );
     });
 
-    it("places the lattice by dx, dy, xoffset and yoffset", async () => {
+    it("places the lattice by dx, dy, xOffset and yOffset", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(`
-  <slopeField dx="2" dy="0.5" xoffset="1" yoffset="0.25">y</slopeField>
-  <slopeField dx="-2" dy="-0.5" xoffset="1" yoffset="0.25">y</slopeField>`),
+  <slopeField dx="2" dy="0.5" xOffset="1" yOffset="0.25">y</slopeField>
+  <slopeField dx="-2" dy="-0.5" xOffset="1" yOffset="0.25">y</slopeField>`),
         );
 
         const spacings = [...prefigureXML.matchAll(/spacings="([^"]*)"/g)].map(
@@ -125,7 +125,7 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
   <slopeField dx="1e-20">y</slopeField>
   <slopeField>ln(-1 - x^2)</slopeField>
   <vectorField>(sqrt(-1 - x^2), 1)</vectorField>
-  <slopeField dx="1e-12" dy="25" yoffset="12.5">y</slopeField>`);
+  <slopeField dx="1e-12" dy="25" yOffset="12.5">y</slopeField>`);
         const prefigureXML = await getPrefigureXML(doenetML);
 
         expect(prefigureXML).toContain('<group at="slopefield_0" />');
@@ -457,7 +457,7 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(`
   <slopeField dx="0.1"><function domain="[0,2]">sqrt(2-x)</function></slopeField>
-  <vectorField dx="-0.5" dy="2" xoffset="0.25" yoffset="1">(1/x, 0)</vectorField>`),
+  <vectorField dx="-0.5" dy="2" xOffset="0.25" yOffset="1">(1/x, 0)</vectorField>`),
         );
 
         // 201 x 21 lattice points exceed maxMarks, so the slope field keeps
@@ -765,7 +765,7 @@ describe("Graph prefigure renderer slope and vector fields @group4", () => {
             ["y", "vectorField", "(1, 1)"],
         ]) {
             const doenetML = prefigureGraph(
-                `<${field} ${axis}offset="100000000000000000">${fn}</${field}>`,
+                `<${field} ${axis}Offset="100000000000000000">${fn}</${field}>`,
                 {
                     attrs: `${axis}Min="100000000000000000" ${axis}Max="100000000000000032"`,
                 },

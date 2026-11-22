@@ -12,7 +12,7 @@ interface CellSVs {
     bottomBorder?: any;
     colSpan: number;
     columnIndex?: number | null;
-    halign?: any;
+    hAlign?: any;
     inHeader: boolean;
     endBorder?: any;
     text: string;
@@ -38,8 +38,8 @@ export default React.memo(function Cell(props: UseDoenetRendererProps) {
     if (SVs.colSpan !== 1) {
         properties.colSpan = SVs.colSpan;
     }
-    if (SVs.halign !== null) {
-        properties.style!.textAlign = SVs.halign;
+    if (SVs.hAlign !== null) {
+        properties.style!.textAlign = SVs.hAlign;
     }
     if (SVs.bottomBorder !== "none") {
         properties.style!.borderBottomStyle = "solid";
