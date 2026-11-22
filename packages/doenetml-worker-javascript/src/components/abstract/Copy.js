@@ -8033,6 +8033,34 @@ async function blankInPlaceOfNothing({
     if (shown.some(Boolean) || !oneThing) {
         return;
     }
+    /** What the workspace records for a copy showing only the blank. */
+    function setBlankWorkspace() {
+        workspace.numReplacementsBySource = [1];
+        workspace.numNonStringReplacementsBySource = [1];
+        workspace.sourceIndices = [];
+        workspace.propVariablesCopiedBySource = [];
+        workspace.sourceContainsCopyBySource = [];
+    }
+    if (
+        (component.replacementsToWithhold ?? 0) === 0 &&
+        component.replacements.length === 1 &&
+        component.replacements[0].componentType === "_missing"
+    ) {
+        // It shows the blank already: keep it, rather than replace it with
+        // a new one, which queues the copy, and what shows it, to be updated
+        // again, without end (`$ls[$i]` with `i` past the end, shown by a
+        // group's copy, Doenet/DoenetML#2643 item 2).
+        result.replacementChanges = (result.replacementChanges ?? []).filter(
+            (change) =>
+                !(
+                    change.changeTopLevelReplacements &&
+                    (change.changeType === "add" ||
+                        change.changeType === "delete")
+                ) && change.changeType !== "changeReplacementsToWithhold",
+        );
+        setBlankWorkspace();
+        return;
+    }
     const stateIdInfo = {
         prefix: `${component.stateId}|`,
         num: workspace.replacementsCreated,
@@ -8060,11 +8088,7 @@ async function blankInPlaceOfNothing({
             serializedReplacements: [missing],
         },
     ];
-    workspace.numReplacementsBySource = [1];
-    workspace.numNonStringReplacementsBySource = [1];
-    workspace.sourceIndices = [];
-    workspace.propVariablesCopiedBySource = [];
-    workspace.sourceContainsCopyBySource = [];
+    setBlankWorkspace();
 }
 
 /**
