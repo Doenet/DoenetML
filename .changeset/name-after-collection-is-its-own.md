@@ -10,6 +10,8 @@
 
 Which a tag is comes from the tag as written, never from how many items it holds: a `<mathList>` of one entry is still a list (`$ml.x` names nothing), and `numToSelect="$n"` is a collection even while `n` is 1. A name written inside a list, a `<sort>` or a `<shuffle>`, or inside the list an `extend` or `copy` copies, is still that component (`$pl.P` of a `<point name="P">` written in it). A `<group>` holding only a collection, or only a reference to one, stands for it: `$g.x` of `<group name="g">$r</group>` names nothing, as `$r.x` does, and `$g.numItems` is `$r.numItems`.
 
+The same holds for a collection reached through a case or option that declares it (`$cc.r.P` of a `<repeat name="r">` in a case of `cc` → `$cc.r[1].P`), through an index into an outer repeat (`$o[1].t.T` → `$o[1].t[1].T`), or that every case or option holds as its one component (`$cc.x` of a case holding a `<pointList>` → `$cc[1][1].x`).
+
 A `<conditionalContent>`, and a `<select>` or other chooser that picks one, are not collections for this: each stands for what it shows, so `$cc.x`, `$s.P` and `$s.P.x` work as before, when every case or option declares the name with one type.
 
 An action's `target` follows the same rule: `<updateValue target="$r.mi"/>` and `<animateFromSequence target="$r.x"/>` name nothing, with the warning, where they changed every iteration's; write `target="$r[1].mi"`. So does `target="$pl.x"` of a `<pointList>`, where it set every entry's x.
