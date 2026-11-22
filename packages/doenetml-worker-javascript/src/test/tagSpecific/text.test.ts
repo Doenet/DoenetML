@@ -885,6 +885,8 @@ describe("Text tag tests @group2", async () => {
 <text name="t2">&#36;(x)</text>
 <p name="p">&dollar;p and &#36;q</p>
 <text name="t3" extend="$t1"/>
+<math name="m">&dollar;x</math>
+<mathInput name="mi" prefill="&#36;x"/>
 `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -901,5 +903,8 @@ describe("Text tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("$p and $q");
+        // math reads it as written, where the space was blank
+        expect((await value("m")).tree).eqls(["unit", "$", "x"]);
+        expect((await value("mi")).tree).eqls(["unit", "$", "x"]);
     });
 });
