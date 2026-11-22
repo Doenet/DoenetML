@@ -56,6 +56,10 @@ pub enum SymKind {
     /// into the range from input 1 to input 2 (`<wrapFunctionPeriodic>`): an
     /// expression again.
     WrapFunctionPeriodic,
+    /// `a x² + b x + c` (inputs 0 to 2) at `SAMPLES` evenly spaced x from
+    /// input 3 to input 4: a `<parabola>`'s curve. Numeric, but a run of
+    /// `SAMPLES` outputs, more than a vector instruction holds.
+    SampleQuadratic,
 }
 
 /// What a `<math>` does to its expression after instantiating it.
@@ -76,7 +80,7 @@ impl SymKind {
     /// How many cells it writes: [`SAMPLES`] for a sampler, else 1.
     pub fn n_out(self) -> usize {
         match self {
-            SymKind::Sample | SymKind::SampleTape { .. } => SAMPLES,
+            SymKind::Sample | SymKind::SampleTape { .. } | SymKind::SampleQuadratic => SAMPLES,
             _ => 1,
         }
     }
@@ -213,6 +217,7 @@ impl OpSpec {
             OpSpec::Sym(
                 SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
             ) => 3,
+            OpSpec::Sym(SymKind::SampleQuadratic) => 5,
             _ => unreachable!(),
         }
     }
@@ -327,6 +332,15 @@ mod arity {
                 n: 2,
                 n_exclude: 0,
             }),
+            OpSpec::Vec(VecOp::BestFitLine { n: 3 }),
+            OpSpec::Vec(VecOp::IntersectLines {
+                segment1: true,
+                segment2: false,
+            }),
+            OpSpec::Vec(VecOp::Parabola {
+                through: 2,
+                vertex: false,
+            }),
             OpSpec::Sym(SymKind::Instantiate {
                 template: Handle::new(0),
                 post: Post::None,
@@ -342,6 +356,7 @@ mod arity {
             }),
             OpSpec::Sym(SymKind::ClampFunction),
             OpSpec::Sym(SymKind::WrapFunctionPeriodic),
+            OpSpec::Sym(SymKind::SampleQuadratic),
         ]);
         ops
     }
@@ -375,9 +390,12 @@ mod arity {
                 VecOp::Sort { .. } => 22,
                 VecOp::Shuffle { .. } => 23,
                 VecOp::Draws { .. } => 24,
+                VecOp::BestFitLine { .. } => 25,
+                VecOp::IntersectLines { .. } => 26,
+                VecOp::Parabola { .. } => 27,
             },
             OpSpec::Sym(k) => {
-                25 + match k {
+                28 + match k {
                     SymKind::Instantiate { .. } => 0,
                     SymKind::Evaluate => 1,
                     SymKind::EvalAt => 2,
@@ -388,12 +406,13 @@ mod arity {
                     SymKind::SampleTape { .. } => 7,
                     SymKind::ClampFunction => 8,
                     SymKind::WrapFunctionPeriodic => 9,
+                    SymKind::SampleQuadratic => 10,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 35;
+    const N_TAGS: usize = 39;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

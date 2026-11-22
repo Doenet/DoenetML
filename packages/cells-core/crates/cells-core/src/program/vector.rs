@@ -46,6 +46,13 @@
 //! |                          | the draw permutes them to             |                                                                      |                   |
 //! | `Draws{dist, n, m}`      | (draw, parameters, m excludes) → n    | none: what the seed chose does not move (ADR 0037)                   | none              |
 //! |                          | values of a distribution              |                                                                      |                   |
+//! | `BestFitLine{n}`         | n points → (a, b, c) of the           | none: a fit is not set by a request                                  | none              |
+//! |                          | least-squares line ax + by + c = 0    |                                                                      |                   |
+//! | `IntersectLines{..}`     | (P1, P2, P3, P4) → where line P1P2    | none: an intersection is not set by a request                        | none              |
+//! |                          | crosses P3P4, and whether none does   |                                                                      |                   |
+//! | `Parabola{n, vertex}`    | (a, vertex, n points) → (a, b, c) and | a vertex asked for keeps a; the vertex to the vertex asked for, each | a, the vertex,    |
+//! |                          | the vertex of the parabola through    | point vertically onto the parabola asked for (sideways with the      | the points (or a, |
+//! |                          | them (or (a, b, c) → the same)        | vertex), a when asked (or a, b, c themselves)                        | b, c)             |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
@@ -317,6 +324,41 @@ pub enum VecOp {
         n: u8,
         /// How many excluded values follow the parameters.
         n_exclude: u8,
+    },
+    /// Inputs 2n point coordinates; outputs (a, b, c) of the least-squares
+    /// line `a x + b y + c = 0` through the points whose coordinates are
+    /// finite, as `y = m x + k`: (m, -1, k). Points all at one x give the
+    /// horizontal line through their mean; no finite point, NaN. No
+    /// inverse: a fit is not set by a request.
+    BestFitLine {
+        /// How many points.
+        n: u8,
+    },
+    /// Inputs (x1, y1, x2, y2, x3, y3, x4, y4): the line through the first
+    /// two points and the one through the last two. Outputs (x, y, none):
+    /// where they cross and 0, or NaN, NaN and 1 when they are parallel,
+    /// the same, not finite, or a segment among them misses the crossing.
+    /// No inverse: an intersection is not set by a request.
+    IntersectLines {
+        /// Whether the first line is the segment between its points.
+        segment1: bool,
+        /// Whether the second is.
+        segment2: bool,
+    },
+    /// The coefficients (a, b, c) of the parabola `y = a x² + b x + c` and
+    /// its vertex (x, y), through `through` points (0 to 3), with its
+    /// vertex at a point when `vertex`, as the current core finds them.
+    /// Inputs: the leading coefficient used where the points leave it
+    /// free, the vertex when `vertex`, then the points; with neither, the
+    /// three coefficients. A request on the vertex asks for the parabola
+    /// of the same `a` with that vertex; one on the coefficients moves the
+    /// vertex and the points onto the parabola asked for, and writes the
+    /// leading coefficient.
+    Parabola {
+        /// How many points it passes through.
+        through: u8,
+        /// Whether a vertex is given (with at most one point).
+        vertex: bool,
     },
 }
 
@@ -1068,6 +1110,13 @@ impl VecOp {
             VecOp::Draws {
                 dist, n_exclude, ..
             } => 1 + dist.n_params() + n_exclude as usize,
+            VecOp::BestFitLine { n } => 2 * n as usize,
+            VecOp::IntersectLines { .. } => 8,
+            VecOp::Parabola {
+                through: 0,
+                vertex: false,
+            } => 3,
+            VecOp::Parabola { through, vertex } => 1 + 2 * vertex as usize + 2 * through as usize,
         }
     }
 
@@ -1096,7 +1145,8 @@ impl VecOp {
             VecOp::Centroid { n } => first(2 * n as usize),
             VecOp::Pair { .. } | VecOp::RegularPolygon { .. } => first(4),
             VecOp::Extent => first(2),
-            VecOp::AngleAt { .. } => 0,
+            VecOp::AngleAt { .. } | VecOp::BestFitLine { .. } | VecOp::IntersectLines { .. } => 0,
+            VecOp::Parabola { .. } => first(self.n_in()),
         }
     }
 
@@ -1189,6 +1239,8 @@ impl VecOp {
             } => (n as usize).saturating_sub(1),
             VecOp::Scan { n, .. } | VecOp::Sort { n, .. } | VecOp::Shuffle { n } => n as usize,
             VecOp::Draws { n, .. } => n as usize,
+            VecOp::BestFitLine { .. } | VecOp::IntersectLines { .. } => 3,
+            VecOp::Parabola { .. } => 5,
         }
     }
 
@@ -1316,6 +1368,31 @@ impl VecOp {
                 let k = dist.n_params();
                 let excludes = &inp[1 + k..1 + k + n_exclude as usize];
                 draws(dist, inp[0], &inp[1..=k], excludes, out);
+            }
+            VecOp::BestFitLine { n } => {
+                let [m, k] = best_fit_line(&inp[..2 * n as usize]);
+                out[0] = m;
+                out[1] = if m.is_nan() { f64::NAN } else { -1.0 };
+                out[2] = k;
+            }
+            VecOp::IntersectLines { segment1, segment2 } => {
+                match intersect_lines(inp, segment1, segment2) {
+                    Some((x, y)) => {
+                        out[0] = x;
+                        out[1] = y;
+                        out[2] = 0.0;
+                    }
+                    None => {
+                        out[0] = f64::NAN;
+                        out[1] = f64::NAN;
+                        out[2] = 1.0;
+                    }
+                }
+            }
+            VecOp::Parabola { through, vertex } => {
+                let [a, b, c] = parabola(inp, through as usize, vertex);
+                let [vx, vy] = parabola_vertex(a, b, c);
+                out.copy_from_slice(&[a, b, c, vx, vy]);
             }
         }
     }
@@ -1448,7 +1525,19 @@ impl VecOp {
             | VecOp::Scan { .. }
             | VecOp::Sort { .. }
             | VecOp::Shuffle { .. }
-            | VecOp::Draws { .. } => false,
+            | VecOp::Draws { .. }
+            | VecOp::BestFitLine { .. }
+            | VecOp::IntersectLines { .. } => false,
+            VecOp::Parabola { through, vertex } => {
+                // A vertex asked for keeps `a`.
+                let abc = if desired[3].is_some() || desired[4].is_some() {
+                    parabola_at_vertex(want(0), want(3), want(4))
+                } else {
+                    [want(0), want(1), want(2)]
+                };
+                let asked_a = desired[0].is_some();
+                invert_parabola(through as usize, vertex, inputs, inp, abc, asked_a, out)
+            }
             VecOp::Choose { n } => match (active_branch(inp[0], n), desired[0]) {
                 (Some(k), Some(d)) => {
                     out.write(inputs[k], d);
@@ -1634,6 +1723,225 @@ fn regular_vertices(n: usize, center: [f64; 2], u: [f64; 2], out: &mut [f64]) {
         out[2 * k] = center[0] + u[0] * c - u[1] * s;
         out[2 * k + 1] = center[1] + u[0] * s + u[1] * c;
     }
+}
+
+/// The least-squares line `y = m x + k` through the points of `p` (`x1, y1,
+/// x2, y2, ...`) whose coordinates are finite, as `[m, k]`: the current
+/// core's normal equations, which give slope 0 through the mean when the
+/// points share one x. NaN with no such point.
+fn best_fit_line(p: &[f64]) -> [f64; 2] {
+    let points = || {
+        p.chunks_exact(2)
+            .filter(|xy| xy[0].is_finite() && xy[1].is_finite())
+    };
+    let n = points().count() as f64;
+    if n == 0.0 {
+        return [f64::NAN, f64::NAN];
+    }
+    let (mx, my) = points().fold((0.0, 0.0), |(sx, sy), xy| (sx + xy[0], sy + xy[1]));
+    let (mx, my) = (mx / n, my / n);
+    let (sxx, sxy) = points().fold((0.0, 0.0), |(sxx, sxy), xy| {
+        let dx = xy[0] - mx;
+        (sxx + dx * dx, sxy + dx * (xy[1] - my))
+    });
+    let m = if sxx == 0.0 { 0.0 } else { sxy / sxx };
+    [m, my - m * mx]
+}
+
+/// Where the line through `inp[0..4]` crosses the one through `inp[4..8]`,
+/// as the current core finds it; None when they are parallel or the same
+/// (to within 1e-14), a coordinate is not finite, or a segment among them
+/// misses the crossing.
+fn intersect_lines(inp: &[f64], segment1: bool, segment2: bool) -> Option<(f64, f64)> {
+    let [x1, y1, x2, y2, x3, y3, x4, y4] = <[f64; 8]>::try_from(&inp[..8]).ok()?;
+    if !inp[..8].iter().all(|v| v.is_finite()) {
+        return None;
+    }
+    let (dx12, dx34, dy12, dy34) = (x1 - x2, x3 - x4, y1 - y2, y3 - y4);
+    let d = dx12 * dy34 - dx34 * dy12;
+    if d.abs() < 1e-14 {
+        return None;
+    }
+    let (dx13, dy13) = (x1 - x3, y1 - y3);
+    let misses = |num: f64| {
+        let num = num * d.signum();
+        num < 0.0 || num > d.abs()
+    };
+    if segment1 && misses(dx13 * dy34 - dy13 * dx34) {
+        return None;
+    }
+    if segment2 && misses(dx13 * dy12 - dy13 * dx12) {
+        return None;
+    }
+    let det12 = x1 * y2 - x2 * y1;
+    let det34 = x3 * y4 - x4 * y3;
+    Some((
+        (det12 * dx34 - det34 * dx12) / d,
+        (det12 * dy34 - det34 * dy12) / d,
+    ))
+}
+
+/// The parabola with vertex (x, y) and leading coefficient `a`.
+fn parabola_at_vertex(a: f64, x: f64, y: f64) -> [f64; 3] {
+    [a, -2.0 * a * x, a * x * x + y]
+}
+
+/// The parabola through (x1, y1) and (x2, y2) with leading coefficient
+/// `a`; at the vertex when they are the same point; NaN when they differ
+/// only in y.
+fn parabola_through_two(a: f64, [x1, y1]: [f64; 2], [x2, y2]: [f64; 2]) -> [f64; 3] {
+    if x1 == x2 {
+        if y1 == y2 {
+            parabola_at_vertex(a, x1, y1)
+        } else {
+            [f64::NAN; 3]
+        }
+    } else {
+        let b = (y1 - y2 - a * (x1 * x1 - x2 * x2)) / (x1 - x2);
+        [a, b, y1 - a * x1 * x1 - b * x1]
+    }
+}
+
+/// The vertex of `y = a x² + b x + c`; not finite when `a` is 0.
+fn parabola_vertex(a: f64, b: f64, c: f64) -> [f64; 2] {
+    let x = -b / (2.0 * a);
+    [x, c - b * b / (4.0 * a)]
+}
+
+/// A [`VecOp::Parabola`]'s (a, b, c) from its inputs, as the current core
+/// computes them: NaN when a coordinate is not finite or the points allow
+/// no parabola.
+fn parabola(inp: &[f64], through: usize, vertex: bool) -> [f64; 3] {
+    if inp.iter().any(|v| !v.is_finite()) {
+        return [f64::NAN; 3];
+    }
+    if through == 0 && !vertex {
+        return [inp[0], inp[1], inp[2]];
+    }
+    let a = inp[0];
+    let points = if vertex { &inp[3..] } else { &inp[1..] };
+    let pt = |i: usize| [points[2 * i], points[2 * i + 1]];
+    if vertex {
+        let (vx, vy) = (inp[1], inp[2]);
+        return match through {
+            0 => parabola_at_vertex(a, vx, vy),
+            1 => {
+                let [px, py] = pt(0);
+                if px == vx {
+                    // A point on the vertex says nothing of `a`; one above
+                    // or below it allows no parabola.
+                    if py == vy {
+                        parabola_at_vertex(a, vx, vy)
+                    } else {
+                        [f64::NAN; 3]
+                    }
+                } else {
+                    parabola_at_vertex((py - vy) / ((px - vx) * (px - vx)), vx, vy)
+                }
+            }
+            _ => [f64::NAN; 3],
+        };
+    }
+    match through {
+        1 => {
+            let [x, y] = pt(0);
+            parabola_at_vertex(a, x, y)
+        }
+        2 => parabola_through_two(a, pt(0), pt(1)),
+        3 => {
+            let ([x1, y1], [x2, y2], [x3, y3]) = (pt(0), pt(1), pt(2));
+            let (u1, u2) = (x1 * x1 - x3 * x3, x2 * x2 - x3 * x3);
+            let (v1, v2) = (x1 - x3, x2 - x3);
+            let (z1, z2) = (y1 - y3, y2 - y3);
+            let det = u1 * v2 - u2 * v1;
+            if det != 0.0 {
+                let a = (z1 * v2 - z2 * v1) / det;
+                let b = (z2 * u1 - z1 * u2) / det;
+                return [a, b, y1 - b * x1 - a * x1 * x1];
+            }
+            // Points that coincide count once; two at one x but different
+            // y allow no parabola.
+            let same = |p: [f64; 2], q: [f64; 2]| p == q;
+            let (p1, p2, p3) = (pt(0), pt(1), pt(2));
+            if same(p1, p2) && same(p1, p3) {
+                parabola_at_vertex(a, x1, y1)
+            } else if same(p1, p2) {
+                parabola_through_two(a, p1, p3)
+            } else if same(p1, p3) || same(p2, p3) {
+                parabola_through_two(a, p1, p2)
+            } else {
+                [f64::NAN; 3]
+            }
+        }
+        _ => [f64::NAN; 3],
+    }
+}
+
+/// A [`VecOp::Parabola`]'s inverse, as the current core's: the vertex
+/// moves to the vertex of the parabola `abc` asks for and each point
+/// moves vertically onto it (with a vertex, the point moves sideways with
+/// the vertex first; points that coincide move together to the vertex);
+/// the leading coefficient is written when `a` was asked. False when the
+/// parabola asked for has no finite vertex where one is needed.
+fn invert_parabola(
+    through: usize,
+    vertex: bool,
+    inputs: &[CellIdx],
+    inp: &[f64],
+    [a, b, c]: [f64; 3],
+    asked_a: bool,
+    out: &mut Produced,
+) -> bool {
+    if ![a, b, c].iter().all(|v| v.is_finite()) || inp.iter().any(|v| !v.is_finite()) {
+        return false;
+    }
+    if through == 0 && !vertex {
+        // The coefficients themselves.
+        if asked_a {
+            out.write(inputs[0], a);
+        }
+        for (k, v) in [(1, b), (2, c)] {
+            if v != inp[k] {
+                out.write(inputs[k], v);
+            }
+        }
+        return true;
+    }
+    let first = if vertex { 3 } else { 1 };
+    let pt = |i: usize| [inp[first + 2 * i], inp[first + 2 * i + 1]];
+    let on = |x: f64| [x, (a * x + b) * x + c];
+    let top = || parabola_vertex(a, b, c);
+    let mut moves: Vec<(usize, [f64; 2])> = Vec::new();
+    if vertex {
+        let v = top();
+        moves.push((1, v));
+        if through == 1 {
+            let dx = v[0] - inp[1];
+            moves.push((first, on(pt(0)[0] + dx)));
+        }
+    } else {
+        let xs: Vec<f64> = (0..through).map(|i| pt(i)[0]).collect();
+        let distinct = |i: usize| !xs[..i].contains(&xs[i]);
+        let n_distinct = (0..through).filter(|&i| distinct(i)).count();
+        // One point, or points all at one x: they go to the vertex.
+        let all_at_vertex = n_distinct == 1;
+        for (i, &x) in xs.iter().enumerate() {
+            moves.push((first + 2 * i, if all_at_vertex { top() } else { on(x) }));
+        }
+    }
+    if moves.iter().flat_map(|(_, p)| p).any(|v| !v.is_finite()) {
+        return false;
+    }
+    for (k, [x, y]) in moves {
+        out.group(vec![PointRequest {
+            cells: [inputs[k], inputs[k + 1]],
+            values: [x, y],
+        }]);
+    }
+    if asked_a {
+        out.write(inputs[0], a);
+    }
+    true
 }
 
 // ---------------------------------------------------------------------------
@@ -2038,6 +2346,35 @@ mod writes {
                 n: 2,
                 n_exclude: 1,
             },
+            VecOp::BestFitLine { n: 3 },
+            VecOp::IntersectLines {
+                segment1: false,
+                segment2: true,
+            },
+            VecOp::Parabola {
+                through: 0,
+                vertex: false,
+            },
+            VecOp::Parabola {
+                through: 1,
+                vertex: false,
+            },
+            VecOp::Parabola {
+                through: 2,
+                vertex: false,
+            },
+            VecOp::Parabola {
+                through: 3,
+                vertex: false,
+            },
+            VecOp::Parabola {
+                through: 0,
+                vertex: true,
+            },
+            VecOp::Parabola {
+                through: 1,
+                vertex: true,
+            },
         ]
     }
 
@@ -2156,7 +2493,10 @@ mod writes {
             | VecOp::Scan { .. }
             | VecOp::Sort { .. }
             | VecOp::Shuffle { .. }
-            | VecOp::Draws { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
+            | VecOp::Draws { .. }
+            | VecOp::BestFitLine { .. }
+            | VecOp::IntersectLines { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
+            VecOp::Parabola { .. } => vec![vec![0], vec![1], vec![2], vec![3, 4]],
         }
     }
 
@@ -2323,5 +2663,109 @@ mod writes {
             }
         }
         assert!(failures.is_empty(), "{}", failures.join("\n"));
+    }
+
+    fn eval(op: VecOp, inp: &[f64]) -> Vec<f64> {
+        let mut out = vec![0.0; op.n_out()];
+        op.eval(inp, &mut out);
+        out
+    }
+
+    /// The fits the current core's tests check: four points, one point,
+    /// points at one x, and a point that is not finite passed over.
+    #[test]
+    fn a_best_fit_line_is_the_least_squares_line() {
+        let fit = |p: &[f64]| {
+            eval(
+                VecOp::BestFitLine {
+                    n: (p.len() / 2) as u8,
+                },
+                p,
+            )
+        };
+        assert_eq!(
+            fit(&[1.0, 2.0, 1.0, 6.0, 7.0, 3.0, 7.0, -1.0]),
+            [-0.5, -1.0, 4.5]
+        );
+        assert_eq!(
+            fit(&[-5.0, -8.0, 3.0, 5.0, -5.0, -10.0, 3.0, 9.0]),
+            [2.0, -1.0, 1.0]
+        );
+        assert_eq!(fit(&[3.0, 4.0]), [0.0, -1.0, 4.0]);
+        assert_eq!(fit(&[-5.0, -8.0, -5.0, 0.0]), [0.0, -1.0, -4.0]);
+        assert_eq!(fit(&[3.0, 4.0, f64::NAN, 1.0, -5.0, 0.0]), [0.5, -1.0, 2.5]);
+        assert!(fit(&[f64::NAN, 1.0]).iter().all(|v| v.is_nan()));
+    }
+
+    #[test]
+    fn lines_cross_where_both_pass() {
+        let cross =
+            |segment1, segment2, p: &[f64]| eval(VecOp::IntersectLines { segment1, segment2 }, p);
+        let lines = [-8.0, -7.0, 8.0, 9.0, 4.0, 6.0, -4.0, -6.0];
+        assert_eq!(cross(false, false, &lines), [2.0, 3.0, 0.0]);
+        // Parallel or the same: none.
+        let none = cross(false, false, &[1.0, 2.0, 2.0, 2.0, 3.0, 2.0, 4.0, 2.0]);
+        assert!(none[0].is_nan() && none[1].is_nan() && none[2] == 1.0);
+        // A segment that stops short of the crossing misses it.
+        let short = [-8.0, -7.0, 0.0, 1.0, 4.0, 6.0, -4.0, -6.0];
+        assert_eq!(cross(false, false, &short), [2.0, 3.0, 0.0]);
+        assert_eq!(cross(true, false, &short)[2], 1.0);
+        assert_eq!(cross(false, true, &short), [2.0, 3.0, 0.0]);
+    }
+
+    /// The coefficients the current core finds, and an inverse that moves
+    /// the points onto the parabola asked for.
+    #[test]
+    fn a_parabola_passes_through_its_points() {
+        let p = |through, vertex, inp: &[f64]| {
+            eval(VecOp::Parabola { through, vertex }, inp)[..3].to_vec()
+        };
+        // One point is the vertex; two take `a`; three fix all.
+        assert_eq!(p(1, false, &[1.0, 1.0, 2.0]), [1.0, -2.0, 3.0]);
+        assert_eq!(p(2, false, &[1.0, 1.0, 2.0, 3.0, 4.0]), [1.0, -3.0, 4.0]);
+        assert_eq!(
+            p(3, false, &[1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]),
+            [0.0, 1.0, 1.0]
+        );
+        let abc = p(3, false, &[1.0, -1.0, 1.0, 0.0, 0.0, 2.0, 4.0]);
+        assert_eq!(abc, [1.0, 0.0, 0.0]);
+        // A vertex, and a vertex with a point that sets `a`.
+        assert_eq!(p(0, true, &[2.0, 1.0, 2.0]), [2.0, -4.0, 4.0]);
+        assert_eq!(p(1, true, &[1.0, 1.0, 2.0, 3.0, 4.0]), [0.5, -1.0, 2.5]);
+        // Two points at one x, or a point above the vertex: none.
+        assert!(p(2, false, &[1.0, 1.0, 2.0, 1.0, 3.0])[0].is_nan());
+        assert!(p(1, true, &[1.0, 1.0, 2.0, 1.0, 4.0])[0].is_nan());
+
+        // Asking for y = 2x² - x + 1 of three points moves each vertically.
+        let op = VecOp::Parabola {
+            through: 3,
+            vertex: false,
+        };
+        let inp = [1.0, -1.0, 1.0, 0.0, 0.0, 2.0, 4.0];
+        let desired = [Some(2.0), Some(-1.0), Some(1.0), None, None];
+        let (next, got) = after(op, &inp, &desired).unwrap();
+        assert_eq!(got[..3], [2.0, -1.0, 1.0]);
+        assert_eq!(next, [2.0, -1.0, 4.0, 0.0, 1.0, 2.0, 7.0]);
+        // With a vertex and a point, the point moves sideways with it.
+        let op = VecOp::Parabola {
+            through: 1,
+            vertex: true,
+        };
+        let desired = [None, Some(-3.0), None, None, None];
+        let (next, got) = after(op, &[1.0, 1.0, 2.0, 3.0, 4.0], &desired).unwrap();
+        assert!(close(got[1], -3.0) && close(got[0], 0.5) && close(got[2], 2.5));
+        assert!(close(next[1], 3.0) && close(next[3], 5.0));
+        // The vertex of y = x² - 2x + 3 is (1, 2); asking for (2, 0)
+        // keeps `a` and moves the one point, the vertex, there.
+        let op = VecOp::Parabola {
+            through: 1,
+            vertex: false,
+        };
+        let inp = [1.0, 1.0, 2.0];
+        assert_eq!(eval(op, &inp)[3..], [1.0, 2.0]);
+        let desired = [None, None, None, Some(2.0), Some(0.0)];
+        let (next, got) = after(op, &inp, &desired).unwrap();
+        assert_eq!(next, [1.0, 2.0, 0.0]);
+        assert_eq!(got, [1.0, -4.0, 4.0, 2.0, 0.0]);
     }
 }

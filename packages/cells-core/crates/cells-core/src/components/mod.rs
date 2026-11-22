@@ -257,6 +257,12 @@ component_types! {
     SamplePrimeNumbers => structure::sample_prime_numbers::DEFINITION,
     ClampFunction => values::function_operators::DEFINITION,
     WrapFunctionPeriodic => values::function_operators::WRAP_FUNCTION_PERIODIC,
+    BestFitLine => geometry::best_fit_line::DEFINITION,
+    Intersection => geometry::intersection::DEFINITION,
+    EquilibriumPoint => geometry::equilibrium_point::DEFINITION,
+    EquilibriumLine => geometry::equilibrium_line::DEFINITION,
+    Endpoint => geometry::endpoint::DEFINITION,
+    Parabola => geometry::parabola::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

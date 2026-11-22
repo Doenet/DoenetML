@@ -80,6 +80,16 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
             { pointCoords: { 1: [3, 1] } },
         ],
     },
+    bestFitLine: {
+        moveLine: [{ point1coords: [1, 1], point2coords: [2, 3] }],
+    },
+    intersection: { move: [{ x: 2, y: 3 }] },
+    equilibriumPoint: { move: [{ x: 2, y: 3 }], switchPoint: [{}] },
+    endpoint: { move: [{ x: 2, y: 3 }], switchPoint: [{}] },
+    equilibriumLine: {
+        moveLine: [{ point1coords: [1, 1], point2coords: [2, 3] }],
+        switchLine: [{}],
+    },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -103,6 +113,12 @@ const DOC = `
   <triangle name="tri" vertices="(2,2) (3,2)"/>
   <clampFunction name="cf" lowerValue="-1" upperValue="2">$f</clampFunction>
   <wrapFunctionPeriodic name="wf">$f</wrapFunctionPeriodic>
+  <bestFitLine name="bf" data="$p $q (3,3)"/>
+  <intersection name="int">$l $ld</intersection>
+  <parabola name="pb" through="(0,0) (1,1)"/>
+  <equilibriumPoint name="ep" switchable>(3,0)</equilibriumPoint>
+  <endpoint name="ept" open switchable>(4,0)</endpoint>
+  <equilibriumLine name="el" through="(0,2) (1,3)" switchable/>
 </graph>
 <p><vector>(1, 2)</vector> <angle through="(1,0) (0,0) (0,1)"/></p>
 <graph name="g2"><point>(0,0)</point><point>(1,1)</point></graph>
@@ -171,6 +187,11 @@ const EXPECTED_REQUESTS = [
     "rectangle.list[0]",
     "regularPolygon.list[0]",
     "triangle.list[0]",
+    "equilibriumPoint.x",
+    "equilibriumPoint.stable",
+    "endpoint.open",
+    "equilibriumLine.x1",
+    "equilibriumLine.stable",
 ];
 
 /** What the bridge must have read, as `type.prop`: one or more per
@@ -216,6 +237,13 @@ const EXPECTED_READS = [
     "triangle.list[0]",
     "clampFunction.samples",
     "wrapFunctionPeriodic.curve",
+    "bestFitLine.x1",
+    "intersection.x",
+    "intersection.hide",
+    "parabola.samples",
+    "equilibriumPoint.stable",
+    "endpoint.open",
+    "equilibriumLine.stable",
 ];
 
 beforeAll(async () => {

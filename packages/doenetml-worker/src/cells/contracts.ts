@@ -442,6 +442,46 @@ const CURVE: Contract = {
     noChildren: true,
 };
 
+/** A point's props: in a graph its coordinates, which the renderer
+ * parses, else their LaTeX. */
+function pointProps(r: Reads, c: number, inGraph: boolean) {
+    const x = r.num(c, "x");
+    const y = r.num(c, "y");
+    return inGraph
+        ? { x: mathObject(x), y: mathObject(y) }
+        : {
+              coordsLatex: `\\left( ${numberLatex(x)}, ${numberLatex(y)} \\right)`,
+          };
+}
+
+/** A line's props: two points it passes through. */
+function lineProps(r: Reads, c: number) {
+    return {
+        numericalPoints: [
+            [r.num(c, "x1"), r.num(c, "y1")],
+            [r.num(c, "x2"), r.num(c, "y2")],
+        ],
+    };
+}
+
+/** A point drawn with a 0/1 flag the renderer may draw (an equilibrium
+ * point's `stable`, an endpoint's `open`) as `open`, the current core's
+ * renderer prop, and whether a click switches it. The prototype's point
+ * renderer draws neither yet. */
+function flaggedPoint(open: (r: Reads, c: number) => boolean): Contract {
+    return {
+        name: () => "point",
+        props: (r, c, inGraph) =>
+            inGraph
+                ? {
+                      ...pointProps(r, c, inGraph),
+                      open: open(r, c),
+                      switchable: flagOr(r.table, c, "switchable", false),
+                  }
+                : pointProps(r, c, inGraph),
+    };
+}
+
 export const CONTRACTS: Record<string, Contract> = {
     document: {},
     p: {},
@@ -525,17 +565,7 @@ export const CONTRACTS: Record<string, Contract> = {
             };
         },
     },
-    point: {
-        props: (r, c, inGraph) => {
-            const x = r.num(c, "x");
-            const y = r.num(c, "y");
-            return inGraph
-                ? { x: mathObject(x), y: mathObject(y) }
-                : {
-                      coordsLatex: `\\left( ${numberLatex(x)}, ${numberLatex(y)} \\right)`,
-                  };
-        },
-    },
+    point: { props: pointProps },
     graph: {
         graph: true,
         props: (r, c) => ({
@@ -545,14 +575,7 @@ export const CONTRACTS: Record<string, Contract> = {
             yMax: r.num(c, "ymax"),
         }),
     },
-    line: {
-        props: (r, c) => ({
-            numericalPoints: [
-                [r.num(c, "x1"), r.num(c, "y1")],
-                [r.num(c, "x2"), r.num(c, "y2")],
-            ],
-        }),
-    },
+    line: { props: lineProps },
     lineSegment: {
         props: (r, c) => ({
             numericalEndpoints: [
@@ -1076,6 +1099,25 @@ export const CONTRACTS: Record<string, Contract> = {
             inGraph
                 ? { numericalVertices: pairs(r, r.table.listCells(c)) }
                 : {},
+    },
+    // Derived geometry, each drawn by the renderer of the shape it is: a
+    // best-fit line as a line; an intersection as a point, left out while
+    // it is hidden (no crossing); a parabola as a function's curve. An
+    // equilibrium point or line and an endpoint also send their flag as
+    // the current core's renderers read it (`open`, `dashed`), which the
+    // prototype's renderers do not draw yet.
+    bestFitLine: { name: () => "line", props: lineProps },
+    intersection: { name: () => "point", props: pointProps },
+    parabola: CURVE,
+    equilibriumPoint: flaggedPoint((r, c) => !r.bool(c, "stable")),
+    endpoint: flaggedPoint((r, c) => r.bool(c, "open")),
+    equilibriumLine: {
+        name: () => "line",
+        props: (r, c) => ({
+            ...lineProps(r, c),
+            dashed: !r.bool(c, "stable"),
+            switchable: flagOr(r.table, c, "switchable", false),
+        }),
     },
 };
 

@@ -83,17 +83,53 @@ function moveBoth(
     return movePoints(moves);
 }
 
+/** A point's drag. */
+const movePoint: Resolver = (t, c, { x, y }) => ({
+    kind: "points",
+    pairs: [
+        [cellOf(t, c, "x"), x],
+        [cellOf(t, c, "y"), y],
+    ],
+});
+
+/** A whole-line drag, as the current core's moveLine: a line given by a
+ * direction moves by its first point only. */
+const moveLine: Resolver = (t, c, { point1coords, point2coords }) => {
+    const p1: Point = [cellOf(t, c, "x1"), cellOf(t, c, "y1")];
+    const p2: Point = [cellOf(t, c, "x2"), cellOf(t, c, "y2")];
+    const direction = t.value(cellOf(t, c, "basedOnDirection")) === 1;
+    return movePoints(
+        direction
+            ? [[p1, point1coords]]
+            : [
+                  [p1, point1coords],
+                  [p2, point2coords],
+              ],
+    );
+};
+
+/** A click that flips the 0/1 prop `prop` when the element's literal
+ * `switchable` holds, as the current core's switchPoint and switchLine. */
+function switchFlag(prop: string): Resolver {
+    return (t, c) => {
+        const switchable = t.attrThrough(c, "switchable");
+        if (switchable === null || switchable.trim().toLowerCase() === "false")
+            return { kind: "none" };
+        const cell = cellOf(t, c, prop);
+        return {
+            kind: "request",
+            pairs: [[cell, t.value(cell) === 1 ? 0 : 1]],
+        };
+    };
+}
+
+/** What follows other components and does not move, as in the current
+ * core (a best-fit line, an intersection): a drag changes nothing. */
+const fixed: Resolver = () => ({ kind: "none" });
+
 /** Keyed by component type, then action name. */
 export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
-    point: {
-        move: (t, c, { x, y }) => ({
-            kind: "points",
-            pairs: [
-                [cellOf(t, c, "x"), x],
-                [cellOf(t, c, "y"), y],
-            ],
-        }),
-    },
+    point: { move: movePoint },
     graph: {
         changeBoundingBox: (t, c, { xMin, xMax, yMin, yMax }) => ({
             kind: "request",
@@ -126,23 +162,7 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
             pairs: [[cellOf(t, c, "selectedIndex"), selectedIndices[0] ?? 0]],
         }),
     },
-    // A whole-line drag, as the current core's moveLine: a line given by a
-    // direction moves by its first point only.
-    line: {
-        moveLine: (t, c, { point1coords, point2coords }) => {
-            const p1: Point = [cellOf(t, c, "x1"), cellOf(t, c, "y1")];
-            const p2: Point = [cellOf(t, c, "x2"), cellOf(t, c, "y2")];
-            const direction = t.value(cellOf(t, c, "basedOnDirection")) === 1;
-            return movePoints(
-                direction
-                    ? [[p1, point1coords]]
-                    : [
-                          [p1, point1coords],
-                          [p2, point2coords],
-                      ],
-            );
-        },
-    },
+    line: { moveLine },
     // A whole-segment drag sends both endpoints; an endpoint's drag, one.
     lineSegment: {
         moveLineSegment: (t, c, { point1coords, point2coords }) => {
@@ -286,6 +306,15 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     triggerSet: {
         triggerActions: (_t, c) => ({ kind: "trigger", component: c }),
     },
+    // Derived geometry: what the renderers of the shapes they are drawn as
+    // send. An equilibrium point or line and an endpoint move as a point
+    // or a line does, and switch their flag on the current core's switch
+    // actions, which the prototype's renderers do not send yet.
+    bestFitLine: { moveLine: fixed },
+    intersection: { move: fixed },
+    equilibriumPoint: { move: movePoint, switchPoint: switchFlag("stable") },
+    endpoint: { move: movePoint, switchPoint: switchFlag("open") },
+    equilibriumLine: { moveLine, switchLine: switchFlag("stable") },
 };
 
 /** What a renderer action does to the cells core, or null when the table

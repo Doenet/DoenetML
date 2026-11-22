@@ -1,0 +1,4 @@
+stable by default; a line through two points: cells 12 · essential 9 · constant 3 · instrs 0 · components 3
+not stable, from an equation: cells 15 · essential 8 · constant 3 · instrs 1 · components 3
+stable from an input, which the switch writes: cells 12 · essential 9 · constant 3 · instrs 0 · components 4
+points from points move with them: cells 12 · essential 9 · constant 3 · instrs 0 · components 5

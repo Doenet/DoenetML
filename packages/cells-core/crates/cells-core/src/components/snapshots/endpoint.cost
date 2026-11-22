@@ -1,0 +1,3 @@
+closed by default; a point to drag: cells 10 · essential 7 · constant 3 · instrs 0 · components 3
+open as a bare flag: cells 10 · essential 7 · constant 3 · instrs 0 · components 3
+open from an input, which the switch writes: cells 10 · essential 7 · constant 3 · instrs 0 · components 4

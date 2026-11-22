@@ -580,6 +580,18 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
             }
         }
         SymKind::SampleTape { .. } => unreachable!("tapes run in step_sym"),
+        SymKind::SampleQuadratic => {
+            let (a, b, c, lo, hi) = (v(0), v(1), v(2), v(3), v(4));
+            if lo.is_finite() && hi.is_finite() {
+                let step = (hi - lo) / (SAMPLES - 1) as f64;
+                for (i, o) in out.iter_mut().enumerate() {
+                    let x = lo + step * i as f64;
+                    *o = (a * x + b) * x + c;
+                }
+            } else {
+                out.fill(f64::NAN);
+            }
+        }
         SymKind::Sample => {
             let (lo, hi) = (v(1), v(2));
             match handle(v(0)) {
