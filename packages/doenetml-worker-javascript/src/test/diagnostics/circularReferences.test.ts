@@ -1159,6 +1159,52 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
             '<point name="a"><label><p>$b</p></label></point><point name="b" extend="$a"/>',
             ["doenet-e0005 1:27-29"],
         ],
+        // A whole reference to a point in a label, a text, an m or a group
+        // is a copy of it, label and all, as in a paragraph: through an
+        // extend or a copy of the point, it held itself, and the worker hung
+        // (Doenet/DoenetML#2643 item 1)
+        [
+            "2643",
+            "an extend of a point, as the point's label",
+            '<point name="a"><label>$b</label></point><point name="b" extend="$a"/>',
+            ["doenet-e0005 1:24-26"],
+        ],
+        [
+            "2643",
+            "an extend of a point, beside text in the point's label, in a graph",
+            '<graph><point name="a"><label>x $b</label></point><point name="b" extend="$a"/></graph>',
+            ["doenet-e0005 1:33-35"],
+        ],
+        [
+            "2643",
+            "a copy of a point, as the point's label",
+            '<point name="a"><label>$b</label></point><point name="b" copy="$a"/>',
+            ["doenet-e0005 1:24-26"],
+        ],
+        [
+            "2643",
+            "an extend of a point, in a text in the point's label",
+            '<point name="a"><label><text>$b</text></label></point><point name="b" extend="$a"/>',
+            ["doenet-e0005 1:30-32"],
+        ],
+        [
+            "2643",
+            "an extend of a point, in an m in the point's label",
+            '<point name="a"><label><m>$b</m></label></point><point name="b" extend="$a"/>',
+            ["doenet-e0005 1:27-29"],
+        ],
+        [
+            "2643",
+            "an extend of a point, in a group in the point's label",
+            '<point name="a"><label><group>$b</group></label></point><point name="b" extend="$a"/>',
+            ["doenet-e0005 1:31-33"],
+        ],
+        [
+            "2643",
+            "two points, each the other's label",
+            '<point name="a"><label>$b</label></point><point name="b"><label>$a</label></point>',
+            ["doenet-e0005 1:24-26", "doenet-e0005 1:65-67"],
+        ],
         [
             "3",
             "a line, in a paragraph in its label",
@@ -1290,6 +1336,38 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
 
     // Valid DoenetML beside each: what these read is not the reference.
     const notCycles: [string, string, string][] = [
+        // a math or a number reads a point's value, not a copy of it
+        // (Doenet/DoenetML#2643 item 1)
+        [
+            "2643",
+            "an extend of a point, in a math in the point's label",
+            '<point name="a"><label><math>$b</math></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "an extend of a point, in a number in the point's label",
+            '<point name="a"><label><number>$b.x</number></label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "a property of an extend of a point, as the point's label",
+            '<point name="a"><label>$b.x</label></point><point name="b" extend="$a"/>',
+        ],
+        [
+            "2643",
+            "another point, as a point's label",
+            '<point name="a"><label>$b</label></point><point name="b"><label>B</label></point>',
+        ],
+        [
+            "2643",
+            "a point that is another's label, holding that point",
+            '<point name="a"><label>$b</label></point><point name="b">$a</point>',
+        ],
+        [
+            "2643",
+            "an extend of an input, as the input's label",
+            '<mathInput name="a"><label>$b</label></mathInput><mathInput name="b" extend="$a"/>',
+        ],
         [
             "1",
             "an attribute of a math that only shows it",

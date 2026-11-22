@@ -52,10 +52,15 @@
  *   these is an edge, but for a reference written as a tag that names the
  *   tag itself, whatever its path (`<group name="g" extend="$g.x"/>`);
  * - a whole reference to a graphical component (a `<point>`, a `<line>`, …)
- *   written as content (in a `<p>`, a `<span>`, an `<em>`), which copies the
- *   component, label and all, to its `<label>`, and those of what it extends
- *   (`$P` in a `<p>` in the label of `P` holds itself; as the label's value,
- *   `<label>$P</label>`, it does not, #1384);
+ *   that copies the component, label and all, to its `<label>`, and those of
+ *   what it extends: one written as content (in a `<p>`, a `<span>`, an
+ *   `<em>`), and a `$` reference anywhere the value-reference pass leaves it
+ *   a copy rather than reading its value (in a `<label>`, a `<text>`, an
+ *   `<m>`, a `<group>`; not in a `<math>` or a `<number>`), so that `$b` in
+ *   the label of `a` holds itself when `b` extends or copies `a`
+ *   (Doenet/DoenetML#2643 item 1). `$P` in a `<p>` in the label of `P` holds
+ *   itself; inside `P` but not as content, `<label>$P</label>`, it reads P's
+ *   value and does not (#1384);
  * - a reference to the components in its index (`$i` in `$l[$i]`), which it
  *   reads to know what it names;
  * - a reference to a name the branches of a `<conditionalContent>` or a
@@ -159,6 +164,11 @@ import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
 import type { DiagnosticRecord } from "@doenet/utils";
 import { collectIsListFormAsWritten } from "./listForms";
+import {
+    planReferentAdapterReference,
+    planValueReference,
+    staticValueReferenceTarget,
+} from "../valueReference";
 import {
     compositesExpandedIn,
     compositesNumberingWaitsFor,
@@ -1319,6 +1329,73 @@ export function breakReferenceCycles({
     }
 
     /**
+     * Whether `copy`, a whole reference to the component `target`, makes a
+     * copy of it, label and all, rather than reading its value. It does when
+     * it is written as content (`writtenAsContent`), and wherever else the
+     * value-reference pass leaves it a copy, as it does for a point in a
+     * `<label>`, a `<text>`, an `<m>` or a `<group>`, which show the copy
+     * (`valueReferences.ts`, `planValueReference`), but for a reference
+     * inside what it names: `<label>$P</label>` in the label of `P` reads
+     * P's value (#1384). A `<math>` or a `<number>` reads the value.
+     */
+    function copiesTargetsLabel(
+        copy: SerializedComponent,
+        target: SerializedComponent,
+    ) {
+        if (writtenAsContent(copy)) {
+            return true;
+        }
+        if (!copy.extending || !("Ref" in copy.extending)) {
+            // a tag written with `extend` or `copy` is the component, and
+            // holds its label as the component does
+            return false;
+        }
+        for (
+            let ancestor = parentOf.get(copy.componentIdx);
+            ancestor;
+            ancestor = parentOf.get(ancestor.componentIdx)
+        ) {
+            if (ancestor === target) {
+                return false;
+            }
+        }
+        const parent = parentOf.get(copy.componentIdx);
+        const targetType = typeOf(target);
+        if (!parent || targetType === undefined) {
+            return false;
+        }
+        const parentClass =
+            componentInfoObjects.allComponentClasses[
+                parent.componentType
+            ]?.classForSerializedComponent?.(parent) ??
+            componentInfoObjects.allComponentClasses[parent.componentType];
+        if (!parentClass) {
+            return false;
+        }
+        const value = staticValueReferenceTarget({
+            targetComponentType: targetType,
+            unresolvedPath: null,
+            componentInfoObjects,
+        });
+        const readsValue = value
+            ? planValueReference({
+                  parentClass,
+                  targetComponentType: value.referentComponentType,
+                  valueComponentType: value.valueComponentType,
+                  fromImplicitProp: value.fromImplicitProp,
+                  hasAttributes: false,
+                  allowDrawn: true,
+                  componentInfoObjects,
+              })
+            : planReferentAdapterReference({
+                  parentClass,
+                  targetComponentType: targetType,
+                  componentInfoObjects,
+              });
+        return readsValue === undefined;
+    }
+
+    /**
      * Whether `copy` is written in what holds it as content, in a `<p>`, a
      * `<span>` or an `<em>`, where a reference to a component is a copy of
      * it, label and all, not its value, as in a `<text>`, a `<math>` or a
@@ -1778,13 +1855,14 @@ export function breakReferenceCycles({
                     !reference!.unresolvedPath?.length &&
                     targetType !== undefined &&
                     inherits(targetType, "_graphical") &&
-                    writtenAsContent(component)
+                    copiesTargetsLabel(component, target)
                 ) {
-                    // A copy of the component, its label too, as content:
-                    // `$P` in a `<p>` in the `<label>` of `P` holds itself,
-                    // though as the value of the label it does not (#1384).
-                    // An extend of a component holds its label too
-                    // (`<point name="b" extend="$a"/>`, `$b` in a's label).
+                    // A copy of the component, its label too: `$P` in a
+                    // `<p>` in the `<label>` of `P` holds itself, though as
+                    // the value of the label it does not (#1384). An extend
+                    // of a component holds its label too (`<point name="b"
+                    // extend="$a"/>`, `$b` in a's label, as content or as
+                    // the label's own, Doenet/DoenetML#2643 item 1).
                     const seen = new Set<SerializedComponent>();
                     let labelled: SerializedComponent | undefined = target;
                     while (labelled && !seen.has(labelled)) {
