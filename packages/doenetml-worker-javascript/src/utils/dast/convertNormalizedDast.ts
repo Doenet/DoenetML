@@ -583,17 +583,22 @@ export async function normalizedDastToSerializedComponents(
                             codeAndArgs.code === "doenet-w0104" ||
                             codeAndArgs.code === "doenet-w0105";
                         if (
-                            codeAndArgs.code === "doenet-w0197" &&
+                            (codeAndArgs.code === "doenet-w0197" ||
+                                codeAndArgs.code === "doenet-w0201") &&
                             typeof codeAndArgs.args?.componentType ===
                                 "string" &&
+                            // a `<division>` is the tag its `type` names
+                            codeAndArgs.args.componentType !== "division" &&
                             componentInfoObjects.componentTypeAsWritten(
                                 codeAndArgs.args.componentType,
                             ) === undefined
                         ) {
                             // The parser corrected `name`, `extend`, `copy`
                             // or `copyWithState` on a tag the schema doesn't
-                            // list, not knowing if it is a component type.
-                            // One that is not is an error (`doenet-e0002`),
+                            // list, not knowing if it is a component type, or
+                            // kept the first of an attribute written twice on
+                            // any tag (`doenet-w0201`). One that is not a
+                            // component type is an error (`doenet-e0002`),
                             // so nothing is applied, and the warning that
                             // it is would be false.
                         } else if (!isUnresolvedReference) {
@@ -2056,6 +2061,7 @@ export function expandAttribute({
                 type: "primitive",
                 name: attribute.name,
                 primitive: primitiveValue,
+                ...(attribute.position ? { position: attribute.position } : {}),
                 sourceDoc: attribute.sourceDoc,
             },
             diagnostics,

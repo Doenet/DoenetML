@@ -184,7 +184,17 @@ describe("Error Tests @group2", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(7);
-        expect(diagnosticsByType.warnings.length).eq(0);
+        // an attribute written twice on a component (D62); not on `<apple>`
+        // or `<banana>`, which are errors, so nothing of theirs is used
+        expect(
+            diagnosticsByType.warnings.map((w) => [
+                w.code,
+                w.position?.start.line,
+            ]),
+        ).eqls([
+            ["doenet-w0201", 15],
+            ["doenet-w0201", 16],
+        ]);
         expect(diagnosticsByType.infos.length).eq(0);
 
         const firstNoClosingTag = diagnosticsByType.errors.find((error) =>

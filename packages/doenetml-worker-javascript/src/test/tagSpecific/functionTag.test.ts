@@ -4511,7 +4511,7 @@ describe("Function tag tests @group4", async () => {
     <function extend="$f" name="f2" />
     <function name="f3">$f</function>
     <function name="g" maxima="(1,2) (4,3)" />
-    <function name="$g" name="g2" />
+    <function extend="$g" name="g2" />
     <function name="g3">$g</function>
     `,
         });
