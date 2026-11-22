@@ -198,14 +198,15 @@ export async function normalizedDastToSerializedComponents(
         index_resolution: IndexResolution,
     ) => void,
     {
-        loadCycle,
+        loadCycles,
     }: {
         /**
-         * What a load that stopped on a circular dependency blamed, when the
-         * document is rebuilt (D57, `blameLoadCycle`): made `doenet-e0005`
-         * by the cycle check (`breakReferenceCycles`).
+         * What each load that stopped on a circular dependency blamed, when
+         * the document is rebuilt (D57, D61 decision 2, `blameLoadCycle`):
+         * each made `doenet-e0005` by the cycle check
+         * (`breakReferenceCycles`).
          */
-        loadCycle?: LoadCycle;
+        loadCycles?: LoadCycle[];
     } = {},
 ): Promise<{
     document: SerializedComponent;
@@ -1113,7 +1114,7 @@ export async function normalizedDastToSerializedComponents(
             serializedComponents: sugarResult.components,
             componentInfoObjects,
             branchReads,
-            loadCycle,
+            loadCycles,
         }),
     );
 

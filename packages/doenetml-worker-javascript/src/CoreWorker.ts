@@ -18,6 +18,7 @@ import {
     RootNameChanges,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
+import type { LoadCycle } from "./utils/dast/referenceCycles";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 import type { ErrorsAfterLoad } from "./core/DiagnosticsManager";
 import { CircularDependencyError } from "./core/dependencies/CircularDependencyError";
@@ -77,7 +78,19 @@ export type RequestSolutionView = (componentIdx: number) => Promise<{
     allowView: boolean;
 }>;
 
-/** Whether the component `componentIdx` in `document` is an `_error`. */
+/**
+ * How many times a load that stops on a circular dependency is rebuilt, each
+ * time with one more node blamed, before the document stops (D61 decision
+ * 2): enough for a few independent cycles, few enough that a pathological
+ * document can't take long.
+ */
+export const MAX_LOAD_CYCLE_REBUILDS = 5;
+
+/**
+ * Whether the component `componentIdx` in `document` is an `_error`: written
+ * anywhere, also in the index of a reference (`$s.sectionNumber` in
+ * `hide="$l[$s.sectionNumber]"`).
+ */
 function madeAnError(document: any, componentIdx: number): boolean {
     const stack = [document];
     while (stack.length > 0) {
@@ -96,6 +109,22 @@ function madeAnError(document: any, componentIdx: number): boolean {
                 ...(attribute?.references ?? []),
                 ...(attribute?.children ?? []),
             );
+        }
+        const extending = component.extending;
+        const reference =
+            extending?.Ref ??
+            extending?.ExtendAttribute ??
+            extending?.CopyAttribute ??
+            extending?.CopyWithStateAttribute;
+        for (const path of [
+            reference?.unresolvedPath,
+            reference?.originalPath,
+        ]) {
+            for (const part of path ?? []) {
+                for (const piece of part?.index ?? []) {
+                    stack.push(...(piece?.value ?? []));
+                }
+            }
         }
         stack.push(...(component.children ?? []));
     }
@@ -413,15 +442,19 @@ export class PublicDoenetMLCore {
      * The load of the document stopped on the circular dependency `error`
      * (D57, D14, NAME-7): a cycle the load-time checks didn't predict. Blame
      * one authored node on it (`blameLoadCycle`), and build the document
-     * once more, from the resolver and the normalized DAST as they were
-     * before the first conversion, with that node made `doenet-e0005` by the
-     * cycle check (`breakReferenceCycles`'s `loadCycle`). The rest renders.
+     * again, from the resolver and the normalized DAST as they were before
+     * the first conversion, with that node made `doenet-e0005` by the cycle
+     * check (`breakReferenceCycles`'s `loadCycles`). The rest renders.
      *
-     * Done once: if no node can be blamed, the host gave no way to put the
-     * resolver back, the backstop is off (`setLoadCycleBackstop`), the cycle
-     * check could not make the node blamed an error, or the rebuilt document
-     * stops on a cycle too, the error is thrown, and the document stops as
-     * before.
+     * Repeated while the rebuilt document stops on another cycle (D61
+     * decision 2): each rebuild keeps the nodes already blamed and blames
+     * one more, so independent cycles are each `doenet-e0005`, up to
+     * `MAX_LOAD_CYCLE_REBUILDS` rebuilds. The error is thrown, and the
+     * document stops as before, past the cap, or if no node can be blamed,
+     * the cycle check made the error a node it made before (the rebuild
+     * would make no progress), the host gave no way to put the resolver
+     * back, the backstop is off (`setLoadCycleBackstop`), or the cycle check
+     * could not make a node blamed an error.
      */
     async rebuildAroundLoadCycle(
         error: CircularDependencyError,
@@ -429,7 +462,6 @@ export class PublicDoenetMLCore {
         coreArgs: any,
     ) {
         const normalizedRoot = this._normalizedRootForRebuild;
-        const failedCore = this.core!;
         if (
             !loadCycleBackstopOn() ||
             !normalizedRoot ||
@@ -438,47 +470,80 @@ export class PublicDoenetMLCore {
         ) {
             throw error;
         }
-        const blame = blameLoadCycle({
-            componentIndices: error.componentIndices,
-            stateVariables: error.stateVariables,
-            components: failedCore._components,
-            document: serializedDocument,
-            componentInfoObjects: coreArgs.componentInfoObjects,
-        });
-        if (blame === undefined) {
-            throw error;
-        }
-        failedCore.abandonLoad();
-        this.core = null;
         this._normalizedRootForRebuild = undefined;
+        const blames: LoadCycle[] = [];
+        let failedDocument = serializedDocument;
+        for (let rebuild = 1; rebuild <= MAX_LOAD_CYCLE_REBUILDS; rebuild++) {
+            const failedCore = this.core!;
+            const blame = blameLoadCycle({
+                componentIndices: error.componentIndices,
+                stateVariables: error.stateVariables,
+                components: failedCore._components,
+                document: failedDocument,
+                componentInfoObjects: coreArgs.componentInfoObjects,
+            });
+            if (blame === undefined) {
+                throw error;
+            }
+            blames.push(blame);
+            failedCore.abandonLoad();
+            this.core = null;
 
-        if (!this.restoreResolver()) {
-            throw error;
-        }
-        const { document, nComponents, diagnostics } =
-            await normalizedDastToSerializedComponents(
-                normalizedRoot,
+            if (!this.restoreResolver()) {
+                throw error;
+            }
+            const { document, nComponents, diagnostics } =
+                await normalizedDastToSerializedComponents(
+                    // the conversion may change it, and a later rebuild
+                    // starts from it as it was
+                    rebuild < MAX_LOAD_CYCLE_REBUILDS
+                        ? structuredClone(normalizedRoot)
+                        : normalizedRoot,
+                    coreArgs.componentInfoObjects,
+                    this.addNodesToResolver!,
+                    { loadCycles: blames },
+                );
+            if (
+                blames.some(
+                    (one) =>
+                        one.made === undefined ||
+                        !madeAnError(document, one.made),
+                )
+            ) {
+                // a node blamed wasn't one the cycle check could make an
+                // error
+                throw error;
+            }
+            if (new Set(blames.map((one) => one.made)).size < blames.length) {
+                // the node made the error is one made before: the document
+                // is the one that stopped, so the rebuild made no progress
+                throw error;
+            }
+            // the variant infos `initializeWorker` reported, now of this
+            // document
+            await returnAllPossibleVariants(
+                document,
                 coreArgs.componentInfoObjects,
-                this.addNodesToResolver!,
-                { loadCycle: blame },
+                diagnostics,
             );
-        if (blame.made === undefined || !madeAnError(document, blame.made)) {
-            // the node blamed wasn't one the cycle check could make an error
-            throw error;
+            this.core = new Core({
+                ...coreArgs,
+                serializedDocument: document,
+                nComponentsInit: nComponents,
+                preliminaryDiagnostics: diagnostics,
+            });
+            try {
+                return await this.core.generateDast();
+            } catch (e) {
+                if (!(e instanceof CircularDependencyError)) {
+                    throw e;
+                }
+                // another cycle: blamed on the next round
+                error = e;
+                failedDocument = document;
+            }
         }
-        // the variant infos `initializeWorker` reported, now of this document
-        await returnAllPossibleVariants(
-            document,
-            coreArgs.componentInfoObjects,
-            diagnostics,
-        );
-        this.core = new Core({
-            ...coreArgs,
-            serializedDocument: document,
-            nComponentsInit: nComponents,
-            preliminaryDiagnostics: diagnostics,
-        });
-        return await this.core.generateDast();
+        throw error;
     }
 
     /**
