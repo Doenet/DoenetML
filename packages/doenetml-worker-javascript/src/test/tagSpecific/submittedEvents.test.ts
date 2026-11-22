@@ -491,6 +491,40 @@ describe("Submitted event attempt counts @group1", async () => {
         expect(answerEvent.result.numAttemptsLeft).eq(1);
     });
 
+    it("a section-wide check work with only weight-0 answers records full credit", async () => {
+        // Nothing under the button carries weight, so the event records the
+        // section's `creditAchievedIfSubmit` of 1, the `creditAchieved` it will
+        // show, rather than the `NaN` of an average over no weight.
+        const { core, resolvePathToNodeIdx, submittedEvents } =
+            await createCoreRecordingEvents(`
+    <section name="sec" sectionWideCheckWork>
+        <answer weight="0"><mathInput name="mi1" />x</answer>
+        <answer weight="0"><mathInput name="mi2" />y</answer>
+    </section>
+    `);
+        const secIdx = await resolvePathToNodeIdx("sec");
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await core.requestAction({
+            componentIdx: secIdx,
+            actionName: "submitAllAnswers",
+            args: {},
+        });
+
+        const events = await submittedEvents();
+        const sectionEvent = events.find(
+            (e) => e.object.componentIdx === secIdx,
+        )!;
+        expect(sectionEvent.result.creditAchieved).eq(1);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[secIdx].stateValues.creditAchieved).eq(1);
+    });
+
     it("event carries an ISO 8601 UTC timestamp and version 0.2.0", async () => {
         const { core, resolvePathToNodeIdx, submittedEvents } =
             await createCoreRecordingEvents(`
