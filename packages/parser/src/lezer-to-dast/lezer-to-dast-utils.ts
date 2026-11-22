@@ -51,26 +51,53 @@ function removeQuotes(str: string): string {
 }
 
 /**
- * Converts all `EntityReference` children into their unescaped
- * equivalents.
+ * Converts all `EntityReference` (`&amp;`) and `CharacterReference`
+ * (`&#x33;`, `&#51;`) children into their unescaped equivalents.
  */
 function unescapeEntities(node: SyntaxNode, source: string): string {
     const rawValue = extractContent(node, source);
-    // We need to replace any entities present with their raw text.
-    const entities = node.getChildren("EntityReference");
+    // We need to replace any entities present with their raw text, in the
+    // order they are written.
+    const entities = [
+        ...node.getChildren("EntityReference"),
+        ...node.getChildren("CharacterReference"),
+    ].sort((a, b) => a.from - b.from);
     if (entities.length === 0) {
         // No entities means no escaping needed.
         return rawValue;
     }
+    const pieces: { text: string; isEntity: boolean }[] = [];
     let i = 0;
-    let ret = "";
-    // We assume that the `EntityNode`s come in order.
     for (const entity of entities) {
-        ret += rawValue.slice(i, entity.from - node.from);
-        ret += entityToString(entity, source);
+        pieces.push({
+            text: rawValue.slice(i, entity.from - node.from),
+            isEntity: false,
+        });
+        pieces.push({ text: entityToString(entity, source), isEntity: true });
         i = entity.to - node.from;
     }
-    ret += rawValue.slice(i);
+    pieces.push({ text: rawValue.slice(i), isEntity: false });
+
+    // An attribute's value is read for macros once decoded, so a `$`
+    // written as a reference (`&#36;`, `&dollar;`) must not start one with
+    // what follows it, written out or decoded: `&#36;(x)`, `&#36;&#40;x)` and
+    // `&#36;$f` are text before `(x)` or `$f`, not a reference. A zero-width
+    // space after the `$` keeps it text, as `entityToString` already does
+    // before a letter written out. In text a reference is its own node,
+    // never read for macros.
+    let ret = "";
+    pieces.forEach((piece, idx) => {
+        ret += piece.text;
+        if (piece.isEntity && piece.text === "$") {
+            const rest = pieces
+                .slice(idx + 1)
+                .map((p) => p.text)
+                .join("");
+            if (/^\$?[a-zA-Z_(]/.test(rest)) {
+                ret += "\u200B";
+            }
+        }
+    });
     return ret;
 }
 

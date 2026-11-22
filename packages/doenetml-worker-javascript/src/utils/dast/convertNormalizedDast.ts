@@ -55,6 +55,7 @@ import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
+import { markReferencesToVariantControls } from "./variantControlReferences";
 import { nameDifferingOnlyInCase, suggestionArgs } from "./nameCase";
 import {
     ATTRIBUTES_OF_A_COPY,
@@ -872,6 +873,16 @@ export async function normalizedDastToSerializedComponents(
             };
         }
     }
+
+    // A reference to a `<variantControl>` names nothing, with a warning that
+    // says it shows nothing and nothing can be read from it (#2623 item 7).
+    diagnostics.push(
+        ...markReferencesToVariantControls({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
 
     // What a property or an index after a `<select>` or `<conditionalContent>`
     // reaches in its options or cases, decided at load from every one of them
@@ -1693,6 +1704,32 @@ export function expandAllUnflattenedAttributes({
                         }),
                     );
                     continue;
+                }
+                // So is one that isn't a number (`numVariants="abc"`), which
+                // was read as `NaN` and fell back to the default silently
+                // (#2623 item 5).
+                if (
+                    attrDef.createPrimitiveOfType === "number" ||
+                    attrDef.createPrimitiveOfType === "integer"
+                ) {
+                    const written = attribute.children
+                        .map((child) =>
+                            typeof child === "string" ? child : "",
+                        )
+                        .join("")
+                        .trim();
+                    if (!Number.isFinite(Number(written))) {
+                        diagnostics.push(
+                            codedDiagnostic({
+                                type: "error",
+                                code: "doenet-e0089",
+                                args: { attribute: attrName, value: written },
+                                position: attribute.position,
+                                sourceDoc: attribute.sourceDoc,
+                            }),
+                        );
+                        continue;
+                    }
                 }
             }
 

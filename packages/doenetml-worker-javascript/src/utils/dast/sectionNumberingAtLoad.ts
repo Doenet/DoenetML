@@ -64,6 +64,7 @@ const BRANCH_TYPES = ["case", "else", "option"];
  */
 export const NUMBER_PROPERTIES = new Set([
     "sectionnumber",
+    "ownnumber",
     "enumeration",
     "title",
     "titleprefix",

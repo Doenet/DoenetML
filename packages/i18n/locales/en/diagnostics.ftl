@@ -182,6 +182,18 @@ variants-all-excluded = `variantsToExclude` excludes every variant of this { $co
 # its attributes out.
 variant-control-made-from = A `<variantControl>` can't be made with `extend`, `copy` or `copyWithState`. A document's variants are decided before any reference in it can be read. Write the attributes on the `<variantControl>` itself.
 
+# Translators: `<variantControl>` stays in English. A reference to a
+# `<variantControl>` (`$vc`, `$vc.numVariants`) names nothing: it shows
+# nothing, and nothing can be read from it, not even the properties every
+# component has (`hidden`). $reference is the reference as written,
+# with its `$`. When $isAttribute is `true`, $property is the name after it,
+# which is one of the `<variantControl>`'s attributes (`numVariants`); both
+# are DoenetML and stay in English.
+reference-to-variant-control = `{ $reference }` names nothing to show. A `<variantControl>` only sets how the variants of the document or section it is written in are chosen, before anything in it is made, so it shows nothing and nothing can be read from it{ $isAttribute ->
+        [true] : `{ $property }` is one of its attributes, which a reference can't read.
+       *[other] .
+    }
+
 ## `<sideBySide>`
 
 # $component is `sideBySide` or `sbsGroup`.
@@ -1287,6 +1299,13 @@ type-change-value-not-convertible =
 # empty value means true. $attribute is its name, as written, which is
 # DoenetML and stays in English.
 attribute-empty = The `{ $attribute }` attribute is empty, and it needs a value. Write one, as `{ $attribute }="…"`, or remove the attribute.
+
+# An attribute that needs a number, read before anything else in the
+# document (such as `numVariants` on a `<variantControl>`), written as text
+# that isn't one: `numVariants="abc"`. The attribute is ignored. $attribute
+# is its name and $value what was written, both DoenetML, which stay in
+# English.
+attribute-not-a-number = The `{ $attribute }` attribute needs a number, and `{ $value }` isn't one, so the attribute is ignored. Write a number, or remove the attribute.
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.
 

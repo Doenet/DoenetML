@@ -296,6 +296,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0196": "latex-not-read-as-math",
     "doenet-w0197": "attribute-name-case",
     "doenet-w0198": "sort-by-prop-names-nothing",
+    "doenet-w0199": "reference-to-variant-control",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -385,6 +386,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0086": "variant-name-repeated",
     "doenet-e0087": "variants-all-excluded",
     "doenet-e0088": "variant-control-made-from",
+    "doenet-e0089": "attribute-not-a-number",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",

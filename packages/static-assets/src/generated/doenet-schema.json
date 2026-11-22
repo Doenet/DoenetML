@@ -48155,6 +48155,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -48965,6 +48971,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -49779,6 +49791,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -50589,6 +50607,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -51412,6 +51436,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -52222,6 +52252,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -53045,6 +53081,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -53864,6 +53906,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -54687,6 +54735,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -55508,6 +55562,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -56318,6 +56378,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -57132,6 +57198,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -57942,6 +58014,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -58756,6 +58834,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -59566,6 +59650,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -60380,6 +60470,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -61187,6 +61283,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section (always null for unnumbered sections)."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",
@@ -62006,6 +62108,12 @@
                     "description": "The displayed number for this section."
                 },
                 {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
+                },
+                {
                     "name": "title",
                     "type": "text",
                     "isArray": false,
@@ -62821,6 +62929,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The displayed number for this section."
+                },
+                {
+                    "name": "ownNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section."
                 },
                 {
                     "name": "title",

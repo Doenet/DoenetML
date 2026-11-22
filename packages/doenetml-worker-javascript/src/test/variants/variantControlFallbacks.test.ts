@@ -239,6 +239,172 @@ ${select}
         });
     });
 
+    describe("a numVariants that isn't a number", () => {
+        // `Number("abc")` is `NaN`, which fell back to 100 variants,
+        // silently (#2623 item 5)
+        for (const written of ["abc", "3x", "Infinity", "$"]) {
+            it(`numVariants="${written}" is ignored, with an error at the attribute`, async () => {
+                const { variants, errors } = await load(`
+<variantControl numVariants="${written}" variantNames="x y" />
+${select}
+`);
+                // the default, 100, with the names written
+                expect(variants.length).eq(100);
+                expect(variants.slice(0, 3)).eqls(["x", "y", "c"]);
+                expect(errors.length).eq(1);
+                expect(errors[0].code).eq("doenet-e0089");
+                expect(errors[0].message).eq(
+                    `The \`numVariants\` attribute needs a number, and \`${written}\` isn't one, so the attribute is ignored. Write a number, or remove the attribute.`,
+                );
+                expect(errors[0].position?.start.line).eq(2);
+                expect(errors[0].position?.start.column).eq(17);
+            });
+        }
+
+        it("a number with spaces around it is a number", async () => {
+            const { variants, errors } = await load(`
+<variantControl numVariants=" 3 " />
+${select}
+`);
+            expect(variants).eqls(["a", "b", "c"]);
+            expect(errors).eqls([]);
+        });
+
+        // A numeric character reference is decoded by the parser, as a
+        // named entity is, so it is the number it spells (#2623 item 6).
+        for (const written of ["&#x33;", "&#51;"]) {
+            it(`numVariants="${written}" is 3`, async () => {
+                const { variants, errors } = await load(`
+<variantControl numVariants="${written}" />
+${select}
+`);
+                expect(variants).eqls(["a", "b", "c"]);
+                expect(errors).eqls([]);
+            });
+        }
+
+        it("beside a reference, the text left is read", async () => {
+            const { variants, errors } = await load(`
+<variantControl numVariants="x$m" />
+<number name="m">3</number>
+${select}
+`);
+            expect(variants.length).eq(100);
+            expect(errors.map((e) => e.code)).eqls([
+                "doenet-e0085",
+                "doenet-e0089",
+            ]);
+        });
+    });
+
+    describe("a reference to a variantControl names nothing", () => {
+        // `$vc.numVariants` gave `w0104` ("No referent found") though `vc`
+        // exists, `<p>$vc</p>` gave `w0107` (invalid children), and `$vc`
+        // where a `<variantControl>` can be written made another, silently
+        // (#2623 item 7, DIAG-3)
+        const start =
+            "names nothing to show. A `<variantControl>` only sets how the variants of the document or section it is written in are chosen, before anything in it is made, so it shows nothing and nothing can be read from it";
+
+        it("a property that is one of its attributes says so", async () => {
+            const { warnings, errors, stateVariables, resolvePathToNodeIdx } =
+                await load(
+                    `
+<variantControl name="vc" numVariants="3" />
+<p name="p">$vc.numVariants</p>
+${select}
+`,
+                    { componentName: "p" },
+                );
+            expect(errors).eqls([]);
+            expect(warnings.length).eq(1);
+            expect(warnings[0].code).eq("doenet-w0199");
+            expect(warnings[0].message).eq(
+                `\`$vc.numVariants\` ${start}: \`numVariants\` is one of its attributes, which a reference can't read.`,
+            );
+            expect(warnings[0].position?.start.line).eq(3);
+            expect(warnings[0].position?.start.column).eq(13);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("＿");
+        });
+
+        it("any other property, and the variantControl itself", async () => {
+            const { warnings, errors, stateVariables, resolvePathToNodeIdx } =
+                await load(
+                    `
+<variantControl name="vc" numVariants="3" />
+<p name="p">$vc.foo $vc.hide $vc.hidden $vc</p>
+${select}
+`,
+                    { componentName: "p" },
+                );
+            expect(errors).eqls([]);
+            expect(warnings.map((w) => w.message)).eqls([
+                `\`$vc.foo\` ${start}.`,
+                `\`$vc.hide\` ${start}.`,
+                `\`$vc.hidden\` ${start}.`,
+                `\`$vc\` ${start}.`,
+            ]);
+            expect(warnings.every((w) => w.code === "doenet-w0199")).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("＿ ＿ ＿ ＿");
+        });
+
+        it("a tag made from one of its properties is missing, with the same warning", async () => {
+            const { warnings, errors, stateVariables, resolvePathToNodeIdx } =
+                await load(
+                    `
+<variantControl name="vc" numVariants="3" />
+<p name="p"><number extend="$vc.numVariants"/> <text copy="$vc.seeds"/></p>
+${select}
+`,
+                    { componentName: "p" },
+                );
+            expect(errors).eqls([]);
+            expect(warnings.map((w) => w.message)).eqls([
+                `\`$vc.numVariants\` ${start}: \`numVariants\` is one of its attributes, which a reference can't read.`,
+                `\`$vc.seeds\` ${start}: \`seeds\` is one of its attributes, which a reference can't read.`,
+            ]);
+            expect(warnings.every((w) => w.code === "doenet-w0199")).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("＿ ＿");
+        });
+
+        it("a tag made from the variantControl itself is a type change", async () => {
+            const { warnings, errors } = await load(
+                `
+<variantControl name="vc" numVariants="3" />
+<text extend="$vc"/>
+${select}
+`,
+            );
+            expect(warnings).eqls([]);
+            expect(errors.map((e) => e.code)).eqls(["doenet-e0065"]);
+        });
+
+        it("where a variantControl can be written, it makes none", async () => {
+            const { variants, warnings, errors } = await load(
+                `
+<section><variantControl name="vc" numVariants="3" /></section>
+<problem name="p">
+    $vc
+    <selectFromSequence length="100000" />
+</problem>
+`,
+                { componentName: "p" },
+            );
+            expect(errors).eqls([]);
+            expect(warnings.map((w) => w.code)).eqls(["doenet-w0199"]);
+            // the problem's variants aren't set by the reference
+            expect(variants.length).eq(100);
+        });
+    });
+
     describe("a variantControl made from another is an error", () => {
         const message =
             "A `<variantControl>` can't be made with `extend`, `copy` or `copyWithState`. A document's variants are decided before any reference in it can be read. Write the attributes on the `<variantControl>` itself.";

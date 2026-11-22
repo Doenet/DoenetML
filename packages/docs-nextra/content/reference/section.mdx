@@ -61,6 +61,15 @@ the subsections are numbered 1.1, 1.2 and 1.3. Other containers, such as a
 inside them from 1. So does a [`<proof>{:dn}`](proof), which itself takes no
 place in the count.
 
+A section's `sectionNumber` is the number shown, as text: `2.3` for the third
+section in section 2, as a `<section>{:dn}` includes its parent's number by
+default (`includeParentNumber`). Its `ownNumber` is
+its own place as a number: `3` for that section, and missing for a section
+with no number, such as a `<proof>{:dn}`. To compare where a section is, use
+`ownNumber`: `<boolean>$s.ownNumber > 2</boolean>{:dn}`. The text
+`$s.sectionNumber` isn't a number (section 2.10 comes after 2.9), so
+`$s.sectionNumber > 2` is never true.
+
 
 
 ---
