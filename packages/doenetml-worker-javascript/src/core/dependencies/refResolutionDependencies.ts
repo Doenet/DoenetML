@@ -1443,7 +1443,17 @@ export class RefResolutionDependency extends Dependency {
         // a case shown by an input, an info while it lasts (DIAG-2, #2506)
         const container =
             this.dependencyHandler._components[childIndex.containerIdx];
+        // After a `<select>` or `<conditionalContent>` whose every option or
+        // case holds several, it was reported at load (`doenet-w0191`); when
+        // only some do, which is picked or shown now is a value: an info
+        // (`severalAtLoad`, `checkCollectionItems` in `typeChangeAtLoad.ts`,
+        // DIAG-7)
+        const severalAtLoad = composite.doenetAttributes?.severalAtLoad;
+        if (severalAtLoad === "every") {
+            return;
+        }
         const decidedByDoenetML =
+            severalAtLoad !== "some" &&
             !this.indexFromValue(composite) &&
             !(container && branchCanChange(container, changeContext(core)));
 

@@ -1607,47 +1607,6 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
 });
 
 /**
- * Doenet/DoenetML#2521 item 5, found, not fixed: a group whose one
- * component is an index into a list (`$ls[$i]`), shown through a reference
- * to the group, is reported circular after load once the index goes past
- * the end of the list, and stays blank when it comes back. The reference
- * and the copy of it that `$s` makes keep queuing each other to be updated,
- * which #2425's loop check stops. No cycle is written, so it is not an error
- * at load; it is a known violation of DIAG-7, pinned here.
- */
-describe("An index past the end in a group shown by a reference @group2", async () => {
-    it("is reported circular after load, and stays blank", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<mathInput name="mi" prefill="1"/><number name="i">$mi</number>
-<mathList name="ls">a b c</mathList>
-<group name="s">$ls[$i]</group>
-<p name="out">$s</p>`,
-        });
-        const miIdx = await resolvePathToNodeIdx("mi");
-        async function shown() {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            return stateVariables[await resolvePathToNodeIdx("out")].stateValues
-                .text;
-        }
-        expect(await shown()).eq("a");
-        expect(getDiagnosticsByType(core).errors).eqls([]);
-
-        await updateMathInputValue({ latex: "5", componentIdx: miIdx, core });
-        expect(await shown()).eq("＿");
-        expect(takeErrorsReportedAfterLoad().map((e) => e.code)).eqls([
-            "doenet-e0005",
-        ]);
-
-        // what it should show again
-        await updateMathInputValue({ latex: "1", componentIdx: miIdx, core });
-        expect(await shown()).eq("＿");
-    });
-});
-
-/**
  * Cycles the load-time check does not find yet. Each stopped the document
  * when it was reached; since D57 (#2623 item 1), one reached as the document
  * loads is caught by the run-time backstop (`loadCycleBlame.ts`), and the

@@ -3811,6 +3811,12 @@ export function checkTypeChangesAtLoad({
         if (typeof item === "string") {
             return { kind: "one", type: "text" };
         }
+        if (item.componentType === "group") {
+            // A `<group>` written as the one component stands for what it
+            // holds, as an index or a property passes into it
+            // (Doenet/DoenetML#2643 item 5)
+            return partItems(item);
+        }
         // A reference as the one component (`<option>$m</option>`) counts
         // as what it names, when that is one component whose tag the
         // DoenetML gives (`declaredType`; #2548 item 4).
@@ -3831,12 +3837,13 @@ export function checkTypeChangesAtLoad({
      *   property after it (`$s[1][2]`, `$s.x`, `$s[1].x`) passes into the
      *   ones holding one, and is read from each component of the others,
      *   so what it means depends on the pick or the case (#2520 item 1):
-     *   `doenet-w0191`, naming those holding several. For a property, also
-     *   when every one holds several: a property after a wrapper of several
-     *   names nothing (D41 decision 3), which the DoenetML decides here, so
-     *   it is a warning, whether or not one is picked or shown
+     *   `doenet-w0191`, naming those holding several. Also when every one
+     *   holds several: an index or a property after a wrapper of several
+     *   names nothing (NAME-2, D41 decision 3), which the DoenetML decides
+     *   here, so it is a warning, whether or not one is picked or shown
      *   (`severalAtLoad`, read by `wrapperOfSeveralDiagnostics` in
-     *   `Copy.js`);
+     *   `Copy.js` and `reportChildIndex` in `refResolutionDependencies.ts`).
+     *   A `<group>` written as the one component stands for what it holds;
      * - when each holds one component, and some of their types have a
      *   property and others lack it (`$cc.x` of a `<math>` case and a
      *   `<text>` `<else>`), it is a warning, and each component lacking it
@@ -3943,22 +3950,17 @@ export function checkTypeChangesAtLoad({
             }
         }
         if (several.length > 0) {
-            if (!anyOne && kind !== "property") {
-                // each a wrapper of several: an index after it names
-                // nothing, with `doenet-w0188` at run time
-                return;
-            }
-            // A property after a wrapper of several names nothing (D41
-            // decision 3, `doenet-w0193` at run time). Decided here when
-            // every option or case holds several, so it is not reported
-            // again there; when only some do, what is reported there is
-            // which is picked or shown now, an info (DIAG-2).
-            if (kind === "property") {
-                copy.doenetAttributes = {
-                    ...copy.doenetAttributes,
-                    severalAtLoad: anyOne ? "some" : "every",
-                };
-            }
+            // An index or a property after a wrapper of several names
+            // nothing (NAME-2, D41 decision 3: `doenet-w0188` or
+            // `doenet-w0193` at run time). Decided here when every option or
+            // case holds several, so it is not reported again there; when
+            // only some do, what is reported there is which is picked or
+            // shown now, an info (DIAG-2, DIAG-7; Doenet/DoenetML#2643 items
+            // 4 and 5).
+            copy.doenetAttributes = {
+                ...copy.doenetAttributes,
+                severalAtLoad: anyOne ? "some" : "every",
+            };
             const withElse = several.some((s) => s.isElse);
             // The suggestion names `P` after the select or conditional
             // (`$s.P.x`), or after its index (`$s[1].P.x`, the only form
