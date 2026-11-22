@@ -12,7 +12,7 @@
  * declares for itself (a list's `text`, `latex` and `value`, the entries'
  * read together, `wholeListProperties`). Anything else names nothing, with a
  * warning that
- * suggests an index (`doenet-w0198`): `$pl.x` → `$pl[1].x`, `$r.P` →
+ * suggests an index (`doenet-w0199`): `$pl.x` → `$pl[1].x`, `$r.P` →
  * `$r[1].P`.
  *
  * Which a tag is comes from the tag as written, never from how many items it
@@ -52,7 +52,7 @@ import { ownPropertiesOfComposite } from "../numItems";
 import { typeHasProperty } from "./typeChangeAtLoad";
 
 /** The code of the warning, which `typeChangeAtLoad.ts` reads for a tag. */
-export const NAME_AFTER_COLLECTION_CODE = "doenet-w0198";
+export const NAME_AFTER_COLLECTION_CODE = "doenet-w0199";
 
 /** The collections built as composites, besides a `<select>`. */
 const COMPOSITE_COLLECTIONS = new Set([
@@ -81,7 +81,7 @@ const PICK_ATTRIBUTES = ["numToSelect", "numSamples"];
 
 /**
  * The warnings for a name or a property after a collection among
- * `serializedComponents` (`doenet-w0198`), each reference warned about made
+ * `serializedComponents` (`doenet-w0199`), each reference warned about made
  * to name nothing.
  */
 export function checkNamesAfterCollectionsAtLoad({

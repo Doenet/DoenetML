@@ -613,7 +613,7 @@ describe("A choice's parameter a reader can change is an error at load @group4",
     it("a property after a list reads no entry's anchor, so is not a parameter a reader changes (D59)", async () => {
         // `$ml.anchor` was every entry's anchor, one of them the anchor of
         // a math a reader drags (`e0070`); a property after a list is the
-        // list's own, so it names nothing (`w0198`). `$ml[1].anchor` is the
+        // list's own, so it names nothing (`w0199`). `$ml[1].anchor` is the
         // entry's (above).
         const { core } = await createTestCore({
             doenetML: `<graph><math name="a">x</math></graph>
@@ -622,7 +622,7 @@ describe("A choice's parameter a reader can change is an error at load @group4",
         });
         const { errors, warnings } = getDiagnosticsByType(core);
         expect(errors).eqls([]);
-        expect(warnings.map((w) => w.code)).eqls(["doenet-w0198"]);
+        expect(warnings.map((w) => w.code)).eqls(["doenet-w0199"]);
     });
 
     it("a property of a choice in error reports nothing more", async () => {

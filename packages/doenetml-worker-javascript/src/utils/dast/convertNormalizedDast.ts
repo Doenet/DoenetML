@@ -44,7 +44,7 @@ import {
 } from "./typeChangeAtLoad";
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
-import { breakReferenceCycles } from "./referenceCycles";
+import { breakReferenceCycles, type LoadCycle } from "./referenceCycles";
 import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
 import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
@@ -56,11 +56,12 @@ import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
 import { checkNamesAfterCollectionsAtLoad } from "./namesAfterCollectionsAtLoad";
+import { nameDifferingOnlyInCase, suggestionArgs } from "./nameCase";
 import {
+    ATTRIBUTES_OF_A_COPY,
+    ATTRIBUTES_OF_EVERY_TAG,
     attributeNameCaseCorrections,
-    nameDifferingOnlyInCase,
-    suggestionArgs,
-} from "./nameCase";
+} from "@doenet/parser/attribute-name-case";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     doenetMLDollarsForReference,
@@ -179,16 +180,6 @@ function unresolvedReferenceDiagnostic(
 }
 
 /**
- * Attributes every tag takes that no class declares: the ones a tag is made
- * from another with. Suggested for one written in another case
- * (`doenet-e0004`).
- */
-const ATTRIBUTES_OF_EVERY_TAG = ["extend", "copy", "copyWithState"];
-
-/** The attributes of the copy a tag with `extend` or `copy` is made into. */
-const ATTRIBUTES_OF_A_COPY = ["asList", "removeEmptyArrayEntries"];
-
-/**
  * Transform the normalized dast into the serialized components used
  * to initialize the Javascript Doenet core
  *
@@ -202,6 +193,16 @@ export async function normalizedDastToSerializedComponents(
         flat_fragment: FlatFragment,
         index_resolution: IndexResolution,
     ) => void,
+    {
+        loadCycle,
+    }: {
+        /**
+         * What a load that stopped on a circular dependency blamed, when the
+         * document is rebuilt (D57, `blameLoadCycle`): made `doenet-e0005`
+         * by the cycle check (`breakReferenceCycles`).
+         */
+        loadCycle?: LoadCycle;
+    } = {},
 ): Promise<{
     document: SerializedComponent;
     nComponents: number;
@@ -806,7 +807,7 @@ export async function normalizedDastToSerializedComponents(
     );
 
     // A name or a property after a collection is the collection's own, so
-    // anything else after one names nothing (D59, `doenet-w0198`). Decided
+    // anything else after one names nothing (D59, `doenet-w0199`). Decided
     // from the tags as written, before the type checks, which leave a
     // reference decided here as it is.
     diagnostics.push(
@@ -939,6 +940,7 @@ export async function normalizedDastToSerializedComponents(
             serializedComponents: sugarResult.components,
             componentInfoObjects,
             branchReads,
+            loadCycle,
         }),
     );
 
@@ -1612,7 +1614,7 @@ export function expandAllUnflattenedAttributes({
     let attributes: Record<string, SerializedAttribute> = {};
 
     // The `<document>` is the root, which nothing can replace: an attribute
-    // it doesn't have, or one repeated, is reported at the attribute, which
+    // it doesn't have is reported at the attribute, which
     // is ignored, and the rest of the document renders (DIAG-5, #2614 item 1). Anywhere else, it
     // is thrown, and the component becomes an `_error`.
     const keepComponent = componentClass.componentType === "document";
@@ -1644,18 +1646,6 @@ export function expandAllUnflattenedAttributes({
             ? classAttributes[attr]
             : undefined;
         if (attrDef) {
-            if (attrName in attributes) {
-                // The first one written is kept.
-                attributeError(
-                    new DiagnosticError({
-                        code: "doenet-e0003",
-                        args: { attribute: attrName },
-                    }),
-                    unflattenedAttributes[attr],
-                );
-                continue;
-            }
-
             let attribute = unflattenedAttributes[attr];
             if (attrDef.readBeforeReferences) {
                 const res = withoutReferences({ attribute, attrName });

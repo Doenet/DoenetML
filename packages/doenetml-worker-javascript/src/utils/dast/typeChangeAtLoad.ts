@@ -332,7 +332,7 @@ export const MISSING_AT_LOAD_CODES = new Set([
     "doenet-w0183",
     // a name or a property after a collection (D59,
     // `namesAfterCollectionsAtLoad.ts`), marked before these checks
-    "doenet-w0198",
+    "doenet-w0199",
 ]);
 
 /**
@@ -359,7 +359,7 @@ export function typeChangeAtLoadDiagnostic({
         "doenet-w0181",
         "doenet-w0183",
         "doenet-w0184",
-        "doenet-w0198",
+        "doenet-w0199",
     ].includes(mark.code)
         ? { reference: source, ...mark.args }
         : { componentType: writtenType, source, ...mark.args };
@@ -4046,7 +4046,7 @@ export function checkTypeChangesAtLoad({
             if (
                 component.componentType === "_copy" &&
                 component.doenetAttributes?.typeChangeAtLoad?.code ===
-                    "doenet-w0198"
+                    "doenet-w0199"
             ) {
                 // a name or a property after a collection, decided already
                 // (D59, `namesAfterCollectionsAtLoad.ts`)

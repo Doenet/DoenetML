@@ -824,7 +824,7 @@ describe("UpdateValue tag tests @group1", async () => {
         expect(await latexes()).eqls(["(3,2)", "(1,5)", "(7,0)"]);
 
         // `$col.x` was every point's x (D41); it names nothing, reported
-        // once at load (`doenet-w0198`), and the action changes nothing.
+        // once at load (`doenet-w0199`), and the action changes nothing.
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("uv1"),
             core,
@@ -843,7 +843,7 @@ describe("UpdateValue tag tests @group1", async () => {
                     (d: any) => !d.code?.startsWith("doenet-a"),
                 )
                 .map((d: any) => d.code),
-        ).eqls(["doenet-w0198"]);
+        ).eqls(["doenet-w0199"]);
     });
 
     it("update property of property", async () => {
@@ -3522,7 +3522,7 @@ describe("UpdateValue tag tests @group1", async () => {
                     (d: any) => !d.code?.startsWith("doenet-a"),
                 )
                 .map((d: any) => d.code),
-        ).eqls(["doenet-w0198", "doenet-w0198", "doenet-w0198"]);
+        ).eqls(["doenet-w0199", "doenet-w0199", "doenet-w0199"]);
     });
 
     it("reset every entry of a math list to blank", async () => {
@@ -4073,7 +4073,7 @@ describe("UpdateValue tag tests @group1", async () => {
         // A wrapper holding one component stands for it (COLL-3), and a name
         // or a property after a collection is the collection's own (COLL-2,
         // D59), so anything else names nothing, reported once at load
-        // (`doenet-w0198`), and an index reaches one item: an action's
+        // (`doenet-w0199`), and an index reaches one item: an action's
         // target is no exception.
         async function setup(doenetML: string) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -4183,7 +4183,7 @@ describe("UpdateValue tag tests @group1", async () => {
             expect(await h.values(["r[1].mi", "r[2].mi", "r[3].mi"])).eqls([
                 1, 7, 8,
             ]);
-            expect(h.warnings()).eqls(["doenet-w0198", "doenet-w0198"]);
+            expect(h.warnings()).eqls(["doenet-w0199", "doenet-w0199"]);
         });
 
         it("a name after a select of several names nothing; an index reaches one pick's component", async () => {
@@ -4200,7 +4200,7 @@ describe("UpdateValue tag tests @group1", async () => {
             expect(await h.values(["s[1].n", "s[2].n"])).eqls(before);
             await h.act("uv2");
             expect(await h.values(["s[1].n", "s[2].n"])).eqls([before[0], 7]);
-            expect(h.warnings()).eqls(["doenet-w0198"]);
+            expect(h.warnings()).eqls(["doenet-w0199"]);
         });
 
         it("a property after a repeat names nothing; after an index it is the iteration's one component's", async () => {
@@ -4213,7 +4213,7 @@ describe("UpdateValue tag tests @group1", async () => {
             expect(await h.values(["r[1].n", "r[2].n"])).eqls([1, 2]);
             await h.act("uv2");
             expect(await h.values(["r[1].n", "r[2].n"])).eqls([1, 7]);
-            expect(h.warnings()).eqls(["doenet-w0198"]);
+            expect(h.warnings()).eqls(["doenet-w0199"]);
         });
 
         it("a name an iteration lacks changes nothing, with a warning", async () => {
@@ -4273,7 +4273,7 @@ describe("UpdateValue tag tests @group1", async () => {
             }
             // `$r.m` names nothing (D59); it was every iteration's `m`
             expect(await h.values(["n", "r[1].m", "r[2].m"])).eqls([2, 0, 2]);
-            expect(h.warnings()).eqls(["doenet-w0198"]);
+            expect(h.warnings()).eqls(["doenet-w0199"]);
         });
 
         it("a setting of the wrapper's own is the wrapper's", async () => {

@@ -366,7 +366,7 @@ describe("The style of an entry of a list @group4", async () => {
         ]);
         // `$c.styleNumber` was each entry's (D41); a property after a
         // collect is its own (D59), and a collect has no `styleNumber`, so
-        // it names nothing (`doenet-w0198`)
+        // it names nothing (`doenet-w0199`)
         expect(
             stateVariables[await resolvePathToNodeIdx("pprop")].stateValues
                 .text,

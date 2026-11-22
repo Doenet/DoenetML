@@ -1828,7 +1828,7 @@ describe("Sort tag tests @group4", async () => {
         expect(warnings.map((w) => [w.code, w.message])).eqls([
             // not a property of the sort's own, so it names nothing (D59)
             [
-                "doenet-w0198",
+                "doenet-w0199",
                 "`$s.sortByComponent` names nothing: a `<sort>` has no property `sortByComponent` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$s[1].sortByComponent`.",
             ],
         ]);

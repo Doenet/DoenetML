@@ -3540,6 +3540,94 @@ describe("Sectioning tag tests @group3", async () => {
             f: "2",
         });
     });
+
+    // A `<conditionalContent>`'s `condition` attribute, a `<case
+    // condition>` and a `<boolean>` reading a section's number after
+    // sections in a group agree: at load, after a section is added before
+    // it, and after a reload (#2623 item 2, DIAG-6, SAVE-1). #2618's review
+    // read "one" while `s` was 3, from the text of the `<p>` the case holds,
+    // which is made, and withheld, whatever the condition: it was never
+    // shown.
+    it("a condition reading a section's number agrees with the number", async () => {
+        const doenetML = `
+    <booleanInput name="bi"/>
+    <conditionalContent condition="$bi"><section/></conditionalContent>
+    <group><section/><section/></group>
+    <section name="s"/>
+    <conditionalContent name="cc1" condition="$s.sectionNumber = 3"><p name="p1">three</p></conditionalContent>
+    <conditionalContent name="cc2"><case condition="$s.sectionNumber = 3"><p name="p2">three</p></case></conditionalContent>
+    <conditionalContent name="cc3" condition="$s.sectionNumber = 1"><p name="p3">one</p></conditionalContent>
+    <boolean name="b">$s.sectionNumber = 3</boolean>
+    `;
+        const shownParagraphs: number[][] = [];
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            updateRenderersCallback: (batch: any) => {
+                for (const instruction of batch.updateInstructions ?? []) {
+                    for (const state of instruction.rendererStatesToUpdate ??
+                        []) {
+                        if (state.componentIdx === 0) {
+                            shownParagraphs.push(
+                                (state.childrenInstructions ?? [])
+                                    .filter(
+                                        (child: any) =>
+                                            typeof child === "object" &&
+                                            child.componentType === "p",
+                                    )
+                                    .map((child: any) => child.componentIdx),
+                            );
+                        }
+                    }
+                }
+            },
+        });
+
+        async function check(three: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const svOf = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)];
+            expect((await svOf("s")).stateValues.sectionNumber).eq(
+                three ? "3" : "4",
+            );
+            expect((await svOf("b")).stateValues.value).eq(three);
+            expect((await svOf("cc1")).stateValues.selectedIndex).eq(
+                three ? 0 : null,
+            );
+            expect((await svOf("cc2")).stateValues.selectedIndex).eq(
+                three ? 0 : null,
+            );
+            expect((await svOf("cc3")).stateValues.selectedIndex).eq(null);
+            // what the document shows
+            const shown = stateVariables[0].activeChildren
+                .map((child: any) => child.componentIdx)
+                .filter(
+                    (idx: number) => stateVariables[idx]?.componentType === "p",
+                )
+                .map((idx: number) => stateVariables[idx].stateValues.text);
+            expect(shown).eqls(three ? ["three", "three"] : []);
+        }
+
+        await check(true);
+        // the `<p>`s first sent to the viewer
+        expect(shownParagraphs[0]?.length).eq(2);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await check(false);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check(false);
+    });
 });
 
 describe("Section heading color accessibility diagnostics @group3", async () => {

@@ -210,7 +210,8 @@ export class ProcessQueue {
     /**
      * The request `entry` left a cycle in the graph, and evaluating anything
      * that reaches it would recurse until the worker runs out of memory
-     * (#2137). Stop the document, as a cycle found during load does: this
+     * (#2137). Stop the document, as a cycle found during load does when the
+     * document built again around one meets another (D57): this
      * request and every later one is rejected with the cycle's message, and
      * the viewer is told to show it in place of the document.
      */

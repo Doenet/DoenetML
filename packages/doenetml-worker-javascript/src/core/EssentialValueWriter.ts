@@ -15,6 +15,7 @@ import {
 import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 import { isReferenceShadow } from "../utils/referenceShadow";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { CircularDependencyError } from "./dependencies/CircularDependencyError";
 
 /**
  * Passes of `replacementChangesFromCompositesToUpdate` after which composites
@@ -410,9 +411,19 @@ export class EssentialValueWriter {
                     const involved = stillQueued.length
                         ? ` ${this.core.dependencies.getCircularDependencyMessage(stillQueued)}`
                         : "";
-                    throw Error(
-                        `Seem to have an infinite loop while calculating replacement changes.${involved}`,
-                    );
+                    const message = `Seem to have an infinite loop while calculating replacement changes.${involved}`;
+                    if (!this.core.diagnosticsManager.loaded) {
+                        // While the document loads, a loop is a cycle the
+                        // load rebuilds around, blaming one of the
+                        // composites still looping (D57, `blameLoadCycle`).
+                        throw new CircularDependencyError(
+                            message,
+                            stillQueued.map(
+                                (component: any) => component.componentIdx,
+                            ),
+                        );
+                    }
+                    throw Error(message);
                 }
                 for (const composite of looping) {
                     // The same code a copy inside its own source reports.

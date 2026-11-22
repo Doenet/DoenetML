@@ -207,13 +207,13 @@ Before you consider an example "done", verify that every tag and attribute it us
 Concretely: for each `<tag>` inside a fence, look it up in the schema's `elements[]` array and confirm:
 
 - The tag name is an element name in the schema (or is a known composite expanded by the runtime).
-- Every `attrName=...` you write is in that element's `attributes[]` list (case-insensitively).
+- Every `attrName=...` you write is in that element's `attributes[]` list, spelled exactly as listed (attribute names are case-sensitive).
 - Every nested `<childTag>` is in that element's `children[]` list, or is a sub-component the parent expands into one (e.g. `<rightHandSide>` inside `<odeSystem>`).
 
 Common confusions worth checking specifically:
 
 - `<graph>` has **no `xLabel` / `yLabel` attributes**. They are *children*: `<xLabel>r</xLabel>`, `<yLabel>x</yLabel>`. Only the position/alignment variants (`xLabelPosition`, `yLabelAlignment`, `yLabelPosition`) are attributes.
-- Coordinate attributes on `<graph>` are `xMin` / `xMax` / `yMin` / `yMax` in the schema, but DoenetML attributes are case-insensitive, so `xmin` / `xmax` etc. work and are what existing pages use.
+- Coordinate attributes on `<graph>` are `xMin` / `xMax` / `yMin` / `yMax`. Attribute names are case-sensitive: `xmin` still works for now, but with a warning (`doenet-w0197`) that it will be an error, so write the schema's spelling.
 - Tags that *look* like attributes — `xLabel`, `yLabel`, `label`, `shortDescription`, `description` — are children almost everywhere.
 
 A quick local check (good as a CI hook candidate, but useful ad-hoc): parse the fenced blocks, extract `<tag attr="…" attr2="…">` occurrences, and look each one up in `doenet-schema.json`. Respect quoted attribute values so that text like `hide="$n = 1"` is not mis-parsed as containing an `n` attribute.

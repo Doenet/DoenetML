@@ -6,7 +6,7 @@
  *   `<group>` holding one input, `$r[1]` of an iteration holding one
  *   `<number>`, `$s` of a `<select>` picking one option holding one math;
  * - a name or a property after a collection names nothing (D59): it is
- *   reported when the document loads (`doenet-w0198`,
+ *   reported when the document loads (`doenet-w0199`,
  *   `namesAfterCollectionsAtLoad.ts`), which leaves the action no target;
  *   `target="$r[1].mi"` names one item's;
  * - a wrapper holding several components is only a container (COLL-3): it
@@ -19,6 +19,9 @@
  * of iterations, which `doenet-w0195` reports at load: its iterations are
  * the targets, as before, and are not passed through, so it does nothing.
  */
+import type { ComponentInfoObjects } from "./componentInfoObjects";
+import { propertyDifferingOnlyInCase, suggestionArgs } from "./dast/nameCase";
+
 /** The tags that make an item for each iteration. */
 const REPEATS = new Set(["repeat", "repeatForSequence"]);
 
@@ -100,6 +103,33 @@ export function pathOfTarget(
     unresolvedPath: any[] | null | undefined,
 ) {
     return unresolvedPath && unresolvedPath.length > 0 ? unresolvedPath : null;
+}
+
+/**
+ * The arguments of `doenet-w0044` that suggest the property `pathPart`
+ * names in another case on a `componentType` (D51, DIAG-3): `Value` on a
+ * `<number>` suggests `value`, and an array entry the index form (`X1` on a
+ * `<point>` suggests `xs[1]`), with the indices written after it.
+ */
+export function propertyCaseSuggestionArgs({
+    pathPart,
+    componentType,
+    componentInfoObjects,
+}: {
+    pathPart: { name: string; index?: { value?: unknown[] }[] };
+    componentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}) {
+    const corrected = propertyDifferingOnlyInCase({
+        propName: pathPart.name,
+        componentTypes: [componentType],
+        componentInfoObjects,
+    });
+    return suggestionArgs(
+        corrected === undefined
+            ? undefined
+            : propertyWithIndices({ ...pathPart, name: corrected }),
+    );
 }
 
 /**

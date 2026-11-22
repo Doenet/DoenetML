@@ -14,7 +14,7 @@ vi.mock("hyperformula");
  * A name or a property after a collection is the collection's own, never
  * each item's (D59, COLL-1, COLL-2; reverting D41 decision 1 for
  * collections): `numItems`, `hide`, `fixed`, `disabled` and the properties
- * the tag declares. Anything else names nothing, with `doenet-w0198` at load
+ * the tag declares. Anything else names nothing, with `doenet-w0199` at load
  * suggesting an index (`$r.P` → `$r[1].P`), decided by the tag as written,
  * never by how many items it holds. A `<conditionalContent>` and a select
  * that picks one stand for what they show (COMP-11), and a `<group>` holding
@@ -131,13 +131,13 @@ describe("A name or a property after a collection names nothing (D59)", () => {
             p7: "＿",
         });
         expect(diagnostics).eqls([
-            "warning doenet-w0198: `$c.Q` names nothing: a name after a `<collect>` does not reach into its items. To read it from one item, give its index, such as `$c[1].Q`.",
-            "warning doenet-w0198: `$pl.x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$pl[1].x`.",
-            "warning doenet-w0198: `$rmix.P.x` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].P.x`.",
-            "warning doenet-w0198: `$rmix.P` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].P`.",
-            "warning doenet-w0198: `$rmix.t` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].t`.",
-            "warning doenet-w0198: `$rmix.x` names nothing: a `<repeat>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$rmix[1].x`.",
-            "warning doenet-w0198: `$s.P.x` names nothing: a name after a `<select>` does not reach into its items. To read it from one item, give its index, such as `$s[1].P.x`.",
+            "warning doenet-w0199: `$c.Q` names nothing: a name after a `<collect>` does not reach into its items. To read it from one item, give its index, such as `$c[1].Q`.",
+            "warning doenet-w0199: `$pl.x` names nothing: a `<pointList>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$pl[1].x`.",
+            "warning doenet-w0199: `$rmix.P.x` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].P.x`.",
+            "warning doenet-w0199: `$rmix.P` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].P`.",
+            "warning doenet-w0199: `$rmix.t` names nothing: a name after a `<repeat>` does not reach into its items. To read it from one item, give its index, such as `$rmix[1].t`.",
+            "warning doenet-w0199: `$rmix.x` names nothing: a `<repeat>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$rmix[1].x`.",
+            "warning doenet-w0199: `$s.P.x` names nothing: a name after a `<select>` does not reach into its items. To read it from one item, give its index, such as `$s[1].P.x`.",
         ]);
     });
 
@@ -176,9 +176,9 @@ describe("A name or a property after a collection names nothing (D59)", () => {
             // `numToSelect` that isn't a constant (the variants)
             "info doenet-i0023",
             "warning doenet-w0104",
-            "warning doenet-w0198",
-            "warning doenet-w0198",
-            "warning doenet-w0198",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
         ]);
     });
 
@@ -241,8 +241,8 @@ describe("A name or a property after a collection names nothing (D59)", () => {
         // `$r.v` was `3, 5` (D41 decision 1).
         expect(texts).eqls({ p1: "＿", p2: "＿", p3: "5", p4: "1", p5: "5" });
         expect(diagnostics).eqls([
-            "warning doenet-w0198",
-            "warning doenet-w0198",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
         ]);
     });
 
@@ -253,7 +253,7 @@ describe("A name or a property after a collection names nothing (D59)", () => {
             ["p1"],
         );
         expect(texts).eqls({ p1: "＿" });
-        expect(diagnostics).eqls(["warning doenet-w0198"]);
+        expect(diagnostics).eqls(["warning doenet-w0199"]);
     });
 
     it("after a group holding only a collection, at any depth, as after the collection (COLL-3)", async () => {
@@ -279,10 +279,10 @@ describe("A name or a property after a collection names nothing (D59)", () => {
             p9: "(1, 3), (2, 3), (3, 3)",
         });
         expect(diagnostics).eqls([
-            "warning doenet-w0198",
-            "warning doenet-w0198",
-            "warning doenet-w0198",
-            "warning doenet-w0198",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
         ]);
     });
 });
@@ -306,9 +306,9 @@ describe("A tag made from a name or a property after a collection (D59)", () => 
                 expect(texts.p, source).eq("＿|＿|＿");
                 expect(diagnostics, source).eqls([
                     "error doenet-e0064",
-                    "warning doenet-w0198",
-                    "warning doenet-w0198",
-                    "warning doenet-w0198",
+                    "warning doenet-w0199",
+                    "warning doenet-w0199",
+                    "warning doenet-w0199",
                 ]);
             }
         }

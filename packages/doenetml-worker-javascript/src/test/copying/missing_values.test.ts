@@ -1003,7 +1003,7 @@ describe("A missing entry of a list is a blank entry (D40) @group2", () => {
             "doenet-w0104",
             "doenet-w0104",
             "doenet-w0104",
-            "doenet-w0198",
+            "doenet-w0199",
         ]);
     });
 
@@ -2136,7 +2136,7 @@ describe("Missing content read by a math and a list (#2516, #2525) @group2", () 
                     (d: any) => !d.code?.startsWith("doenet-a"),
                 )
                 .map((d: any) => d.code),
-        ).eqls(["doenet-w0198"]);
+        ).eqls(["doenet-w0199"]);
         for (const [latex, expected] of [
             ["1", "2, 4"],
             ["7", "2, ＿"],

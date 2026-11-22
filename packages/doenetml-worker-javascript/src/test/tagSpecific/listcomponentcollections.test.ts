@@ -731,7 +731,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         // `$ct.hide` is the list's own; each entry's is its source's (D29).
         // `$c.styleNumber` was each entry's (D41); a property after a
         // collect is its own (D59), and a collect has no `styleNumber`, so
-        // it names nothing (`doenet-w0198`).
+        // it names nothing (`doenet-w0199`).
         await expectTexts(core, resolvePathToNodeIdx, {
             p1: "2 (1, 2) ＿ x",
             p2: "[b]",
@@ -2392,7 +2392,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
                     (d: any) => !d.code?.startsWith("doenet-a"),
                 )
                 .map((d: any) => d.code),
-        ).eqls(["doenet-w0198"]);
+        ).eqls(["doenet-w0199"]);
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("uv1"),
             core,

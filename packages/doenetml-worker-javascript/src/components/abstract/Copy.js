@@ -88,6 +88,10 @@ import {
     suggestionArgs,
 } from "../../utils/dast/nameCase";
 import {
+    declaredModuleAttributeNames,
+    moduleAttributesWritten,
+} from "../../utils/moduleAttributeNames";
+import {
     branchCanChange,
     pathHasIndexThatCanChange,
 } from "../../utils/decidedByDoenetML";
@@ -950,16 +954,11 @@ export default class Copy extends CompositeComponent {
                             componentInfoObjects.allComponentClasses
                         )
                     ) {
-                        return {
-                            setValue: { numComponentsSpecified: null },
-                            sendDiagnostics: [
-                                codedDiagnostic({
-                                    type: "warning",
-                                    code: "doenet-w0065",
-                                    args: { type: dependencyValues.typeAttr },
-                                }),
-                            ],
-                        };
+                        // Not reached from authored DoenetML: a tag that is
+                        // no component type, written with `copy` or
+                        // `extend`, is `doenet-e0002` before a copy is made
+                        // (D51), so `doenet-w0065` is retired.
+                        return { setValue: { numComponentsSpecified: null } };
                     }
                     numComponentsSpecified = 1;
                 } else {
@@ -4344,6 +4343,8 @@ async function componentInPlaceOfProp({
 function isNumItemsOfReorderError(target, propName) {
     return (
         Boolean(target?.doenetAttributes?.reorderErrorAtLoad) &&
+        // in any case: a reference to a component in error reports
+        // nothing more (DIAG-4), so not that `$s.NumItems` names nothing
         propName?.toLowerCase() === "numitems"
     );
 }
@@ -7546,7 +7547,7 @@ async function wrapperOfSeveralDiagnostics({
         component.doenetAttributes?.typeChangeAtLoad?.code?.startsWith(
             "doenet-e",
         ) ||
-        component.doenetAttributes?.typeChangeAtLoad?.code === "doenet-w0198"
+        component.doenetAttributes?.typeChangeAtLoad?.code === "doenet-w0199"
     ) {
         return [];
     }
@@ -9537,17 +9538,19 @@ async function keepChoicesReachedByModuleAttributes({
     }
     // The module attributes written on the copy, by the index of the
     // component in the copy's `<moduleAttributes>` that declares each
+    // (matched as `<moduleAttributes>` matches them: exactly, or, for one
+    // release, in another case, `moduleAttributesWritten`)
     const writtenByIdx = new Map();
-    const writtenNames = new Map(
-        attributeNames.map((name) => [name.toLowerCase(), name]),
-    );
+    const { writtenFor } = moduleAttributesWritten({
+        written: attributeNames,
+        declared: declaredModuleAttributeNames(replacement.children),
+    });
     for (const declaration of (replacement.children ?? [])
         .filter((child) => child?.componentType === "moduleAttributes")
         .flatMap((child) => child.children ?? [])) {
-        const name =
-            declaration?.attributes?.name?.primitive?.value?.toLowerCase();
-        if (name && writtenNames.has(name)) {
-            writtenByIdx.set(declaration.componentIdx, writtenNames.get(name));
+        const name = declaration?.attributes?.name?.primitive?.value;
+        if (name && writtenFor.has(name)) {
+            writtenByIdx.set(declaration.componentIdx, writtenFor.get(name));
         }
     }
     if (writtenByIdx.size === 0) {
@@ -9664,16 +9667,16 @@ async function keepChoicesReachedByModuleAttributes({
             ? (componentInfoObjects.componentTypeAsWritten(writtenType) ??
               writtenType)
             : component.componentType;
+        // Matched exactly (D51): one written in another case was given its
+        // spelling before the core read it (`attribute-name-case.ts`).
         const choiceAttributes = new Set(
-            (
-                componentInfoObjects.allComponentClasses[choosingType]
-                    ?.attributesDeterminingChoices ?? []
-            ).map((name) => name.toLowerCase()),
+            componentInfoObjects.allComponentClasses[choosingType]
+                ?.attributesDeterminingChoices ?? [],
         );
         for (const [attrName, attribute] of Object.entries(
             component.attributes ?? {},
         )) {
-            if (!choiceAttributes.has(attrName.toLowerCase())) {
+            if (!choiceAttributes.has(attrName)) {
                 continue;
             }
             if (isWrapper && attribute?.type === "unresolved") {
@@ -9687,11 +9690,8 @@ async function keepChoicesReachedByModuleAttributes({
                 // the value the source's wrapper gave what it made
                 const madeBySource =
                     components[component.originalIdx]?.replacements?.[0];
-                const sourceAttribute = Object.entries(
-                    madeBySource?.attributes ?? {},
-                ).find(
-                    ([name]) => name.toLowerCase() === attrName.toLowerCase(),
-                )?.[1]?.component;
+                const sourceAttribute =
+                    madeBySource?.attributes?.[attrName]?.component;
                 if (madeBySource === undefined && inTemplate) {
                     // held at the value of the source's iteration, as
                     // below
@@ -9809,12 +9809,10 @@ async function copyWithStateChangesChoicesErrors({
     }
     const errors = [];
     const choiceAttributes = new Set(
-        (replacementClass.attributesDeterminingChoices ?? []).map((name) =>
-            name.toLowerCase(),
-        ),
+        replacementClass.attributesDeterminingChoices ?? [],
     );
     for (const attribute of attributeNames) {
-        if (choiceAttributes.has(attribute.toLowerCase())) {
+        if (choiceAttributes.has(attribute)) {
             errors.push(
                 codedDiagnostic({
                     type: "error",
@@ -9889,35 +9887,33 @@ async function copyWithStateChangesChoicesErrors({
  * changes how it looks or behaves for the reader (`showCorrectness`,
  * `submitLabel`, `inline`, …), as `hide` or `disabled` does.
  */
-const ANSWER_GRADING_ATTRIBUTES = new Set(
-    [
-        "type",
-        "weight",
-        "handGraded",
-        "matchPartial",
-        "maxNumAttempts",
-        "creditByAttempt",
-        "symbolicEquality",
-        "simplifyOnCompare",
-        "expandOnCompare",
-        "unorderedCompare",
-        "matchByExactPositions",
-        "numAwardsCredited",
-        "allowedErrorInNumbers",
-        "includeErrorInNumberExponents",
-        "allowedErrorIsAbsolute",
-        "numSignErrorsMatched",
-        "numPeriodicSetMatchesRequired",
-        "caseInsensitiveMatch",
-        "matchBlanks",
-        "selectMultiple",
-        "shuffleOrder",
-        "preserveLastChoice",
-        "splitSymbols",
-        "parseScientificNotation",
-        "video",
-    ].map((name) => name.toLowerCase()),
-);
+const ANSWER_GRADING_ATTRIBUTES = new Set([
+    "type",
+    "weight",
+    "handGraded",
+    "matchPartial",
+    "maxNumAttempts",
+    "creditByAttempt",
+    "symbolicEquality",
+    "simplifyOnCompare",
+    "expandOnCompare",
+    "unorderedCompare",
+    "matchByExactPositions",
+    "numAwardsCredited",
+    "allowedErrorInNumbers",
+    "includeErrorInNumberExponents",
+    "allowedErrorIsAbsolute",
+    "numSignErrorsMatched",
+    "numPeriodicSetMatchesRequired",
+    "caseInsensitiveMatch",
+    "matchBlanks",
+    "selectMultiple",
+    "shuffleOrder",
+    "preserveLastChoice",
+    "splitSymbols",
+    "parseScientificNotation",
+    "video",
+]);
 
 /**
  * The children an `extend` of an `<answer>` may write: what labels or
@@ -9941,7 +9937,7 @@ const ANSWER_DESCRIBING_CHILDREN = new Set([
 function extendAnswerErrors({ attributeNames, children, source }) {
     const errors = [];
     for (const attribute of attributeNames) {
-        if (ANSWER_GRADING_ATTRIBUTES.has(attribute.toLowerCase())) {
+        if (ANSWER_GRADING_ATTRIBUTES.has(attribute)) {
             errors.push(
                 codedDiagnostic({
                     type: "error",
@@ -10111,18 +10107,15 @@ export function extendChangesContentErrors({
 
     if (isModule) {
         // Only an attribute its `<moduleAttributes>` declares is a module
-        // attribute, matched ignoring case, as `<moduleAttributes>` does.
-        const declared = new Set(
-            (sourceChildren ?? [])
-                .filter((child) => child?.componentType === "moduleAttributes")
-                .flatMap((child) => child.children ?? [])
-                .map((child) =>
-                    child?.attributes?.name?.primitive?.value?.toLowerCase(),
-                )
-                .filter(Boolean),
-        );
+        // attribute, matched as `<moduleAttributes>` matches them: exactly,
+        // or, for one release, in another case (`moduleAttributesWritten`).
+        const { writtenFor } = moduleAttributesWritten({
+            written: changingAttributes,
+            declared: declaredModuleAttributeNames(sourceChildren),
+        });
+        const setsOne = new Set(writtenFor.values());
         changingAttributes = changingAttributes.filter((attrName) =>
-            declared.has(attrName.toLowerCase()),
+            setsOne.has(attrName),
         );
     }
 

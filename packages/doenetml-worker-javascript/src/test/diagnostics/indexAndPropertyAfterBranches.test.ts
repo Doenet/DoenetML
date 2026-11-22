@@ -123,9 +123,9 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
             await setup(`<select name="s" numToSelect="2"><option><math>x</math></option><option><text>hi</text></option></select>
 <p name="p">[$s.x] [$s.value]</p><text name="t">$s.x</text>`);
         expect(d.codes()).eqls([
-            "warning doenet-w0198",
-            "warning doenet-w0198",
-            "warning doenet-w0198",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
         ]);
         expect(d.diagnostics().map((x: any) => x.message)).toContain(
             "`$s.x` names nothing: a `<select>` has no property `x` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$s[1].x`.",
@@ -134,9 +134,9 @@ describe("A property some of a collection's items lack (#2452, D40)", () => {
         expect(await d.text("t")).eq("＿");
         await d.reload();
         expect(d.codes()).eqls([
-            "warning doenet-w0198",
-            "warning doenet-w0198",
-            "warning doenet-w0198",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
         ]);
         expect(await d.text("t")).eq("＿");
     });
@@ -241,7 +241,7 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
 
     it("an index and a property after a select names the options holding several", async () => {
         // A property right after a select that picks several is its own
-        // (D59, `w0198`); after an index into the picks it passes into what
+        // (D59, `w0199`); after an index into the picks it passes into what
         // the pick holds, decided from every option.
         const d =
             await setup(`<select name="s" numToSelect="2"><option><point>(1,2)</point></option><option><point>(3,4)</point><point>(5,6)</point></option><option>hi <math>4</math></option></select>
@@ -255,7 +255,7 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
             '`$s[1][2]`: an index after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
         ]);
         expect(
-            d.diagnostics().filter((x: any) => x.code === "doenet-w0198")
+            d.diagnostics().filter((x: any) => x.code === "doenet-w0199")
                 .length,
         ).eq(1);
     });
@@ -379,7 +379,7 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
 <group name="e" extend="$r[1]"/>
 <p name="p">[$r[1].x] [$r.x] [$e.x] [$r[1].hide] [$r1[1].x] [$r1.x]</p>`);
         // `$r.x` and `$r1.x` were each iteration's (`[＿, ＿]`, `[1, 2]`):
-        // a property after a repeat is its own (D59, `w0198`).
+        // a property after a repeat is its own (D59, `w0199`).
         expect(await d.text()).eq("[＿] [＿] [＿] [false] [1] [＿]");
         const messages = d.diagnostics().map((x: any) => x.message);
         expect(messages).toContain(
@@ -388,8 +388,8 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
         expect(d.codes().sort()).eqls([
             "warning doenet-w0193",
             "warning doenet-w0193",
-            "warning doenet-w0198",
-            "warning doenet-w0198",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
         ]);
     });
 
@@ -416,7 +416,7 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
 
     it("suggests an index after a repeat, or a select that picks several, and the name after it works", async () => {
         // A property after a repeat or a select of several is its own (D59),
-        // so the warning suggests an index (`w0198`); the suggested index
+        // so the warning suggests an index (`w0199`); the suggested index
         // and a name after it reach one item (DIAG-3). (It suggested
         // `$r.P.x`, every item's `P`, before.)
         const d =
@@ -431,9 +431,9 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
             .map((x: any) => x.message.match(/such as `([^`]*)`\.$/)?.[1]);
         expect(suggestions).eqls(["$g[1].x", "$r[1].x", "$s[1].x"]);
         expect(d.codes()).eqls([
-            "warning doenet-w0198",
-            "warning doenet-w0198",
-            "warning doenet-w0198",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
+            "warning doenet-w0199",
         ]);
     });
 
