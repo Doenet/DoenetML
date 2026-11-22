@@ -61,6 +61,10 @@
  *   (Doenet/DoenetML#2643 item 1). `$P` in a `<p>` in the label of `P` holds
  *   itself; inside `P` but not as content, `<label>$P</label>`, it reads P's
  *   value and does not (#1384);
+ * - a reference to the `hidden` of a component (`$n.hidden`), to the
+ *   components in its `hide` and in the `hide` of each component it is
+ *   written in, as whether it is hidden reads whether they are
+ *   (Doenet/DoenetML#2643 item 10);
  * - a reference to the components in its index (`$i` in `$l[$i]`), which it
  *   reads to know what it names;
  * - a reference to a name the branches of a `<conditionalContent>` or a
@@ -1778,6 +1782,32 @@ export function breakReferenceCycles({
                 parentOf,
                 componentInfoObjects,
             }).map((composite) => expansionNode(composite.componentIdx));
+        }
+        if (property === "hidden" && !forExpansion) {
+            // whether it is hidden: its own `hide`, and whether what it is
+            // written in is hidden, so the `hide` of each component it is
+            // in (`hidden` in `BaseComponent.js`). `<group name="g"
+            // hide="$g.hidden">` and `<number name="n" hide="$n.hidden">` in
+            // it are each a cycle (Doenet/DoenetML#2643 item 10).
+            const edges: number[] = [];
+            for (
+                let hiding: SerializedComponent | undefined = target;
+                hiding;
+                hiding = parentOf.get(hiding.componentIdx)
+            ) {
+                for (const [name, attribute] of Object.entries(
+                    hiding.attributes ?? {},
+                )) {
+                    if (name.toLowerCase() === "hide") {
+                        edges.push(
+                            ...componentsOfAttribute(attribute).map(
+                                (component) => component.componentIdx,
+                            ),
+                        );
+                    }
+                }
+            }
+            return edges;
         }
         if (
             entryFor(PROPERTIES_READ, targetType)?.includes(property) ||

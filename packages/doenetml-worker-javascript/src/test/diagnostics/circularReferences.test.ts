@@ -1205,6 +1205,32 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
             '<point name="a"><label>$b</label></point><point name="b"><label>$a</label></point>',
             ["doenet-e0005 1:24-26", "doenet-e0005 1:65-67"],
         ],
+        // whether a component is hidden reads its own `hide` and the
+        // `hide` of what it is written in (Doenet/DoenetML#2643 item 10)
+        [
+            "2643",
+            "a group and a number in it, each hidden by its own hidden",
+            '<group name="g" hide="$g.hidden"><number name="n" hide="$n.hidden">1</number></group>',
+            ["doenet-e0005 1:23-32", "doenet-e0005 1:57-66"],
+        ],
+        [
+            "2643",
+            "a group hidden by its own hidden",
+            '<group name="g" hide="$g.hidden"><number>1</number></group>',
+            ["doenet-e0005 1:23-32"],
+        ],
+        [
+            "2643",
+            "a group hidden by whether a number in it is hidden",
+            '<group name="g" hide="$n.hidden"><number name="n">1</number></group>',
+            ["doenet-e0005 1:23-32"],
+        ],
+        [
+            "2643",
+            "two numbers, each hidden by whether the other is",
+            '<number name="n" hide="$m.hidden">1</number><number name="m" hide="$n.hidden">1</number>',
+            ["doenet-e0005 1:24-33", "doenet-e0005 1:68-77"],
+        ],
         [
             "3",
             "a line, in a paragraph in its label",
@@ -1336,6 +1362,17 @@ describe("Reference cycles found at load since #2515 @group2", async () => {
 
     // Valid DoenetML beside each: what these read is not the reference.
     const notCycles: [string, string, string][] = [
+        // what is hidden by something else may read whether it is hidden
+        [
+            "2643",
+            "whether a number in a group is hidden, read outside the group",
+            '<boolean name="b">true</boolean><group hide="$b"><number name="n">1</number></group><boolean>$n.hidden</boolean>',
+        ],
+        [
+            "2643",
+            "a boolean hidden by whether a number beside it is hidden",
+            '<number name="n">1</number><boolean hide="$n.hidden">$n.hidden</boolean>',
+        ],
         // a math or a number reads a point's value, not a copy of it
         // (Doenet/DoenetML#2643 item 1)
         [
