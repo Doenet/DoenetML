@@ -332,10 +332,11 @@ export function markCompositesMakingNoSectioning({
         ) {
             return true;
         }
-        const collected =
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                (written.children as string[]).join("").trim().toLowerCase()
-            ];
+        // a tag name, matched exactly (D62): one in another case was given
+        // the tag's spelling before the document loads
+        const collected = componentInfoObjects.componentTypeAsWritten(
+            (written.children as string[]).join("").trim(),
+        );
         if (collected === undefined) {
             return true;
         }

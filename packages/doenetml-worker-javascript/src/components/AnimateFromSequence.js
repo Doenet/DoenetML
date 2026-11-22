@@ -208,9 +208,9 @@ export default class AnimateFromSequence extends BaseComponent {
         stateVariableDefinitions.value = {
             description: "The currently selected value of the animation.",
             public: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // of its `type`, decided when the document loads (TYPE-1,
+            // `propertyTypesAtLoad.ts`); `letters` is a text
+            shadowingInstructions: {},
             returnDependencies: () => ({
                 possibleValues: {
                     dependencyType: "stateVariable",
@@ -231,14 +231,6 @@ export default class AnimateFromSequence extends BaseComponent {
                         value: dependencyValues.possibleValues[
                             dependencyValues.selectedIndex - 1
                         ],
-                    },
-                    // `letters` is a way of writing text, not a component
-                    // type, as for a `<sequence>` (`sequenceEntryComponentType`)
-                    setCreateComponentOfType: {
-                        value:
-                            dependencyValues.type === "letters"
-                                ? "text"
-                                : dependencyValues.type,
                     },
                 };
             },

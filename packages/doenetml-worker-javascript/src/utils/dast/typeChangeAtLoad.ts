@@ -23,8 +23,10 @@
  *   y is a composite), a tag `<U extend="$y"/>` is a `U`, and a property
  *   `$P.x` of a component that is not a composite has the type of the
  *   property, which its component declares or the DoenetML decides
- *   (`propertyTypesAtLoad.ts`, TYPE, D45); one the DoenetML does not decide
- *   (an `<answer>`'s responses) is `doenet-e0067` (TYPE-3).
+ *   (`propertyTypesAtLoad.ts`, TYPE, D45). A reference to one the DoenetML
+ *   does not decide is already an error, `doenet-e0091`, in its place
+ *   (TYPE-3, `referencesToUndecidedTypes`); one only a composite reaches is
+ *   `doenet-e0067`.
  *
  * Different types that could each become a `T` are an error too: the author
  * wraps the reference, `<math>$cc</math>`, to read whatever it holds as one
@@ -47,7 +49,9 @@
  * component of the property's type, and one made from an input whose value's
  * type the DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>` of
  * texts) as one made from that value. One whose type the DoenetML doesn't
- * decide (`$a.currentResponses[1]` of an `<answer>`) is left to run time.
+ * decide (`$a.currentResponses[1]` of an `<answer>` whose responses' places
+ * are known only as it runs) is an error at load, `doenet-e0091`, before
+ * this check (TYPE-3).
  *
  * An index written as a literal into a selector whose `numToSelect` is
  * written (`<math extend="$s[2]"/>` of a one-pick `<select>`) names nothing
@@ -564,14 +568,13 @@ export function checkTypeChangesAtLoad({
         any
     >;
 
-    // Without case, as it also reads a type written as a value
-    // (`<collect componentType="Point">`); a tag is exact already (D51).
+    // Matched exactly, as a tag is (NAME-0, D51), and a tag written as a
+    // value (`<collect componentType>`, D62), which was given the tag's
+    // spelling before the document loads if written in another case.
     function canonicalType(type: string | undefined) {
         return type === undefined
             ? undefined
-            : componentInfoObjects.componentTypeLowerCaseMapping[
-                  type.toLowerCase()
-              ];
+            : componentInfoObjects.componentTypeAsWritten(type);
     }
 
     function isComposite(componentType: string) {
@@ -629,17 +632,14 @@ export function checkTypeChangesAtLoad({
         return undefined;
     }
 
-    /** An attribute of `component`, matched without regard to case. */
+    /**
+     * An attribute of `component`, matched exactly (NAME-0, D51): one
+     * written in another case was given the component's spelling before the
+     * document loads (`doenet-w0197`).
+     */
     function attributeOf(component: SerializedComponent, name: string) {
-        const lower = name.toLowerCase();
-        for (const [attrName, attribute] of Object.entries(
-            component.attributes ?? {},
-        )) {
-            if (attrName.toLowerCase() === lower) {
-                return attribute;
-            }
-        }
-        return undefined;
+        const attributes = component.attributes ?? {};
+        return Object.hasOwn(attributes, name) ? attributes[name] : undefined;
     }
 
     /**
@@ -1811,7 +1811,8 @@ export function checkTypeChangesAtLoad({
             // DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>`
             // of texts) is made from that value, as a tag made from a
             // component of its type. One whose value's type isn't decided
-            // is left to run time.
+            // is left to run time: of a `<choiceInput>`, made from its
+            // value (D4); of an `<answer>`, already `doenet-e0091` (TYPE-3).
             const valueType = held.valueTypes?.[sourceType];
             if (!valueType || valueType === writtenType) {
                 return undefined;
@@ -2545,7 +2546,7 @@ export function checkTypeChangesAtLoad({
             }
             added.push(node.children ?? []);
             picks ??= Object.entries(node.attributes ?? {}).find(
-                ([name]) => name.toLowerCase() === "numtoselect",
+                ([name]) => name === "numToSelect",
             );
             node =
                 referents.componentsByIdx.get(ref.nodeIdx) ??
@@ -2563,7 +2564,7 @@ export function checkTypeChangesAtLoad({
         if (ownChildren.length > 0 || picks) {
             const attributes = Object.fromEntries(
                 Object.entries(node.attributes ?? {}).filter(
-                    ([name]) => !picks || name.toLowerCase() !== "numtoselect",
+                    ([name]) => !picks || name !== "numToSelect",
                 ),
             );
             if (picks) {

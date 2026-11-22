@@ -189,9 +189,10 @@ export default class Slider extends BaseComponent {
                 "The values the slider can take, as a list, when given by its children. Empty for a slider given by `from`, `to` and `step`.",
             forRenderer: true,
             public: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // a list of the slider's type, decided by its written `type`
+            // when the document loads (TYPE-1, #2545,
+            // `propertyTypesAtLoad.ts`)
+            shadowingInstructions: {},
             // isArray: true,
             // entryPrefixes: ["item"],
             // entireArrayAtOnce: true,
@@ -249,17 +250,7 @@ export default class Slider extends BaseComponent {
                     }); //sort in number order
                 }
 
-                // a list of the slider's type, decided by its written `type`
-                // (TYPE-1, #2545)
-                return {
-                    setValue: { items },
-                    setCreateComponentOfType: {
-                        items:
-                            dependencyValues.type === "text"
-                                ? "textList"
-                                : "numberList",
-                    },
-                };
+                return { setValue: { items } };
             },
         };
 
@@ -568,16 +559,13 @@ export default class Slider extends BaseComponent {
             description: "The current value of the slider.",
             forRenderer: true,
             public: true,
+            // of the slider's `type`, decided when the document loads
+            // (`propertyTypesAtLoad.ts`)
             shadowingInstructions: {
-                hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables:
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                type: {
-                    dependencyType: "stateVariable",
-                    variableName: "type",
-                },
                 items: {
                     dependencyType: "stateVariable",
                     variableName: "items",
@@ -606,10 +594,7 @@ export default class Slider extends BaseComponent {
                         dependencyValues.step * dependencyValues.index;
                 }
 
-                return {
-                    setValue: { value },
-                    setCreateComponentOfType: { value: dependencyValues.type },
-                };
+                return { setValue: { value } };
             },
             inverseDefinition: invertSliderValue,
         };

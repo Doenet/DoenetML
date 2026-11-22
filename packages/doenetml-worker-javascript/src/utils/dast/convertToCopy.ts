@@ -14,6 +14,7 @@ import {
 import {
     addSource,
     isCopySource,
+    primitiveAttributeErrorOfCopy,
     unwrapSource,
     variantControlMadeFrom,
 } from "./convertNormalizedDast";
@@ -239,6 +240,27 @@ export function convertRefsToCopies({
                 componentInfoObjects,
                 diagnostics,
             });
+            if (
+                primitiveAttributeErrorOfCopy({
+                    componentType: newComponent.componentType,
+                    attributes: outerAttributes,
+                    componentInfoObjects,
+                })
+            ) {
+                // An attribute the tag reads as a primitive (text, a
+                // number, a boolean) that it cannot read, as one written
+                // with a reference (`<sort extend="$s" sortByProp="$t"/>`,
+                // `doenet-e0090`, at the attribute) or with no value
+                // (`doenet-e0072`), is the error it is on the tag written
+                // alone: left as written, without what it is made from, it
+                // becomes an `_error` there. Made into a copy,
+                // the error was thrown when the copy made its replacement,
+                // and stopped the whole document (DIAG-5).
+                newComponent.attributes = outerAttributes;
+                delete newComponent.extending;
+                newComponents.push(newComponent);
+                continue;
+            }
             if (
                 newComponent.componentType.endsWith("List") &&
                 !["asList", "convertSetToList"].includes(

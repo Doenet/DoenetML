@@ -2,7 +2,6 @@ import {
     StateVariableDependency,
     StateVariableFromUnresolvedPathDependency,
     MultipleStateVariablesDependency,
-    StateVariableComponentTypeDependency,
     StateVariableArraySizeDependency,
     RecursiveDependencyValuesDependency,
 } from "./stateVariableDependencies";
@@ -81,7 +80,6 @@ export const dependencyTypeClasses: ReadonlyArray<DependencyClass> = [
     StateVariableDependency,
     StateVariableFromUnresolvedPathDependency,
     MultipleStateVariablesDependency,
-    StateVariableComponentTypeDependency,
     StateVariableArraySizeDependency,
     RecursiveDependencyValuesDependency,
     ComponentIdentityDependency,

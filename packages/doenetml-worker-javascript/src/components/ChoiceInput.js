@@ -695,8 +695,11 @@ export default class Choiceinput extends Input {
 
         // The type of its values, decided from what is written when the
         // document loaded (TYPE, D45, `propertyTypesAtLoad.ts`): a math when
-        // every choice holds one math, else a text. Worked out from the
-        // choices only where the DoenetML doesn't decide it.
+        // every choice holds one math, else a text. Where the DoenetML
+        // doesn't decide it, it is worked out from the choices only for the
+        // values it holds and records as a response: no reference reads it
+        // as a type, as one that reads its values is an error at load
+        // (TYPE-3, `doenet-e0091`), and its `selectedValues` declare none.
         stateVariableDefinitions.componentType = {
             returnDependencies: () => ({
                 propertyTypes: {
@@ -1105,9 +1108,9 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.selectedValues = {
             description: "Text values of the currently selected choices.",
             public: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // a math when every choice holds one math, else a text, decided
+            // when the document loads (TYPE, D45, `propertyTypesAtLoad.ts`)
+            shadowingInstructions: {},
             isArray: true,
             allowExtraArrayKeysInInverse: true,
             entryPrefixes: ["selectedValue"],
@@ -1169,10 +1172,7 @@ export default class Choiceinput extends Input {
                     }
                 }
 
-                return {
-                    setValue: { selectedValues },
-                    setCreateComponentOfType: { selectedValues: componentType },
-                };
+                return { setValue: { selectedValues } };
             },
             async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,

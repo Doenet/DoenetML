@@ -495,7 +495,10 @@ copy-prop-not-found = Could not find prop { $property } on a component of type {
 
 collect-no-source = No source found for collect.
 
-collect-invalid-component-type = Cannot collect components of type `<{ $component }>` as it is an invalid component type.
+collect-invalid-component-type = Cannot collect components of type `<{ $component }>` as it is an invalid component type{ $hasSuggestion ->
+        [true] . Did you mean `componentType="{ $suggestion }"`?
+       *[other] .
+    }
 
 # $reference is the reference exactly as the author wrote it, `$` and all —
 # the `$p.styleDescription[1]` of `<text extend="$p.styleDescription[1]" />`.
@@ -1108,7 +1111,23 @@ copy-attribute-invalid-for-component = The `{ $attribute }` attribute is ignored
 # is. $attribute is the name as written, $suggestion the component's spelling,
 # and $componentType the element name, all part of the DoenetML language, so
 # they stay in English.
-attribute-name-case = Attribute names are case-sensitive: write `{ $suggestion }`, not `{ $attribute }`, on a `<{ $componentType }>`. It is applied for now, but will be an error in a later release.
+#
+# With $kind `value`, it is the attribute's value that names a tag or a
+# property in another case (`<collect componentType="Point">`,
+# `<sort sortByProp="X">`), which is a name, matched exactly (D62): then
+# $attribute is the attribute (spelled right), $value the value as written and
+# $suggestion the value to write.
+attribute-name-case = { $kind ->
+        [value] Names are case-sensitive: write `{ $attribute }="{ $suggestion }"`, not `{ $attribute }="{ $value }"`, on a `<{ $componentType }>`. It is applied for now, but will be an error in a later release.
+       *[other] Attribute names are case-sensitive: write `{ $suggestion }`, not `{ $attribute }`, on a `<{ $componentType }>`. It is applied for now, but will be an error in a later release.
+    }
+
+# An attribute written twice in the same case on one element
+# (`<math simplify="full" simplify="none">`): the first is used and this one,
+# the second (or a later one), is ignored (D62 decision 1). $attribute and
+# $componentType (the element name) are part of the DoenetML language, so they
+# stay in English.
+attribute-written-twice = The attribute `{ $attribute }` is written more than once on this `<{ $componentType }>`. The first is used, and this one is ignored.
 
 # An info, not a warning: a list written as text (`<mathList>`, a list
 # attribute, the text of a `<sum>` or `<sort>`) whose brackets don't balance
@@ -1614,7 +1633,13 @@ pluralize-english-only = `<pluralize>` can only pluralize English, so its text i
 # stay exactly as written; the angle brackets and backticks around them are
 # punctuation this catalog supplies, not part of the name.
 
-schema-element-unrecognized = Element `<{ $tag }>` is not a recognized Doenet element.
+# $suggestion (when $hasSuggestion is `true`) is the element the tag written
+# differs from only in case: tag names are case-sensitive (D51). Tag names
+# stay in English.
+schema-element-unrecognized = Element `<{ $tag }>` is not a recognized Doenet element.{ $hasSuggestion ->
+        [true] {" "}Did you mean `<{ $suggestion }>`?
+       *[other] {""}
+    }
 
 schema-element-not-allowed-at-root = Element `<{ $tag }>` is not allowed at the root of the document.
 
@@ -2237,6 +2262,13 @@ sort-needs-sort-by-prop = `<{ $component }>` can't compare its items: { $kind ->
        *[other] , as `<{ $component } sortByProp="name">` does for a property `name`
     }.
 
+# An attribute read as text when the document loads, before references are
+# resolved ($attribute, as `sortByProp` or a `<sort>`'s `type`), written
+# with a reference (`sortByProp="$t"`), or with text beside one. An error, at
+# the attribute, shown in place of the component (#2627 item 13). The attribute
+# name stays in English.
+attribute-written-as-reference = The attribute `{ $attribute }` can't be written with a reference: it is read when the document loads, before references are. Write its value as text.
+
 # A `<sort>` or `<sortIndices>` ($component) whose `sortByProp` names no
 # property ($property) of an item it sorts, the first such of the tag $item
 # (#2627 item 5, DIAG-3). Reported at load. $suggestion (when $hasSuggestion is
@@ -2254,6 +2286,18 @@ sort-by-prop-names-nothing = `sortByProp="{ $property }"` names no property of a
 # changes, so it is an error at load, shown in place of the
 # `<conditionalContent>`. The tags stay in English.
 answer-responses-of-several-types = An `<answer>` reads a response from this `<conditionalContent>` that is a `<{ $firstType }>` in one case and a `<{ $secondType }>` in another, but a response has one type, decided from what is written. Give it one type in every case.
+
+# A reference reads a property whose type isn't decided from what is written
+# (TYPE-3), so it is an error in place of the reference. $source is the
+# reference as written (DoenetML, which stays in English). $what is
+# `responses` for an `<answer>`'s responses, `choices` for a `<choiceInput>`'s
+# values, and `other` for any other property.
+property-type-undecided =
+    { $what ->
+        [responses] `{ $source }` reads an `<answer>`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read the input or component that gives the response instead, or give the responses one type.
+        [choices] `{ $source }` reads a `<choiceInput>`'s values, but whether they are maths or texts isn't decided by what is written in its choices. Write each choice's content so that its type is known.
+       *[other] `{ $source }` reads a property whose type isn't decided by what is written, so it can't be read.
+    }
 
 # The `for` of a `<repeat>` holds items of one type (COLL-5, D44), decided
 # at load. $reason is `mix` for items of more than one type, the first two

@@ -57,72 +57,74 @@ const LIST_FORMS: Record<string, string> = {
 };
 
 /**
- * The attributes, in lowercase, that each composite can have as a list:
- * those of the list form that mean what they meant on the composite.
+ * The attributes that each composite can have as a list: those of the list
+ * form that mean what they meant on the composite. Matched exactly (NAME-0,
+ * D51), as an attribute in another case was given the component's spelling
+ * before the document loads.
  */
 const LIST_FORM_ATTRIBUTES: Record<string, Set<string>> = {
     collect: new Set([
         "name",
         "from",
-        "componenttype",
-        "maxnumber",
-        "aslist",
+        "componentType",
+        "maxNumber",
+        "asList",
         "hide",
-        "displaydigits",
-        "displaydecimals",
-        "displaysmallaszero",
-        "padzeros",
-        "avoidscientificnotation",
+        "displayDigits",
+        "displayDecimals",
+        "displaySmallAsZero",
+        "padZeros",
+        "avoidScientificNotation",
     ]),
     sort: new Set([
         "name",
         "type",
-        "aslist",
-        "sortvectorsby",
-        "sortbycomponent",
+        "asList",
+        "sortVectorsBy",
+        "sortByComponent",
     ]),
-    shuffle: new Set(["name", "type", "aslist"]),
+    shuffle: new Set(["name", "type", "asList"]),
 };
 
 /**
- * The attributes, in lowercase, that a `<group>` among the children of a
+ * The attributes that a `<group>` among the children of a
  * `<sort>` or `<shuffle>` can have for the list form to read through it.
  */
 const GROUP_ATTRIBUTES = new Set(["name", "hide"]);
 
 /**
- * The attributes, in lowercase, that an `extend` or `copy` of each list form
+ * The attributes that an `extend` or `copy` of each list form
  * can set: those that are the copy's own setting. One that changes what the
  * list holds (`type`, `componentType`, `from`, `maxNumber`, `sortByProp`)
  * keeps the list it copies a composite, as do any others.
  */
 const COPY_MECHANICS = [
-    "_createcomponentoftype",
-    "_createcomponentidx",
-    "_createcomponentname",
-    "_copyinchildren",
+    "_createComponentOfType",
+    "_createComponentIdx",
+    "_createComponentName",
+    "_copyInChildren",
     "_link",
-    "_copywithstate",
+    "_copyWithState",
     "name",
 ];
 const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {
     collect: new Set([
         ...COPY_MECHANICS,
-        "aslist",
+        "asList",
         "hide",
-        "displaydigits",
-        "displaydecimals",
-        "displaysmallaszero",
-        "padzeros",
-        "avoidscientificnotation",
+        "displayDigits",
+        "displayDecimals",
+        "displaySmallAsZero",
+        "padZeros",
+        "avoidScientificNotation",
     ]),
     sort: new Set([
         ...COPY_MECHANICS,
-        "aslist",
-        "sortvectorsby",
-        "sortbycomponent",
+        "asList",
+        "sortVectorsBy",
+        "sortByComponent",
     ]),
-    shuffle: new Set([...COPY_MECHANICS, "aslist"]),
+    shuffle: new Set([...COPY_MECHANICS, "asList"]),
 };
 
 /**
@@ -158,7 +160,7 @@ export function collectIsListFormAsWritten(
     const allowed = LIST_FORM_ATTRIBUTES.collect;
     if (
         !Object.keys(collect.attributes ?? {}).every((name) =>
-            allowed.has(name.toLowerCase()),
+            allowed.has(name),
         )
     ) {
         return false;
@@ -172,12 +174,10 @@ export function collectIsListFormAsWritten(
     ) {
         return false;
     }
-    const written = (component.children as string[])
-        .join("")
-        .trim()
-        .toLowerCase();
-    const type = componentInfoObjects.componentTypeLowerCaseMapping[written];
-    return type in COLLECT_LIST_BASES;
+    // A tag name, matched exactly (D62): one in another case was given the
+    // tag's spelling before the document loads (`correctValueNameCase`).
+    const written = (component.children as string[]).join("").trim();
+    return Object.hasOwn(COLLECT_LIST_BASES, written);
 }
 
 export function convertToListForms({
@@ -243,7 +243,7 @@ export function convertToListForms({
         if (createdType?.type !== "primitive") {
             return undefined;
         }
-        const type = String(createdType.primitive.value).toLowerCase();
+        const type = String(createdType.primitive.value);
         return type in LIST_FORMS ? type : undefined;
     }
 
@@ -263,9 +263,7 @@ export function convertToListForms({
         const allowed = LIST_FORM_COPY_ATTRIBUTES[component.componentType];
         return (copiesOfCandidate.get(component.componentIdx) ?? []).every(
             (copy) =>
-                Object.keys(copy.attributes).every((name) =>
-                    allowed.has(name.toLowerCase()),
-                ),
+                Object.keys(copy.attributes).every((name) => allowed.has(name)),
         );
     }
 
@@ -392,7 +390,7 @@ export function convertToListForms({
         if (
             group.extending !== undefined ||
             !Object.keys(group.attributes).every((name) =>
-                GROUP_ATTRIBUTES.has(name.toLowerCase()),
+                GROUP_ATTRIBUTES.has(name),
             ) ||
             group.children.filter(
                 (child) => typeof child !== "string" || child.trim() !== "",
@@ -429,7 +427,7 @@ export function convertToListForms({
         const allowed = LIST_FORM_ATTRIBUTES[component.componentType];
         return Object.keys(component.attributes).every(
             (name) =>
-                allowed.has(name.toLowerCase()) &&
+                allowed.has(name) &&
                 !(
                     component.componentType !== "collect" &&
                     component.attributes[name].type === "unresolved"
@@ -480,13 +478,9 @@ export function convertToListForms({
         ) {
             return null;
         }
-        const written = (component.children as string[])
-            .join("")
-            .trim()
-            .toLowerCase();
-        const type =
-            componentInfoObjects.componentTypeLowerCaseMapping[written];
-        return type in COLLECT_LIST_BASES ? type : null;
+        // matched exactly (D62), as above
+        const written = (component.children as string[]).join("").trim();
+        return Object.hasOwn(COLLECT_LIST_BASES, written) ? written : null;
     }
 
     /** The type of the values a `<sort>` or `<shuffle>` reorders, if one. */
@@ -571,9 +565,7 @@ function withoutAttribute(
     attributeName: string,
 ) {
     return Object.fromEntries(
-        Object.entries(attributes).filter(
-            ([name]) => name.toLowerCase() !== attributeName.toLowerCase(),
-        ),
+        Object.entries(attributes).filter(([name]) => name !== attributeName),
     );
 }
 

@@ -97,6 +97,8 @@
     "doenet-e0087": "variants-all-excluded",
     "doenet-e0088": "variant-control-made-from",
     "doenet-e0089": "attribute-not-a-number",
+    "doenet-e0090": "attribute-written-as-reference",
+    "doenet-e0091": "property-type-undecided",
     "doenet-i0001": "line-segment-attributes-ignored-with-endpoints",
     "doenet-i0002": "line-segment-midpoint-offset-without-midpoint",
     "doenet-i0003": "line-segment-attributes-ignored-with-endpoint-and-midpoint",
@@ -342,5 +344,6 @@
     "doenet-w0197": "attribute-name-case",
     "doenet-w0198": "sort-by-prop-names-nothing",
     "doenet-w0199": "reference-to-variant-control",
-    "doenet-w0200": "reference-name-after-collection"
+    "doenet-w0200": "reference-name-after-collection",
+    "doenet-w0201": "attribute-written-twice"
 }

@@ -166,6 +166,8 @@ type PrimitiveAttribute = {
     name: string;
     primitive: PrimitiveAttributeValue;
     ignoreFixed?: boolean;
+    /** where it is written, for a diagnostic about it (DIAG-4) */
+    position?: Position;
     sourceDoc?: number;
 };
 
