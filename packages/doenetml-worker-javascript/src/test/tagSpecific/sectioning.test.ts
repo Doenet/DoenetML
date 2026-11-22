@@ -3014,8 +3014,11 @@ describe("Sectioning tag tests @group3", async () => {
     // waits for it to expand. One that reads that number to expand is a
     // genuine cycle. Not waiting would number the section before the
     // sections the composite makes, and the count would run away. It stopped
-    // the document; it is found at load and is `doenet-e0005` at the
-    // reference, and the rest renders (#2614 item 2, NAME-7, D14).
+    // the document; it is `doenet-e0005` at the reference, and the rest
+    // renders (#2614 item 2, NAME-7, D14). A cycle through what a composite
+    // counts is found at load; one through a `condition`, which can only
+    // flip a case, is left to the run time, and the load backstop blames the
+    // reference when it throws (D61 decision 1, D57).
     it("a composite before a section that reads the section's number and may make a section: an error at the reference", async () => {
         for (const [doenetML, reference] of [
             [
@@ -3048,7 +3051,7 @@ describe("Sectioning tag tests @group3", async () => {
             ],
             // in a group: the group waits for what it holds to expand
             [
-                `<group><conditionalContent condition="$s.sectionNumber = 2"><section/></conditionalContent></group>
+                `<group><repeatForSequence to="$s.sectionNumber"><section/></repeatForSequence></group>
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
             ],
@@ -3154,6 +3157,63 @@ describe("Sectioning tag tests @group3", async () => {
                 lines[start.line - 1].slice(start.column - 1, end.column - 1),
                 doenetML,
             ).eq(reference);
+        }
+    });
+
+    // A cycle through the `condition` of a case can only flip the case, so
+    // the load check has no edge for it (D61 decision 1): the run time
+    // settles, or reports the loop at the composite, and the rest renders.
+    // Before D61, each was `doenet-e0005` at the reference, found at load,
+    // which was false where the run time settles.
+    it("a case before a section whose condition reads the section's number: left to the run time", async () => {
+        for (const [doenetML, sectionNumber, errorAt] of [
+            // settles with the condition false: no section, `s` is 1
+            [
+                `<group><conditionalContent condition="$s.sectionNumber = 2"><section/></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "1",
+                undefined,
+            ],
+            // never settles: the loop is reported at the composite
+            [
+                `<group><conditionalContent condition="$s.sectionNumber = 1"><section/></conditionalContent></group>
+<section name="s"><p name="p">hi</p></section>`,
+                "1",
+                `<conditionalContent condition="$s.sectionNumber = 1"><section/></conditionalContent>`,
+            ],
+        ] as const) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                doenetML,
+            ).eq("hi");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                    .sectionNumber,
+                doenetML,
+            ).eq(sectionNumber);
+            const { errors } = getDiagnosticsByType(core);
+            const lines = doenetML.split("\n");
+            expect(
+                errors.map((error: any) => {
+                    const { start, end } = error.position;
+                    return [
+                        error.code,
+                        lines[start.line - 1].slice(
+                            start.column - 1,
+                            end.column - 1,
+                        ),
+                    ];
+                }),
+                doenetML,
+            ).eqls(errorAt === undefined ? [] : [["doenet-e0005", errorAt]]);
         }
     });
 

@@ -5,10 +5,13 @@
  * numbering edges of `sectionNumberingAtLoad.ts`) predict what the run time
  * waits for, and the shapes they miss stop the document with a circular
  * dependency. When one is thrown while the document loads, the worker
- * (`PublicDoenetMLCore.createCoreGenerateDast`) blames one authored node on
- * the cycle and rebuilds the document once, with that node made
- * `doenet-e0005` through the load check's own error path
- * (`breakReferenceCycles`'s `loadCycle`). The rest renders.
+ * (`PublicDoenetMLCore.rebuildAroundLoadCycle`) blames one authored node on
+ * the cycle and rebuilds the document, with that node made `doenet-e0005`
+ * through the load check's own error path (`breakReferenceCycles`'s
+ * `loadCycles`). The rest renders. A rebuild that stops on another cycle is
+ * rebuilt again, keeping the nodes already blamed and blaming one more, up
+ * to five rebuilds (D61 decision 2), so independent cycles are each an
+ * error.
  *
  * The node blamed is, among the authored nodes on the cycle:
  * 1. the first reference, in document order, to the number of a sectioning
@@ -16,7 +19,11 @@
  *    `NUMBER_PROPERTIES`);
  * 2. else the first composite in document order, a reference (`$x`,
  *    `extend`, `copy`) included, as a reference is made as a composite, or
- *    is a reference read as a value (`_ref`);
+ *    is a reference read as a value (`_ref`), but one passed over, known to
+ *    have no state variable on the cycle: a reference in the middle of a
+ *    chain of copies (`n`, in `<number extend="$k" name="n"/>` then
+ *    `<number extend="$n" name="m" hide="$m.hidden"/>`), whose blame
+ *    wouldn't break the cycle (#2633 item 3), unless each is;
  * 3. else the first authored component in document order but the document.
  *
  * The rebuild's cycle check (`breakReferenceCycles`) refines the choice
@@ -26,9 +33,11 @@
  * - rule 1 also counts a reference to the number of a section on the cycle
  *   written in an attribute of a node on it (`hide="$s.sectionNumber=1"`
  *   of a `<conditionalContent>` read by `$cc.hidden`), in an attribute the
- *   cycle runs through when the run time says (`variablesOnCycle`), and the
- *   first such, in document order, is made the error in place of the node
- *   blamed here;
+ *   cycle runs through when the run time says (`variablesOnCycle`), and, of
+ *   the references in that attribute, the one the cycle runs through when
+ *   the run time names it (`__hide_ref0_value`, #2633 item 4); the first
+ *   such, in document order, is made the error in place of the node blamed
+ *   here;
  * - else, when the node blamed is no reference, a reference written in it,
  *   to it or to another node on the cycle, is made the error in its place,
  *   if there is one (`$P.x` in `<point name="P">($P.x+1, 2)</point>`).
@@ -40,7 +49,9 @@
  * (`replacementOf`) or the component it is in, each traced back to one
  * written in the DoenetML. Its state variables on the cycle are those of
  * what it was copied from, but those of an attribute the reference that made
- * it writes itself, which are the reference's (`authoredOwnerOf`).
+ * it writes itself, which are the reference's (`authoredOwnerOf`). A
+ * reference in a chain of copies that doesn't write the attribute is passed
+ * over.
  */
 import type { SerializedComponent } from "./dast/types";
 import type { ComponentInfoObjects } from "./componentInfoObjects";
@@ -184,7 +195,9 @@ function isOfAttributeWritten(component: SerializedComponent, varName: string) {
 
 /**
  * The authored node whose state variable `varName` (lower case) of
- * `componentIdx` is, if any, and the authored nodes passed over on the way.
+ * `componentIdx` is, if any, and the authored nodes passed over on the way:
+ * what a reference writing the attribute copies, and each reference in a
+ * chain of copies that doesn't write it.
  * That is the component itself, if written in the DoenetML, else, for a
  * copy (`madeFromIdx`: what is written in a repeat's template, or what an
  * `extend`, `copy` or `$n` is of), what it was copied from, traced the same
@@ -244,6 +257,16 @@ function authoredOwnerOf(
             }
             passed.push(...copied.passed);
             return { owner: reference.componentIdx, passed };
+        }
+        if (
+            reference?.componentType === "_copy" &&
+            component?.madeFromIdx !== undefined
+        ) {
+            // a reference in a chain of copies that doesn't write the
+            // variable's attribute: the variable is what it copies, so it is
+            // passed over (#2633 item 3: `n`, where `n` extends `k`, and `m`
+            // extends `n` and writes the attribute)
+            passed.push(reference.componentIdx);
         }
         idx = component?.madeFromIdx;
     }
@@ -364,7 +387,7 @@ export function blameLoadCycle({
     if (toNumber !== undefined) {
         return { blamed: toNumber, onCycle: candidates, variablesOnCycle };
     }
-    const composite = inOrder.find(
+    const composites = inOrder.filter(
         (idx) =>
             isReference(byIdx.get(idx)!) ||
             componentInfoObjects.isCompositeComponent({
@@ -372,6 +395,12 @@ export function blameLoadCycle({
                 includeNonStandard: true,
             }),
     );
+    // not one passed over, known to have no state variable on the cycle (a
+    // reference in the middle of a chain of copies, whose blame wouldn't
+    // break it, #2633 item 3), unless each is
+    const composite =
+        composites.find((idx) => variablesOnCycle.get(idx)?.size !== 0) ??
+        composites[0];
     if (composite !== undefined) {
         return { blamed: composite, onCycle: candidates, variablesOnCycle };
     }
