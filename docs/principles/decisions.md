@@ -539,8 +539,8 @@ removes child indexing everywhere, not only for choices (#2424, and with no depr
 This is also the direction of ADRs 0013 and 0014.
 
 **Status:** composite cycles since early; reference cycles found at load since #2471/#2513;
-every cycle thrown while the document loads since #2625 (D57). Left (#2633): two cycles at load,
-and a cycle after an update.
+every cycle thrown while the document loads since #2625 (D57), up to five independent ones since
+#2639 (D61). Left: a cycle after an update, or first reached after load (for the cells core).
 
 **Tests that change:** the `rejects.toThrow` assertions in
 `T/diagnostics/circularReferences.test.ts:27-67`, `:722`, `:755`, and
@@ -3276,7 +3276,8 @@ all-lowercase compound, not only the names above. A new compound name is camelCa
    decision 2, amended). A cycle through a `condition` or a case can only flip a case, so it gets no
    edge: the run time settles, reports a loop at the composite, or throws and the load backstop
    catches it. This removes the false `e0005`s #2625's differential test found (`KNOWN_FALSE_ERRORS`).
-2. **The load backstop repeats, with a cap** (#2633 item 2; amends D57 decision 1's "once"). Each
+2. **The load backstop repeats, with a cap** (#2633 item 2; amends D57 decision 1's "once"; done by
+   #2639, with decision 1). Each
    rebuild keeps the nodes already blamed and blames one more, up to 5 rebuilds. So two independent
    cycles at load are each `e0005`. Past the cap, the document stops as before. Only documents that
    would otherwise stop pay for the extra loads.

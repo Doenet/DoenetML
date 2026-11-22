@@ -451,15 +451,22 @@ inside the group it collects from, and the seven shapes #2515 listed (`$n.hide` 
 in `P`, `$l.slope` in a line through a point reading it, …). A generated differential test pins
 the section-number check against the run time (`sectionNumberingDifferential.test.ts`).
 
-**Known violations** (#2633):
-- the section-number edges give a false `e0005` for a `<conditionalContent>` before `s` whose
-  condition reads the number and whose case may make a section: four in the test's sample of
-  150. Decided (D61): an edge only to a composite whose count the number can change;
-- two independent cycles at load still stop the document (the rebuild meets the second).
-  Decided (D61): repeat the backstop, up to 5 rebuilds;
-- in a chain of copies, the blame can fall on a middle reference that doesn't break the cycle;
-- a cycle that appears only after an update, or that the load never reaches (a hidden point
-  reading its own coordinate in a repeat, read later), still stops the document (D14).
+**Done by #2639** (D61, closing #2633):
+- a section's number has a load-time edge only to what a composite *counts* (a
+  `<repeatForSequence>`'s `from`/`to`/`length`, a `<repeat>`'s `for`, a `<select>`'s
+  `numToSelect`). A `condition` or `selectWeight` that can only choose a case gets no edge: the
+  run time settles, reports a loop at the composite, or throws and the backstop blames the
+  reference. The differential test now asserts no false `e0005` in its sample;
+- the backstop repeats, up to 5 rebuilds, so up to five independent cycles at load are each
+  `e0005`;
+- in a chain of copies, the copy that writes the attribute the cycle runs through is blamed;
+  within one attribute, the reference the run time names on the cycle.
+
+**Known violations:** a cycle that appears only after an update, or that the load never reaches
+(a hidden point reading its own coordinate in a repeat, read later), still stops the document
+(D14, for the cells core); so does a sixth independent cycle at load. In
+`<group name="g" hide="$g.hidden"><number name="n" hide="$n.hidden"/></group>` only `$n.hidden` is
+reported.
 
 Known violations:
 - **fixed by #2547** (#2515's eight items, #2521 item 4), each `e0005` at load, with the attributes

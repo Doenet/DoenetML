@@ -163,8 +163,9 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 
 **Known violations:**
 - **fixed by #2625** (D57): a state-variable cycle thrown while the document loads is rebuilt as
-  `e0005` at one authored node, and the rest renders. **Left** (#2633): two cycles at load, and a
-  cycle after an update or first reached after load, still stop the document (D14, NAME-7);
+  `e0005` at one authored node, and the rest renders; since #2639 (D61), up to five independent
+  cycles at load. **Left:** a cycle after an update or first reached after load still stops the
+  document (D14, NAME-7, for the cells core);
 - a loop where no composite can be singled out still stops the document (#2425);
 - **fixed by #2574** (closing #2536): an unknown name in `variantsToInclude` or
   `variantsToExclude` is ignored with **`doenet-e0079`** at the attribute, and the document loads
@@ -181,7 +182,7 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
   reference in any attribute (`&#x33;`) is decoded; a reference to a `<variantControl>` (`$vc`,
   `$vc.numVariants`) names nothing, with **`doenet-w0199`** saying it shows nothing and its
   attributes can't be read. `<lorem generateParagraphs="$s.sectionNumber"/>` is no longer a false
-  `e0005`. **Left** (#2637): `e0065` for `<text extend="$vc"/>` still advises writing `$vc`;
+  `e0005`. **Fixed by #2640:** `e0065` for `<text extend="$vc"/>` no longer advises writing `$vc`;
 - **fixed by #2573:** a reference to a component in error reports nothing more (no `w0104` for
   `$x.bar` of an `_error`);
 - **fixed by #2609:** a document with millions of unique variants loads in any variant (it ran out
@@ -194,8 +195,8 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 - **fixed by #2618** (#2614 items 1–2): a `<document>` with an attribute it doesn't have loads,
   with `e0004` (or `e0003`) at the attribute, which is ignored; a composite before a section can
   read the section's number when, by the DoenetML, it can make no section, and a genuine cycle is
-  `e0005` at load (NAME-7). Since #2625 (D57) a cycle the check misses is rebuilt as `e0005`;
-  **left** (#2633): two cycles at load, and false `e0005`s from the section-number edges;
+  `e0005` at load (NAME-7). Since #2625 (D57) a cycle the check misses is rebuilt as `e0005`, and
+  since #2639 (D61) the section-number edges give no false `e0005`;
 - fixed: `bindValueTo` of a `<subsetOfRealsInput>` (B24, #2484), `<text extend="$cc"/>` of
   bare-text cases (B23, #2447), and a reload restoring a value to a component of another type
   (B36, #2481).
