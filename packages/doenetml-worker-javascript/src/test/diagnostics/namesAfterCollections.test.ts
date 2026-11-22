@@ -387,6 +387,57 @@ describe("A collection reached through a branch or an item (D59, review cycle 4)
             "$s.q[1].Q",
         ]);
     });
+
+    it("through a branch container in a branch, an option of a select that picks several, or one in an item (review cycle 5)", async () => {
+        const repeat = (name: string, item: string, from: string) =>
+            `<repeat name="${name}" for="${from}" valueName="v"><point name="${item}">($v,1)</point></repeat>`;
+        const { texts, diagnostics } = await both(
+            `<conditionalContent name="cc"><case condition="true"><conditionalContent name="c2"><case condition="true">${repeat("r", "P", "1 2")}</case></conditionalContent></case></conditionalContent>
+<conditionalContent name="dd"><case condition="true"><select><option>${repeat("q", "Q", "1 2")}</option></select></case></conditionalContent>
+<conditionalContent name="ee"><case condition="true"><conditionalContent><case condition="true"><pointList name="pl">(1,2) (3,4)</pointList></case></conditionalContent></case></conditionalContent>
+<select name="s" numToSelect="2"><option>${repeat("t", "T", "1 2")}</option><option>${repeat("t", "T", "3 4")}</option></select>
+<repeat name="o" for="1"><conditionalContent><case condition="true">${repeat("u", "U", "1 2")}</case></conditionalContent></repeat>
+<conditionalContent name="ff"><case condition="true"><conditionalContent><case condition="true">${repeat("w", "W", "1 2")}</case><else>none</else></conditionalContent></case></conditionalContent>
+<p name="p1">$cc.r.P</p><p name="p2">$r.P</p><p name="p3">$dd.q.Q</p><p name="p4">$pl.x</p><p name="p5">$ee.pl.x</p>
+<p name="p6">$s[1].t.T</p><p name="p7">$o[1].u.U</p><p name="p8">$ff.w.W</p>
+<p name="i1">$cc.r[2].P</p><p name="i2">$s[2].t[1].T</p><p name="i3">$o[1].u[2].U</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "i1", "i2", "i3"],
+            { withMessages: true },
+        );
+        // each of p1–p7 was every item's on main (D41), and a blank with no
+        // warning before this was followed
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "＿",
+            p7: "＿",
+            p8: "＿",
+            i1: "(2, 1)",
+            i2: "(3, 1)",
+            i3: "(2, 1)",
+        });
+        expect(diagnostics.map((d) => d.split(":")[0])).eqls([
+            // a name only some branches declare is left to `w0183`, as on main
+            "warning doenet-w0183",
+            ...Array(7).fill("warning doenet-w0199"),
+        ]);
+        expect(
+            diagnostics
+                .filter((d) => d.includes("w0199"))
+                .map((d) => d.replace(/^.*such as `([^`]*)`\.$/, "$1")),
+        ).eqls([
+            "$cc.r[1].P",
+            "$dd.q[1].Q",
+            "$ee.pl[1].x",
+            "$o[1].u[1].U",
+            "$pl[1].x",
+            "$r[1].P",
+            "$s[1].t[1].T",
+        ]);
+    });
 });
 
 describe("A tag made from a name or a property after a collection (D59)", () => {

@@ -483,19 +483,28 @@ export function checkNamesAfterCollectionsAtLoad({
             node.componentType === "select" &&
             collectionWritten("select", node, () => undefined) === undefined
         ) {
-            return (node.children ?? []).filter(
-                (child): child is SerializedComponent =>
-                    typeof child === "object" &&
-                    child.componentType === "option",
-            );
+            return optionsOf(node);
         }
         return undefined;
     }
 
+    /** The `<option>`s of the `<select>` written as `node`. */
+    function optionsOf(node: SerializedComponent) {
+        return (node.children ?? []).filter(
+            (child): child is SerializedComponent =>
+                typeof child === "object" && child.componentType === "option",
+        );
+    }
+
     /**
      * The components named `name` written below `node`, not inside a
-     * `<repeat>`, the options of a `<select>` or a `<conditionalContent>`
-     * below it, whose names are reached through them.
+     * `<repeat>`, a `<collect>` or a `<select>` that picks several below it,
+     * whose names are reached through them. One every branch of a
+     * `<conditionalContent>` or a one-pick `<select>` below it declares once
+     * counts once, as the one its first branch declares (`$cc.r` of a case
+     * holding a `<conditionalContent>` that holds `r`); one only some of
+     * them declare, or one declares twice, counts as more than one, so that
+     * it isn't followed.
      */
     function namedBelow(
         node: SerializedComponent,
@@ -510,14 +519,35 @@ export function checkNamesAfterCollectionsAtLoad({
                 found.push(child);
                 continue;
             }
-            if (
-                !NAMES_BELONG_TO_ITEMS.has(child.componentType) &&
-                child.componentType !== "conditionalContent"
-            ) {
+            const branches = branchesOf(child);
+            if (branches) {
+                const one = inEveryBranch(branches, name);
+                if (one) {
+                    found.push(one);
+                } else {
+                    const named = branches.flatMap((branch) =>
+                        namedBelow(branch, name),
+                    );
+                    if (named.length > 0) {
+                        found.push(...named, child);
+                    }
+                }
+            } else if (!NAMES_BELONG_TO_ITEMS.has(child.componentType)) {
                 namedBelow(child, name, found);
             }
         }
         return found;
+    }
+
+    /**
+     * The component named `name` each of `branches` declares once, as the
+     * first declares it, or `undefined` when they don't each declare one.
+     */
+    function inEveryBranch(branches: SerializedComponent[], name: string) {
+        const named = branches.map((branch) => namedBelow(branch, name));
+        return named.length > 0 && named.every((n) => n.length === 1)
+            ? named[0][0]
+            : undefined;
     }
 
     /**
@@ -585,8 +615,13 @@ export function checkNamesAfterCollectionsAtLoad({
             const branches = inItem ? undefined : branchesOf(node);
             let next: SerializedComponent | undefined;
             if (inItem) {
-                const named = namedBelow(node, name);
-                next = named.length === 1 ? named[0] : undefined;
+                if (node.componentType === "select") {
+                    // a pick is one of its options
+                    next = inEveryBranch(optionsOf(node), name);
+                } else {
+                    const named = namedBelow(node, name);
+                    next = named.length === 1 ? named[0] : undefined;
+                }
             } else if (branches && branches.length > 0) {
                 const named = branches.map((branch) =>
                     namedBelow(branch, name),
