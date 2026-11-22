@@ -292,6 +292,19 @@ ${chain}`,
         );
     });
 
+    // A reference to the number written in an index is made the error too:
+    // the rebuild looks for it there, and stopped the document when it didn't
+    // find it (DIAG-5).
+    it("blames a reference to the number in an index", async () => {
+        await expectBlamed(
+            `<mathList name="l">1 2 3</mathList>
+$cc.hidden
+<conditionalContent name="cc" hide="$l[$s.sectionNumber] > 1"><p>a</p></conditionalContent>
+<section name="s"><p name="p">hi</p></section>`,
+            "$s.sectionNumber",
+        );
+    });
+
     // With no reference among the components the cycle reports, the first
     // written in document order is blamed, and in it, the first reference
     // written to a component on the cycle (DIAG-4).

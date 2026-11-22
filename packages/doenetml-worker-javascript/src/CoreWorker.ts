@@ -86,7 +86,11 @@ export type RequestSolutionView = (componentIdx: number) => Promise<{
  */
 export const MAX_LOAD_CYCLE_REBUILDS = 5;
 
-/** Whether the component `componentIdx` in `document` is an `_error`. */
+/**
+ * Whether the component `componentIdx` in `document` is an `_error`: written
+ * anywhere, also in the index of a reference (`$s.sectionNumber` in
+ * `hide="$l[$s.sectionNumber]"`).
+ */
 function madeAnError(document: any, componentIdx: number): boolean {
     const stack = [document];
     while (stack.length > 0) {
@@ -105,6 +109,22 @@ function madeAnError(document: any, componentIdx: number): boolean {
                 ...(attribute?.references ?? []),
                 ...(attribute?.children ?? []),
             );
+        }
+        const extending = component.extending;
+        const reference =
+            extending?.Ref ??
+            extending?.ExtendAttribute ??
+            extending?.CopyAttribute ??
+            extending?.CopyWithStateAttribute;
+        for (const path of [
+            reference?.unresolvedPath,
+            reference?.originalPath,
+        ]) {
+            for (const part of path ?? []) {
+                for (const piece of part?.index ?? []) {
+                    stack.push(...(piece?.value ?? []));
+                }
+            }
         }
         stack.push(...(component.children ?? []));
     }
