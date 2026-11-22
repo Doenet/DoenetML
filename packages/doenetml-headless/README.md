@@ -191,7 +191,21 @@ refused as `targetDisabled` too: an input bound to a fixed component
 and a point that extends one with a fixed location stays where it is. A point
 a constraint or attractor moves somewhere else has taken the value, as a drag
 does, and so has an input whose value the document changes into something else
-(a bound `<math simplify>` simplifying what was typed).
+(a bound `<math simplify>` simplifying what was typed). A value the target
+already has is never refused, since nothing would change.
+
+Two cases are not caught:
+
+- A value the document turns into exactly the value the input already has is
+  refused, though it was taken: `x+x` typed into an input showing `2x` and
+  bound to a `<math simplify>`, or `2.50` into a `<textInput>` bound to a
+  `<number>` that is 2.5. Reading the value back cannot tell this from a fixed
+  source.
+- A point whose coordinates come from a fixed point (`<point>$A</point>` or
+  `coords="$A"` with `A` fixed) stays where it is, and `setValue` returns
+  normally. The document reports nothing for it, and a point is not read
+  back, since one that a constraint or attractor keeps in place has taken the
+  value.
 
 `submit(core, path)` submits an `<answer>` or a `<pretzel>`, or, for any other
 component (a section with `sectionWideCheckWork`, the document), all the

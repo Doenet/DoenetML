@@ -400,6 +400,33 @@ describe("setValue and submit", () => {
         );
     });
 
+    it("takes the value a target already has, even from a fixed source", async () => {
+        await withCore(
+            `<graph>
+                <point name="F" fixLocation>(5,5)</point>
+                <point name="G" extend="$F" fixLocation="false" />
+            </graph>
+            <math name="m" fixed>1</math><mathInput name="mi" bindValueTo="$m" />
+            <text name="t" fixed>a</text><textInput name="ti" bindValueTo="$t" />
+            <boolean name="b" fixed>false</boolean><booleanInput name="bi" bindValueTo="$b" />
+            <text name="q" fixed>q</text>
+            <choiceInput name="ci" bindValueTo="$q"><choice>p</choice><choice>q</choice></choiceInput>
+            <math name="f" fixed>1/3</math><fractionInput name="fi" bindValueTo="$f" />`,
+            async (core) => {
+                // Nothing would change, so nothing is refused
+                await setValue(core, "G", [5, 5]);
+                await setValue(core, "mi", "1");
+                await setValue(core, "ti", "a");
+                await setValue(core, "bi", false);
+                await setValue(core, "ci", 2);
+                await setValue(core, "fi", {
+                    numerator: "1",
+                    denominator: "3",
+                });
+            },
+        );
+    });
+
     it("takes a value the document changes, and does not refuse for an action the change sets off", async () => {
         await withCore(
             `<math name="m" simplify>x</math><mathInput name="mi" bindValueTo="$m" />

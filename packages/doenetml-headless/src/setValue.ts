@@ -67,8 +67,12 @@ export const SETTABLE_COMPONENT_TYPES = [
  * cannot be moved, or a disabled choice (`targetDisabled`), and a value of the wrong
  * shape (`invalidValue`). Refuses as `targetDisabled`, too, a value that was
  * sent and not taken: an input bound to a fixed component keeps its value,
- * and a point that extends one with a fixed location stays put. Where the
- * document refuses part of the change, the rest of it may have been made.
+ * and a point that extends one with a fixed location stays put. A value the
+ * target already has is not refused. Where the document refuses part of the
+ * change, the rest of it may have been made. Not caught: a value the document
+ * turns into exactly the value the input already has is refused, and a point
+ * whose coordinates come from a fixed point stays put without a refusal (see
+ * the README).
  */
 export async function setValue(
     core: HeadlessCore,
@@ -107,15 +111,26 @@ export async function setValue(
                 component.componentIdx,
                 "value",
             );
-            await send(core, where, {
-                componentIdx: component.componentIdx,
-                actionName: "updateImmediateValue",
-                args: { text },
-            });
-            await send(core, where, {
-                componentIdx: component.componentIdx,
-                actionName: "updateValue",
-            });
+            const alreadyHas = same(text, before);
+            await send(
+                core,
+                where,
+                {
+                    componentIdx: component.componentIdx,
+                    actionName: "updateImmediateValue",
+                    args: { text },
+                },
+                { alreadyHas },
+            );
+            await send(
+                core,
+                where,
+                {
+                    componentIdx: component.componentIdx,
+                    actionName: "updateValue",
+                },
+                { alreadyHas },
+            );
             await expectTaken(
                 core,
                 component.componentIdx,
@@ -135,11 +150,16 @@ export async function setValue(
                 component.componentIdx,
                 "value",
             );
-            await send(core, where, {
-                componentIdx: component.componentIdx,
-                actionName: "updateBoolean",
-                args: { boolean: value },
-            });
+            await send(
+                core,
+                where,
+                {
+                    componentIdx: component.componentIdx,
+                    actionName: "updateBoolean",
+                    args: { boolean: value },
+                },
+                { alreadyHas: same(value, before) },
+            );
             await expectTaken(
                 core,
                 component.componentIdx,
@@ -297,12 +317,19 @@ async function refuseIfDisabled(
  * Send an action for `setValue`, and refuse (`targetDisabled`) if the core
  * refused a change it asked for because a component is `fixed` or has
  * `fixLocation`: the target itself, or one it is bound to or extends, such as
- * the location-fixed point a `<point extend>` takes its location from.
+ * the location-fixed point a `<point extend>` takes its location from. When
+ * the target `alreadyHas` the value sent, a refusal changes nothing, so it is
+ * not refused.
  */
-async function send(core: HeadlessCore, where: string, action: HeadlessAction) {
+async function send(
+    core: HeadlessCore,
+    where: string,
+    action: HeadlessAction,
+    { alreadyHas = false }: { alreadyHas?: boolean } = {},
+) {
     const { refusedChanges } = await core.dispatchAction(action);
     const refusal = refusedChanges[0];
-    if (refusal) {
+    if (refusal && !alreadyHas) {
         throw new HeadlessError(
             "targetDisabled",
             refusal.reason === "fixLocation"
@@ -310,6 +337,10 @@ async function send(core: HeadlessCore, where: string, action: HeadlessAction) {
                 : `${where} did not take the value: it is bound to, or extends, a component that is fixed.`,
         );
     }
+}
+
+function same(a: unknown, b: unknown) {
+    return JSON.stringify(a) === JSON.stringify(b);
 }
 
 async function readProperty(
@@ -340,8 +371,6 @@ async function expectTaken(
     where: string,
 ) {
     const after = await readProperty(core, componentIdx, propertyName);
-    const same = (a: unknown, b: unknown) =>
-        JSON.stringify(a) === JSON.stringify(b);
     if (same(after, before) && !same(sent, before)) {
         throw new HeadlessError(
             "targetDisabled",
@@ -364,7 +393,12 @@ async function typeMath(
     });
     // What was typed, as the math the input makes of it
     const typed = await readProperty(core, componentIdx, "immediateValue");
-    await send(core, where, { componentIdx, actionName: "updateValue" });
+    await send(
+        core,
+        where,
+        { componentIdx, actionName: "updateValue" },
+        { alreadyHas: same(typed, before) },
+    );
     await expectTaken(core, componentIdx, "value", typed, before, where);
 }
 
@@ -428,11 +462,16 @@ async function selectChoices(
         input.componentIdx,
         "selectedIndices",
     );
-    await send(core, where, {
-        componentIdx: input.componentIdx,
-        actionName: "updateSelectedIndices",
-        args: { selectedIndices: sent },
-    });
+    await send(
+        core,
+        where,
+        {
+            componentIdx: input.componentIdx,
+            actionName: "updateSelectedIndices",
+            args: { selectedIndices: sent },
+        },
+        { alreadyHas: same(sent, before) },
+    );
     await expectTaken(
         core,
         input.componentIdx,
@@ -531,9 +570,9 @@ async function movePoint(
             "a <point> takes [x, y] or [x, y, z], finite numbers",
         );
     }
-    const { numDimensions } = await core.readProperties(
+    const { numDimensions, xs } = await core.readProperties(
         component.componentIdx,
-        ["numDimensions"],
+        ["numDimensions", "xs"],
     );
     if (typeof numDimensions === "number" && value.length !== numDimensions) {
         // A drag moves every coordinate: a coordinate left out would keep its
@@ -544,9 +583,14 @@ async function movePoint(
         );
     }
     const [x, y, z] = value as number[];
-    await send(core, where, {
-        componentIdx: component.componentIdx,
-        actionName: "movePoint",
-        args: z === undefined ? { x, y } : { x, y, z },
-    });
+    await send(
+        core,
+        where,
+        {
+            componentIdx: component.componentIdx,
+            actionName: "movePoint",
+            args: z === undefined ? { x, y } : { x, y, z },
+        },
+        { alreadyHas: same(value, xs) },
+    );
 }
