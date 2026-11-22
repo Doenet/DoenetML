@@ -33,6 +33,13 @@
 //! | `Reduce{op, n}`          | n inputs → one value: a sum, a        | none: an operator component's result is not set by a request, as in  | none              |
 //! |                          | statistic or a connective             | the current core                                                     |                   |
 //! | `Wrap`                   | (x, lo, hi) → x wrapped into [lo, hi) | projection: the requested value wrapped, written to x                | x                 |
+//! | `Scan{op, n}`            | n inputs → running sums, products,    | none: an operator component's result is not set by a request         | none              |
+//! |                          | minima, maxima, or differences        |                                                                      |                   |
+//! | `Sort{n}`                | n inputs → them in order              | none                                                                 | none              |
+//! | `Shuffle{n}`             | (draw, n inputs) → them in the order  | none: what the seed chose does not move (ADR 0037)                   | none              |
+//! |                          | the draw permutes them to             |                                                                      |                   |
+//! | `Draws{dist, n, m}`      | (draw, parameters, m excludes) → n    | none: what the seed chose does not move (ADR 0037)                   | none              |
+//! |                          | values of a distribution              |                                                                      |                   |
 //!
 //! Inverses that move several points at once hand them to the request
 //! engine as one *point group* ([`Produced::group`]).
@@ -195,6 +202,108 @@ pub enum VecOp {
     /// Input 0 wrapped periodically into the interval between inputs 1
     /// and 2 ([`wrap_periodic`]). A request writes input 0 wrapped.
     Wrap,
+    /// `n` inputs to a list of values over their prefixes ([`Scan`]): an
+    /// operator component's running sum, product, minimum or maximum (`n`
+    /// outputs), or its successive differences (`n - 1`). No inverse.
+    Scan {
+        /// What it computes.
+        op: Scan,
+        /// How many inputs.
+        n: u8,
+    },
+    /// `n` inputs in order, increasing, or decreasing when `decreasing`;
+    /// a NaN last. No inverse.
+    Sort {
+        /// How many inputs.
+        n: u8,
+        /// Whether the greatest comes first.
+        decreasing: bool,
+    },
+    /// Inputs a draw in `[0, 1)` and `n` values; the outputs are the values
+    /// in an order the draw picks ([`draw_stream`]). No inverse: what the
+    /// seed chose does not move (ADR 0037).
+    Shuffle {
+        /// How many values.
+        n: u8,
+    },
+    /// `n` values of a distribution ([`Dist`]), drawn at load (ADR 0037):
+    /// inputs a draw in `[0, 1)`, the distribution's parameters
+    /// ([`Dist::n_params`]) and `n_exclude` excluded values. The draw seeds
+    /// a stream of uniform numbers ([`draw_stream`]), the first of which is
+    /// the draw itself. NaN where the distribution has too few values to
+    /// draw from, which the check makes sure no build meets. No inverse.
+    Draws {
+        /// The distribution.
+        dist: Dist,
+        /// How many values.
+        n: u8,
+        /// How many excluded values follow the parameters.
+        n_exclude: u8,
+    },
+}
+
+/// What a [`VecOp::Scan`] computes over the prefixes of its inputs, as the
+/// current core's list operators (`<cumulativeSum>` and its kin) do.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Scan {
+    /// The running sum.
+    Sum,
+    /// The running product.
+    Product,
+    /// The running minimum.
+    Min,
+    /// The running maximum.
+    Max,
+    /// Each input less the one before it: one fewer output.
+    Differences,
+}
+
+/// The order a [`Dist`] of several values leaves them in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Order {
+    /// As drawn.
+    Unsorted,
+    /// Least first.
+    Increasing,
+    /// Greatest first.
+    Decreasing,
+}
+
+/// What a [`VecOp::Draws`] draws from, and the parameters it reads after
+/// the draw.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Dist {
+    /// (from, to): uniform between them.
+    Uniform,
+    /// (mean, standard deviation): normal.
+    Gaussian,
+    /// (from, step, to): a value of `from, from + step, ..., to` less the
+    /// excludes, as [`VecOp::SequencePick`] draws one; without
+    /// replacement, no value twice.
+    Sequence {
+        /// Whether a value may be drawn again.
+        replace: bool,
+        /// The order of the values drawn.
+        order: Order,
+    },
+    /// (from, to): a prime from `from` to `to` less the excludes; without
+    /// replacement, no prime twice.
+    Primes {
+        /// Whether a value may be drawn again.
+        replace: bool,
+        /// The order of the values drawn.
+        order: Order,
+    },
+}
+
+impl Dist {
+    /// How many parameters it reads after the draw.
+    pub const fn n_params(self) -> usize {
+        match self {
+            Dist::Uniform | Dist::Gaussian | Dist::Primes { .. } => 2,
+            Dist::Sequence { .. } => 3,
+        }
+    }
 }
 
 /// What a [`VecOp::Reduce`] computes of its inputs, as the current core's
@@ -241,6 +350,26 @@ pub enum Reduction {
     /// Inputs (x, lim1, lim2, strict): 1 when x lies between the limits,
     /// strictly when `strict` holds.
     Between,
+    /// The position (from 1) of the least input, the first of equal ones;
+    /// 0 with none.
+    ArgMin,
+    /// The position (from 1) of the greatest input, the first of equal
+    /// ones; 0 with none.
+    ArgMax,
+    /// The position (from 1) among inputs 1 on of the first equal to input
+    /// 0; 0 when none is.
+    IndexOf,
+    /// The position (from 1) at which input 0 would go among inputs 1 on,
+    /// which must be in increasing order (a NaN passed over), else 0:
+    /// before any equal ones, or after them when `right`. With `unsorted`
+    /// the order is not required, and the position is where input 0 goes
+    /// among them sorted. 0 with no inputs after the first.
+    SearchSorted {
+        /// Whether to go after equal ones.
+        right: bool,
+        /// Whether the inputs may be in any order.
+        unsorted: bool,
+    },
 }
 
 impl Reduction {
@@ -316,6 +445,59 @@ impl Reduction {
                     [a, b] => !a || b,
                     _ => false,
                 })
+            }
+            Reduction::ArgMin | Reduction::ArgMax => {
+                if inp.is_empty() {
+                    return 0.0;
+                }
+                // A NaN compares as neither, as the current core's
+                // comparison does.
+                let mut best = 0;
+                for k in 1..inp.len() {
+                    let better = match self {
+                        Reduction::ArgMin => inp[k] < inp[best],
+                        _ => inp[k] > inp[best],
+                    };
+                    if better {
+                        best = k;
+                    }
+                }
+                (best + 1) as f64
+            }
+            Reduction::IndexOf => match inp.split_first() {
+                Some((&target, xs)) => xs
+                    .iter()
+                    .position(|&x| x == target)
+                    .map_or(0.0, |k| (k + 1) as f64),
+                None => f64::NAN,
+            },
+            Reduction::SearchSorted { right, unsorted } => {
+                let Some((&target, xs)) = inp.split_first() else {
+                    return f64::NAN;
+                };
+                if xs.is_empty() {
+                    return 0.0;
+                }
+                let before = |x: f64| x < target || (right && x == target);
+                if unsorted {
+                    return (xs.iter().filter(|&&x| before(x)).count() + 1) as f64;
+                }
+                let ordered = xs
+                    .iter()
+                    .filter(|x| !x.is_nan())
+                    .collect::<Vec<_>>()
+                    .windows(2)
+                    .all(|w| w[0] <= w[1]);
+                if !ordered {
+                    return 0.0;
+                }
+                let mut index = 1;
+                for (k, &x) in xs.iter().enumerate() {
+                    if before(x) {
+                        index = k + 2;
+                    }
+                }
+                index as f64
             }
             Reduction::Between => match *inp {
                 [x, l1, l2, strict] => {
@@ -449,6 +631,316 @@ fn sequence_pick(draw: f64, from: f64, step: f64, to: f64, excludes: &[f64]) -> 
     from + step * k as f64
 }
 
+/// The `i`-th number in `[0, 1)` of the stream a draw seeds: the draw
+/// itself, then splitmix64 over its bits, so one draw (a scope constant,
+/// ADR 0037) gives as many independent numbers as an instruction needs.
+pub(crate) fn draw_stream(draw: f64, i: usize) -> f64 {
+    if i == 0 {
+        return draw;
+    }
+    let seed = (draw * (1u64 << 53) as f64) as u64;
+    let mut z = seed
+        .wrapping_add((i as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15))
+        .wrapping_add(0x9e37_79b9_7f4a_7c15);
+    z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+    z ^= z >> 31;
+    (z >> 11) as f64 / (1u64 << 53) as f64
+}
+
+/// `n` positions among `count` (0-based), less the `excluded` ones (sorted,
+/// no repeats, each below `count`), drawn from the stream `draw` seeds:
+/// with `replace`, any position left each time; without, no position
+/// twice. None when too few positions are left; with nothing excluded, the
+/// first is the draw scaled by the count, as [`VecOp::SequencePick`]'s.
+fn pick_positions(
+    draw: f64,
+    count: u64,
+    excluded: &[u64],
+    n: usize,
+    replace: bool,
+) -> Option<Vec<u64>> {
+    let left = count.checked_sub(excluded.len() as u64)?;
+    let mut blocked = excluded.to_vec();
+    let mut picks = Vec::with_capacity(n);
+    for i in 0..n {
+        let avail = if replace {
+            left
+        } else {
+            left.checked_sub(i as u64)?
+        };
+        if avail == 0 {
+            return None;
+        }
+        let mut k = ((draw_stream(draw, i) * avail as f64) as u64).min(avail - 1);
+        // Past the blocked positions at or before it, in order.
+        for &x in &blocked {
+            if x <= k {
+                k += 1;
+            }
+        }
+        picks.push(k);
+        if !replace {
+            let at = blocked.partition_point(|&x| x < k);
+            blocked.insert(at, k);
+        }
+    }
+    Some(picks)
+}
+
+/// The most a `<selectPrimeNumbers>` may draw below, and the widest range
+/// it may draw from: what one sieve of a range holds.
+pub const MAX_PRIME: f64 = 1e12;
+/// The widest range of primes a draw sieves (see [`MAX_PRIME`]).
+pub const MAX_PRIME_SPAN: f64 = 1e6;
+
+/// The primes from `from` to `to`, in order; None when the range is not
+/// finite, reaches past [`MAX_PRIME`] or is wider than [`MAX_PRIME_SPAN`].
+pub fn primes_between(from: f64, to: f64) -> Option<Vec<u64>> {
+    if !from.is_finite() || !to.is_finite() {
+        return None;
+    }
+    let (lo, hi) = (from.ceil().max(2.0), to.floor());
+    if hi < lo {
+        return Some(Vec::new());
+    }
+    if hi > MAX_PRIME || hi - lo > MAX_PRIME_SPAN {
+        return None;
+    }
+    let (lo, hi) = (lo as u64, hi as u64);
+    // The primes up to the root, then those marking off the range.
+    let root = (hi as f64).sqrt() as u64 + 1;
+    let mut small = vec![true; root as usize + 1];
+    let mut seg = vec![true; (hi - lo + 1) as usize];
+    for p in 2..=root {
+        if !small[p as usize] {
+            continue;
+        }
+        let mut m = p * p;
+        while m <= root {
+            small[m as usize] = false;
+            m += p;
+        }
+        let mut m = (p * p).max(lo.div_ceil(p) * p);
+        while m <= hi {
+            seg[(m - lo) as usize] = false;
+            m += p;
+        }
+    }
+    Some(
+        seg.iter()
+            .enumerate()
+            .filter(|&(_, &prime)| prime)
+            .map(|(k, _)| lo + k as u64)
+            .collect(),
+    )
+}
+
+/// The standard normal quantile of `p` in `(0, 1)` (Acklam's rational
+/// approximation, with one step of Halley's method).
+fn normal_quantile(p: f64) -> f64 {
+    const A: [f64; 6] = [
+        -3.969_683_028_665_376e1,
+        2.209_460_984_245_205e2,
+        -2.759_285_104_469_687e2,
+        1.383_577_518_672_69e2,
+        -3.066_479_806_614_716e1,
+        2.506_628_277_459_239,
+    ];
+    const B: [f64; 5] = [
+        -5.447_609_879_822_406e1,
+        1.615_858_368_580_409e2,
+        -1.556_989_798_598_866e2,
+        6.680_131_188_771_972e1,
+        -1.328_068_155_288_572e1,
+    ];
+    const C: [f64; 6] = [
+        -7.784_894_002_430_293e-3,
+        -3.223_964_580_411_365e-1,
+        -2.400_758_277_161_838,
+        -2.549_732_539_343_734,
+        4.374_664_141_464_968,
+        2.938_163_982_698_783,
+    ];
+    const D: [f64; 4] = [
+        7.784_695_709_041_462e-3,
+        3.224_671_290_700_398e-1,
+        2.445_134_137_142_996,
+        3.754_408_661_907_416,
+    ];
+    let tail = |q: f64| {
+        (((((C[0] * q + C[1]) * q + C[2]) * q + C[3]) * q + C[4]) * q + C[5])
+            / ((((D[0] * q + D[1]) * q + D[2]) * q + D[3]) * q + 1.0)
+    };
+    let x = if p < 0.02425 {
+        tail((-2.0 * p.ln()).sqrt())
+    } else if p > 1.0 - 0.02425 {
+        -tail((-2.0 * (1.0 - p).ln()).sqrt())
+    } else {
+        let q = p - 0.5;
+        let r = q * q;
+        (((((A[0] * r + A[1]) * r + A[2]) * r + A[3]) * r + A[4]) * r + A[5]) * q
+            / (((((B[0] * r + B[1]) * r + B[2]) * r + B[3]) * r + B[4]) * r + 1.0)
+    };
+    // One Halley step against the normal distribution function.
+    let e = 0.5 * erfc(-x / std::f64::consts::SQRT_2) - p;
+    let u = e * (2.0 * std::f64::consts::PI).sqrt() * (x * x / 2.0).exp();
+    x - u / (1.0 + x * u / 2.0)
+}
+
+/// The complementary error function (Numerical Recipes' `erfcc`, to about
+/// 1e-7, which the Halley step in [`normal_quantile`] refines past).
+fn erfc(x: f64) -> f64 {
+    let z = x.abs();
+    let t = 1.0 / (1.0 + 0.5 * z);
+    let r = t
+        * (-z * z - 1.265_512_23
+            + t * (1.000_023_68
+                + t * (0.374_091_96
+                    + t * (0.096_784_18
+                        + t * (-0.186_288_06
+                            + t * (0.278_868_07
+                                + t * (-1.135_203_98
+                                    + t * (1.488_515_87
+                                        + t * (-0.822_152_23 + t * 0.170_872_77)))))))))
+            .exp();
+    if x >= 0.0 { r } else { 2.0 - r }
+}
+
+/// `values` in `order`, a NaN last whichever way.
+fn sort_values(values: &mut [f64], order: Order) {
+    match order {
+        Order::Unsorted => {}
+        Order::Increasing => {
+            values.sort_by(|a, b| a.is_nan().cmp(&b.is_nan()).then(a.total_cmp(b)))
+        }
+        Order::Decreasing => {
+            values.sort_by(|a, b| a.is_nan().cmp(&b.is_nan()).then(b.total_cmp(a)))
+        }
+    }
+}
+
+/// What a [`VecOp::Scan`] gives of `inp`, into `out`. A NaN makes a
+/// running minimum or maximum NaN from there on, as `Math.min` does.
+fn scan(op: Scan, inp: &[f64], out: &mut [f64]) {
+    if op == Scan::Differences {
+        for (k, w) in inp.windows(2).enumerate() {
+            out[k] = w[1] - w[0];
+        }
+        return;
+    }
+    let mut running = f64::NAN;
+    for (k, &x) in inp.iter().enumerate() {
+        running = if k == 0 {
+            x
+        } else {
+            match op {
+                Scan::Sum => running + x,
+                Scan::Product => running * x,
+                Scan::Min if running.is_nan() || x.is_nan() => f64::NAN,
+                Scan::Max if running.is_nan() || x.is_nan() => f64::NAN,
+                Scan::Min => running.min(x),
+                Scan::Max => running.max(x),
+                Scan::Differences => unreachable!("taken above"),
+            }
+        };
+        out[k] = running;
+    }
+}
+
+/// `values` permuted by the stream `draw` seeds (Fisher and Yates), into
+/// `out`.
+fn shuffle(draw: f64, values: &[f64], out: &mut [f64]) {
+    out.copy_from_slice(values);
+    if !draw.is_finite() {
+        out.fill(f64::NAN);
+        return;
+    }
+    for i in (1..out.len()).rev() {
+        let j = ((draw_stream(draw, out.len() - 1 - i) * (i + 1) as f64) as usize).min(i);
+        out.swap(i, j);
+    }
+}
+
+/// What a [`VecOp::Draws`] gives, into `out`: one value per output, every
+/// one NaN when the distribution cannot give them.
+fn draws(dist: Dist, draw: f64, params: &[f64], excludes: &[f64], out: &mut [f64]) {
+    let n = out.len();
+    if !draw.is_finite() || params.iter().any(|v| !v.is_finite()) {
+        out.fill(f64::NAN);
+        return;
+    }
+    match dist {
+        Dist::Uniform => {
+            let (from, to) = (params[0], params[1]);
+            for (i, o) in out.iter_mut().enumerate() {
+                *o = from + draw_stream(draw, i) * (to - from);
+            }
+        }
+        Dist::Gaussian => {
+            let (mean, sd) = (params[0], params[1]);
+            let scale = (1u64 << 53) as f64;
+            for (i, o) in out.iter_mut().enumerate() {
+                // Off 0, which has no quantile.
+                let u = (draw_stream(draw, i) * scale + 0.5) / scale;
+                *o = mean + sd * normal_quantile(u);
+            }
+        }
+        Dist::Sequence { replace, order } => {
+            let (from, step, to) = (params[0], params[1], params[2]);
+            let count = sequence_count(from, step, to);
+            let picks = (step != 0.0 && count >= 1.0 && count < u64::MAX as f64)
+                .then(|| {
+                    let mut excluded: Vec<u64> = excludes
+                        .iter()
+                        .filter_map(|&x| sequence_index(from, step, count, x))
+                        .collect();
+                    excluded.sort_unstable();
+                    excluded.dedup();
+                    pick_positions(draw, count as u64, &excluded, n, replace)
+                })
+                .flatten();
+            match picks {
+                Some(picks) => {
+                    for (o, k) in out.iter_mut().zip(picks) {
+                        *o = from + step * k as f64;
+                    }
+                    sort_values(out, order);
+                }
+                None => out.fill(f64::NAN),
+            }
+        }
+        Dist::Primes { replace, order } => {
+            let picks = primes_between(params[0], params[1]).and_then(|primes| {
+                let mut excluded: Vec<u64> = excludes
+                    .iter()
+                    .filter(|x| x.fract() == 0.0 && **x >= 0.0)
+                    .filter_map(|&x| primes.binary_search(&(x as u64)).ok())
+                    .map(|k| k as u64)
+                    .collect();
+                excluded.sort_unstable();
+                excluded.dedup();
+                let picks = pick_positions(draw, primes.len() as u64, &excluded, n, replace)?;
+                Some(
+                    picks
+                        .into_iter()
+                        .map(|k| primes[k as usize])
+                        .collect::<Vec<_>>(),
+                )
+            });
+            match picks {
+                Some(picks) => {
+                    for (o, p) in out.iter_mut().zip(picks) {
+                        *o = p as f64;
+                    }
+                    sort_values(out, order);
+                }
+                None => out.fill(f64::NAN),
+            }
+        }
+    }
+}
+
 /// Most inputs a vector operator reads.
 pub use crate::limits::MAX_VEC_IN;
 
@@ -490,6 +982,11 @@ impl VecOp {
             VecOp::SequencePick { n_exclude } => 4 + n_exclude as usize,
             VecOp::Reduce { n, .. } => n as usize,
             VecOp::Wrap => 3,
+            VecOp::Scan { n, .. } | VecOp::Sort { n, .. } => n as usize,
+            VecOp::Shuffle { n } => n as usize + 1,
+            VecOp::Draws {
+                dist, n_exclude, ..
+            } => 1 + dist.n_params() + n_exclude as usize,
         }
     }
 
@@ -508,7 +1005,11 @@ impl VecOp {
             VecOp::First { .. }
             | VecOp::WeightedMean { .. }
             | VecOp::SequencePick { .. }
-            | VecOp::Reduce { .. } => 0,
+            | VecOp::Reduce { .. }
+            | VecOp::Scan { .. }
+            | VecOp::Sort { .. }
+            | VecOp::Shuffle { .. }
+            | VecOp::Draws { .. } => 0,
             VecOp::Choose { n } => first(n as usize + 1) & !1,
             VecOp::Clamp | VecOp::Wrap => 1,
             VecOp::Centroid { n } => first(2 * n as usize),
@@ -555,6 +1056,25 @@ impl VecOp {
                 },
                 _ => Range::Top,
             },
+            // A uniform value lies between its bounds; a sequence's, as
+            // one pick's, when every sequence holds as many values as it
+            // draws.
+            VecOp::Draws { dist, n, n_exclude } => match (dist, inputs) {
+                (Dist::Uniform, [Range::Span(lo, hi), from, to, ..])
+                    if *lo >= 0.0 && *hi <= 1.0 =>
+                {
+                    from.hull(*to)
+                }
+                (Dist::Sequence { replace, .. }, [_, from, step, to, ..]) => {
+                    let need = if replace { 1.0 } else { n as f64 };
+                    if fewest_in_sequence(*from, *step, *to) < need + n_exclude as f64 {
+                        Range::Top
+                    } else {
+                        VecOp::SequencePick { n_exclude: 0 }.range(&inputs[..4])
+                    }
+                }
+                _ => Range::Top,
+            },
             _ => Range::Top,
         }
     }
@@ -575,6 +1095,12 @@ impl VecOp {
             | VecOp::Reduce { .. }
             | VecOp::Wrap => 1,
             VecOp::WeightedMean { .. } | VecOp::Centroid { .. } => 2,
+            VecOp::Scan {
+                op: Scan::Differences,
+                n,
+            } => (n as usize).saturating_sub(1),
+            VecOp::Scan { n, .. } | VecOp::Sort { n, .. } | VecOp::Shuffle { n } => n as usize,
+            VecOp::Draws { n, .. } => n as usize,
         }
     }
 
@@ -672,6 +1198,24 @@ impl VecOp {
             }
             VecOp::Reduce { op, n } => out[0] = op.eval(&inp[..n as usize]),
             VecOp::Wrap => out[0] = wrap_periodic(inp[0], inp[1], inp[2]),
+            VecOp::Scan { op, n } => scan(op, &inp[..n as usize], out),
+            VecOp::Sort { n, decreasing } => {
+                out.copy_from_slice(&inp[..n as usize]);
+                let order = if decreasing {
+                    Order::Decreasing
+                } else {
+                    Order::Increasing
+                };
+                sort_values(out, order);
+            }
+            VecOp::Shuffle { n } => shuffle(inp[0], &inp[1..=n as usize], out),
+            VecOp::Draws {
+                dist, n_exclude, ..
+            } => {
+                let k = dist.n_params();
+                let excludes = &inp[1 + k..1 + k + n_exclude as usize];
+                draws(dist, inp[0], &inp[1..=k], excludes, out);
+            }
         }
     }
 
@@ -799,7 +1343,11 @@ impl VecOp {
             VecOp::First { .. }
             | VecOp::WeightedMean { .. }
             | VecOp::SequencePick { .. }
-            | VecOp::Reduce { .. } => false,
+            | VecOp::Reduce { .. }
+            | VecOp::Scan { .. }
+            | VecOp::Sort { .. }
+            | VecOp::Shuffle { .. }
+            | VecOp::Draws { .. } => false,
             VecOp::Choose { n } => match (active_branch(inp[0], n), desired[0]) {
                 (Some(k), Some(d)) => {
                     out.write(inputs[k], d);
@@ -1169,6 +1717,49 @@ mod writes {
                 n: 4,
             },
             VecOp::Wrap,
+            VecOp::Scan {
+                op: Scan::Sum,
+                n: 3,
+            },
+            VecOp::Scan {
+                op: Scan::Max,
+                n: 3,
+            },
+            VecOp::Scan {
+                op: Scan::Differences,
+                n: 3,
+            },
+            VecOp::Sort {
+                n: 3,
+                decreasing: false,
+            },
+            VecOp::Shuffle { n: 3 },
+            VecOp::Draws {
+                dist: Dist::Uniform,
+                n: 2,
+                n_exclude: 0,
+            },
+            VecOp::Draws {
+                dist: Dist::Gaussian,
+                n: 2,
+                n_exclude: 0,
+            },
+            VecOp::Draws {
+                dist: Dist::Sequence {
+                    replace: false,
+                    order: Order::Increasing,
+                },
+                n: 2,
+                n_exclude: 1,
+            },
+            VecOp::Draws {
+                dist: Dist::Primes {
+                    replace: true,
+                    order: Order::Unsorted,
+                },
+                n: 2,
+                n_exclude: 1,
+            },
         ]
     }
 
@@ -1280,7 +1871,11 @@ mod writes {
             | VecOp::Clamp
             | VecOp::SequencePick { .. }
             | VecOp::Reduce { .. }
-            | VecOp::Wrap => (0..op.n_out()).map(|k| vec![k]).collect(),
+            | VecOp::Wrap
+            | VecOp::Scan { .. }
+            | VecOp::Sort { .. }
+            | VecOp::Shuffle { .. }
+            | VecOp::Draws { .. } => (0..op.n_out()).map(|k| vec![k]).collect(),
         }
     }
 

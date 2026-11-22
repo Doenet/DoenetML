@@ -187,6 +187,9 @@ function valueList(show: (r: Reads, cell: number) => string): Contract {
     };
 }
 
+/** A list of numbers, drawn as the text of its entries. */
+const NUMBER_LIST = valueList((r, cell) => formatNumber(r.cell(cell), null));
+
 function flag(table: CellsTable, c: number, name: string): boolean {
     const text = table.attr(c, name);
     return text !== null && text.trim().toLowerCase() !== "false";
@@ -287,6 +290,10 @@ const NUMBER_TYPES = new Set([
     "mod",
     "gcd",
     "lcm",
+    "argMin",
+    "argMax",
+    "indexOf",
+    "searchSorted",
 ]);
 
 /** A component's value as LaTeX, where math notation refers to it. */
@@ -446,7 +453,7 @@ export const CONTRACTS: Record<string, Contract> = {
     // A value list (ADR 0041) is drawn, until its entries are rows of
     // their own, as the text of its entries separated by commas, each as
     // its kind reads.
-    numberList: valueList((r, cell) => formatNumber(r.cell(cell), null)),
+    numberList: NUMBER_LIST,
     textList: valueList((r, cell) => {
         const id = r.cell(cell);
         return Number.isNaN(id) ? "" : r.table.string(id);
@@ -874,6 +881,25 @@ export const CONTRACTS: Record<string, Contract> = {
     isInteger: BOOLEAN_OPERATOR,
     isNumber: BOOLEAN_OPERATOR,
     isBetween: BOOLEAN_OPERATOR,
+    // Lists of numbers a component computes or draws (the list and index
+    // operators, `<sort>`, `<shuffle>`, `<sequence>` and the samplers):
+    // drawn as a number list is, the text of their entries.
+    cumulativeSum: NUMBER_LIST,
+    cumulativeProduct: NUMBER_LIST,
+    cumulativeMin: NUMBER_LIST,
+    cumulativeMax: NUMBER_LIST,
+    differences: NUMBER_LIST,
+    sort: NUMBER_LIST,
+    shuffle: NUMBER_LIST,
+    sequence: NUMBER_LIST,
+    selectRandomNumbers: NUMBER_LIST,
+    sampleRandomNumbers: NUMBER_LIST,
+    selectPrimeNumbers: NUMBER_LIST,
+    samplePrimeNumbers: NUMBER_LIST,
+    argMin: OPERATOR_VALUE,
+    argMax: OPERATOR_VALUE,
+    indexOf: OPERATOR_VALUE,
+    searchSorted: OPERATOR_VALUE,
 };
 
 /** Component types that stand as their children. */

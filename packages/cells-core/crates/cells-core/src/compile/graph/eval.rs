@@ -25,7 +25,10 @@ use super::define::Defined;
 use super::*;
 use crate::error::Error;
 use crate::index::CellIdx;
-use crate::program::{Range, fewest_in_sequence, sequence_count, sequence_index};
+use crate::program::{
+    Dist, MAX_PRIME, MAX_PRIME_SPAN, Range, fewest_in_sequence, primes_between, sequence_count,
+    sequence_index,
+};
 
 /// What a stable-reference need comes to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -701,10 +704,12 @@ fn constant_param(
     })
 }
 
-/// A sequence pick (a `<selectFromSequence>`'s `value`), in element `e` of
-/// template `t`: its parameters constants, its step never 0, and its
-/// sequence, less what it excludes, never empty. Nothing for an element
-/// that plans no pick.
+/// A sequence pick (a `<selectFromSequence>`'s `value`) or values drawn
+/// from a distribution (`VecOp::Draws`), in element `e` of template `t`:
+/// its parameters constants; for a sequence, its step never 0, and the
+/// sequence, less what it excludes, never holding fewer values than it
+/// draws; for primes, likewise the primes in its range. Nothing for an
+/// element that plans neither.
 fn check_sequence(
     g: &TemplateGraph,
     k: &mut Constants<'_, '_>,
@@ -714,8 +719,11 @@ fn check_sequence(
 ) -> std::result::Result<(), Error> {
     let tpl = &c.plans.templates[t.index()];
     let node = tpl.row(e).node;
-    let Some(args) = tpl.plan(e).props.iter().find_map(|s| match s {
-        Source::Flow(Flow::Op(OpSpec::Vec(VecOp::SequencePick { .. }), args)) => Some(args),
+    let Some((op, args)) = tpl.plan(e).props.iter().find_map(|s| match s {
+        Source::Flow(Flow::Op(
+            OpSpec::Vec(op @ (VecOp::SequencePick { .. } | VecOp::Draws { .. })),
+            args,
+        )) => Some((*op, args)),
         _ => None,
     }) else {
         return Ok(());
@@ -728,8 +736,33 @@ fn check_sequence(
         })
         .collect();
     let tag = tpl.row(e).component_type.tag();
-    // Draw, from, step, to, then the excludes.
-    let names = ["from", "step", "to"];
+    // Draw, the parameters, then the excludes; how many values must be
+    // left to draw (none for a continuous distribution).
+    let (names, need): (&[&str], f64) = match op {
+        VecOp::Draws {
+            dist: Dist::Uniform,
+            ..
+        } => (&["from", "to"], 0.0),
+        VecOp::Draws {
+            dist: Dist::Gaussian,
+            ..
+        } => (&["mean", "standardDeviation"], 0.0),
+        VecOp::Draws {
+            dist: Dist::Sequence { replace, .. } | Dist::Primes { replace, .. },
+            n,
+            ..
+        } => {
+            let need = if replace { 1.0 } else { n as f64 };
+            match op {
+                VecOp::Draws {
+                    dist: Dist::Primes { .. },
+                    ..
+                } => (&["from", "to"], need),
+                _ => (&["from", "step", "to"], need),
+            }
+        }
+        _ => (&["from", "step", "to"], 1.0),
+    };
     for (i, &n) in ports[1..].iter().enumerate() {
         constant_param(
             k,
@@ -740,11 +773,22 @@ fn check_sequence(
             n,
         )?;
     }
+    if need == 0.0 {
+        return Ok(());
+    }
     let r: Vec<Range> = ports[1..].iter().map(|&n| k.range(n)).collect();
-    let (from, step, to, excludes) = (r[0], r[1], r[2], &r[3..]);
     let domain = |reason: String| Error::ChoiceDomain {
         tag: tag.into(),
         reason,
+    };
+    if names.len() == 2 {
+        return check_primes(c, node, need, r[0], r[1], &r[2..], domain);
+    }
+    let (from, step, to, excludes) = (r[0], r[1], r[2], &r[3..]);
+    let what = if need > 1.0 {
+        format!("fewer than {need} values")
+    } else {
+        "nothing".to_string()
     };
     for (name, r) in names.iter().zip([from, step, to]) {
         if r == Range::Top {
@@ -777,6 +821,12 @@ fn check_sequence(
         if count < 1.0 {
             return Err(domain(format!("its sequence is empty ({})", where_())));
         }
+        if count < need {
+            return Err(domain(format!(
+                "its sequence holds {what} to pick ({})",
+                where_()
+            )));
+        }
         let mut hit: Vec<u64> = Vec::new();
         let mut unsure = 0.0;
         let (a, b) = (f.min(to), f.max(to));
@@ -798,9 +848,9 @@ fn check_sequence(
                 Range::Top => unsure += 1.0,
             }
         }
-        if count - hit.len() as f64 - unsure < 1.0 {
+        if count - hit.len() as f64 - unsure < need {
             return Err(domain(format!(
-                "its exclude can leave nothing to pick ({})",
+                "its exclude can leave {what} to pick ({})",
                 where_()
             )));
         }
@@ -812,6 +862,12 @@ fn check_sequence(
     if fewest < 1.0 {
         return Err(domain(format!("its sequence can be empty ({})", where_())));
     }
+    if fewest < need {
+        return Err(domain(format!(
+            "its sequence can hold {what} to pick ({})",
+            where_()
+        )));
+    }
     let hull = from.hull(to);
     let hits = excludes
         .iter()
@@ -820,9 +876,69 @@ fn check_sequence(
             _ => true,
         })
         .count();
-    if fewest - (hits as f64) < 1.0 {
+    if fewest - (hits as f64) < need {
         return Err(domain(format!(
-            "its exclude can leave nothing to pick ({})",
+            "its exclude can leave {what} to pick ({})",
+            where_()
+        )));
+    }
+    Ok(())
+}
+
+/// Primes drawn from `from` to `to` less the excludes: the range within
+/// what a draw sieves, and holding `need` primes for every value the
+/// parameters can take.
+fn check_primes(
+    c: CompiledRef<'_>,
+    node: NodeId,
+    need: f64,
+    from: Range,
+    to: Range,
+    excludes: &[Range],
+    domain: impl Fn(String) -> Error,
+) -> std::result::Result<(), Error> {
+    let (Range::Span(f0, f1), Range::Span(t0, t1)) = (from, to) else {
+        let name = if from == Range::Top { "from" } else { "to" };
+        return Err(domain(format!(
+            "its {name} (\"{}\") cannot be bounded, so it cannot be known to hold a prime",
+            attr_text(c, node, name)
+        )));
+    };
+    let where_ = || format!("from is {}, to is {}", show(from), show(to));
+    // The widest range any build draws from must be one a draw sieves.
+    if primes_between(f0, t1).is_none() {
+        return Err(domain(format!(
+            "its range is wider than {MAX_PRIME_SPAN} or reaches past {MAX_PRIME} ({})",
+            where_()
+        )));
+    }
+    // The fewest primes: those in the narrowest range, less each exclude
+    // that may be one of them.
+    let primes = primes_between(f1, t0).unwrap_or_default();
+    let mut exact: Vec<u64> = Vec::new();
+    let mut unsure = 0;
+    for x in excludes {
+        match *x {
+            Range::Span(lo, hi) if lo == hi => {
+                if lo.fract() == 0.0 && lo >= 0.0 && primes.binary_search(&(lo as u64)).is_ok() {
+                    exact.push(lo as u64);
+                }
+            }
+            Range::Span(lo, hi) if hi < f0 || lo > t1 => {}
+            _ => unsure += 1,
+        }
+    }
+    exact.sort_unstable();
+    exact.dedup();
+    let left = primes.len() as f64 - (exact.len() + unsure) as f64;
+    if left < need {
+        let what = if need > 1.0 {
+            format!("fewer than {need} primes")
+        } else {
+            "no prime".to_string()
+        };
+        return Err(domain(format!(
+            "its range can hold {what} to pick ({})",
             where_()
         )));
     }

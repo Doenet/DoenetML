@@ -18,6 +18,8 @@ pub mod math;
 pub(crate) mod number_list;
 pub mod text;
 pub(crate) mod text_list;
+
+pub(crate) mod sequence;
 pub mod when;
 
 /// Plans a value list's entries from its children (ADR 0041, decision 1:

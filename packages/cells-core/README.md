@@ -42,7 +42,14 @@ blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
 `standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
 from text and references) and the boolean ones `and`, `or`, `xor`, `iff`,
-`implies`, `not`, `isInteger`, `isNumber` and `isBetween`. A `<math>` tuple of three or more entries is a tuple
+`implies`, `not`, `isInteger`, `isNumber` and `isBetween`, the list
+operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
+`cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
+`indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
+numbers), `sequence` (numbers, literal parameters), and
+`selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
+`gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
+from the document seed. A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 
