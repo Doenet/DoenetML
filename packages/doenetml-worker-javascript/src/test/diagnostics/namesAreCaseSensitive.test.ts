@@ -691,6 +691,14 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         // a point and a text are of two types, an error that says so first
         expect(warnings.map((w) => w.code)).not.toContain("doenet-w0197");
         expect(errors.map((e) => e.code)).toEqual(["doenet-e0076"]);
+
+        // a math and a number may be sorted together, but only the math has
+        // an `unordered`: the items don't agree, so it is not applied
+        const disagree = await load(
+            `<p name="p"><sort sortByProp="UNORDERED"><math>1</math><number>3</number></sort></p>`,
+        );
+        expect(disagree.errors).toHaveLength(0);
+        expect(disagree.warnings.map((w) => w.code)).toEqual(["doenet-w0198"]);
     });
 
     it("a sortByProp of bare text pieces naming no property is a warning at load (#2627 item 13)", async () => {
@@ -724,6 +732,13 @@ describe("Names are case-sensitive (D51) @group4", async () => {
             doenetML.indexOf("sortByProp"),
         );
         expect(await text("p")).eq("");
+
+        // any attribute read as text, as a `<sort>`'s `type`
+        const typed = await load(
+            `<text name="t">number</text><p name="p"><sort type="$t">3 1 2</sort></p>`,
+        );
+        expect(typed.errors.map((e) => e.code)).toEqual(["doenet-e0090"]);
+        expect(typed.errors[0].message).toContain("The attribute `type`");
     });
 
     it("so is one written on an extend or copy, and the rest of the document loads (DIAG-5)", async () => {
