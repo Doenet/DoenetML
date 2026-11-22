@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { responseTypes } from "../utils/responseTypes";
 import {
     submitAnswer,
     updateMathInputValue,
@@ -24,6 +25,9 @@ vi.mock("hyperformula");
 describe("An answer's responses are typed at load (D45) @group4", () => {
     const e0065 = (T: string, source: string, sourceType: string) =>
         `doenet-e0065: A \`<${T}>\` can't be made from \`${source}\`, which gives a \`<${sourceType}>\`. To show it as it is, write \`${source}\`.`;
+
+    const e0090 = (source: string) =>
+        `doenet-e0090: \`${source}\` reads an \`<answer>\`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read a response whose place is known, or give the responses one type.`;
 
     function errors(core: any) {
         return getDiagnosticsByType(core).errors.map(
@@ -189,12 +193,11 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             await resolvePathToNodeIdx("ans")
         ];
         expect(
-            ans.state.currentResponses.shadowingInstructions
-                .createComponentOfType,
+            await responseTypes(core, ans.componentIdx, "currentResponses"),
         ).eqls(["text"]);
     });
 
-    it("responses from a conditionalContent with no else are not given a place, as no case may be shown", async () => {
+    it("responses from a conditionalContent with no else are not given a place, as no case may be shown, so a reference to them is an error", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <booleanInput name="b"/>
@@ -208,9 +211,16 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
   <award><when>true</when></award>
 </answer>
 <p name="p1"><text extend="$ans.currentResponses[1]"/></p>
+<p name="p2">$ans</p>
 `,
         });
-        expect(errors(core)).eqls([]);
+        // The first response is the math, when the case is shown, or the
+        // text: its type isn't decided, so a reference to it, or to the
+        // whole, is an error at load (TYPE-3).
+        expect(errors(core)).eqls([
+            e0090("$ans.currentResponses[1]"),
+            e0090("$ans"),
+        ]);
         await submitAnswer({
             componentIdx: await resolvePathToNodeIdx("ans"),
             core,
@@ -222,13 +232,8 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             "a",
         ]);
         expect(
-            ans.state.submittedResponses.shadowingInstructions
-                .createComponentOfType,
-        ).eqls(["text"]);
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
-        ).eq("a");
+            await responseTypes(core, ans.componentIdx, "submittedResponses"),
+        ).eq(undefined);
     });
 
     it("submitted responses keep the types the DoenetML gives through a reload, with no type saved", async () => {
@@ -274,8 +279,7 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             "a",
         ]);
         expect(
-            ans.state.submittedResponses.shadowingInstructions
-                .createComponentOfType,
+            await responseTypes(core, ans.componentIdx, "submittedResponses"),
         ).eqls(["math", "text"]);
     });
     /** Each answer's submitted responses after submitting it, as text, and their types. */
@@ -289,8 +293,11 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         const ans = core.core._components[idx];
         return {
             values: (await ans.stateValues.submittedResponses).map(String),
-            types: ans.state.submittedResponses.shadowingInstructions
-                .createComponentOfType,
+            types: await responseTypes(
+                core,
+                ans.componentIdx,
+                "submittedResponses",
+            ),
         };
     }
 
@@ -523,7 +530,7 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         ).eq("z");
     });
 
-    it("responses a select or a repeat makes, or a reference copies, in an award are not given a place", async () => {
+    it("responses a select or a repeat makes, or a reference copies, in an award are not given a place, and a reference to them is an error", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <mathInput name="mi" prefill="x"/><textInput name="ti" prefill="t"/>
@@ -537,20 +544,31 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
   <text isResponse>$ti</text>
 </when></award></answer>
 <answer name="a3"><award><when>$g = x</when></award><award><when><text isResponse>$ti</text> = t</when></award></answer>
+<p name="p1">$a1</p>
+<p name="p2"><text extend="$a2.currentResponses[3]"/></p>
+<p name="p3">$a3.submittedResponse2</p>
 `,
         });
-        expect(errors(core)).eqls([]);
+        // Of more than one type, in places not known until the document
+        // runs, so not typed, and a reference that reads them is an error at
+        // load (TYPE-3), also for a place that would hold a text here.
+        expect(errors(core)).eqls([
+            e0090("$a1"),
+            e0090("$a2.currentResponses[3]"),
+            e0090("$a3.submittedResponse2"),
+        ]);
+        // The answers grade and record as before.
         expect(await submitted(core, resolvePathToNodeIdx, "a1")).eqls({
             values: ["t", "x"],
-            types: ["text", "math"],
+            types: undefined,
         });
         expect(await submitted(core, resolvePathToNodeIdx, "a2")).eqls({
             values: ["1 x", "2 x", "t"],
-            types: ["math", "math", "text"],
+            types: undefined,
         });
         expect(await submitted(core, resolvePathToNodeIdx, "a3")).eqls({
             values: ["x", "t"],
-            types: ["math", "text"],
+            types: undefined,
         });
     });
 
@@ -569,9 +587,10 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             values: ["x", "t"],
             types: ["math", "text"],
         });
+        // a `<collect>` collects any number of maths
         expect(await submitted(core, resolvePathToNodeIdx, "a2")).eqls({
             values: ["x", "t"],
-            types: ["math", "text"],
+            types: undefined,
         });
         expect(await submitted(core, resolvePathToNodeIdx, "a3")).eqls({
             values: ["t"],

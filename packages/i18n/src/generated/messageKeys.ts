@@ -648,6 +648,7 @@ export type MessageKey =
     | "sort-needs-sort-by-prop"
     | "sort-by-prop-names-nothing"
     | "answer-responses-of-several-types"
+    | "property-type-undecided"
     | "repeat-for-items-of-several-types"
     | "sort-item-of-several"
     | "editor-update-viewer"
@@ -1364,6 +1365,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "sort-needs-sort-by-prop",
     "sort-by-prop-names-nothing",
     "answer-responses-of-several-types",
+    "property-type-undecided",
     "repeat-for-items-of-several-types",
     "sort-item-of-several",
     "editor-update-viewer",

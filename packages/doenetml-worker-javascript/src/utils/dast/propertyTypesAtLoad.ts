@@ -52,6 +52,7 @@ import { sequenceEntryComponentType } from "../sequence";
 import { kindOfComponentType } from "../componentKinds";
 import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
+import { listEntryCountAtLoad } from "./listEntryCountAtLoad";
 import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
 
 /**
@@ -299,6 +300,11 @@ export function propertyTypeReader({
         if (typeof component === "string") {
             return false;
         }
+        if (component.componentType === "_error") {
+            // an error, as one in place of a reference whose type isn't
+            // decided (`doenet-e0090`), holds no math
+            return false;
+        }
         if (component.componentType === "_copy") {
             const ref = refOf(component);
             const path = ref?.unresolvedPath ?? [];
@@ -354,8 +360,9 @@ export function propertyTypeReader({
 
     /**
      * The choices of a `<choiceInput>` written as `children`, through what
-     * makes them (a `<repeat>`'s template, a `<group>`, the options of a
-     * `<select>`, the cases of a `<conditionalContent>`), and whether there
+     * makes them (a `<repeat>`'s template, a `<group>`, a `<sort>` or
+     * `<shuffle>`, the options of a `<select>`, the cases of a
+     * `<conditionalContent>`), and whether there
      * may be others not known.
      */
     function choicesIn(
@@ -413,6 +420,9 @@ export function propertyTypeReader({
                     "option",
                     "conditionalContent",
                     "case",
+                    // which reorder their children, but make no others
+                    "sort",
+                    "shuffle",
                 ].includes(child.componentType)
             ) {
                 choicesIn(
@@ -567,8 +577,11 @@ export function propertyTypeReader({
      * selected) is recorded as a missing value of the same type (D52
      * decision 1), so whether it may be missing doesn't change its type.
      */
-    function responseOf(component: SerializedComponent | string): Response {
-        return responseRead(component);
+    function responseOf(
+        component: SerializedComponent | string,
+        inAward = false,
+    ): Response {
+        return responseRead(component, inAward);
     }
 
     /**
@@ -594,8 +607,14 @@ export function propertyTypeReader({
             : allClasses[tag]?.listEntryComponentType;
     }
 
-    /** The response `component` is read as. */
-    function responseRead(component: SerializedComponent | string): Response {
+    /**
+     * The response `component` is read as, `inAward` when it is in an
+     * `<award>` rather than a `<considerAsResponses>` or an input.
+     */
+    function responseRead(
+        component: SerializedComponent | string,
+        inAward: boolean,
+    ): Response {
         if (typeof component === "string") {
             return { type: "text", count: 1 };
         }
@@ -641,12 +660,47 @@ export function propertyTypeReader({
             tag = tagOfComponent(component);
             node = nodeOf(component);
         }
+        if (component.componentType === "collect") {
+            // `<collect isResponse>`: each component it collects, of the tag
+            // it collects, of a number not known
+            const collected = attributeOf(component, "componentType");
+            const type = collected && canonical(literalText(collected)?.trim());
+            return type === undefined || isComposite(type)
+                ? { type: undefined, count: undefined }
+                : {
+                      type: responseOfTag(type, undefined, inAward).type,
+                      count: undefined,
+                  };
+        }
+        return responseOfTag(tag, node, inAward);
+    }
+
+    /**
+     * The response a component of `tag` (`node`, if known) is recorded as,
+     * `inAward` as for `responseRead`.
+     */
+    function responseOfTag(
+        tag: string | undefined,
+        node: SerializedComponent | undefined,
+        inAward: boolean,
+    ): Response {
         if (tag === undefined || tag === "group" || isComposite(tag)) {
             return { type: undefined, count: undefined };
         }
         const entry = allClasses[tag]?.listEntryComponentType;
         if (entry !== undefined) {
-            return { type: entry, count: undefined };
+            // its entries, as many as are written when that is decided at
+            // load (`<pointList>(1,2) (3,4)</pointList>`), else any number
+            const written =
+                node && node.componentType === tag
+                    ? listEntryCountAtLoad(node, componentInfoObjects, (idx) =>
+                          componentsByIdx.get(idx),
+                      )
+                    : undefined;
+            return {
+                type: entry,
+                count: written?.kind === "written" ? written.count : undefined,
+            };
         }
         if (inherits(tag, "choiceInput")) {
             const type = node
@@ -667,8 +721,8 @@ export function propertyTypeReader({
         // (`currentResponses`, as `wholeReferentResponse` in `ValueRef.js`):
         // its `values`, each as its tag; its `value`, as its tag; else an
         // empty text (a `<line>`, an `<m>`). One with only a `formula` (a
-        // function) is a math in an award but an empty text in a
-        // `<considerAsResponses>`, so is not decided here.
+        // function) is a math in an award, which reads its formula, and an
+        // empty text in a `<considerAsResponses>`, which doesn't.
         const info: any = componentInfoObjects.stateVariableInfo[tag];
         const has = (name: string) =>
             name in (info?.stateVariableDescriptions ?? {}) ||
@@ -679,8 +733,8 @@ export function propertyTypeReader({
         if (has("value")) {
             return { type: tag, count: 1 };
         }
-        if (has("formula")) {
-            return { type: undefined, count: undefined };
+        if (has("formula") && inAward) {
+            return { type: "math", count: 1 };
         }
         return { type: "text", count: 1 };
     }
@@ -725,11 +779,11 @@ export function propertyTypeReader({
                 continue;
             }
             if (isMarkedResponse(component, named)) {
-                found.responses.push(responseOf(component));
+                found.responses.push(responseOf(component, true));
                 continue;
             }
             if (isMarkedPotential(component)) {
-                found.potential.push(responseOf(component));
+                found.potential.push(responseOf(component, true));
                 continue;
             }
             if (
@@ -1056,15 +1110,20 @@ export function propertyTypeReader({
     }
 
     /**
-     * The references an `<award>`'s `referencesAreResponses` names, each by
-     * what it resolved to and the names after it.
+     * The references an `<award>`'s `referencesAreResponses` (`attribute`)
+     * names, each by what it resolved to and the names after it.
      */
-    function referencesNamed(award: SerializedComponent) {
-        const attribute: any = attributeOf(award, "referencesAreResponses");
-        if (attribute?.type !== "references") {
-            return [];
-        }
-        return (attribute.references ?? []).flatMap((reference: any) => {
+    function referencesNamed(attribute: any) {
+        // as an `<award>` holds it (`references`), or as written on a tag
+        // made with `copy` (`<award copy="$aw" referencesAreResponses="$mi"/>`),
+        // which holds it unresolved, its references among its children
+        const references =
+            attribute?.type === "references"
+                ? (attribute.references ?? [])
+                : Array.isArray(attribute?.children)
+                  ? attribute.children
+                  : [];
+        return references.flatMap((reference: any) => {
             const ref =
                 reference?.componentType === "_copy"
                     ? refOf(reference)
@@ -1085,6 +1144,78 @@ export function propertyTypeReader({
     }
 
     /**
+     * Whether the `<answer>` `node`, with children `children`, skips the
+     * input its sugar made when it is first (`skippedFirstInput` in
+     * `Answer.js`): unless an award compares the input with what it holds
+     * (one written with content and no `<when>`), or the answer is
+     * `handGraded`, it is skipped, and it is skipped when there is another
+     * input too. `undefined` when the DoenetML doesn't say: `handGraded`
+     * written as a reference, or a composite among the children, which may
+     * make inputs.
+     */
+    function skipsSugaredInput(
+        node: SerializedComponent,
+        children: (SerializedComponent | string)[],
+    ): boolean | undefined {
+        let numInputs = 0;
+        let requiresInput = false;
+        for (const child of children) {
+            if (typeof child !== "object") {
+                continue;
+            }
+            const tag = tagOfComponent(child);
+            if (tag === undefined) {
+                return undefined;
+            }
+            if (inherits(tag, "_input")) {
+                numInputs++;
+            } else if (inherits(tag, "award")) {
+                const award = written(child);
+                if (!award) {
+                    return undefined;
+                }
+                const content = award.children.filter(
+                    (c) => typeof c === "object" || c.trim() !== "",
+                );
+                if (
+                    content.length > 0 &&
+                    !content.some(
+                        (c) =>
+                            typeof c === "object" && c.componentType === "when",
+                    )
+                ) {
+                    requiresInput = true;
+                }
+            } else if (tag === "group" || isComposite(tag)) {
+                return undefined;
+            }
+        }
+        if (numInputs > 1) {
+            return true;
+        }
+        let handGraded: boolean | undefined = false;
+        const attribute: any = attributeOf(node, "handGraded");
+        if (attribute !== undefined) {
+            const text =
+                attribute.type !== "primitive" &&
+                Array.isArray(attribute.children) &&
+                attribute.children.length === 0
+                    ? "true"
+                    : literalText(attribute)?.trim().toLowerCase();
+            handGraded =
+                text === "true" || text === ""
+                    ? true
+                    : text === "false"
+                      ? false
+                      : undefined;
+        }
+        if (requiresInput || handGraded === true) {
+            return false;
+        }
+        return handGraded === undefined ? undefined : true;
+    }
+
+    /**
      * The types of an `<answer>`'s responses (`currentResponses`, TYPE-2),
      * read from what is written as `Answer.js` reads them when the document
      * runs: the inputs written `forAnswer` it, then, in order, the responses
@@ -1092,20 +1223,27 @@ export function propertyTypeReader({
      * holds; or, with none of those, the references its awards hold, which
      * its sugar marked potential responses.
      *
-     * The type of each, in order, when each gives one entry and their order
-     * is known; else the one type they share, whatever their number; else
+     * The type of each entry, in order, when the number each gives and
+     * their order are known; else the one type they share, whatever their number; else
      * `undefined`, not decided. The input its sugar made, which it skips
-     * when its awards read other inputs (`skippedFirstInput`), is counted
-     * only among the types they share.
+     * when its awards read other inputs (`skippedFirstInput`), is left out
+     * or kept in its place as `skipsSugaredInput` decides, and, where that
+     * isn't known, counted only among the types they share.
      */
     function answerResponseTypes(
         node: SerializedComponent,
         children: (SerializedComponent | string)[],
     ): string | string[] | undefined {
-        if (node.componentType !== "answer") {
-            // a copy of one, whose inputs are made again
+        const ownChildren = (node.children ?? []).filter(
+            (child) => typeof child !== "string" || child.trim() !== "",
+        );
+        if (node.componentType === "_copy" && ownChildren.length === 0) {
+            // A tag made with `extend` or `copy` that writes nothing of its
+            // own has the responses of what it copies, whose types it keeps
+            // (`Copy.js`).
             return undefined;
         }
+        let anyAwardCopied = false;
         const responses: Response[] = [];
         const potential: Response[] = [];
         const uncertain: Response[] = [];
@@ -1115,8 +1253,9 @@ export function propertyTypeReader({
         if (forAnswer.length > 1) {
             orderKnown = false;
         }
-        responses.push(...forAnswer.map(responseOf));
+        responses.push(...forAnswer.map((input) => responseOf(input)));
 
+        const skipSugared = skipsSugaredInput(node, children);
         let firstInput = true;
         for (const child of children) {
             if (typeof child !== "object") {
@@ -1127,16 +1266,17 @@ export function propertyTypeReader({
                 continue;
             }
             if (inherits(tag, "award")) {
-                if (
-                    child.componentType === "_copy" ||
-                    child.doenetAttributes?.copiedAward
-                ) {
-                    // made from another award when the document runs
+                // An `<award copy="$aw"/>` holds its source's children, then
+                // those written in it (CPY-1), when the DoenetML gives its
+                // source (`written`).
+                const award = written(child);
+                if (!award) {
                     return undefined;
                 }
+                anyAwardCopied ||= child.componentType === "_copy";
                 const found = awardResponses(
-                    child.children ?? [],
-                    referencesNamed(child),
+                    award.children,
+                    referencesNamed(award.attribute("referencesAreResponses")),
                     { responses: [], potential: [] },
                 );
                 responses.push(...found.responses);
@@ -1148,10 +1288,14 @@ export function propertyTypeReader({
                     child.doenetAttributes?.createdFromSugar &&
                     !inherits(tag, "choiceInput")
                 ) {
-                    // skipped, or not, as its awards decide when the document
-                    // runs (`skippedFirstInput`)
-                    uncertain.push(response);
-                    orderKnown = false;
+                    // skipped, or not, as its awards decide
+                    // (`skippedFirstInput`)
+                    if (skipSugared === undefined) {
+                        uncertain.push(response);
+                        orderKnown = false;
+                    } else if (!skipSugared) {
+                        responses.push(response);
+                    }
                 } else {
                     responses.push(response);
                 }
@@ -1179,7 +1323,7 @@ export function propertyTypeReader({
                                             typeof c === "object" ||
                                             c.trim() !== "",
                                     )
-                                    .map(responseOf),
+                                    .map((c) => responseOf(c)),
                                 potential: [],
                             }));
                         responses.push(...caseResponses(held, cases).responses);
@@ -1194,15 +1338,22 @@ export function propertyTypeReader({
             responses.length > 0 || uncertain.length > 0
                 ? [...responses, ...uncertain]
                 : potential;
-        if (chosen.length === 0 || chosen.some((r) => r.type === undefined)) {
+        if (chosen.length === 0) {
+            // No responses, as written: none to give a type. One that copies
+            // an award, whose references may be marked responses in ways not
+            // read here, is not decided.
+            return anyAwardCopied ? undefined : [];
+        }
+        if (chosen.some((r) => r.type === undefined)) {
             return undefined;
         }
         const types = [...new Set(chosen.map((r) => r.type!))];
         if (types.length === 1) {
             return types[0];
         }
-        if (orderKnown && chosen.every((r) => r.count === 1)) {
-            return chosen.map((r) => r.type!);
+        if (orderKnown && chosen.every((r) => r.count !== undefined)) {
+            // each response's entries, as many as it gives
+            return chosen.flatMap((r) => Array(r.count!).fill(r.type!));
         }
         return undefined;
     }
@@ -1582,4 +1733,190 @@ export function markPropertyTypesAtLoad({
         errorComponent.doenetAttributes = {};
     }
     return diagnostics;
+}
+
+/**
+ * What a property whose type the DoenetML doesn't decide is, for the wording
+ * of `doenet-e0090`: an `<answer>`'s responses, a `<choiceInput>`'s values,
+ * or another.
+ */
+function undecidedWhat(variableName: string) {
+    return ["currentResponses", "submittedResponses"].includes(variableName)
+        ? "responses"
+        : variableName === "selectedValues"
+          ? "choices"
+          : "other";
+}
+
+/**
+ * A reference among `serializedComponents` that reads a property whose type
+ * the DoenetML doesn't decide (TYPE-3, D52): `$a.currentResponses` of an
+ * `<answer>` whose responses are of more than one type in places not known,
+ * also written as a tag (`<math extend="$a.currentResponses[2]"/>`), or a
+ * bare `$a` of one, which reads its `submittedResponses`. A reference that
+ * reads such a property needs its type, whether it makes a component of it
+ * or reads its value in an expression, so each is an error at load,
+ * `doenet-e0090`, in place of the reference, with `what` the kind of
+ * property for its wording. (A tag made with `extend` or `copy` of the whole
+ * component, `<answer copy="$a"/>`, copies it, and reads no property.)
+ *
+ * Run after `markPropertyTypesAtLoad`, whose types it reads.
+ */
+export function referencesToUndecidedTypes({
+    serializedComponents,
+    componentInfoObjects,
+}: {
+    serializedComponents: (SerializedComponent | string)[];
+    componentInfoObjects: ComponentInfoObjects;
+}) {
+    const referents = documentReferents({
+        serializedComponents,
+        componentInfoObjects,
+        typeRepeatValues: true,
+    });
+    const {
+        propertyOfReference,
+        propertyTypeOf,
+        propertyTypesOf,
+        tagOf,
+        decidingClass,
+    } = propertyTypeReader({ componentInfoObjects, referents });
+    const allClasses = componentInfoObjects.allComponentClasses as Record<
+        string,
+        any
+    >;
+    const found: { copy: SerializedComponent; what: string }[] = [];
+
+    /** The property `copy`, a reference, reads, if its type isn't decided. */
+    function undecided(copy: SerializedComponent): string | undefined {
+        const ref: any = copy.extending
+            ? unwrapSource(copy.extending as any)
+            : undefined;
+        if (!ref || ref.nodeIdx < 0) {
+            return undefined;
+        }
+        const path = ref.unresolvedPath ?? [];
+        const node =
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        const typesOfNode =
+            node && node.componentType !== "_placeholder"
+                ? propertyTypesOf(node)
+                : {};
+        if (path.length > 0) {
+            const property = propertyOfReference(copy);
+            if (!property || !("undecided" in property)) {
+                return undefined;
+            }
+            // The whole of entries each of a type decided
+            // (`$a.currentResponses` of a `<mathInput>` and a
+            // `<textInput>`) makes a component of each one's type.
+            return Array.isArray(typesOfNode[property.variableName]) &&
+                (path[0].index ?? []).length === 0
+                ? undefined
+                : property.variableName;
+        }
+        if (tagOf(copy) !== undefined) {
+            // a tag of the whole component, which copies it
+            return undefined;
+        }
+        // a bare `$a` reads the property its component reads as its value
+        const componentType = referents.referentType(ref.nodeIdx);
+        if (
+            componentType === undefined ||
+            decidingClass(componentType) === undefined
+        ) {
+            return undefined;
+        }
+        const variable = allClasses[componentType]?.variableForImplicitProp;
+        if (typeof variable !== "string") {
+            return undefined;
+        }
+        const property = propertyTypeOf({
+            componentType,
+            node: node?.componentType === "_placeholder" ? undefined : node,
+            name: variable,
+            numIndices: 0,
+        });
+        return property &&
+            "undecided" in property &&
+            !Array.isArray(typesOfNode[property.variableName])
+            ? property.variableName
+            : undefined;
+    }
+
+    const seen = new Set<SerializedComponent>();
+    function visit(components: (SerializedComponent | string)[]) {
+        for (const component of components) {
+            if (typeof component !== "object" || seen.has(component)) {
+                continue;
+            }
+            seen.add(component);
+            if (component.componentType === "_copy") {
+                const variableName = undecided(component);
+                if (variableName !== undefined) {
+                    found.push({
+                        copy: component,
+                        what: undecidedWhat(variableName),
+                    });
+                    continue;
+                }
+            }
+            // not the references an attribute such as `forAnswer` names,
+            // which name components and read nothing of them
+            for (const attribute of Object.values(component.attributes ?? {})) {
+                const attr: any = attribute;
+                if (attr.type === "component" && attr.component) {
+                    visit([attr.component]);
+                } else if (Array.isArray(attr.children)) {
+                    visit(attr.children);
+                }
+            }
+            visit(component.children ?? []);
+        }
+    }
+    visit(serializedComponents);
+
+    // A reference to a component that holds another found here (`$ci` of a
+    // `<choiceInput>` with a choice holding `$a.currentResponses[2]`) waits
+    // for the next round: once the one it holds is an error, the type may
+    // be decided. With none that doesn't, all are errors.
+    const foundCopies = new Set(found.map(({ copy }) => copy));
+    function holdsFound(
+        pieces: (SerializedComponent | string)[],
+        seenHere: Set<SerializedComponent>,
+    ): boolean {
+        return pieces.some((piece) => {
+            if (typeof piece !== "object" || seenHere.has(piece)) {
+                return false;
+            }
+            seenHere.add(piece);
+            if (foundCopies.has(piece)) {
+                return true;
+            }
+            return holdsFound(
+                [
+                    ...Object.values(piece.attributes ?? {}).flatMap(
+                        (attribute: any) =>
+                            attribute.type === "component" &&
+                            attribute.component
+                                ? [attribute.component]
+                                : Array.isArray(attribute.children)
+                                  ? attribute.children
+                                  : [],
+                    ),
+                    ...(piece.children ?? []),
+                ],
+                seenHere,
+            );
+        });
+    }
+    const ready = found.filter(({ copy }) => {
+        const ref: any = unwrapSource(copy.extending as any);
+        const node =
+            referents.componentsByIdx.get(ref.nodeIdx) ??
+            referents.copiesByCreatedIdx.get(ref.nodeIdx);
+        return !node || !holdsFound([node], new Set());
+    });
+    return ready.length > 0 ? ready : found;
 }

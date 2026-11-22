@@ -37,20 +37,21 @@ const MATH_RESPONSE_TYPES = ["math", "point", "vector", "matrix", "angle"];
 
 /**
  * The `set` of `submittedResponses`: an entry written to it, as the value of
- * its type: the one the DoenetML decides (`propertyTypes`, TYPE-4), or,
- * where it doesn't, the one `submittedResponsesComponentType` records.
+ * its type, the one the DoenetML decides (`propertyTypes`, TYPE-2). A saved
+ * type never decides it (TYPE-4), and none is saved.
  *
  * A save holds a math-expression as its tree
  * (`removeFunctionsMathExpressionClass`), so an entry restored from one is a
  * bare tree until it is made a math-expression again here. Anything reading
  * the entry directly — `$ans.submittedResponse` in an expression such as
- * `<feedback condition="$ans.submittedResponse = z">` — needs one. The type is
- * read from the same write when it carries it, as a restore does, and an
- * entry with no recorded type is a `math`, as in `arrayDefinitionByKey`. An
- * entry that is not a bare tree, or whose type neither is in
- * `MATH_RESPONSE_TYPES` nor inherits from one of them, is returned unchanged.
+ * `<feedback condition="$ans.submittedResponse = z">` — needs one. An entry
+ * whose type the DoenetML doesn't decide is read as a `math`: no reference
+ * reads it (`doenet-e0090`), and it is blank or not as before
+ * (`responseIsBlank`). An entry that is not a bare tree, or whose type
+ * neither is in `MATH_RESPONSE_TYPES` nor inherits from one of them, is
+ * returned unchanged.
  */
-function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
+function submittedResponseOfItsType(value, { arrayKey, component }) {
     // only a bare tree is made a math-expression: a `subsetOfReals`, which
     // inherits from `math`, holds a subset, and a save restores it as one
     if (
@@ -62,13 +63,8 @@ function submittedResponseOfItsType(value, { arrayKey, newValues, component }) {
     }
     const atLoad =
         component.doenetAttributes?.propertyTypes?.submittedResponses;
-    const componentTypes =
-        newValues.submittedResponsesComponentType ??
-        component.essentialState.submittedResponsesComponentType;
     const componentType =
-        (typeof atLoad === "string" ? atLoad : atLoad?.[arrayKey]) ??
-        componentTypes?.[arrayKey] ??
-        "math";
+        (typeof atLoad === "string" ? atLoad : atLoad?.[arrayKey]) ?? "math";
     const holdsMath = MATH_RESPONSE_TYPES.some((baseComponentType) =>
         component.componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: componentType,
@@ -1811,8 +1807,9 @@ export default class Answer extends InlineComponent {
             description:
                 "The current (unsubmitted) response values from this answer's inputs.",
             public: true,
+            // the types decided when the document loads (TYPE-2, TYPE-4,
+            // `propertyTypesAtLoad.ts`)
             shadowingInstructions: {
-                hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables: {
                     displayDigits: {
                         stateVariableToShadow: "displayDigitsForResponses",
@@ -1948,7 +1945,6 @@ export default class Answer extends InlineComponent {
                 componentInfoObjects,
             }) {
                 let currentResponses = [];
-                let componentType = [];
                 // the responses that are missing (D37), by place
                 const missingAt = [];
 
@@ -2026,9 +2022,6 @@ export default class Answer extends InlineComponent {
                         currentResponses.push(
                             component.stateValues.valueAsResponse,
                         );
-                        componentType.push(
-                            component.stateValues.componentTypeAsResponse,
-                        );
                         continue;
                     }
 
@@ -2074,7 +2067,6 @@ export default class Answer extends InlineComponent {
                                 componentInfoObjects,
                             ),
                         );
-                        componentType.push(missingType);
                         continue;
                     }
 
@@ -2084,32 +2076,23 @@ export default class Answer extends InlineComponent {
                         currentResponses.push(
                             component.stateValues.subsetValue,
                         );
-                        componentType.push(ct);
                     } else if (Array.isArray(component.stateValues.values)) {
                         currentResponses.push(...component.stateValues.values);
-                        componentType.push(
-                            ...Array(component.stateValues.values.length).fill(
-                                ct,
-                            ),
-                        );
                     } else if (component.stateValues.value !== undefined) {
                         currentResponses.push(component.stateValues.value);
-                        componentType.push(ct);
                     } else if (
                         component.stateValues.formula instanceof me.class
                     ) {
                         currentResponses.push(component.stateValues.formula);
-                        componentType.push("math");
                     } else {
                         currentResponses.push("");
-                        componentType.push("text");
                     }
                 }
 
                 // Each response's type is decided from the DoenetML when the
-                // document loads (TYPE-2, `propertyTypesAtLoad.ts`); the one
-                // worked out here, from the same tags, is read only where it
-                // wasn't decided.
+                // document loads (TYPE-2, `propertyTypesAtLoad.ts`), and a
+                // reference to them makes components of those types
+                // (`StateVariableInitializer.ts`); none is worked out here.
                 const typesAtLoad = responseTypesAtLoad(
                     globalDependencyValues.propertyTypes?.currentResponses,
                     currentResponses.length,
@@ -2126,12 +2109,7 @@ export default class Answer extends InlineComponent {
                         );
                     }
                 }
-                return {
-                    setValue: { currentResponses },
-                    setCreateComponentOfType: {
-                        currentResponses: typesAtLoad ?? componentType,
-                    },
-                };
+                return { setValue: { currentResponses } };
             },
         };
 
@@ -2170,72 +2148,12 @@ export default class Answer extends InlineComponent {
             },
         };
 
-        // The type of each submitted response. Where the DoenetML decides
-        // the types (`propertyTypes`, TYPE-2), they are its types, and
-        // nothing is saved (TYPE-4: saved state never decides a type). Only
-        // where it doesn't, the types at submission are recorded and saved.
-        stateVariableDefinitions.submittedResponsesComponentType = {
-            hasEssential: true,
-            defaultValue: null,
-            returnDependencies: () => ({
-                propertyTypes: {
-                    dependencyType: "doenetAttribute",
-                    attributeName: "propertyTypes",
-                },
-                numSubmittedResponses: {
-                    dependencyType: "stateVariable",
-                    variableName: "numSubmittedResponses",
-                },
-            }),
-            definition: ({ dependencyValues }) => {
-                const atLoad = responseTypesAtLoad(
-                    dependencyValues.propertyTypes?.submittedResponses,
-                    dependencyValues.numSubmittedResponses,
-                );
-                return atLoad
-                    ? { setValue: { submittedResponsesComponentType: atLoad } }
-                    : {
-                          useEssentialOrDefaultValue: {
-                              submittedResponsesComponentType: true,
-                          },
-                      };
-            },
-            inverseDefinition: function ({ desiredStateVariableValues }) {
-                if (
-                    desiredStateVariableValues.submittedResponsesComponentType
-                ) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue:
-                                    "submittedResponsesComponentType",
-                                value: [
-                                    ...desiredStateVariableValues.submittedResponsesComponentType,
-                                ],
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue:
-                                    "submittedResponsesComponentType",
-                                value: [],
-                            },
-                        ],
-                    };
-                }
-            },
-        };
-
         stateVariableDefinitions.submittedResponses = {
             description: "The response values from the most recent submission.",
             public: true,
+            // the types decided when the document loads (TYPE-2, TYPE-4,
+            // `propertyTypesAtLoad.ts`)
             shadowingInstructions: {
-                hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables: {
                     displayDigits: {
                         stateVariableToShadow: "displayDigitsForResponses",
@@ -2261,43 +2179,14 @@ export default class Answer extends InlineComponent {
             },
             returnArrayDependenciesByKey() {
                 let globalDependencies = {
-                    submittedResponsesComponentType: {
-                        dependencyType: "stateVariable",
-                        variableName: "submittedResponsesComponentType",
-                    },
                     numSubmittedResponses: {
                         dependencyType: "stateVariable",
                         variableName: "numSubmittedResponses",
-                    },
-                    // the types decided when the document loaded, which a
-                    // saved type never changes (TYPE-4)
-                    propertyTypes: {
-                        dependencyType: "doenetAttribute",
-                        attributeName: "propertyTypes",
                     },
                 };
                 return { globalDependencies };
             },
             arrayDefinitionByKey({ globalDependencyValues }) {
-                let componentType = [];
-
-                const atLoad = responseTypesAtLoad(
-                    globalDependencyValues.propertyTypes?.submittedResponses,
-                    globalDependencyValues.numSubmittedResponses,
-                );
-                if (atLoad) {
-                    componentType.push(...atLoad);
-                } else if (
-                    globalDependencyValues.submittedResponsesComponentType
-                ) {
-                    componentType.push(
-                        ...globalDependencyValues.submittedResponsesComponentType.slice(
-                            0,
-                            globalDependencyValues.numSubmittedResponses,
-                        ),
-                    );
-                }
-
                 let essentialSubmittedResponses = {};
 
                 for (
@@ -2308,18 +2197,11 @@ export default class Answer extends InlineComponent {
                     // this function doesn't change the values once they set for the first time
                     // (The values will just be changed using the inverse function)
                     essentialSubmittedResponses[ind] = true;
-
-                    if (!componentType[ind]) {
-                        componentType[ind] = "math";
-                    }
                 }
 
                 return {
                     useEssentialOrDefaultValue: {
                         submittedResponses: essentialSubmittedResponses,
-                    },
-                    setCreateComponentOfType: {
-                        submittedResponses: componentType,
                     },
                 };
             },
@@ -2921,18 +2803,6 @@ export default class Answer extends InlineComponent {
             stateVariable: "submittedResponses",
             value: currentResponses,
         });
-
-        // The types, recorded only where the DoenetML doesn't decide them
-        // (`submittedResponsesComponentType`, TYPE-4)
-        if (!this.doenetAttributes?.propertyTypes?.submittedResponses) {
-            instructions.push({
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable: "submittedResponsesComponentType",
-                value: this.state.currentResponses.shadowingInstructions
-                    .createComponentOfType,
-            });
-        }
 
         instructions.push({
             updateType: "updateValue",

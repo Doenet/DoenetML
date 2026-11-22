@@ -1601,6 +1601,8 @@ export async function initializeStateVariable({
     stateVarObj.svMaterialized = true;
     installStaleValueGetter(stateVarObj);
 
+    setTypeDecidedAtLoad({ stateVarObj, component, stateVariable });
+
     if (arrayEntryPrefix !== undefined) {
         // Callers always pair `arrayEntryPrefix` with `arrayStateVariable`;
         // assert here so the inner helper can require both as `string`.
@@ -1638,6 +1640,45 @@ export async function initializeStateVariable({
             };
         }
     }
+}
+
+/**
+ * The type a reference to a public variable whose class declares none
+ * makes (`shadowingInstructions.createComponentOfType`): the one decided
+ * from the DoenetML when the document loaded (TYPE, D45, D52;
+ * `doenetAttributes.propertyTypes`, `propertyTypesAtLoad.ts`), for an array
+ * one type for every entry or the type of each. A type the DoenetML doesn't
+ * decide stays unset: a reference that reads it is an error at load
+ * (`doenet-e0090`), and one only the run time finds makes nothing
+ * (`Copy.js`). A type is never worked out as the document runs.
+ */
+function setTypeDecidedAtLoad({
+    stateVarObj,
+    component,
+    stateVariable,
+}: {
+    stateVarObj: any;
+    component: ComponentInstance;
+    stateVariable: string;
+}) {
+    if (
+        !stateVarObj.public ||
+        !stateVarObj.shadowingInstructions ||
+        stateVarObj.shadowingInstructions.createComponentOfType !== undefined
+    ) {
+        return;
+    }
+    const atLoad = (component as any).doenetAttributes?.propertyTypes?.[
+        stateVariable
+    ];
+    if (atLoad === undefined) {
+        return;
+    }
+    stateVarObj.shadowingInstructions = {
+        ...stateVarObj.shadowingInstructions,
+        createComponentOfType: Array.isArray(atLoad) ? [...atLoad] : atLoad,
+    };
+    stateVarObj.typeDecidedAtLoad = true;
 }
 
 async function initializeArrayEntryStateVariable({
@@ -1741,7 +1782,19 @@ async function initializeArrayEntryStateVariable({
                 arrayStateVarObj.shadowingInstructions.contextVariables;
         }
 
-        if (arrayStateVarObj.shadowingInstructions.createComponentOfType) {
+        if (arrayStateVarObj.typeDecidedAtLoad) {
+            // One type for every entry, decided at load; the type of each
+            // of entries that differ is read from the array by its key
+            // (`Copy.js`).
+            const atLoad =
+                arrayStateVarObj.shadowingInstructions.createComponentOfType;
+            if (typeof atLoad === "string") {
+                stateVarObj.shadowingInstructions.createComponentOfType =
+                    atLoad;
+            }
+        } else if (
+            arrayStateVarObj.shadowingInstructions.createComponentOfType
+        ) {
             let entryPrefixInd =
                 arrayStateVarObj.entryPrefixes.indexOf(arrayEntryPrefix);
             if (

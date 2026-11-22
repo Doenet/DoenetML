@@ -245,9 +245,9 @@ export class ComponentWithSelectableType extends BaseComponent {
             description:
                 "The selected value, with type determined by the type attribute.",
             public: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // of its `type`, decided when the document loads (TYPE-1,
+            // `propertyTypesAtLoad.ts`)
+            shadowingInstructions: {},
             shadowVariable: true,
             returnDependencies: () => ({
                 type: {
@@ -286,10 +286,7 @@ export class ComponentWithSelectableType extends BaseComponent {
                     }
                 }
 
-                return {
-                    setValue: { value },
-                    setCreateComponentOfType: { value: dependencyValues.type },
-                };
+                return { setValue: { value } };
             },
             inverseDefinition({
                 desiredStateVariableValues,
@@ -432,9 +429,9 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                 "The list of values, with type determined by the type attribute.",
             public: true,
             isArray: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // of its `type`, decided when the document loads (TYPE-1,
+            // `propertyTypesAtLoad.ts`)
+            shadowingInstructions: {},
             entryPrefixes: ["value"],
             stateVariablesDeterminingDependencies: ["childForValue"],
             returnArraySizeDependencies: () => ({
@@ -513,12 +510,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                     }
                 }
 
-                return {
-                    setValue: { values },
-                    setCreateComponentOfType: {
-                        values: globalDependencyValues.type,
-                    },
-                };
+                return { setValue: { values } };
             },
         };
 

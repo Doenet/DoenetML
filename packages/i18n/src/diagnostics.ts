@@ -388,6 +388,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-e0087": "variants-all-excluded",
     "doenet-e0088": "variant-control-made-from",
     "doenet-e0089": "attribute-not-a-number",
+    "doenet-e0090": "property-type-undecided",
 
     "doenet-a0001": "accessibility-short-description-or-decorative",
     "doenet-a0002": "accessibility-video-short-description",
