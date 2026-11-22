@@ -9,9 +9,7 @@
  * `numSamples`) is written as anything but a literal `1`. After one, a name
  * or a property is the collection's own: `numItems`, the settings every
  * component has (`hide`, `fixed`, `disabled`), and the properties the tag
- * declares for itself (a list's `text`, `latex` and `value`, the entries'
- * read together, `wholeListProperties`). Anything else names nothing, with a
- * warning that
+ * declares for itself. Anything else names nothing, with a warning that
  * suggests an index (`doenet-w0199`): `$pl.x` → `$pl[1].x`, `$r.P` →
  * `$r[1].P`.
  *
@@ -316,10 +314,7 @@ export function checkNamesAfterCollectionsAtLoad({
                 componentType,
                 propName: name,
                 componentInfoObjects,
-            }) ||
-            (allClasses[componentType]?.wholeListProperties ?? []).some(
-                (own: string) => own.toLowerCase() === lower,
-            )
+            })
         ) {
             return true;
         }

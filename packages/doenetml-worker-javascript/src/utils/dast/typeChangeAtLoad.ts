@@ -3296,72 +3296,6 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * The error for a scalar tag made from a property of a list the author
-     * writes that it has as a whole (`text`, `latex`, `value`,
-     * `wholeListProperties`, D59): `<math extend="$ml.value"/>` reads every
-     * entry's value, so it is made only when the list holds one entry, as a
-     * tag of the list itself is (`doenet-e0064`, decided by
-     * `authoredListCountError`). Any other property after a list names
-     * nothing (`namesAfterCollectionsAtLoad.ts`).
-     */
-    function wholeListPropertyError(
-        copy: SerializedComponent,
-        nodeIdx: number,
-        path: any[],
-    ): TypeChangeAtLoadError | undefined {
-        const [first] = path;
-        if (
-            path.length !== 1 ||
-            typeof first?.name !== "string" ||
-            (first.index ?? []).length > 0 ||
-            copy.doenetAttributes?.forList !== undefined ||
-            !isScalarTag(copy)
-        ) {
-            return undefined;
-        }
-        const writtenType = tagType(copy);
-        if (writtenType === undefined) {
-            return undefined;
-        }
-        const seen = new Set([copy.componentIdx]);
-        const added: (SerializedComponent | string)[][] = [];
-        // a list the document makes (`<sequence>`, a list operator), read
-        // as a composite, which can hold any number
-        const holder = namedHolder(nodeIdx, seen, added);
-        const node = holder ?? referents.componentsByIdx.get(nodeIdx);
-        if (
-            !node ||
-            !(
-                (allClasses[node.componentType]?.wholeListProperties ??
-                    []) as string[]
-            ).includes(first.name)
-        ) {
-            return undefined;
-        }
-        let error: TypeChangeAtLoadError | undefined;
-        if (holder) {
-            const held = withAdded(
-                asSelf(holder.componentType, () => holding(holder, seen)),
-                added,
-                seen,
-            );
-            if (held.skip) {
-                return undefined;
-            }
-            error = scalarError(held, writtenType, holder.componentType, true);
-        } else if (
-            isAuthoredListType(node.componentType, componentInfoObjects)
-        ) {
-            error = authoredListCountError(node);
-        }
-        if (error?.code !== "doenet-e0064") {
-            return undefined;
-        }
-        // `$ml.value[1]` is not the first entry's: suggest reading them all
-        return { ...error, args: { ...error.args, indexSelectsOne: "false" } };
-    }
-
-    /**
      * The error for the scalar tag `writtenType` made from the property the
      * reference `copy` names (`<point extend="$n.value"/>`), as from a
      * component of the property's type (`propertyHolding`). A property of
@@ -3481,11 +3415,6 @@ export function checkTypeChangesAtLoad({
                 };
             }
             return decision;
-        }
-
-        const ofList = wholeListPropertyError(copy, ref.nodeIdx, path);
-        if (ofList) {
-            return ofList;
         }
 
         // Names, the last of which may have one index (`$m2.s[1]`), or one

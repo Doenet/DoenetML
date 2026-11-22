@@ -241,14 +241,12 @@ describe("A name or a property after a collection names nothing (D59)", () => {
             p4: "＿",
             p5: "＿",
         });
-        // `value` is the sequence's own, so `$s.Value` is that in another
-        // case (`w0104`, as for any property).
         expect(diagnostics).eqls([
-            "warning doenet-w0104: No referent found for reference: `$s.Value`. Did you mean `$s.value`?",
             "warning doenet-w0199: `$c.X` names nothing: a `<collect>` has no property `X` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$c[1].x`.",
             "warning doenet-w0199: `$pl.X1` names nothing: a `<pointList>` has no property `X1` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$pl[1].xs[1]`.",
             "warning doenet-w0199: `$r.X` names nothing: a `<repeat>` has no property `X` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$r[1].x`.",
             "warning doenet-w0199: `$r.p` names nothing: a `<repeat>` has no property `p` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$r[1].P`.",
+            "warning doenet-w0199: `$s.Value` names nothing: a `<sequence>` has no property `Value` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$s[1].value`.",
         ]);
     });
 
@@ -344,29 +342,26 @@ describe("A tag made from a name or a property after a collection (D59)", () => 
     });
 });
 
-describe("A list's text, LaTeX and value are its own (D59, wholeListProperties)", () => {
-    it("read all the entries together, and a tag of one is made only from a list of one entry", async () => {
+describe("A list's text, LaTeX and value are its entries', not its own (D59)", () => {
+    it("name nothing after a list, as any entry property does", async () => {
         const { texts, diagnostics } = await both(
-            `<mathList name="ml">x 2y</mathList><mathList name="m1">z</mathList><sequence name="s" to="3"/>
+            `<mathList name="ml">x 2y</mathList><sequence name="s" to="3"/>
 <p name="p1">$ml.value</p><p name="p2">$ml.text</p><p name="p3">$ml.latex</p><p name="p4">$s.value</p>
-<math name="a" extend="$ml.value"/><text name="b" extend="$ml.text"/><math name="c" extend="$m1.value"/>
-<number name="e" extend="$s.value"/><p name="p5">$c</p>`,
-            ["p1", "p2", "p3", "p4", "p5"],
+<math name="a" extend="$ml.value"/><p name="p5">$a</p>
+<p name="p6"><text>$ml</text></p><p name="p7">$ml[2].text</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
         );
+        // were each entry's, read together (D41)
         expect(texts).eqls({
-            p1: "x, 2 y",
-            p2: "x, 2 y",
-            p3: "x, 2 y",
-            p4: "1, 2, 3",
-            p5: "z",
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "x, 2 y",
+            p7: "2 y",
         });
-        // A tag of the property of a list of several entries, as of the list
-        // itself (`<math extend="$ml"/>`)
-        expect(diagnostics).eqls([
-            "error doenet-e0064",
-            "error doenet-e0064",
-            "error doenet-e0064",
-        ]);
+        expect(diagnostics).eqls(Array(5).fill("warning doenet-w0199"));
     });
 });
 

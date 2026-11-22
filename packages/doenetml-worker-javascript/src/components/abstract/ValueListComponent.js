@@ -282,13 +282,6 @@ export default class ValueListComponent extends BaseComponent {
         return variables;
     }
 
-    // The properties of the list as a whole that a list declares, besides
-    // its count and settings (`listOwnProperties`): its text, its LaTeX and
-    // its value, the entries' read together (`$ml.text` is `x, y`). A name
-    // or a property after a list is the list's own (D59, COLL-2), so any
-    // other names nothing (`$pl.x`, `namesAfterCollectionsAtLoad.ts`).
-    static wholeListProperties = ["text", "latex", "value"];
-
     // A reference to the whole list reads these of the list itself
     // (`$l.styleNumber` is the style of the list as a whole).
     // A list is a collection: its count (`numItems`) and the settings every
