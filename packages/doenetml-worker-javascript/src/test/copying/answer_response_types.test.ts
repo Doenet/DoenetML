@@ -552,6 +552,33 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         ).eq("z");
     });
 
+    it("an extend or copy of an answer that writes nothing has its source's types, so a reference to it is typed as one to its source", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<answer name="ans"><mathInput name="mi" prefill="y"/><textInput name="ti" prefill="t"/><award><when>$mi = x</when></award></answer>
+<answer name="e" extend="$ans"/>
+<answer name="e2" extend="$e"/>
+<answer name="c" copy="$ans"/>
+<answer name="w" copyWithState="$ans"/>
+<answer name="t" type="text">hello</answer>
+<answer name="te" extend="$t"/>
+<p name="p1">$e.currentResponses</p>
+<p name="p2">$e2.currentResponse2</p>
+<p name="p3">$c.currentResponses</p>
+<p name="p4">$w.currentResponse1</p>
+<p name="p5"><point extend="$te"/></p>
+`,
+        });
+        expect(errors(core)).eqls([e0065("point", "$te", "text")]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const shown = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.text;
+        expect(await shown("p1")).eq("y, t");
+        expect(await shown("p2")).eq("t");
+        expect(await shown("p3")).eq("y, t");
+        expect(await shown("p4")).eq("y");
+    });
+
     it("responses a select or a repeat makes, or a reference copies, in an award are not given a place, and a reference to them is an error", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

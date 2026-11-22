@@ -1241,8 +1241,20 @@ export function propertyTypeReader({
         if (node.componentType === "_copy" && ownChildren.length === 0) {
             // A tag made with `extend` or `copy` that writes nothing of its
             // own has the responses of what it copies, whose types it keeps
-            // (`Copy.js`).
-            return undefined;
+            // (`Copy.js`): those decided of it, so a reference to the copy
+            // (`$a2.currentResponses` of `<answer extend="$a" name="a2"/>`)
+            // is typed as one to its source is.
+            const ref = refOf(node);
+            const source =
+                ref &&
+                ref.nodeIdx >= 0 &&
+                (ref.unresolvedPath ?? []).length === 0
+                    ? (componentsByIdx.get(ref.nodeIdx) ??
+                      copiesByCreatedIdx.get(ref.nodeIdx))
+                    : undefined;
+            return source
+                ? propertyTypesOf(source).currentResponses
+                : undefined;
         }
         let anyAwardCopied = false;
         const responses: Response[] = [];
