@@ -287,6 +287,7 @@ const NUMBER_TYPES = new Set([
     "mod",
     "gcd",
     "lcm",
+    "integer",
 ]);
 
 /** A component's value as LaTeX, where math notation refers to it. */
@@ -294,6 +295,10 @@ function valueLatex(r: Reads, c: number): string {
     const type = r.table.componentType(c);
     if (type === "math" || type === "mathInput") return r.mathLatex(c);
     if (NUMBER_TYPES.has(type)) return mathNumber(r.num(c, "value"));
+    if (type === "intComma") {
+        return groupDigits(formatNumber(r.num(c, "value"), null));
+    }
+    if (type === "pluralize") return `\\text{${r.text(c, "value")}}`;
     if (type === "text" || type === "textInput") {
         return `\\text{${r.text(c, "value")}}`;
     }
@@ -346,6 +351,48 @@ function pairs(r: Reads, cells: number[]): [number, number][] {
 /** Sizes given as `widths="40% 30%"`. */
 function sizes(table: CellsTable, c: number, name: string): string[] {
     return (table.attr(c, name) ?? "").trim().split(/\s+/).filter(Boolean);
+}
+
+/** A side-by-side's widths: its own, else those of the `<sbsGroup>` it
+ * sits in, through components that stand as their children. */
+function sideBySideWidths(table: CellsTable, c: number): string[] {
+    const own = sizes(table, c, "widths");
+    if (own.length) return own;
+    for (let p = table.parent(c); p !== null; p = table.parent(p)) {
+        const type = table.componentType(p);
+        if (type === "sbsGroup") return sizes(table, p, "widths");
+        if (!TRANSPARENT.has(type)) break;
+    }
+    return [];
+}
+
+/** A formatted number with its integer digits in groups of three,
+ * separated by commas, as an `<intComma>` shows it (the core's
+ * `TextKind::Grouped`): `25236501.35` is `25,236,501.35`. */
+export function groupDigits(number: string): string {
+    const match = /^(-?)(\d+)(.*)$/s.exec(number);
+    if (!match) return number;
+    const [, sign, int, tail] = match;
+    return sign + int.replace(/\B(?=(\d{3})+$)/g, ",") + tail;
+}
+
+/** The text of a `<latex>`: its text as written and the LaTeX of the
+ * values inside it, each trimmed and the empty left out, joined by spaces,
+ * as the other cores join its pieces. A text inside shows its text. */
+function latexText(r: Reads, c: number): string {
+    return r.table
+        .children(c)
+        .map((child) => {
+            if ("text" in child) return child.text.trim();
+            const k = child.component;
+            const type = r.table.componentType(k);
+            if (type === "text" || type === "textInput") {
+                return r.text(k, "value").trim();
+            }
+            return valueLatex(r, k).trim();
+        })
+        .filter(Boolean)
+        .join(" ");
 }
 
 /** A number shown as math notation (the renderer draws it with `M`). */
@@ -702,7 +749,7 @@ export const CONTRACTS: Record<string, Contract> = {
     // left.
     sideBySide: {
         props: (r, c) => ({
-            widths: sizes(r.table, c, "widths").map((w) =>
+            widths: sideBySideWidths(r.table, c).map((w) =>
                 w.endsWith("%") ? Number(w.slice(0, -1)) : NaN,
             ),
         }),
@@ -936,6 +983,64 @@ export const CONTRACTS: Record<string, Contract> = {
         },
         noChildren: true,
     },
+    // The formatted values (`components/values/formatted.rs`,
+    // `pluralize.rs` in the core), each drawn as its text.
+    integer: {
+        props: (r, c) => ({
+            text: formatNumber(
+                r.num(c, "value"),
+                r.table.attrThrough(c, "displayDecimals"),
+            ),
+        }),
+    },
+    intComma: {
+        props: (r, c) => ({
+            text: groupDigits(formatNumber(r.num(c, "value"), null)),
+        }),
+    },
+    pluralize: {
+        props: (r, c) => ({ text: r.text(c, "value") }),
+    },
+    // The layout containers (`components/containers/layout.rs`).
+    // A `<latex>` is drawn as its text, which its children make.
+    latex: {
+        props: (r, c) => ({ text: latexText(r, c) }),
+        noChildren: true,
+    },
+    // A table: its title after the word "Table", then its content. Its
+    // number runs through the document apart from the sections, which the
+    // core does not keep: it is named "Table" alone.
+    table: {
+        props: (r, c) => {
+            const title = titleChild(r.table, c);
+            return {
+                title: title === null ? null : r.idOf(title),
+                titlePrefix: flag(r.table, c, "suppressTableNameInTitle")
+                    ? ""
+                    : title === null
+                      ? "Table"
+                      : "Table: ",
+                codeNumber: "",
+                divisionDepth: sectionDepth(r.table, c),
+                divisionType: "table",
+                xrefLabel: {
+                    label: "Table",
+                    global_ident: "",
+                    local_ident: "",
+                    preferred_form: "Global",
+                },
+            };
+        },
+        excludeChild: (table, _c, child) =>
+            table.componentType(child) === "title",
+    },
+    // Its side-by-sides one above the other; each takes the group's
+    // `widths` when it gives none.
+    sbsGroup: { name: () => "stack" },
+    // The PreTeXt wrappers, drawn as their children.
+    pretext: {},
+    article: {},
+    book: {},
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */
@@ -961,6 +1066,7 @@ export const TRANSPARENT = new Set([
     "select",
     "case",
     "_postponeRenderContainer",
+    "asList",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -971,6 +1077,7 @@ export const LIST_LIKE = new Set([
     "repeatForSequence",
     "collect",
     "select",
+    "asList",
 ]);
 
 /** List-like types whose items are the children of one scope (an
@@ -1002,6 +1109,11 @@ export const BLOCKS = new Set([
     "conclusion",
     "statement",
     "figure",
+    "table",
+    "sbsGroup",
+    "pretext",
+    "article",
+    "book",
 ]);
 
 /** Component types with no view of their own. */
@@ -1016,4 +1128,7 @@ export const OMITTED = new Set([
     "shortDescription",
     "updateValue",
     "mrow",
+    // `<xLabel>` and `<yLabel>`: the prototype's graph draws no axis
+    // labels.
+    "xLabel",
 ]);

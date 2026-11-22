@@ -42,9 +42,13 @@ blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
 `standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
 from text and references) and the boolean ones `and`, `or`, `xor`, `iff`,
-`implies`, `not`, `isInteger`, `isNumber` and `isBetween`, and the shapes
+`implies`, `not`, `isInteger`, `isNumber` and `isBetween`, the shapes
 `ray`, `vector`, `rectangle`, `regularPolygon` (a literal number of
-vertices) and `angle` (by points or a measure). A `<math>` tuple of three or more entries is a tuple
+vertices) and `angle` (by points or a measure), the formatted values
+`integer`, `intComma` (a number, English grouping) and `pluralize` (one
+literal word, or a number and a word), and the layout containers `table`
+(unnumbered), `sbsGroup`, `asList`, `latex`, `xLabel` and `yLabel` (not
+drawn) and the PreTeXt wrappers `pretext`, `article` and `book`. A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

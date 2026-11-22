@@ -228,6 +228,17 @@ component_types! {
     Rectangle => geometry::rectangle::DEFINITION,
     RegularPolygon => geometry::regular_polygon::DEFINITION,
     Angle => geometry::angle::DEFINITION,
+    Integer => values::formatted::INTEGER,
+    IntComma => values::formatted::INT_COMMA,
+    Pluralize => values::pluralize::DEFINITION,
+    Table => containers::layout::TABLE,
+    SbsGroup => containers::layout::SBS_GROUP,
+    AsList => containers::layout::AS_LIST,
+    Latex => containers::layout::LATEX,
+    Pretext => containers::layout::PRETEXT,
+    Article => containers::layout::ARTICLE,
+    Book => containers::layout::BOOK,
+    AxisLabel => containers::layout::AXIS_LABEL,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
