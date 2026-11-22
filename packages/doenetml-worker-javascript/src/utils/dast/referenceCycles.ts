@@ -114,7 +114,9 @@
  * Each table here lists what was found, tag by tag, to be a circular
  * dependency when the document ran before the cycle was decided at load: a
  * property or attribute not listed is not an edge, and a cycle through it is
- * still reported, or stops the document, when it is reached.
+ * still reported when it is reached: at load, by the run-time backstop, which
+ * builds the document again with one node on it as `doenet-e0005` (D57,
+ * `loadCycleBlame.ts`), and after load, by stopping the document.
  *
  * Every reference in a strongly connected part of that graph with an edge
  * (a cycle) is made an `_error`, which breaks every cycle, as each cycle
@@ -133,7 +135,14 @@
  * `<mathInput>` (or a few other attributes an input starts from) and an
  * index into a `<mathList>` or a `<numberList>` whose entry the list does
  * not say (`INPUTS_READING_ONE_ENTRY`) is not found here; it is still
- * reported, or stops the document, when it is reached (Doenet/DoenetML#2515).
+ * reported when it is reached, as above (Doenet/DoenetML#2515).
+ *
+ * The edges from a reference to a section's number are a prediction of what
+ * the run time waits for. D57 makes it an optimization: a cycle it misses is
+ * caught by the backstop, so it should err toward a missing edge rather than
+ * an extra one, which is a false `doenet-e0005`. A generated test checks it
+ * against the run time (`T/diagnostics/sectionNumberingDifferential.test.ts`,
+ * with `setSectionNumberEdges`).
  */
 import { COLLECTIONS_OF_NAMED_ITEMS } from "../wrappers";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
@@ -153,6 +162,21 @@ import {
     listSplittingFromAttribute,
     splitListEntries,
 } from "../../components/commonsugar/lists";
+
+/** Whether a reference to a section's number has its edges (`setSectionNumberEdges`). */
+let sectionNumberEdgesOn = true;
+
+/**
+ * Turn on or off the edges from a reference to a section's number to what
+ * its numbering waits for, returning what it was. For tests only: the
+ * generated differential test runs a document with them off, so the run
+ * time alone decides whether it is a cycle (D57).
+ */
+export function setSectionNumberEdges(on: boolean): boolean {
+    const was = sectionNumberEdgesOn;
+    sectionNumberEdgesOn = on;
+    return was;
+}
 
 /**
  * Tags whose value is made from their children, and the tags that inherit
@@ -415,7 +439,7 @@ export const INPUTS: [
  * lists is found here only for an index written as a number into a list
  * whose entry it names is a child the list says (`entryChild`:
  * `prefill="$l[2]"`, which reads the input itself); otherwise it is still
- * reported, or stops the document, when it is reached. Each
+ * reported when it is reached. Each
  * found when the document runs; read the same way, a `<choiceInput>`'s
  * `bindValueTo`, a `<slider>`'s `initialValue` and a `<textInput>`'s
  * `prefill` are each a cycle, so are found. Lower case.
@@ -645,6 +669,24 @@ function referenceOf(copy: SerializedComponent) {
 }
 
 /**
+ * What a load that stopped on a circular dependency blamed, for the rebuild
+ * (D57, `blameLoadCycle`): the authored node blamed and the authored nodes
+ * on the cycle. `made` is set to the component the cycle check made the
+ * error.
+ */
+export type LoadCycle = {
+    blamed: number;
+    onCycle: Set<number>;
+    /**
+     * The state variables the cycle runs through, lower case, of the
+     * authored nodes on it the run time named (or copies of them), when the
+     * check that found the cycle knew them.
+     */
+    variablesOnCycle?: Map<number, Set<string>>;
+    made?: number;
+};
+
+/**
  * Make each reference on a cycle among `serializedComponents` an `_error`
  * with `doenet-e0005`, and return the diagnostics, to be reported at load.
  * `branchReads` is what each reference to a name the branches of a container
@@ -654,10 +696,17 @@ export function breakReferenceCycles({
     serializedComponents,
     componentInfoObjects,
     branchReads = new Map(),
+    loadCycle,
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
     branchReads?: Map<SerializedComponent, BranchRead>;
+    /**
+     * What a load that stopped on a circular dependency blamed, when it is
+     * rebuilt (D57, `blameLoadCycle`), made `doenet-e0005` as though found
+     * on a cycle, whatever its type.
+     */
+    loadCycle?: LoadCycle;
 }): DiagnosticRecord[] {
     const componentsByIdx = new Map<number, SerializedComponent>();
     // The same component can be written twice in a reference: an index is in
@@ -804,6 +853,127 @@ export function breakReferenceCycles({
      */
     function nodeFor(nodeIdx: number) {
         return componentsByIdx.get(nodeIdx) ?? copiesByCreatedIdx.get(nodeIdx);
+    }
+
+    /**
+     * The references (`_copy`) written in `component`, in its attributes,
+     * the index of its reference and its children, at any depth, in document
+     * order, into `found`, each with how many of the components in
+     * `within` (below `component`) it is written in.
+     */
+    function gatherCopiesIn(
+        component: SerializedComponent,
+        within: Set<number>,
+        found: { copy: SerializedComponent; depth: number }[],
+        depth = 0,
+    ) {
+        const inside: SerializedComponent[] = [];
+        for (const attribute of Object.values(component.attributes ?? {})) {
+            inside.push(...componentsOfAttribute(attribute));
+        }
+        inside.push(...indexComponents(referenceOf(component)?.unresolvedPath));
+        for (const child of component.children ?? []) {
+            if (typeof child === "object" && child !== null) {
+                inside.push(child);
+            }
+        }
+        for (const one of inside) {
+            if (one.componentType === "_copy") {
+                found.push({ copy: one, depth });
+            }
+            gatherCopiesIn(
+                one,
+                within,
+                found,
+                depth + (within.has(one.componentIdx) ? 1 : 0),
+            );
+        }
+    }
+
+    /**
+     * Whether `copy` is a reference to a section's number
+     * (`$s.sectionNumber`, `$s.title`, …: `NUMBER_PROPERTIES`).
+     */
+    function isReferenceToNumber(copy: SerializedComponent) {
+        const path = referenceOf(copy)?.unresolvedPath;
+        const target = targetOf(copy);
+        const targetType = target ? typeOf(target) : undefined;
+        return (
+            targetType !== undefined &&
+            path?.length === 1 &&
+            typeof path[0]?.name === "string" &&
+            inherits(targetType, "_sectioningComponent") &&
+            NUMBER_PROPERTIES.has(propertyNamed(targetType, path[0].name))
+        );
+    }
+
+    /**
+     * The first reference to the number of a section in `onCycle`, in
+     * document order, among the components `onCycle` and the references
+     * written in their attributes (D57, rule 1), if there is one. Of a
+     * component whose state variables on the cycle are known
+     * (`variablesOnCycle`), only the attributes the cycle runs through, those
+     * with a state variable on it (`a`, or `__a_…` of an expression
+     * attribute, `expressionAttributePrefix`): a reference in another
+     * attribute (`displayDigits="$s.sectionNumber"` of a `<number>` whose
+     * `hide` makes the cycle) is not where the cycle is, and the error there
+     * would tell the author so.
+     */
+    function referenceToNumberOnCycle(
+        onCycle: Set<number>,
+        variablesOnCycle?: Map<number, Set<string>>,
+    ) {
+        const references: SerializedComponent[] = [];
+        for (const idx of onCycle) {
+            const component = componentsByIdx.get(idx);
+            if (!component) {
+                continue;
+            }
+            if (component.componentType === "_copy") {
+                references.push(component);
+            }
+            const variables = variablesOnCycle?.get(idx);
+            for (const [name, attribute] of Object.entries(
+                component.attributes ?? {},
+            )) {
+                const lower = name.toLowerCase();
+                if (
+                    variables &&
+                    !variables.has(lower) &&
+                    ![...variables].some((variable) =>
+                        variable.startsWith(`__${lower}_`),
+                    )
+                ) {
+                    continue;
+                }
+                for (const one of componentsOfAttribute(attribute)) {
+                    if (one.componentType === "_copy") {
+                        references.push(one);
+                    }
+                    const inside: {
+                        copy: SerializedComponent;
+                        depth: number;
+                    }[] = [];
+                    gatherCopiesIn(one, new Set(), inside);
+                    references.push(...inside.map(({ copy }) => copy));
+                }
+            }
+        }
+        const order = new Map(
+            [...componentsByIdx.keys()].map((idx, i) => [idx, i]),
+        );
+        // to a section on the cycle: a reference to the number of another
+        // section, in an attribute of a node on it, is not on it
+        return references
+            .filter(
+                (copy) =>
+                    isReferenceToNumber(copy) &&
+                    onCycle.has(targetOf(copy)!.componentIdx),
+            )
+            .sort(
+                (a, b) =>
+                    order.get(a.componentIdx)! - order.get(b.componentIdx)!,
+            )[0];
     }
 
     /** The component the graph has for what `copy` is of, if resolved. */
@@ -1418,6 +1588,9 @@ export function breakReferenceCycles({
             inherits(targetType, "_sectioningComponent") &&
             NUMBER_PROPERTIES.has(property)
         ) {
+            if (!sectionNumberEdgesOn) {
+                return [];
+            }
             // its number, which waits for the composites before it that may
             // make a section to expand, not for the values of what they make
             // (#2614 item 2)
@@ -1863,12 +2036,73 @@ export function breakReferenceCycles({
         findCycles(listIndexEdges, listEntryEdges);
     }
 
+    // What a load that stopped on a circular dependency blamed (D57). First,
+    // a reference to the number of a section on the cycle, itself on the
+    // cycle or written in an attribute of a node on it, the first in
+    // document order (D57's rule 1): one written in an attribute
+    // (`hide="$s.sectionNumber=1"`) is compiled into an expression after this
+    // check, so the run time's cycle names the component it is in, not it.
+    // Else the node blamed, or, if it is no
+    // reference, the first reference written in it, to it or to another node
+    // on the cycle, which is where the author wrote the cycle (`$P.x` in
+    // `<point name="P">($P.x+1, 2)</point>`, DIAG-4). The first written in
+    // the most other nodes on the cycle is chosen: with that point in a
+    // `<repeatForSequence>` blamed, after a `<p>$P.y</p>`, `$P.y` is to the
+    // point but not on the cycle, and making it the error would leave the
+    // cycle unbroken.
+    const forcedCycleMembers = new Set<number>();
+    if (loadCycle) {
+        const blamed = componentsByIdx.get(loadCycle.blamed);
+        const toNumber = referenceToNumberOnCycle(
+            loadCycle.onCycle,
+            loadCycle.variablesOnCycle,
+        );
+        if (toNumber) {
+            forcedCycleMembers.add(toNumber.componentIdx);
+            loadCycle.made = toNumber.componentIdx;
+        } else if (blamed) {
+            let chosen = blamed;
+            if (blamed.componentType !== "_copy") {
+                const written: {
+                    copy: SerializedComponent;
+                    depth: number;
+                }[] = [];
+                const otherOnCycle = new Set(loadCycle.onCycle);
+                otherOnCycle.delete(blamed.componentIdx);
+                gatherCopiesIn(blamed, otherOnCycle, written);
+                const toCycle = written.filter(({ copy }) => {
+                    const target = targetOf(copy);
+                    return (
+                        target !== undefined &&
+                        loadCycle.onCycle.has(target.componentIdx)
+                    );
+                });
+                // the first of the deepest, in document order
+                const deepest = toCycle.reduce<
+                    (typeof toCycle)[number] | undefined
+                >(
+                    (best, one) =>
+                        best === undefined || one.depth > best.depth
+                            ? one
+                            : best,
+                    undefined,
+                );
+                chosen = deepest?.copy ?? blamed;
+            }
+            forcedCycleMembers.add(chosen.componentIdx);
+            loadCycle.made = chosen.componentIdx;
+        }
+    }
+
     // In document order, so the errors are reported in the order written.
     // The type each names is read before any is made an `_error`, so that it
     // does not depend on that order.
     const members: [SerializedComponent, string | undefined][] = [];
     for (const [idx, component] of componentsByIdx) {
-        if (!onCycle.has(idx) || component.componentType !== "_copy") {
+        if (
+            !forcedCycleMembers.has(idx) &&
+            (!onCycle.has(idx) || component.componentType !== "_copy")
+        ) {
             continue;
         }
         // for a name the branches declare, the type of what it names there,
@@ -1884,9 +2118,11 @@ export function breakReferenceCycles({
         // what it is of
         members.push([
             component,
-            component.doenetAttributes?.isIndex
-                ? (named ?? writtenType(component))
-                : (writtenType(component) ?? named),
+            component.componentType !== "_copy"
+                ? component.componentType
+                : component.doenetAttributes?.isIndex
+                  ? (named ?? writtenType(component))
+                  : (writtenType(component) ?? named),
         ]);
     }
     const diagnostics: DiagnosticRecord[] = [];
