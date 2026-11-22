@@ -44,8 +44,9 @@ The rule is the same whether the tag is written alone or with `copy` or `extend`
 every attribute (`name`, `for` and `valueName` included). An author learns one rule for
 everything they type: names in DoenetML are exact, as `$x` always was.
 
-**Values are words, not names.** An attribute's value is read without case where it is a
-keyword: `simplify="FULL"`, `hide="True"`, `<boolean>TRUE</boolean>`. The value can come
+**Values are words, not names,** unless they name a tag or a property (`componentType="point"`,
+`sortByProp="x"`), which are names and matched exactly (D62). An attribute's value is read without
+case where it is a keyword: `simplify="FULL"`, `hide="True"`, `<boolean>TRUE</boolean>`. The value can come
 from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't be held to a case.
 
 **Done by #2624** (closing #2605; #2580 item 3):
@@ -70,9 +71,10 @@ from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't 
   property; a `sortByProp` naming no property is **`doenet-w0198`** at load; `w0065` and `e0003`
   are retired;
 - the language server still matches tag names and a module's declared attributes without case;
-- an attribute written twice in the same case is collapsed silently (for a decision: a warning);
-- a tag name written as a value (`<collect componentType="Point">`) is read without case (for a
-  decision: exact, as a name, with `w0197` for one release);
+- an attribute written twice in the same case is collapsed silently (decided, D62: a warning at
+  the second, naming which is kept);
+- a tag name written as a value (`<collect componentType="Point">`) is read without case
+  (decided, D62: a value naming a tag or property is a name, exact, with `w0197` for one release);
 - `w0197` becomes `e0004` in a later release.
 
 ### NAME-1: nearest match wins; a tie is an error, not a guess (Tier 1)

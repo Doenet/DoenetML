@@ -3269,3 +3269,14 @@ all-lowercase compound, not only the names above. A new compound name is camelCa
    rebuild keeps the nodes already blamed and blames one more, up to 5 rebuilds. So two independent
    cycles at load are each `e0005`. Past the cap, the document stops as before. Only documents that
    would otherwise stop pay for the extra loads.
+
+## D62. Decisions from the review of #2628 (decided, November 2026)
+
+1. **An attribute written twice is a warning at the second** (#2627 item 10). `simplify="full"
+   simplify="none"` is collapsed by the parser with no diagnostic today. The second gets a warning
+   (a new code; `e0003` is retired) saying it is ignored and naming which one is kept.
+2. **A value that names a tag or a property is a name, matched exactly** (#2627 item 11; NAME-0).
+   Examples are `<collect componentType="Point">`, `sortByProp` and `propForSort`. For the
+   fallback release, a value in another case is applied with `w0197` naming the right spelling,
+   as for an attribute. Keywords in values (`simplify="FULL"`, `hide="True"`) stay
+   case-insensitive (D51 decision 3).
