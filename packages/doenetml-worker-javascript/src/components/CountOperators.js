@@ -263,9 +263,8 @@ export class Tally extends CountingBaseListOperator {
                 "The categories the counts are counts of, in the same order.",
             public: true,
             isArray: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // of the type decided when the document loads (below)
+            shadowingInstructions: {},
             entryPrefixes: ["category"],
             returnArraySizeDependencies: () => ({
                 countLabels: {
@@ -307,10 +306,7 @@ export class Tally extends CountingBaseListOperator {
                         type,
                     );
                 }
-                return {
-                    setValue: { categories },
-                    setCreateComponentOfType: { categories: type },
-                };
+                return { setValue: { categories } };
             },
         };
 

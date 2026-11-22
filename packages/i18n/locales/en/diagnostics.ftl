@@ -2292,6 +2292,18 @@ sort-by-prop-names-nothing = `sortByProp="{ $property }"` names no property of a
 # `<conditionalContent>`. The tags stay in English.
 answer-responses-of-several-types = An `<answer>` reads a response from this `<conditionalContent>` that is a `<{ $firstType }>` in one case and a `<{ $secondType }>` in another, but a response has one type, decided from what is written. Give it one type in every case.
 
+# A reference reads a property whose type isn't decided from what is written
+# (TYPE-3), so it is an error in place of the reference. $source is the
+# reference as written (DoenetML, which stays in English). $what is
+# `responses` for an `<answer>`'s responses, `choices` for a `<choiceInput>`'s
+# values, and `other` for any other property.
+property-type-undecided =
+    { $what ->
+        [responses] `{ $source }` reads an `<answer>`'s responses, but which response is of which type isn't decided by what is written: they are of more than one type, and how many there are, or in what order, is known only once the document runs. Read the input or component that gives the response instead, or give the responses one type.
+        [choices] `{ $source }` reads a `<choiceInput>`'s values, but whether they are maths or texts isn't decided by what is written in its choices. Write each choice's content so that its type is known.
+       *[other] `{ $source }` reads a property whose type isn't decided by what is written, so it can't be read.
+    }
+
 # The `for` of a `<repeat>` holds items of one type (COLL-5, D44), decided
 # at load. $reason is `mix` for items of more than one type, the first two
 # described as in `reorder-items-of-several-types` ($firstKind, $first,

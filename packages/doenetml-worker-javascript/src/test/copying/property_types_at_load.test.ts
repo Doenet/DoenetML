@@ -171,6 +171,25 @@ describe("Every property's type is decided at load (D45) @group4", () => {
         expect(d.warnings.map((w) => w.split(":")[0])).eqls(["doenet-w0107"]);
     });
 
+    it("a choiceInput whose choices hold a lorem is a text, as a lorem makes only texts or paragraphs", async () => {
+        const d = await load(`
+<choiceInput name="ci" preselectChoice="1">
+  <choice><lorem generateWords="3" /></choice>
+  <choice><lorem generateWords="3" /></choice>
+</choiceInput>
+<p name="p1"><text extend="$ci.selectedValue" name="t" /></p>
+<p name="p2"><point extend="$ci.selectedValue" /></p>
+`);
+        // typed at load, so a tag made from it is checked then
+        expect(d.errors).eqls([e0065("point", "$ci.selectedValue", "text")]);
+        expect(
+            d.core.core._components[await d.resolvePathToNodeIdx("ci")]
+                .doenetAttributes.propertyTypes,
+        ).eqls({ selectedValues: "text" });
+        expect((await d.shown("t")).type).eq("text");
+        expect((await d.shown("t")).text.split(" ").length).eq(3);
+    });
+
     it("a choiceInput of maths whose choice's LaTeX doesn't parse has a blank math for it", async () => {
         const d = await load(`
 <choiceInput name="ci" preselectChoice="1"><choice><m>\\frac{</m></choice><choice><math>x</math></choice></choiceInput>
@@ -266,6 +285,34 @@ describe("Every property's type is decided at load (D45) @group4", () => {
         // Text written in a tally is cut into pieces and typed together: all
         // numbers or all texts, never a mix.
         expect((await d.shown("p2")).text).eq("1, 1, 1");
+    });
+
+    it("each component of a group in a tally or markers counts toward the one type (#2606 item 6)", async () => {
+        // A tally counts each component a `<group>` holds, so each is one
+        // of its items, and a number beside a text, in the group or beside
+        // it, is the mix error; a group of numbers beside a number is typed
+        // as numbers at load.
+        const d = await load(`
+<p name="p1"><tally><group><number>1</number><text>a</text></group></tally></p>
+<p name="p2"><tally><group><number>1</number><number>2</number></group><text>a</text></tally></p>
+<slider><markers><group><number>1</number><text>a</text></group></markers></slider>
+<tally name="t"><group><number>1</number><number>2</number></group><number>2</number></tally>
+<p name="p3">$t.categories</p>
+<p name="p4"><point extend="$t.categories[1]"/></p>
+`);
+        const mix = (tag: string) =>
+            `doenet-e0076: \`<${tag}>\` takes items of one type, but it has a \`<number>\` and a \`<text>\`. Give each type a \`<${tag}>\` of its own.`;
+        expect(d.errors).eqls([
+            e0065("point", "$t.categories[1]", "number"),
+            mix("tally"),
+            mix("tally"),
+            mix("markers"),
+        ]);
+        expect((await d.shown("p3")).text).eq("1, 2");
+        expect(
+            d.core.core._components[await d.resolvePathToNodeIdx("t")]
+                .doenetAttributes.propertyTypes,
+        ).eqls({ categories: "number" });
     });
 
     it("a slider and a choiceInput are values of their type in a sort, a shuffle and a repeat's for", async () => {

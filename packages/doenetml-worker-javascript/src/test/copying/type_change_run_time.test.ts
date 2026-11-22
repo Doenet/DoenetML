@@ -1692,10 +1692,13 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         expect(await shown(d, ["Q", "R"])).eqls({ Q: "(3, 4)", R: "＿" });
     });
 
-    it("a point from a tally's categories is missing with none, and an error at load with several", async () => {
+    it("a point from a tally's categories is an error, with several or none", async () => {
         // The same rule: a tally's categories are numbers or texts, so a
-        // point is `e0065` once there are any, also several (D36). With
-        // none it is missing with `i0061`. On `main` both were `(0, 0)`.
+        // point is `e0065` (D36). Their type is decided when the document
+        // loads (TYPE-1), a text for a tally with none, so a point is an
+        // error with none too, where it was missing with `i0061` while its
+        // type was worked out from its values. On `main` before #2440 both
+        // were `(0, 0)`.
         const d = await setup(`
 <tally name="t">1 2 2</tally>
 <tally name="e"></tally>
@@ -1709,17 +1712,19 @@ describe("A related type made from a value follows it, and writes back (#2440, #
                     "A `<point>` can't be made from `$t.categories`, which gives a `<number>`. To show it as it is, write `$t.categories`.",
                 ],
                 [
-                    "doenet-i0061",
+                    "doenet-e0065",
                     4,
-                    "`$e.categories` holds no value now, so this `<point>` is missing until it holds one.",
+                    "A `<point>` can't be made from `$e.categories`, which gives a `<text>`. To show it as it is, write `$e.categories`.",
                 ],
             ],
         );
-        expect(await d.typeOf("Q")).eq("_error");
-        expect(await shown(d, ["R"])).eqls({ R: "＿" });
+        for (const name of ["Q", "R"]) {
+            expect(await d.typeOf(name)).eq("_error");
+        }
         await d.reload();
-        expect(await d.typeOf("Q")).eq("_error");
-        expect(await shown(d, ["R"])).eqls({ R: "＿" });
+        for (const name of ["Q", "R"]) {
+            expect(await d.typeOf(name)).eq("_error");
+        }
     });
 
     it("a boolean from a text input, and a number and a math from a boolean input, follow and write back", async () => {
