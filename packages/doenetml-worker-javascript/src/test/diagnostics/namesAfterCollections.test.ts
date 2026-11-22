@@ -346,6 +346,49 @@ describe("A name or a property after a collection names nothing (D59)", () => {
     });
 });
 
+describe("A collection reached through a branch or an item (D59, review cycle 4)", () => {
+    it("names nothing after it, with the suggestion, whichever way it is reached", async () => {
+        const { texts, diagnostics } = await both(
+            `<conditionalContent name="cc"><case condition="true"><repeat name="r" for="1 2" valueName="v"><point name="P">($v,1)</point></repeat></case></conditionalContent>
+<select name="s"><option><repeat name="q" for="1 2" valueName="v"><point name="Q">($v,2)</point></repeat></option></select>
+<repeat name="o" for="1"><repeat name="t" for="1 2" valueName="v"><point name="T">($v,3)</point></repeat></repeat>
+<conditionalContent name="dd"><case condition="true"><pointList name="pl">(1,2) (3,4)</pointList></case></conditionalContent>
+<p name="p1">$cc.r.P</p><p name="p2">$r.P</p><p name="p3">$s.q.Q</p><p name="p4">$o[1].t.T</p>
+<p name="p5">$dd.pl.x</p><p name="p6">$dd.x</p><p name="p7">$dd[1].x</p>
+<p name="i1">$cc.r[2].P</p><p name="i2">$o[1].t[2].T</p><p name="i3">$dd[1][2].x</p><p name="i4">$cc.r.numItems</p>`,
+            ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "i1", "i2", "i3", "i4"],
+            { withMessages: true },
+        );
+        // each was every item's on main (D41), and a blank with no warning
+        // before this was followed
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+            p6: "＿",
+            p7: "＿",
+            i1: "(2, 1)",
+            i2: "(2, 3)",
+            i3: "3",
+            i4: "2",
+        });
+        const suggestions = diagnostics.map((d) =>
+            d.replace(/^.*such as `([^`]*)`\.$/, "$1"),
+        );
+        expect(suggestions).eqls([
+            "$cc.r[1].P",
+            "$dd.pl[1].x",
+            "$dd[1][1].x",
+            "$dd[1][1].x",
+            "$o[1].t[1].T",
+            "$r[1].P",
+            "$s.q[1].Q",
+        ]);
+    });
+});
+
 describe("A tag made from a name or a property after a collection (D59)", () => {
     it("is missing, with the warning", async () => {
         for (const source of [
