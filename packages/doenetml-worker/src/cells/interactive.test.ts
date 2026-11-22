@@ -74,6 +74,12 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
             { pointCoords: { 1: [3, 1] } },
         ],
     },
+    triangle: {
+        movePolygon: [
+            { pointCoords: { 0: [1, 1], 1: [2, 1], 2: [1, 2] } },
+            { pointCoords: { 1: [3, 1] } },
+        ],
+    },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -94,6 +100,9 @@ const DOC = `
   <vector name="v" tail="(1,1)" head="(2,3)"/>
   <rectangle name="rc" center="(1,1)" width="2"/>
   <regularPolygon name="rp" numVertices="5"/>
+  <triangle name="tri" vertices="(2,2) (3,2)"/>
+  <clampFunction name="cf" lowerValue="-1" upperValue="2">$f</clampFunction>
+  <wrapFunctionPeriodic name="wf">$f</wrapFunctionPeriodic>
 </graph>
 <p><vector>(1, 2)</vector> <angle through="(1,0) (0,0) (0,1)"/></p>
 <graph name="g2"><point>(0,0)</point><point>(1,1)</point></graph>
@@ -161,6 +170,7 @@ const EXPECTED_REQUESTS = [
     "vector.headY",
     "rectangle.list[0]",
     "regularPolygon.list[0]",
+    "triangle.list[0]",
 ];
 
 /** What the bridge must have read, as `type.prop`: one or more per
@@ -203,6 +213,9 @@ const EXPECTED_READS = [
     "rectangle.list[0]",
     "regularPolygon.list[0]",
     "angle.radians",
+    "triangle.list[0]",
+    "clampFunction.samples",
+    "wrapFunctionPeriodic.curve",
 ];
 
 beforeAll(async () => {

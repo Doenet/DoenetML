@@ -1021,3 +1021,81 @@ describe("random selections, sequences, reordering and list operators", () => {
         expect((await open(source)).texts()).toEqual(first);
     });
 });
+
+describe("function operators and triangles", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const send = (component: string, actionName: string, args: object) =>
+            bridge.dispatch({
+                component,
+                actionName,
+                componentIdx: all(component)[0].data.id,
+                args,
+            }).payload as Record<number, ElementUpdate>;
+        return { bridge, all, send };
+    }
+
+    it("draws a clamped and a wrapped function as curves through their samples", async () => {
+        const { all, send } = await open(`<graph xmin="-2" xmax="2">
+<function name="f">x^3</function>
+<clampFunction lowerValue="-3" upperValue="$n">$f</clampFunction>
+<wrapFunctionPeriodic lowerValue="-2" upperValue="3">$f</wrapFunctionPeriodic>
+</graph>
+<numberInput name="n" value="5"/>`);
+        const curves = all("polyline");
+        expect(curves).toHaveLength(3);
+        const [, clamped, wrapped] = curves.map(
+            (e) => (e.data as any).props.numericalVertices,
+        );
+        expect(clamped).toHaveLength(200);
+        expect(clamped[0]).toEqual([-2, -3]);
+        expect(clamped[199]).toEqual([2, 5]);
+        // -2 + mod(f(x) + 2, 5): 2 at x = -2, -2 at x = 2.
+        expect(wrapped[0][0]).toBe(-2);
+        expect(wrapped[0][1]).toBeCloseTo(2);
+        expect(wrapped[199][1]).toBeCloseTo(-2);
+        expect(curves[1].children).toEqual([]);
+
+        // A bound that follows an input resamples the curve.
+        const payload = send("numberInput", "updateValue", { value: 1 });
+        const resampled = payload[curves[1].data.id]?.changedState as any;
+        expect(resampled.numericalVertices[199]).toEqual([2, 1]);
+    });
+
+    it("draws a triangle as a polygon and moves its vertices", async () => {
+        const { all, send } = await open(`<graph>
+<triangle vertices="(1,1) (3,1)"/>
+</graph>`);
+        const [triangle] = all("triangle");
+        expect((triangle.data as any).props).toEqual({
+            numericalVertices: [
+                [1, 1],
+                [3, 1],
+                [0, 0],
+            ],
+        });
+        let payload = send("triangle", "movePolygon", {
+            pointCoords: { 2: [2, 4] },
+        });
+        expect(payload[triangle.data.id]?.changedState).toEqual({
+            numericalVertices: [
+                [1, 1],
+                [3, 1],
+                [2, 4],
+            ],
+        });
+        // A whole drag moves the three together.
+        payload = send("triangle", "movePolygon", {
+            pointCoords: { 0: [2, 2], 1: [4, 2], 2: [3, 5] },
+        });
+        expect(payload[triangle.data.id]?.changedState).toEqual({
+            numericalVertices: [
+                [2, 2],
+                [4, 2],
+                [3, 5],
+            ],
+        });
+    });
+});

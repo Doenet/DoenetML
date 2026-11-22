@@ -566,6 +566,19 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 _ => 0.0,
             }
         }
+        SymKind::ClampFunction | SymKind::WrapFunctionPeriodic => {
+            out[0] = match handle(v(0)) {
+                Some(h) if v(1).is_finite() && v(2).is_finite() => {
+                    let h = if kind == SymKind::ClampFunction {
+                        engine.clamp(h, v(1), v(2))
+                    } else {
+                        engine.wrap_periodic(h, v(1), v(2))
+                    };
+                    h.to_value()
+                }
+                _ => f64::NAN,
+            }
+        }
         SymKind::SampleTape { .. } => unreachable!("tapes run in step_sym"),
         SymKind::Sample => {
             let (lo, hi) = (v(1), v(2));

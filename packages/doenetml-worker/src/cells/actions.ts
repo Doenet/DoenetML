@@ -220,6 +220,12 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
         movePolygon: (t, c, { pointCoords }) =>
             movePoints(vertexMoves(listPoints(t, c), pointCoords)),
     },
+    // A vertex drag moves that vertex; a whole drag moves all three, as a
+    // polygon's.
+    triangle: {
+        movePolygon: (t, c, { pointCoords }) =>
+            movePoints(vertexMoves(listPoints(t, c), pointCoords)),
+    },
     // The core snaps and clamps (ADR 0003).
     slider: {
         changeValue: (t, c, { value }) => ({

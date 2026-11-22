@@ -49,6 +49,13 @@ pub enum SymKind {
         /// The compiled curve it runs.
         tape: TapeIdx,
     },
+    /// Input 0, an expression in `x`, with its values held between inputs 1
+    /// and 2 (`<clampFunction>`): an expression again.
+    ClampFunction,
+    /// Input 0, an expression in `x`, with its values wrapped periodically
+    /// into the range from input 1 to input 2 (`<wrapFunctionPeriodic>`): an
+    /// expression again.
+    WrapFunctionPeriodic,
 }
 
 /// What a `<math>` does to its expression after instantiating it.
@@ -85,7 +92,13 @@ impl SymKind {
 
     /// Whether the output is an expression handle (a math cell).
     pub fn makes_math(self) -> bool {
-        matches!(self, SymKind::Instantiate { .. } | SymKind::Derivative)
+        matches!(
+            self,
+            SymKind::Instantiate { .. }
+                | SymKind::Derivative
+                | SymKind::ClampFunction
+                | SymKind::WrapFunctionPeriodic
+        )
     }
 }
 
@@ -197,7 +210,9 @@ impl OpSpec {
             OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => usize::MAX,
             OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative) => 1,
             OpSpec::Sym(SymKind::EvalAt | SymKind::Equals | SymKind::EqualsSyntax) => 2,
-            OpSpec::Sym(SymKind::Sample) => 3,
+            OpSpec::Sym(
+                SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
+            ) => 3,
             _ => unreachable!(),
         }
     }
@@ -325,6 +340,8 @@ mod arity {
             OpSpec::Sym(SymKind::SampleTape {
                 tape: TapeIdx::new(0),
             }),
+            OpSpec::Sym(SymKind::ClampFunction),
+            OpSpec::Sym(SymKind::WrapFunctionPeriodic),
         ]);
         ops
     }
@@ -369,12 +386,14 @@ mod arity {
                     SymKind::EqualsSyntax => 5,
                     SymKind::Sample => 6,
                     SymKind::SampleTape { .. } => 7,
+                    SymKind::ClampFunction => 8,
+                    SymKind::WrapFunctionPeriodic => 9,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 33;
+    const N_TAGS: usize = 35;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

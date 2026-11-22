@@ -255,6 +255,8 @@ component_types! {
     SampleRandomNumbers => structure::sample_random_numbers::DEFINITION,
     SelectPrimeNumbers => structure::select_prime_numbers::DEFINITION,
     SamplePrimeNumbers => structure::sample_prime_numbers::DEFINITION,
+    ClampFunction => values::function_operators::DEFINITION,
+    WrapFunctionPeriodic => values::function_operators::WRAP_FUNCTION_PERIODIC,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

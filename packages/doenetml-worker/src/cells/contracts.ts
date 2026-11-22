@@ -1067,6 +1067,16 @@ export const CONTRACTS: Record<string, Contract> = {
     argMax: OPERATOR_VALUE,
     indexOf: OPERATOR_VALUE,
     searchSorted: OPERATOR_VALUE,
+    // The function operators, each a function's curve; and a triangle,
+    // drawn as a polygon of its three vertices only in a graph.
+    clampFunction: CURVE,
+    wrapFunctionPeriodic: CURVE,
+    triangle: {
+        props: (r, c, inGraph) =>
+            inGraph
+                ? { numericalVertices: pairs(r, r.table.listCells(c)) }
+                : {},
+    },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */

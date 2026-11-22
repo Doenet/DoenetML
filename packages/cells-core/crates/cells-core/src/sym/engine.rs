@@ -179,6 +179,44 @@ impl Engine {
         self.push(e)
     }
 
+    /// `h` with its values held between `lo` and `hi`, as `max(lo, min(hi,
+    /// h))`, spelled with `abs` so it stays a tree (a template, a curve's
+    /// tape): `(|h - lo| - |h - hi| + lo + hi) / 2`. Bounds out of order
+    /// hold every value at `lo`, as the max of the min does.
+    pub fn clamp(&mut self, h: Handle, lo: f64, hi: f64) -> Handle {
+        if lo > hi {
+            return self.num(lo);
+        }
+        let e = &self.exprs[h.index()];
+        let abs_minus = |b: f64| apply("abs", minus(e.clone(), number(b)));
+        let sum = Expr::Add(vec![
+            abs_minus(lo),
+            Expr::Neg(Box::new(abs_minus(hi))),
+            number(lo),
+            number(hi),
+        ]);
+        self.push(Expr::Div(Box::new(sum), Box::new(number(2.0))))
+    }
+
+    /// `h` with its values wrapped into the range from `lo` to `hi`, as
+    /// `lo + mod(h - lo, hi - lo)`: `h - p floor((h - lo) / p)` with period
+    /// `p`. Bounds in either order are the same range; equal bounds hold
+    /// every value there.
+    pub fn wrap_periodic(&mut self, h: Handle, lo: f64, hi: f64) -> Handle {
+        if lo == hi {
+            return self.num(lo);
+        }
+        let (lo, hi) = if lo > hi { (hi, lo) } else { (lo, hi) };
+        let p = hi - lo;
+        let e = &self.exprs[h.index()];
+        let turns = apply(
+            "floor",
+            Expr::Div(Box::new(minus(e.clone(), number(lo))), Box::new(number(p))),
+        );
+        let wrapped = minus(e.clone(), Expr::Mul(vec![number(p), turns]));
+        self.push(wrapped)
+    }
+
     /// Evaluate to a real number with `var` bound; any other free symbol
     /// gives NaN.
     pub fn evaluate(&mut self, h: Handle, var: Option<(&str, f64)>) -> f64 {
@@ -303,6 +341,16 @@ fn cell_leaves(e: &Expr) -> Vec<(u32, bool)> {
         }
     }
     out
+}
+
+/// `f(x)` for a named function of one argument.
+fn apply(f: &str, x: Expr) -> Expr {
+    Expr::Apply(Box::new(Expr::sym(f)), vec![x])
+}
+
+/// `a - b`, as the engine spells a difference.
+fn minus(a: Expr, b: Expr) -> Expr {
+    Expr::Add(vec![a, Expr::Neg(Box::new(b))])
 }
 
 /// A number as the engine spells it: the infinities are constants, since a
@@ -432,6 +480,31 @@ mod tests {
         let h = e.instantiate(d, &[3.0]);
         assert_ne!(h, d);
         assert_eq!(e.evaluate(h, Some(("x", 1.0))), 6.0);
+    }
+
+    #[test]
+    fn clamp_and_wrap_hold_the_values() {
+        let mut e = Engine::new();
+        let cube = e.parse("x^3").unwrap();
+        let c = e.clamp(cube, -3.0, 5.0);
+        for (x, want) in [(-2.0, -3.0), (1.0, 1.0), (1.5, 3.375), (2.0, 5.0)] {
+            assert!(
+                (e.evaluate(c, Some(("x", x))) - want).abs() < 1e-12,
+                "clamp at {x}"
+            );
+        }
+        assert!(e.export::<u32>(c).is_some(), "a clamp is a tree");
+        let w = e.wrap_periodic(cube, 3.0, -2.0);
+        for x in [-2.0, -1.2, 0.4, 1.6, 2.0] {
+            let want = -2.0 + (x * x * x + 2.0f64).rem_euclid(5.0);
+            assert!(
+                (e.evaluate(w, Some(("x", x))) - want).abs() < 1e-9,
+                "wrap at {x}"
+            );
+        }
+        assert!(e.export::<u32>(w).is_some(), "a wrap is a tree");
+        let flat = e.clamp(cube, 2.0, 1.0);
+        assert_eq!(e.evaluate(flat, Some(("x", 7.0))), 2.0);
     }
 
     #[test]

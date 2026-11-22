@@ -55,7 +55,8 @@ operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 numbers), `sequence` (numbers, literal parameters), and
 `selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
 `gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
-from the document seed. A `<math>` tuple of three or more entries is a tuple
+from the document seed, and the function operators `clampFunction` and
+`wrapFunctionPeriodic` (literal or numeric bounds). A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 
