@@ -2949,17 +2949,6 @@ function getComponentType(element: FlatElement) {
 }
 
 /**
- * The reference `reference` (as written, `$s.x`, `$s[1][2]`, `$s[1].x`) of
- * the copy whose resolution is `ref`, with `.P` written after the
- * `<select>` or `<conditionalContent>` it reaches and its first index, if
- * any (`$s.P.x`, `$s[1].P[2]`, `$s[1].P.x`): what to write to read the
- * component named `P` in each option or case (`doenet-w0191`). `undefined`
- * when where to put it is not known from the positions in the DoenetML.
- * After a `<select>` that picks several, only the indexed form reaches here
- * (`$s[1].P.x`): with no index, a name or a property after it names nothing
- * (`doenet-w0200`, D59).
- */
-/**
  * The reference `reference` (as written, `$s[1][1]`) of the copy whose
  * resolution is `ref`, with its second index replaced by `.name`
  * (`$s[1].q`): the component that index would have selected, named in every
@@ -3002,6 +2991,17 @@ function referenceNamingTheChild(
     return `${reference.slice(0, at0)}${source.substring(start, from)}.${name}${source.substring(to, end)}`;
 }
 
+/**
+ * The reference `reference` (as written, `$s.x`, `$s[1][2]`, `$s[1].x`) of
+ * the copy whose resolution is `ref`, with `.P` written after the
+ * `<select>` or `<conditionalContent>` it reaches and its first index, if
+ * any (`$s.P.x`, `$s[1].P[2]`, `$s[1].P.x`): what to write to read the
+ * component named `P` in each option or case (`doenet-w0191`). `undefined`
+ * when where to put it is not known from the positions in the DoenetML.
+ * After a `<select>` that picks several, only the indexed form reaches here
+ * (`$s[1].P.x`): with no index, a name or a property after it names nothing
+ * (`doenet-w0200`, D59).
+ */
 function referenceNamingTheItem(
     ref: any,
     kind: "index" | "property",

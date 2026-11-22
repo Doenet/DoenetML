@@ -3779,14 +3779,6 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
-     * What one option or case of a `<select>` or `<conditionalContent>`
-     * holds, for `checkCollectionItems`: nothing, one component (its tag,
-     * `undefined` when the DoenetML does not give it or it is itself a
-     * composite, whose count is not read here), or several (`count`).
-     * `null` when it holds a component in error, about which nothing more
-     * is said.
-     */
-    /**
      * The name of the component the literal index `index` selects among
      * what each of `parts` holds, when it is the same in all of them, as
      * `$s[1].q` names it in place of `$s[1][1]` (`doenet-w0191`).
@@ -3847,6 +3839,14 @@ export function checkTypeChangesAtLoad({
         return shared;
     }
 
+    /**
+     * What one option or case of a `<select>` or `<conditionalContent>`
+     * holds, for `checkCollectionItems`: nothing, one component (its tag,
+     * `undefined` when the DoenetML does not give it or it is itself a
+     * composite, whose count is not read here), or several (`count`).
+     * `null` when it holds a component in error, about which nothing more
+     * is said.
+     */
     function partItems(
         part: SerializedComponent,
     ):

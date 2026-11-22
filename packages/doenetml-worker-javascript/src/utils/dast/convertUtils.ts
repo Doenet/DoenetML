@@ -75,15 +75,13 @@ export function removeBlankStringChildren(
  * (`&#36;`, `&dollar;`).
  *
  * The parser writes a zero-width space after such a `$` where what follows
- * could start a reference, so the `$` stays text: in an attribute, whose
- * value it reads for references once decoded, before a letter, `_` or `(`,
- * or a `$` before one of those (`&#36;(x)`, `&#36;$f`); in content, before
- * a letter or `_` (`&dollar;x`). The space is kept in the parsed document,
- * so that printing it again keeps such a `$` text, and is removed here,
- * where the text is read as a value, so the value is what the author wrote
- * (`$(x)`, #2637 item 3). (In content, a `$` written as a reference before
- * `(` or `$` gets no space, and prints back as a reference; that was so
- * before.)
+ * could start a reference, so the `$` stays text: before a letter, `_` or
+ * `(`, or a `$` before one of those (`&dollar;x`, `&#36;(x)`, `&#36;$f`),
+ * written out or as references, in an attribute, whose value it reads for
+ * references once decoded, and in content. The space is kept in the parsed
+ * document, so that printing it again keeps such a `$` text
+ * (Doenet/DoenetML#2643 item 8), and is removed here, where the text is read
+ * as a value, so the value is what the author wrote (`$(x)`, #2637 item 3).
  */
 export function decodeXMLEntities(
     serializedComponents: (string | SerializedComponent)[],

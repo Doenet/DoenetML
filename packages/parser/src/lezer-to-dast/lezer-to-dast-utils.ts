@@ -14,9 +14,6 @@ export type OffsetToPositionMap = {
 };
 
 /**
- * Convert an `EntityReference` to a string.
- */
-/**
  * The first few characters of `source` from `offset`, with a character or
  * entity reference among them decoded (`&#40;x` is `(x`), enough to tell
  * whether a `$` before them would start a macro.
@@ -40,6 +37,9 @@ function decodedAfter(offset: number, source: string): string {
     return decoded;
 }
 
+/**
+ * Convert an `EntityReference` to a string.
+ */
 export function entityToString(node: SyntaxNode, source: string): string {
     switch (node.name) {
         case "CharacterReference":
