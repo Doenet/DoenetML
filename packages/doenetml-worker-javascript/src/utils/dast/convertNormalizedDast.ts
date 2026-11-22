@@ -45,6 +45,7 @@ import {
 import { convertRepeatsToLists } from "./repeatLists";
 import { convertExpressionAttributes } from "./expressionAttributes";
 import { breakReferenceCycles, type LoadCycle } from "./referenceCycles";
+import { namesAfterCollectionsDiagnostics } from "./namesAfterCollectionsAtLoad";
 import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
 import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
@@ -835,7 +836,6 @@ export async function normalizedDastToSerializedComponents(
         componentInfoObjects,
         sources: normalized_root.sources,
     });
-    diagnostics.push(...nameAfterCollectionDiagnostics);
     // A reference to a name the branches of a `<conditionalContent>` or a
     // one-pick `<select>` do not all declare with one tag names nothing
     // (D13, D22), so that what it names never changes type with the active
@@ -965,6 +965,14 @@ export async function normalizedDastToSerializedComponents(
             branchReads,
             loadCycles,
         }),
+    );
+
+    // A name after a collection (`doenet-w0200`), reported once the cycles
+    // are found: nothing more for a reference into a component in error
+    // (DIAG-5), such as `$o[1].x` of `<repeat name="o"><repeat
+    // copy="$o"/></repeat>`.
+    diagnostics.push(
+        ...namesAfterCollectionsDiagnostics(nameAfterCollectionDiagnostics),
     );
 
     // What was decided of each reference written as a tag is reported now,

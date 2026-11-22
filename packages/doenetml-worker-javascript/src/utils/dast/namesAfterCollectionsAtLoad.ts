@@ -105,6 +105,47 @@ export type BranchReader = {
     parts(container: SerializedComponent): SerializedComponent[] | undefined;
 };
 
+/**
+ * A reference decided here to name nothing (`doenet-w0200`), with the
+ * collection it follows, so that the warning is dropped if the load finds
+ * either in a cycle (`doenet-e0005`, `breakReferenceCycles`): a reference to
+ * a component in error reports nothing more (DIAG-5). The warning is
+ * `diagnostic`, or, for a reference written as a tag, the mark on it.
+ */
+export type NameAfterCollection = {
+    component: SerializedComponent;
+    collection: SerializedComponent | undefined;
+    diagnostic?: DiagnosticRecord;
+};
+
+/**
+ * The warnings of `checkNamesAfterCollectionsAtLoad`, once the cycles at
+ * load are found: none for a reference, or a collection it follows, that is
+ * in error now (DIAG-5), whose tag form is then left to the run time, which
+ * reports nothing more of a reference into an error.
+ */
+export function namesAfterCollectionsDiagnostics(
+    found: NameAfterCollection[],
+): DiagnosticRecord[] {
+    const diagnostics: DiagnosticRecord[] = [];
+    for (const { component, collection, diagnostic } of found) {
+        if (
+            component.componentType === "_error" ||
+            collection?.componentType === "_error"
+        ) {
+            const mark: any = component.doenetAttributes?.typeChangeAtLoad;
+            if (mark?.code === "doenet-w0200") {
+                delete component.doenetAttributes!.typeChangeAtLoad;
+            }
+            continue;
+        }
+        if (diagnostic) {
+            diagnostics.push(diagnostic);
+        }
+    }
+    return diagnostics;
+}
+
 /** The attributes that say how many a chooser or sampler picks. */
 const PICK_ATTRIBUTES = ["numToSelect", "numSamples"];
 
@@ -124,8 +165,8 @@ export function checkNamesAfterCollectionsAtLoad({
     sources: readonly string[];
     /** The every-branch rule of the type checks (`typeChangeAtLoad.ts`). */
     branches?: BranchReader;
-}): DiagnosticRecord[] {
-    const diagnostics: DiagnosticRecord[] = [];
+}): NameAfterCollection[] {
+    const found: NameAfterCollection[] = [];
     const { componentsByIdx, copiesByCreatedIdx } = documentReferents({
         serializedComponents,
         componentInfoObjects,
@@ -213,7 +254,7 @@ export function checkNamesAfterCollectionsAtLoad({
             return false;
         }
         seen.add(node.componentIdx);
-        if (declaresBelow(node, name)) {
+        if (declaresOutsideItems(node, name)) {
             return true;
         }
         const ref = refOf(node);
@@ -224,6 +265,17 @@ export function checkNamesAfterCollectionsAtLoad({
             !((ref.unresolvedPath?.length ?? 0) > 0)
         ) {
             return writtenInside(ref.nodeIdx, name, seen);
+        }
+        if (node.componentType === "group") {
+            // a `<group>` holding one component stands for it (COLL-3)
+            const content = contentOf(node);
+            if (
+                content.length === 1 &&
+                typeof content[0] === "object" &&
+                writtenInside(content[0].componentIdx, name, seen)
+            ) {
+                return true;
+            }
         }
         // what a reference among its children, as the one an `extend` of a
         // list is made with, or a `<group>` holding one, names
@@ -239,6 +291,113 @@ export function checkNamesAfterCollectionsAtLoad({
                 writtenInside(childRef.nodeIdx, name, seen)
             ) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether a component written below `node` is named `name`, not counting
+     * what is written in a `<repeat>`'s template or the options of a
+     * `<select>` of several there, whose names belong to each of its items:
+     * `P` in `<sort name="so"><repeat …><point name="P"/></repeat></sort>`
+     * names one point of each iteration, so `$so.P` names nothing (#2638
+     * item 2).
+     */
+    function declaresOutsideItems(
+        node: SerializedComponent,
+        name: string,
+    ): boolean {
+        for (const child of node.children ?? []) {
+            if (typeof child !== "object") {
+                continue;
+            }
+            if (nameOf(child) === name) {
+                return true;
+            }
+            if (holdsItsItems(child)) {
+                continue;
+            }
+            if (declaresOutsideItems(child, name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether the names written in `node` belong to each of its items. */
+    function holdsItsItems(node: SerializedComponent) {
+        const type = writtenType(node);
+        return (
+            type !== undefined &&
+            NAMES_BELONG_TO_ITEMS.has(type) &&
+            collectionOf(node, "", new Set()) !== undefined
+        );
+    }
+
+    /**
+     * Whether `name`, after the collection `collection` written as `node`,
+     * is the name of one of its items itself, rather than of a component in
+     * an item: a component of the tag a `<collect>` collects
+     * (`$c.A` of a collected point `A`), or one a `<repeat>` or a
+     * `<select>` of several among a `<sort>`'s or `<shuffle>`'s children
+     * makes once per iteration or pick (`$so.P`). Its index alone names it,
+     * so the suggestion is `$c[1]`, not `$c[1].A`, which names nothing too
+     * (DIAG-3, #2638 item 3).
+     */
+    function isItemItself(
+        node: SerializedComponent | undefined,
+        collection: string,
+        name: string,
+    ) {
+        if (!node) {
+            return false;
+        }
+        if (collection === "collect") {
+            const collected = canonicalType(
+                literalText(attributeOf(node, "componentType")),
+            );
+            if (collected === undefined) {
+                return false;
+            }
+            for (const component of componentsByIdx.values()) {
+                if (nameOf(component) !== name) {
+                    continue;
+                }
+                const type = writtenType(component);
+                if (
+                    type !== undefined &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: type,
+                        baseComponentType: collected,
+                    })
+                ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (collection !== "sort" && collection !== "shuffle") {
+            return false;
+        }
+        for (const child of node.children ?? []) {
+            if (typeof child !== "object" || !holdsItsItems(child)) {
+                continue;
+            }
+            const parts =
+                writtenType(child) === "select"
+                    ? (child.children ?? []).filter(
+                          (option): option is SerializedComponent =>
+                              typeof option === "object" &&
+                              option.componentType === "option",
+                      )
+                    : [child];
+            for (const part of parts) {
+                for (const one of contentOf(part)) {
+                    if (typeof one === "object" && nameOf(one) === name) {
+                        return true;
+                    }
+                }
             }
         }
         return false;
@@ -669,14 +828,36 @@ export function checkNamesAfterCollectionsAtLoad({
             container = itemAsBranch(node);
             itemOf = node;
         }
+        // Two indices, the first into the items of a repeat whose item holds
+        // one `<conditionalContent>` or `<select>`, the second into what
+        // that shows (`$o3[1][1].x`), read as one index into that
+        // container (`$cc[1].x`), so a collection every branch holds is
+        // reached as it is there (#2638 item 1).
+        let indexedTwice = false;
+        if (
+            !container &&
+            path.length > 1 &&
+            first?.name === "" &&
+            (first.index ?? []).length === 2 &&
+            node &&
+            takesItemIndex(node)
+        ) {
+            const content = contentOf(itemAsBranch(node).children![0] as any);
+            const [one] = content;
+            if (content.length === 1 && typeof one === "object") {
+                container = branches.containerAt(one.componentIdx, true);
+                indexedTwice = container !== undefined;
+            }
+        }
         if (!container) {
             return undefined;
         }
         // after an index into the branch a container shows (`$cc[1]`), or
         // into the items of a repeat (`$o[1]`)
-        let inBranch = indexed;
+        const afterIndex = indexed || indexedTwice;
+        let inBranch = afterIndex;
         let names: string[] = [];
-        for (let at = indexed ? 1 : 0; at < path.length; at++) {
+        for (let at = afterIndex ? 1 : 0; at < path.length; at++) {
             const part = path[at];
             if (typeof part?.name !== "string" || part.name === "") {
                 return undefined;
@@ -693,7 +874,7 @@ export function checkNamesAfterCollectionsAtLoad({
             const declared = branches.declares(
                 container,
                 names,
-                indexed && names.length === 1,
+                afterIndex && names.length === 1,
             );
             const next = path[at + 1];
             if (declared === "none") {
@@ -722,7 +903,7 @@ export function checkNamesAfterCollectionsAtLoad({
                     names,
                     path,
                     at,
-                    indexed && names.length === 1,
+                    afterIndex && names.length === 1,
                 );
             }
             if (declared !== "ok") {
@@ -782,7 +963,7 @@ export function checkNamesAfterCollectionsAtLoad({
                     names,
                     path,
                     at,
-                    indexed && names.length === 1,
+                    afterIndex && names.length === 1,
                 );
             }
             itemOf = undefined;
@@ -847,6 +1028,124 @@ export function checkNamesAfterCollectionsAtLoad({
         return undefined;
     }
 
+    /**
+     * For a name written inside a collection, after a `<group>` or a bare
+     * reference that stands for the collection (COLL-3), the reference made
+     * as if written after the collection, which names that component as it
+     * does there (D59 decision 8, #2638 item 5): `$g.P` of `<group
+     * name="g">$pl</group>` with `<point name="P">` written in `pl` is `P`,
+     * as `$pl.P` is, rather than a blank. The resolver can't reach it, as
+     * `P` is not written in `g`. Left as it is when the name is not written
+     * once there.
+     */
+    function standInAsWritten(
+        component: SerializedComponent,
+        ref: { nodeIdx: number; unresolvedPath: any[] | null },
+        name: string,
+    ) {
+        let idx = ref.nodeIdx;
+        const seen = new Set<number>();
+        for (;;) {
+            const node =
+                componentsByIdx.get(idx) ?? copiesByCreatedIdx.get(idx);
+            if (!node || seen.has(idx)) {
+                return;
+            }
+            seen.add(idx);
+            const nodeRef = refOf(node);
+            const bare =
+                node.componentType === "_copy" &&
+                (writtenType(node) === undefined ||
+                    (writtenType(node) === "group" && !holdsContent(node)));
+            if (bare) {
+                if (
+                    !nodeRef ||
+                    nodeRef.nodeIdx < 0 ||
+                    (nodeRef.unresolvedPath?.length ?? 0) > 0
+                ) {
+                    return;
+                }
+                idx = nodeRef.nodeIdx;
+                continue;
+            }
+            if (node.componentType === "group") {
+                const content = contentOf(node);
+                if (content.length !== 1 || typeof content[0] !== "object") {
+                    return;
+                }
+                idx = content[0].componentIdx;
+                continue;
+            }
+            const named = namedBelow(node, name, []);
+            let target: number;
+            let rest: any[];
+            if (named.length === 1) {
+                target = named[0].componentIdx;
+                rest = (ref.unresolvedPath ?? []).slice(1);
+                if ((ref.unresolvedPath?.[0]?.index ?? []).length > 0) {
+                    return;
+                }
+            } else if (named.length === 0 && idx !== ref.nodeIdx) {
+                // written in what it copies (`<pointList extend="$pl"/>`),
+                // which the copy resolves, as for `$pl2.P`
+                target = idx;
+                rest = ref.unresolvedPath ?? [];
+            } else {
+                return;
+            }
+            if (target === ref.nodeIdx) {
+                return;
+            }
+            const originalPath: any[] = (ref as any).originalPath ?? [];
+            const extending: any = component.extending;
+            const key = Object.keys(extending)[0];
+            component.extending = {
+                [key]: {
+                    ...(ref as any),
+                    nodeIdx: target,
+                    unresolvedPath: rest.length > 0 ? rest : null,
+                    nodesInResolvedPath: [
+                        ...((ref as any).nodesInResolvedPath ?? []),
+                        target,
+                    ],
+                    // what the run time resolves the rest of the path from
+                    // (`refResolutionDependencies.ts`), which would
+                    // otherwise look for `P` in `g`
+                    standIn: {
+                        origin: idx,
+                        from:
+                            originalPath.length -
+                            (ref.unresolvedPath?.length ?? 0),
+                    },
+                },
+            } as any;
+            return;
+        }
+    }
+
+    /**
+     * The components written below `node` named `name`, not counting what is
+     * written in the items of a repeat or a select of several there.
+     */
+    function namedBelow(
+        node: SerializedComponent,
+        name: string,
+        found: SerializedComponent[],
+    ) {
+        for (const child of node.children ?? []) {
+            if (typeof child !== "object") {
+                continue;
+            }
+            if (nameOf(child) === name) {
+                found.push(child);
+            }
+            if (!holdsItsItems(child)) {
+                namedBelow(child, name, found);
+            }
+        }
+        return found;
+    }
+
     /** Check the reference `component`, a `_copy` or a target. */
     function check(
         component: SerializedComponent,
@@ -865,35 +1164,54 @@ export function checkNamesAfterCollectionsAtLoad({
             return;
         }
         const fullPath: any[] = ref.unresolvedPath ?? [];
-        const found = collectionOnPath(ref.nodeIdx, fullPath);
-        if (!found) {
+        const onPath = collectionOnPath(ref.nodeIdx, fullPath);
+        if (!onPath) {
             return;
         }
-        const { nodeIdx, at, collection, index } = found;
+        const { nodeIdx, at, collection, index } = onPath;
+        const collectionNode =
+            componentsByIdx.get(nodeIdx) ?? copiesByCreatedIdx.get(nodeIdx);
         const path = fullPath.slice(at);
         const first = path[0];
+        if (isOwnProperty(collection, first.name)) {
+            return;
+        }
         if (
-            isOwnProperty(collection, first.name) ||
-            (!NAMES_BELONG_TO_ITEMS.has(collection) &&
-                allNames.has(first.name) &&
-                writtenInside(nodeIdx, first.name))
+            !NAMES_BELONG_TO_ITEMS.has(collection) &&
+            allNames.has(first.name) &&
+            writtenInside(nodeIdx, first.name)
         ) {
+            if (at === 0) {
+                // through a `<group>` or a reference standing for the
+                // collection (`$g.P` of `<group name="g">$pl</group>`)
+                standInAsWritten(component, ref, first.name);
+            }
             return;
         }
         const reference = doenetMLReferenceAsWritten(ref.originalPath, sources);
+        const itemItself = isItemItself(
+            writtenCollection(nodeIdx),
+            collection,
+            first.name,
+        );
         const args = {
             name: first.name,
             component: collection,
-            kind: isItemName(nodeIdx, collection, first.name)
-                ? "name"
-                : "property",
+            kind: itemItself
+                ? "item"
+                : isItemName(nodeIdx, collection, first.name)
+                  ? "name"
+                  : "property",
             suggestion:
                 withIndex(
                     { ...ref, unresolvedPath: path },
                     reference,
                     sources,
-                    itemNameInOtherCase(nodeIdx, first.name),
+                    itemItself
+                        ? undefined
+                        : itemNameInOtherCase(nodeIdx, first.name),
                     index,
+                    itemItself,
                 ) ?? reference,
         };
         const isTag =
@@ -910,10 +1228,13 @@ export function checkNamesAfterCollectionsAtLoad({
                 ...component.doenetAttributes,
                 typeChangeAtLoad: { code: "doenet-w0200", args },
             };
+            found.push({ component, collection: collectionNode });
             return;
         }
-        diagnostics.push(
-            codedDiagnostic({
+        found.push({
+            component,
+            collection: collectionNode,
+            diagnostic: codedDiagnostic({
                 type: "warning",
                 // written out, as `lint:i18n` reads the code beside `code:`
                 code: "doenet-w0200",
@@ -921,7 +1242,7 @@ export function checkNamesAfterCollectionsAtLoad({
                 position: component.position,
                 sourceDoc: component.sourceDoc,
             }),
-        );
+        });
         // a blank, as a reference that names nothing is (D37, `Copy.js`)
         const extending: any = component.extending;
         const key = Object.keys(extending)[0];
@@ -986,7 +1307,7 @@ export function checkNamesAfterCollectionsAtLoad({
     }
 
     visit(serializedComponents);
-    return diagnostics;
+    return found;
 }
 
 /** The reference a `_copy`, or a reference in an attribute, is of. */
@@ -1097,6 +1418,8 @@ function withIndex(
     sources: readonly string[],
     corrected?: string,
     index = "[1]",
+    /** the name is an item itself, which the index names (`$c.A` → `$c[1]`) */
+    dropName = false,
 ) {
     const path: any[] = ref.unresolvedPath ?? [];
     const original: any[] = ref.originalPath ?? [];
@@ -1127,9 +1450,14 @@ function withIndex(
     // case (`$r.X` → `$r[1].x`), when it is written there as it is named.
     const name = path[0].name;
     const nameEnd = at + 1 + name.length;
-    const rest =
-        corrected !== undefined && source.substring(at + 1, nameEnd) === name
-            ? `.${corrected}${source.substring(nameEnd, end)}`
-            : source.substring(at, end);
+    const writtenAsNamed = source.substring(at + 1, nameEnd) === name;
+    if (dropName && !writtenAsNamed) {
+        return undefined;
+    }
+    const rest = dropName
+        ? source.substring(nameEnd, end)
+        : corrected !== undefined && writtenAsNamed
+          ? `.${corrected}${source.substring(nameEnd, end)}`
+          : source.substring(at, end);
     return `${dollars}${source.substring(start, at)}${index}${rest}`;
 }

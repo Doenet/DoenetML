@@ -86,6 +86,13 @@ export type SerializedRefResolution = {
     unresolvedPath: SerializedRefResolutionPathPart[] | null;
     originalPath: SerializedRefResolutionPathPart[];
     nodesInResolvedPath: number[];
+    /**
+     * For a name written inside the collection a `<group>` or a reference
+     * stands for (`$g.P` of `<group name="g">$pl</group>`), the component
+     * the run time resolves the path from, and the index in `originalPath`
+     * of the part to start at (`namesAfterCollectionsAtLoad.ts`).
+     */
+    standIn?: { origin: number; from: number };
 };
 
 export interface SerializedRefResolutionPathPart {
