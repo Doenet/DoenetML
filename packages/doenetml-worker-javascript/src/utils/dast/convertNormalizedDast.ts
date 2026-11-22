@@ -2386,13 +2386,29 @@ function createInitialComponentFromAttribute({
 }
 
 /**
+ * `children` with each run of adjacent strings joined into one.
+ */
+function joinAdjacentText<T>(children: (T | string)[]): (T | string)[] {
+    const joined: (T | string)[] = [];
+    for (const child of children) {
+        const last = joined[joined.length - 1];
+        if (typeof child === "string" && typeof last === "string") {
+            joined[joined.length - 1] = last + child;
+        } else {
+            joined.push(child);
+        }
+    }
+    return joined;
+}
+
+/**
  * Given that `attrDef` calls for creating a `PrimitiveAttribute` from `attribute`,
  * create the `PrimitiveAttributeValue` from the attribute's children,
  * based on the type of primitive called for by `attrDef`.
  */
 function createPrimitiveFromAttribute({
     attrDef,
-    attribute,
+    attribute: givenAttribute,
 }: {
     attrDef: AttributeDefinition<any>;
     attribute: UnflattenedAttribute;
@@ -2402,6 +2418,13 @@ function createPrimitiveFromAttribute({
             "Cannot call initialPrimitiveFromAttribute unless have createPrimitiveOfType",
         );
     }
+    // A `$` written as a reference (`&#36;`, `&dollar;`) is handed over as a
+    // piece of text of its own, beside the text around it: the pieces are
+    // one value (`staticName="a&#36;1"` is `a$1`, Doenet/DoenetML#2643 item 7).
+    const attribute = {
+        ...givenAttribute,
+        children: joinAdjacentText(givenAttribute.children),
+    };
 
     if (attribute.children.length === 0) {
         // if attribute is a boolean or has a `valueForTrue`,
