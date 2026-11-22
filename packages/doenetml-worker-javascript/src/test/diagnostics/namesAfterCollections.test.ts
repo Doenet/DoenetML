@@ -344,6 +344,32 @@ describe("A tag made from a name or a property after a collection (D59)", () => 
     });
 });
 
+describe("A list's text, LaTeX and value are its own (D59, wholeListProperties)", () => {
+    it("read all the entries together, and a tag of one is made only from a list of one entry", async () => {
+        const { texts, diagnostics } = await both(
+            `<mathList name="ml">x 2y</mathList><mathList name="m1">z</mathList><sequence name="s" to="3"/>
+<p name="p1">$ml.value</p><p name="p2">$ml.text</p><p name="p3">$ml.latex</p><p name="p4">$s.value</p>
+<math name="a" extend="$ml.value"/><text name="b" extend="$ml.text"/><math name="c" extend="$m1.value"/>
+<number name="e" extend="$s.value"/><p name="p5">$c</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+        );
+        expect(texts).eqls({
+            p1: "x, 2 y",
+            p2: "x, 2 y",
+            p3: "x, 2 y",
+            p4: "1, 2, 3",
+            p5: "z",
+        });
+        // A tag of the property of a list of several entries, as of the list
+        // itself (`<math extend="$ml"/>`)
+        expect(diagnostics).eqls([
+            "error doenet-e0064",
+            "error doenet-e0064",
+            "error doenet-e0064",
+        ]);
+    });
+});
+
 describe("A one-shown-thing tag stands for what it shows (D59 rule 2, COMP-11)", () => {
     it("a conditionalContent and a select that picks one", async () => {
         const { texts, diagnostics } = await both(
