@@ -61,7 +61,7 @@ from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't 
   `valueName` included, so the example above shows `SIMPLIFY` applied with a warning for now;
 - the repo's own wrong-case names are fixed.
 
-**Known violations** (#2627):
+**Known violations** (#2627, #2647):
 - **fixed by #2632** (D60): the all-lowercase compound names are camelCase (`hAlign`, `vAligns`,
   `xIntercept`, `circumRadius`, `xOffset`, `xThreshold`, `rightHandSides`, and `xScale`, `yScale`,
   `xLabel` found by its scan). An old attribute spelling gets `w0197`; an old property spelling
@@ -72,11 +72,19 @@ from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't 
   another case suggests the index form (`$poly.Vertex2` → `$poly.vertices[2]`), and `w0044` the
   property; a `sortByProp` naming no property is **`doenet-w0198`** at load; `w0065` and `e0003`
   are retired;
-- the language server still matches tag names and a module's declared attributes without case;
-- an attribute written twice in the same case is collapsed silently (decided, D62: a warning at
-  the second, naming which is kept);
-- a tag name written as a value (`<collect componentType="Point">`) is read without case
-  (decided, D62: a value naming a tag or property is a name, exact, with `w0197` for one release);
+- **fixed by #2641** (D62): the language server matches tag names and a module's declared
+  attributes exactly, with the core's suggestions and `w0197`; an attribute written twice in the
+  same case is **`doenet-w0201`** at the second, the first kept; a value naming a tag or property
+  (`<collect componentType="Point">`, `<sort sortByProp="X">`) is given its spelling with
+  `w0197`, and so is an attribute a `<collect>` passes on (`DisplayDigits`); the load checks
+  compare attribute names exactly; an attribute read at load written with a reference
+  (`sortByProp="$t"`, `<sort type="$t">`) is **`doenet-e0090`** at the attribute, also on an
+  `extend` or `copy`, where it used to stop the document;
+- left (#2647): `<collect componentType="$t">` is allowed and matched only as the document runs
+  (for a decision: recommended `e0090`, as for `sortByProp`); `<select type="Math">` is
+  `w0145`, though a `type` from a fixed list is a keyword; on a `<collect>`, a passed-on
+  attribute no tag has, or one written beside its right spelling, is ignored silently;
+  `sortByProp=" x "` isn't trimmed;
 - `w0197` becomes `e0004` in a later release.
 
 ### NAME-1: nearest match wins; a tie is an error, not a guess (Tier 1)
@@ -822,7 +830,8 @@ That is worth doing there, not retrofitting into the JavaScript core.
       and `<number name="go">` in another are two types;
     - a property is typed at load (TYPE, D45; done by #2602 and #2603), and a repeat's
       `valueName` has the one type of its `for`'s items (D44, #2600). Only a property whose type
-      the DoenetML doesn't yet decide is **`doenet-e0067`** (TYPE's known violations, #2606).
+      the DoenetML doesn't decide is TYPE-3's **`doenet-e0091`**, at the reference (#2642).
+      `doenet-e0067` remains only for a composite holding such a reference (#2646).
   - a type that already is the tag written counts as that tag: an `<integer>` case and a
     `<number>` else are one type for a `<number>` or a `<numberList>`, but not for an
     `<integer>` or a `<math>`.
@@ -878,7 +887,8 @@ Diagnostics:
   **`doenet-i0055`** while no case of a `<conditionalContent>` with no `<else>` is true;
 - **`doenet-e0065`:** any other pair;
 - **`doenet-e0066`:** different types, suggesting `<T>$x</T>`, for a scalar or a list tag;
-- **`doenet-e0067`:** a property whose type isn't decided at load (TYPE's known violations, #2606);
+- **`doenet-e0067`:** a composite holding a reference to a property whose type isn't decided at
+  load; to be replaced by `e0091` at the reference (#2646);
 - **`doenet-i0053`:** an info for a value that does not allow the tag (a point from a non-tuple,
   a boolean from a math that is not true or false). The tag is missing (D37, #2458);
 - **`doenet-i0054`:** an info for an index that names nothing now (REF-0).
@@ -1059,11 +1069,11 @@ the document renders.
   effect there instead.
 - **A reference to an errored extend** (`$e`, `<repeat copy="$e"/>`) shows the error again and
   reports it again at its own location.
-- **Known violations** (#2606): an extend of a composite holding the tag
-  (`<answer extend="$cc" weight="2"/>` of a `<conditionalContent>` holding an answer, and the same
-  for a `<choiceInput>`'s `e0058`/`e0059`) gets no error, at load or once the case is shown.
+- **Through a composite** (done by #2642): an extend of a `<conditionalContent>` holding the
+  tag in every case, or of a one-pick `<select>` holding it (`<answer extend="$cc" weight="2"/>`,
+  a `<choiceInput>`'s `e0058`/`e0059`), gets the same errors, as one through a `<group>` did.
   `<answer copyWithState="$a">` with an `<award>` added is allowed (D52 decision 3): it is its own
-  answer starting from a snapshot (CPY-2), as `copy` makes one.
+  answer starting from a snapshot (CPY-2), as `copy` makes one; pinned by a test (#2642).
 
 Evidence: `T/copying/extend_cannot_change_content.test.ts` (91 tests, #2409): bare, named and
 appearance-only extends of 18 tags, display settings taking effect, a named extend reaching

@@ -2781,8 +2781,9 @@ D47 decision 3:** it is a type mix with a warning, unless the author asks with
 ## D45. Every value a reference reaches has one type, decided from the DoenetML (decided, Tier 1)
 
 **Decided** (November 2026). The principle is TYPE in
-[values-and-attributes.md](values-and-attributes.md). Implementation: #2568, done by #2602 and #2603
-except for the cases the DoenetML doesn't yet decide (#2606, D52).
+[values-and-attributes.md](values-and-attributes.md). Implementation: #2568, done by #2602 and #2603,
+and finished by #2642 (closing #2606, D52): no type is worked out as the document runs, and one the
+DoenetML doesn't decide is `e0091` at the reference. Leftovers #2646.
 
 **Why.** D36, REF-5, COMP-11, COLL-4 and D44 each make a type known from the DoenetML. Eleven
 properties still set their type as they compute (`hasVariableComponentType` with
@@ -3116,6 +3117,11 @@ it. What's left of TYPE-3 (#2606) mostly follows from these three:
 With these settled, each remaining undecided case in #2606 is either typed at load or an error at
 the reference that needs it (TYPE-3), and `hasVariableComponentType` can be removed.
 
+**Done by #2642** (PR 31), all three, and `hasVariableComponentType` removed. TYPE-3's error is
+`doenet-e0091`. Not reached: a missing list response is still typed `_missing`, and some `e0091`s
+are for types the DoenetML does decide (`forAnswer` inputs by place, a path through an index):
+#2646.
+
 ## D53. Decisions from the review of #2569 (PR 23; decided, November 2026)
 
 1. **A sort, shuffle or sortIndices doesn't change its items** (#2569 item 9; COLL-4, COMP-4).
@@ -3292,3 +3298,9 @@ all-lowercase compound, not only the names above. A new compound name is camelCa
    fallback release, a value in another case is applied with `w0197` naming the right spelling,
    as for an attribute. Keywords in values (`simplify="FULL"`, `hide="True"`) stay
    case-insensitive (D51 decision 3).
+
+**Done by #2641** (PR 44). Decision 1 is `doenet-w0201`, keeping the first. Decision 2 covers
+`componentType` and `sortByProp` (`propForSort` is no attribute), and an attribute a `<collect>`
+passes on. An attribute read at load and written with a reference is `doenet-e0090`. Left
+(#2647): `componentType="$t"` is still allowed (for a decision), `<select type="Math">` isn't read
+as a keyword.

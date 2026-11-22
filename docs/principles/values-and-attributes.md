@@ -82,8 +82,8 @@ So whether `<math extend="$a.currentResponses[2]"/>` is allowed, and what `$x.p`
   has its entry's type. An index that can reach several entries is typed only if they share one
   type, the every-branch rule of COMP-11.
 - **TYPE-3: a type that can't be decided is an error at load (Tier 2),** at the component or the
-  reference that needs it. This replaces REF-5's `e0067` for properties. (Not yet complete:
-  see the known violations below.)
+  reference that needs it, **`doenet-e0091`** (done by #2642). This replaces REF-5's `e0067`
+  for properties.
 - **Literal text** in a list is typed at load: by `type` when written; otherwise, in the
   operators that compare or count (`<sort>`, `<shuffle>`, `<tally>`, …), numbers if every piece
   reads as one and texts otherwise, and elsewhere (`<repeat for>`, `<select>`'s sugar) math
@@ -119,26 +119,39 @@ in a case not shown (DIAG-7):
 <point extend="$a.currentResponses[2]"/>  <!-- error at load: a text can't make a point -->
 ```
 
-**Known violations** (#2606). TYPE-3 isn't complete yet. When the type of a response or property
-can't be decided at load, it is worked out as the document runs, as before. It is not an error at load.
-A tag made from it is checked once the document runs, and one made from a group holding it is still
-`e0067`. These cases are:
-- a response that may be missing as the document runs (an index past the end, a reference
-  naming nothing, a `<choiceInput>` with nothing selected). The run time records it as a blank
-  math whatever its type; decided (D52 decision 1): it has its entry's type;
-- a property whose entries are made into points or vectors (`$c.center`, `$pl.vertices`,
-  `$v.displacement`), which its class declares a math; decided (D52 decision 2): the class
-  declares the point or vector type it gives;
-- in an `<answer>`: the input its sugar makes, when that may be skipped; a list response beside
-  responses of another type; cases holding different numbers of responses; a function as a
-  response; several inputs of different types written `forAnswer` it; a composite written
-  `isResponse`; responses a `<select>` or `<repeat>` makes in an award; an answer made with `copy`
-  that writes children of its own;
-- a choice holding a reference to an answer's response, and a `<group>` in a `<tally>`;
-- a `<group>` in a `<tally>` isn't checked for a mix (D45 decision 6): a `<number>` and a `<text>`
-  in one group, or a group of numbers beside a `<text>`, count as texts with no error.
+**Done by #2642** (closing #2606; D52). No type is worked out as the document runs:
+`hasVariableComponentType` and the saved `submittedResponsesComponentType` are gone, and saved
+state carries no type (TYPE-4).
+- **TYPE-3's error is `doenet-e0091`,** in place of a reference that reads a property whose type
+  the DoenetML doesn't decide: in practice an `<answer>`'s responses of more than one type in
+  places known only as the document runs (beside a list whose length can change, made by a
+  `<select>` or `<repeat>` in an award, cases holding different numbers of responses). It covers
+  `$ans`, `$ans.currentResponses`, `$ans.submittedResponse2`, bare, as a tag or in an
+  expression, and advises reading the input instead. The answer still grades.
+- a missing response has its entry's type (D52 decision 1): a text `＿`, a math `＿`, a number
+  `NaN`, a boolean `false`. A reference that names nothing is a blank math, decided at load;
+- a property made into points or vectors (`$c.center`, `$pl.vertices[2]`, `$v.displacement`)
+  has the type that wraps it (D52 decision 2), so `<text extend="$c.center"/>` is `e0065`;
+- the answer cases #2603 left are typed at load: the sugar's skipped input, a function, an
+  `<award copy>`, `<collect isResponse>`, a list of a length known at load, an answer made
+  with `copy` that writes children, choices in a `<sort>` or holding a `<lorem>`;
+- an answer's responses of one type are one list (VAL-1): `$ans` of two `<mathInput>`s is one
+  `<mathList>`;
+- a `<group>` in a `<tally>` or `<markers>` counts each component, so a number beside a text is
+  `e0076`.
 
-`hasVariableComponentType` stays until these are decided or made errors.
+**Known violations** (#2646). Some `e0091`s are for types the DoenetML does decide, so TYPE-2
+asks for them to be typed:
+- several inputs written `forAnswer` an answer, of different types: their order is their
+  order in the document, but the run time orders them as it registers them;
+- a response reached by a path through an index or an extend (`$r[1].q.x`);
+- an extended list (`<textList extend="$tl0"/>`) beside a response of another type;
+- a literal index into responses only partly known (index 1 of `[text, math × any number]`).
+
+Also: a reference to an undecided type that only the run time finds makes nothing, with no
+diagnostic; `e0067` is still reachable for a composite holding such a reference;
+`<text extend="$pl.vertices"/>` (all the vertices) is an empty text with no error; a missing
+list response is typed `_missing`, not its entry type.
 
 ---
 

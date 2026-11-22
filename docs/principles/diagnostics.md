@@ -183,6 +183,10 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
   `$vc.numVariants`) names nothing, with **`doenet-w0199`** saying it shows nothing and its
   attributes can't be read. `<lorem generateParagraphs="$s.sectionNumber"/>` is no longer a false
   `e0005`. **Fixed by #2640:** `e0065` for `<text extend="$vc"/>` no longer advises writing `$vc`;
+- **fixed by #2641:** an attribute read at load written with a reference (`sortByProp="$t"`,
+  `<sort type="$t">`) on a tag made with `extend`, `copy` or `copyWithState` stopped the document;
+  it is now **`doenet-e0090`** at the attribute, and the rest loads. An attribute with no value
+  there (`e0072`) is caught the same way, though still marked at the tag (#2647);
 - **fixed by #2573:** a reference to a component in error reports nothing more (no `w0104` for
   `$x.bar` of an `_error`);
 - **fixed by #2609:** a document with millions of unique variants loads in any variant (it ran out
