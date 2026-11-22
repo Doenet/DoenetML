@@ -445,9 +445,9 @@ the section-number check against the run time (`sectionNumberingDifferential.tes
 **Known violations** (#2633):
 - the section-number edges give a false `e0005` for a `<conditionalContent>` before `s` whose
   condition reads the number and whose case may make a section: four in the test's sample of
-  150. For a decision: an edge only to a composite whose count the number can change;
-- two independent cycles at load still stop the document (the rebuild meets the second). For a
-  decision: repeat the backstop, with a cap;
+  150. Decided (D61): an edge only to a composite whose count the number can change;
+- two independent cycles at load still stop the document (the rebuild meets the second).
+  Decided (D61): repeat the backstop, up to 5 rebuilds;
 - in a chain of copies, the blame can fall on a middle reference that doesn't break the cycle;
 - a cycle that appears only after an update, or that the load never reaches (a hidden point
   reading its own coordinate in a repeat, read later), still stops the document (D14).

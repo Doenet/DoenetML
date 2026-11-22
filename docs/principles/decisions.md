@@ -3197,8 +3197,8 @@ known violation).
    backstop catches it) rather than adding one (a false `e0005`). **Amended by #2625's finding:**
    this doesn't hold for an edge to a composite whose count the number changes
    (`<repeatForSequence to="$s.sectionNumber">`). That cycle runs away without throwing, so only
-   the edge stops it. Edges stay for those; an edge to a case that can only flip may be dropped
-   (#2633 item 1, for a decision).
+   the edge stops it. Edges stay for those; an edge to a case that can only flip is dropped
+   (D61 decision 1).
 3. A generated differential test pins the numbering check against the run time. It runs each
    generated document with the number edges on and off, and CI runs a fixed sample.
 4. **Still a known violation:** a cycle that appears only after an update still stops the
@@ -3255,3 +3255,17 @@ old attribute spellings, since they differ only in case. A property written the 
 nothing, with a suggestion. Single words (`endpoints`, `eigenvalues`) are not in scope. The rename covers attributes and public
 properties alike: the implementing PR scans every declared attribute and public property for an
 all-lowercase compound, not only the names above. A new compound name is camelCase.
+
+## D61. Decisions from the review of #2625 (decided, November 2026)
+
+1. **A section's number gets a load-time edge only to a composite whose count it can change**
+   (#2633 item 1). That means a `<repeatForSequence>`'s `from`/`to`/`length`, a `<sequence>`'s, a
+   `<repeat>`'s `for`, a `<select>`'s `numToSelect`, and anything else that makes a section a variable
+   number of times. Such a cycle runs away without throwing, so only the edge stops it (D57
+   decision 2, amended). A cycle through a `condition` or a case can only flip a case, so it gets no
+   edge: the run time settles, reports a loop at the composite, or throws and the load backstop
+   catches it. This removes the false `e0005`s #2625's differential test found (`KNOWN_FALSE_ERRORS`).
+2. **The load backstop repeats, with a cap** (#2633 item 2; amends D57 decision 1's "once"). Each
+   rebuild keeps the nodes already blamed and blames one more, up to 5 rebuilds. So two independent
+   cycles at load are each `e0005`. Past the cap, the document stops as before. Only documents that
+   would otherwise stop pay for the extra loads.
