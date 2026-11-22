@@ -675,7 +675,9 @@ export default class ValueRef extends BaseComponent {
      * made at run time is missing only when its referent is a missing
      * component (`fixedReferentMissingDefinition`).
      * `pastEndOfList` (`pastEndOfListDefinition`), which a list asks of its
-     * children, is likewise the reference's own.
+     * children, is likewise the reference's own. So is `namesNothing`
+     * (`namesNothingDefinition`), which a `<point>` or `<vector>` asks of
+     * what it holds (`contentNamesNothingDefinition`, #2596).
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
@@ -688,6 +690,17 @@ export default class ValueRef extends BaseComponent {
                     this.fixedReferent
                         ? fixedReferentMissingDefinition(this.fixedReferent)
                         : valueMissingDefinition(),
+                ],
+            ];
+        }
+        if (stateVariable === "namesNothing") {
+            return [
+                [
+                    stateVariable,
+                    namesNothingDefinition(
+                        this.fixedReferent,
+                        this.componentInfoObjects,
+                    ),
                 ],
             ];
         }
@@ -1253,6 +1266,110 @@ function fixedReferentMissingDefinition(fixedReferent) {
                     valueMissing:
                         Boolean(dependencyValues.targetMissing) ||
                         Boolean(dependencyValues.entryMissing),
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The definition of `namesNothing` of a value reference: whether it names
+ * nothing now, which makes a `<point>` or `<vector>` holding only it missing
+ * (`contentNamesNothingDefinition` in `utils/missing.ts`, D40, D49, #2596).
+ * It does so with no referent, at an entry of a list past its end or blank
+ * (`<point>$ml[3]</point>` of a two-entry `<mathList>`, `$mb[2]` of
+ * `<mathList name="mb">1 $nothing</mathList>`), and, as a reference to a
+ * whole component (`$Q`), while that component is made for a reference that
+ * names nothing, or holds only such references, itself
+ * (`<point name="Q">$nothing</point>`).
+ *
+ * Unlike `valueMissing`, it never reads whether its referent is missing
+ * (`valueMissing`), and of a property (`$(v.tail)`) it reads nothing of the
+ * referent but the list entry: a vector's `valueMissing` reads its `head`
+ * and `tail`, so reading it here would make a cycle of a point and a vector
+ * defined from each other (`head="$(v1.tail)"`), and of a vector whose
+ * `displacement` is its own `head`. What a whole component holds is read
+ * only through its content, which is a cycle only where its value is too.
+ */
+function namesNothingDefinition(fixedReferent, componentInfoObjects) {
+    return {
+        ...(fixedReferent
+            ? {}
+            : { stateVariablesDeterminingDependencies: ["referentInfo"] }),
+        returnDependencies({ stateValues = {} }) {
+            const referentInfo = fixedReferent ?? stateValues.referentInfo;
+            if (!referentInfo) {
+                return {};
+            }
+            const dependencies = {
+                hasReferent: { dependencyType: "value", value: true },
+            };
+            if (referentInfo.listEntryPosition !== undefined) {
+                // past the end, the entry holds no value; blank, it is
+                // marked missing (`entryMissing2`)
+                dependencies.entry = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: referentInfo.variableName,
+                    variablesOptional: true,
+                };
+                dependencies.entryMissing = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: `entryMissing${referentInfo.listEntryPosition}`,
+                    variablesOptional: true,
+                };
+            } else {
+                // A component made for a reference that names nothing
+                // (`namesNothing`), or one missing while its content is only
+                // missing children (`contentMissing`, a
+                // `<circle>$nothing</circle>`), whatever is read of it
+                // (`center="$(c.center)"`); of the whole component (`$Q`),
+                // also one missing while it holds only references that name
+                // nothing (`contentNamesNothing`, a
+                // `<point>$nothing</point>`). Each is read only of a type it
+                // makes missing: a `<math>` holds the blank, and reading what
+                // an `<evaluate>` holds would read a `<math>` written in it
+                // that holds this reference. Never a point's or vector's
+                // `contentNamesNothing` through a property of it: a vector
+                // whose `displacement` is its own `head` would read itself.
+                const referentClass =
+                    componentInfoObjects.allComponentClasses[
+                        referentInfo.componentType
+                    ];
+                const variableNames = ["namesNothing"];
+                if (referentClass?.missingWhenContentMissing) {
+                    variableNames.push("contentMissing");
+                }
+                if (
+                    referentClass?.missingWhenContentNamesNothing &&
+                    (referentInfo.referencedWholeComponent ||
+                        referentInfo.referencedPrimaryValue)
+                ) {
+                    variableNames.push("contentNamesNothing");
+                }
+                for (const variableName of variableNames) {
+                    dependencies[variableName] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: referentInfo.componentIdx,
+                        variableName,
+                        variablesOptional: true,
+                    };
+                }
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    namesNothing:
+                        !dependencyValues.hasReferent ||
+                        ("entry" in dependencyValues &&
+                            dependencyValues.entry == null) ||
+                        Boolean(dependencyValues.entryMissing) ||
+                        Boolean(dependencyValues.namesNothing) ||
+                        Boolean(dependencyValues.contentMissing) ||
+                        Boolean(dependencyValues.contentNamesNothing),
                 },
             };
         },

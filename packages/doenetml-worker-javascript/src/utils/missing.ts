@@ -1,3 +1,5 @@
+import { contentGivesACoordinate } from "./coordinateContent";
+
 /**
  * Missing values and missing components (D37, VAL-5).
  *
@@ -90,7 +92,10 @@ export function contentMissingDefinition() {
  * (`$nothing`, `$pl[3]` while `pl` has two points), each made a missing
  * component (`doenetAttributes.missing`, whose `namesNothing` is `true`), or
  * a blank entry of a list (`$pb[2]` of `<pointList name="pb">(1,2)
- * $nothing</pointList>`, whose shadow and its adapter define `namesNothing`).
+ * $nothing</pointList>`, whose shadow and its adapter define `namesNothing`),
+ * or a value reference that names nothing (`<point>$ml[3]</point>` past the
+ * end of a `<mathList>`, `<point>$Q</point>` of a `Q` that holds only such
+ * references: `namesNothing` in `ValueRef.js`, #2596).
  * A point or vector made from an attribute (`center="$nothing"`) holds its
  * content in its `coords` or `displacement` (`attributeName`). It makes a
  * shape whose point that is missing (`BaseComponent.missingWhenPointsMissing`,
@@ -100,9 +105,44 @@ export function contentMissingDefinition() {
  * which for a reference to a property of the shape
  * (`<ray through="$(r.endpoint)">`) would read the shape again.
  */
-export function contentNamesNothingDefinition(attributeName?: string) {
+export function contentNamesNothingDefinition(
+    attributeName?: string,
+    {
+        coordinateAttributes = [],
+        anyChild = false,
+    }: {
+        /**
+         * Whether one child that names nothing is enough, beside other
+         * content: the `<coords>` holding a point's or vector's whole content
+         * (`<ray through="(1,2) $nothing"/>`, two things in one point,
+         * #2596). A blank takes part in a math, which can hold it, but not
+         * in a point, which can't; a blank in one coordinate of a tuple is in
+         * that coordinate's math (`<point>($nothing, 2)</point>` is
+         * `(＿, 2)`).
+         */
+        anyChild?: boolean;
+        /**
+         * The attributes that give a point's coordinates one by one (`x`,
+         * `y`, `z`), which the content is read after (D49, #2596): it names
+         * nothing only where it gives a coordinate they don't
+         * (`contentGivesACoordinate`), so `<point x="3" y="4">$nothing</point>`
+         * is the point `(3, 4)`, and `<point x="3">$nothing</point>` is
+         * missing.
+         */
+        coordinateAttributes?: string[];
+    } = {},
+) {
     return {
         returnDependencies: () => ({
+            ...Object.fromEntries(
+                coordinateAttributes.map((name) => [
+                    `coordinate_${name}`,
+                    {
+                        dependencyType: "attributeComponent",
+                        attributeName: name,
+                    },
+                ]),
+            ),
             children: {
                 dependencyType: "child",
                 includeAllChildren: true,
@@ -124,16 +164,42 @@ export function contentNamesNothingDefinition(attributeName?: string) {
             dependencyValues,
             componentInfoObjects,
         }: {
-            dependencyValues: { children: any[]; attribute?: any };
+            dependencyValues: {
+                children: any[];
+                attribute?: any;
+                [key: string]: any;
+            };
             componentInfoObjects: any;
         }) {
-            if (dependencyValues.attribute?.stateValues?.contentNamesNothing) {
-                return { setValue: { contentNamesNothing: true } };
+            if (
+                coordinateAttributes.length > 0 &&
+                !contentGivesACoordinate(
+                    coordinateAttributes.map(
+                        (name) =>
+                            dependencyValues[`coordinate_${name}`] != null,
+                    ),
+                )
+            ) {
+                // the attributes give every coordinate it would
+                return { setValue: { contentNamesNothing: false } };
+            }
+            if (dependencyValues.attribute) {
+                // the attribute, when there, is what is read: a written
+                // `coords` or `displacement` comes before a point or vector
+                // child (D49)
+                return {
+                    setValue: {
+                        contentNamesNothing: Boolean(
+                            dependencyValues.attribute.stateValues
+                                ?.contentNamesNothing,
+                        ),
+                    },
+                };
             }
             let found = false;
             for (const child of dependencyValues.children) {
                 if (typeof child !== "object") {
-                    if (String(child).trim() !== "") {
+                    if (String(child).trim() !== "" && !anyChild) {
                         return { setValue: { contentNamesNothing: false } };
                     }
                     continue;
@@ -152,8 +218,11 @@ export function contentNamesNothingDefinition(attributeName?: string) {
                     child.stateValues?.namesNothing ||
                     child.stateValues?.contentNamesNothing
                 ) {
+                    if (anyChild) {
+                        return { setValue: { contentNamesNothing: true } };
+                    }
                     found = true;
-                } else {
+                } else if (!anyChild) {
                     return { setValue: { contentNamesNothing: false } };
                 }
             }
@@ -425,6 +494,66 @@ export function missingWhileSourceMissingDefinition(
 }
 
 /**
+ * The definition of `namesNothing` of a component a copy makes of a property
+ * of the component `sourceIdx`, which can be missing for a while
+ * (`doenetAttributes.missingWhileSourceMissing`): whether that component is
+ * made for a reference that names nothing (`namesNothing`), or holds only
+ * missing content (`contentMissing`), as `<circle name="c">$nothing</circle>`
+ * does, so the point of `<circle center="$(c.center)"/>` names nothing and
+ * the circle is missing (`contentNamesNothingDefinition`, #2596). Like a
+ * value reference's (`ValueRef.js`), it never reads whether the source is
+ * missing (`valueMissing`), nor what a point or vector holds
+ * (`contentNamesNothing`): of a vector whose `head` is its own `tail`, that
+ * would read the vector again.
+ */
+export function namesNothingWhileSourceDoesDefinition(
+    sourceIdx: number,
+    /**
+     * Whether the source is missing while its content is
+     * (`BaseComponent.missingWhenContentMissing`); a `<math>`, which holds
+     * the blank, isn't, so its `contentMissing` isn't read.
+     */
+    sourceMissingWhenContentMissing: boolean,
+) {
+    return {
+        returnDependencies: () => ({
+            sourceNamesNothing: {
+                dependencyType: "stateVariable",
+                componentIdx: sourceIdx,
+                variableName: "namesNothing",
+                variablesOptional: true,
+            },
+            ...(sourceMissingWhenContentMissing
+                ? {
+                      sourceContentMissing: {
+                          dependencyType: "stateVariable",
+                          componentIdx: sourceIdx,
+                          variableName: "contentMissing",
+                          variablesOptional: true,
+                      },
+                  }
+                : {}),
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: {
+                sourceNamesNothing: any;
+                sourceContentMissing?: any;
+            };
+        }) {
+            return {
+                setValue: {
+                    namesNothing:
+                        Boolean(dependencyValues.sourceNamesNothing) ||
+                        Boolean(dependencyValues.sourceContentMissing),
+                },
+            };
+        },
+    };
+}
+
+/**
  * The definition of `valueMissing` of an adapter of a component that can be
  * missing for a while (`doenetAttributes.missingWhileAdaptedMissing`,
  * `ChildMatcher`): the `<math>` a `<math>` reads of `<number
@@ -500,6 +629,41 @@ export function missingWhileListEntryMissingDefinition(
         // checked once the update is done
         // (`RendererInstructionBuilder.checkDrawnMissing`)
         markStale: () => ({ checkDrawnMissing: true }),
+    };
+}
+
+/**
+ * The definition of `entriesMissing` of a list whose entries can be blank
+ * (D40): an array of whether each entry is missing, by entry (`entryMissing2`),
+ * of the list's `numEntries`, which a reference to the whole list reads, and
+ * which redraws the list's entries as blanks when it changes. `definition`
+ * holds how the list works out each entry's, its
+ * `stateVariablesDeterminingDependencies`, `returnArrayDependenciesByKey` and
+ * `arrayDefinitionByKey` (`AuthoredValueList`, `RepeatValueList`).
+ */
+export function entriesMissingDefinition(definition: Record<string, any>) {
+    return {
+        isArray: true,
+        entryPrefixes: ["entryMissing"],
+        // A reference to the whole list reads the list's.
+        shadowVariable: true,
+        // an entry is drawn as a blank while it is missing
+        // (`RendererInstructionBuilder.childrenToRenderOf`)
+        markStale: () => ({ updateParentRenderedChildren: true }),
+        returnArraySizeDependencies: () => ({
+            numEntries: {
+                dependencyType: "stateVariable",
+                variableName: "numEntries",
+            },
+        }),
+        returnArraySize({
+            dependencyValues,
+        }: {
+            dependencyValues: { numEntries: number };
+        }) {
+            return [dependencyValues.numEntries];
+        },
+        ...definition,
     };
 }
 

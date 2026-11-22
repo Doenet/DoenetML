@@ -295,7 +295,13 @@ export default class MathComponent extends InlineComponent {
         return [
             {
                 group: "maths",
-                componentTypes: ["math"],
+                // `_missing`: a reference to one thing that names nothing,
+                // made in a copy of a math, such as an iteration of a
+                // `<repeat>` (`<number>$i + $nothing</number>`, #2596), where
+                // the copy isn't told to make a missing math. It is a blank
+                // there, as a missing math is (D37), and the number made from
+                // it is missing (D40).
+                componentTypes: ["math", "_missing"],
             },
             {
                 group: "strings",
