@@ -54,9 +54,6 @@ import {
 } from "./nameCase";
 import { sequenceEntryComponentType } from "../sequence";
 
-/** The code of the warning, which `typeChangeAtLoad.ts` reads for a tag. */
-export const NAME_AFTER_COLLECTION_CODE = "doenet-w0199";
-
 /** The collections built as composites, besides a `<select>`. */
 const COMPOSITE_COLLECTIONS = new Set([
     "repeat",
@@ -531,14 +528,15 @@ export function checkNamesAfterCollectionsAtLoad({
             // copy is made (`Copy.js`)
             component.doenetAttributes = {
                 ...component.doenetAttributes,
-                typeChangeAtLoad: { code: NAME_AFTER_COLLECTION_CODE, args },
+                typeChangeAtLoad: { code: "doenet-w0199", args },
             };
             return;
         }
         diagnostics.push(
             codedDiagnostic({
                 type: "warning",
-                code: NAME_AFTER_COLLECTION_CODE,
+                // written out, as `lint:i18n` reads the code beside `code:`
+                code: "doenet-w0199",
                 args: { ...args, reference },
                 position: component.position,
                 sourceDoc: component.sourceDoc,
