@@ -644,6 +644,23 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         ).eq("answer");
     });
 
+    it("a reference to a choiceInput whose choice holds a reference to undecided responses waits for that one to be an error, and is then decided", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<number name="n">2</number>
+<mathList name="ml" maxNumber="$n">x y z</mathList>
+<answer name="a"><mathInput/><textInput/><considerAsResponses>$ml</considerAsResponses><award><when>true</when></award></answer>
+<choiceInput name="ci"><choice>$a.currentResponse1</choice><choice><math>x</math></choice></choiceInput>
+<p name="p">$ci</p>
+`,
+        });
+        // The reference in the choice is the error (TYPE-3). `$ci` is held
+        // back a round, and with an error in that choice in place of the
+        // reference, the choices' type is decided, so `$ci` is not a second
+        // error.
+        expect(errors(core)).eqls([e0090("$a.currentResponse1")]);
+    });
+
     it("isResponse written with no value on a tag made with extend, or on a collect, is read as true", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
