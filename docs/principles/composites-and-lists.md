@@ -209,11 +209,19 @@ implemented it; the work to remove it is #2626.
   `variance`, …).
 
 **Known violations** (#2569):
-- **under D59 (#2626):** a name or property after a collection still reaches into every item
-  (`$pl.x`, `$r.P`, `$r.P.x`, `$c.P`, and an action's `target="$r.mi"`). Each should name nothing,
-  with a warning suggesting an index. Once removed, these older violations go away with it: a
-  name each item lacks showing nothing (`$r.P.nope`), and `$c.P` naming one item or latching onto
-  one live;
+- **fixed by #2636** (D59, closing #2626): a name or property after a collection is the
+  collection's own. Anything else names nothing, with **`doenet-w0200`** at load suggesting an index
+  in the item's spelling (`$pl.x` → `$pl[1].x`, `$r.P` → `$r[1].P`, `$r.X` → `$r[1].x`). A tag
+  made from one (`<point extend="$pl.x"/>`) is missing. A list's `text`, `latex` and `value` were
+  its entries read together, not its own, so they name nothing too (`$ml.text` → `<text>$ml</text>`).
+  A collection reached through a branch or an item (`$cc.r.P`, `$o[1].t.T`) follows the same rule,
+  with COMP-11's every-branch rule deciding what a name in branches names. A name written inside a
+  list, sort or shuffle is still that component (`$pl.P`). An action's `target="$r.mi"` names
+  nothing. The older violations (a name each item lacks, `$c.P` latching onto one item) went with
+  the per-item reach;
+- **left** (#2638): two indices into an item holding a branch container that holds a list
+  (`$o3[1][1].x`) still read every entry; `$so.P` through a sort holding a repeat gives `w0105`;
+  `$g.P` of a group holding a list in which `P` is written is a silent blank;
 - `<collect fixed|disabled|hide>` passes these to the collected copies, so they aren't the
   collect's own;
 - **fixed by #2624** (D51): a collection's own property spelled in another case (`$r.numitems`,

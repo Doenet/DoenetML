@@ -3214,7 +3214,7 @@ works and is unchanged.
 comparison can never be true, as D47's other type mixes are. Nothing is converted. When the text
 is a `sectionNumber`, the warning suggests `ownNumber` (D56). Implemented with PR 28 (#2582).
 
-## D59. A name or property after a collection is the collection's own (decided, Tier 1; November 2026)
+## D59. A name or property after a collection is the collection's own (decided, Tier 1; November 2026; done by #2636)
 
 Reverts D41 decision 1 for collections. With it, `$r.x` was each item's `x` but `$r.fixed` the
 repeat's own, and `$r.P` every iteration's `P`: authors found it hard to tell which a name or
@@ -3237,8 +3237,19 @@ property reached.
 5. **An action's target follows the same rule:** `target="$r.mi"` names nothing; write
    `$r[1].mi`.
 
-Implementation: #2626. It reverts parts of #2565 (per-item names and properties, `w0192` for
-repeats) and #2611 (`$r.mi` as a target).
+Implementation: #2626, done by #2636. It reverts parts of #2565 (per-item names and properties,
+`w0192` for repeats) and #2611 (`$r.mi` as a target).
+
+**Decided in #2636:**
+6. **A list's `text`, `latex` and `value` name nothing.** They were its entries read together, never
+   the list's own state. Write `<text>$ml</text>`, `$ml`, or an entry's `$ml[2].text`.
+7. **A collection reached through a branch or an item is held to the same rule.** The check reuses
+   COMP-11's every-branch rule to follow a name in branches up to the first collection, so the two
+   never disagree (`$cc.r.P` names nothing, suggesting `$cc.r[1].P`).
+8. **A name written inside a list, sort or shuffle is that component** (`$pl.P`): ordinary name
+   resolution, not a reach into each item.
+
+Leftovers: #2638.
 
 ## D60. Compound attribute and property names are camelCase (decided, Tier 1; November 2026; done by #2632)
 

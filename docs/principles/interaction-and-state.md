@@ -236,8 +236,8 @@ which is never made, has no target and gets `w0043` as a warning, decided by the
 **Done by #2611** (COLL-2, COLL-3): a target that is a wrapper of one component (`$g` of a group
 holding one input, `$r[1]` of an iteration holding one `<number>`, a pick, a shown case) reaches
 it, at any depth, for `<updateValue>` and `<animateFromSequence>`. It also made `target="$r.mi"`
-reach every iteration's `mi`; **D59 reverts that** (#2626): a name after a repeat names nothing,
-and the target is written `$r[1].mi`. A wrapper of several is still only a
+reach every iteration's `mi`; **D59 reverts that** (done by #2636): `target="$r.mi"` names
+nothing, with `w0200` at load, and the target is written `$r[1].mi`. A wrapper of several is still only a
 container (`w0044` when acted on). `w0044` is an info when what a composite holds can change
 (DIAG-2), a warning otherwise.
 
