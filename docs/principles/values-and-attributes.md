@@ -91,6 +91,26 @@ So whether `<math extend="$a.currentResponses[2]"/>` is allowed, and what `$x.p`
   (ANS-4, D55), and math only when nothing decides it.
 - **TYPE-4: saved state never decides a type (Tier 2).** A type is the DoenetML's, so a reload
   gives the type the DoenetML gives (SAVE-3).
+- **TYPE-5: a type, tag or property named in an attribute is written literally (Tier 2; D63).**
+  An attribute that says what type a component's values are (`type` on `<select>`, `<sequence>`,
+  `<repeat>`, `<sort>`, `<answer>`, `<updateValue>`, …), which tag to take
+  (`<collect componentType>`), or which property to read (`<sort sortByProp>`) is read when the
+  document loads, before any reference. A reference there is **`doenet-e0090`** at the
+  attribute: `type="$t"` and `componentType="$t"` are errors alike. So every type is in what is
+  written (TYPE-1), and an author meets one rule wherever a type is named.
+
+  ```xml
+  <select type="text">a b</select>                     <!-- the values are texts -->
+  <select type="$t">a b</select>                       <!-- e0090 -->
+  <collect componentType="$t" from="$g"/>              <!-- e0090 (D63; allowed today, #2647) -->
+  ```
+
+  Every `type` that says what type the values are, and `sortByProp`, already gives `e0090` (checked
+  on 15 tags after #2641). **Known violations** (#2647): `<collect componentType>` and
+  `<dataFrame columnTypes>` take a reference. Three attributes named `type` choose a kind of
+  something, not a type, and take a reference: `<chart type>` (`bar`, …), a sampler's
+  distribution (`<sampleRandomNumbers type="uniform">`), and `<extractMath type>`. Whether they
+  fall under TYPE-5 is for a decision (D63).
 
 **Done by #2602 and #2603** (#2568). Every property whose component doesn't declare its type
 is typed from the DoenetML when the document loads. A tag made from one is checked at load, also

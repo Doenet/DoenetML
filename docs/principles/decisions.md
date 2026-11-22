@@ -3302,5 +3302,47 @@ all-lowercase compound, not only the names above. A new compound name is camelCa
 **Done by #2641** (PR 44). Decision 1 is `doenet-w0201`, keeping the first. Decision 2 covers
 `componentType` and `sortByProp` (`propForSort` is no attribute), and an attribute a `<collect>`
 passes on. An attribute read at load and written with a reference is `doenet-e0090`. Left
-(#2647): `componentType="$t"` is still allowed (for a decision), `<select type="Math">` isn't read
-as a keyword.
+(#2647): `componentType="$t"` is still allowed (decided by D63: `e0090`), `<select type="Math">`
+isn't read as a keyword (D63 decision 4 may change this).
+
+## D63. A type, tag or property named in an attribute is written literally (TYPE-5; November 2026)
+
+**Why.** #2641 made a reference in an attribute read at load `doenet-e0090` (`sortByProp="$t"`,
+`<sort type="$t">`). A check after it found that every `type` that sets a value's type refuses a
+reference: on `<select>`, `<selectFromSequence>`, `<sequence>`, `<repeat>`,
+`<repeatForSequence>`, `<sort>`, `<shuffle>`, `<tally>`, `<indexOf>`, `<answer>`,
+`<updateValue>`, `<slider>`, `<split>`, `<substitute>` and `<animateFromSequence>`. But
+`<collect componentType="$t">` was allowed, and matched only as the document ran, so the
+collect's type wasn't known at load (TYPE). This also left a `<collect>`'s passed-on attributes
+uncorrected (#2641).
+
+1. **Decided: `componentType` is written literally, like `type`.** A reference is `e0090`. The
+   rule is TYPE-5: an attribute that names a type, a tag or a property is read at load, so it is
+   written as text. In the repo, only three tests write `componentType="$t"`.
+2. **Decided (follows from TYPE-5): `<dataFrame columnTypes>`** says each column's type and is
+   written literally too. Its values are `number` and `string`; TYPE's name for the second is
+   `text`. Its "auto" type is worked out from a data file as the document runs; a file is not
+   the DoenetML, so this is outside TYPE.
+3. **For a decision: three `type` attributes choose a kind, not a type.** `<chart type="bar">`,
+   a sampler's distribution (`<sampleRandomNumbers type="uniform">`,
+   `<selectRandomNumbers>`, `<sampleMultivariateRandomNumber>`) and `<extractMath
+   type="operand">` take a reference today. A test lets a reader pick the chart's type with a
+   `<textInput>`, and another the distribution.
+   - (a) **Recommended:** leave them as keywords that take a reference, like `simplify`. TYPE-5
+     is about types. But then "every `type` is literal" isn't true, and the word means two
+     things.
+   - (b) Make them literal too, so every attribute named `type` is literal. A reader can no
+     longer pick the chart or distribution.
+   - (c) Rename them (`<chart kind>`, `distribution`, …) with `w0197`'s fallback for one release,
+     so that `type` always means a type and is always literal. The most uniform, at the cost of
+     a rename.
+4. **For a decision: case.** D51 decision 3 reads keywords without case "since a value can come
+   from what a reader types". A `type` can't now (TYPE-5), so that reason no longer holds for
+   it. Today `type="Math"` is read as `math` on most tags, while `componentType="Math"` is a tag
+   name: given its spelling with `w0197` (D62). `<select type="Math">` is `w0145`.
+   - **Recommended:** a type named in an attribute is a tag name, matched exactly, like
+     `componentType`: `type="Math"` is applied with `w0197` for the fallback release, then an
+     error (#2627 item 8). One rule for every place a type is named. The keywords that aren't
+     types (`simplify="FULL"`, `hide="True"`, and item 3's, if kept) stay case-insensitive.
+   - Or keep `type` values as keywords, read without case, and do the same for `componentType`.
+

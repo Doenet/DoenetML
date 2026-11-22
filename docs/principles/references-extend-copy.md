@@ -81,8 +81,8 @@ from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't 
   (`sortByProp="$t"`, `<sort type="$t">`) is **`doenet-e0090`** at the attribute, also on an
   `extend` or `copy`, where it used to stop the document;
 - left (#2647): `<collect componentType="$t">` is allowed and matched only as the document runs
-  (for a decision: recommended `e0090`, as for `sortByProp`); `<select type="Math">` is
-  `w0145`, though a `type` from a fixed list is a keyword; on a `<collect>`, a passed-on
+  (decided, D63: `e0090`, TYPE-5); `<select type="Math">` is `w0145`, though a `type` from a
+  fixed list is a keyword (D63 decision 4, for a decision, may make every named type exact); on a `<collect>`, a passed-on
   attribute no tag has, or one written beside its right spelling, is ignored silently;
   `sortByProp=" x "` isn't trimmed;
 - `w0197` becomes `e0004` in a later release.
