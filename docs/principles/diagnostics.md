@@ -176,9 +176,12 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
   is **`doenet-e0085`** (the reference is ignored, the text beside it kept); a `<problem>`'s
   `<variantControl>` is followed, with unique variants, whether or not the document's variants
   are unique. **Fixed by #2616:** `numVariants=""` is `e0072` (ignored), and a `<variantControl>`
-  made with `extend`, `copy` or `copyWithState` is **`doenet-e0088`**. **Left** (#2623):
-  `numVariants="abc"` silently gives 100 variants, and a numeric character reference in an
-  attribute (`&#x33;`) isn't decoded;
+  made with `extend`, `copy` or `copyWithState` is **`doenet-e0088`**. **Fixed by #2635:**
+  `numVariants="abc"` is **`doenet-e0089`** (not a number, ignored); a numeric character
+  reference in any attribute (`&#x33;`) is decoded; a reference to a `<variantControl>` (`$vc`,
+  `$vc.numVariants`) names nothing, with **`doenet-w0199`** saying it shows nothing and its
+  attributes can't be read. `<lorem generateParagraphs="$s.sectionNumber"/>` is no longer a false
+  `e0005`. **Left** (#2637): `e0065` for `<text extend="$vc"/>` still advises writing `$vc`;
 - **fixed by #2573:** a reference to a component in error reports nothing more (no `w0104` for
   `$x.bar` of an `_error`);
 - **fixed by #2609:** a document with millions of unique variants loads in any variant (it ran out
@@ -191,8 +194,8 @@ reports nothing more. The error is reported once, at its cause (DIAG-4, #2449).
 - **fixed by #2618** (#2614 items 1–2): a `<document>` with an attribute it doesn't have loads,
   with `e0004` (or `e0003`) at the attribute, which is ignored; a composite before a section can
   read the section's number when, by the DoenetML, it can make no section, and a genuine cycle is
-  `e0005` at load (NAME-7). **Left** (#2623): shapes the load check doesn't predict still stop the
-  document with a circular dependency (NAME-7's known violations);
+  `e0005` at load (NAME-7). Since #2625 (D57) a cycle the check misses is rebuilt as `e0005`;
+  **left** (#2633): two cycles at load, and false `e0005`s from the section-number edges;
 - fixed: `bindValueTo` of a `<subsetOfRealsInput>` (B24, #2484), `<text extend="$cc"/>` of
   bare-text cases (B23, #2447), and a reload restoring a value to a component of another type
   (B36, #2481).

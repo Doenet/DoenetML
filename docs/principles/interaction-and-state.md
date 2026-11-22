@@ -156,8 +156,9 @@ Recent fixes show where the current representation is fragile:
   gone. **Done by #2616** (D50 decisions 2 and 3): an input enters its edit when it becomes
   disabled, or is made disabled, with the `answered` event; under `readOnly` the edit is entered
   with no event and nothing saved; an error entering one input's edit no longer rejects the
-  request or stops the others. **Known violation** (#2623): a `<fractionInput>` made from a
-  property of another (`<fractionInput extend="$g.value"/>`) has no boxes and shows `＿`.
+  request or stops the others. A `<fractionInput>` made from a property of another
+  (`<fractionInput extend="$g.value"/>`) is `e0062`, as any input made from a math is, suggesting
+  `bindValueTo` (pinned by #2635).
 - **A restored value is matched by `stateId`; since #2481 also by type** (B36). The save records
   each component's type (`__componentTypes`), and a value whose type differs from the component
   now at that `stateId` is dropped. The ids themselves can still collide across a copy's

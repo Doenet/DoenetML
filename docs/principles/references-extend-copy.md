@@ -62,9 +62,11 @@ from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't 
 - the repo's own wrong-case names are fixed.
 
 **Known violations** (#2627):
-- several components declare all-lowercase compound names (`halign`, `xintercept`,
-  `circumradius`, `xoffset`, …) where the convention is camelCase. The docs taught `hAlign` and
-  `yIntercept`, which no longer work. Decided (D60): rename them to camelCase before the release;
+- **fixed by #2632** (D60): the all-lowercase compound names are camelCase (`hAlign`, `vAligns`,
+  `xIntercept`, `circumRadius`, `xOffset`, `xThreshold`, `rightHandSides`, and `xScale`, `yScale`,
+  `xLabel` found by its scan). An old attribute spelling gets `w0197`; an old property spelling
+  names nothing, with the suggestion (`$l.yintercept` → `$l.yIntercept`). A test lists every
+  all-lowercase name, so a new compound fails it;
 - **fixed by #2628:** a `<module>`'s declared attributes and an external reference's content are
   matched exactly (with `w0197` for the fallback release); `w0104` for an array entry or alias in
   another case suggests the index form (`$poly.Vertex2` → `$poly.vertices[2]`), and `w0044` the

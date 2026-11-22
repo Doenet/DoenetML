@@ -3165,7 +3165,7 @@ sugar worked out a type but never gave it to the awards, which read plain text a
 Not part of the type: `<considerAsResponses>` (what is recorded), `referencesAreResponses` (what a
 `<when>` reads), and a `forAnswer` input (reached only through a `<when>`).
 
-## D56. A section's own number is a number; `sectionNumber` stays a text (decided, Tier 1; November 2026)
+## D56. A section's own number is a number; `sectionNumber` stays a text (decided, Tier 1; November 2026; done by #2635)
 
 `sectionNumber` is the label shown: a `<section>` in a `<section>` includes its parent's number,
 so it is `"2.3"` (`enumeration.join(".")` in `SectioningComponent.js`). It can't be a number:
@@ -3240,7 +3240,7 @@ property reached.
 Implementation: #2626. It reverts parts of #2565 (per-item names and properties, `w0192` for
 repeats) and #2611 (`$r.mi` as a target).
 
-## D60. Compound attribute and property names are camelCase (decided, Tier 1; November 2026)
+## D60. Compound attribute and property names are camelCase (decided, Tier 1; November 2026; done by #2632)
 
 Some components declared all-lowercase compound names where the convention is camelCase (`xMin`,
 `numItems`): `circumradius`, `inradius`, `coeffvar1`, `coeffvar2`, `xintercept`, `yintercept`,
