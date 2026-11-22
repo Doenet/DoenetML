@@ -46,6 +46,10 @@ error, and anything written beside it is kept. For the same reason, a
 `copyWithState` (`<variantControl extend="$vc"/>{:dn}`): that is an error,
 and it is ignored. Write its attributes out instead.
 
+Nor can a `<variantControl>{:dn}` be shown or read by a reference. It shows
+nothing and has no properties: `numVariants` and the others are attributes.
+So `$vc` and `$vc.numVariants` name nothing, with a warning.
+
 A `<variantControl>{:dn}` never stops the document from loading. Whatever it
 can't follow is an error at the attribute, and the document loads with the
 rest. The cases are described with each attribute below.
@@ -193,7 +197,8 @@ not variants: in the `uniqueVariants` example above, with six variants,
 `g` is not a variant's name.
 
 An empty `variantsToInclude=""` is ignored, with an error, as is an empty
-`numVariants=""`. If the names left
+`numVariants=""`, or one that isn't a number (`numVariants="abc"`). If the
+names left
 no variant at all (`variantsToExclude` naming every variant, or every one
 `variantsToInclude` names), both are ignored, with an error, and every
 variant is included.

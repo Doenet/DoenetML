@@ -98,6 +98,23 @@ describe("DAST", async () => {
         }
     });
 
+    it("decodes numeric character references in attribute values", () => {
+        // `&#x33;` and `&#51;` are each the character `3`, as in text; a
+        // named entity beside them is decoded too, each in place (#2623
+        // item 6).
+        const attrText = (source: string) => {
+            const el = lezerToDast(source).children[0] as any;
+            return el.attributes.n.children
+                .map((c: DastText) => c.value)
+                .join("");
+        };
+        expect(attrText(`<a n="&#x33;"/>`)).toBe("3");
+        expect(attrText(`<a n="&#51;"/>`)).toBe("3");
+        expect(attrText(`<a n='1&#x32;3'/>`)).toBe("123");
+        expect(attrText(`<a n="&#50;&amp;&#x34;"/>`)).toBe("2&4");
+        expect(attrText(`<a n="&lt;&#x1F600;&gt;"/>`)).toBe("<\u{1F600}>");
+    });
+
     it("preserves ampersands 2", () => {
         const dast: DastRoot = {
             type: "root",

@@ -51,20 +51,23 @@ function removeQuotes(str: string): string {
 }
 
 /**
- * Converts all `EntityReference` children into their unescaped
- * equivalents.
+ * Converts all `EntityReference` (`&amp;`) and `CharacterReference`
+ * (`&#x33;`, `&#51;`) children into their unescaped equivalents.
  */
 function unescapeEntities(node: SyntaxNode, source: string): string {
     const rawValue = extractContent(node, source);
-    // We need to replace any entities present with their raw text.
-    const entities = node.getChildren("EntityReference");
+    // We need to replace any entities present with their raw text, in the
+    // order they are written.
+    const entities = [
+        ...node.getChildren("EntityReference"),
+        ...node.getChildren("CharacterReference"),
+    ].sort((a, b) => a.from - b.from);
     if (entities.length === 0) {
         // No entities means no escaping needed.
         return rawValue;
     }
     let i = 0;
     let ret = "";
-    // We assume that the `EntityNode`s come in order.
     for (const entity of entities) {
         ret += rawValue.slice(i, entity.from - node.from);
         ret += entityToString(entity, source);

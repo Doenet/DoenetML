@@ -74,6 +74,13 @@ describe("A circular dependency at load becomes a located e0005 @group2", () => 
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
             ],
+            // a section's own number reads the same numbering (D56)
+            [
+                `$cc.hidden
+<conditionalContent name="cc" hide="$s.ownNumber=1"><p>a</p></conditionalContent>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
+            ],
             // `numIterations` of a repeat whose iteration reads the number
             [
                 `$r.numIterations

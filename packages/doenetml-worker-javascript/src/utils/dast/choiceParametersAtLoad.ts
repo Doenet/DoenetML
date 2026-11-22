@@ -37,8 +37,8 @@
  * A reference to a property reads the component it names whole, as a
  * reference to the component does, except for the properties a reader
  * can't change whatever the component holds ({@link reachProperty}):
- * - a section's `sectionNumber` is decided by where the section is, not
- *   by what it holds: by its `includeParentNumber`, by what before it in
+ * - a section's `sectionNumber` (and `ownNumber`) is decided by where the
+ *   section is, not by what it holds: by its `includeParentNumber`, by what before it in
  *   the sequence it is numbered in can change how many sections there are
  *   (a `<conditionalContent>` or a repeat holding a section), and, when it
  *   includes its parent's number, by the same of the section holding it;
@@ -577,7 +577,10 @@ export function checkChoiceParametersAtLoad({
             // where a reader drags it
             return { reference, changeable: node };
         }
-        if (isA(type, "_sectioningComponent") && lower === "sectionnumber") {
+        if (
+            isA(type, "_sectioningComponent") &&
+            (lower === "sectionnumber" || lower === "ownnumber")
+        ) {
             // decided by where the section is, not by what it holds
             return reachSectionNumber(node, reference, new Set());
         }

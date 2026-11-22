@@ -340,6 +340,7 @@ export type MessageKey =
     | "variant-name-repeated"
     | "variants-all-excluded"
     | "variant-control-made-from"
+    | "reference-to-variant-control"
     | "side-by-side-absolute-widths"
     | "side-by-side-absolute-margins"
     | "side-by-side-no-block-child"
@@ -522,6 +523,7 @@ export type MessageKey =
     | "type-change-property-not-one-value"
     | "type-change-value-not-convertible"
     | "attribute-empty"
+    | "attribute-not-a-number"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -1052,6 +1054,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "variant-name-repeated",
     "variants-all-excluded",
     "variant-control-made-from",
+    "reference-to-variant-control",
     "side-by-side-absolute-widths",
     "side-by-side-absolute-margins",
     "side-by-side-no-block-child",
@@ -1234,6 +1237,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "type-change-property-not-one-value",
     "type-change-value-not-convertible",
     "attribute-empty",
+    "attribute-not-a-number",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",
