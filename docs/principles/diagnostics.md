@@ -287,8 +287,8 @@ reaches it takes its error explicitly:
 - **fixed by #2471 and #2513:** reference cycles are `e0005` at load over every branch and
   variant (B32, B40, #2430, #2473), including through a property, an input's starting value, an
   attribute a composite is made from, an index, a name every branch declares, a `<p>` and a
-  `copy` in what it is of. Left: the shapes listed under NAME-7 (#2515), still found when
-  reached;
+  `copy` in what it is of. The shapes NAME-7 listed are `e0005` at load through the backstop
+  since #2625;
 - **fixed by #2468:** choice errors that depended on the variant or on values. A requested
   variant's choices are taken as given (`e0037`–`e0040`, `e0048`–`e0050` are retired). #2468 made
   a failure a value decides an info, with the selection missing. #2555 removed that info: every

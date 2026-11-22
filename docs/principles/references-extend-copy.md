@@ -206,7 +206,7 @@ reports (Tier 3).
 - `<option>$g</option>` and `<option>$m</option>` give the same level;
 - `w0188`'s suggestion skips a `<setup>`; a `ReplaceRange` past the end panics in tests.
 
-Known violations (#2520 item 5):
+Known violations (#2643, from #2520):
 - an extend of an iteration holding `$cc.x` follows the case for a `<group>` extend, but a `<math>`
   extend (`<math name="e2" extend="$r[1]"/>`) is `＿` from the second switch on;
 - an index after a select or conditional whose every branch holds several is the run-time
@@ -479,17 +479,15 @@ Known violations:
   valid); an input prefilled from the list entry it makes; a branch condition reading a name its
   container declares; an index into a `<shuffle>`/`<sort>` in its own children; a list-form
   `<collect>` inside its own source;
-- **still not found at load** (#2515): a shape whose points read the shape (`$p.vertex1` in a
-  polygon's `vertices`, `$l.slope`, `$a.radians`, `<point name="P">($P.x+1, 2)</point>`, a point
-  constrained to a line through it), which needs edges per coordinate, since points reading each
-  other's *other* coordinate are valid; a number or boolean reading a non-value property of itself
-  (`$n.hide`), kept on purpose as the test suite's route to the run-time safety net; a non-literal
-  index into a composite in its own content (`$r[$n]`); a composite-form `<collect>` in its own
+- **now `e0005` at load through the load backstop** (#2625, D57; checked after #2639): a shape
+  whose points read the shape (`$p.vertex1`, `$l.slope`, `$a.radians`, `$P.x` in `P`, a point
+  constrained to a line through it), `$n.hide` in `n`, and a non-literal index into a composite in
+  its own content (`$r[$n]`). Left for the cells core: a composite-form `<collect>` in its own
   source, an error only after load when it is in a case shown later;
 - `<point name="a"><label>$b</label></point><point name="b" extend="$a"/>` hangs the worker
-  (#2515);
+  (#2643);
 - `<group name="s">$ls[$i]</group>` shown by `$s` reports `e0005` after load once `i` passes the end
-  of `ls`, though no cycle is written (#2521 item 5);
+  of `ls`, and stays `＿` when it comes back, though no cycle is written (#2643);
 - a loop where no composite can be singled out still stops the document (#2425).
 
 Tests: `T/diagnostics/circularReferences.test.ts:27-67` (asserts `rejects.toThrow`), `:115-175`,
