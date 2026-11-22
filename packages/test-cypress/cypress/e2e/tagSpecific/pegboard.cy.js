@@ -178,7 +178,7 @@ describe("Pegboard Tag Tests", { tags: ["@group2"] }, () => {
         loadDoenetML(`
     <text name="a">a</text>
     <graph name="g" xMin="-5" xMax="5" yMin="-5" yMax="5">
-      <pegboard dx="2" dy="0.5" xoffset="0.25" yoffset="-0.125" />
+      <pegboard dx="2" dy="0.5" xOffset="0.25" yOffset="-0.125" />
     </graph>
     <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$g.xMax" /></p>
     `);

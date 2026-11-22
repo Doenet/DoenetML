@@ -117,7 +117,7 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
     <number name="zeroFixed" fixed>0</number>
     <number name="initialInitialX" copy="$initialInitialValue" />
     <point x="$initialInitialX" y="$zeroFixed" name="initialPoint" hide>
-        <constrainToGrid dx="$initialValueDx" xoffset="$initialValueOffset" />
+        <constrainToGrid dx="$initialValueDx" xOffset="$initialValueOffset" />
     </point>
 
     <boolean name="initialCorrect">$initialPoint = ($x0,0)</boolean>

@@ -168,7 +168,7 @@ const INPUT_COMPONENT_TYPES = [
     "textInput",
 ];
 
-/** Components taking the tabular `halign` attribute. */
+/** Components taking the tabular `hAlign` attribute. */
 const TABULAR_HALIGN_COMPONENT_TYPES = ["cell", "row", "tabular"];
 
 /**
@@ -379,11 +379,11 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
             left: "start",
             right: "end",
         }),
-        // `halign` becomes `text-align`, whose `left`/`right` do not mirror
+        // `hAlign` becomes `text-align`, whose `left`/`right` do not mirror
         // while everything around them does.
         ...renamedAttributeValuesAcross(
             TABULAR_HALIGN_COMPONENT_TYPES,
-            "halign",
+            "hAlign",
             { left: "start", right: "end" },
         ),
     },

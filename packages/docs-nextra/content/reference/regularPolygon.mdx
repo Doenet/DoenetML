@@ -37,7 +37,7 @@ component that renders a regular polygon on a `<graph>{:dn}`.
 
 
 The default shape for a `<regularPolygon>{:dn}` without any attributes specified 
-is a triangle with radius 1 (where *radius* implies *circumradius* in this case), 
+is a triangle with radius 1 (where *radius* implies *circumRadius* in this case), 
 centered at the origin.
 
 
@@ -199,8 +199,8 @@ The center of a regular polygon can be specified with the `center` attribute.
 
 
 Note on precedence: the `vertices` and `center` attributes take precedence over the 
-following attributes (in the event of overconstraint): `radius / circumradius`, 
-`inradius / apothem`, `sideLength`, `perimeter`, and `area`.
+following attributes (in the event of overconstraint): `radius / circumRadius`, 
+`inRadius / apothem`, `sideLength`, `perimeter`, and `area`.
 
 
 
@@ -228,13 +228,13 @@ following attributes (in the event of overconstraint): `radius / circumradius`,
 The endpoints of a known side can be specified with the `vertices` attribute, and Doenet will construct the resulting regular polygon (given a specified number of sides).
 
 
-Note on precedence: the `vertices` and `center` attributes take precedence over the following attributes (in the event of overconstraint): `radius / circumradius`, `inradius / apothem`, `sideLength`, `perimeter`, and `area`.
+Note on precedence: the `vertices` and `center` attributes take precedence over the following attributes (in the event of overconstraint): `radius / circumRadius`, `inRadius / apothem`, `sideLength`, `perimeter`, and `area`.
 
 
 
 ---
 
-### Attribute Example: radius / circumradius
+### Attribute Example: radius / circumRadius
 
 
 ```doenet-example
@@ -246,39 +246,39 @@ Note on precedence: the `vertices` and `center` attributes take precedence over 
   <circle name="circ2" center="$square2.center" radius="$square2.radius" styleNumber="2"/>
 </graph> 
 <p><c>radius 1</c> = $square1.radius</p>
-<p><c>circumradius 1</c> = $square1.circumradius</p>
+<p><c>circumRadius 1</c> = $square1.circumRadius</p>
 <p><c>radius 2</c> = $square2.radius</p>
-<p><c>circumradius 2</c> = $square2.circumradius</p>      
+<p><c>circumRadius 2</c> = $square2.circumRadius</p>      
 ```
 
 
 
-The `radius` and `circumradius` attributes are an interchangeable way to specify the distance from the center of a regular polygon to any of its vertices. (Note that the `vertices` attribute takes precedence in the case of overconstraint.)
+The `radius` and `circumRadius` attributes are an interchangeable way to specify the distance from the center of a regular polygon to any of its vertices. (Note that the `vertices` attribute takes precedence in the case of overconstraint.)
 
 
 
 ---
 
-### Attribute Example: inradius / apothem
+### Attribute Example: inRadius / apothem
 
 
 ```doenet-example
 <graph size="small">
   <shortDescription>A graph of two triangles with inscribed circles</shortDescription>
-  <regularPolygon name="tri1" inradius="2" numSides="3"  center="(-5,0)"/>
-  <circle name="circ1" center="$tri1.center" radius="$tri1.inradius"/>
+  <regularPolygon name="tri1" inRadius="2" numSides="3"  center="(-5,0)"/>
+  <circle name="circ1" center="$tri1.center" radius="$tri1.inRadius"/>
   <regularPolygon name="tri2" apothem="2" numSides="3"  center="(5,0)" styleNumber="2"/>
   <circle name="circ2" center="$tri2.center" radius="$tri2.apothem" styleNumber="2"/>
 </graph> 
-<p><c>inradius 1</c> = $tri1.inradius</p>
+<p><c>inRadius 1</c> = $tri1.inRadius</p>
 <p><c>apothem 1</c> = $tri1.apothem</p>
-<p><c>inradius 2</c> = $tri2.inradius</p>
+<p><c>inRadius 2</c> = $tri2.inRadius</p>
 <p><c>apothem 2</c> = $tri2.apothem</p> 
 ```
 
 
 
-The `inradius` and `apothem` attributes are an interchangeable way to specify the distance from the center of a regular polygon to the midpoint of any of its sides. (Note that the `vertices` attribute takes precedence in the case of overconstraint.)
+The `inRadius` and `apothem` attributes are an interchangeable way to specify the distance from the center of a regular polygon to the midpoint of any of its sides. (Note that the `vertices` attribute takes precedence in the case of overconstraint.)
 
 
 

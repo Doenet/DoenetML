@@ -32,18 +32,18 @@ export default class Pegboard extends GraphicalComponent {
             description: "Vertical spacing between pegs.",
         };
 
-        attributes.xoffset = {
+        attributes.xOffset = {
             createComponentOfType: "number",
-            createStateVariable: "xoffset",
+            createStateVariable: "xOffset",
             defaultValue: 0,
             public: true,
             forRenderer: true,
             description: "Horizontal offset of the peg grid origin.",
         };
 
-        attributes.yoffset = {
+        attributes.yOffset = {
             createComponentOfType: "number",
-            createStateVariable: "yoffset",
+            createStateVariable: "yOffset",
             defaultValue: 0,
             public: true,
             forRenderer: true,

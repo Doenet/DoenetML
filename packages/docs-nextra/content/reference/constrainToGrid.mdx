@@ -9,7 +9,7 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 `<constrainToGrid>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types)
 component that is used to constrain a `<point>{:dn}` to a grid. The grid can be the default $1 \times 1$ grid,
- or a custom grid defined by the `dx` and `dy` attributes, or by the `xoffset` and `yoffset` attributes.
+ or a custom grid defined by the `dx` and `dy` attributes, or by the `xOffset` and `yOffset` attributes.
 
 `<constrainToGrid/>{:dn}` forces points to snap to gridline locations.
 
@@ -109,7 +109,7 @@ The `<point>{:dn}` is constrained to a custom grid using the `dx` and `dy` compo
 
 ---
 
-### Attribute Example: xoffset, yoffset
+### Attribute Example: xOffset, yOffset
 
 
 ```doenet-editor-horiz
@@ -118,7 +118,7 @@ The `<point>{:dn}` is constrained to a custom grid using the `dx` and `dy` compo
   yMin="-3" yMax="3">
   <shortDescription>A graph with a point constrained to a grid with offsets</shortDescription>
   <point name="p">
-    <constrainToGrid xoffset="0.5" yoffset="0.5"/>
+    <constrainToGrid xOffset="0.5" yOffset="0.5"/>
     <label>$p.coords</label>
   </point>
 </graph>
@@ -126,6 +126,6 @@ The `<point>{:dn}` is constrained to a custom grid using the `dx` and `dy` compo
 
 
 
-The `<point>{:dn}` is constrained to the default $1 \times 1$ grid with a specified `xoffset` and `yoffset` of $0.5$. 
+The `<point>{:dn}` is constrained to the default $1 \times 1$ grid with a specified `xOffset` and `yOffset` of $0.5$. 
 
 

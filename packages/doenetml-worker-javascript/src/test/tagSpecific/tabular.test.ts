@@ -37,9 +37,9 @@ describe("Tabular tag tests @group3", async () => {
     it("border and alignment attributes take their declared values and inherit", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<tabular name="t" halign="end" topBorder="minor" startBorder="major" bottomBorder="medium">
-  <row name="r" valign="top" startBorder="minor">
-    <cell name="c1" halign="center" endBorder="major" bottomBorder="minor">A</cell>
+<tabular name="t" hAlign="end" topBorder="minor" startBorder="major" bottomBorder="medium">
+  <row name="r" vAlign="top" startBorder="minor">
+    <cell name="c1" hAlign="center" endBorder="major" bottomBorder="minor">A</cell>
     <cell name="c2">B</cell>
   </row>
 </tabular>
@@ -49,7 +49,7 @@ describe("Tabular tag tests @group3", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("t")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.hAlign,
         ).eq("end");
         expect(
             stateVariables[await resolvePathToNodeIdx("t")].stateValues
@@ -60,7 +60,7 @@ describe("Tabular tag tests @group3", async () => {
                 .startBorder,
         ).eq("minor");
         expect(
-            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.hAlign,
         ).eq("center");
         expect(
             stateVariables[await resolvePathToNodeIdx("c1")].stateValues
@@ -70,7 +70,7 @@ describe("Tabular tag tests @group3", async () => {
         // A cell with nothing of its own takes the alignment from the
         // `<tabular>` and the bottom border from the `<row>`'s ancestor chain.
         expect(
-            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.hAlign,
         ).eq("end");
         expect(
             stateVariables[await resolvePathToNodeIdx("c2")].stateValues
@@ -81,9 +81,9 @@ describe("Tabular tag tests @group3", async () => {
     it("border and alignment values are read case-insensitively on every component", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<tabular name="t" halign="End" topBorder="Minor">
-  <row name="r" valign="Top" startBorder="Major">
-    <cell name="c" halign="Center" endBorder="Medium">A</cell>
+<tabular name="t" hAlign="End" topBorder="Minor">
+  <row name="r" vAlign="Top" startBorder="Major">
+    <cell name="c" hAlign="Center" endBorder="Medium">A</cell>
   </row>
 </tabular>
 `,
@@ -92,21 +92,21 @@ describe("Tabular tag tests @group3", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("t")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.hAlign,
         ).eq("end");
         expect(
             stateVariables[await resolvePathToNodeIdx("t")].stateValues
                 .topBorder,
         ).eq("minor");
         expect(
-            stateVariables[await resolvePathToNodeIdx("r")].stateValues.valign,
+            stateVariables[await resolvePathToNodeIdx("r")].stateValues.vAlign,
         ).eq("top");
         expect(
             stateVariables[await resolvePathToNodeIdx("r")].stateValues
                 .startBorder,
         ).eq("major");
         expect(
-            stateVariables[await resolvePathToNodeIdx("c")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues.hAlign,
         ).eq("center");
         expect(
             stateVariables[await resolvePathToNodeIdx("c")].stateValues
@@ -119,11 +119,11 @@ describe("Tabular tag tests @group3", async () => {
             doenetML: `
 <text name="align">end</text>
 <tabular>
-  <row name="r1" valign="sideways" startBorder="dotted">
-    <cell name="c1" halign="middle" endBorder="dashed">A</cell>
+  <row name="r1" vAlign="sideways" startBorder="dotted">
+    <cell name="c1" hAlign="middle" endBorder="dashed">A</cell>
   </row>
   <row name="r2">
-    <cell name="c2" halign="$align">B</cell>
+    <cell name="c2" hAlign="$align">B</cell>
   </row>
 </tabular>
 `,
@@ -132,14 +132,14 @@ describe("Tabular tag tests @group3", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("r1")].stateValues.valign,
+            stateVariables[await resolvePathToNodeIdx("r1")].stateValues.vAlign,
         ).eq("middle");
         expect(
             stateVariables[await resolvePathToNodeIdx("r1")].stateValues
                 .startBorder,
         ).eq("none");
         expect(
-            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.hAlign,
         ).eq("start");
         expect(
             stateVariables[await resolvePathToNodeIdx("c1")].stateValues
@@ -150,7 +150,7 @@ describe("Tabular tag tests @group3", async () => {
         // parser's value migration never sees it and the state variable
         // definition is what reads it against the vocabulary.
         expect(
-            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.hAlign,
         ).eq("end");
     });
 
@@ -208,19 +208,19 @@ describe("Tabular tag tests @group3", async () => {
         expect(tabular.stateValues.columnSpecs).eqls([
             {
                 width: { size: 25, isAbsolute: false },
-                halign: null,
+                hAlign: null,
                 topBorder: "major",
                 endBorder: null,
             },
             {
                 width: { size: 15, isAbsolute: false },
-                halign: null,
+                hAlign: null,
                 topBorder: null,
                 endBorder: null,
             },
             {
                 width: null,
-                halign: null,
+                hAlign: null,
                 topBorder: null,
                 endBorder: null,
             },
@@ -262,19 +262,19 @@ describe("Tabular tag tests @group3", async () => {
         ).eqls([]);
     });
 
-    it("a cell takes halign and endBorder from its <col>", async () => {
+    it("a cell takes hAlign and endBorder from its <col>", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <tabular name="t">
   <col />
-  <col halign="end" endBorder="minor" />
+  <col hAlign="end" endBorder="minor" />
   <row>
     <cell name="c1">A</cell>
     <cell name="c2">1</cell>
   </row>
   <row>
     <cell name="c3">B</cell>
-    <cell name="c4" halign="center" endBorder="none">2</cell>
+    <cell name="c4" hAlign="center" endBorder="none">2</cell>
   </row>
 </tabular>
 `,
@@ -283,10 +283,10 @@ describe("Tabular tag tests @group3", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.hAlign,
         ).eq("start");
         expect(
-            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.hAlign,
         ).eq("end");
         expect(
             stateVariables[await resolvePathToNodeIdx("c2")].stateValues
@@ -295,12 +295,12 @@ describe("Tabular tag tests @group3", async () => {
 
         // The column applies down the whole column, not just the first row.
         expect(
-            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.hAlign,
         ).eq("start");
 
         // ... and a cell of its own outranks it, including back down to "none".
         expect(
-            stateVariables[await resolvePathToNodeIdx("c4")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c4")].stateValues.hAlign,
         ).eq("center");
         expect(
             stateVariables[await resolvePathToNodeIdx("c4")].stateValues
@@ -308,17 +308,17 @@ describe("Tabular tag tests @group3", async () => {
         ).eq("none");
     });
 
-    it("halign resolves in PreTeXt's cell, row, col, tabular order", async () => {
+    it("hAlign resolves in PreTeXt's cell, row, col, tabular order", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<tabular name="t" halign="justify">
-  <col halign="center" />
+<tabular name="t" hAlign="justify">
+  <col hAlign="center" />
   <row name="r1">
     <cell name="c1">A</cell>
   </row>
-  <row name="r2" halign="end">
+  <row name="r2" hAlign="end">
     <cell name="c2">B</cell>
-    <cell name="c3" halign="start">C</cell>
+    <cell name="c3" hAlign="start">C</cell>
   </row>
 </tabular>
 `,
@@ -328,15 +328,15 @@ describe("Tabular tag tests @group3", async () => {
 
         // The column beats the tabular...
         expect(
-            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.hAlign,
         ).eq("center");
         // ... the row beats the column ...
         expect(
-            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.hAlign,
         ).eq("end");
         // ... and the cell beats the row.
         expect(
-            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.hAlign,
         ).eq("start");
     });
 
@@ -346,7 +346,7 @@ describe("Tabular tag tests @group3", async () => {
 <tabular name="t">
   <col />
   <col />
-  <col halign="end" />
+  <col hAlign="end" />
   <row>
     <cell name="wide" colSpan="2">A</cell>
     <cell name="after">B</cell>
@@ -368,7 +368,7 @@ describe("Tabular tag tests @group3", async () => {
         ).eq(2);
         expect(
             stateVariables[await resolvePathToNodeIdx("after")].stateValues
-                .halign,
+                .hAlign,
         ).eq("end");
         expect(
             stateVariables[await resolvePathToNodeIdx("t")].stateValues
@@ -380,8 +380,8 @@ describe("Tabular tag tests @group3", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <tabular name="t">
-  <col halign="center" endBorder="minor" />
-  <col halign="end" endBorder="major" />
+  <col hAlign="center" endBorder="minor" />
+  <col hAlign="end" endBorder="major" />
   <col />
   <row>
     <cell name="wide" colSpan="2">A</cell>
@@ -397,7 +397,7 @@ describe("Tabular tag tests @group3", async () => {
         // the cell takes.
         expect(
             stateVariables[await resolvePathToNodeIdx("wide")].stateValues
-                .halign,
+                .hAlign,
         ).eq("center");
         // The trailing edge, though, falls at the right of the *second*
         // column, so that is the rule drawn there. The first column's rule
@@ -416,7 +416,7 @@ describe("Tabular tag tests @group3", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <tabular name="t">
-  <col halign="center" />
+  <col hAlign="center" />
   <row>
     <cell name="zero" colSpan="0">A</cell>
     <cell name="negative" colSpan="-2">B</cell>

@@ -40,19 +40,19 @@ describe("the tabular <colgroup>", () => {
             columnSpecs: [
                 {
                     width: percent(25),
-                    halign: null,
+                    hAlign: null,
                     topBorder: null,
                     endBorder: null,
                 },
                 {
                     width: percent(15),
-                    halign: null,
+                    hAlign: null,
                     topBorder: null,
                     endBorder: null,
                 },
                 {
                     width: null,
-                    halign: null,
+                    hAlign: null,
                     topBorder: null,
                     endBorder: null,
                 },
@@ -70,7 +70,7 @@ describe("the tabular <colgroup>", () => {
         expect(cols[2]).not.toContain("width");
     });
 
-    it("draws a column's topBorder but not its halign or endBorder", () => {
+    it("draws a column's topBorder but not its hAlign or endBorder", () => {
         // Those two reach the cells through the worker instead. A
         // `<colgroup>` cannot deliver `text-align` at all, and while it can
         // draw a trailing rule, one drawn there would override a
@@ -79,7 +79,7 @@ describe("the tabular <colgroup>", () => {
             columnSpecs: [
                 {
                     width: null,
-                    halign: "end",
+                    hAlign: "end",
                     topBorder: "major",
                     endBorder: "minor",
                 },
@@ -99,7 +99,7 @@ describe("the tabular <colgroup>", () => {
             columnSpecs: [
                 {
                     width: percent(50),
-                    halign: null,
+                    hAlign: null,
                     topBorder: null,
                     endBorder: null,
                 },
