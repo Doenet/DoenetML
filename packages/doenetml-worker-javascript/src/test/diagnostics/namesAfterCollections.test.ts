@@ -162,6 +162,22 @@ describe("A name or a property after a collection names nothing (D59)", () => {
         expect(diagnostics).eqls([]);
     });
 
+    it("after a collect, even for a name it holds once", async () => {
+        // Before: the collected `A` built as a composite, and a blank as a
+        // list form (COMP-4), with no diagnostic either way.
+        const { texts, diagnostics } = await both(
+            `<p name="src"><point name="A">(1,2)</point><point>(3,4)</point></p>
+<collect name="c" from="$src" componentType="point"/>
+<p name="p1">$c.A</p><p name="p2">$c[1].x</p>`,
+            ["p1", "p2"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({ p1: "＿", p2: "1" });
+        expect(diagnostics).eqls([
+            "warning doenet-w0199: `$c.A` names nothing: a name after a `<collect>` does not reach into its items. To read it from one item, give its index, such as `$c[1].A`.",
+        ]);
+    });
+
     it("is decided by the tag as written, not by how many items it holds", async () => {
         const { texts, diagnostics } = await both(
             `<number name="n">1</number>
