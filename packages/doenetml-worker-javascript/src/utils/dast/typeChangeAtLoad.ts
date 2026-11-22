@@ -1815,7 +1815,8 @@ export function checkTypeChangesAtLoad({
             // DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>`
             // of texts) is made from that value, as a tag made from a
             // component of its type. One whose value's type isn't decided
-            // is left to run time.
+            // is left to run time: of a `<choiceInput>`, made from its
+            // value (D4); of an `<answer>`, already `doenet-e0090` (TYPE-3).
             const valueType = held.valueTypes?.[sourceType];
             if (!valueType || valueType === writtenType) {
                 return undefined;

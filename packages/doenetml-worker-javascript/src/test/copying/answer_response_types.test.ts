@@ -373,6 +373,28 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         ]);
     });
 
+    it("a property wrapped in each of several dimensions has the type of the outermost wrapper made", async () => {
+        // `wrappingComponents[k - 1]` wraps what has `k` dimensions, from the
+        // innermost: the whole of a spreadsheet's cells is a `<cellBlock>` of
+        // `<row>`s, and one row a `<row>`, as when the document runs.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<spreadsheet name="s"><cell>a</cell><cell>b</cell></spreadsheet>
+<matrixInput name="mi" numRows="2" numColumns="2" defaultEntry="1"/>
+<p><text extend="$s.cells"/><text extend="$s.cells[1]"/></p>
+<answer name="a1"><award><when>true</when></award><considerAsResponses>$mi.matrix</considerAsResponses></answer>
+`,
+        });
+        expect(errors(core)).eqls([
+            e0065("text", "$s.cells", "cellBlock"),
+            e0065("text", "$s.cells[1]", "row"),
+        ]);
+        expect(
+            core.core._components[await resolvePathToNodeIdx("a1")]
+                .doenetAttributes.propertyTypes.currentResponses,
+        ).eq("matrix");
+    });
+
     it("a response that may be missing has its entry's type, decided at load, and is recorded as a missing value of it", async () => {
         // D52 decision 1 (VAL-5, D37: a missing T is still a T): a text is
         // the blank `＿`, a math a blank math, a number `NaN`, and a boolean,
@@ -570,6 +592,29 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
             values: ["x", "t"],
             types: undefined,
         });
+    });
+
+    it("a tag of another type made from an answer whose responses aren't typed is an error, as the bare reference is, and a copy of it is not", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="mi" prefill="(1,2)"/><textInput name="ti" prefill="t"/>
+<answer name="a"><award><when>
+  <math isResponse>$mi</math>
+  <select><option><text isResponse>$ti</text></option><option><text isResponse>$ti</text></option></select>
+</when></award></answer>
+<p name="p1"><point extend="$a"/></p>
+<p name="p2"><text extend="$a"/></p>
+<answer name="a2" copy="$a"/>
+`,
+        });
+        // A `<point>` or `<text>` made from `$a` reads its submitted
+        // responses, whose types aren't decided (TYPE-3); the copy reads
+        // none of its properties.
+        expect(errors(core)).eqls([e0090("$a"), e0090("$a")]);
+        expect(
+            (core as any).core._components[await resolvePathToNodeIdx("a2")]
+                .componentType,
+        ).eq("answer");
     });
 
     it("isResponse written with no value on a tag made with extend, or on a collect, is read as true", async () => {

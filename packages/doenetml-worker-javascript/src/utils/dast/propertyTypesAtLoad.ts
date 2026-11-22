@@ -1535,10 +1535,12 @@ export function propertyTypeReader({
 
     /**
      * The type of the components that wrap the entries of a property
-     * (`wrapping`, its `wrappingComponents`, from the outermost), with
-     * `dimensionsLeft` of its dimensions not indexed: the wrapper of as many
-     * dimensions as are left, and `several` when more are left than are
-     * wrapped. `undefined` when none are wrapped.
+     * (`wrapping`, its `wrappingComponents`, whose entry `k - 1` wraps what
+     * has `k` dimensions, as `Copy.js` wraps them, from the innermost), with
+     * `dimensionsLeft` of its dimensions not indexed: the outermost wrapper
+     * made, of the most dimensions wrapped, and `several` when fewer than
+     * are left are wrapped (`$pl.vertices`, several points; `$s.cells`, one
+     * `<cellBlock>` of `<row>`s). `undefined` when none are wrapped.
      */
     function wrappedType({
         wrapping,
@@ -1547,18 +1549,18 @@ export function propertyTypeReader({
         wrapping: unknown[][] | undefined;
         dimensionsLeft: number;
     }): { type: string; several: boolean } | undefined {
-        if (!wrapping || dimensionsLeft <= 0) {
-            return undefined;
+        for (let dimensions = dimensionsLeft; dimensions >= 1; dimensions--) {
+            const outer: any = wrapping?.[dimensions - 1]?.[0];
+            if (outer === undefined) {
+                continue;
+            }
+            const type =
+                typeof outer === "string" ? outer : outer?.componentType;
+            return typeof type === "string"
+                ? { type, several: dimensions < dimensionsLeft }
+                : undefined;
         }
-        const numWrapped = wrapping.length;
-        const wrappers =
-            wrapping[Math.max(0, numWrapped - dimensionsLeft)] ?? [];
-        const outer: any = wrappers[0];
-        const type = typeof outer === "string" ? outer : outer?.componentType;
-        if (typeof type !== "string") {
-            return undefined;
-        }
-        return { type, several: dimensionsLeft > numWrapped };
+        return undefined;
     }
 
     /**
@@ -1758,8 +1760,9 @@ function undecidedWhat(variableName: string) {
  * reads such a property needs its type, whether it makes a component of it
  * or reads its value in an expression, so each is an error at load,
  * `doenet-e0090`, in place of the reference, with `what` the kind of
- * property for its wording. (A tag made with `extend` or `copy` of the whole
- * component, `<answer copy="$a"/>`, copies it, and reads no property.)
+ * property for its wording. A tag of another type made from the whole
+ * `<answer>` (`<point extend="$a"/>`) reads it as a bare `$a` does. (A tag of
+ * its own type, `<answer copy="$a"/>`, copies it, and reads no property.)
  *
  * Run after `markPropertyTypesAtLoad`, whose types it reads.
  */
@@ -1817,10 +1820,6 @@ export function referencesToUndecidedTypes({
                 ? undefined
                 : property.variableName;
         }
-        if (tagOf(copy) !== undefined) {
-            // a tag of the whole component, which copies it
-            return undefined;
-        }
         // a bare `$a` reads the property its component reads as its value
         const componentType = referents.referentType(ref.nodeIdx);
         if (
@@ -1831,6 +1830,24 @@ export function referencesToUndecidedTypes({
         }
         const variable = allClasses[componentType]?.variableForImplicitProp;
         if (typeof variable !== "string") {
+            return undefined;
+        }
+        const tag = tagOf(copy);
+        if (
+            tag !== undefined &&
+            (decidingClass(componentType) !== "answer" ||
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: tag,
+                    baseComponentType: componentType,
+                }))
+        ) {
+            // A tag of the component's own type copies it
+            // (`<answer copy="$a"/>`). One of another type made from an
+            // `<answer>` (`<point extend="$a"/>`) reads its submitted
+            // responses, as a bare `$a` does, and needs their type
+            // (`readsImplicitProp` in `typeChangeAtLoad.ts`). One made from
+            // a `<choiceInput>` is checked by what its choices hold there,
+            // and made from its value as it runs (D4).
             return undefined;
         }
         const property = propertyTypeOf({
