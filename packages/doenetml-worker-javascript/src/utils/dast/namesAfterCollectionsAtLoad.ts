@@ -339,8 +339,8 @@ export function checkNamesAfterCollectionsAtLoad({
      * is the name of one of its items itself, rather than of a component in
      * an item: a component of the tag a `<collect>` collects
      * (`$c.A` of a collected point `A`), or one a `<repeat>` or a
-     * `<select>` of several among a `<sort>`'s or `<shuffle>`'s children
-     * makes once per iteration or pick (`$so.P`). Its index alone names it,
+     * `<select>` of several among the children of a `<sort>`, a `<shuffle>`
+     * or a list makes once per iteration or pick (`$so.P`, `$pl.P`). Its index alone names it,
      * so the suggestion is `$c[1]`, not `$c[1].A`, which names nothing too
      * (DIAG-3, #2638 item 3).
      */
@@ -376,7 +376,11 @@ export function checkNamesAfterCollectionsAtLoad({
             }
             return false;
         }
-        if (collection !== "sort" && collection !== "shuffle") {
+        if (
+            collection !== "sort" &&
+            collection !== "shuffle" &&
+            allClasses[collection]?.listEntryComponentType === undefined
+        ) {
             return false;
         }
         for (const child of node.children ?? []) {

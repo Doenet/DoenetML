@@ -709,6 +709,31 @@ describe("Names after collections, round 2 (#2638)", () => {
         ]);
     });
 
+    it("a name from a repeat or a select of several in a list is an item too, and suggests the index alone (items 2, 3)", async () => {
+        // Before: `$pl.P` was a blank with no message. Its suggestion was
+        // `$pl[1].P`, which names nothing (`w0180`), until the items of a
+        // list counted as items themselves too.
+        const { texts, diagnostics } = await both(
+            `<pointList name="pl"><repeat for="1 2" valueName="v"><point name="P">($v,1)</point></repeat></pointList>
+<textList name="tl"><select numToSelect="2"><option><text name="T">a</text></option><option><text>b</text></option></select></textList>
+<p name="p1">$pl.P</p><p name="p2">$pl[1]</p><p name="p3">$pl.P.x</p><p name="p4">$pl[1].x</p><p name="p5">$tl.T</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "(1, 1)",
+            p3: "＿",
+            p4: "1",
+            p5: "＿",
+        });
+        expect(diagnostics).eqls([
+            "warning doenet-w0200: `$pl.P.x` names nothing: `P` is an item of the `<pointList>`, and a name after it does not reach into its items. To read an item, give its index, such as `$pl[1].x`.",
+            "warning doenet-w0200: `$pl.P` names nothing: `P` is an item of the `<pointList>`, and a name after it does not reach into its items. To read an item, give its index, such as `$pl[1]`.",
+            "warning doenet-w0200: `$tl.T` names nothing: `T` is an item of the `<textList>`, and a name after it does not reach into its items. To read an item, give its index, such as `$tl[1]`.",
+        ]);
+    });
+
     it("reports nothing more of a reference into a component in error (item 4, DIAG-5)", async () => {
         // Before: `w0180` "an index cannot select anything in this
         // `<_error>`" for `$s[1]`, `w0104` for `$r[1].hidden`, and `w0200`
