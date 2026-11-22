@@ -89,6 +89,11 @@ export function propertyDifferingOnlyInCase({
         const names = [
             ...Object.keys(info.stateVariableDescriptions ?? {}),
             ...Object.keys(info.aliases ?? {}),
+            // a list's properties as a whole (`text`, `latex`, `value`), read
+            // from its entries (D59, `wholeListProperties`)
+            ...(((componentInfoObjects.allComponentClasses as any)[
+                componentType
+            ]?.wholeListProperties as string[] | undefined) ?? []),
         ];
         if (names.includes(propName)) {
             // It names a property of this one; not a matter of case.

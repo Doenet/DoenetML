@@ -50,6 +50,11 @@ import { codedDiagnostic } from "../diagnostics";
 import { doenetMLReferenceAsWritten } from "../sourceLocation";
 import { ownPropertiesOfComposite } from "../numItems";
 import { typeHasProperty } from "./typeChangeAtLoad";
+import {
+    nameDifferingOnlyInCase,
+    propertyDifferingOnlyInCase,
+} from "./nameCase";
+import { sequenceEntryComponentType } from "../sequence";
 
 /** The code of the warning, which `typeChangeAtLoad.ts` reads for a tag. */
 export const NAME_AFTER_COLLECTION_CODE = "doenet-w0199";
@@ -326,6 +331,133 @@ export function checkNamesAfterCollectionsAtLoad({
         return false;
     }
 
+    /** The tag a component written as `node` makes, if known. */
+    function writtenType(node: SerializedComponent) {
+        if (node.componentType === "_copy") {
+            return canonicalType(
+                literalText(node.attributes?._createComponentOfType),
+            );
+        }
+        return node.componentType;
+    }
+
+    /**
+     * The collection `node` stands for, written as a tag (not a copy or a
+     * `<group>`), followed as `collectionAt` follows it, so that what it
+     * holds can be read from what is written in it.
+     */
+    function writtenCollection(
+        idx: number,
+        seen: Set<number> = new Set(),
+    ): SerializedComponent | undefined {
+        const node = componentsByIdx.get(idx) ?? copiesByCreatedIdx.get(idx);
+        if (!node || seen.has(node.componentIdx)) {
+            return undefined;
+        }
+        seen.add(node.componentIdx);
+        const ref = refOf(node);
+        if (node.componentType === "_copy") {
+            return ref && ref.nodeIdx >= 0 && !(ref.unresolvedPath?.length > 0)
+                ? writtenCollection(ref.nodeIdx, seen)
+                : undefined;
+        }
+        if (node.componentType === "group") {
+            const content = contentOf(node);
+            return content.length === 1 && typeof content[0] === "object"
+                ? writtenCollection(content[0].componentIdx, seen)
+                : undefined;
+        }
+        return node;
+    }
+
+    /**
+     * The tags of the items of the collection written as `node`, as far as
+     * the DoenetML gives them: the entries of a list, what a `<collect>`
+     * collects, what is written in a `<repeat>`, an option of a `<select>`,
+     * a `<sort>` or a `<shuffle>`.
+     */
+    function itemTypes(node: SerializedComponent): string[] {
+        const componentType = node.componentType;
+        if (componentType === "sequence") {
+            const type = sequenceEntryComponentType(attributeOf(node, "type"));
+            return type ? [type] : [];
+        }
+        const entryType = allClasses[componentType]?.listEntryComponentType;
+        if (typeof entryType === "string") {
+            return [entryType];
+        }
+        if (componentType === "collect") {
+            const type = canonicalType(
+                literalText(attributeOf(node, "componentType")),
+            );
+            return type ? [type] : [];
+        }
+        const parts =
+            componentType === "select"
+                ? (node.children ?? []).filter(
+                      (child): child is SerializedComponent =>
+                          typeof child === "object" &&
+                          child.componentType === "option",
+                  )
+                : [node];
+        const types = new Set<string>();
+        for (const part of parts) {
+            for (const child of part.children ?? []) {
+                if (
+                    typeof child !== "object" ||
+                    child.componentType.startsWith("_repeat") ||
+                    child.componentType === "setup"
+                ) {
+                    continue;
+                }
+                const type = writtenType(child);
+                if (type) {
+                    types.add(type);
+                }
+            }
+        }
+        return [...types];
+    }
+
+    /** The names written below `node`. */
+    function namesBelow(node: SerializedComponent, names: Set<string>) {
+        for (const child of node.children ?? []) {
+            if (typeof child !== "object") {
+                continue;
+            }
+            const name = nameOf(child);
+            if (name !== undefined) {
+                names.add(name);
+            }
+            namesBelow(child, names);
+        }
+        return names;
+    }
+
+    /**
+     * The name or property `name`, written after a collection, as an item
+     * has it when it is written in another case (D51, #2627 item 14): a
+     * property of the items' tags (`X` → `x`, `X1` → `xs[1]`), or a name
+     * written in the collection. `undefined` when there is none.
+     */
+    function itemNameInOtherCase(idx: number, name: string) {
+        const node = writtenCollection(idx);
+        if (!node) {
+            return undefined;
+        }
+        if (allNames.has(name)) {
+            return undefined;
+        }
+        return (
+            nameDifferingOnlyInCase(name, namesBelow(node, new Set())) ??
+            propertyDifferingOnlyInCase({
+                propName: name,
+                componentTypes: itemTypes(node),
+                componentInfoObjects,
+            })
+        );
+    }
+
     /** Check the reference `component`, a `_copy` or a target. */
     function check(
         component: SerializedComponent,
@@ -363,7 +495,13 @@ export function checkNamesAfterCollectionsAtLoad({
             name: first.name,
             component: collection,
             kind: allNames.has(first.name) ? "name" : "property",
-            suggestion: withIndex(ref, reference, sources) ?? reference,
+            suggestion:
+                withIndex(
+                    ref,
+                    reference,
+                    sources,
+                    itemNameInOtherCase(ref.nodeIdx, first.name),
+                ) ?? reference,
         };
         const isTag =
             !inReferences &&
@@ -556,12 +694,14 @@ function holdsContent(copy: SerializedComponent) {
 /**
  * The reference as written (`reference`) with `[1]` put after the collection
  * it names, before the name or property that follows it (`$pl.x` →
- * `$pl[1].x`), or `undefined` when where that goes isn't known.
+ * `$pl[1].x`), and that name as `corrected` when given (`$r.X` →
+ * `$r[1].x`), or `undefined` when where that goes isn't known.
  */
 function withIndex(
     ref: { unresolvedPath: any[] | null; originalPath: any[] },
     reference: string,
     sources: readonly string[],
+    corrected?: string,
 ) {
     const path: any[] = ref.unresolvedPath ?? [];
     const original: any[] = ref.originalPath ?? [];
@@ -588,5 +728,13 @@ function withIndex(
         return undefined;
     }
     const dollars = reference.slice(0, writtenAt);
-    return `${dollars}${source.substring(start, at)}[1]${source.substring(at, end)}`;
+    // The name as an item has it, in place of the one written in another
+    // case (`$r.X` → `$r[1].x`), when it is written there as it is named.
+    const name = path[0].name;
+    const nameEnd = at + 1 + name.length;
+    const rest =
+        corrected !== undefined && source.substring(at + 1, nameEnd) === name
+            ? `.${corrected}${source.substring(nameEnd, end)}`
+            : source.substring(at, end);
+    return `${dollars}${source.substring(start, at)}[1]${rest}`;
 }

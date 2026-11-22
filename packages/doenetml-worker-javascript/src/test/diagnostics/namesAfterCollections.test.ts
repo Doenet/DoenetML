@@ -223,6 +223,35 @@ describe("A name or a property after a collection names nothing (D59)", () => {
         expect(diagnostics).eqls([]);
     });
 
+    it("suggests the item's spelling of a name or property written in another case (#2627 item 14)", async () => {
+        const { texts, diagnostics } = await both(
+            `<repeat name="r" for="1 2" valueName="v"><point name="P">($v,3)</point></repeat>
+<section name="sec"><point>(1,2)</point><point>(3,4)</point></section>
+<collect name="c" from="$sec" componentType="point"/>
+<pointList name="pl">(1,2) (3,4)</pointList>
+<sequence name="s" to="3"/>
+<p name="p1">$r.X</p><p name="p2">$c.X</p><p name="p3">$pl.X1</p><p name="p4">$r.p</p><p name="p5">$s.Value</p>`,
+            ["p1", "p2", "p3", "p4", "p5"],
+            { withMessages: true },
+        );
+        expect(texts).eqls({
+            p1: "＿",
+            p2: "＿",
+            p3: "＿",
+            p4: "＿",
+            p5: "＿",
+        });
+        // `value` is the sequence's own, so `$s.Value` is that in another
+        // case (`w0104`, as for any property).
+        expect(diagnostics).eqls([
+            "warning doenet-w0104: No referent found for reference: `$s.Value`. Did you mean `$s.value`?",
+            "warning doenet-w0199: `$c.X` names nothing: a `<collect>` has no property `X` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$c[1].x`.",
+            "warning doenet-w0199: `$pl.X1` names nothing: a `<pointList>` has no property `X1` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$pl[1].xs[1]`.",
+            "warning doenet-w0199: `$r.X` names nothing: a `<repeat>` has no property `X` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$r[1].x`.",
+            "warning doenet-w0199: `$r.p` names nothing: a `<repeat>` has no property `p` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$r[1].P`.",
+        ]);
+    });
+
     it("but an own property in another case is left for its spelling (D51)", async () => {
         const { diagnostics } = await both(
             `<repeat name="r" for="1 2" valueName="v"><point>($v,3)</point></repeat><p name="p1">$r.numitems</p>`,
