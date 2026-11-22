@@ -272,7 +272,9 @@ describe("Warning levels by the source of the condition: sampling, collect, targ
     it("w0043: a target that holds nothing, and cannot come to, is a warning", async () => {
         // An action's target is written to by the action, so whether it
         // can change says nothing here: what can change is which
-        // replacements or entries it gives.
+        // replacements or entries it gives. An index past an entry's
+        // coordinates is read through one entry (`$ml2[1].xs[5]`): a
+        // property after a list is the list's own (D59).
         const { diagnostics, refresh } = await setup(`
 <conditionalContent name="cc">
   <case condition="false"><math>1</math></case>
