@@ -156,31 +156,29 @@ const OPTION_PARAMETERS = ["selectWeight"];
  * style it, or decide whether a reader may change it (which the writable
  * index reads), not its value.
  */
-const ATTRIBUTES_NOT_READ = new Set(
-    [
-        "name",
-        "hide",
-        "disabled",
-        "fixed",
-        "fixLocation",
-        "draggable",
-        "styleNumber",
-        "labelIsName",
-        "labelPosition",
-        "label",
-        "shortDescription",
-        "description",
-        "displayDigits",
-        "displayDecimals",
-        "displaySmallAsZero",
-        "padZeros",
-        "renderMode",
-        "layer",
-        "applyStyleToLabel",
-        "isResponse",
-        "isPotentialResponse",
-    ].map((name) => name.toLowerCase()),
-);
+const ATTRIBUTES_NOT_READ = new Set([
+    "name",
+    "hide",
+    "disabled",
+    "fixed",
+    "fixLocation",
+    "draggable",
+    "styleNumber",
+    "labelIsName",
+    "labelPosition",
+    "label",
+    "shortDescription",
+    "description",
+    "displayDigits",
+    "displayDecimals",
+    "displaySmallAsZero",
+    "padZeros",
+    "renderMode",
+    "layer",
+    "applyStyleToLabel",
+    "isResponse",
+    "isPotentialResponse",
+]);
 
 /**
  * The composites that create variants without choosing anything
@@ -224,12 +222,12 @@ const READER_ENTERED_TYPES = new Set([
  * unless its axes are fixed, written in lowercase.
  */
 const GRAPH_AXIS_PROPERTIES = new Set([
-    "xmin",
-    "xmax",
-    "ymin",
-    "ymax",
-    "xscale",
-    "yscale",
+    "xMin",
+    "xMax",
+    "yMin",
+    "yMax",
+    "xScale",
+    "yScale",
 ]);
 
 /**
@@ -447,7 +445,7 @@ export function checkChoiceParametersAtLoad({
             )) {
                 if (
                     name.startsWith("_") ||
-                    ATTRIBUTES_NOT_READ.has(name.toLowerCase()) ||
+                    ATTRIBUTES_NOT_READ.has(name) ||
                     (iteration.repeat.componentType !== "repeat" &&
                         COUNT_ONLY_ATTRIBUTES.has(name))
                 ) {
@@ -518,10 +516,7 @@ export function checkChoiceParametersAtLoad({
             }
         }
         for (const [name, attribute] of Object.entries(node.attributes ?? {})) {
-            if (
-                name.startsWith("_") ||
-                ATTRIBUTES_NOT_READ.has(name.toLowerCase())
-            ) {
+            if (name.startsWith("_") || ATTRIBUTES_NOT_READ.has(name)) {
                 continue;
             }
             const found = reachAttribute(attribute, undefined, viaReference);
@@ -548,11 +543,11 @@ export function checkChoiceParametersAtLoad({
         if (!info) {
             return undefined;
         }
-        const lower = name.toLowerCase();
+        // matched exactly, as a property is (NAME-0, D51)
         return [
             ...Object.keys(info.stateVariableDescriptions ?? {}),
             ...Object.keys(info.aliases ?? {}),
-        ].some((property) => property.toLowerCase() === lower)
+        ].includes(name)
             ? name
             : undefined;
     }
@@ -569,7 +564,6 @@ export function checkChoiceParametersAtLoad({
         reference: any,
     ): Reached | null {
         const type = typeMadeBy(node);
-        const lower = property.toLowerCase();
         if (
             isPlacementLocation(property) &&
             anchorIsPlaced(node, property, new Set())
@@ -579,15 +573,15 @@ export function checkChoiceParametersAtLoad({
         }
         if (
             isA(type, "_sectioningComponent") &&
-            (lower === "sectionnumber" || lower === "ownnumber")
+            (property === "sectionNumber" || property === "ownNumber")
         ) {
             // decided by where the section is, not by what it holds
             return reachSectionNumber(node, reference, new Set());
         }
         if (isA(type, "graph")) {
             if (
-                (GRAPH_AXIS_PROPERTIES.has(lower) ||
-                    (lower === "aspectratio" &&
+                (GRAPH_AXIS_PROPERTIES.has(property) ||
+                    (property === "aspectRatio" &&
                         aspectRatioFromAxisScales(node))) &&
                 !axesFixed(node)
             ) {
@@ -622,10 +616,7 @@ export function checkChoiceParametersAtLoad({
             return { reference, changeable: node };
         }
         for (const [name, attribute] of Object.entries(node.attributes ?? {})) {
-            if (
-                name.startsWith("_") ||
-                ATTRIBUTES_NOT_READ.has(name.toLowerCase())
-            ) {
+            if (name.startsWith("_") || ATTRIBUTES_NOT_READ.has(name)) {
                 continue;
             }
             const found = reachAttribute(attribute, reference, true);
@@ -775,10 +766,7 @@ export function checkChoiceParametersAtLoad({
             for (const [name, attribute] of Object.entries(
                 node.attributes ?? {},
             )) {
-                if (
-                    name.startsWith("_") ||
-                    ATTRIBUTES_NOT_READ.has(name.toLowerCase())
-                ) {
+                if (name.startsWith("_") || ATTRIBUTES_NOT_READ.has(name)) {
                     continue;
                 }
                 const found = reachAttribute(attribute, reference, true);
@@ -982,7 +970,7 @@ export function checkChoiceParametersAtLoad({
         if (path.length === 1) {
             // the entries' `anchor`; an `entryAnchor` is the list's own
             return (
-                last.name.toLowerCase() === "anchor" &&
+                last.name === "anchor" &&
                 (componentInfoObjects.allComponentClasses as any)[
                     typeMadeBy(named)
                 ]?.listEntryComponentType !== undefined &&
@@ -1258,19 +1246,15 @@ export function makeChoicesErrors({
 }
 
 /**
- * The attribute of `component` named `name`, matched without regard to case,
- * and the name it has.
+ * The attribute of `component` named `name`, matched exactly (NAME-0, D51):
+ * one written in another case was given the component's spelling before the
+ * document loads (`doenet-w0197`). With the name it has, which is `name`.
  */
 export function attributeNamed(component: any, name: string) {
-    const lower = name.toLowerCase();
-    for (const [attributeName, attribute] of Object.entries(
-        component.attributes ?? {},
-    )) {
-        if (attributeName.toLowerCase() === lower) {
-            return { name: attributeName, attribute: attribute as any };
-        }
-    }
-    return undefined;
+    const attributes = component.attributes ?? {};
+    return Object.hasOwn(attributes, name)
+        ? { name, attribute: attributes[name] as any }
+        : undefined;
 }
 
 /** Whether the attribute `attribute` holds a component or a reference. */

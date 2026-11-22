@@ -40,6 +40,19 @@ export function nameDifferingOnlyInCase(
 }
 
 /**
+ * The component types an author can write as a tag, to suggest one from
+ * (`doenet-e0002`, and a value naming a tag, `<collect componentType>`):
+ * every one but the internal ones, whose names start with `_`.
+ */
+export function authoredComponentTypes(
+    componentInfoObjects: ComponentInfoObjects,
+): string[] {
+    return Object.keys(componentInfoObjects.allComponentClasses).filter(
+        (componentType) => !componentType.startsWith("_"),
+    );
+}
+
+/**
  * The arguments a message that can suggest a name takes: `suggestion` and
  * `hasSuggestion` (`true` or `false`, as Fluent selects on a string).
  */

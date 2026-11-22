@@ -377,18 +377,18 @@ type Caveat = "unknown" | "number";
  * its value, and what each does to the value computed with the defaults.
  */
 const VALUE_ATTRIBUTES: Record<string, Record<string, Caveat>> = {
-    number: { convertboolean: "unknown", valueonnan: "number" },
-    integer: { convertboolean: "unknown", valueonnan: "number" },
+    number: { convertBoolean: "unknown", valueOnNaN: "number" },
+    integer: { convertBoolean: "unknown", valueOnNaN: "number" },
     math: {
         format: "unknown",
-        functionsymbols: "unknown",
-        referencesarefunctionsymbols: "unknown",
-        splitsymbols: "unknown",
-        parsescientificnotation: "unknown",
+        functionSymbols: "unknown",
+        referencesAreFunctionSymbols: "unknown",
+        splitSymbols: "unknown",
+        parseScientificNotation: "unknown",
         simplify: "number",
         expand: "number",
-        createvectors: "number",
-        createintervals: "number",
+        createVectors: "number",
+        createIntervals: "number",
         assumptions: "number",
     },
     boolean: Object.fromEntries(
@@ -405,9 +405,9 @@ const VALUE_ATTRIBUTES: Record<string, Record<string, Caveat>> = {
             "numPeriodicSetMatchesRequired",
             "caseInsensitiveMatch",
             "matchBlanks",
-        ].map((name) => [name.toLowerCase(), "unknown" as Caveat]),
+        ].map((name) => [name, "unknown" as Caveat]),
     ),
-    text: { islatex: "unknown" },
+    text: { isLatex: "unknown" },
 };
 
 /**
@@ -422,7 +422,9 @@ function valueCaveatOf(
     const caveats = VALUE_ATTRIBUTES[componentType] ?? {};
     let found: Caveat | undefined;
     for (const name of Object.keys(component?.attributes ?? {})) {
-        const caveat = caveats[name.toLowerCase()];
+        // Matched exactly (NAME-0, D51), as the attributes were given the
+        // component's spelling before the document loads.
+        const caveat = Object.hasOwn(caveats, name) ? caveats[name] : undefined;
         if (caveat === "unknown") {
             return caveat;
         }
@@ -1816,7 +1818,7 @@ export function checkChoiceFeasibilityAtLoad({
         // a property `value` is the value itself
         if (
             path.length === 1 &&
-            path[0]?.name?.toLowerCase() === "value" &&
+            path[0]?.name === "value" &&
             (path[0].index ?? []).length === 0
         ) {
             path = [];
@@ -5589,13 +5591,9 @@ export function checkChoiceFeasibilityAtLoad({
                 choice.componentType
             ],
         );
-        const lower = name.toLowerCase();
-        for (const [key, spec] of Object.entries(attributes)) {
-            if (key.toLowerCase() === lower) {
-                return (spec as any).createComponentOfType;
-            }
-        }
-        return undefined;
+        return Object.hasOwn(attributes, name)
+            ? (attributes[name] as any).createComponentOfType
+            : undefined;
     }
 
     /**

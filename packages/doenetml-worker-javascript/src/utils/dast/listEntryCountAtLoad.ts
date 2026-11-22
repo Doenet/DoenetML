@@ -47,17 +47,16 @@ export function isAuthoredListType(
     );
 }
 
-/** An attribute of `component`, matched without regard to case. */
+/**
+ * An attribute of `component`, matched exactly (NAME-0, D51): one written
+ * in another case was given the component's spelling before the document
+ * loads (`doenet-w0197`), or is an attribute the component doesn't have.
+ */
 function attributeOf(component: SerializedComponent, name: string) {
-    const lower = name.toLowerCase();
-    for (const [attrName, attribute] of Object.entries(
-        component.attributes ?? {},
-    )) {
-        if (attrName.toLowerCase() === lower) {
-            return attribute as SerializedAttribute;
-        }
-    }
-    return undefined;
+    const attributes = component.attributes ?? {};
+    return Object.hasOwn(attributes, name)
+        ? (attributes[name] as SerializedAttribute)
+        : undefined;
 }
 
 /**

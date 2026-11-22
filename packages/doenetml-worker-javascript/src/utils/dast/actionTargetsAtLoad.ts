@@ -49,9 +49,7 @@ export function checkActionTargetsAtLoad({
         if (!ACTIONS.has(component.componentType)) {
             continue;
         }
-        const attribute: any = Object.entries(component.attributes ?? {}).find(
-            ([name]) => name.toLowerCase() === "target",
-        )?.[1];
+        const attribute: any = component.attributes?.target;
         const references = attribute?.references ?? [];
         if (references.length !== 1 || !references[0]?.extending) {
             continue;

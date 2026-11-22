@@ -1,5 +1,5 @@
 import type { DiagnosticArgs, DiagnosticCode } from "@doenet/i18n";
-import { diagnosticCodeFrom } from "../diagnostics";
+import { DiagnosticError, diagnosticCodeFrom } from "../diagnostics";
 import { UnflattenedComponent } from "./intermediateTypes";
 import { SerializedAttribute, SerializedComponent } from "./types";
 
@@ -105,7 +105,12 @@ export function convertToErrorComponent(
         children: [],
         attributes: {},
         doenetAttributes: {},
-        position: component.position,
+        // where the author wrote the cause: an attribute of the component,
+        // when the error names one (DIAG-4), so the error is reported there
+        position:
+            (eOrMessage instanceof DiagnosticError
+                ? eOrMessage.position
+                : undefined) ?? component.position,
         sourceDoc: component.sourceDoc,
     };
 

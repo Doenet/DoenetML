@@ -724,9 +724,9 @@ function indexAliasCompletionItems(
         autoCompleter.sourceObj.getParentElementName(containerNode),
     );
     const arrayName = unresolvedPathParts[0];
-    const arrayProp = helpSchema?.properties?.find(
-        (p) => p.name.toLowerCase() === arrayName.toLowerCase(),
-    );
+    // Property names are matched exactly (NAME-0, D51), as the core
+    // resolves them: `$v.HEAD` names nothing (`doenet-w0104`).
+    const arrayProp = helpSchema?.properties?.find((p) => p.name === arrayName);
     if (!arrayProp) return null;
 
     // Locate the array-prop segment in the caller's path. `pathParts` is

@@ -146,12 +146,11 @@ export function propertyTypeReader({
      */
     const decided = new Map<number, PropertyTypes | null>();
 
+    // matched exactly, as a tag is (NAME-0, D51)
     function canonical(type: string | undefined) {
         return type === undefined
             ? undefined
-            : componentInfoObjects.componentTypeLowerCaseMapping[
-                  type.toLowerCase()
-              ];
+            : componentInfoObjects.componentTypeAsWritten(type);
     }
 
     function inherits(componentType: string, base: string) {

@@ -9,6 +9,11 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
 import { listEntryReplacement } from "./Sort";
+import {
+    authoredComponentTypes,
+    nameDifferingOnlyInCase,
+    suggestionArgs,
+} from "../utils/dast/nameCase";
 
 /**
  * What names a collected item (`collectedComponents`): its component, or,
@@ -69,6 +74,10 @@ export default class Collect extends CompositeComponent {
         attributes.componentType = {
             createComponentOfType: "text",
             description: "Component type of descendants to collect.",
+            // A tag name, matched exactly (NAME-0, D62); one written in
+            // another case is corrected at load, with `doenet-w0197`, for
+            // now (`correctAttributeNameCase` in `convertNormalizedDast.ts`).
+            valueNamesComponentType: true,
         };
 
         attributes.asList = {
@@ -304,14 +313,14 @@ export default class Collect extends CompositeComponent {
                 if (dependencyValues.componentTypeAttr !== null) {
                     const cType =
                         dependencyValues.componentTypeAttr.stateValues.value;
-                    let componentType =
-                        componentInfoObjects.componentTypeLowerCaseMapping[
-                            cType.toLowerCase()
-                        ];
-                    let cClass =
-                        componentInfoObjects.allComponentClasses[componentType];
+                    // Matched exactly, as a tag is (NAME-0, D62). One written
+                    // in another case was corrected at load, with a warning;
+                    // one that comes from a value that can change is not, and
+                    // gets the suggestion.
+                    const componentType =
+                        componentInfoObjects.componentTypeAsWritten(cType);
 
-                    if (cClass) {
+                    if (componentType !== undefined) {
                         componentTypeToCollect = componentType;
                     } else {
                         const position =
@@ -322,7 +331,17 @@ export default class Collect extends CompositeComponent {
                                     dependencyValues.componentTypeDecidedByDoenetML,
                                 ),
                                 code: "doenet-w0073",
-                                args: { component: cType },
+                                args: {
+                                    component: cType,
+                                    ...suggestionArgs(
+                                        nameDifferingOnlyInCase(
+                                            cType,
+                                            authoredComponentTypes(
+                                                componentInfoObjects,
+                                            ),
+                                        ),
+                                    ),
+                                },
                                 ...(position ? { position } : {}),
                             }),
                         );

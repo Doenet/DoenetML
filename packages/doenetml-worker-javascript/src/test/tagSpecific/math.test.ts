@@ -13137,7 +13137,7 @@ describe("Math tag tests @group3", async () => {
     <math name="m1b" simplify extend="$m1" assumptions="x > 0" />
     <math name="m1c" simplify extend="$m1" assumptions="x elementof R" />
 
-    <math name name="m2">sqrt(x^4)</math>
+    <math name="m2">sqrt(x^4)</math>
     <math name="m2a" simplify extend="$m2" />
     <math name="m2b" simplify extend="$m2" assumptions="x > 0" />
     <math name="m2c" simplify extend="$m2" assumptions="x elementof R" />
