@@ -16,13 +16,11 @@
  * "autocomplete promises a member the runtime can't resolve" class of bug
  * that issue #1179 closed.
  *
- * Attribute names are matched case-insensitively to mirror the worker, which
- * runs a lowercase mapping in `expandAllUnflattenedAttributes` so e.g.
- * `<select NumToSelect="2">` resolves the same as `<select numToSelect="2">`.
- * Element names are NOT case-insensitive at the worker (`<SELECT>` is rejected
- * as an invalid component type), but the predicate lowercases them anyway as
- * harmless LSP defensiveness — an invalid element wouldn't reach the resolver
- * in any case.
+ * Element names are matched exactly (NAME-0, D51): `<SELECT>` is no component
+ * (`doenet-e0002`). The count attribute is found without case, as for one
+ * release the parser still applies one written in another case under the
+ * component's spelling (`<select NumToSelect="2">` as `numToSelect`, with
+ * `doenet-w0197`); see `findAttributeKey`.
  */
 
 import type { DastElement } from "@doenet/parser";
@@ -40,10 +38,6 @@ import {
  * (Select.js, SamplePrimeNumbers.js, …) — the issue text in #1181 lists
  * `numToSample`, but the runtime actually uses `numToSelect` for the four
  * `select*` tags and `numSamples` for the two `sample*` tags.
- *
- * The exported table preserves canonical case (it's what tests and other
- * consumers see); the case-insensitive lookup happens against a private
- * lowercase-keyed mirror below.
  */
 export const SELECT_FAMILY_COUNT_ATTRIBUTE: Readonly<Record<string, string>> = {
     select: "numToSelect",
@@ -54,22 +48,14 @@ export const SELECT_FAMILY_COUNT_ATTRIBUTE: Readonly<Record<string, string>> = {
     sampleRandomNumbers: "numSamples",
 };
 
-const SELECT_FAMILY_COUNT_ATTRIBUTE_BY_LOWER: Readonly<Record<string, string>> =
-    Object.fromEntries(
-        Object.entries(SELECT_FAMILY_COUNT_ATTRIBUTE).map(([k, v]) => [
-            k.toLowerCase(),
-            v,
-        ]),
-    );
-
 /**
  * Strict-rule predicate from issue #1181: a select-family container has an
  * implicit single index iff the count attribute is either absent OR its
  * source text, trimmed, equals exactly `"1"`.
  *
  * Accepted: attribute absent, `numToSelect="1"`, `numToSelect=" 1 "`,
- * `<select NumToSelect="1">` (attribute name is case-insensitive to match the
- * worker).
+ * `<select NumToSelect="1">` (applied as `numToSelect`, for now, with
+ * `doenet-w0197`).
  * Rejected: `numToSelect="2"`, `"$n"`, `"01"`, `"1.0"`, `"One"`, and
  * present-but-empty `numToSelect=""` / `"   "` — the runtime treats those as
  * "nothing selected" (no replacement is produced), so `$s.t` won't resolve.
@@ -83,9 +69,15 @@ const SELECT_FAMILY_COUNT_ATTRIBUTE_BY_LOWER: Readonly<Record<string, string>> =
  * relying on `getElementAttributeValue`'s `undefined`-on-empty contract.
  */
 export function hasImplicitSingleIndex(element: DastElement): boolean {
-    const attrName =
-        SELECT_FAMILY_COUNT_ATTRIBUTE_BY_LOWER[element.name.toLowerCase()];
-    if (attrName === undefined) return false;
+    if (
+        !Object.prototype.hasOwnProperty.call(
+            SELECT_FAMILY_COUNT_ATTRIBUTE,
+            element.name,
+        )
+    ) {
+        return false;
+    }
+    const attrName = SELECT_FAMILY_COUNT_ATTRIBUTE[element.name];
     // Absent attribute → defaults to 1 at runtime → shorthand applies.
     if (findAttributeKey(element, attrName) === undefined) return true;
     // Present attribute → only the literal "1" (with optional surrounding

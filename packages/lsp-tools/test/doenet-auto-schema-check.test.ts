@@ -194,6 +194,8 @@ describe("AutoCompleter", () => {
               "code": "doenet-w0112",
               "data": {
                 "args": {
+                  "hasSuggestion": "false",
+                  "suggestion": "",
                   "tag": "e",
                 },
               },
@@ -214,74 +216,132 @@ describe("AutoCompleter", () => {
         `);
     });
 
-    it("Can detect schema violations for elements with differently capitalized names", async () => {
-        let source: string;
-        let autoCompleter: AutoCompleter;
+    it("Reports a tag in another case as no element, suggesting the right spelling", async () => {
+        // Tag names are matched exactly (NAME-0, D51), as the core matches
+        // them (`<A>` is `doenet-e0002` there, suggesting `<a>`). So each tag
+        // below is no element, and its attributes and children are not
+        // checked against the element it differs from only in case.
+        const messagesOf = async (source: string) =>
+            (
+                await new AutoCompleter(
+                    source,
+                    schema.elements,
+                ).getSchemaViolations()
+            ).map((d) => [d.code, d.message]);
 
-        source = `<A>
+        expect(
+            await messagesOf(`<A>
             <B  foo="true">
             </B>
             <C>hi</C>
-        </A>`;
-        autoCompleter = new AutoCompleter(source, schema.elements);
-        expect(await autoCompleter.getSchemaViolations()).toHaveLength(0);
+        </A>`),
+        ).toEqual([
+            [
+                "doenet-w0112",
+                "Element `<A>` is not a recognized Doenet element. Did you mean `<a>`?",
+            ],
+            [
+                "doenet-w0112",
+                "Element `<B>` is not a recognized Doenet element. Did you mean `<b>`?",
+            ],
+            [
+                "doenet-w0112",
+                "Element `<C>` is not a recognized Doenet element. Did you mean `<c>`?",
+            ],
+        ]);
 
-        source = `<C></C>`;
-        autoCompleter = new AutoCompleter(source, schema.elements);
-        expect(await autoCompleter.getSchemaViolations())
-            .toMatchInlineSnapshot(`
-          [
-            {
-              "code": "doenet-w0113",
-              "data": {
-                "args": {
-                  "tag": "c",
-                },
-              },
-              "message": "Element \`<c>\` is not allowed at the root of the document.",
-              "range": {
-                "end": {
-                  "character": 7,
-                  "line": 0,
-                },
-                "start": {
-                  "character": 0,
-                  "line": 0,
-                },
-              },
-              "severity": 2,
-            },
-          ]
-        `);
+        // No "not allowed at the root" for `<C>`, and no check of `<c>`
+        // inside `<B>`: neither is the element it would be in its own case.
+        expect(await messagesOf(`<C></C>`)).toEqual([
+            [
+                "doenet-w0112",
+                "Element `<C>` is not a recognized Doenet element. Did you mean `<c>`?",
+            ],
+        ]);
+        expect(await messagesOf(`<B><c></c></B>`)).toEqual([
+            [
+                "doenet-w0112",
+                "Element `<B>` is not a recognized Doenet element. Did you mean `<b>`?",
+            ],
+        ]);
 
-        source = `<B><C></C></B>`;
-        autoCompleter = new AutoCompleter(source, schema.elements);
-        expect(await autoCompleter.getSchemaViolations())
-            .toMatchInlineSnapshot(`
-          [
-            {
-              "code": "doenet-w0114",
-              "data": {
-                "args": {
-                  "parent": "b",
-                  "tag": "c",
-                },
-              },
-              "message": "Element \`<c>\` is not allowed inside of \`<b>\`.",
-              "range": {
-                "end": {
-                  "character": 10,
-                  "line": 0,
-                },
-                "start": {
-                  "character": 3,
-                  "line": 0,
-                },
-              },
-              "severity": 2,
+        const [diagnostic] = await new AutoCompleter(
+            `<C></C>`,
+            schema.elements,
+        ).getSchemaViolations();
+        expect(diagnostic.data).toEqual({
+            args: { tag: "C", suggestion: "c", hasSuggestion: "true" },
+        });
+    });
+
+    it("Suggests no spelling when a tag matches several in another case", async () => {
+        const ac = new AutoCompleter(`<ab />`, [
+            { ...schema.elements[0], name: "aB" },
+            { ...schema.elements[0], name: "Ab" },
+        ]);
+        expect((await ac.getSchemaViolations()).map((d) => d.message)).toEqual([
+            "Element `<ab>` is not a recognized Doenet element.",
+        ]);
+    });
+
+    it("Applies an attribute in another case, for now, with the parser's warning", async () => {
+        // Attribute names are matched exactly, but for one release one
+        // written in another case is still applied, under the element's
+        // spelling, with `doenet-w0197` (`dast-normalize/attribute-name-case.ts`
+        // in the parser, which the LSP's unnormalized DAST has not run). So
+        // the LSP reports that warning, not an unknown attribute, and checks
+        // the value under the element's spelling.
+        const violations = async (source: string) =>
+            new AutoCompleter(source, schema.elements).getSchemaViolations();
+
+        const [caseWarning, ...rest] = await violations(`<a X="1" />`);
+        expect(rest).toEqual([]);
+        expect(caseWarning).toMatchObject({
+            code: "doenet-w0197",
+            message:
+                "Attribute names are case-sensitive: write `x`, not `X`, on a `<a>`. It is applied for now, but will be an error in a later release.",
+            data: {
+                args: { attribute: "X", suggestion: "x", componentType: "a" },
             },
-          ]
-        `);
+            severity: 2,
+            range: {
+                start: { line: 0, character: 3 },
+                end: { line: 0, character: 8 },
+            },
+        });
+
+        // Checked under the element's spelling: an allowed value passes, and
+        // one that isn't is reported with the attribute as the element
+        // spells it.
+        expect((await violations(`<a XYX="B" />`)).map((d) => d.code)).toEqual([
+            "doenet-w0197",
+        ]);
+        expect(
+            (await violations(`<a XYX="c" />`)).map((d) => [d.code, d.message]),
+        ).toEqual([
+            ["doenet-w0197", expect.stringContaining("write `xyx`, not `XYX`")],
+            [
+                "doenet-w0116",
+                'Attribute `xyx` of element `<a>` must be one of: "a", "B"',
+            ],
+        ]);
+
+        // Left as written, an unknown attribute, when the element's own
+        // spelling is written too, as the parser leaves it.
+        expect(
+            (await violations(`<a x="1" X="2" />`)).map((d) => [
+                d.code,
+                d.message,
+            ]),
+        ).toEqual([
+            [
+                "doenet-w0115",
+                "Element `<a>` doesn't have an attribute called `X`.",
+            ],
+        ]);
+
+        // An attribute exact as written is no matter of case.
+        expect(await violations(`<a x="1" />`)).toEqual([]);
     });
 
     it("Can detect schema violations for attributes", async () => {

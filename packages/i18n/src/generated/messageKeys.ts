@@ -501,6 +501,7 @@ export type MessageKey =
     | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
     | "attribute-name-case"
+    | "attribute-written-twice"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
@@ -646,6 +647,7 @@ export type MessageKey =
     | "copy-with-state-attribute-reaches-choice"
     | "reorder-items-of-several-types"
     | "sort-needs-sort-by-prop"
+    | "attribute-written-as-reference"
     | "sort-by-prop-names-nothing"
     | "answer-responses-of-several-types"
     | "repeat-for-items-of-several-types"
@@ -1217,6 +1219,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
     "attribute-name-case",
+    "attribute-written-twice",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
     "extend-attribute-changes-content",
@@ -1362,6 +1365,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-with-state-attribute-reaches-choice",
     "reorder-items-of-several-types",
     "sort-needs-sort-by-prop",
+    "attribute-written-as-reference",
     "sort-by-prop-names-nothing",
     "answer-responses-of-several-types",
     "repeat-for-items-of-several-types",

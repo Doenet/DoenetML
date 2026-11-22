@@ -798,7 +798,7 @@ type NamedReference = {
  */
 function hasOnlyResponseMarks(component: SerializedComponent) {
     return Object.keys(component.attributes).every((name) =>
-        RESPONSE_MARKS.has(name.toLowerCase()),
+        RESPONSE_MARKS.has(name),
     );
 }
 

@@ -117,17 +117,10 @@ export function checkExtendErrorsAtLoad({
     const copyAttributesObj = allClasses._copy.createAttributesObject();
     const copyAttributeNames = Object.keys(copyAttributesObj);
 
-    function canonicalType(type: string | undefined) {
-        return type === undefined
-            ? undefined
-            : (componentInfoObjects.componentTypeLowerCaseMapping[
-                  type.toLowerCase()
-              ] ?? type);
-    }
-
     function writtenTypeOf(copy: SerializedComponent) {
+        // the tag written, matched exactly (D51)
         const attr: any = copy.attributes?._createComponentOfType;
-        return canonicalType(attr?.primitive?.value);
+        return attr?.primitive?.value as string | undefined;
     }
 
     function refOf(copy: SerializedComponent) {
@@ -267,37 +260,27 @@ export function checkExtendErrorsAtLoad({
     /**
      * The attributes written on `copy` that its replacement, of type
      * `replacementType`, is given (`convertUnresolvedAttributesForComponentType`
-     * in `Copy.js`): those its class declares, matched ignoring case, other
-     * than the `_copy`'s own, except `asList`, and any other a class that
-     * accepts any attribute (`<module>`) is given, as written.
+     * in `convertNormalizedDast.ts`): those its class declares, matched
+     * exactly (D51), other than the `_copy`'s own, except `asList`, and any
+     * other a class that accepts any attribute (`<module>`) is given, as
+     * written.
      */
     function attributeNamesFor(
         copy: SerializedComponent,
         replacementType: string,
     ) {
         const declared = allClasses[replacementType].createAttributesObject();
-        const lowerToName: Record<string, string> = Object.create(null);
-        for (const name in declared) {
-            lowerToName[name.toLowerCase()] = name;
-        }
-        const copyLowerToName: Record<string, string> = Object.create(null);
-        for (const name in copyAttributesObj) {
-            copyLowerToName[name.toLowerCase()] = name;
-        }
         const names: string[] = [];
         for (const written of Object.keys(copy.attributes ?? {})) {
-            const lower = written.toLowerCase();
-            const copyName = copyLowerToName[lower];
             if (
-                copyName !== undefined &&
-                !copyAttributesObj[copyName].leaveRaw &&
-                copyName !== "asList"
+                Object.hasOwn(copyAttributesObj, written) &&
+                !copyAttributesObj[written].leaveRaw &&
+                written !== "asList"
             ) {
                 continue;
             }
-            const name = lowerToName[lower];
-            if (name !== undefined) {
-                names.push(name);
+            if (Object.hasOwn(declared, written)) {
+                names.push(written);
             } else if (allClasses[replacementType].acceptAnyAttribute) {
                 names.push(written);
             }
