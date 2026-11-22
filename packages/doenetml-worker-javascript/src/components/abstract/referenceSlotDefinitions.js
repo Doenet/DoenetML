@@ -552,6 +552,33 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
 }
 
 /**
+ * The value an `<answer>` records for a response of `componentType` that is
+ * missing (D52 decision 1, VAL-5, D37: a missing T is still a T): a blank,
+ * which never equals anything. A text is the blank `＿`, as a missing value
+ * reads as text (`MISSING_TEXT`); any other type is the empty value of its
+ * type (`emptyValueOfType`: `＿` for a math, `NaN` for a number). A boolean
+ * has no blank, so it is `false`, as `<boolean/>` is. With no type known (a
+ * reference that names nothing), it is a blank math.
+ */
+export function missingResponseValue(componentType, componentInfoObjects) {
+    if (componentType === undefined || componentType === null) {
+        return me.fromAst("＿");
+    }
+    if (
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType: "text",
+        })
+    ) {
+        return "＿";
+    }
+    return (
+        emptyValueOfType(componentType, componentInfoObjects) ??
+        me.fromAst("＿")
+    );
+}
+
+/**
  * The definition of `valueMissing` (named `names.valueMissing`) of a
  * reference that resolves itself, which makes it on demand, and of each slot
  * of an attribute a component holds (`utils/expressionAttribute.js`):

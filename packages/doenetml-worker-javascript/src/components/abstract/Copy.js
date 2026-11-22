@@ -1365,10 +1365,11 @@ export default class Copy extends CompositeComponent {
                     writtenClass.listEntryComponentType === undefined &&
                     writtenType !== "group"
                 ) {
-                    // A property whose type is that of its value, as the
-                    // `selectedValues` of a `<choiceInput>`, the type of the
-                    // selected choice: checked against its value as a math's
-                    // is, and decided again as it changes (#2488).
+                    // A property whose class declares no type, as the
+                    // `selectedValues` of a `<choiceInput>`, which the
+                    // DoenetML decides at load: one a tag can be made from
+                    // is checked at load, and against its value as a math's
+                    // is, checked again as the value changes (#2488).
                     return {
                         setValue: {
                             typeChangeValueCheck: typeChangeRule({
@@ -1506,13 +1507,6 @@ export default class Copy extends CompositeComponent {
 
                             dependencies["sourceArraySize" + ind] = {
                                 dependencyType: "stateVariableArraySize",
-                                componentIdx: source.componentIdx,
-                                variableName: propName,
-                                variablesOptional: true,
-                            };
-
-                            dependencies["sourceComponentType" + ind] = {
-                                dependencyType: "stateVariableComponentType",
                                 componentIdx: source.componentIdx,
                                 variableName: propName,
                                 variablesOptional: true,
@@ -4577,16 +4571,37 @@ export async function replacementFromProp({
             arrayKeys = await stateVarObj.arrayKeys;
         }
 
-        if (arrayStateVarObj.shadowingInstructions?.hasVariableComponentType) {
-            await component.stateValues.replacementSources;
-            if (!arrayStateVarObj.shadowingInstructions.createComponentOfType) {
-                return {
-                    serializedReplacements: [],
-                    propVariablesCopiedByReplacement: [],
-                    diagnostics,
-                    nComponents,
-                };
-            }
+        if (
+            arrayStateVarObj.public &&
+            arrayStateVarObj.shadowingInstructions &&
+            !arrayStateVarObj.shadowingInstructions.createComponentOfType
+        ) {
+            // A type the DoenetML doesn't decide (TYPE-3): a reference that
+            // reads it is an error at load (`doenet-e0091`), so one only the
+            // run time finds makes nothing.
+            return {
+                serializedReplacements: [],
+                propVariablesCopiedByReplacement: [],
+                diagnostics,
+                nComponents,
+            };
+        }
+        if (
+            arrayStateVarObj.typeDecidedAtLoad &&
+            stateVarObj.isArray &&
+            arraySize.some((v) => v === 0)
+        ) {
+            // A property whose type the DoenetML decides
+            // (`propertyTypesAtLoad.ts`) holding no entries, as the values of
+            // a `<choiceInput>` with nothing selected, makes nothing, so a
+            // reference to it is missing, shown as a blank (VAL-5, D37), as
+            // before its type was decided at load.
+            return {
+                serializedReplacements: [],
+                propVariablesCopiedByReplacement: [],
+                diagnostics,
+                nComponents,
+            };
         }
 
         // See description of returnWrappingComponents in Core.js.
@@ -5958,11 +5973,6 @@ export async function replacementFromProp({
     } else {
         // not an array or array entry
 
-        if (stateVarObj.shadowingInstructions?.hasVariableComponentType) {
-            // evaluate stateVarObj to make sure createComponentOfType is calculated and up-to-date
-            await stateVarObj.value;
-        }
-
         // A variable that holds `null` for having no value
         // (`nullMeansMissing`), as `maxNumber` of a `<collect>` with no
         // limit or an `<award>`'s `feedbackText` with none, has nothing to
@@ -6636,10 +6646,30 @@ function propComponentType({ source, propName }, componentInfoObjects) {
 }
 
 /**
- * Whether the property `propName` of `source` (`propOfTypeChange`) makes a
- * component of the type of its value, which can change, rather than of one
- * type: the `selectedValues` of a `<choiceInput>`, a math or a text as the
- * selected choice is (`hasVariableComponentType`).
+ * The type of the property `propName` of `source`, of which `propVariable`
+ * is the variable (if made): the one its class declares
+ * (`propComponentType`), or else the one the DoenetML decides when the
+ * document loads (`propertyTypesAtLoad.ts`, set on the variable by
+ * `StateVariableInitializer.ts`), when it is one type. `undefined` when
+ * neither gives one: a type is never worked out from a value (TYPE).
+ */
+function propTypeAtLoad(propVariable, source, propName, componentInfoObjects) {
+    const declared = propComponentType(
+        { source, propName },
+        componentInfoObjects,
+    );
+    if (declared) {
+        return declared;
+    }
+    const atLoad = propVariable?.shadowingInstructions?.createComponentOfType;
+    return typeof atLoad === "string" ? atLoad : undefined;
+}
+
+/**
+ * Whether the property `propName` of `source` (`propOfTypeChange`) is one
+ * whose class declares no type, which the DoenetML decides when the
+ * document loads (`propertyTypesAtLoad.ts`): the `selectedValues` of a
+ * `<choiceInput>`, a math or a text as its choices are.
  */
 function propTypeVaries({ source, propName }, componentInfoObjects) {
     const description =
@@ -6648,22 +6678,6 @@ function propTypeVaries({ source, propName }, componentInfoObjects) {
     return Boolean(
         description?.public && description.createComponentOfType === undefined,
     );
-}
-
-/**
- * The component type a value is held in: a math expression in a `<math>`,
- * and a string, number or boolean in a `<text>`, `<number>` or `<boolean>`.
- * `undefined` for anything else, such as an array of several entries.
- */
-function componentTypeOfValue(value) {
-    if (value instanceof me.class) {
-        return "math";
-    }
-    return {
-        string: "text",
-        number: "number",
-        boolean: "boolean",
-    }[typeof value];
 }
 
 /** Whether a `typeChangeValueCheck` is of what a composite holds. */
@@ -8989,33 +9003,17 @@ async function typeChangeStatus({
             if (Array.isArray(value) && value.length !== 1) {
                 // What its type decides comes first: with a text among the
                 // choices, a `<point>` is `doenet-e0065` whatever is
-                // selected, also when nothing is (D36).
-                // The type its entries are made of, set as its value is
-                // (`hasVariableComponentType`): a `<choiceInput>`'s
-                // `componentType`, which is a text when any choice is one.
-                // With no entries it is not set, and is read from the
-                // source's `componentType`.
-                const variableType =
-                    propVariable.shadowingInstructions?.createComponentOfType ??
-                    (propSource.state.componentType
-                        ? await propSource.stateValues.componentType
-                        : undefined);
-                const propType =
-                    typeof variableType === "string"
-                        ? variableType
-                        : propComponentType(
-                              { source: propSource, propName },
-                              componentInfoObjects,
-                          );
-                // A `<choiceInput>` with no choices yet (made later, as by a
-                // `<repeat>` with no iterations yet) has a text
-                // `componentType` by default, not because a choice is one,
-                // so its type decides nothing yet.
-                const noChoicesYet =
-                    propSource.state.numChoices !== undefined &&
-                    (await propSource.stateValues.numChoices) === 0;
+                // selected, also when nothing is (D36). The type its entries
+                // are made of is decided when the document loads (TYPE,
+                // `propertyTypesAtLoad.ts`): a `<choiceInput>`'s is a text
+                // when any choice is one.
+                const propType = propTypeAtLoad(
+                    propVariable,
+                    propSource,
+                    propName,
+                    componentInfoObjects,
+                );
                 const byType =
-                    !noChoicesYet &&
                     propType &&
                     !componentInfoObjects.isCompositeComponent({
                         componentType: propType,
@@ -9039,26 +9037,16 @@ async function typeChangeStatus({
             // Decided again as the document runs, from the type of the
             // property, when it is checked against its value
             // (`typeChangeValueCheck` "value").
-            let propType =
+            // of the type its class declares, or that the DoenetML decides
+            // when the document loads (TYPE), never of its value now
+            const propType =
                 propSource &&
-                propComponentType(
-                    { source: propSource, propName },
+                propTypeAtLoad(
+                    propVariable,
+                    propSource,
+                    propName,
                     componentInfoObjects,
                 );
-            if (
-                !propType &&
-                propVariable &&
-                propTypeVaries(
-                    { source: propSource, propName },
-                    componentInfoObjects,
-                )
-            ) {
-                // of the type of its value now, as the selected choice of a
-                // `<choiceInput>` is (#2488)
-                propType = componentTypeOfValue(
-                    await readTypeChangeValue(component, readValue),
-                );
-            }
             if (
                 !propVariable ||
                 !propType ||

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { responseTypes } from "../utils/responseTypes";
 import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -1809,11 +1810,10 @@ describe("Point and vector lists as list components @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const sv = async (name: string) =>
             stateVariables[await resolvePathToNodeIdx(name)].stateValues;
-        expect((await sv("a")).submittedResponsesComponentType).eqls([
-            "point",
-            "point",
-            "vector",
-        ]);
+        // as many of each as its list holds, decided at load
+        expect(await responseTypes(core, await resolvePathToNodeIdx("a"))).eqls(
+            ["point", "point", "vector"],
+        );
         expect((await sv("pr")).text).eq("(1, 2), (3, 4), (5, 6)");
         expect(
             core.core.rendererInstructionBuilder.rendererState[
