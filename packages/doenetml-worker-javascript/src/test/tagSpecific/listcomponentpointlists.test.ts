@@ -132,7 +132,7 @@ describe("Point and vector lists as list components @group4", async () => {
             ppl2: "(1, 2), (3, 4), (5, 6), (7, 8)",
             pentry: "(3, 4) 3 6",
             // `$pl.x` was each entry's x (D41); a property after a list is
-            // its own (D59), so it names nothing (`doenet-w0199`)
+            // its own (D59), so it names nothing (`doenet-w0200`)
             pprops: "＿; 1, 2, 3, 4, 5, 6; 3; 4",
             pcoords: "(1, 2)",
             pmax: "(1, 2), (3, 4)",

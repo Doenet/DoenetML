@@ -683,7 +683,7 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
 # component that lacks it, both as written. $container is the container's
 # name when $hasName is `true`, else its tag name. $branch is `option` or
 # `case`. (`item`, for the items of a `<repeat>`, is no longer given: a
-# property after a repeat names nothing, `doenet-w0199`, D59.) A name in only some options
+# property after a repeat names nothing, `doenet-w0200`, D59.) A name in only some options
 # or cases names nothing from outside
 # (`doenet-w0183`), so the message does not suggest reading one by name.
 
@@ -698,7 +698,7 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
 
 # A property after a `<group>` that holds several components: `$g.x` on a
 # `<group name="g">` holding two points, `$r[1].x` after a repeat whose
-# template holds two (`$r.x` names nothing, `doenet-w0199`) (said as "each item holds 2"; authors are not
+# template holds two (`$r.x` names nothing, `doenet-w0200`) (said as "each item holds 2"; authors are not
 # told of iterations as groups), `$s.x` after a pick that holds two, or `$cc.x` after
 # the case a `<conditionalContent>` shows, holding two (D41). A group holding
 # one component stands for it, and the property is that component's; with

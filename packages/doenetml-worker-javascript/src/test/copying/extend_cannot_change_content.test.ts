@@ -747,7 +747,7 @@ ${SOURCES.conditionalContent.doenetML.replace('name="x"', 'name="cc"')}
             // names nothing since D59, as a list's value is not its own)
             [`<sequence extend="$P.xs" to="5"/>`, ["doenet-e0071"], ""],
             [`<sequence copy="$P.xs"/>`, ["doenet-e0071"], ""],
-            [`<sequence copy="$s.value"/>`, ["doenet-w0199"], "＿"],
+            [`<sequence copy="$s.value"/>`, ["doenet-w0200"], "＿"],
             // an entry of a list or of a property, a number
             [`<sequence extend="$s[1]"/>`, ["doenet-e0071"], ""],
             [`<sequence copy="$P.xs[2]"/>`, ["doenet-e0071"], ""],

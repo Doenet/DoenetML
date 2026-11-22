@@ -7547,7 +7547,7 @@ async function wrapperOfSeveralDiagnostics({
         component.doenetAttributes?.typeChangeAtLoad?.code?.startsWith(
             "doenet-e",
         ) ||
-        component.doenetAttributes?.typeChangeAtLoad?.code === "doenet-w0199"
+        component.doenetAttributes?.typeChangeAtLoad?.code === "doenet-w0200"
     ) {
         return [];
     }

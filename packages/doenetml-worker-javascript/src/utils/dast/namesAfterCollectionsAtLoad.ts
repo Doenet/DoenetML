@@ -10,7 +10,7 @@
  * or a property is the collection's own: `numItems`, the settings every
  * component has (`hide`, `fixed`, `disabled`), and the properties the tag
  * declares for itself. Anything else names nothing, with a warning that
- * suggests an index (`doenet-w0199`): `$pl.x` → `$pl[1].x`, `$r.P` →
+ * suggests an index (`doenet-w0200`): `$pl.x` → `$pl[1].x`, `$r.P` →
  * `$r[1].P`.
  *
  * Which a tag is comes from the tag as written, never from how many items it
@@ -81,7 +81,7 @@ const PICK_ATTRIBUTES = ["numToSelect", "numSamples"];
 
 /**
  * The warnings for a name or a property after a collection among
- * `serializedComponents` (`doenet-w0199`), each reference warned about made
+ * `serializedComponents` (`doenet-w0200`), each reference warned about made
  * to name nothing.
  */
 export function checkNamesAfterCollectionsAtLoad({
@@ -735,7 +735,7 @@ export function checkNamesAfterCollectionsAtLoad({
             // copy is made (`Copy.js`)
             component.doenetAttributes = {
                 ...component.doenetAttributes,
-                typeChangeAtLoad: { code: "doenet-w0199", args },
+                typeChangeAtLoad: { code: "doenet-w0200", args },
             };
             return;
         }
@@ -743,7 +743,7 @@ export function checkNamesAfterCollectionsAtLoad({
             codedDiagnostic({
                 type: "warning",
                 // written out, as `lint:i18n` reads the code beside `code:`
-                code: "doenet-w0199",
+                code: "doenet-w0200",
                 args: { ...args, reference },
                 position: component.position,
                 sourceDoc: component.sourceDoc,

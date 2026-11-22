@@ -807,7 +807,7 @@ export async function normalizedDastToSerializedComponents(
     );
 
     // A name or a property after a collection is the collection's own, so
-    // anything else after one names nothing (D59, `doenet-w0199`). Decided
+    // anything else after one names nothing (D59, `doenet-w0200`). Decided
     // from the tags as written, before the type checks, which leave a
     // reference decided here as it is.
     diagnostics.push(
@@ -2654,7 +2654,7 @@ function getComponentType(element: FlatElement) {
  * when where to put it is not known from the positions in the DoenetML.
  * After a `<select>` that picks several, only the indexed form reaches here
  * (`$s[1].P.x`): with no index, a name or a property after it names nothing
- * (`doenet-w0199`, D59).
+ * (`doenet-w0200`, D59).
  */
 function referenceNamingTheItem(
     ref: any,

@@ -78,7 +78,7 @@ const point12: Values = {
 
 /**
  * The values of a reference that names nothing (`$nothing`), as one after a
- * collection does (D59, `doenet-w0199`): a blank, or missing in a parent
+ * collection does (D59, `doenet-w0200`): a blank, or missing in a parent
  * that needs a value, and a missing tag.
  */
 const nothing: Values = {
@@ -232,12 +232,12 @@ const cases: {
         steps: [
             {
                 values: nothing,
-                diagnostics: { "warning doenet-w0199": n },
+                diagnostics: { "warning doenet-w0200": n },
             },
             {
                 set: ["n", "3"] as [string, string],
                 values: nothing,
-                diagnostics: { "warning doenet-w0199": n },
+                diagnostics: { "warning doenet-w0200": n },
             },
         ],
     })),
@@ -252,7 +252,7 @@ const cases: {
         steps: [
             {
                 values: nothing,
-                diagnostics: { "warning doenet-w0199": n },
+                diagnostics: { "warning doenet-w0200": n },
             },
         ],
     })),

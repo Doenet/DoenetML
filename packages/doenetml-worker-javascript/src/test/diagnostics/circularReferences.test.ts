@@ -705,7 +705,7 @@ describe("Cycles through a property, an attribute, an index or a branch name, de
             expect(
                 getDiagnosticsByType(core).warnings.map((w: any) => w.code),
                 doenetML,
-            ).eqls(["doenet-w0199"]);
+            ).eqls(["doenet-w0200"]);
         }
     });
 

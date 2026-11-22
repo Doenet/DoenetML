@@ -448,7 +448,7 @@ export default class AnimateFromSequence extends BaseComponent {
             }) {
                 let dependencies = {
                     // a target after a collection, which names nothing,
-                    // reported at load (`doenet-w0199`, D59)
+                    // reported at load (`doenet-w0200`, D59)
                     targetNamesNothingAtLoad: {
                         dependencyType: "doenetAttribute",
                         attributeName: "targetNamesNothingAtLoad",

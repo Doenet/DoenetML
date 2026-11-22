@@ -6,7 +6,7 @@
  *   `<group>` holding one input, `$r[1]` of an iteration holding one
  *   `<number>`, `$s` of a `<select>` picking one option holding one math;
  * - a name or a property after a collection names nothing (D59): it is
- *   reported when the document loads (`doenet-w0199`,
+ *   reported when the document loads (`doenet-w0200`,
  *   `namesAfterCollectionsAtLoad.ts`), which leaves the action no target;
  *   `target="$r[1].mi"` names one item's;
  * - a wrapper holding several components is only a container (COLL-3): it

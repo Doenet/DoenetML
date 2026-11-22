@@ -919,7 +919,7 @@ describe("An index into an entry of a list @group4", async () => {
             expect(
                 warnings.map((w) => w.code),
                 reference,
-            ).eqls(["doenet-w0199"]);
+            ).eqls(["doenet-w0200"]);
             expect(warnings[0].args.suggestion, reference).eq(suggestion);
         }
     });

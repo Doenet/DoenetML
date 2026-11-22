@@ -19,7 +19,7 @@ vi.mock("hyperformula");
  * aliases a `<collect>`, `<sort>` or `<shuffle>` built as a list inherited
  * from the list it is built on name nothing, as after the composite (COMP-4,
  * #2271). Any other property after a collection names nothing, with a
- * warning suggesting an index (D59, `doenet-w0199`).
+ * warning suggesting an index (D59, `doenet-w0200`).
  *
  * Each document is loaded with `<collect>`, `<sort>`, `<shuffle>` and
  * `<repeat>` built as lists where they can be, and as composites, and what
@@ -328,8 +328,8 @@ describe("A collection's own properties @group4", () => {
         expect(lists.texts).toEqual(expected);
         expect(composites.texts).toEqual(expected);
         const warnings = [
-            "warning doenet-w0199 line 18",
-            "warning doenet-w0199 line 19",
+            "warning doenet-w0200 line 18",
+            "warning doenet-w0200 line 19",
         ];
         expect(lists.diagnostics).toEqual(warnings);
         expect(composites.diagnostics).toEqual(warnings);
@@ -404,7 +404,7 @@ describe("A collection's own properties @group4", () => {
         }
         // each names nothing, with the warning that suggests an index
         const expected = [12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23]
-            .map((line) => `warning doenet-w0199 line ${line}`)
+            .map((line) => `warning doenet-w0200 line ${line}`)
             .sort();
         expect(lists.diagnostics).toEqual(expected);
         expect(composites.diagnostics).toEqual(expected);
@@ -560,14 +560,14 @@ describe("A collection's own properties @group4", () => {
             [],
         );
         // Each names nothing, being no property of the collection's own, with
-        // the warning that suggests an index (`doenet-w0199`, D59; under D41
+        // the warning that suggests an index (`doenet-w0200`, D59; under D41
         // it was read of each item, `doenet-w0104`).
-        expect(lists.diagnostics.filter((d) => d.includes("w0199"))).toEqual(
+        expect(lists.diagnostics.filter((d) => d.includes("w0200"))).toEqual(
             Array(16)
                 .fill(0)
                 .map(
                     (_, i) =>
-                        `warning doenet-w0199 line ${i < 4 ? 15 : i < 8 ? 16 : i < 15 ? 17 : 18}`,
+                        `warning doenet-w0200 line ${i < 4 ? 15 : i < 8 ? 16 : i < 15 ? 17 : 18}`,
                 ),
         );
     });
@@ -585,8 +585,8 @@ describe("A collection's own properties @group4", () => {
         expect(composites.texts).toEqual(lists.texts);
         // names nothing, as no property of the list's own (D59)
         expect(lists.diagnostics).toEqual([
-            "warning doenet-w0199 line 3",
-            "warning doenet-w0199 line 3",
+            "warning doenet-w0200 line 3",
+            "warning doenet-w0200 line 3",
         ]);
     });
 
