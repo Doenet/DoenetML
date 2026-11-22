@@ -434,6 +434,15 @@ export class SectioningComponent extends BlockComponent {
                     },
                     forRenderer: true,
                 },
+                {
+                    variableName: "ownNumber",
+                    description:
+                        "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section.",
+                    public: true,
+                    shadowingInstructions: {
+                        createComponentOfType: "number",
+                    },
+                },
             ],
             stateVariablesDeterminingDependencies: ["isListItem"],
             returnDependencies: ({ stateValues }) => ({
@@ -461,6 +470,7 @@ export class SectioningComponent extends BlockComponent {
                         setValue: {
                             enumeration: [listItemNumber],
                             sectionNumber: String(listItemNumber),
+                            ownNumber: listItemNumber,
                         },
                     };
                 }
@@ -471,6 +481,7 @@ export class SectioningComponent extends BlockComponent {
                             dependencyValues.sectionAncestor?.stateValues
                                 .enumeration ?? [],
                         sectionNumber: null,
+                        ownNumber: null,
                     },
                 };
             },
@@ -1756,6 +1767,15 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     },
                     forRenderer: true,
                 },
+                {
+                    variableName: "ownNumber",
+                    description:
+                        "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section.",
+                    public: true,
+                    shadowingInstructions: {
+                        createComponentOfType: "number",
+                    },
+                },
             ],
             stateVariablesDeterminingDependencies: ["isListItem"],
             returnDependencies: ({ stateValues }) => ({
@@ -1813,6 +1833,8 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     setValue: {
                         enumeration,
                         sectionNumber: enumeration.join("."),
+                        // its own number, without its parent's (D56)
+                        ownNumber: enumeration[enumeration.length - 1],
                     },
                 };
             },
@@ -1846,10 +1868,25 @@ export class UnnumberedSectioningComponent extends SectioningComponent {
                     },
                     forRenderer: true,
                 },
+                {
+                    variableName: "ownNumber",
+                    description:
+                        "This section's own position as a number: 3 for section 2.3, missing for an unnumbered section.",
+                    public: true,
+                    shadowingInstructions: {
+                        createComponentOfType: "number",
+                    },
+                },
             ],
             returnDependencies: () => ({}),
             definition() {
-                return { setValue: { enumeration: [], sectionNumber: null } };
+                return {
+                    setValue: {
+                        enumeration: [],
+                        sectionNumber: null,
+                        ownNumber: null,
+                    },
+                };
             },
         };
 

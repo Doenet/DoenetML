@@ -3109,6 +3109,25 @@ describe("Sectioning tag tests @group3", async () => {
                 `<problems><repeatForSequence to="$b.sectionNumber"><problem/></repeatForSequence><problem name="b"><p name="p">hi</p></problem></problems>`,
                 "$b.sectionNumber",
             ],
+            // a section's own number reads the same numbering (D56)
+            [
+                `<repeatForSequence to="$s.ownNumber"><section/></repeatForSequence>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
+            ],
+            [
+                `<conditionalContent condition="$s.ownNumber = 2"><section/></conditionalContent>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
+            ],
+            // only the load-time numbering check sees this one: without
+            // `ownnumber` among its properties, the choice check gives
+            // e0074 instead
+            [
+                `<select numToSelect="$s.ownNumber"><option><section/></option><option><section/></option></select>
+<section name="s"><p name="p">hi</p></section>`,
+                "$s.ownNumber",
+            ],
         ] as const) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
@@ -3136,6 +3155,128 @@ describe("Sectioning tag tests @group3", async () => {
                 doenetML,
             ).eq(reference);
         }
+    });
+
+    // `sectionNumber` is the number shown, a text ("2.3"); `ownNumber` is
+    // the section's own place, a number (3), missing for a section with no
+    // number (D56, #2623 item 9).
+    describe("ownNumber", () => {
+        it("a section's own place, as a number", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="a"/>
+<section name="b">
+  <section name="b1"/>
+  <section name="b2"/>
+  <section name="b3" includeParentNumber="false"/>
+  <proof name="pr"/>
+</section>
+<example name="e"/>
+<p name="p">$a.ownNumber, $b.ownNumber, $b1.ownNumber, $b2.ownNumber, $b3.ownNumber, $e.ownNumber</p>
+<p name="shown">$b2.sectionNumber, $b3.sectionNumber</p>
+<p name="unnumbered">$pr.ownNumber</p>
+<number name="n" extend="$b2.ownNumber"/>
+<boolean name="later">$b3.ownNumber > 2</boolean>
+`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("p")).text).eq("1, 2, 1, 2, 3, 3");
+            expect((await sv("shown")).text).eq("2.2, 3");
+            expect((await sv("unnumbered")).text).eq("＿");
+            expect((await sv("pr")).ownNumber).eq(null);
+            expect((await sv("b2")).ownNumber).eq(2);
+            expect((await sv("n")).value).eq(2);
+            expect((await sv("later")).value).eq(true);
+            expect(getDiagnosticsByType(core).warnings).eqls([]);
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+        });
+
+        it("a sectioning component numbered as a list item", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="sec" asList>
+  <problem name="p1"/>
+  <problem name="p2"/>
+</section>
+<p name="p">$p2.ownNumber, $p2.sectionNumber</p>
+`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
+                    .isListItem,
+            ).eq(true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("2, 2");
+        });
+
+        it("two references that a repeat's count reads are each e0005", async () => {
+            // Without `ownnumber` among the numbering check's properties,
+            // the load backstop can't blame these and the document stops.
+            const doenetML = `<repeat for="$s.ownNumber $s.ownNumber" valueName="v"><section/></repeat>
+<section name="s"><p name="p">hi</p></section>`;
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("hi");
+            const { errors, warnings } = getDiagnosticsByType(core);
+            expect(warnings).eqls([]);
+            expect(errors.map((error: any) => error.code)).eqls([
+                "doenet-e0005",
+                "doenet-e0005",
+            ]);
+            expect(
+                errors.map((error: any) =>
+                    doenetML.slice(
+                        error.position.start.offset,
+                        error.position.end.offset,
+                    ),
+                ),
+            ).eqls(["$s.ownNumber", "$s.ownNumber"]);
+        });
+
+        it("follows the count as it changes", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<booleanInput name="bi"/>
+<conditionalContent condition="$bi"><section/></conditionalContent>
+<section name="s"/>
+<p name="p">$s.ownNumber</p>
+`,
+            });
+            async function text() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[await resolvePathToNodeIdx("p")]
+                    .stateValues.text;
+            }
+            expect(await text()).eq("1");
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("bi"),
+                core,
+            });
+            expect(await text()).eq("2");
+        });
     });
 
     // A composite that the DoenetML shows can make no section is not waited
