@@ -652,7 +652,10 @@ export default class Document extends BaseComponent {
                         weight;
                     totalWeight += weight;
                 }
-                let creditAchievedIfSubmit = creditSum / totalWeight;
+                // Same rule as `creditAchieved`: full credit if there are no
+                // scored items, or if every scored item has weight 0.
+                let creditAchievedIfSubmit =
+                    totalWeight > 0 ? creditSum / totalWeight : 1;
 
                 return { setValue: { creditAchievedIfSubmit } };
             },

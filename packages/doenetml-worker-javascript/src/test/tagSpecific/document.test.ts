@@ -560,4 +560,164 @@ describe("Document tag tests @group4", async () => {
             );
         }
     });
+
+    describe("creditAchievedIfSubmit when nothing is scored", () => {
+        // `creditAchievedIfSubmit` is the credit a submission would record. It
+        // follows the same rule as `creditAchieved`: a document or section with
+        // no scored items, or whose scored items all have weight 0, gets full
+        // credit rather than `NaN`.
+
+        async function creditsOf(core, idx: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const { creditAchieved, creditAchievedIfSubmit } =
+                stateVariables[idx].stateValues;
+            return { creditAchieved, creditAchievedIfSubmit };
+        }
+
+        it("a document with no answers", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<p>Nothing to answer here.</p>`,
+            });
+
+            expect(
+                await creditsOf(core, await resolvePathToNodeIdx("_document1")),
+            ).eqls({ creditAchieved: 1, creditAchievedIfSubmit: 1 });
+        });
+
+        it("a document whose answers all have weight 0", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+  <p><answer name="ans1" weight="0">x</answer></p>
+  <p><answer name="ans2" weight="0">y</answer></p>
+  `,
+            });
+            const docIdx = await resolvePathToNodeIdx("_document1");
+
+            expect(await creditsOf(core, docIdx)).eqls({
+                creditAchieved: 1,
+                creditAchievedIfSubmit: 1,
+            });
+
+            // A correct response that is not yet submitted changes nothing:
+            // the weights are still all 0.
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            await updateMathInputValue({
+                latex: "x",
+                componentIdx:
+                    stateVariables[await resolvePathToNodeIdx("ans1")]
+                        .stateValues.inputChildren[0].componentIdx,
+                core,
+            });
+
+            expect(await creditsOf(core, docIdx)).eqls({
+                creditAchieved: 1,
+                creditAchievedIfSubmit: 1,
+            });
+        });
+
+        it("an empty problem beside a correct answer", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+  <problem name="prob"><p>hi</p></problem>
+  <answer name="ans">x</answer>
+  `,
+            });
+            const docIdx = await resolvePathToNodeIdx("_document1");
+            const probIdx = await resolvePathToNodeIdx("prob");
+            const ansIdx = await resolvePathToNodeIdx("ans");
+
+            // The empty problem counts as full credit in both.
+            expect(await creditsOf(core, probIdx)).eqls({
+                creditAchieved: 1,
+                creditAchievedIfSubmit: 1,
+            });
+            expect(await creditsOf(core, docIdx)).eqls({
+                creditAchieved: 0.5,
+                creditAchievedIfSubmit: 0.5,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            await updateMathInputValue({
+                latex: "x",
+                componentIdx:
+                    stateVariables[ansIdx].stateValues.inputChildren[0]
+                        .componentIdx,
+                core,
+            });
+
+            // Before submitting, the document's `creditAchievedIfSubmit` is
+            // what `creditAchieved` will be once the answer is submitted.
+            expect(await creditsOf(core, docIdx)).eqls({
+                creditAchieved: 0.5,
+                creditAchievedIfSubmit: 1,
+            });
+
+            await submitAnswer({ componentIdx: ansIdx, core });
+
+            expect(await creditsOf(core, docIdx)).eqls({
+                creditAchieved: 1,
+                creditAchievedIfSubmit: 1,
+            });
+        });
+
+        it("aggregating sections with no answers, or only weight-0 answers", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+  <section name="empty" aggregateScores><p>No answers.</p></section>
+  <section name="zero" aggregateScores>
+    <p><answer weight="0">x</answer></p>
+  </section>
+  <section name="outer" aggregateScores>
+    <subsection name="inner" aggregateScores><p>No answers.</p></subsection>
+    <p><answer name="ans">y</answer></p>
+  </section>
+  `,
+            });
+
+            for (const name of ["empty", "zero", "inner"]) {
+                expect(
+                    await creditsOf(core, await resolvePathToNodeIdx(name)),
+                    name,
+                ).eqls({ creditAchieved: 1, creditAchievedIfSubmit: 1 });
+            }
+
+            const outerIdx = await resolvePathToNodeIdx("outer");
+            expect(await creditsOf(core, outerIdx)).eqls({
+                creditAchieved: 0.5,
+                creditAchievedIfSubmit: 0.5,
+            });
+
+            const ansIdx = await resolvePathToNodeIdx("ans");
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            await updateMathInputValue({
+                latex: "y",
+                componentIdx:
+                    stateVariables[ansIdx].stateValues.inputChildren[0]
+                        .componentIdx,
+                core,
+            });
+            expect(await creditsOf(core, outerIdx)).eqls({
+                creditAchieved: 0.5,
+                creditAchievedIfSubmit: 1,
+            });
+
+            await submitAnswer({ componentIdx: ansIdx, core });
+            expect(await creditsOf(core, outerIdx)).eqls({
+                creditAchieved: 1,
+                creditAchievedIfSubmit: 1,
+            });
+        });
+    });
 });
