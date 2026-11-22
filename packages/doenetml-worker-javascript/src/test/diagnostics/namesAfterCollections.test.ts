@@ -919,4 +919,135 @@ describe("Names after collections, round 2 (#2638)", () => {
             ).eqls([]);
         }
     });
+
+    it("a group extending a repeat keeps what the reader typed in it when the count changes, live and after a reload (SAVE-1)", async () => {
+        // It is made again when the count changes. Before, its own
+        // `<mathInput>`s were made blank, and stayed blank after a reload.
+        for (const prefill of ["2", "1", "0"]) {
+            const doenetML = `<mathInput name="n" prefill="${prefill}"/>
+<repeatForSequence name="r" length="$n" valueName="v"><mathInput name="a"/></repeatForSequence>
+<group name="g" extend="$r"><mathInput/><group><mathInput name="b"/></group></group>
+<p name="p">$g</p>`;
+            const { core, resolvePathToNodeIdx, scoreState } =
+                await createTestCore({ doenetML });
+            const text = async (c = core, resolve = resolvePathToNodeIdx) =>
+                (await c.returnAllStateVariables(false, true))[
+                    await resolve("p")
+                ].stateValues.text;
+            const typeIn = async (componentIdx: number, latex: string) =>
+                updateMathInputValue({ latex, componentIdx, core });
+            const setN = async (latex: string) =>
+                typeIn(await resolvePathToNodeIdx("n"), latex);
+            // The group's own inputs, written in it, looked up by `stateId`:
+            // a lookup of `b` from the document's root names nothing once
+            // the group is made again (a reference to `$b` still does).
+            const own = () =>
+                Object.values(core.core!._components)
+                    .filter(
+                        (c: any) =>
+                            c?.componentType === "mathInput" &&
+                            /^\/\d+\/0$|^\/~b$/.test(c.stateId),
+                    )
+                    .map((c: any) => c.componentIdx);
+            // the group's copy of the first iteration's input
+            const copyOfFirst = async () => {
+                const a = await resolvePathToNodeIdx("r[1].a");
+                return (
+                    Object.values(core.core!._components).find(
+                        (c: any) =>
+                            c?.componentType === "mathInput" &&
+                            c.shadows?.componentIdx === a,
+                    ) as any
+                ).componentIdx;
+            };
+
+            if (prefill === "0") {
+                await setN("1");
+            }
+            const [x, y] = own();
+            await typeIn(x, "7");
+            await typeIn(y, "8");
+            await typeIn(await copyOfFirst(), "5");
+            const shownFor: Record<string, string> = {
+                "1": "578",
+                "2": "5＿78",
+                "3": "5＿＿78",
+            };
+            const start = prefill === "0" ? "1" : prefill;
+            expect(await text(), `loaded with ${prefill}`).eq(shownFor[start]);
+            for (const latex of ["3", "1", "2"]) {
+                await setN(latex);
+                expect(await text(), `${prefill}, then n = ${latex}`).eq(
+                    shownFor[latex],
+                );
+            }
+            // typed again after it was made again
+            const [x2, y2] = own();
+            await typeIn(x2, "17");
+            await typeIn(y2, "18");
+            await setN("3");
+            expect(await text(), `${prefill}, typed again`).eq("5＿＿1718");
+
+            await core.saveImmediately();
+            const reloaded = await createTestCore({
+                doenetML,
+                initialState: scoreState.state,
+            });
+            expect(
+                await text(reloaded.core, reloaded.resolvePathToNodeIdx),
+                `${prefill}, after a reload`,
+            ).eq("5＿＿1718");
+        }
+    });
+
+    it("a group extending a repeat keeps what its copy of an iteration keeps for itself, as an opened hint, while the iteration is gone and back (SAVE-2, SAVE-4)", async () => {
+        // Before, each copy was given new `stateId`s when the group was
+        // made again, and the hint was closed.
+        const doenetML = `<mathInput name="n" prefill="2"/>
+<repeatForSequence name="r" length="$n" valueName="v"><hint><p>x</p></hint></repeatForSequence>
+<group name="g" extend="$r"/>`;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        // the group's copies of the iterations' hints, in order
+        const open = async (c = core) => {
+            const stateVariables = await c.returnAllStateVariables(false, true);
+            return Object.values(c.core!._components)
+                .filter((x: any) => x?.componentType === "hint" && x.shadows)
+                .map(
+                    (x: any) => stateVariables[x.componentIdx].stateValues.open,
+                );
+        };
+        const second = (
+            Object.values(core.core!._components).filter(
+                (x: any) => x?.componentType === "hint" && x.shadows,
+            )[1] as any
+        ).componentIdx;
+        await core.requestAction({
+            componentIdx: second,
+            actionName: "revealHint",
+            args: {},
+        });
+        expect(await open()).eqls([false, true]);
+        const shownFor: Record<string, boolean[]> = {
+            "1": [false],
+            "0": [],
+            "3": [false, true, false],
+            "2": [false, true],
+        };
+        for (const latex of ["1", "0", "3", "2"]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+            expect(await open(), `n = ${latex}`).eqls(shownFor[latex]);
+        }
+        await core.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(await open(reloaded.core), "after a reload").eqls([false, true]);
+    });
 });

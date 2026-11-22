@@ -2133,7 +2133,17 @@ export default class Copy extends CompositeComponent {
                 sourceNum,
                 components,
                 nComponents,
-                stateIdInfo,
+                // A group of several is made again, whole, when its sources
+                // change (`calculateReplacementChanges`), and what the reader
+                // did in it is kept by `stateId` (SAVE-1), so each source's
+                // copy is counted on its own, from the source's place, not
+                // after what was made before.
+                stateIdInfo: groupOfSeveral
+                    ? {
+                          prefix: `${component.stateId}|item${sourceNum}|`,
+                          num: 0,
+                      }
+                    : stateIdInfo,
                 allDoenetMLs,
                 numReplacementsSoFar,
                 numNonStringReplacementsSoFar,
@@ -2272,7 +2282,6 @@ export default class Copy extends CompositeComponent {
                 componentInfoObjects,
                 compositeAttributesObj,
                 nComponents,
-                stateIdInfo,
                 diagnostics,
                 components,
             });
@@ -3200,6 +3209,11 @@ export default class Copy extends CompositeComponent {
                         numberReplacementsToReplace:
                             component.replacements.length,
                         serializedReplacements: made.replacements,
+                        // what the reader did in it is applied to what is
+                        // made again with the same `stateId`s (SAVE-1): the
+                        // children written in the group, and the copies of
+                        // the sources still shown
+                        keepSavedState: true,
                     },
                 ],
                 diagnostics: [...diagnostics, ...made.diagnostics],
@@ -6711,10 +6725,12 @@ function wrapInWrittenGroup({
     componentInfoObjects,
     compositeAttributesObj,
     nComponents,
-    stateIdInfo,
     diagnostics,
     components,
 }) {
+    // The same `stateId`s however many sources it holds, as it is made again
+    // when they change, and what the reader did in it is kept by them.
+    const stateIdInfo = { prefix: `${component.stateId}|group|`, num: 0 };
     const res = convertUnresolvedAttributesForComponentType({
         attributes: component.attributes,
         componentType: "group",
@@ -6728,7 +6744,7 @@ function wrapInWrittenGroup({
         type: "serialized",
         componentType: "group",
         componentIdx: nComponents++,
-        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+        stateId: `${component.stateId}|group`,
         attributes: res.attributes,
         doenetAttributes: {},
         state: {},
