@@ -38,23 +38,29 @@ export function entityToString(node: SyntaxNode, source: string): string {
 }
 
 /**
- * Remove quotation marks from a string if they are present
- */
-function removeQuotes(str: string): string {
-    if (str.startsWith("'") || str.startsWith('"')) {
-        str = str.slice(1);
-    }
-    if (str.endsWith("'") || str.endsWith('"')) {
-        str = str.slice(0, str.length - 1);
-    }
-    return str;
-}
-
-/**
  * Converts all `EntityReference` (`&amp;`) and `CharacterReference`
  * (`&#x33;`, `&#51;`) children into their unescaped equivalents.
  */
 function unescapeEntities(node: SyntaxNode, source: string): string {
+    return unescapeEntitiesWithOffsets(node, source).text;
+}
+
+/**
+ * `unescapeEntities`, with where each position of the decoded text was
+ * written: `sourceOffsets[k]` is the offset, from `node.from`, of the source
+ * before the `k`th character of `text`, and `sourceOffsets[text.length]` the
+ * offset of the end. A position inside a decoded reference, or before a
+ * zero-width space added after one, is the reference's end.
+ *
+ * A reference is shorter decoded than written (`&lt;` is one character), so
+ * an offset into the decoded text is not an offset into the source. The
+ * macros read from an attribute's decoded value are located through this
+ * (#2637 item 2).
+ */
+function unescapeEntitiesWithOffsets(
+    node: SyntaxNode,
+    source: string,
+): { text: string; sourceOffsets: number[] } {
     const rawValue = extractContent(node, source);
     // We need to replace any entities present with their raw text, in the
     // order they are written.
@@ -64,19 +70,42 @@ function unescapeEntities(node: SyntaxNode, source: string): string {
     ].sort((a, b) => a.from - b.from);
     if (entities.length === 0) {
         // No entities means no escaping needed.
-        return rawValue;
+        return {
+            text: rawValue,
+            sourceOffsets: Array.from(
+                { length: rawValue.length + 1 },
+                (_, k) => k,
+            ),
+        };
     }
-    const pieces: { text: string; isEntity: boolean }[] = [];
+    const pieces: {
+        text: string;
+        isEntity: boolean;
+        from: number;
+        to: number;
+    }[] = [];
     let i = 0;
     for (const entity of entities) {
         pieces.push({
             text: rawValue.slice(i, entity.from - node.from),
             isEntity: false,
+            from: i,
+            to: entity.from - node.from,
         });
-        pieces.push({ text: entityToString(entity, source), isEntity: true });
+        pieces.push({
+            text: entityToString(entity, source),
+            isEntity: true,
+            from: entity.from - node.from,
+            to: entity.to - node.from,
+        });
         i = entity.to - node.from;
     }
-    pieces.push({ text: rawValue.slice(i), isEntity: false });
+    pieces.push({
+        text: rawValue.slice(i),
+        isEntity: false,
+        from: i,
+        to: rawValue.length,
+    });
 
     // An attribute's value is read for macros once decoded, so a `$`
     // written as a reference (`&#36;`, `&dollar;`) must not start one with
@@ -84,9 +113,20 @@ function unescapeEntities(node: SyntaxNode, source: string): string {
     // `&#36;$f` are text before `(x)` or `$f`, not a reference. A zero-width
     // space after the `$` keeps it text, as `entityToString` already does
     // before a letter written out. In text a reference is its own node,
-    // never read for macros.
+    // never read for macros. The worker removes the space when it reads the
+    // value (`decodeXMLEntities`).
     let ret = "";
+    const sourceOffsets: number[] = [];
     pieces.forEach((piece, idx) => {
+        for (let k = 0; k < piece.text.length; k++) {
+            sourceOffsets.push(
+                piece.isEntity
+                    ? k === 0
+                        ? piece.from
+                        : piece.to
+                    : piece.from + k,
+            );
+        }
         ret += piece.text;
         if (piece.isEntity && piece.text === "$") {
             const rest = pieces
@@ -95,10 +135,12 @@ function unescapeEntities(node: SyntaxNode, source: string): string {
                 .join("");
             if (/^\$?[a-zA-Z_(]/.test(rest)) {
                 ret += "\u200B";
+                sourceOffsets.push(piece.to);
             }
         }
     });
-    return ret;
+    sourceOffsets.push(rawValue.length);
+    return { text: ret, sourceOffsets };
 }
 
 export function textNodeToText(node: SyntaxNode, source: string): string {
@@ -114,12 +156,39 @@ export function textNodeToText(node: SyntaxNode, source: string): string {
  * Convert an `AttributeValue` to a string
  */
 export function attributeValueText(node: SyntaxNode, source: string): string {
+    return attributeValueTextWithOffsets(node, source).text;
+}
+
+/**
+ * `attributeValueText`, with where each position of the text was written:
+ * `sourceOffsets[k]` is the offset of the source before the `k`th character
+ * of `text` from the start of the value inside its quotes, where
+ * `lezerNodeToPosition` with `adjustForQuotes` places the value
+ * (`unescapeEntitiesWithOffsets`).
+ */
+export function attributeValueTextWithOffsets(
+    node: SyntaxNode,
+    source: string,
+): { text: string; sourceOffsets: number[] } {
     if (node.name !== "AttributeValue") {
         throw new Error(
             `Can only get the text of an "AttributeValue" type node, not "${node.name}"`,
         );
     }
-    return removeQuotes(unescapeEntities(node, source));
+    let { text, sourceOffsets } = unescapeEntitiesWithOffsets(node, source);
+    // Remove the quotation marks, keeping the offsets beside the text.
+    if (text.startsWith("'") || text.startsWith('"')) {
+        text = text.slice(1);
+        sourceOffsets = sourceOffsets.slice(1);
+    }
+    if (text.endsWith("'") || text.endsWith('"')) {
+        text = text.slice(0, text.length - 1);
+        sourceOffsets = sourceOffsets.slice(0, sourceOffsets.length - 1);
+    }
+    return {
+        text,
+        sourceOffsets: sourceOffsets.map((offset) => offset - 1),
+    };
 }
 
 /**

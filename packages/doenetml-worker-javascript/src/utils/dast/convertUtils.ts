@@ -70,7 +70,16 @@ export function removeBlankStringChildren(
 }
 
 /**
- * Convert a set of XML entities to their string values
+ * Convert a set of XML entities to their string values, and remove the
+ * zero-width space the parser writes after a `$` written as a reference
+ * (`&#36;`, `&dollar;`).
+ *
+ * The parser reads text for references once its references are decoded, so
+ * it writes a zero-width space after such a `$` where what follows could
+ * start a reference (`&#36;(x)`, `&dollar;x`): the `$` is then text. The
+ * space is kept in the parsed document, so that printing it again keeps the
+ * `$` text, and is removed here, where the text is read as a value, so the
+ * value is what the author wrote (`$(x)`, #2637 item 3).
  */
 export function decodeXMLEntities(
     serializedComponents: (string | SerializedComponent)[],
@@ -82,14 +91,29 @@ export function decodeXMLEntities(
             .replace(/&gt;/g, ">")
             .replace(/&lt;/g, "<")
             .replace(/&dollar;/g, "$")
-            .replace(/&amp;/g, "&");
+            .replace(/&amp;/g, "&")
+            .replace(/\$\u200B/g, "$");
     }
 
     const newComponents: (string | SerializedComponent)[] = [];
 
     for (let component of serializedComponents) {
         if (typeof component === "string") {
-            newComponents.push(replaceEntities(component));
+            let text = replaceEntities(component);
+            // In an attribute the `$` and the space are separate pieces of
+            // text (`"$"`, `"\u200B(x)"`).
+            const previous = newComponents[newComponents.length - 1];
+            if (
+                text.startsWith("\u200B") &&
+                typeof previous === "string" &&
+                previous.endsWith("$")
+            ) {
+                text = text.slice(1);
+                if (text === "") {
+                    continue;
+                }
+            }
+            newComponents.push(text);
         } else {
             const newComponent = { ...component };
             newComponent.children = decodeXMLEntities(component.children);

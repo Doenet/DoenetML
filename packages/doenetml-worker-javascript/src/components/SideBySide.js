@@ -1131,11 +1131,6 @@ export class SideBySide extends BlockComponent {
                             parentComponentType: "sbsGroup",
                             variableName: `vAlign${varEnding}`,
                         },
-                        parentValignAbsolute: {
-                            dependencyType: "parentStateVariable",
-                            parentComponentType: "sbsGroup",
-                            variableName: `valignAbsolute${varEnding}`,
-                        },
                         essentialValign: {
                             dependencyType: "stateVariable",
                             variableName: `essentialValign${varEnding}`,
