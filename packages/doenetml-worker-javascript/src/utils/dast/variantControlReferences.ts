@@ -14,7 +14,7 @@
  * - `$vc` where a `<variantControl>` may be written made another, which
  *   nothing reads, silently.
  *
- * Each is now `doenet-w0198` at the reference, which names nothing (a blank,
+ * Each is now `doenet-w0199` at the reference, which names nothing (a blank,
  * D37). A `<variantControl>` written with `extend`, `copy` or
  * `copyWithState` is `doenet-e0088` (`convertToCopy.ts`), and another tag
  * made from one is decided by the type checks (REF-5).
@@ -102,7 +102,7 @@ export function markReferencesToVariantControls({
         diagnostics.push(
             codedDiagnostic({
                 type: "warning",
-                code: "doenet-w0198",
+                code: "doenet-w0199",
                 args: {
                     reference: doenetMLReferenceAsWritten(
                         ref.originalPath,

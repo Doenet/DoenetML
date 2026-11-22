@@ -464,10 +464,11 @@ export default class Answer extends InlineComponent {
                 for (let component of components) {
                     if (component?.attributes) {
                         for (const attr in component.attributes) {
-                            // Need a case-insensitive test because composites such as Copy
-                            // don't have have an isResponse attribute, but accept any attribute,
-                            // which means those attribute names have not been normalized
-                            if (attr.toLowerCase() === "isresponse") {
+                            // Matched exactly (D51), also on a composite such
+                            // as a copy, which accepts any attribute: one
+                            // written in another case was given its spelling
+                            // before the core read it (`attribute-name-case.ts`).
+                            if (attr === "isResponse") {
                                 const attribute = component.attributes[attr];
                                 if (attribute.type === "primitive") {
                                     if (attribute.primitive.value) {

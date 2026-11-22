@@ -317,7 +317,7 @@ ${select}
                 );
             expect(errors).eqls([]);
             expect(warnings.length).eq(1);
-            expect(warnings[0].code).eq("doenet-w0198");
+            expect(warnings[0].code).eq("doenet-w0199");
             expect(warnings[0].message).eq(
                 `\`$vc.numVariants\` ${start}: \`numVariants\` is one of its attributes, not a property.`,
             );
@@ -345,7 +345,7 @@ ${select}
                 `\`$vc.hide\` ${start}.`,
                 `\`$vc\` ${start}.`,
             ]);
-            expect(warnings.every((w) => w.code === "doenet-w0198")).eq(true);
+            expect(warnings.every((w) => w.code === "doenet-w0199")).eq(true);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
                     .text,
@@ -364,7 +364,7 @@ ${select}
                 { componentName: "p" },
             );
             expect(errors).eqls([]);
-            expect(warnings.map((w) => w.code)).eqls(["doenet-w0198"]);
+            expect(warnings.map((w) => w.code)).eqls(["doenet-w0199"]);
             // the problem's variants aren't set by the reference
             expect(variants.length).eq(100);
         });

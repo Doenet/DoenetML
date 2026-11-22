@@ -357,8 +357,14 @@ select-from-sequence-coprime-with-exclude-combinations = coprime ignored since e
 target-not-found = Invalid target for `<{ $source }>`: cannot find target.
 
 # $property is the state variable that was looked for; $component is the tag it
-# was looked for on.
-target-state-variable-not-found = Invalid target for `<{ $source }>`: cannot find a state variable named "{ $property }" on a `<{ $component }>`.
+# was looked for on. $suggestion (when $hasSuggestion is `true`) is the
+# property in the case the component has it: property names are
+# case-sensitive (D51), so `$n.Value` suggests `value`, and an array entry is
+# suggested by index (`X1` on a point suggests `xs[1]`).
+target-state-variable-not-found = Invalid target for `<{ $source }>`: cannot find a state variable named "{ $property }" on a `<{ $component }>`{ $hasSuggestion ->
+        [true] . Did you mean "{ $suggestion }"?
+       *[other] .
+    }
 
 ## `<odeSystem>`
 
@@ -1002,7 +1008,9 @@ composite-circular-dependency =
 # $reference is the reference as the author wrote it, already carrying its `$`.
 # $suggestion (when $hasSuggestion is `true`) is the reference with its
 # property in the case the component has it: property names are
-# case-sensitive (D51), so `$P.X` names nothing and suggests `$P.x`.
+# case-sensitive (D51), so `$P.X` names nothing and suggests `$P.x`. An array
+# entry is suggested by index (NAME-2): `$P.X1` suggests `$P.xs[1]`, and
+# `$poly.Vertex2` suggests `$poly.vertices[2]`.
 reference-no-referent = No referent found for reference: `{ $reference }`{ $hasSuggestion ->
         [true] . Did you mean `{ $suggestion }`?
        *[other] {""}
@@ -2205,6 +2213,17 @@ sort-needs-sort-by-prop = `<{ $component }>` can't compare its items: { $kind ->
         [yes] , as `<{ $component } sortByProp="text">` compares the text each one shows
        *[other] , as `<{ $component } sortByProp="name">` does for a property `name`
     }.
+
+# A `<sort>` or `<sortIndices>` ($component) whose `sortByProp` names no
+# property ($property) of an item it sorts, the first such of the tag $item
+# (#2627 item 5, DIAG-3). Reported at load. $suggestion (when $hasSuggestion is
+# `true`) is the property in the case the item has it, as property names are
+# case-sensitive (D51). `sortByProp`,
+# the property and the tags stay in English.
+sort-by-prop-names-nothing = `sortByProp="{ $property }"` names no property of a `<{ $item }>`, so the `<{ $component }>` can't compare its items by it{ $hasSuggestion ->
+        [true] . Did you mean `sortByProp="{ $suggestion }"`?
+       *[other] .
+    }
 
 # An `<answer>` reads a response from a `<conditionalContent>` that is of
 # one type, $firstType, in one case and of another, $secondType, in another

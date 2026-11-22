@@ -295,7 +295,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0195": "action-target-not-one-value",
     "doenet-w0196": "latex-not-read-as-math",
     "doenet-w0197": "attribute-name-case",
-    "doenet-w0198": "reference-to-variant-control",
+    "doenet-w0198": "sort-by-prop-names-nothing",
+    "doenet-w0199": "reference-to-variant-control",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -451,6 +452,15 @@ export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
         // An index never selects a child of a container, with no deprecation
         // period (D27 revised): the reference names nothing, with `w0188`.
         "doenet-w0179",
+        // Neither can be reached from authored DoenetML since names are
+        // case-sensitive (D51, #2627 item 6). A tag that is no component
+        // type, written with `copy` or `extend`, is `e0002` before a copy is
+        // made; the parser keeps one of an attribute written twice in one
+        // case (silently, for now), so the core never sees both, and of one
+        // written in two cases, one not given the component's spelling stays
+        // an attribute the component doesn't have (`e0004`).
+        "doenet-w0065",
+        "doenet-e0003",
     ]);
 
 /**
