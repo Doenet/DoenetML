@@ -681,9 +681,9 @@ reference-branches-hold-several = `{ $reference }`: { $what ->
 # Decided at load from every option or case. $reference is the reference as
 # written, with its `$`; $property the property and $lackingType the tag of a
 # component that lacks it, both as written. $container is the container's
-# name when $hasName is `true`, else its tag name. $branch is `option`,
-# `case`, or `item` (the items of a `<repeat>`, of types that differ through
-# its `for` or a `<conditionalContent>` in it). A name in only some options
+# name when $hasName is `true`, else its tag name. $branch is `option` or
+# `case`. (`item`, for the items of a `<repeat>`, is no longer given: a
+# property after a repeat names nothing, `doenet-w0199`, D59.) A name in only some options
 # or cases names nothing from outside
 # (`doenet-w0183`), so the message does not suggest reading one by name.
 
@@ -697,8 +697,8 @@ reference-property-partly-held = `{ $reference }`: a `<{ $lackingType }>` in { $
     } a component that has `{ $property }`.
 
 # A property after a `<group>` that holds several components: `$g.x` on a
-# `<group name="g">` holding two points, `$r.x` or `$r[1].x` after a repeat
-# whose template holds two (said as "each item holds 2"; authors are not
+# `<group name="g">` holding two points, `$r[1].x` after a repeat whose
+# template holds two (`$r.x` names nothing, `doenet-w0199`) (said as "each item holds 2"; authors are not
 # told of iterations as groups), `$s.x` after a pick that holds two, or `$cc.x` after
 # the case a `<conditionalContent>` shows, holding two (D41). A group holding
 # one component stands for it, and the property is that component's; with
@@ -734,8 +734,9 @@ reference-property-after-several =
 # (D59), so `$pl.x` and `$r.P` name nothing. $reference is the reference as
 # the author wrote it, with its `$`. $name is the name or property after the
 # collection, and $component the collection's tag, both as written. $kind is
-# `name` when $name is the name of a component in the document, else
-# `property`. $suggestion is the reference with an index put after the
+# `name` when $name is the name of a component written in the collection's
+# items (anywhere in the document, for a `<collect>`), else `property`.
+# $suggestion is the reference with an index put after the
 # collection (`$pl[1].x`).
 reference-name-after-collection = `{ $reference }` names nothing: { $kind ->
         [name] a name after a `<{ $component }>` does not reach into its items.

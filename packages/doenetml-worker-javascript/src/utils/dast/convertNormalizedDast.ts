@@ -2652,8 +2652,9 @@ function getComponentType(element: FlatElement) {
  * any (`$s.P.x`, `$s[1].P[2]`, `$s[1].P.x`): what to write to read the
  * component named `P` in each option or case (`doenet-w0191`). `undefined`
  * when where to put it is not known from the positions in the DoenetML.
- * After a `<select>` that picks several, `$s.P.x` reads `P` in each pick
- * (D41 decision 1).
+ * After a `<select>` that picks several, only the indexed form reaches here
+ * (`$s[1].P.x`): with no index, a name or a property after it names nothing
+ * (`doenet-w0199`, D59).
  */
 function referenceNamingTheItem(
     ref: any,

@@ -125,8 +125,7 @@ type Step = {
 
 const n = Object.keys(parents).length;
 const severalWarning = { "warning doenet-w0193": n };
-// A repeat's template holding several is decided at load, from the
-// template, so its warning stays at 0 iterations (#2548 item 3, DIAG-7).
+// A repeat whose number of iterations follows `n`.
 const repeat = (count: string, template: string) =>
     `<mathInput name="n" prefill="${count}"/><repeatForSequence name="r" length="$n" valueName="v">${template}</repeatForSequence>`;
 const twoPoints = `<point>($v,1)</point><point>($v,2)</point>`;

@@ -502,8 +502,8 @@ export default class UpdateValue extends InlineComponent {
                                 dependencyType:
                                     "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
-                                // what is left of the path after a name
-                                // resolved in each item (`$r.mi.value`)
+                                // what is left of the path after the target,
+                                // a property of it (`$P.x`)
                                 unresolvedPath: pathOfTarget(
                                     target,
                                     stateValues.unresolvedPath,

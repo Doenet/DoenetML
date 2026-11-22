@@ -3957,8 +3957,9 @@ export function checkTypeChangesAtLoad({
                 };
             }
             const withElse = several.some((s) => s.isElse);
-            // `$s.P.x` reads `P` of each pick (D41 decision 1), however
-            // many the select picks.
+            // The suggestion names `P` after the select or conditional
+            // (`$s.P.x`), or after its index (`$s[1].P.x`, the only form
+            // after a select that picks several, D59).
             collectionItemWarnings.push({
                 copy,
                 kind,

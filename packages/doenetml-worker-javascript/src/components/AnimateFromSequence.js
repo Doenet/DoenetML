@@ -570,8 +570,8 @@ export default class AnimateFromSequence extends BaseComponent {
                                 dependencyType:
                                     "stateVariableFromUnresolvedPath",
                                 componentIdx: target.componentIdx,
-                                // what is left of the path after a name
-                                // resolved in each item (`$r.mi.value`)
+                                // what is left of the path after the target,
+                                // a property of it (`$P.x`)
                                 unresolvedPath: path,
                                 // So that an index in the path that cannot be
                                 // applied is reported as the reference the

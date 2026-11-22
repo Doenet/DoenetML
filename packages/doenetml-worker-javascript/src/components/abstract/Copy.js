@@ -7632,8 +7632,8 @@ async function wrapperOfSeveralDiagnostics({
         pathEnd != undefined &&
         propStart > pathStart
     ) {
-        // After a repeat, or a select that picked several, with no index
-        // (`$r.x`), `$r.P.x` reads `P` in each item (D41 decision 1).
+        // after the wrapper's reference and any index: `$r[1].x` becomes
+        // `$r[1].P.x`
         const before = source.substring(pathStart, propStart);
         suggestion = `${doenetMLDollarsForReference(
             originalPath,
