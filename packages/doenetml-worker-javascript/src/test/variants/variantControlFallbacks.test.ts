@@ -303,7 +303,7 @@ ${select}
         // where a `<variantControl>` can be written made another, silently
         // (#2623 item 7, DIAG-3)
         const start =
-            "names nothing to show. A `<variantControl>` only sets how the variants of the document or section it is written in are chosen, before anything in it is made, so it shows nothing and has no properties";
+            "names nothing to show. A `<variantControl>` only sets how the variants of the document or section it is written in are chosen, before anything in it is made, so it shows nothing and nothing can be read from it";
 
         it("a property that is one of its attributes says so", async () => {
             const { warnings, errors, stateVariables, resolvePathToNodeIdx } =
@@ -319,7 +319,7 @@ ${select}
             expect(warnings.length).eq(1);
             expect(warnings[0].code).eq("doenet-w0199");
             expect(warnings[0].message).eq(
-                `\`$vc.numVariants\` ${start}: \`numVariants\` is one of its attributes, not a property.`,
+                `\`$vc.numVariants\` ${start}: \`numVariants\` is one of its attributes, which a reference can't read.`,
             );
             expect(warnings[0].position?.start.line).eq(3);
             expect(warnings[0].position?.start.column).eq(13);
@@ -334,7 +334,7 @@ ${select}
                 await load(
                     `
 <variantControl name="vc" numVariants="3" />
-<p name="p">$vc.foo $vc.hide $vc</p>
+<p name="p">$vc.foo $vc.hide $vc.hidden $vc</p>
 ${select}
 `,
                     { componentName: "p" },
@@ -343,13 +343,14 @@ ${select}
             expect(warnings.map((w) => w.message)).eqls([
                 `\`$vc.foo\` ${start}.`,
                 `\`$vc.hide\` ${start}.`,
+                `\`$vc.hidden\` ${start}.`,
                 `\`$vc\` ${start}.`,
             ]);
             expect(warnings.every((w) => w.code === "doenet-w0199")).eq(true);
             expect(
                 stateVariables[await resolvePathToNodeIdx("p")].stateValues
                     .text,
-            ).eq("＿ ＿ ＿");
+            ).eq("＿ ＿ ＿ ＿");
         });
 
         it("a tag made from one of its properties is missing, with the same warning", async () => {
@@ -364,8 +365,8 @@ ${select}
                 );
             expect(errors).eqls([]);
             expect(warnings.map((w) => w.message)).eqls([
-                `\`$vc.numVariants\` ${start}: \`numVariants\` is one of its attributes, not a property.`,
-                `\`$vc.seeds\` ${start}: \`seeds\` is one of its attributes, not a property.`,
+                `\`$vc.numVariants\` ${start}: \`numVariants\` is one of its attributes, which a reference can't read.`,
+                `\`$vc.seeds\` ${start}: \`seeds\` is one of its attributes, which a reference can't read.`,
             ]);
             expect(warnings.every((w) => w.code === "doenet-w0199")).eq(true);
             expect(

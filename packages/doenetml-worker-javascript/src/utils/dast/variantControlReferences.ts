@@ -4,8 +4,9 @@
  *
  * A `<variantControl>` only sets how the variants of the document or section
  * it is written in are chosen, and that is decided before anything in the
- * document is made (D47 decision 1). It shows nothing, and has no properties:
- * its settings are attributes. So `$vc` and `$vc.numVariants` have nothing to
+ * document is made (D47 decision 1). It shows nothing, and nothing can be read from it:
+ * its settings are attributes, and the properties every component has
+ * (`hidden`, `disabled`) say nothing about it. So `$vc` and `$vc.numVariants` have nothing to
  * show. They used to say something else was wrong:
  * - `$vc.numVariants` gave `doenet-w0104` ("No referent found"), though `vc`
  *   exists;

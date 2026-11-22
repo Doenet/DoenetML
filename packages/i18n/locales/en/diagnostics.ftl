@@ -184,12 +184,13 @@ variant-control-made-from = A `<variantControl>` can't be made with `extend`, `c
 
 # Translators: `<variantControl>` stays in English. A reference to a
 # `<variantControl>` (`$vc`, `$vc.numVariants`) names nothing: it shows
-# nothing and has no properties. $reference is the reference as written,
+# nothing, and nothing can be read from it, not even the properties every
+# component has (`hidden`). $reference is the reference as written,
 # with its `$`. When $isAttribute is `true`, $property is the name after it,
 # which is one of the `<variantControl>`'s attributes (`numVariants`); both
 # are DoenetML and stay in English.
-reference-to-variant-control = `{ $reference }` names nothing to show. A `<variantControl>` only sets how the variants of the document or section it is written in are chosen, before anything in it is made, so it shows nothing and has no properties{ $isAttribute ->
-        [true] : `{ $property }` is one of its attributes, not a property.
+reference-to-variant-control = `{ $reference }` names nothing to show. A `<variantControl>` only sets how the variants of the document or section it is written in are chosen, before anything in it is made, so it shows nothing and nothing can be read from it{ $isAttribute ->
+        [true] : `{ $property }` is one of its attributes, which a reference can't read.
        *[other] .
     }
 

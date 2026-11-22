@@ -875,7 +875,7 @@ export async function normalizedDastToSerializedComponents(
     }
 
     // A reference to a `<variantControl>` names nothing, with a warning that
-    // says it shows nothing and has no properties (#2623 item 7).
+    // says it shows nothing and nothing can be read from it (#2623 item 7).
     diagnostics.push(
         ...markReferencesToVariantControls({
             serializedComponents: sugarResult.components,
