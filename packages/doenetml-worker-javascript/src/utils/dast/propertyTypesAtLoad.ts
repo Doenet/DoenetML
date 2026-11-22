@@ -55,6 +55,7 @@ import { codedDiagnostic } from "../diagnostics";
 import { errorComponentState } from "./errors";
 import { listEntryCountAtLoad } from "./listEntryCountAtLoad";
 import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
+import { typeHasProperty } from "./typeChangeAtLoad";
 
 /**
  * What `doenetAttributes.propertyTypes` holds: a type by variable name, or,
@@ -635,6 +636,11 @@ export function propertyTypeReader({
             }
             if (ref && (ref.unresolvedPath ?? []).length > 0) {
                 const property = propertyOfReference(component);
+                if (!property && namesNoProperty(ref)) {
+                    // names nothing (`doenet-w0104`): recorded as a blank
+                    // math, as a name of nothing is
+                    return { type: "math", count: 1 };
+                }
                 if (!property || "undecided" in property) {
                     return { type: undefined, count: undefined };
                 }
@@ -1604,6 +1610,40 @@ export function propertyTypeReader({
             name: part.name,
             numIndices: (part.index ?? []).length,
             index: literalIndex(part.index?.[0]),
+        });
+    }
+
+    /**
+     * Whether a reference `ref`, of one name after a component that is not
+     * a composite (`$t.foo`), names no property that component has, so it
+     * names nothing when the document runs (`doenet-w0104`). Only of a class
+     * created as the one registered, as a subclass decided by an attribute
+     * (`classForSerializedComponent`) may have properties it lacks.
+     */
+    function namesNoProperty(ref: {
+        nodeIdx: number;
+        unresolvedPath?: any[] | null;
+    }): boolean {
+        const path = ref.unresolvedPath ?? [];
+        const name = path[0]?.name;
+        if (ref.nodeIdx < 0 || path.length !== 1 || typeof name !== "string") {
+            return false;
+        }
+        const componentType = referentType(ref.nodeIdx);
+        const componentClass =
+            componentType === undefined ? undefined : allClasses[componentType];
+        if (
+            !componentClass ||
+            isComposite(componentType!) ||
+            componentClass.classForSerializedComponent !==
+                allClasses._base?.classForSerializedComponent
+        ) {
+            return false;
+        }
+        return !typeHasProperty({
+            componentType: componentType!,
+            propName: name,
+            componentInfoObjects,
         });
     }
 

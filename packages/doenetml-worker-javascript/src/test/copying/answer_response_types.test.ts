@@ -661,6 +661,28 @@ describe("An answer's responses are typed at load (D45) @group4", () => {
         expect(errors(core)).eqls([e0091("$a.currentResponse1")]);
     });
 
+    it("a response naming no property of a component is a blank math at load, so the answer beside a response of another type is decided", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<text name="t">hi</text>
+<point name="P">(1,2)</point>
+<answer name="a"><considerAsResponses>$t.foo $P.X $t</considerAsResponses><award><when>true</when></award></answer>
+<p name="p">$a.currentResponse3</p>
+`,
+        });
+        // `$t.foo` and `$P.X` name nothing (`doenet-w0104`), recorded as a
+        // blank math, as at run time
+        expect(errors(core)).eqls([]);
+        expect(await submitted(core, resolvePathToNodeIdx, "a")).eqls({
+            values: ["＿", "＿", "hi"],
+            types: ["math", "math", "text"],
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("hi");
+    });
+
     it("isResponse written with no value on a tag made with extend, or on a collect, is read as true", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
