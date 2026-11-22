@@ -2404,6 +2404,57 @@ function createPrimitiveFromAttribute({
     });
 }
 
+/**
+ * The error that converting `attributes`, written on a tag `componentType`
+ * with `extend` or `copy`, would throw when its replacement is made
+ * (`convertUnresolvedAttributesForComponentType` in `Copy.js`), if one: an
+ * attribute the tag reads as a primitive, written with a reference
+ * (`doenet-e0090`) or with no value (`doenet-e0072`). The `_copy`'s own
+ * attributes are not the tag's, as there.
+ */
+export function primitiveAttributeErrorOfCopy({
+    componentType,
+    attributes,
+    componentInfoObjects,
+}: {
+    componentType: string;
+    attributes: Record<string, UnflattenedAttribute>;
+    componentInfoObjects: ComponentInfoObjects;
+}): DiagnosticError | undefined {
+    const attributesObj =
+        componentInfoObjects.allComponentClasses[
+            componentType
+        ]?.createAttributesObject();
+    if (!attributesObj) {
+        return undefined;
+    }
+    const copyAttributesObj =
+        componentInfoObjects.allComponentClasses._copy.createAttributesObject();
+    for (const [name, attribute] of Object.entries(attributes)) {
+        if (
+            (Object.hasOwn(copyAttributesObj, name) &&
+                !copyAttributesObj[name].leaveRaw &&
+                name !== "asList") ||
+            !Object.hasOwn(attributesObj, name) ||
+            attributesObj[name].createPrimitiveOfType === undefined
+        ) {
+            continue;
+        }
+        try {
+            createPrimitiveFromAttribute({
+                attrDef: attributesObj[name],
+                attribute,
+            });
+        } catch (e) {
+            if (e instanceof DiagnosticError) {
+                return e;
+            }
+            throw e;
+        }
+    }
+    return undefined;
+}
+
 export function convertUnresolvedAttributesForComponentType({
     attributes,
     componentType,

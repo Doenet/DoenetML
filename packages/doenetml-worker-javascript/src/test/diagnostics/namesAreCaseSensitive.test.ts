@@ -726,6 +726,22 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         expect(await text("p")).eq("");
     });
 
+    it("so is one written on an extend or copy, and the rest of the document loads (DIAG-5)", async () => {
+        for (const how of ["extend", "copy", "copyWithState"]) {
+            const doenetML = `<text name="t">x</text><sort name="s"><point>(3,1)</point><point>(1,2)</point></sort><p name="p">$s2</p><sort name="s2" ${how}="$s" sortByProp="$t"/><p name="q">after</p>`;
+            const { text, errors, warnings } = await load(doenetML);
+            expect(warnings, how).toHaveLength(0);
+            expect(
+                errors.map((e) => e.code),
+                how,
+            ).toEqual(["doenet-e0090"]);
+            expect(errors[0].position?.start.offset, how).eq(
+                doenetML.indexOf("sortByProp"),
+            );
+            expect(await text("q"), how).eq("after");
+        }
+    });
+
     it("a tag named in a value is matched exactly, one in another case applied with a warning, for now (D62)", async () => {
         const doenetML = `<group name="g"><point>(1,2)</point><point>(3,4)</point><text>a</text></group><p name="p"><collect name="c" componentType="Point" from="$g"/></p><p name="q">$c.numItems</p>`;
         const { text, errors, warnings } = await load(doenetML);
