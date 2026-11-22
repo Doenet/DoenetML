@@ -258,7 +258,7 @@ impl OpSpec {
 #[cfg(test)]
 mod arity {
     use super::*;
-    use crate::program::vector::{RigidOpts, VecOp};
+    use crate::program::vector::{PairBy, Reflex, RegularBy, RigidOpts, VecOp};
 
     /// Every operator: the scalar ones, then every vector and symbolic one.
     fn every() -> Vec<OpSpec> {
@@ -284,6 +284,15 @@ mod arity {
             OpSpec::Vec(VecOp::Clamp),
             OpSpec::Vec(VecOp::Centroid { n: 3 }),
             OpSpec::Vec(VecOp::SequencePick { n_exclude: 1 }),
+            OpSpec::Vec(VecOp::Pair { by: PairBy::Offset }),
+            OpSpec::Vec(VecOp::Extent),
+            OpSpec::Vec(VecOp::AngleAt {
+                reflex: Reflex::Allowed,
+            }),
+            OpSpec::Vec(VecOp::RegularPolygon {
+                n: 3,
+                by: RegularBy::CenterVertex,
+            }),
             OpSpec::Sym(SymKind::Instantiate {
                 template: Handle::new(0),
                 post: Post::None,
@@ -320,9 +329,13 @@ mod arity {
                 VecOp::Clamp => 12,
                 VecOp::Centroid { .. } => 13,
                 VecOp::SequencePick { .. } => 14,
+                VecOp::Pair { .. } => 15,
+                VecOp::Extent => 16,
+                VecOp::AngleAt { .. } => 17,
+                VecOp::RegularPolygon { .. } => 18,
             },
             OpSpec::Sym(k) => {
-                15 + match k {
+                19 + match k {
                     SymKind::Instantiate { .. } => 0,
                     SymKind::Evaluate => 1,
                     SymKind::EvalAt => 2,
@@ -336,7 +349,7 @@ mod arity {
             _ => return None,
         })
     }
-    const N_TAGS: usize = 23;
+    const N_TAGS: usize = 27;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input

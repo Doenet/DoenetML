@@ -185,6 +185,11 @@ component_types! {
     Pre => containers::markup::PRE,
     BlockQuote => containers::markup::BLOCK_QUOTE,
     Ol => containers::markup::OL,
+    Ray => geometry::ray::DEFINITION,
+    Vector => geometry::vector::DEFINITION,
+    Rectangle => geometry::rectangle::DEFINITION,
+    RegularPolygon => geometry::regular_polygon::DEFINITION,
+    Angle => geometry::angle::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

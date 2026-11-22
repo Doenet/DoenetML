@@ -33,7 +33,9 @@ pick), `hint`, `group` (and `label`), literal `text`, the sections
 markup `em`, `alert`, `term`, `q`, `sq`, `c`, `attr`, `span`, `tag`, `tagc`
 and `tage`, the characters `ndash`, `mdash`, `nbsp`, `ellipsis`, `lq`, `rq`,
 `lsq` and `rsq`, `br`, `hr`, and the blocks `div`, `pre`, `blockQuote` and
-`ol`. A `<math>` tuple of three or more entries is a tuple
+`ol`, and the shapes `ray`, `vector`, `rectangle`, `regularPolygon` (a
+literal number of vertices) and `angle` (by points or a measure). A `<math>`
+tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 
