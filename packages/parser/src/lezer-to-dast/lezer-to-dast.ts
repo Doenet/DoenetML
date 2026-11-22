@@ -283,6 +283,32 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         );
                         children.push(errorNode);
                     }
+                    const earlier = attributesList.find(
+                        (a) => a.name === dastAttr.name,
+                    );
+                    if (earlier) {
+                        // An attribute written twice in the same case
+                        // (`simplify="full" simplify="none"`): the first is
+                        // used and this one is ignored, with a warning
+                        // (D62 decision 1). One in another case
+                        // (`xMin="1" xmin="2"`) is a different name, left
+                        // to `attribute-name-case.ts`.
+                        children.push(
+                            codedDastError({
+                                code: "doenet-w0201",
+                                message: `The attribute \`${dastAttr.name}\` is written more than once on this \`<${name}>\`. The first is used, and this one is ignored.`,
+                                args: {
+                                    attribute: dastAttr.name,
+                                    componentType: name,
+                                },
+                                error_type: "warning",
+                                position:
+                                    dastAttr.position ??
+                                    lezerNodeToPosition(node, offsetMap),
+                            }),
+                        );
+                        continue;
+                    }
                     attributesList.push(dastAttr);
                 }
                 // Children get pushed after attributes so that any attribute errors will

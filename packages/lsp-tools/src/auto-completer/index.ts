@@ -319,13 +319,21 @@ export class AutoCompleter {
     _rustResolverAdapter?: RustResolverAdapter;
     _getAdditionalRefNamesImpl?: (offset: number) => string[];
     /**
-     * A map of element names (in lower case) to their canonical capitalization.
+     * A map of element names (in lower case) to their canonical
+     * capitalization. Names are matched exactly (NAME-0, D51), so this is not
+     * how a written tag is recognized (`normalizeElementName` is exact): it
+     * is what suggests the spelling of one written in another case
+     * (`elementNameDifferingOnlyInCase`), and what lets context help show
+     * the docs of the tag a mistyped one was meant to be
+     * (`findSchemaElementIgnoringCase`). A lower-cased name two elements
+     * share maps to neither (`null`), as it suggests neither.
      */
-    schemaLowerToUpper: Record<string, string> = {};
+    schemaLowerToUpper: Record<string, string | null> = {};
     /**
-     * A map of attribute names (in lower case) to their canonical capitalization.
+     * Every attribute name some element (or aliased entry) declares, as
+     * declared. Names are matched exactly (NAME-0, D51).
      */
-    schemaAttributesLowerToUpper: Record<string, string> = {};
+    schemaAttributeNames: Set<string> = new Set();
     schemaTopAllowedElements: string[] = [];
     schemaElementsByName: Record<string, ElementSchema> = {};
     /**
@@ -621,27 +629,28 @@ export class AutoCompleter {
                 v,
             ]),
         );
-        this.schemaLowerToUpper = Object.fromEntries(
-            this.schema.map((e) => [e.name.toLowerCase(), e.name]),
-        );
-        // Seed the attribute-name normalization map from both the canonical
-        // elements and the aliased entries.  Without the alias contribution,
-        // an attribute that exists only on an alias target (e.g. a
-        // hypothetical `<row>` inside `<matrix>` carrying an attribute that
-        // no canonical element declares) would be reported as
-        // `UNKNOWN_NAME` by `normalizeAttributeName`, short-circuiting the
-        // alias-aware checks in `isAllowedAttribute` /
-        // `getAttributeAllowedValues` before they ever ran.  Canonical
-        // entries are seeded last so that on a casing collision the
-        // canonical capitalization wins (`Object.fromEntries` lets the
-        // later entry overwrite the earlier one).
-        this.schemaAttributesLowerToUpper = Object.fromEntries([
+        this.schemaLowerToUpper = {};
+        for (const e of this.schema) {
+            const lower = e.name.toLowerCase();
+            this.schemaLowerToUpper[lower] =
+                lower in this.schemaLowerToUpper &&
+                this.schemaLowerToUpper[lower] !== e.name
+                    ? null
+                    : e.name;
+        }
+        // Seed the attribute names from both the canonical elements and the
+        // aliased entries.  Without the alias contribution, an attribute
+        // that exists only on an alias target (e.g. a hypothetical `<row>`
+        // inside `<matrix>` carrying an attribute that no canonical element
+        // declares) would be reported as `UNKNOWN_NAME` by
+        // `normalizeAttributeName`, short-circuiting the alias-aware checks
+        // in `isAllowedAttribute` / `getAttributeAllowedValues` before they
+        // ever ran.
+        this.schemaAttributeNames = new Set([
             ...Object.values(this.schemaAliasedElementsByName).flatMap((e) =>
-                e.attributes.map((a) => [a.name.toLowerCase(), a.name]),
+                e.attributes.map((a) => a.name),
             ),
-            ...this.schema.flatMap((e) =>
-                e.attributes.map((a) => [a.name.toLowerCase(), a.name]),
-            ),
+            ...this.schema.flatMap((e) => e.attributes.map((a) => a.name)),
         ]);
         this.schemaElementsByName = Object.fromEntries(
             this.schema.map((e) => [e.name, e]),
@@ -697,7 +706,7 @@ export class AutoCompleter {
 
     /**
      * Get the children allowed inside an `elementName` named element.
-     * The search is case insensitive. When `parentName` is provided and
+     * The name is matched exactly. When `parentName` is provided and
      * declares a `childContextHelp` alias for `elementName` (e.g. `<row>`
      * inside `<matrix>` → `matrixRow`), the alias target's children are
      * returned instead of the canonical entry's — so in-tag completions
@@ -802,12 +811,52 @@ export class AutoCompleter {
     }
 
     /**
-     * Case-insensitive lookup among real schema elements. Returns the
-     * canonical entry for an author-supplied tag name, regardless of casing.
+     * The schema entry of the element `name` names, matched exactly as
+     * written (NAME-0, D51): `<MATH>` is no element, as the core reports it
+     * (`doenet-e0002`).
      */
     findSchemaElement(name: string): ElementSchema | undefined {
-        const upper = this.schemaLowerToUpper[name.toLowerCase()];
-        return upper ? this.schemaElementsByName[upper] : undefined;
+        return Object.prototype.hasOwnProperty.call(
+            this.schemaElementsByName,
+            name,
+        )
+            ? this.schemaElementsByName[name]
+            : undefined;
+    }
+
+    /**
+     * The schema entry of the element `name` names, or, when it names none,
+     * of the one it differs from only in case (`<MATH>` → `<math>`). For
+     * context help only, which shows the docs of the tag a mistyped one was
+     * meant to be; a check matches names exactly (`findSchemaElement`), and
+     * the schema check reports `<MATH>` as no element, suggesting `<math>`.
+     */
+    findSchemaElementIgnoringCase(name: string): ElementSchema | undefined {
+        return (
+            this.findSchemaElement(name) ??
+            this.findSchemaElement(
+                this.elementNameDifferingOnlyInCase(name) ?? "",
+            )
+        );
+    }
+
+    /**
+     * The element of the schema that `name` differs from only in case, to
+     * suggest when it names none (`<MATH>` → `math`), as the core's
+     * `nameDifferingOnlyInCase` does for `doenet-e0002`. `undefined` when
+     * `name` is an element as written, or none or several match.
+     */
+    elementNameDifferingOnlyInCase(name: string): string | undefined {
+        if (this.findSchemaElement(name)) {
+            return undefined;
+        }
+        const lower = name.toLowerCase();
+        return Object.prototype.hasOwnProperty.call(
+            this.schemaLowerToUpper,
+            lower,
+        )
+            ? (this.schemaLowerToUpper[lower] ?? undefined)
+            : undefined;
     }
 
     /**
@@ -1058,20 +1107,22 @@ export class AutoCompleter {
     }
 
     /**
-     * Convert an element name to its standard capitalization.
+     * `name` if it is an element of the schema, as written, and
+     * `"UNKNOWN_NAME"` otherwise. Tag names are matched exactly (NAME-0,
+     * D51): `<MATH>` is not `<math>`.
      */
     normalizeElementName(name: string): string | "UNKNOWN_NAME" {
-        return this.schemaLowerToUpper[name.toLowerCase()] || "UNKNOWN_NAME";
+        return this.findSchemaElement(name) ? name : "UNKNOWN_NAME";
     }
 
     /**
-     * Convert an attribute name to its standard capitalization.
+     * `name` if some element of the schema has an attribute of that name, as
+     * written, and `"UNKNOWN_NAME"` otherwise. Attribute names are matched
+     * exactly (NAME-0, D51); one written in another case is found, for now,
+     * by the schema check's `doenet-w0197` path.
      */
     normalizeAttributeName(name: string): string | "UNKNOWN_NAME" {
-        return (
-            this.schemaAttributesLowerToUpper[name.toLowerCase()] ||
-            "UNKNOWN_NAME"
-        );
+        return this.schemaAttributeNames.has(name) ? name : "UNKNOWN_NAME";
     }
 
     /**
@@ -1130,8 +1181,8 @@ export class AutoCompleter {
      *
      * When `perInstanceAllowlist` is provided (currently only for
      * `<module copy="$x" .../>` sites whose target's `<moduleAttributes>`
-     * declared `attributeName`), the check returns true if the lowercased
-     * attribute name is in the allowlist OR the canonical/alias check
+     * declared `attributeName`), the check returns true if the attribute
+     * name, as written, is in the allowlist OR the canonical/alias check
      * passes — union semantics, since canonical attributes like `hide` /
      * `name` remain valid regardless of what the target declared (#1154).
      */
@@ -1146,11 +1197,9 @@ export class AutoCompleter {
         // not exist anywhere else in the schema (e.g. `balloonShape`), in
         // which case `normalizeAttributeName` would yield `UNKNOWN_NAME`
         // and the early-return below would block it.  The allowlist is
-        // keyed lowercased to match the runtime's case-insensitive lookup.
-        if (
-            perInstanceAllowlist &&
-            perInstanceAllowlist.has(attributeName.toLowerCase())
-        ) {
+        // keyed by the declared names, matched exactly as the core does
+        // (`moduleAttributesWritten`).
+        if (perInstanceAllowlist && perInstanceAllowlist.has(attributeName)) {
             return true;
         }
         const normalizedElement = this.normalizeElementName(elementName);
@@ -1167,15 +1216,8 @@ export class AutoCompleter {
                 parentName,
             );
             if (effective && effective.name !== normalizedElement) {
-                // Match case-insensitively so a canonical-cased attribute
-                // (`unordered`) hits an alias entry that happens to have
-                // declared a differently cased name. The canonical map
-                // built in `setSchema` already normalizes via
-                // `normalizeAttributeName`, so this only adds tolerance
-                // for alias-side names.
-                const lower = normalizedAttribute.toLowerCase();
                 return effective.attributes.some(
-                    (a) => a.name.toLowerCase() === lower,
+                    (a) => a.name === normalizedAttribute,
                 );
             }
         }
@@ -1213,9 +1255,8 @@ export class AutoCompleter {
                 parentName,
             );
             if (effective && effective.name !== normalizedElement) {
-                const lower = normalizedAttribute.toLowerCase();
                 const aliasAttr = effective.attributes.find(
-                    (a) => a.name.toLowerCase() === lower,
+                    (a) => a.name === normalizedAttribute,
                 );
                 if (aliasAttr) {
                     return aliasAttr.values

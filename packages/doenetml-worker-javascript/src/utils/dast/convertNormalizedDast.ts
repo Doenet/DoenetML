@@ -56,7 +56,11 @@ import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
 import { markReferencesToVariantControls } from "./variantControlReferences";
-import { nameDifferingOnlyInCase, suggestionArgs } from "./nameCase";
+import {
+    authoredComponentTypes,
+    nameDifferingOnlyInCase,
+    suggestionArgs,
+} from "./nameCase";
 import {
     ATTRIBUTES_OF_A_COPY,
     ATTRIBUTES_OF_EVERY_TAG,
@@ -243,7 +247,8 @@ export async function normalizedDastToSerializedComponents(
      * in another case here was written beside its spelling
      * (`copy="$a" Copy="$b"`), and is an attribute the tag doesn't have
      * (`doenet-w0187`, which suggests the spelling). Nor on a class that
-     * accepts any attribute, as `<module>`.
+     * accepts any attribute, as `<module>`, though a value naming a tag is
+     * corrected on one (`<collect componentType>`, `correctValueNameCase`).
      */
     const correctedNodes = new Set<number>();
     function correctAttributeNameCase(
@@ -262,17 +267,20 @@ export async function normalizedDastToSerializedComponents(
             componentType === undefined
                 ? undefined
                 : componentInfoObjects.allComponentClasses[componentType];
-        if (!componentClass || componentClass.acceptAnyAttribute) {
+        if (!componentClass) {
             return;
         }
-        const corrections = attributeNameCaseCorrections({
-            written: node.attributes.map((attribute) => attribute.name),
-            known: [
-                ...Object.keys(componentClass.createAttributesObject()),
-                ...(node.extending ? ATTRIBUTES_OF_A_COPY : []),
-            ],
-            exclude: ["name", ...ATTRIBUTES_OF_EVERY_TAG],
-        });
+        const attributesObject = componentClass.createAttributesObject();
+        const corrections = componentClass.acceptAnyAttribute
+            ? []
+            : attributeNameCaseCorrections({
+                  written: node.attributes.map((attribute) => attribute.name),
+                  known: [
+                      ...Object.keys(attributesObject),
+                      ...(node.extending ? ATTRIBUTES_OF_A_COPY : []),
+                  ],
+                  exclude: ["name", ...ATTRIBUTES_OF_EVERY_TAG],
+              });
         for (const { written, corrected } of corrections) {
             const i = node.attributes.findIndex(
                 (attribute) => attribute.name === written,
@@ -285,6 +293,70 @@ export async function normalizedDastToSerializedComponents(
                     code: "doenet-w0197",
                     args: {
                         attribute: written,
+                        suggestion: corrected,
+                        componentType,
+                    },
+                    position: attribute.position ?? node.position,
+                    sourceDoc: attribute.sourceDoc ?? node.sourceDoc,
+                }),
+            );
+        }
+        correctValueNameCase(
+            node,
+            componentType!,
+            attributesObject,
+            diagnostics,
+        );
+    }
+
+    /**
+     * Give the value of each attribute of `node` that names a tag
+     * (`valueNamesComponentType`, `<collect componentType>`), written as text
+     * in another case than the tag's (`componentType="Point"`), the tag's
+     * spelling, with `doenet-w0197`, for this release. A value that names a
+     * tag is a name, matched exactly (NAME-0, D62), but the fallback for an
+     * attribute in another case (D51) applies to it too. Run before anything
+     * reads the value, so every reader can match it exactly. A value that
+     * matches no tag, or two that differ only in case, or that is not
+     * written as text (a reference), is left as written.
+     */
+    function correctValueNameCase(
+        node: FlatElement,
+        componentType: string,
+        attributesObject: Record<string, any>,
+        diagnostics: DiagnosticRecord[],
+    ) {
+        for (const [i, attribute] of node.attributes.entries()) {
+            if (!attributesObject[attribute.name]?.valueNamesComponentType) {
+                continue;
+            }
+            if (
+                !attribute.children.every(
+                    (child: UntaggedContent) => typeof child === "string",
+                )
+            ) {
+                continue;
+            }
+            const value = (attribute.children as string[]).join("").trim();
+            if (componentInfoObjects.componentTypeAsWritten(value)) {
+                continue;
+            }
+            const corrected = nameDifferingOnlyInCase(
+                value,
+                authoredComponentTypes(componentInfoObjects),
+            );
+            if (corrected === undefined) {
+                continue;
+            }
+            node.attributes[i] = { ...attribute, children: [corrected] };
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0197",
+                    args: {
+                        kind: "value",
+                        attribute: attribute.name,
+                        value,
                         suggestion: corrected,
                         componentType,
                     },
@@ -1358,9 +1430,7 @@ export function expandUnflattenedToSerializedComponents({
                         ...suggestionArgs(
                             nameDifferingOnlyInCase(
                                 component.componentType,
-                                Object.keys(
-                                    componentInfoObjects.allComponentClasses,
-                                ).filter((type) => !type.startsWith("_")),
+                                authoredComponentTypes(componentInfoObjects),
                             ),
                         ),
                     },
@@ -1438,7 +1508,9 @@ export function expandUnflattenedToSerializedComponents({
                     // code, which `convertToErrorComponent` has already read
                     // off it and put on the `_error` component.
                     ...diagnosticCodeFrom(convertResult),
-                    position: component.position,
+                    // where the `_error` is: at the attribute that caused
+                    // it, when the error names one
+                    position: newComponent.position,
                     sourceDoc: component.sourceDoc,
                 });
             }
@@ -2291,9 +2363,13 @@ function createPrimitiveFromAttribute({
         }
     }
 
-    throw Error(
-        `Invalid reference in a primitive attribute: ${attribute.name}`,
-    );
+    // A reference (`sortByProp="$t"`), or text beside one, in an attribute
+    // read as text when the document loads, before references are.
+    throw new DiagnosticError({
+        code: "doenet-e0090",
+        args: { attribute: attribute.name },
+        ...(attribute.position ? { position: attribute.position } : {}),
+    });
 }
 
 export function convertUnresolvedAttributesForComponentType({

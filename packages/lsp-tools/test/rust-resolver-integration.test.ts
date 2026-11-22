@@ -475,7 +475,11 @@ describe.skipIf(!wasmAvailable)(
             }
 
             // Unindexed access should not inject repeat-derived names because
-            // `<Repeat>` is not the canonical `repeat` component type.
+            // `<Repeat>` is not the canonical `repeat` component type. Nor
+            // does it take an index as a repeat does (tag names are matched
+            // exactly, NAME-0, D51, in the LSP as in the resolver), so its
+            // named descendant is reached without one, as the resolver
+            // resolves `$rep.m`.
             {
                 const source = `<Repeat name="rep" valueName="v" indexName="i"><Math name="m">x</Math></Repeat>\n$rep.`;
                 const { completer } = await createCompleterWithAdapter(source, {
@@ -483,7 +487,7 @@ describe.skipIf(!wasmAvailable)(
                 });
                 const items = await completer.getCompletionItems(source.length);
                 const labels = items.map((i) => i.label);
-                expect(labels).not.toContain("m");
+                expect(labels).toContain("m");
                 expect(labels).not.toContain("v");
                 expect(labels).not.toContain("i");
             }

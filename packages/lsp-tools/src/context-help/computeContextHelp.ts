@@ -97,7 +97,7 @@ function suggestionsHelp(
         .map((item) => {
             // Prefer the schema's canonical casing (e.g. `mathInput`) so
             // the chip renders the tag the author would actually type.
-            const entry = completer.findSchemaElement(item.name);
+            const entry = completer.findSchemaElementIgnoringCase(item.name);
             return {
                 name: entry?.name ?? item.name,
                 summary: entry?.summary ?? null,
@@ -126,20 +126,38 @@ function suggestionsHelp(
     };
 }
 
+/**
+ * The attribute of `el` named `name`, or, failing that, the one it differs
+ * from only in case. Help, not a check: names are matched exactly (NAME-0,
+ * D51), but the docs of the attribute an author meant are what help should
+ * show, and one written in another case is still applied, for now, with
+ * `doenet-w0197`, which the schema check reports.
+ */
 function findSchemaAttribute(
     el: SchemaEntryForHelp,
     name: string,
 ): SchemaAttribute | undefined {
     const lower = name.toLowerCase();
-    return el.attributes.find((a) => a.name.toLowerCase() === lower);
+    return (
+        el.attributes.find((a) => a.name === name) ??
+        el.attributes.find((a) => a.name.toLowerCase() === lower)
+    );
 }
 
+/**
+ * The property of `el` named `name`, or, failing that, the one it differs
+ * from only in case: help for the property an author meant, though the core
+ * resolves none for it (`doenet-w0104`, which suggests the spelling).
+ */
 function findSchemaProperty(
     el: SchemaEntryForHelp,
     name: string,
 ): SchemaProperty | undefined {
     const lower = name.toLowerCase();
-    return el.properties?.find((p) => p.name.toLowerCase() === lower);
+    return (
+        el.properties?.find((p) => p.name === name) ??
+        el.properties?.find((p) => p.name.toLowerCase() === lower)
+    );
 }
 
 /**
@@ -192,7 +210,10 @@ function resolveEntriesForNode(
     completer: AutoCompleter,
     node: DastElement,
 ): [ElementSchema | undefined, SchemaEntryForHelp | undefined] {
-    const ownEntry = completer.findSchemaElement(node.name);
+    // Help, not a check: a tag in another case (`<MATH>`, which the schema
+    // check reports as no element, suggesting `<math>`) shows the docs of
+    // the tag it was meant to be.
+    const ownEntry = completer.findSchemaElementIgnoringCase(node.name);
     const effective = completer.resolveEffectiveSchemaElement(
         ownEntry,
         completer.sourceObj.getParentElementName(node),
@@ -1564,7 +1585,7 @@ export async function computeContextHelpForCompletion(
             });
         }
         // Element schema item.
-        const ownEntry = completer.findSchemaElement(rawLabel);
+        const ownEntry = completer.findSchemaElementIgnoringCase(rawLabel);
         if (!ownEntry) return NONE;
         // No reliable parent context at the autocomplete row level (the user
         // hasn't yet inserted the element under any parent), so resolve the

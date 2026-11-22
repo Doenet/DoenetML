@@ -4,10 +4,16 @@ import { getElementAttributeValue } from "../dast-attribute-utils";
 
 const CURSOR_MARKER = "__ANNOTATION_SKELETON_CURSOR__";
 
+/**
+ * The graphical components an annotation skeleton covers, as their tags are
+ * written: tag names are matched exactly (NAME-0, D51), so a `<Point>`, which
+ * is no component (`doenet-e0002`), gets no annotation. Each is reported
+ * (`GraphicalComponent.type`) lower-cased, the key the templates below use.
+ */
 const GRAPHICAL_COMPONENT_TYPES = new Set([
     "point",
     "line",
-    "linesegment",
+    "lineSegment",
     "ray",
     "vector",
     "circle",
@@ -18,7 +24,7 @@ const GRAPHICAL_COMPONENT_TYPES = new Set([
     "curve",
     // Aliases that map to primary converters
     "endpoint",
-    "equilibriumpoint",
+    "equilibriumPoint",
     "triangle",
     "rectangle",
 ]);
@@ -109,15 +115,13 @@ export function extractGraphicalChildren(
     const graphicalComponents: GraphicalComponent[] = [];
 
     function visitElement(element: DastElement) {
-        const normalizedType = element.name.toLowerCase();
-
-        if (normalizedType === "annotations") {
+        if (element.name === "annotations") {
             return;
         }
 
-        if (GRAPHICAL_COMPONENT_TYPES.has(normalizedType)) {
+        if (GRAPHICAL_COMPONENT_TYPES.has(element.name)) {
             graphicalComponents.push({
-                type: normalizedType,
+                type: element.name.toLowerCase(),
                 name: getElementAttributeValue(element, "name"),
             });
         }

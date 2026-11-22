@@ -299,27 +299,23 @@ const PLACEMENT_LOCATIONS = new Set(["anchor", "entryAnchor"]);
 
 /**
  * Whether `name` names one of {@link PLACEMENT_LOCATIONS}, as an attribute or
- * a property is written, in any case.
+ * a property is written, matched exactly (NAME-0, D51).
  */
 export function isPlacementLocation(name: string): boolean {
-    const lower = name.toLowerCase();
-    return [...PLACEMENT_LOCATIONS].some(
-        (location) => location.toLowerCase() === lower,
-    );
+    return PLACEMENT_LOCATIONS.has(name);
 }
 
 /**
  * The attribute written on the serialized component `node` for the
- * placement location `location` (`anchor="$P"`), in any case, if any.
+ * placement location `location` (`anchor="$P"`), if any. Matched exactly
+ * (NAME-0, D51): one written in another case was given the component's
+ * spelling before the document loads (`doenet-w0197`).
  */
 export function placementAttribute(node: any, location: string): any {
-    const lower = location.toLowerCase();
-    for (const [name, attribute] of Object.entries(node?.attributes ?? {})) {
-        if (name.toLowerCase() === lower && attribute) {
-            return attribute;
-        }
-    }
-    return undefined;
+    const attributes = node?.attributes ?? {};
+    return Object.hasOwn(attributes, location)
+        ? attributes[location] || undefined
+        : undefined;
 }
 
 /**
@@ -473,11 +469,11 @@ export function buildReaderWritableIndex(
         if (!info) {
             return false;
         }
-        const lower = name.toLowerCase();
+        // matched exactly, as a property is (NAME-0, D51)
         return [
             ...Object.keys(info.stateVariableDescriptions ?? {}),
             ...Object.keys(info.aliases ?? {}),
-        ].some((property) => property.toLowerCase() === lower);
+        ].includes(name);
     }
 
     /**

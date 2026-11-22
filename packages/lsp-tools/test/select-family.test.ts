@@ -225,13 +225,13 @@ describe("hasImplicitSingleIndex (strict rule, issue #1181)", () => {
         });
     });
 
-    describe("attribute names are case-insensitive (mirrors worker)", () => {
-        // The worker lowercases attribute names in
-        // `expandAllUnflattenedAttributes`, so `<select NumToSelect="2">` IS
-        // valid runtime and resolves the same as `<select numToSelect="2">`.
-        // A case-sensitive LSP lookup would miss the mixed-case attribute,
-        // treat it as absent, and wrongly surface descendants — the bug class
-        // issue #1179 closed.
+    describe("attribute names in another case are applied, for now (mirrors the parser)", () => {
+        // Attribute names are matched exactly (NAME-0, D51), but for one
+        // release the parser still applies one written in another case under
+        // the component's spelling, with `doenet-w0197`, so
+        // `<select NumToSelect="2">` selects two. A lookup that missed it
+        // would treat it as absent and wrongly surface descendants — the bug
+        // class issue #1179 closed.
 
         it('rejects <select NumToSelect="2"> (mixed-case attribute)', () => {
             expect(
@@ -267,22 +267,28 @@ describe("hasImplicitSingleIndex (strict rule, issue #1181)", () => {
         });
     });
 
-    describe("element names are lowercased defensively (consistent with LSP `normalizeElementName`, NOT the worker)", () => {
-        // The worker rejects mixed-case element names as invalid components
-        // (`<SELECT>` → "Invalid component type" in convertNormalizedDast).
-        // But the LSP autocompleter's `normalizeElementName` lowercases element
-        // names before schema lookup, so a mixed-case element flowing through
-        // the LSP gets canonicalized.  The predicate matches that LSP-side
-        // convention so the autocomplete decision stays consistent for the
-        // same element across the predicate and the schema lookup, even though
-        // the source itself wouldn't render.
+    describe("element names are matched exactly (NAME-0, D51)", () => {
+        // `<SELECT>` is no component (`doenet-e0002`), and the schema check
+        // reports it as no element, so it has no implicit index.
 
-        it("treats <SELECT> as select for the predicate (matches LSP normalization)", () => {
+        it("does not treat <SELECT> as select", () => {
             expect(
                 hasImplicitSingleIndex(
                     elementNamed(`<SELECT name="s" />`, "SELECT"),
                 ),
-            ).toBe(true);
+            ).toBe(false);
         });
+    });
+
+    it('prefers the attribute as written when another case is written too (<select numToSelect="2" NUMTOSELECT="1">)', () => {
+        // The parser keeps the one as written and leaves the other unknown.
+        expect(
+            hasImplicitSingleIndex(
+                elementNamed(
+                    `<select name="s" NUMTOSELECT="1" numToSelect="2" />`,
+                    "select",
+                ),
+            ),
+        ).toBe(false);
     });
 });

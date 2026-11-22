@@ -632,53 +632,156 @@ describe("Names are case-sensitive (D51) @group4", async () => {
         ]);
     });
 
-    it("a sortByProp naming no property is a warning at load, with a suggestion in another case (#2627 item 5)", async () => {
+    it("a sortByProp naming no property is a warning at load (#2627 item 5)", async () => {
+        const doenetML = `<p name="p"><sort sortByProp="height"><point>(3,1)</point><point>(1,2)</point></sort></p>`;
+        const { text, errors, warnings } = await load(doenetML);
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0198"]);
+        expect(warnings[0].message).eq(
+            '`sortByProp="height"` names no property of a `<point>`, so the `<sort>` can\'t compare its items by it.',
+        );
+        // left in the order written, as before
+        expect(await text("p")).eq("(3, 1), (1, 2)");
+
+        // one each item has, as written, is not reported
+        const second = await load(
+            `<p name="p"><sort sortByProp="y"><point>(3,2)</point><point>(1,1)</point></sort></p><p name="q"><sort sortByProp="x2"><point>(3,2)</point><point>(1,1)</point></sort></p>`,
+        );
+        expect(second.errors).toHaveLength(0);
+        expect(second.warnings).toHaveLength(0);
+        expect(await second.text("p")).eq("(1, 1), (3, 2)");
+        expect(await second.text("q")).eq("(1, 1), (3, 2)");
+    });
+
+    it("a sortByProp in another case is applied, with a warning, for now (D62)", async () => {
         const cases = [
-            {
-                sortByProp: "X",
-                message:
-                    '`sortByProp="X"` names no property of a `<point>`, so the `<sort>` can\'t compare its items by it. Did you mean `sortByProp="x"`?',
-            },
-            {
-                sortByProp: "X2",
-                message:
-                    '`sortByProp="X2"` names no property of a `<point>`, so the `<sort>` can\'t compare its items by it. Did you mean `sortByProp="x2"`?',
-            },
-            {
-                sortByProp: "height",
-                message:
-                    '`sortByProp="height"` names no property of a `<point>`, so the `<sort>` can\'t compare its items by it.',
-            },
+            { sortByProp: "X", suggestion: "x", text: "(1, 2), (3, 1)" },
+            { sortByProp: "X2", suggestion: "x2", text: "(3, 1), (1, 2)" },
+            { sortByProp: "Y", suggestion: "y", text: "(3, 1), (1, 2)" },
         ];
-        for (const { sortByProp, message } of cases) {
+        for (const { sortByProp, suggestion, text: shown } of cases) {
             const doenetML = `<p name="p"><sort sortByProp="${sortByProp}"><point>(3,1)</point><point>(1,2)</point></sort></p>`;
             const { text, errors, warnings } = await load(doenetML);
             expect(errors, doenetML).toHaveLength(0);
             expect(
                 warnings.map((w) => w.code),
                 doenetML,
-            ).toEqual(["doenet-w0198"]);
-            expect(warnings[0].message, doenetML).eq(message);
-            // left in the order written, as before
-            expect(await text("p"), doenetML).eq("(3, 1), (1, 2)");
+            ).toEqual(["doenet-w0197"]);
+            expect(warnings[0].message, doenetML).eq(
+                `Names are case-sensitive: write \`sortByProp="${suggestion}"\`, not \`sortByProp="${sortByProp}"\`, on a \`<sort>\`. It is applied for now, but will be an error in a later release.`,
+            );
+            expect(warnings[0].position?.start.offset).eq(
+                doenetML.indexOf("sortByProp"),
+            );
+            expect(await text("p"), doenetML).eq(shown);
         }
 
-        // one each item has, as written, is not reported
-        const { text, errors, warnings } = await load(
-            `<p name="p"><sort sortByProp="y"><point>(3,2)</point><point>(1,1)</point></sort></p><p name="q"><sort sortByProp="x2"><point>(3,2)</point><point>(1,1)</point></sort></p>`,
+        // on text pieces too (`value` of each text)
+        const pieces = await load(
+            `<p name="p"><sort sortByProp="Value">c a b</sort></p>`,
         );
-        expect(errors).toHaveLength(0);
-        expect(warnings).toHaveLength(0);
-        expect(await text("p")).eq("(1, 1), (3, 2)");
-        expect(await text("q")).eq("(1, 1), (3, 2)");
+        expect(pieces.warnings.map((w) => w.code)).toEqual(["doenet-w0197"]);
+        expect(await pieces.text("p")).eq("a, b, c");
     });
 
-    it("a sortByProp of a sortIndices naming no property is a warning at load too", async () => {
+    it("a sortByProp in another case is not applied on items not of one type, an error", async () => {
         const { errors, warnings } = await load(
-            `<p name="p"><sortIndices sortByProp="Y"><point>(3,2)</point><point>(1,1)</point></sortIndices></p>`,
+            `<p name="p"><sort sortByProp="X"><point>(3,1)</point><point>(1,2)</point><text>a</text></sort></p>`,
+        );
+        // a point and a text are of two types, an error that says so first
+        expect(warnings.map((w) => w.code)).not.toContain("doenet-w0197");
+        expect(errors.map((e) => e.code)).toEqual(["doenet-e0076"]);
+    });
+
+    it("a sortByProp of bare text pieces naming no property is a warning at load (#2627 item 13)", async () => {
+        const { text, errors, warnings } = await load(
+            `<p name="p"><sort sortByProp="x">3 1 2</sort></p>`,
         );
         expect(errors).toHaveLength(0);
         expect(warnings.map((w) => w.code)).toEqual(["doenet-w0198"]);
-        expect(warnings[0].message).toContain('Did you mean `sortByProp="y"`?');
+        expect(warnings[0].message).eq(
+            '`sortByProp="x"` names no property of a `<number>`, so the `<sort>` can\'t compare its items by it.',
+        );
+        expect(await text("p")).eq("3, 1, 2");
+
+        // one the pieces have is not reported
+        const second = await load(
+            `<p name="p"><sort sortByProp="value">c a b</sort></p>`,
+        );
+        expect(second.warnings).toHaveLength(0);
+        expect(await second.text("p")).eq("a, b, c");
+    });
+
+    it("a sortByProp written as a reference is an error at the attribute (#2627 item 13)", async () => {
+        const doenetML = `<text name="t">x</text><p name="p"><sort sortByProp="$t"><point>(3,1)</point><point>(1,2)</point></sort></p>`;
+        const { text, errors, warnings } = await load(doenetML);
+        expect(warnings).toHaveLength(0);
+        expect(errors.map((e) => e.code)).toEqual(["doenet-e0090"]);
+        expect(errors[0].message).eq(
+            "The attribute `sortByProp` can't be written with a reference: it is read when the document loads, before references are. Write its value as text.",
+        );
+        expect(errors[0].position?.start.offset).eq(
+            doenetML.indexOf("sortByProp"),
+        );
+        expect(await text("p")).eq("");
+    });
+
+    it("a tag named in a value is matched exactly, one in another case applied with a warning, for now (D62)", async () => {
+        const doenetML = `<group name="g"><point>(1,2)</point><point>(3,4)</point><text>a</text></group><p name="p"><collect name="c" componentType="Point" from="$g"/></p><p name="q">$c.numItems</p>`;
+        const { text, errors, warnings } = await load(doenetML);
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0197"]);
+        expect(warnings[0].message).eq(
+            'Names are case-sensitive: write `componentType="point"`, not `componentType="Point"`, on a `<collect>`. It is applied for now, but will be an error in a later release.',
+        );
+        expect(warnings[0].position?.start.offset).eq(
+            doenetML.indexOf("componentType"),
+        );
+        expect(await text("p")).eq("(1, 2), (3, 4)");
+        expect(await text("q")).eq("2");
+
+        // in its own case, no warning
+        const exact = await load(
+            `<group name="g"><point>(1,2)</point></group><p name="p"><collect componentType="point" from="$g"/></p>`,
+        );
+        expect(exact.warnings).toHaveLength(0);
+        expect(await exact.text("p")).eq("(1, 2)");
+
+        // a keyword in a value stays case-insensitive, a name doesn't
+        const named = await load(
+            `<text name="ty">Point</text><group name="g"><point>(1,2)</point></group><p name="p"><collect componentType="$ty" from="$g"/></p>`,
+        );
+        // from a value, not written as text, it is matched exactly
+        expect(named.warnings.map((w) => w.code)).toEqual(["doenet-w0073"]);
+        expect(named.warnings[0].message).eq(
+            'Cannot collect components of type `<Point>` as it is an invalid component type. Did you mean `componentType="point"`?',
+        );
+        expect(await named.text("p")).eq("");
+    });
+
+    it("an attribute written twice in the same case is a warning at the second; the first is used (D62)", async () => {
+        const doenetML = `<math name="m" simplify="full" simplify="none">x+x</math><p name="p">$m</p>`;
+        const { text, errors, warnings } = await load(doenetML);
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual(["doenet-w0201"]);
+        expect(warnings[0].message).eq(
+            "The attribute `simplify` is written more than once on this `<math>`. The first is used, and this one is ignored.",
+        );
+        expect(warnings[0].position?.start.offset).eq(
+            doenetML.indexOf('simplify="none"'),
+        );
+        expect(await text("p")).eq("2 x");
+    });
+
+    it("a sortByProp of a sortIndices is checked too", async () => {
+        const { text, errors, warnings } = await load(
+            `<p name="p"><sortIndices sortByProp="Y"><point>(3,2)</point><point>(1,1)</point></sortIndices></p><p name="q"><sortIndices sortByProp="height"><point>(3,2)</point><point>(1,1)</point></sortIndices></p>`,
+        );
+        expect(errors).toHaveLength(0);
+        expect(warnings.map((w) => w.code)).toEqual([
+            "doenet-w0197",
+            "doenet-w0198",
+        ]);
+        expect(await text("p")).eq("2, 1");
     });
 });
