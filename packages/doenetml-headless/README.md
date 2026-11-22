@@ -192,7 +192,8 @@ and a point that extends one with a fixed location stays where it is. A point
 a constraint or attractor moves somewhere else has taken the value, as a drag
 does, and so has an input whose value the document changes into something else
 (a bound `<math simplify>` simplifying what was typed). A value the target
-already has is never refused, since nothing would change.
+already has is not refused for coming from a fixed source, since nothing would
+change; a target that is itself disabled or fixed is refused all the same.
 
 Two cases are not caught:
 

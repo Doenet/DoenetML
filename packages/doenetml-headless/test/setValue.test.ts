@@ -386,6 +386,17 @@ describe("setValue and submit", () => {
                 expect((await refusal(setValue(core, "ci", 2))).code).toBe(
                     "targetDisabled",
                 );
+                // A fraction's refusal names the box that did not take it
+                expect(
+                    (
+                        await refusal(
+                            setValue(core, "fi", {
+                                numerator: "1",
+                                denominator: "2",
+                            }),
+                        )
+                    ).message,
+                ).toContain('"fi" (its denominator) did not take the value');
 
                 // What the document does take is not refused: a point that
                 // extends one free to move, one an attractor pulls back to

@@ -68,7 +68,8 @@ export const SETTABLE_COMPONENT_TYPES = [
  * shape (`invalidValue`). Refuses as `targetDisabled`, too, a value that was
  * sent and not taken: an input bound to a fixed component keeps its value,
  * and a point that extends one with a fixed location stays put. A value the
- * target already has is not refused. Where the document refuses part of the
+ * target already has is not refused for coming from a fixed source. Where the
+ * document refuses part of the
  * change, the rest of it may have been made. Not caught: a value the document
  * turns into exactly the value the input already has is refused, and a point
  * whose coordinates come from a fixed point stays put without a refusal (see
@@ -509,8 +510,18 @@ async function typeFraction(
             `${where}: the <fractionInput> does not have the two math inputs it is expected to.`,
         );
     }
-    await typeMath(core, numerator.componentIdx, value.numerator, where);
-    await typeMath(core, denominator.componentIdx, value.denominator, where);
+    await typeMath(
+        core,
+        numerator.componentIdx,
+        value.numerator,
+        `${where} (its numerator)`,
+    );
+    await typeMath(
+        core,
+        denominator.componentIdx,
+        value.denominator,
+        `${where} (its denominator)`,
+    );
 }
 
 async function typeMatrix(
@@ -548,7 +559,12 @@ async function typeMatrix(
                     `${where}: the <matrixInput> has no cell (${rowInd + 1}, ${colInd + 1}).`,
                 );
             }
-            await typeMath(core, cell.componentIdx, latex, where);
+            await typeMath(
+                core,
+                cell.componentIdx,
+                latex,
+                `${where} (its cell in row ${rowInd + 1}, column ${colInd + 1})`,
+            );
         }
     }
 }
