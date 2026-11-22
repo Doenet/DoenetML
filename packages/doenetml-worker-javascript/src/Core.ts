@@ -273,8 +273,10 @@ export default class Core {
      */
     componentBeingEdited: number | null = null;
     /**
-     * Called each time a change is refused because a component, or a source
-     * it shadows, is `fixed` or has `fixLocation`. Unset in a viewer, where a
+     * Called each time a change an action asks for is refused because a
+     * component, or a source it shadows, is `fixed` or has `fixLocation`. Not
+     * called for a change asked for by an action that action set off (one
+     * triggered by a change, or chained to it). Unset in a viewer, where a
      * refused change is only logged; the headless core sets it to reject the
      * action that asked for the change.
      */

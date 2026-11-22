@@ -148,8 +148,11 @@ export type HeadlessAction = {
 
 export type HeadlessActionResult = {
     /**
-     * Each change refused because `componentIdx` (the component the action
-     * changed, or a source it shadows) is `fixed` or has `fixLocation`.
+     * Each change the action asked for that was refused because
+     * `componentIdx` (the component the action changed, or a source it
+     * shadows) is `fixed` or has `fixLocation`. A change asked for by an
+     * action it set off (an `<updateValue>` or `<callAction>` triggered by
+     * the change) is not among them.
      */
     refusedChanges: {
         componentIdx: number;

@@ -84,6 +84,20 @@ describe("doenet-headless CLI", () => {
         );
     });
 
+    it("says a pretzel among the answers is scored as a whole", async () => {
+        const pretzelFile = path.join(dir, "pretzel.doenet");
+        fs.writeFileSync(
+            pretzelFile,
+            `<pretzel name="pz">
+                <problem><statement><p>1+1?</p></statement><answer>2</answer></problem>
+                <problem><statement><p>1+2?</p></statement><answer>3</answer></problem>
+            </pretzel>`,
+        );
+        const { code, stdout } = await runCli(["check", pretzelFile]);
+        expect(code).toBe(0);
+        expect(stdout).toContain("  pz: a <pretzel>, scored as a whole");
+    });
+
     it("checks a file, as JSON, and exits 1 on an error", async () => {
         const badFile = path.join(dir, "bad.doenet");
         fs.writeFileSync(badFile, "<bogus/>");

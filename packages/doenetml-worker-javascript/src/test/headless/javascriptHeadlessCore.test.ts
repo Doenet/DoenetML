@@ -269,6 +269,22 @@ describe("JavaScript headless core @group4", () => {
         await core.terminate();
     });
 
+    it("does not report a change refused in an action that an action set off", async () => {
+        const core = await create(`<booleanInput name="b" />
+            <number name="n" fixed>1</number>
+            <updateValue name="u" target="$n" newValue="5" triggerWhen="$b" />`);
+        const r = await core.resolvePath("b");
+        if (r.status !== "resolved") throw Error("b");
+        expect(
+            await core.dispatchAction({
+                componentIdx: r.component.componentIdx,
+                actionName: "updateBoolean",
+                args: { boolean: true },
+            }),
+        ).toEqual({ refusedChanges: [] });
+        await core.terminate();
+    });
+
     it("refuses an action on a component that does not exist, and use after terminate", async () => {
         const core = await create(`<p name="p">hi</p>`);
         await expect(

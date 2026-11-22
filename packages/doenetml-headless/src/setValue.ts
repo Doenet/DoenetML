@@ -102,6 +102,11 @@ export async function setValue(
             return;
         case "textInput": {
             const text = expectString(value, where);
+            const before = await readProperty(
+                core,
+                component.componentIdx,
+                "value",
+            );
             await send(core, where, {
                 componentIdx: component.componentIdx,
                 actionName: "updateImmediateValue",
@@ -116,14 +121,20 @@ export async function setValue(
                 component.componentIdx,
                 "value",
                 text,
+                before,
                 where,
             );
             return;
         }
-        case "booleanInput":
+        case "booleanInput": {
             if (typeof value !== "boolean") {
                 throw invalid(where, "a <booleanInput> takes true or false");
             }
+            const before = await readProperty(
+                core,
+                component.componentIdx,
+                "value",
+            );
             await send(core, where, {
                 componentIdx: component.componentIdx,
                 actionName: "updateBoolean",
@@ -134,9 +145,11 @@ export async function setValue(
                 component.componentIdx,
                 "value",
                 value,
+                before,
                 where,
             );
             return;
+        }
         case "choiceInput":
             await selectChoices(core, component, value, where);
             return;
@@ -299,26 +312,40 @@ async function send(core: HeadlessCore, where: string, action: HeadlessAction) {
     }
 }
 
+async function readProperty(
+    core: HeadlessCore,
+    componentIdx: number,
+    propertyName: string,
+) {
+    return (await core.readProperties(componentIdx, [propertyName]))[
+        propertyName
+    ];
+}
+
 /**
  * Refuse (`targetDisabled`) if an input did not take the value it was sent:
- * the value the action sets directly is still something else. An input whose
- * value comes from a component that does not change, such as one
- * `bindValueTo` a fixed component, keeps that component's value.
+ * `propertyName` still has the value it had `before`, though the value sent
+ * was another. An input whose value comes from a component that does not
+ * change, such as one `bindValueTo` a fixed component, keeps that
+ * component's value. An input whose value changed took the value, even if
+ * the document made something else of it (a bound `<math simplify>`
+ * simplifying it, or a bound `<number>` writing it its own way).
  */
 async function expectTaken(
     core: HeadlessCore,
     componentIdx: number,
     propertyName: string,
-    expected: unknown,
+    sent: unknown,
+    before: unknown,
     where: string,
 ) {
-    const actual = (await core.readProperties(componentIdx, [propertyName]))[
-        propertyName
-    ];
-    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    const after = await readProperty(core, componentIdx, propertyName);
+    const same = (a: unknown, b: unknown) =>
+        JSON.stringify(a) === JSON.stringify(b);
+    if (same(after, before) && !same(sent, before)) {
         throw new HeadlessError(
             "targetDisabled",
-            `${where} did not take the value: it kept ${JSON.stringify(actual)}, so its value comes from something that did not change (for example, it is bound to a fixed component).`,
+            `${where} did not take the value: it kept ${JSON.stringify(after)}, so its value comes from something that did not change (for example, it is bound to a fixed component).`,
         );
     }
 }
@@ -329,15 +356,16 @@ async function typeMath(
     latex: string,
     where: string,
 ) {
+    const before = await readProperty(core, componentIdx, "value");
     await send(core, where, {
         componentIdx,
         actionName: "updateRawValue",
         args: { rawRendererValue: latex },
     });
+    // What was typed, as the math the input makes of it
+    const typed = await readProperty(core, componentIdx, "immediateValue");
     await send(core, where, { componentIdx, actionName: "updateValue" });
-    // On a refused change the input shows its value again, so what was typed
-    // is gone; otherwise it stays as typed.
-    await expectTaken(core, componentIdx, "rawRendererValue", latex, where);
+    await expectTaken(core, componentIdx, "value", typed, before, where);
 }
 
 async function selectChoices(
@@ -395,12 +423,24 @@ async function selectChoices(
     // an inline dropdown sends them in the order they were picked, so for it
     // the order given here is the order picked.
     const sent = inline === true ? indices : [...indices].sort((a, b) => a - b);
+    const before = await readProperty(
+        core,
+        input.componentIdx,
+        "selectedIndices",
+    );
     await send(core, where, {
         componentIdx: input.componentIdx,
         actionName: "updateSelectedIndices",
         args: { selectedIndices: sent },
     });
-    await expectTaken(core, input.componentIdx, "selectedIndices", sent, where);
+    await expectTaken(
+        core,
+        input.componentIdx,
+        "selectedIndices",
+        sent,
+        before,
+        where,
+    );
 }
 
 async function typeFraction(

@@ -80,7 +80,8 @@ export class EssentialValueWriter {
     /**
      * Log a change refused because `componentIdx` (the component asked to
      * change, or a source it shadows) is `fixed` or has `fixLocation`, and
-     * tell `core.onChangeRefused`, if set.
+     * tell `core.onChangeRefused`, if set, unless the change was asked for
+     * by an action another action set off (a triggered or chained action).
      */
     refuseChange(
         componentIdx: ComponentIdx,
@@ -89,7 +90,13 @@ export class EssentialValueWriter {
         message: string,
     ) {
         reportInternalError(message);
-        this.core.onChangeRefused?.({ componentIdx, stateVariable, reason });
+        if (this.core.actionTriggerScheduler.triggeredActionDepth === 0) {
+            this.core.onChangeRefused?.({
+                componentIdx,
+                stateVariable,
+                reason,
+            });
+        }
     }
 
     /**

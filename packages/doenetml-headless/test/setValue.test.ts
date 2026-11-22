@@ -400,6 +400,46 @@ describe("setValue and submit", () => {
         );
     });
 
+    it("takes a value the document changes, and does not refuse for an action the change sets off", async () => {
+        await withCore(
+            `<math name="m" simplify>x</math><mathInput name="mi" bindValueTo="$m" />
+            <number name="n">1</number><textInput name="ti" bindValueTo="$n" />
+            <number name="k" fixed>1</number><mathInput name="a" />
+            <math name="s">$a + $k</math><mathInput name="si" bindValueTo="$s" />
+            <booleanInput name="bi" />
+            <graph>
+                <point name="F" fixLocation>(5,5)</point>
+                <point name="G" extend="$F" fixLocation="false" />
+            </graph>
+            <updateValue name="u" target="$G" newValue="(1,1)" triggerWhen="$bi" />
+            <updateValue name="u2" target="$k" newValue="5" triggerWhen="$bi" />`,
+            async (core) => {
+                const read = async (name: string) => {
+                    const r = await core.resolvePath(name);
+                    if (r.status !== "resolved") throw Error(name);
+                    return (
+                        await core.readProperties(r.component.componentIdx, [
+                            "value",
+                        ])
+                    ).value;
+                };
+                // A bound <math simplify> simplifies what is typed
+                await setValue(core, "mi", "x+x");
+                expect(await read("m")).toEqual(["*", 2, "x"]);
+                // A bound <number> writes the text its own way
+                await setValue(core, "ti", "2.50");
+                expect(await read("n")).toBe(2.5);
+                // A sum with a fixed term changes its other term
+                await setValue(core, "si", "5");
+                expect(await read("a")).toBe(4);
+                // The <updateValue>s the input sets off are refused; the
+                // input's own value is taken
+                await setValue(core, "bi", true);
+                expect(await read("bi")).toBe(true);
+            },
+        );
+    });
+
     it("refuses a point value with more or fewer coordinates than the point", async () => {
         await withCore(
             `<graph><point name="P">(0,0)</point></graph><point name="Q">(0,0,0)</point>`,

@@ -29,6 +29,12 @@ export class ActionTriggerScheduler {
     originsOfActionsChangedToActions: Record<number, Record<string, any[]>>;
     gestureId: string | null;
     actionsRunForGesture: Set<string>;
+    /**
+     * How many actions this scheduler has set off are running: above zero
+     * while an action triggered by a change, or chained to another action,
+     * runs inside the action that set it off.
+     */
+    triggeredActionDepth = 0;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -86,7 +92,7 @@ export class ActionTriggerScheduler {
                     triggerInstructions.previousValue = value;
                     let action = component.actions[triggerInstructions.action];
                     if (action) {
-                        await this.core.performAction({
+                        await this.performTriggeredAction({
                             componentIdx,
                             actionName: triggerInstructions.action,
                             args: {
@@ -105,6 +111,19 @@ export class ActionTriggerScheduler {
 
         if (triggeredAction && updateRenderersIfTriggered) {
             await this.core.updateAllChangedRenderers();
+        }
+    }
+
+    /**
+     * Perform an action this scheduler set off, counted in
+     * `triggeredActionDepth` while it runs.
+     */
+    async performTriggeredAction(args: any): Promise<void> {
+        this.triggeredActionDepth++;
+        try {
+            await this.core.performAction(args);
+        } finally {
+            this.triggeredActionDepth--;
         }
     }
 
@@ -410,7 +429,7 @@ export class ActionTriggerScheduler {
                 chainedActionInstructions.args = {};
             }
             chainedActionInstructions.args.skipRendererUpdate = true;
-            await this.core.performAction(chainedActionInstructions);
+            await this.performTriggeredAction(chainedActionInstructions);
         }
 
         if (!skipRendererUpdate) {
