@@ -22,7 +22,8 @@ import { createTestCore } from "./test-core";
 
 /**
  * Three points whose y stacks them by rank, so moving one moves the others.
- * The `<group>` keeps the repeat a composite whose points are components of
+ * Each point's x is read by index (`$Ps[1].P.x`): a name after the repeat
+ * itself names nothing (D59). The `<group>` keeps the repeat a composite whose points are components of
  * their own (`utils/dast/repeatLists.ts`), which these tests find by name.
  */
 const doenetML = `
@@ -33,7 +34,7 @@ const doenetML = `
 </graph>
 <setup>
   <numberList name="xs">3 1 2</numberList>
-  <numberList name="values">$Ps.x</numberList>
+  <numberList name="values">$Ps[1].P.x $Ps[2].P.x $Ps[3].P.x</numberList>
   <sequence name="indices" from="1" to="3" />
   <sortIndices name="perm">$values</sortIndices>
   <indexOf name="sortedPos" target="$indices">$perm</indexOf>

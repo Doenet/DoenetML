@@ -3090,8 +3090,10 @@ describe("Sectioning tag tests @group3", async () => {
 <conditionalContent name="cc" condition="$s.sectionNumber = 1"><p/></conditionalContent>`,
                 "$s.sectionNumber",
             ],
+            // (was `$r.numIterations`, which names nothing since D59: a
+            // property after a repeat is its own)
             [
-                `$r.numIterations<section name="s"><p name="p">hi</p></section>
+                `$r.numItems<section name="s"><p name="p">hi</p></section>
 <repeatForSequence name="r" to="$s.sectionNumber"><p/></repeatForSequence>`,
                 "$s.sectionNumber",
             ],
@@ -3268,7 +3270,7 @@ describe("Sectioning tag tests @group3", async () => {
     <section name="first"/>
     $r[1]
     $r[2].q
-    $r.q
+    $r[1].q $r[2].q
     $sel[1]
     <section name="s"/>
     <repeatForSequence name="r" to="2" valueName="v"><p name="q">item $v of $s.sectionNumber</p><group><conditionalContent><case condition="$s.sectionNumber = 3"><p>three</p></case></conditionalContent></group></repeatForSequence>

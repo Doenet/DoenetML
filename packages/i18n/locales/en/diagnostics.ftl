@@ -2246,10 +2246,11 @@ repeat-for-items-of-several-types = { $reason ->
 # described by $itemKind: "group", a `<group>` of $itemCount components, or
 # "item", the items of the collection $item, each holding $itemCount
 # components. The message names what to write instead: a `<collect>` of the
-# components, of the tag $firstType of the first of them, or a name in each
-# item; and, for a `<sort>`, a `<shuffle>`, which keeps them together.
+# components, of the tag $firstType of the first of them (a name after the
+# collection names nothing, D59); and, for a `<sort>`, a `<shuffle>`, which
+# keeps them together.
 sort-item-of-several = { $itemKind ->
-        [item] `<{ $component }>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort one component of each, name it (`<{ $component }>$r.n</{ $component }>` sorts the `n` of each item of `r`), or sort a `<collect>` of the components (`<collect componentType="{ $firstType }" from="$r"/>`).
+        [item] `<{ $component }>` can't compare the items of a `<{ $item }>`, each of { $itemCount } components. To sort their components, sort a `<collect>` of them (`<collect componentType="{ $firstType }" from="$r"/>` of a repeat `r`).
        *[group] `<{ $component }>` can't compare a `<group>` of { $itemCount } components. To sort its components, sort a `<collect>` of them (`<collect componentType="{ $firstType }" from="$g"/>` of a group `g`), or write them in the `<{ $component }>` without the group.
     }{ $component ->
         [sort] {" "}Use `<shuffle>` to keep each item's components together.

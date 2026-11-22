@@ -728,9 +728,12 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     `,
         });
 
-        // `$ct.hide` is the list's own; each entry's is its source's (D29)
+        // `$ct.hide` is the list's own; each entry's is its source's (D29).
+        // `$c.styleNumber` was each entry's (D41); a property after a
+        // collect is its own (D59), and a collect has no `styleNumber`, so
+        // it names nothing (`doenet-w0198`).
         await expectTexts(core, resolvePathToNodeIdx, {
-            p1: "2 (1, 2) 2 x",
+            p1: "2 (1, 2) ＿ x",
             p2: "[b]",
             p3: "[] [b] false true",
             // the collect's `hide="false"` does not show an entry whose
@@ -1425,7 +1428,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     </graph>
     <graph name="g2"><collect componentType="point" from="$g1" name="c" /></graph>
     <p name="p">$c</p>
-    <p name="p2">$c[2] $c[3].x $c.x</p>
+    <p name="p2">$c[2] $c[3].x <repeat for="$c" valueName="ev">$ev.x</repeat></p>
     <polygon vertices="$c" name="poly" />
     <p name="pv">$poly.vertices</p>
     <p name="pA">$A $B $D $E</p>
@@ -2370,7 +2373,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         }
     });
 
-    it("updateValue writes a property of every entry, or of one", async () => {
+    it("updateValue writes a property of one entry; after the collect, it names nothing (D59)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="grp"><point name="p">(3,2)</point><point name="p2">(1,5)</point></group>
@@ -2381,19 +2384,28 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     `,
         });
 
+        // `$col.x` wrote every entry's x (D41); a property after a collect
+        // is its own (D59), so the target names nothing, reported at load
+        expect(
+            core
+                .core!.diagnostics.filter(
+                    (d: any) => !d.code?.startsWith("doenet-a"),
+                )
+                .map((d: any) => d.code),
+        ).eqls(["doenet-w0198"]);
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("uv1"),
             core,
         });
         await expectTexts(core, resolvePathToNodeIdx, {
-            out: "(6, 2) (6, 5)",
+            out: "(3, 2) (1, 5)",
         });
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("uv2"),
             core,
         });
         await expectTexts(core, resolvePathToNodeIdx, {
-            out: "(6, 2) (9, 5)",
+            out: "(3, 2) (9, 5)",
         });
     });
 });

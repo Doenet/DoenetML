@@ -4,9 +4,7 @@ vi.stubGlobal("postMessage", vi.fn());
 vi.mock("hyperformula");
 it("probe2", async () => {
     const { core } = await createTestCore({
-        doenetML: `<math name="m">x</math><p name="before">$e.h $e.k</p>
-    <mathList name="l"><math name="h" extend="$m" /><math name="k" copy="$m" /> 2</mathList>
-    <mathList name="e" extend="$l" />`,
+        doenetML: `<group name="r2"><group name="r"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></group><group name="q" extend="$r2" /><p>$q.r[1]</p>`,
     });
     console.log(
         core

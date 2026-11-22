@@ -1714,16 +1714,25 @@ describe("Value lists as list components @group4", async () => {
     <numberList name="nl"><number displayDigits="$dd">2.7182818</number> 3.14159</numberList>
     <p name="pm">$ml[1].number $ml[2].number $ml[1].displayDigits</p>
     <p name="pn">$nl[1].math $nl[2].math</p>
-    <p name="pAll">$ml.number</p>
+    <p name="pAll"><repeat for="$ml" valueName="ev">$ev.number</repeat></p>
+    <p name="pOld">$ml.number</p>
     `,
         });
 
         expect(
-            await textsOf(core, resolvePathToNodeIdx, ["pm", "pn", "pAll"]),
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pm",
+                "pn",
+                "pAll",
+                "pOld",
+            ]),
         ).eqls({
             pm: "2.71828 3.14 6",
             pn: "2.71828 3.14",
             pAll: "2.71828, 3.14",
+            // was each entry's number (D41); a property after a list is its
+            // own (D59), so it names nothing (`doenet-w0198`)
+            pOld: "＿",
         });
 
         await updateMathInputValue({

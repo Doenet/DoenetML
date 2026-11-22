@@ -716,8 +716,6 @@ describe("An index into an entry of a list @group4", async () => {
                 ["$r[2]", "(2, 20)"],
                 ["$r[2][1]", "2"],
                 ["$r[2][2]", "20"],
-                // a property of every entry with an index into it
-                ["$pl.xs[1]", "3, 1"],
                 // an index into the list's value is an index into the list,
                 // as `$m.value[2]` is `$m[2]`, also with more after it
                 ["$l.value[2]", "2"],
@@ -885,10 +883,6 @@ describe("An index into an entry of a list @group4", async () => {
             ["$tl[1][2][1]", "doenet-w0100"],
             // past the dimensions of a coordinate, as `$P[1][1]`
             ["$pl[1][1][1]", "doenet-w0100"],
-            // an index into a property of every entry that is not an array,
-            // as `$P.coords[1]`, rather than the property with the index
-            // dropped
-            ["$pl.coords[1]", "doenet-w0100"],
             // the same after `.value`, as with the bare index
             ["$pl[2].value[1][1]", "doenet-w0100"],
             ["$pl.value[2][1][1]", "doenet-w0100"],
@@ -908,6 +902,28 @@ describe("An index into an entry of a list @group4", async () => {
                 reference,
             ).eqls([code]);
             expect(warnings[0].args, reference).eqls({ reference });
+        }
+    });
+
+    it("an index into a property after the list names nothing, as the property does (D59)", async () => {
+        // `$pl.coords[1]` was `w0100`, an index into each entry's coords,
+        // and `$pl.xs[1]` the first of each entry's xs (D41). A property
+        // after a list is the list's own, so neither names anything.
+        for (const [reference, suggestion] of [
+            ["$pl.coords[1]", "$pl[1].coords[1]"],
+            ["$pl.xs[1]", "$pl[1].xs[1]"],
+        ]) {
+            const { text, warnings, errors, infos } = await shownAndReported(
+                reference,
+                lists,
+            );
+            expect(text, reference).eq("[＿]");
+            expect([...errors, ...infos], reference).eqls([]);
+            expect(
+                warnings.map((w) => w.code),
+                reference,
+            ).eqls(["doenet-w0198"]);
+            expect(warnings[0].args.suggestion, reference).eq(suggestion);
         }
     });
 
