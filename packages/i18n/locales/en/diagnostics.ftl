@@ -721,6 +721,21 @@ reference-property-after-several =
        *[unnamed] To read the property of a child, give it a name, such as `name="P"`, and write `{ $suggestion }`.
     }
 
+# A name or a property after a collection (a list, `<sequence>`, `<collect>`,
+# `<sort>`, `<shuffle>`, `<repeat>`, a list operator, or a `<select>` or other
+# random chooser that picks several): it is the collection's own (`numItems`,
+# `hide`, `fixed`, `disabled`, and those the tag declares), never each item's
+# (D59), so `$pl.x` and `$r.P` name nothing. $reference is the reference as
+# the author wrote it, with its `$`. $name is the name or property after the
+# collection, and $component the collection's tag, both as written. $kind is
+# `name` when $name is the name of a component in the document, else
+# `property`. $suggestion is the reference with an index put after the
+# collection (`$pl[1].x`).
+reference-name-after-collection = `{ $reference }` names nothing: { $kind ->
+        [name] a name after a `<{ $component }>` does not reach into its items.
+       *[property] a `<{ $component }>` has no property `{ $name }` of its own, and a property after it does not reach into its items.
+    } To read it from one item, give its index, such as `{ $suggestion }`.
+
 ## `<callAction>`
 
 # $action is the `actionName` the author asked for, part of the DoenetML

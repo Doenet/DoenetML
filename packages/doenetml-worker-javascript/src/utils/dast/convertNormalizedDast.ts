@@ -55,6 +55,7 @@ import { checkChoiceFeasibilityAtLoad } from "./choiceFeasibilityAtLoad";
 import { checkReorderedItemsAtLoad } from "./reorderedItemsAtLoad";
 import { checkActionTargetsAtLoad } from "./actionTargetsAtLoad";
 import { markPropertyTypesAtLoad } from "./propertyTypesAtLoad";
+import { checkNamesAfterCollectionsAtLoad } from "./namesAfterCollectionsAtLoad";
 import {
     attributeNameCaseCorrections,
     nameDifferingOnlyInCase,
@@ -804,6 +805,18 @@ export async function normalizedDastToSerializedComponents(
         }),
     );
 
+    // A name or a property after a collection is the collection's own, so
+    // anything else after one names nothing (D59, `doenet-w0198`). Decided
+    // from the tags as written, before the type checks, which leave a
+    // reference decided here as it is.
+    diagnostics.push(
+        ...checkNamesAfterCollectionsAtLoad({
+            serializedComponents: sugarResult.components,
+            componentInfoObjects,
+            sources: normalized_root.sources,
+        }),
+    );
+
     // After sugar, which makes an `<else>` a `<case>`, and before the list
     // forms and value references, so that what a reference written as a tag
     // is of is read as the author wrote it (D36, `typeChangeAtLoad.ts`).
@@ -876,14 +889,7 @@ export async function normalizedDastToSerializedComponents(
     // reaches in its options or cases, decided at load from every one of them
     // (#2520 item 1, #2452): a warning at the reference, which is left as it
     // is.
-    for (const {
-        copy,
-        code,
-        args,
-        kind,
-        childName,
-        childReference,
-    } of collectionItemWarnings) {
+    for (const { copy, code, args, kind } of collectionItemWarnings) {
         const ref: any = copy.extending
             ? unwrapSource(copy.extending as any)
             : undefined;
@@ -901,29 +907,6 @@ export async function normalizedDastToSerializedComponents(
             );
             extra.suggestion = suggestion ?? "";
             extra.hasSuggestion = suggestion === undefined ? "false" : "true";
-        }
-        if (code === "doenet-w0193") {
-            // a property after a repeat whose template holds several: the
-            // reference with a child's name put before the property
-            const suggestion = referenceNamingTheItem(
-                ref,
-                kind,
-                reference,
-                normalized_root.sources,
-                childName,
-            );
-            extra.suggestion = suggestion ?? reference;
-            if (childName !== undefined) {
-                extra.child = "named";
-            } else if (childReference) {
-                extra.child = "reference";
-                extra.tag = `<${childReference.type} extend="${doenetMLReferenceAsWritten(
-                    childReference.originalPath,
-                    normalized_root.sources,
-                )}" name="P"/>`;
-            } else {
-                extra.child = "unnamed";
-            }
         }
         diagnostics.push(
             codedDiagnostic({

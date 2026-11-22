@@ -4,7 +4,7 @@ import {
     unwrapSource,
 } from "./dast/convertNormalizedDast";
 import { preprocessAttributesObject } from "./attributes";
-import { COLLECTIONS_OF_NAMED_ITEMS, isWrapperOfSeveral } from "./wrappers";
+import { isWrapperOfSeveral } from "./wrappers";
 
 /**
  * Whether the names inside what `composite` makes are reached through its
@@ -353,16 +353,10 @@ export async function referenceNamesOneThing(
         return false;
     }
     const unresolvedPath = await component.stateValues.unresolvedPath;
-    // A name in each item of a collection (`$r.P`) is one of each item,
-    // as a property after it is: none while they are all withheld.
-    const perItem =
-        unresolvedPath?.length > 0 &&
-        (await namesInEachItem(component, extended, unresolvedPath));
     if (
         withheld &&
         originalPath?.length > 1 &&
-        !component.doenetAttributes?.pathStartsWithProperty &&
-        !perItem
+        !component.doenetAttributes?.pathStartsWithProperty
     ) {
         // A name in a branch that is not active (`$cc.x` of a name in a
         // case), whatever it names, as it is decided before the branch is
@@ -380,8 +374,7 @@ export async function referenceNamesOneThing(
     // `<collect>`, #2416), unless it is an array (below).
     if (
         unresolvedPath?.length > 0 &&
-        !component.doenetAttributes?.pathStartsWithProperty &&
-        !perItem
+        !component.doenetAttributes?.pathStartsWithProperty
     ) {
         return true;
     }
@@ -451,27 +444,6 @@ export async function referenceNamesOneThing(
         }
     }
     return true;
-}
-
-/**
- * Whether the reference `component` names a name in each item of the
- * collection `extended` (`$r.P`, D41 decision 1), which the resolver leaves
- * unresolved there (`names_per_item`): one of each item, possibly none,
- * as a property after it is. A property of the collection itself
- * (`$r.numItems`) is its own.
- */
-async function namesInEachItem(component, extended, unresolvedPath) {
-    if (
-        !COLLECTIONS_OF_NAMED_ITEMS.has(extended.componentType) ||
-        !unresolvedPath[0]?.name
-    ) {
-        return false;
-    }
-    const sources = await component.stateValues.replacementSources;
-    return !(
-        sources?.length === 1 &&
-        sources[0]?.componentIdx === extended.componentIdx
-    );
 }
 
 /**

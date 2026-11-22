@@ -18,7 +18,8 @@ vi.mock("hyperformula");
  * properties of the same name. Nothing else is the collection's own: the
  * aliases a `<collect>`, `<sort>` or `<shuffle>` built as a list inherited
  * from the list it is built on name nothing, as after the composite (COMP-4,
- * #2271). A property after a collection still applies to each item.
+ * #2271). Any other property after a collection names nothing, with a
+ * warning suggesting an index (D59, `doenet-w0198`).
  *
  * Each document is loaded with `<collect>`, `<sort>`, `<shuffle>` and
  * `<repeat>` built as lists where they can be, and as composites, and what
@@ -319,13 +320,19 @@ describe("A collection's own properties @group4", () => {
             p4: "1",
             p5: "3",
             p6: "false",
-            p7: "1, 2",
-            p8: "1, 2",
+            // Any other property or name is the collection's: names nothing
+            // (D59; it was each item's under D41).
+            p7: "＿",
+            p8: "＿",
         };
         expect(lists.texts).toEqual(expected);
         expect(composites.texts).toEqual(expected);
-        expect(lists.diagnostics).toEqual([]);
-        expect(composites.diagnostics).toEqual([]);
+        const warnings = [
+            "warning doenet-w0198 line 18",
+            "warning doenet-w0198 line 19",
+        ];
+        expect(lists.diagnostics).toEqual(warnings);
+        expect(composites.diagnostics).toEqual(warnings);
     });
 
     it("an alias a collect, sort or shuffle would inherit from a list names nothing, built either way", async () => {
@@ -388,15 +395,16 @@ describe("A collection's own properties @group4", () => {
         ]);
         expect(lists.texts).toEqual(composites.texts);
         expect(lists.texts.p10).toEqual("2 1 2 3 2");
-        // a property after the collection is each item's
-        expect(lists.texts.p11).toEqual("1, 3");
-        expect(lists.texts.p12).toEqual("2, 2");
+        // any other property after the collection names nothing (D59; it
+        // was each item's under D41)
+        expect(lists.texts.p11).toEqual("＿");
+        expect(lists.texts.p12).toEqual("＿");
         for (const name of names.slice(0, 9)) {
             expect(lists.texts[name]).toEqual("＿");
         }
-        // each names nothing, with the usual warning
-        const expected = [12, 13, 14, 15, 16, 17, 18, 19, 20]
-            .map((line) => `warning doenet-w0104 line ${line}`)
+        // each names nothing, with the warning that suggests an index
+        const expected = [12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 23]
+            .map((line) => `warning doenet-w0198 line ${line}`)
             .sort();
         expect(lists.diagnostics).toEqual(expected);
         expect(composites.diagnostics).toEqual(expected);
@@ -512,7 +520,7 @@ describe("A collection's own properties @group4", () => {
         expect(composites.texts).toEqual(lists.texts);
     });
 
-    it("an attribute of a collection is read of each item, as any property after it (D41 decision 2)", async () => {
+    it("an attribute of a collection is not a property of its own, so names nothing (D41 decision 2, D59)", async () => {
         // Before: each of these was the collection's attribute (`$c.maxNumber`
         // was `5`, `$sel.numToSelect` `2`, `$fi.numIterates` `2`, …).
         const { lists, composites } = await bothBuilds({
@@ -541,7 +549,8 @@ describe("A collection's own properties @group4", () => {
             p1: "[＿][＿][＿][＿]",
             p2: "[＿][＿][＿][＿]",
             p3: "[＿][＿][＿][＿][＿][＿][＿]",
-            p4: "[2][2][2][false][false][1, 3][2]",
+            // `$c.x` names nothing (D59; it was each item's under D41)
+            p4: "[2][2][2][false][false][＿][2]",
         });
         expect(composites.texts).toEqual(lists.texts);
         expect(composites.diagnostics).toEqual(lists.diagnostics);
@@ -550,13 +559,15 @@ describe("A collection's own properties @group4", () => {
         expect(lists.diagnostics.filter((d) => d.startsWith("error"))).toEqual(
             [],
         );
-        // Each names nothing an item has (`doenet-w0104`).
-        expect(lists.diagnostics.filter((d) => d.includes("w0104"))).toEqual(
-            Array(15)
+        // Each names nothing, being no property of the collection's own, with
+        // the warning that suggests an index (`doenet-w0198`, D59; under D41
+        // it was read of each item, `doenet-w0104`).
+        expect(lists.diagnostics.filter((d) => d.includes("w0198"))).toEqual(
+            Array(16)
                 .fill(0)
                 .map(
                     (_, i) =>
-                        `warning doenet-w0104 line ${i < 4 ? 15 : i < 8 ? 16 : 17}`,
+                        `warning doenet-w0198 line ${i < 4 ? 15 : i < 8 ? 16 : i < 15 ? 17 : 18}`,
                 ),
         );
     });
@@ -572,9 +583,10 @@ describe("A collection's own properties @group4", () => {
         });
         expect(lists.texts).toEqual({ p1: "[＿][＿][2]" });
         expect(composites.texts).toEqual(lists.texts);
+        // names nothing, as no property of the list's own (D59)
         expect(lists.diagnostics).toEqual([
-            "warning doenet-w0104 line 3",
-            "warning doenet-w0104 line 3",
+            "warning doenet-w0198 line 3",
+            "warning doenet-w0198 line 3",
         ]);
     });
 

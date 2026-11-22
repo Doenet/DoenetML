@@ -78,7 +78,6 @@ import {
 } from "../../utils/heldChoiceAttribute";
 import { returnCopyReplacementsToHideDefinitions } from "../../utils/replacementsToHide";
 import {
-    COLLECTIONS_OF_NAMED_ITEMS,
     componentsOfWrapper,
     isWrapperOfSeveral,
     ownSettingOfWrapper,
@@ -100,6 +99,17 @@ import {
     serializeValueReference,
     valueReferenceDiffers,
 } from "../../utils/valueReference";
+
+/**
+ * The collections built as composites whose `asList` a `<group>` holding only
+ * one of them shows them with (COMP-2, COLL-3).
+ */
+const COLLECTIONS_SHOWN_AS_LISTS = new Set([
+    "repeat",
+    "repeatForSequence",
+    "select",
+    "collect",
+]);
 
 export default class Copy extends CompositeComponent {
     static componentType = "_copy";
@@ -443,18 +453,14 @@ export default class Copy extends CompositeComponent {
                             stopAtWrappersOfSeveral: Boolean(
                                 firstPropNameFromPath,
                             ),
-                            // A name after a repeat or a select that picks
-                            // several is resolved in each item (`$r.P`,
-                            // D41 decision 1); the resolver leaves it
-                            // unresolved there (`names_per_item`).
-                            namePerItem:
+                            // A property a collection that a group holding
+                            // only it stands for has of its own
+                            // (`$g.numItems`, COLL-3) is read of it.
+                            ownPropertyThroughGroups:
                                 firstPropNameFromPath &&
-                                (COLLECTIONS_OF_NAMED_ITEMS.has(
-                                    stateValues.extendedComponent.componentType,
-                                ) ||
-                                    stateValues.extendedComponent
-                                        .componentType === "group")
-                                    ? stateValues.unresolvedPath
+                                stateValues.extendedComponent.componentType ===
+                                    "group"
+                                    ? firstPropNameFromPath
                                     : undefined,
                         };
                     }
@@ -585,7 +591,7 @@ export default class Copy extends CompositeComponent {
                     usedDefault.asListPreliminary &&
                     groupContent.length === 1 &&
                     (groupContent[0].componentType === "_copy" ||
-                        COLLECTIONS_OF_NAMED_ITEMS.has(
+                        COLLECTIONS_SHOWN_AS_LISTS.has(
                             groupContent[0].componentType,
                         )) &&
                     typeof groupContent[0]?.stateValues?.asList === "boolean"
@@ -779,15 +785,6 @@ export default class Copy extends CompositeComponent {
                         source,
                     ] of stateValues.replacementSourceIdentities.entries()) {
                         let thisUnresolvedPath = stateValues.unresolvedPath;
-                        // What a name resolved in the source's item left of
-                        // the path (`namePerItem`): `null` when the source
-                        // is the component the name names, copied whole.
-                        if (
-                            typeof source === "object" &&
-                            source.remainingPath !== undefined
-                        ) {
-                            thisUnresolvedPath = source.remainingPath;
-                        }
 
                         if (stateValues.implicitProp) {
                             thisUnresolvedPath = [
@@ -844,10 +841,7 @@ export default class Copy extends CompositeComponent {
                             };
                             dependencies["withheld" + ind] = {
                                 dependencyType: "stateVariable",
-                                // A component a name named in an item is
-                                // withheld with its item (`namePerItem`).
-                                componentIdx:
-                                    source.namedInItem ?? source.componentIdx,
+                                componentIdx: source.componentIdx,
                                 variableName: "isInactiveCompositeReplacement",
                                 variablesOptional: true,
                             };
@@ -7547,10 +7541,12 @@ async function wrapperOfSeveralDiagnostics({
     const severalAtLoad = component.doenetAttributes?.severalAtLoad;
     if (
         severalAtLoad === "every" ||
-        // a tag in error at load reports that error only
+        // a tag in error at load reports that error only, and one after a
+        // collection, which names nothing, its warning only (D59)
         component.doenetAttributes?.typeChangeAtLoad?.code?.startsWith(
             "doenet-e",
-        )
+        ) ||
+        component.doenetAttributes?.typeChangeAtLoad?.code === "doenet-w0198"
     ) {
         return [];
     }

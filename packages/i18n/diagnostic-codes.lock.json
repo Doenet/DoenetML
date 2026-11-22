@@ -338,5 +338,6 @@
     "doenet-w0194": "matrix-math-child-ignored",
     "doenet-w0195": "action-target-not-one-value",
     "doenet-w0196": "latex-not-read-as-math",
-    "doenet-w0197": "attribute-name-case"
+    "doenet-w0197": "attribute-name-case",
+    "doenet-w0198": "reference-name-after-collection"
 }
