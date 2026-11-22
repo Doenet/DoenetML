@@ -365,10 +365,13 @@ describe("A property after a wrapper of several names nothing (D41 decision 3)",
 <group name="g2"><group><point>(1,2)</point><point>(3,4)</point></group></group>
 <group name="g3"><mathList>1 2</mathList></group>
 <p name="p">[$g1.x] [$g2.x] [$g3.value]</p>`);
-        expect(await d.text()).eq("[＿] [＿] [12]");
-        expect(d.codes()).eqls([
+        // `$g3.value` was the list's entries (`[12]`): the group stands for
+        // the list, after which a property is its own (D59, `w0199`).
+        expect(await d.text()).eq("[＿] [＿] [＿]");
+        expect(d.codes().sort()).eqls([
             "warning doenet-w0193",
             "warning doenet-w0193",
+            "warning doenet-w0199",
         ]);
     });
 

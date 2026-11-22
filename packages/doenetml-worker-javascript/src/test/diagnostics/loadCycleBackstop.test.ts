@@ -74,9 +74,11 @@ describe("A circular dependency at load becomes a located e0005 @group2", () => 
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
             ],
-            // `numIterations` of a repeat whose iteration reads the number
+            // an iteration of a repeat whose iteration reads the number (was
+            // `$r.numIterations`, each iteration's, which names nothing since
+            // D59)
             [
-                `$r.numIterations
+                `$r[1]
 <repeatForSequence name="r" to="2"><conditionalContent condition="$s.sectionNumber=1"><p>a</p></conditionalContent></repeatForSequence>
 <section name="s"><p name="p">hi</p></section>`,
                 "$s.sectionNumber",
