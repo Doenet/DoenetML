@@ -321,6 +321,9 @@ impl Document {
             Some(TextKind::Number(pi)) => {
                 out.push_str(&format_number(value(pi).unwrap_or(f64::NAN)))
             }
+            Some(TextKind::Grouped(pi)) => {
+                out.push_str(&group_digits(&format_number(value(pi).unwrap_or(f64::NAN))))
+            }
             Some(TextKind::Boolean(pi)) => out.push_str(if value(pi) == Some(1.0) {
                 "true"
             } else {
@@ -334,6 +337,23 @@ impl Document {
                 out.push_str(before);
                 self.push_children_text(c, out);
                 out.push_str(after);
+            }
+            Some(TextKind::Separated(separator)) => {
+                let mut first = true;
+                for ch in self.children(c) {
+                    let text = match ch {
+                        Child::Text(t) => t.trim().to_string(),
+                        Child::Component(k) => self.rendered_text(k).trim().to_string(),
+                    };
+                    if text.is_empty() {
+                        continue;
+                    }
+                    if !first {
+                        out.push_str(separator);
+                    }
+                    out.push_str(&text);
+                    first = false;
+                }
             }
             None if ty
                 .gate_prop()
@@ -372,6 +392,31 @@ impl Document {
             attrs: self.loaded.literal_attrs.heap_bytes(),
         }
     }
+}
+
+/// A formatted number with its integer digits in groups of three, separated
+/// by commas, as the current core's `<intComma>` groups one in English:
+/// `25236501.35` is `25,236,501.35`. Text that does not begin with a digit
+/// (after a minus sign), `NaN` or `∞`, is unchanged.
+fn group_digits(number: &str) -> String {
+    let (sign, rest) = match number.strip_prefix('-') {
+        Some(rest) => ("-", rest),
+        None => ("", number),
+    };
+    let digits = rest.bytes().take_while(u8::is_ascii_digit).count();
+    if digits == 0 {
+        return number.to_string();
+    }
+    let (int, tail) = rest.split_at(digits);
+    let mut out = String::from(sign);
+    for (k, ch) in int.chars().enumerate() {
+        if k > 0 && (digits - k) % 3 == 0 {
+            out.push(',');
+        }
+        out.push(ch);
+    }
+    out.push_str(tail);
+    out
 }
 
 /// A number as text the way the current core shows one: integers without a

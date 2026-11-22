@@ -1,0 +1,5 @@
+an integer rounds its children, and a copy has its value: cells 6 · essential 0 · constant 6 · instrs 0 · components 4
+an integer of something that is no number is NaN: cells 4 · essential 0 · constant 4 · instrs 0 · components 2
+an integer follows what it refers to, rounded: cells 4 · essential 1 · constant 2 · instrs 1 · components 4
+a request on an integer writes the asked value rounded: cells 5 · essential 1 · constant 3 · instrs 1 · components 4
+an intComma holds its number, literal or referred to: cells 4 · essential 0 · constant 4 · instrs 0 · components 5

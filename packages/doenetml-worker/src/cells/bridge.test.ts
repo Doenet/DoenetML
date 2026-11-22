@@ -758,3 +758,114 @@ describe("sectioning and document-structure blocks", () => {
         expect(childIds("footnote")).toEqual([]);
     });
 });
+
+describe("the layout containers and the formatted values", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const props = (name: string) =>
+            all(name).map((e) => (e.data as any).props);
+        /** An element's children: text as written, an element as
+         * `<name>` and its text or value prop. */
+        const children = (e: any) =>
+            e.children.map((c: any) => {
+                if (typeof c === "string") return c;
+                const el = root.elements[c.id] as any;
+                return `<${el.name}>${el.data.props?.text ?? el.data.props?.value ?? ""}`;
+            });
+        return { root, all, props, children };
+    }
+
+    it("draws the formatted values as their text", async () => {
+        const { props } = await open(`<p><integer>2.6</integer>
+<intComma>25236501.35</intComma> <intComma>-1234</intComma>
+<pluralize>two mouse</pluralize> <pluralize basedOnNumber="1">dog</pluralize>
+<pluralize>goose</pluralize>
+<latex>\\frac{<number>3</number>}{2}</latex></p>`);
+        expect(props("integer")).toEqual([{ text: "3" }]);
+        expect(props("intComma")).toEqual([
+            { text: "25,236,501.35" },
+            { text: "-1,234" },
+        ]);
+        expect(props("pluralize")).toEqual([
+            { text: "two mice" },
+            { text: "dog" },
+            { text: "geese" },
+        ]);
+        expect(props("latex")).toEqual([{ text: "\\frac{ 3 }{2}" }]);
+    });
+
+    it("shows an asList's children separated by commas", async () => {
+        const { all, children } = await open(
+            `<p><asList><number>1</number> <number>2</number><text>c</text></asList></p>`,
+        );
+        expect(all("asList")).toEqual([]);
+        expect(children(all("p")[0])).toEqual([
+            "<number>1",
+            ", ",
+            "<number>2",
+            ", ",
+            "<text>c",
+        ]);
+    });
+
+    it("draws a table's title from a prop", async () => {
+        const { all, props } = await open(`<section>
+<table><title>Data</title><tabular><row><cell>1</cell></row></tabular></table>
+<table suppressTableNameInTitle><tabular><row><cell>2</cell></row></tabular></table>
+</section>`);
+        const [title] = all("title");
+        const [table] = all("table");
+        expect(props("table")).toEqual([
+            {
+                title: title.data.id,
+                titlePrefix: "Table: ",
+                codeNumber: "",
+                divisionDepth: 2,
+                divisionType: "table",
+                xrefLabel: {
+                    label: "Table",
+                    global_ident: "",
+                    local_ident: "",
+                    preferred_form: "Global",
+                },
+            },
+            expect.objectContaining({ title: null, titlePrefix: "" }),
+        ]);
+        expect(table.children).not.toContainEqual(
+            expect.objectContaining({ id: title.data.id }),
+        );
+        expect(all("tabular")).toHaveLength(2);
+    });
+
+    it("draws an sbsGroup as a stack whose side-by-sides share its widths", async () => {
+        const { all, props } = await open(`<sbsGroup widths="30% 70%">
+<sideBySide><p>a</p><p>b</p></sideBySide>
+<sideBySide widths="50% 50%"><p>c</p><p>d</p></sideBySide>
+</sbsGroup>`);
+        expect(all("sbsGroup")).toEqual([]);
+        expect(all("stack")).toHaveLength(1);
+        expect(props("sideBySide")).toEqual([
+            { widths: [30, 70] },
+            { widths: [50, 50] },
+        ]);
+    });
+
+    it("draws the PreTeXt wrappers and leaves the axis labels out", async () => {
+        const { all, root } = await open(`<pretext><article>
+<p>x</p>
+<graph><xLabel>t</xLabel><yLabel>y</yLabel><point>(1,2)</point></graph>
+</article></pretext>`);
+        expect(all("pretext")).toHaveLength(1);
+        expect(all("article")).toHaveLength(1);
+        expect(all("xLabel")).toEqual([]);
+        expect(all("yLabel")).toEqual([]);
+        const [graph] = all("graph");
+        expect(
+            graph.children
+                .filter((c: any) => typeof c !== "string")
+                .map((c: any) => (root.elements[c.id] as any).name),
+        ).toEqual(["point"]);
+    });
+});

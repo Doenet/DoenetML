@@ -1,6 +1,7 @@
 //! Number, boolean, text, math, evaluate, clamp number, tuple, update
 //! value, function, derivative and answer (with its award, when and
-//! response), and the value lists: types that hold a value, numeric or
+//! response), the value lists, and the values shown a particular way
+//! (integer, intComma, pluralize): types that hold a value, numeric or
 //! symbolic, or a sequence of them (ADR 0041). Function, derivative and
 //! answer are `symbolic`, planned as math cells.
 
@@ -14,8 +15,10 @@ pub mod award;
 pub mod boolean;
 pub(crate) mod boolean_list;
 pub mod curve;
+pub(crate) mod formatted;
 pub mod math;
 pub(crate) mod number_list;
+pub(crate) mod pluralize;
 pub mod text;
 pub(crate) mod text_list;
 pub mod when;
