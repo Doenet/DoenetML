@@ -171,10 +171,27 @@ function arrayEntryInIndexForm(
             continue;
         }
         return sameEntries && byIndex
-            ? `${arrayName}${indices.map((index) => `[${index}]`).join("")}`
+            ? `${arrayNameForPrefix(prefix, arrayName, info)}${indices.map((index) => `[${index}]`).join("")}`
             : `${prefix}${varEnding}`;
     }
     return undefined;
+}
+
+/**
+ * The name to write an entry with prefix `prefix` in the index form on: the
+ * array's own name, unless an alias of the array is the prefix's plural
+ * (`rightHandSide` → `rightHandSides`, an alias of `<odeSystem>`'s `rhss`), the
+ * spelling of the name the author was writing.
+ */
+function arrayNameForPrefix(
+    prefix: string,
+    arrayName: string,
+    info: any,
+): string {
+    const plural = `${prefix}s`;
+    return plural !== arrayName && info.aliases?.[plural]?.target === arrayName
+        ? plural
+        : arrayName;
 }
 
 /**

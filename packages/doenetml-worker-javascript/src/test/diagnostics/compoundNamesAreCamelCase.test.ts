@@ -180,7 +180,8 @@ const RENAMED_PROPERTIES: {
     /**
      * The suggestion, where it is not `newReference`: an array entry in
      * another case is suggested in the index form (NAME-2, #2628), on the
-     * array's own name.
+     * name the author was writing: `rightHandSides`, the alias of
+     * `<odeSystem>`'s `rhss`, for `righthandside1`.
      */
     suggestion?: string;
 }[] = [
@@ -226,7 +227,7 @@ const RENAMED_PROPERTIES: {
         newReference: "$o.rightHandSide1",
         oldReference: "$o.righthandside1",
         text: "x",
-        suggestion: "$o.rhss[1]",
+        suggestion: "$o.rightHandSides[1]",
     },
     {
         setup: `<graph><regularPolygon name="rp" numVertices="4" circumRadius="3"/></graph>`,
@@ -378,6 +379,38 @@ describe("Compound names are camelCase (D60) @group4", async () => {
                 `Did you mean \`${c.suggestion ?? c.newReference}\`?`,
             );
             expect(await text("p"), doenetML).eq("＿");
+        }
+    });
+
+    it("an entry in another case is suggested on the array name the author was writing", async () => {
+        // `<odeSystem>`'s entries `rhs1` and `rightHandSide1` are of the
+        // array `rhss`, which has the alias `rightHandSides`.
+        const cases = [
+            {
+                reference: "$o.righthandside1",
+                suggestion: "$o.rightHandSides[1]",
+            },
+            { reference: "$o.RHS1", suggestion: "$o.rhss[1]" },
+        ];
+        for (const c of cases) {
+            const doenetML = `<odeSystem name="o"><rightHandSide>x</rightHandSide></odeSystem><p name="p">${c.reference}</p>`;
+            const { warnings } = await load(doenetML);
+            expect(
+                warnings.map((w) => w.code),
+                doenetML,
+            ).toEqual(["doenet-w0104"]);
+            expect(warnings[0].message, doenetML).toContain(
+                `Did you mean \`${c.suggestion}\`?`,
+            );
+            // and the suggestion works
+            const {
+                text,
+                errors,
+                warnings: none,
+            } = await load(doenetML.replace(c.reference, c.suggestion));
+            expect(errors).toHaveLength(0);
+            expect(none).toHaveLength(0);
+            expect(await text("p")).eq("x");
         }
     });
 
