@@ -47,6 +47,7 @@ import { convertExpressionAttributes } from "./expressionAttributes";
 import { breakReferenceCycles, type LoadCycle } from "./referenceCycles";
 import { markCompositesMakingNoSectioning } from "./sectionNumberingAtLoad";
 import { markCopiedAwards, removeCopiedAwardMarks } from "./copiedAwards";
+import { decideAnswerTypesAtLoad } from "./answerTypesAtLoad";
 import { checkExtendErrorsAtLoad } from "./extendErrorsAtLoad";
 import { checkChoiceErrorsAtLoad } from "./choiceErrorsAtLoad";
 import { checkRepeatNamesAtLoad } from "./repeatNamesAtLoad";
@@ -942,6 +943,18 @@ export async function normalizedDastToSerializedComponents(
         serializedComponents: expandedRoot,
         componentInfoObjects,
     });
+
+    // An `<answer>`'s type comes from its input, or, with none written in
+    // it, from its awards' typed content, references included (ANS-4, D55):
+    // decided now and written as its `type`, which the sugar of the answer
+    // and of each award reads. After the copied awards are marked, so that
+    // an `<award copy>` is read by what it will hold.
+    diagnostics.push(
+        ...decideAnswerTypesAtLoad({
+            serializedComponents: expandedRoot,
+            componentInfoObjects,
+        }),
+    );
 
     const sugarResult = applySugar({
         serializedComponents: expandedRoot,

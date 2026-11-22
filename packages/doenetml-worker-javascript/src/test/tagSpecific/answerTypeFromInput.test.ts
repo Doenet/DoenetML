@@ -1,0 +1,394 @@
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import {
+    submitAnswer,
+    updateBooleanInputValue,
+    updateMathInputValue,
+    updateTextInputValue,
+} from "../utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+/**
+ * An answer's type comes from its input (ANS-4, D55, #2608): the input
+ * written inside it decides; with none, its awards' typed content does,
+ * references included; plain text in every award is read as that type, and
+ * `type` is needed only when nothing else decides.
+ */
+describe("An answer's type comes from its input (D55) @group4", () => {
+    function coded(core: any, kind: "errors" | "warnings") {
+        return getDiagnosticsByType(core)
+            [kind].filter((d) =>
+                /doenet-(e0092|w0078|w0202|w0203|w0204)/.test(d.code ?? ""),
+            )
+            .map((d) => `${d.code}: ${d.message}`);
+    }
+
+    /**
+     * Load `doenetML`, enter `value` in the input named `input` (a math,
+     * text or boolean input, by `kind`), submit the answer `a`, and return
+     * its credit and the core.
+     */
+    async function creditFor({
+        doenetML,
+        kind,
+        value,
+        input = "in",
+    }: {
+        doenetML: string;
+        kind: "math" | "text" | "boolean";
+        value: string | boolean;
+        input?: string;
+    }) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const inputIdx = await resolvePathToNodeIdx(input);
+        if (kind === "math") {
+            await updateMathInputValue({
+                latex: value as string,
+                componentIdx: inputIdx,
+                core,
+            });
+        } else if (kind === "text") {
+            await updateTextInputValue({
+                text: value as string,
+                componentIdx: inputIdx,
+                core,
+            });
+        } else {
+            await updateBooleanInputValue({
+                boolean: value as boolean,
+                componentIdx: inputIdx,
+                core,
+            });
+        }
+        const answerIdx = await resolvePathToNodeIdx("a");
+        await submitAnswer({ componentIdx: answerIdx, core });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        return {
+            credit: stateVariables[answerIdx].stateValues.creditAchieved,
+            core,
+            stateVariables,
+            resolvePathToNodeIdx,
+        };
+    }
+
+    /** The tag of the first input of the answer `a`. */
+    async function inputTagOf(stateVariables: any, answerIdx: number) {
+        const answer = stateVariables[answerIdx];
+        const input = answer.activeChildren.find(
+            (child: any) =>
+                typeof child === "object" && /Input$/.test(child.componentType),
+        );
+        return input?.componentType;
+    }
+
+    it("a text input inside reads the answer's text as a text", async () => {
+        for (const doenetML of [
+            `<answer name="a"><textInput name="in"/>hello there</answer>`,
+            `<answer name="a"><textInput name="in"/><award>hello there</award></answer>`,
+        ]) {
+            const { credit, core } = await creditFor({
+                doenetML,
+                kind: "text",
+                value: "hello there",
+            });
+            expect(credit).eq(1);
+            expect(coded(core, "warnings")).eqls([]);
+            expect(coded(core, "errors")).eqls([]);
+        }
+
+        const { credit } = await creditFor({
+            doenetML: `<answer name="a"><textInput name="in"/>hello there</answer>`,
+            kind: "text",
+            value: "hello",
+        });
+        expect(credit).eq(0);
+    });
+
+    it("a boolean input inside reads the answer's text as a boolean", async () => {
+        let { credit } = await creditFor({
+            doenetML: `<answer name="a"><booleanInput name="in"/>true</answer>`,
+            kind: "boolean",
+            value: true,
+        });
+        expect(credit).eq(1);
+        ({ credit } = await creditFor({
+            doenetML: `<answer name="a"><booleanInput name="in"/>true</answer>`,
+            kind: "boolean",
+            value: false,
+        }));
+        expect(credit).eq(0);
+    });
+
+    it("with no input, one award's typed content decides every award's type", async () => {
+        const doenetML = `<answer name="a"><award><text>hello</text></award><award credit="0.5">hi</award></answer>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const answerIdx = await resolvePathToNodeIdx("a");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const inputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[inputIdx].componentType).eq("textInput");
+
+        await updateTextInputValue({
+            text: "hi",
+            componentIdx: inputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0.5);
+
+        await updateTextInputValue({
+            text: "hello",
+            componentIdx: inputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(coded(core, "warnings")).eqls([]);
+    });
+
+    it("with no input, a reference's type decides, and picks the input added", async () => {
+        for (const [doenetML, inputType, value, kind] of [
+            [
+                `<text name="t">hello</text><answer name="a">$t</answer>`,
+                "textInput",
+                "hello",
+                "text",
+            ],
+            [
+                `<text name="t">hello</text><answer name="a"><award>$t</award></answer>`,
+                "textInput",
+                "hello",
+                "text",
+            ],
+            [
+                `<boolean name="b">true</boolean><answer name="a">$b</answer>`,
+                "booleanInput",
+                true,
+                "boolean",
+            ],
+            [
+                `<textInput name="ti" prefill="hello"/><answer name="a">$ti</answer>`,
+                "textInput",
+                "hello",
+                "text",
+            ],
+            [
+                `<math name="m">x+1</math><answer name="a">$m</answer>`,
+                "mathInput",
+                "x+1",
+                "math",
+            ],
+        ] as const) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const answerIdx = await resolvePathToNodeIdx("a");
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const inputIdx =
+                stateVariables[answerIdx].stateValues.inputChildren[0]
+                    .componentIdx;
+            expect(stateVariables[inputIdx].componentType, doenetML).eq(
+                inputType,
+            );
+            if (kind === "text") {
+                await updateTextInputValue({
+                    text: value as string,
+                    componentIdx: inputIdx,
+                    core,
+                });
+            } else if (kind === "boolean") {
+                await updateBooleanInputValue({
+                    boolean: value as boolean,
+                    componentIdx: inputIdx,
+                    core,
+                });
+            } else {
+                await updateMathInputValue({
+                    latex: value as string,
+                    componentIdx: inputIdx,
+                    core,
+                });
+            }
+            await submitAnswer({ componentIdx: answerIdx, core });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[answerIdx].stateValues.creditAchieved,
+                doenetML,
+            ).eq(1);
+            expect(coded(core, "warnings"), doenetML).eqls([]);
+        }
+    });
+
+    it("type is needed only when nothing else decides, and one that agrees is allowed", async () => {
+        for (const doenetML of [
+            `<answer name="a" type="text"><textInput name="in"/>hello there</answer>`,
+            `<answer name="a" type="text">hello there</answer>`,
+            `<answer name="a"><text>hello there</text></answer>`,
+            `<answer name="a"><textInput name="in"/><award><text>hello there</text></award></answer>`,
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const answerIdx = await resolvePathToNodeIdx("a");
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const inputIdx =
+                stateVariables[answerIdx].stateValues.inputChildren[0]
+                    .componentIdx;
+            await updateTextInputValue({
+                text: "hello there",
+                componentIdx: inputIdx,
+                core,
+            });
+            await submitAnswer({ componentIdx: answerIdx, core });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[answerIdx].stateValues.creditAchieved,
+                doenetML,
+            ).eq(1);
+            expect(coded(core, "errors"), doenetML).eqls([]);
+            expect(coded(core, "warnings"), doenetML).eqls([]);
+        }
+    });
+
+    it("plain text with nothing to decide its type is still a math", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<answer name="a">x+1</answer>`,
+        });
+        const answerIdx = await resolvePathToNodeIdx("a");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const inputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[inputIdx].componentType).eq("mathInput");
+        await updateMathInputValue({
+            latex: "1+x",
+            componentIdx: inputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+    });
+
+    it("a type that disagrees with the input is an error at load, and the input's type is used", async () => {
+        const { credit, core } = await creditFor({
+            doenetML: `<answer name="a" type="math"><textInput name="in"/>hello there</answer>`,
+            kind: "text",
+            value: "hello there",
+        });
+        expect(credit).eq(1);
+        expect(coded(core, "errors")).eqls([
+            'doenet-e0092: This `<answer>` has `type="math"`, but the `<textInput>` written in it gives a `text`, and its awards compare their content with that input. The `type` is ignored: remove it, or use an input that gives a `math`.',
+        ]);
+        const [error] = getDiagnosticsByType(core).errors.filter(
+            (e) => e.code === "doenet-e0092",
+        );
+        // at the attribute
+        expect(error.position?.start.column).eq(18);
+    });
+
+    it("award content of another type than the input is a warning at load", async () => {
+        const { credit, core } = await creditFor({
+            doenetML: `<answer name="a"><textInput name="in"/><math>2</math></answer>`,
+            kind: "text",
+            value: "2",
+        });
+        expect(credit).eq(0);
+        expect(coded(core, "warnings")).eqls([
+            "doenet-w0202: This `<math>` is compared with the answer's `<textInput>`, which gives a `text`, so it can never earn credit. Write it as a `text`, or use an input of its type.",
+        ]);
+
+        // also for an input the answer adds, and for a reference
+        const { core: core2 } = await createTestCore({
+            doenetML: `<text name="t">hi</text>
+<answer name="a" type="math"><award><number>2</number></award><award>$t</award></answer>
+<answer name="b"><booleanInput/><award><number>1</number></award></answer>`,
+        });
+        expect(coded(core2, "warnings")).eqls([
+            "doenet-w0202: This `<text>` is compared with the answer's `<mathInput>`, which gives a `math`, so it can never earn credit. Write it as a `math`, or use an input of its type.",
+            "doenet-w0202: This `<number>` is compared with the answer's `<booleanInput>`, which gives a `boolean`, so it can never earn credit. Write it as a `boolean`, or use an input of its type.",
+        ]);
+    });
+
+    it("an award with content and no when, in an answer with more than one input, is a warning", async () => {
+        const { credit, core } = await creditFor({
+            doenetML: `<answer name="a"><textInput name="in"/><mathInput/><award>hello</award></answer>`,
+            kind: "text",
+            value: "hello",
+        });
+        expect(credit).eq(0);
+        expect(coded(core, "warnings")).eqls([
+            "doenet-w0203: This `<award>`'s content is compared with none of the answer's 2 inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
+        ]);
+
+        const { core: core2 } = await createTestCore({
+            doenetML: `<answer name="a"><textInput/><mathInput/>hello</answer>
+<answer name="b"><textInput name="ti"/><mathInput name="mi"/><award><when>$ti = hello and $mi = x</when></award></answer>`,
+        });
+        expect(coded(core2, "warnings")).eqls([
+            "doenet-w0203: This `<answer>` has 2 inputs, so the content written in it is compared with none of them and can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.",
+        ]);
+    });
+
+    it("an answer with a forAnswer input whose award has content and no when is a warning", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<textInput name="ti" forAnswer="$a"/>
+<answer name="a">hello</answer>
+<textInput name="ti2" forAnswer="$b"/>
+<answer name="b"><award><when>$ti2 = hello</when></award></answer>`,
+        });
+        expect(coded(core, "warnings")).eqls([
+            "doenet-w0204: The content written in this `<answer>` is compared with a `<mathInput>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.",
+        ]);
+    });
+
+    it("a when comparing a text input is unchanged", async () => {
+        const { credit, core } = await creditFor({
+            doenetML: `<answer name="a"><textInput name="in"/><award><when>$in = hello</when></award></answer>`,
+            kind: "text",
+            value: "hello",
+        });
+        expect(credit).eq(1);
+        expect(coded(core, "warnings")).eqls([]);
+    });
+
+    it("a choice answer and type=videoWatched are unchanged", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<answer name="a"><choice credit="1">yes</choice><choice>no</choice></answer>
+<video name="v" youtube="tJ4ypc5L6uU" />
+<answer name="b" type="videoWatched" video="$v" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const answerIdx = await resolvePathToNodeIdx("a");
+        const inputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        expect(stateVariables[inputIdx].componentType).eq("choiceInput");
+        expect(coded(core, "errors")).eqls([]);
+        expect(coded(core, "warnings")).eqls([]);
+    });
+
+    it("an award copied into an answer with a text input is read as a text", async () => {
+        const { credit, core } = await creditFor({
+            doenetML: `<answer name="a"><textInput name="in"/><award name="aw">hello</award><award copy="$aw" credit="0.5"/></answer>`,
+            kind: "text",
+            value: "hello",
+        });
+        expect(credit).eq(1);
+        expect(coded(core, "warnings")).eqls([]);
+    });
+});

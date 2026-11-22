@@ -2299,6 +2299,40 @@ property-type-undecided =
        *[other] `{ $source }` reads a property whose type isn't decided by what is written, so it can't be read.
     }
 
+# An `<answer>`'s type is its input's (ANS-4, D55): the awards compare their
+# content with the input written inside it. This `type` disagrees, so it is
+# ignored. $type is the `type` written, $input the input's tag (DoenetML, which
+# stays in English), and $inputType the type it gives (`math`, `text` or
+# `boolean`, also DoenetML).
+answer-type-disagrees-with-input = This `<answer>` has `type="{ $type }"`, but the `<{ $input }>` written in it gives a `{ $inputType }`, and its awards compare their content with that input. The `type` is ignored: remove it, or use an input that gives a `{ $type }`.
+
+# The content of an `<award>` (or written in the `<answer>`) is of another type
+# than the input it is compared with (ANS-4, D55), so it never earns credit.
+# $contentType is the content's type, $input the input's tag and $inputType
+# the type the input gives. All are DoenetML, which stays in English.
+award-content-type-mix = This `<{ $contentType }>` is compared with the answer's `<{ $input }>`, which gives a `{ $inputType }`, so it can never earn credit. Write it as a `{ $inputType }`, or use an input of its type.
+
+# An answer with more than one input compares an award's content with none of
+# them (ANS-4, D55). $numInputs is how many inputs are written in it.
+# $ownContent is `true` when the content is written directly in the `<answer>`
+# and `false` when it is in an `<award>`. Tags stay in English.
+award-content-several-inputs =
+    { $ownContent ->
+        [true] This `<answer>` has { $numInputs } inputs, so the content written in it is compared with none of them and can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.
+       *[false] This `<award>`'s content is compared with none of the answer's { $numInputs } inputs, so it can never earn credit. Compare the inputs in a `<when>`: `<award><when>…</when></award>`.
+    }
+
+# An answer with an input written outside it with `forAnswer` (ANS-4, D55): an
+# award reaches that input only through a `<when>`, so its content is compared
+# with an input the answer adds. $input is that added input's tag. $ownContent
+# is `true` when the content is written directly in the `<answer>` and `false`
+# when it is in an `<award>`. Tags and attribute names stay in English.
+award-content-for-answer-input =
+    { $ownContent ->
+        [true] The content written in this `<answer>` is compared with a `<{ $input }>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.
+       *[false] This `<award>`'s content is compared with a `<{ $input }>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.
+    }
+
 # The `for` of a `<repeat>` holds items of one type (COLL-5, D44), decided
 # at load. $reason is `mix` for items of more than one type, the first two
 # described as in `reorder-items-of-several-types` ($firstKind, $first,

@@ -1682,8 +1682,11 @@ export function propertyTypeReader({
         propertyTypesOf,
         propertyTypeOf,
         tagOf,
+        tagOfComponent,
         propertyOfReference,
         decidingClass,
+        responseRead,
+        inputsForAnswer,
     };
 }
 

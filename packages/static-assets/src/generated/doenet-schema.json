@@ -95468,7 +95468,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Type of input the answer expects.",
+                    "description": "Type of the answer, needed only when neither an input written inside it nor its awards' typed content decides it.",
                     "defaultValue": null,
                     "values": [
                         "math",
