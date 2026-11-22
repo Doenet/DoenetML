@@ -70,7 +70,16 @@ function unescapeEntities(node: SyntaxNode, source: string): string {
     let ret = "";
     for (const entity of entities) {
         ret += rawValue.slice(i, entity.from - node.from);
-        ret += entityToString(entity, source);
+        let converted = entityToString(entity, source);
+        // An attribute's value is read for macros once decoded, so a `$`
+        // written as a reference (`&#36;`, `&dollar;`) must not start one
+        // with the `(` or `$` after it (`&#36;(x)` is the text `$(x)`, not a
+        // reference to `x`). `entityToString` already guards a following
+        // letter; in text a reference is its own node, never read for macros.
+        if (converted === "$" && /[($]/.test(source.charAt(entity.to))) {
+            converted += "​";
+        }
+        ret += converted;
         i = entity.to - node.from;
     }
     ret += rawValue.slice(i);

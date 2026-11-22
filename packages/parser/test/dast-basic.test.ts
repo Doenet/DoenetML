@@ -115,6 +115,22 @@ describe("DAST", async () => {
         expect(attrText(`<a n="&lt;&#x1F600;&gt;"/>`)).toBe("<\u{1F600}>");
     });
 
+    it("a `$` written as a reference in an attribute starts no macro", () => {
+        // The decoded value is read for macros, so `&#36;(x)` and
+        // `&#36;$f` would otherwise become references; a zero-width space
+        // keeps them text, as for a following letter.
+        const attrChildren = (source: string) => {
+            const el = lezerToDast(source).children[0] as any;
+            return el.attributes.n.children.map((c: any) =>
+                c.type === "text" ? c.value : c.type,
+            );
+        };
+        expect(attrChildren(`<a n="&#36;(x)"/>`)).toEqual(["$", "​(x)"]);
+        expect(attrChildren(`<a n="&dollar;(x)"/>`)).toEqual(["$", "​(x)"]);
+        expect(attrChildren(`<a n="&#36;$f"/>`)).toEqual(["$", "​", "macro"]);
+        expect(attrChildren(`<a n="&#36;1"/>`)).toEqual(["$", "1"]);
+    });
+
     it("preserves ampersands 2", () => {
         const dast: DastRoot = {
             type: "root",
