@@ -101,6 +101,33 @@ describe("Pretext export", async () => {
         `);
     });
 
+    it("a ref to a URL becomes a PreTeXt url", async () => {
+        source = `<p><ref to="https://example.com/a?b=1">Example</ref> <ref to="https://example.com" /> <ref to="doenet:abc123">Activity</ref></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p><url href="https://example.com/a?b=1">Example</url> <url href="https://example.com"></url> <url href="https://doenet.org/activityViewer/abc123">Activity</url></p>"`,
+        );
+    });
+
+    it("a ref to a missing target or a bare anchor stays an xref", async () => {
+        source = `<p><ref to="$missing">A</ref> <ref to="#anchor">B</ref> <ref to="">C</ref></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p><xref ref="doenet-id-undefined">A</xref> <xref ref="doenet-id-undefined">B</xref> <xref ref="doenet-id-undefined">C</xref></p>"`,
+        );
+    });
+
+    it("a ref to a URL escapes the address and keeps a doenet postfix", async () => {
+        source = `<p><ref to="https://a.com/?x=1&y=2">A</ref> <ref to="doenet:abc?x=1#sec">B</ref></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p><url href="https://a.com/?x=1&#x26;y=2">A</url> <url href="https://doenet.org/activityViewer/abc?x=1#sec">B</url></p>"`,
+        );
+    });
+
     // <br /> and <hr /> are removed when converting to PreTeXt
     it("<br /> and <hr /> are removed when converting to PreTeXt", async () => {
         source = `<p>Line 1<br />Line 2</p><hr /><p>After hr</p>`;
