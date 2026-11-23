@@ -106,9 +106,10 @@ impl<'c> Builder<'c> {
 
     /// A lowered math's expression (ADR 0046): math text `expr` with
     /// `post`, made from its leaves only while slot `value` is missing, so
-    /// a missing operand shows as the blank in it. NaN, the numeric math's
-    /// expression, for text with no leaf, a numeric-only function, or text
-    /// the engine does not parse: the value was lowered all the same.
+    /// a missing operand shows as the blank in it (`round(＿) + 1`). NaN,
+    /// the numeric math's expression, for text with no leaf, a `clamp`
+    /// (which the engine does not read), or text the engine does not
+    /// parse: the value was lowered all the same.
     pub(in crate::build) fn blank_source(
         &mut self,
         expr: ExprId,
@@ -120,7 +121,8 @@ impl<'c> Builder<'c> {
         let Some(sym) = compiled.plans.sym_text.get(&expr) else {
             return Ok(BuiltSource::Const(f64::NAN));
         };
-        if compiled.plans.arena.has_call(expr) {
+        // `round`, `floor`, `min` and `max` the engine reads; not `clamp`.
+        if compiled.plans.arena.calls_outside_engine(expr) {
             return Ok(BuiltSource::Const(f64::NAN));
         }
         let text = || sym.spell(compiled.dast);

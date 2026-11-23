@@ -295,7 +295,7 @@ describe("missing values", () => {
 <booleanList name="bl">true</booleanList></setup>
 <p><number>$l[5]</number> <number>$l[5] + 3</number> <number>0/0</number></p>
 <p><text extend="$nope"/> <boolean>$bl[3]</boolean> <boolean>$l[5] > 0</boolean></p>
-<p><math>x + $nope</math> <point>($l[5], 1)</point> <math>1 + $l[5]</math></p>
+<p><math>x + $nope</math> <point>($l[5], 1)</point> <math>1 + $l[5]</math> <math>floor($l[5] + 1)</math></p>
 <p><numberList>$l[5] 2</numberList></p>`);
         const root = bridge.flatDast();
         const props = (name: string) =>
@@ -314,7 +314,11 @@ describe("missing values", () => {
         // is false, since a blank never equals anything (D37, D40).
         expect(props("boolean").map((p) => p.value)).toEqual(["＿", false]);
         // A lowered math (ADR 0005) shows the blank in its expression.
-        expect(props("math").map((p) => p.latex)).toEqual(["x + ＿", "1 + ＿"]);
+        expect(props("math").map((p) => p.latex)).toEqual([
+            "x + ＿",
+            "1 + ＿",
+            "\\left\\lfloor ＿ + 1 \\right\\rfloor",
+        ]);
         expect(props("point")).toEqual([
             { coordsLatex: "\\left( ＿, 1 \\right)" },
         ]);
