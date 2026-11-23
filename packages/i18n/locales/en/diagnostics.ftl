@@ -1095,7 +1095,7 @@ latex-not-read-as-math = The LaTeX of this `<{ $component }>`, `{ $latex }`, can
 content-unused-attributes-give-value = { $reason ->
         [coords] `coords` gives every coordinate of this `<{ $componentType }>`, so its content isn't used. Remove the content or `coords`.
         [displacement] `displacement` gives this `<{ $componentType }>` its whole value, so its content isn't used. Remove the content or `displacement`.
-       *[coordinates] { $attributes } give every coordinate of this `<{ $componentType }>`, so its content isn't used. Remove the content or those attributes.
+       *[coordinates] Every coordinate of this `<{ $componentType }>` is given by { $attributes }, so its content isn't used. Remove the content or { $attributes }.
     }
 
 # A `<math>` child of a `<matrix>` that the matrix doesn't use (#2546). A

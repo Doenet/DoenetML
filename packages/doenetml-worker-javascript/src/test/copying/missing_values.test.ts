@@ -2636,6 +2636,28 @@ describe("Missing values, round 4 (#2596) @group2", () => {
         ]) {
             expect(await warningsOf(doenetML), doenetML).eqls([]);
         }
+        // the message names what overrides the content
+        const messages = {
+            [`<point coords="(3,4)">(5,6)</point>`]:
+                "`coords` gives every coordinate of this `<point>`, so its content isn't used. Remove the content or `coords`.",
+            [`<vector displacement="(3,4)">(5,6)</vector>`]:
+                "`displacement` gives this `<vector>` its whole value, so its content isn't used. Remove the content or `displacement`.",
+            [`<point x="3" y="4">(5,6)</point>`]:
+                "Every coordinate of this `<point>` is given by `x`, `y`, so its content isn't used. Remove the content or `x`, `y`.",
+            [`<point x="3">(5)</point>`]:
+                "Every coordinate of this `<point>` is given by `x`, so its content isn't used. Remove the content or `x`.",
+        };
+        for (const [doenetML, message] of Object.entries(messages)) {
+            const { core } = await createTestCore({
+                doenetML: `<graph>${doenetML}</graph>`,
+            });
+            expect(
+                getDiagnosticsByType(core)
+                    .warnings.filter((d: any) => d.code === "doenet-w0202")
+                    .map((d) => d.message),
+                doenetML,
+            ).eqls([message]);
+        }
     });
 
     it("gives a point or vector its written coords or displacement over its content, whatever form the content takes (D49)", async () => {

@@ -1284,12 +1284,15 @@ function fixedReferentMissingDefinition(fixedReferent) {
  * (`<point name="Q">$nothing</point>`).
  *
  * Unlike `valueMissing`, it never reads whether its referent is missing
- * (`valueMissing`), and of a property (`$(v.tail)`) it reads nothing of the
- * referent but the list entry: a vector's `valueMissing` reads its `head`
- * and `tail`, so reading it here would make a cycle of a point and a vector
- * defined from each other (`head="$(v1.tail)"`), and of a vector whose
- * `displacement` is its own `head`. What a whole component holds is read
- * only through its content, which is a cycle only where its value is too.
+ * (`valueMissing`): a vector's `valueMissing` reads its `head` and `tail`,
+ * so reading it here would make a cycle of a point and a vector defined
+ * from each other (`head="$(v1.tail)"`). Of a property (`$(v.tail)`), it
+ * reads only whether the referent names nothing, or holds only missing
+ * content where that makes its type missing (`contentMissing`), never what a
+ * point or vector holds (`contentNamesNothing`), which of a vector whose
+ * `displacement` is its own `head` would read itself. What a whole
+ * component holds is read only through its content, which is a cycle only
+ * where its value is too.
  */
 function namesNothingDefinition(fixedReferent, componentInfoObjects) {
     return {
