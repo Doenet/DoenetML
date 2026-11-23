@@ -73,6 +73,12 @@ prefill each; no bound value). A function's `domain` (one interval) and
 `variables` (one), `piecewiseFunction` (of `function` children), `curve`
 (a function's graph, a parametric curve, or a spline through points with
 `bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
+Values with entries inside a math (ADR 0041, decision 8): `interval`,
+`intervalList`, and `subsetOfReals` (intervals, points, set operations,
+inequalities and memberships in its `variable`, merged, written as
+intervals or, with a literal `displayMode`, as inequalities); a
+`mathInput` bound to one, or to a math list's entry, writes an
+expression there.
 A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
