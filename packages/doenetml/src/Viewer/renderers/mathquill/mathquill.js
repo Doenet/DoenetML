@@ -3146,12 +3146,13 @@ var saneKeyboardEvents = (function () {
             pendingBackspace = null;
         }
         // An `input` event that `typedText` will take as typed by an Android
-        // on-screen keyboard: one named character, not composed, after an
-        // "Unidentified" keydown with no modifiers.
+        // on-screen keyboard: text the browser named, not composed, that is
+        // all the textarea holds, after a keydown with no modifiers that
+        // Chrome names "Unidentified" and Firefox names "Process".
         function isOnScreenKeyboardInsert(input) {
             return (
                 !!keydown &&
-                keydown.key === "Unidentified" &&
+                (keydown.key === "Unidentified" || keydown.key === "Process") &&
                 !keydown.ctrlKey &&
                 !keydown.altKey &&
                 !keydown.metaKey &&
@@ -3431,6 +3432,11 @@ var saneKeyboardEvents = (function () {
                 } else {
                     controller.typedText(text);
                 }
+            } else if (insertedByOnScreenKeyboard && text.length > 1) {
+                // DOENET (#2557): a word or emoji an on-screen keyboard
+                // inserted whole (a suggestion, a swiped word in Gboard).
+                textarea.value = "";
+                Array.from(text).forEach(typeCharacter);
             } // in Firefox, keys that don't type text, just clear seln, fire keypress
             // https://github.com/mathquill/mathquill/issues/293#issuecomment-40997668
             else maybeReselect(); // re-select if that's why we're here

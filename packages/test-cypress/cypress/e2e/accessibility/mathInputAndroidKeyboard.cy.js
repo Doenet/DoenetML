@@ -482,6 +482,34 @@ describe(
             fieldShould("mi", "az+");
         });
 
+        it("types a word the keyboard inserts whole", () => {
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                // A suggestion in Chrome: insertText "ab" after a 229 keydown.
+                androidKey($ta[0], "ab");
+            });
+            fieldShould("mi", "ab");
+            cy.get("#mi textarea").then(($ta) => {
+                // Recorded in Firefox for Android with Samsung Keyboard: the
+                // keydown is "Process", and a suggestion is insertText "yes".
+                androidKey($ta[0], "yes", {
+                    keydownInit: { ...K229, key: "Process" },
+                });
+            });
+            fieldShould("mi", "abyes");
+            // A selection MathQuill put in the textarea is not taken for one.
+            cy.get("#mi textarea").type("{shift}{leftarrow}{leftarrow}", {
+                force: true,
+            });
+            cy.get("#mi textarea").then(($ta) => {
+                expect($ta[0].value.length).to.be.greaterThan(1);
+                down($ta[0]);
+                up($ta[0]);
+            });
+            cy.wait(200);
+            fieldShould("mi", "abyes");
+        });
+
         it("does not delete for the bare pair after a composition ends", () => {
             // Samsung Keyboard can send a bare 229 keydown and keyup just
             // after a composition ends, before its next key.
