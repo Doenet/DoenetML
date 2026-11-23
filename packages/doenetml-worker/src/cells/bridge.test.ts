@@ -527,6 +527,24 @@ describe("step 3 components", () => {
         });
     });
 
+    it("presses a call action, which submits the answer it names", async () => {
+        const { props, send, changed } = await open(`
+<answer name="a"><mathInput name="mi"/><award><when>$mi = x</when></award></answer>
+<callAction target="$a" actionName="submitAnswer"><label>Check it</label></callAction>`);
+        expect(props("callAction")).toEqual({
+            clickAction: "callAction",
+            label: "Check it",
+            labelHasLatex: false,
+            disabled: false,
+        });
+        send("mathInput", "updateValue", { text: "x" });
+        const payload = send("callAction", "callAction", {});
+        expect(changed(payload, "answer")).toEqual({
+            creditAchieved: 1,
+            numSubmissions: 1,
+        });
+    });
+
     it("draws operators as math notation and booleans, without their operands", async () => {
         const { all, props, send, changed } = await open(`
 <numberInput name="n" value="-4"/>

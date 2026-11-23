@@ -315,6 +315,10 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     equilibriumPoint: { move: movePoint, switchPoint: switchFlag("stable") },
     endpoint: { move: movePoint, switchPoint: switchFlag("open") },
     equilibriumLine: { moveLine, switchLine: switchFlag("stable") },
+    // A button calling another component's action: the core's `trigger`.
+    callAction: {
+        callAction: (_t, c) => ({ kind: "trigger", component: c }),
+    },
 };
 
 /** What a renderer action does to the cells core, or null when the table

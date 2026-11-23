@@ -90,6 +90,7 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
         moveLine: [{ point1coords: [1, 1], point2coords: [2, 3] }],
         switchLine: [{}],
     },
+    callAction: { callAction: [{}] },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -140,6 +141,7 @@ const DOC = `
 <boolean name="k"/>
 <triggerSet name="t"><label>Go</label><updateValue target="$k" newValue="true"/></triggerSet>
 <answer name="a">2x</answer>
+<callAction name="ca" target="$a" actionName="submitAnswer"><label>Check</label></callAction>
 <number name="num">$n + 1</number>
 <clampNumber name="cl">5</clampNumber>
 <math name="mm">x + $n</math>
@@ -244,6 +246,7 @@ const EXPECTED_READS = [
     "equilibriumPoint.stable",
     "endpoint.open",
     "equilibriumLine.stable",
+    "callAction.hide",
 ];
 
 beforeAll(async () => {

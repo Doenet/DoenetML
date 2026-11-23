@@ -1119,6 +1119,17 @@ export const CONTRACTS: Record<string, Contract> = {
             switchable: flagOr(r.table, c, "switchable", false),
         }),
     },
+    // A button calling another component's action (ADR 0040), carried out
+    // by the core as the action `trigger`; its `<label>` is its text.
+    callAction: {
+        props: (r, c) => ({
+            clickAction: "callAction",
+            label: label(r.table, c),
+            labelHasLatex: false,
+            disabled: false,
+        }),
+        noChildren: true,
+    },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */
