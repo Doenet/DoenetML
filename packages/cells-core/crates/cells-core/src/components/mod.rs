@@ -264,6 +264,7 @@ component_types! {
     EquilibriumLine => geometry::equilibrium_line::DEFINITION,
     Endpoint => geometry::endpoint::DEFINITION,
     Parabola => geometry::parabola::DEFINITION,
+    CallAction => inputs::call_action::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

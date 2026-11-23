@@ -998,6 +998,7 @@ impl<'c> Builder<'c> {
                 return Err(e);
             }
         }
+        self.resolve_links();
         self.choice_sources();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
@@ -1008,6 +1009,24 @@ impl<'c> Builder<'c> {
         }
         self.aggregate_sources();
         self.hold_all()
+    }
+
+    /// What each element's `Component` and `After` attributes name
+    /// (ADR 0040, 0042), resolved in its instance's scope to the component
+    /// table's links. A reference to anything but one component (an
+    /// iteration, a list's entry) names none.
+    fn resolve_links(&mut self) {
+        for i in 0..self.instances.len() {
+            let inst = self.instances[i];
+            let tpl = &self.compiled.plans.templates[inst.template.index()];
+            for &(attr, p) in &tpl.plan(inst.elem).links {
+                if let Ok((Resolved::Comp(c), _)) = self.resolve(p, inst.scope) {
+                    self.components.links.push((inst.comp, attr, c));
+                }
+            }
+        }
+        // Stable: each attribute's components stay in the order written.
+        self.components.links.sort_by_key(|&(c, attr, _)| (c, attr));
     }
 
     /// Hold every slot of every element the compile says is held, each by

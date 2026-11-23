@@ -3,6 +3,7 @@
 
 use super::define::*;
 
+pub(crate) mod call_action;
 pub mod choice_input;
 pub mod math_input;
 pub mod text_input;

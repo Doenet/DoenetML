@@ -293,6 +293,20 @@ Each step lands alone with the golden diff unchanged.
      `text`, a text prop's string. A chain of actions calling actions
      stops at depth `MAX_ACTION_DEPTH` (16). The spec language's `act`
      step is `act("name", "action")`.
+   - *Targets.* `AttrKind::Component` (one reference to a component, not
+     a prop of one), and `AttrKind::After(event)` for ADR 0042's
+     `triggerWith`. Planning records what an element's own attributes of
+     these kinds name on its plan (`ElemPlan::links`, beside `from`), never
+     its referent's, so a copy of a button acts on nothing its original
+     does; the build resolves each in the instance's scope to a component
+     (`ComponentTable::links`), and `ActionView::target` reads it. A
+     reference to an iteration or a list's entry names nothing yet.
+     `<callAction>` (`components/inputs/call_action.rs`) lists `trigger`
+     (and `callAction`); its planner warns when its target is an element of
+     its scope whose type lists no action `actionName`
+     (`cells-no-such-action`), or when `actionName` is `addChildren`,
+     `deleteChildren` or `resample` (`cells-action-unsupported`: the
+     components and their draws stay fixed, ADR 0037).
 5. **The trial again.** Port `<solution>`, `<sequence>` and
    `<callAction>` with the guide alone, then five types not tried
    before. Accepted when four of five need no core edit; what the fifth

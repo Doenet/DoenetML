@@ -176,6 +176,7 @@ impl<'a> Planning<'a> {
         let planned_as = self.rd.outlined(t).elems[e.index()].planned_as;
         let _s = crate::trace::tally(planned_as.tag());
         let r = self.plan_elem_inner(t, e).and_then(|()| {
+            self.plan_links(t, e)?;
             let hold = crate::trace::tally("hold").run(|| self.plan_hold(t, e))?;
             self.tables[t.index()].plans[e.index()].hold = hold;
             Ok(())
@@ -318,6 +319,56 @@ impl<'a> Planning<'a> {
         let plan = &mut self.tables[t.index()].plans[e.index()];
         plan.from = Some(p);
         plan.props = props;
+        Ok(())
+    }
+
+    /// What the element's own `Component` and `After` attributes name,
+    /// recorded on its plan for a build to resolve (ADR 0040, 0042). A
+    /// copy's are its own, never its referent's: a copy of a button does
+    /// not wait on what the original waits on. A type whose `triggers`
+    /// prop the element gives (`triggerWhen`) waits on nothing else.
+    fn plan_links(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        let Elem {
+            node,
+            component_type,
+            name_scope,
+            cloned,
+            ..
+        } = *self.rd.elem(t, e);
+        let def = component_type.def();
+        if cloned || node == NodeId::NONE {
+            return Ok(());
+        }
+        let d = self.rd.dast;
+        let when_given = def.triggers.is_some_and(|tr| {
+            d.attr(node, component_type.prop_defs()[tr.when].name)
+                .is_some()
+        });
+        let mut links = Vec::new();
+        for (i, decl) in def.attributes.iter().enumerate() {
+            let (crate::components::AttrKind::Component | crate::components::AttrKind::After(_)) =
+                decl.kind
+            else {
+                continue;
+            };
+            let Some(a) = d.attr(node, decl.name) else {
+                continue;
+            };
+            if matches!(decl.kind, crate::components::AttrKind::After(_)) && when_given {
+                continue;
+            }
+            for &m in d.attr_children(a) {
+                if d.kind(m) != NodeKind::Macro {
+                    continue;
+                }
+                let p = self.rd.plan_ref(&mut self.ar, t, name_scope, m)?;
+                links.push((i as u16, p));
+                if decl.kind == crate::components::AttrKind::Component {
+                    break;
+                }
+            }
+        }
+        self.tables[t.index()].plans[e.index()].links = links;
         Ok(())
     }
 

@@ -60,7 +60,9 @@ from the document seed, and the function operators `clampFunction` and
 geometry `bestFitLine` (data from points or a list of points), `intersection`
 (of two lines or line segments), `parabola` (through 0 to 3 points, or a
 vertex and at most one), `equilibriumPoint`, `equilibriumLine` and
-`endpoint`. A `<math>` tuple of three or more entries is a tuple
+`endpoint`, and `callAction` (a button calling another component's
+action: `submitAnswer`, a button's press; not one that adds, deletes or
+redraws components). A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 
