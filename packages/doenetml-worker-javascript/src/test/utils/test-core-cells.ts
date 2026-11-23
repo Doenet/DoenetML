@@ -29,7 +29,11 @@ import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "../../CoreWo
 import { CellsTable, NONE } from "../../../../doenetml-worker/src/cells/table";
 import { resolveRendererAction } from "../../../../doenetml-worker/src/cells/actions";
 import { CellsBridge } from "../../../../doenetml-worker/src/cells/bridge";
-import { LIST_LIKE } from "../../../../doenetml-worker/src/cells/contracts";
+import {
+    LIST_LIKE,
+    SECTION_KINDS,
+} from "../../../../doenetml-worker/src/cells/contracts";
+import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 
 /** The types whose children are their entries' rows (ADR 0041, decision
  * 4): each row is addressed as `list:k`. */
@@ -388,27 +392,115 @@ const mathListOperatorReaders: Record<string, Reader> = {
     text: textOf,
 };
 
-/** A section's full number as its parts ([2, 1] for "2.1"): its own,
- * after its nearest section ancestor's when it includes it, as the bridge
- * composes it (`cells/contracts.ts`). */
-function sectionEnumeration(cells: Cells, c: number): number[] {
-    const own = cells.value(cells.propCells(c, "number")[0]);
-    if (cells.value(cells.propCells(c, "includeParentNumber")[0]) !== 0) {
-        for (
-            let p = cells.table.parent(c);
-            p !== null;
-            p = cells.table.parent(p)
-        ) {
-            if (["section", "aside"].includes(cells.table.componentType(p))) {
-                return [...sectionEnumeration(cells, p), own];
-            }
+/** A section's full number ("2.1") as the core composes it: its own, after
+ * its nearest section ancestor's when it includes it and is no list item
+ * (ADR 0054); null for a component that takes none. */
+function sectionNumberOf(cells: Cells, c: number): string | null {
+    return cells.core.section_number(c) ?? null;
+}
+
+/** The translator a test's document gets when it names no language: each
+ * message's English, the fallback its call site carries. */
+function english(_key: string, _args: unknown, fallback: string): string {
+    return fallback;
+}
+
+/** The last `<title>` child, which the current core's `title` reads. */
+function titleChild(cells: Cells, c: number): number | null {
+    const titles = cells.table
+        .children(c)
+        .flatMap((child) =>
+            "component" in child &&
+            cells.table.componentType(child.component) === "title"
+                ? [child.component]
+                : [],
+        );
+    return titles.length ? titles[titles.length - 1] : null;
+}
+
+/** The types that are sectioning components in the current core, for
+ * `level`: the divisions, an aside and a proof. */
+const SECTIONING_TYPES = new Set(["section", "aside", "proof"]);
+
+/** The tag a sectioning component was written as: a division's by its
+ * `label` cell (the core's `SECTION_TAGS`), else its type's. */
+function sectioningTag(cells: Cells, c: number): string {
+    const type = cells.table.componentType(c);
+    if (type !== "section") return type;
+    const label = cells.value(cells.propCells(c, "label")[0]);
+    return SECTION_KINDS[label]?.[0] ?? type;
+}
+
+/** The heading level the current core gives a division: one below the
+ * sectioning component around it, apart from the tags with a level of
+ * their own. */
+function sectionLevel(cells: Cells, c: number): number {
+    const tag = sectioningTag(cells, c);
+    if (tag === "paragraphs") return 4;
+    if (["objectives", "aside", "proof"].includes(tag)) return 3;
+    for (let p = cells.table.parent(c); p !== null; p = cells.table.parent(p)) {
+        if (SECTIONING_TYPES.has(cells.table.componentType(p))) {
+            return sectionLevel(cells, p) + 1;
         }
     }
-    return [own];
+    return 1;
 }
+
+/** The readers of a sectioning component's heading (`title`,
+ * `titlePrefix`, `sectionName`), composed in English as the current
+ * core's `composeTitlePrefix` composes them, from the number the core
+ * holds, its `<title>` child's text, and the attributes the renderer
+ * reads. A `numbered` component has a number; `autoNumber` is the
+ * default of `includeAutoNumberIfNoTitle`. */
+function headingReaders(autoNumber: boolean): Record<string, Reader> {
+    const sectionName = (x: Ctx) =>
+        x.cells.table.attr(x.idx, "renameTo") ??
+        sectionNameWord(
+            english,
+            sectioningTag(x.cells, x.idx),
+            sectioningTag(x.cells, x.idx),
+        );
+    const titlePrefix = (x: Ctx) => {
+        const flag = (name: string, fallback: boolean) =>
+            attrFlag(x.cells, x.idx, name) ?? fallback;
+        const haveTitleChild = titleChild(x.cells, x.idx) !== null;
+        const noAutoTitle = flag("noAutoTitle", false);
+        return composeTitlePrefix({
+            t: english,
+            includeAutoName:
+                flag("includeAutoName", false) ||
+                (!haveTitleChild &&
+                    flag("includeAutoNameIfNoTitle", true) &&
+                    !noAutoTitle),
+            includeAutoNumber:
+                flag("includeAutoNumber", false) ||
+                (!haveTitleChild &&
+                    flag("includeAutoNumberIfNoTitle", autoNumber) &&
+                    !noAutoTitle),
+            haveTitleChild,
+            sectionName: sectionName(x),
+            sectionNumber: sectionNumberOf(x.cells, x.idx),
+        });
+    };
+    return {
+        sectionName: (_g, x) => sectionName(x),
+        titlePrefix: (_g, x) => titlePrefix(x),
+        title: (_g, x) => {
+            const title = titleChild(x.cells, x.idx);
+            return title === null
+                ? titlePrefix(x)
+                : x.cells.core.component_text(title);
+        },
+        level: (_g, x) => sectionLevel(x.cells, x.idx),
+    };
+}
+
 const sectionReaders: Record<string, Reader> = {
-    sectionNumber: (_g, x) => sectionEnumeration(x.cells, x.idx).join("."),
-    enumeration: (_g, x) => sectionEnumeration(x.cells, x.idx),
+    ...headingReaders(true),
+    sectionNumber: (_g, x) => sectionNumberOf(x.cells, x.idx),
+    enumeration: (_g, x) =>
+        (sectionNumberOf(x.cells, x.idx) ?? "").split(".").map(Number),
+    isListItem: (_g, x) => x.cells.core.is_list_item(x.idx),
     creditAchieved: (g) => g("creditAchieved"),
     percentCreditAchieved: (g) => g("percentCreditAchieved"),
     weight: (g) => g("weight"),
@@ -765,6 +857,7 @@ const STATE: Record<string, Record<string, Reader>> = {
         footnoteTag: (_g, x) => String(counterNumber(x) ?? ""),
     },
     aside: {
+        ...headingReaders(true),
         sectionNumber: sectionReaders.sectionNumber,
         enumeration: sectionReaders.enumeration,
         includeParentNumber: sectionReaders.includeParentNumber,
@@ -822,6 +915,12 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     // Values with entries inside a math (ADR 0041, decision 8).
     interval: mathReaders,
+    // A proof: a sectioning component that takes no number (ADR 0054).
+    proof: {
+        ...headingReaders(false),
+        sectionNumber: () => null,
+        enumeration: () => [],
+    },
 };
 
 /** The component fields the harness answers for some types: a fraction
