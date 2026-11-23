@@ -37,7 +37,9 @@ pub(crate) enum Expr<L> {
     Operator(Vec<ExprId>),
     /// A value with entries (ADR 0041, decision 8): `a, b`, `(a, b)`,
     /// `[a, b)`, `{a, b}`, `⟨a, b⟩`, its entries in order. Always
-    /// symbolic: the symbolic engine reads its head from the text.
+    /// symbolic: the symbolic engine reads its head from the text. With no
+    /// entries, constant math text only the engine reads (a relation, `4 <
+    /// x <= 5`; `Reader::parse_math_text`).
     Shape(Vec<ExprId>),
 }
 

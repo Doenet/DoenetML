@@ -30,6 +30,9 @@ component! {
         simplify: On,
         createVectors: On,
         createIntervals: On,
+        // Read where it is compared (ADR 0041, decision 7): a comparison
+        // with this math alone on a side matches entries in any order.
+        unordered: On,
     }
     // Parsed as the type outlining settled (`compile/stages/parse.rs`), not here.
     children: Math,

@@ -4,7 +4,7 @@ use crate::compile::api::*;
 use crate::components::ComponentType;
 use crate::components::define::*;
 use crate::error::{Error, Result};
-use crate::program::SymKind;
+use crate::program::{Post, SymKind};
 
 component! {
     /// `<mathInput>`: bound to another cell by a child reference or
@@ -76,9 +76,22 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let text_of = attrs.prefill.unwrap_or(attrs.children);
     let bound = matches!(value, Source::Flow(Flow::Alias(_))) || text_of.references > 0;
     if bound {
+        // Bound to one reference, its expression is what the reference
+        // stands for when that is an expression (a symbolic math's, an
+        // input's, an entry of a math list's; ADR 0041): one math leaf,
+        // the referent's math cell itself, so typing writes an expression
+        // there. Bound to a number, it has none and stays numeric.
+        let expr = match &value {
+            Source::Flow(Flow::Alias(_)) => {
+                ctx.operand_expr(&value).map_or_else(Wire::absent, |id| {
+                    Source::Flow(Flow::MathHandle(id, Post::None)).into()
+                })
+            }
+            _ => Wire::absent(),
+        };
         wiring.set_public(Props {
             value: value.into(),
-            expr: Wire::absent(),
+            expr,
         });
         return Ok(wiring);
     }
@@ -92,7 +105,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         Some(
             // Build-time only, so a throwaway engine parses it.
             crate::sym::Engine::new()
-                .parse_tree(text)
+                .parse_given(text)
                 .map_err(|reason| Error::BadMath {
                     text: text.into(),
                     reason,

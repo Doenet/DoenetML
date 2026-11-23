@@ -879,7 +879,7 @@ fn rebind(t: &Tree<SlotId>, slot_to_cell: &[CellIdx]) -> Tree<CellIdx> {
 fn has_math_leaf<L>(t: &Tree<L>) -> bool {
     match t {
         Tree::Cell { math, .. } => *math,
-        Tree::Num(_) | Tree::Sym(_) => false,
+        Tree::Num(_) | Tree::Sym(_) | Tree::Written(_) => false,
         Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) | Tree::Shape(_, ts) => {
             ts.iter().any(has_math_leaf)
         }
