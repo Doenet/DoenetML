@@ -409,7 +409,6 @@ impl ComponentDef {
         self
     }
     /// What presses it besides a student ([`super::Triggers`], ADR 0042).
-    #[allow(dead_code)]
     pub(super) const fn triggers(mut self, triggers: super::Triggers) -> Self {
         self.triggers = Some(triggers);
         self

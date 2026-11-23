@@ -333,6 +333,17 @@ impl Core {
         self.act(|doc| doc.trigger(CompIdx::new(comp)))
     }
 
+    /// Carry out a component's action by name (ADR 0040), as one tick
+    /// with its follow-ups (ADR 0042): a click on a point
+    /// (`pointClicked`) that a button waits on. Nothing happens when its
+    /// type lists no such action. Returns the changed cells.
+    pub fn act_by_name(&mut self, comp: u32, name: &str) -> Vec<u32> {
+        if (comp as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        self.act(|doc| doc.act(CompIdx::new(comp), name, &[]))
+    }
+
     /// The inputs an answer's responses read.
     pub fn answer_inputs(&self, answer: u32) -> Vec<u32> {
         if (answer as usize) >= self.doc.n_components() {

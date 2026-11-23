@@ -194,7 +194,11 @@ methods. Rules for planners:
   returns requests. [`Document::act`](crate::Document::act) carries one out
   as a tick; a press is the action `trigger` and a submit `submitAnswer`. An
   action requests only props marked `written_by_action` or `interactive`
-  (ADR 0018), and a spec reaches one with `act("name", "trigger")`.
+  (ADR 0018), and a spec reaches one with `act("name", "trigger")`. A
+  button the document presses declares the 0/1 prop whose rise presses it
+  (`triggers { when: triggerWhen }`) and the components it waits on as
+  attributes (`triggerWith: After(Act)`, ADR 0042); an action that is a
+  click or a focus says so (`pointClicked: nothing [Click]`).
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The

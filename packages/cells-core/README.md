@@ -62,7 +62,10 @@ geometry `bestFitLine` (data from points or a list of points), `intersection`
 vertex and at most one), `equilibriumPoint`, `equilibriumLine` and
 `endpoint`, and `callAction` (a button calling another component's
 action: `submitAnswer`, a button's press; not one that adds, deletes or
-redraws components). A `<math>` tuple of three or more entries is a tuple
+redraws components). A `callAction`, `updateValue` or `triggerSet` may be
+pressed by the document instead of a student: `triggerWhen`, `triggerWith`
+and `triggerWhenObjectsClicked` or `...Focused` on a point, each press a
+follow-up tick (ADR 0042). A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

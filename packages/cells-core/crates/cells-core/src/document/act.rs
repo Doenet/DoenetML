@@ -2,12 +2,27 @@
 //! read-only [`ActionView`] of the built document that returns requests,
 //! and [`Document::act`] carries one out as a tick. A submit and a press
 //! are actions of a fixed name.
+//!
+//! Follow-ups (ADR 0042): when a tick settles, each button whose
+//! `triggerWhen` went from false to true, and each whose `triggerWith`
+//! (or `triggerWhenObjectsClicked`, `...Focused`) names a component that
+//! acted in the tick, is pressed as a tick of its own, in document order,
+//! and so on from those, at most [`MAX_FOLLOW_UPS`] in all.
 
 use std::cell::RefCell;
+use std::collections::{HashMap, HashSet, VecDeque};
 
-use super::{Child, CompIdx, Document};
-use crate::components::{ActionDecl, Event};
+use super::{Built, Child, CompIdx, Document};
+use crate::build::ScopeId;
+use crate::components::{ActionDecl, AttrKind, Event};
+use crate::dast::NodeId;
+use crate::limits::MAX_FOLLOW_UPS;
+use crate::tick::invert::PointRequest;
 use crate::tick::{Request, TickOutcome};
+
+/// A component as it is known across a rebuild, which numbers the
+/// components anew: its element and the scope it was made in.
+type Key = (NodeId, ScopeId);
 
 /// How deep one action may call another's (`<callAction>` naming a
 /// `<triggerSet>` naming a `<callAction>`...): a chain that deep is a
@@ -107,7 +122,106 @@ impl Document {
         let Some(requests) = self.run_action(comp, name, args, 0, &fired) else {
             return TickOutcome::default();
         };
-        self.tick_unchecked(&requests, &[])
+        let fired = fired.into_inner();
+        self.tick_and_follow(&requests, &[], false, &fired)
+    }
+
+    /// A tick, and its follow-ups (ADR 0042): each button the tick
+    /// pressed, by a condition's rise or by acting on what it waits on
+    /// (`fired`, the actions the tick carried out), pressed as a tick of
+    /// its own in document order, then theirs, at most `MAX_FOLLOW_UPS`.
+    /// Their outcomes fold into the first's.
+    pub(super) fn tick_and_follow(
+        &mut self,
+        requests: &[Request],
+        groups: &[Vec<PointRequest>],
+        checked: bool,
+        fired: &[(CompIdx, Event)],
+    ) -> TickOutcome {
+        if self.pressed.is_empty() {
+            return self.tick(requests, groups, checked);
+        }
+        let before = self.conditions();
+        let fired = self.keyed(fired);
+        let mut out = self.tick(requests, groups, checked);
+        let mut queue: VecDeque<Key> = self.follow_ups(&before, &fired).into();
+        while let Some(key) = queue.pop_front() {
+            if out.follow_ups == MAX_FOLLOW_UPS {
+                break;
+            }
+            let Some(c) = self.pressed.iter().copied().find(|&c| self.key(c) == key) else {
+                continue;
+            };
+            let before = self.conditions();
+            let acted = RefCell::new(Vec::new());
+            let Some(requests) = self.run_action(c, "trigger", &[], 0, &acted) else {
+                continue;
+            };
+            let acted = self.keyed(&acted.into_inner());
+            let tick = self.tick(&requests, &[], false);
+            out.follow_ups += 1;
+            fold(&mut out, tick);
+            queue.extend(self.follow_ups(&before, &acted));
+        }
+        out
+    }
+
+    /// A component's key across rebuilds.
+    fn key(&self, c: CompIdx) -> Key {
+        (
+            self.components.dast_node[c.index()],
+            self.components.scope[c.index()],
+        )
+    }
+
+    fn keyed(&self, fired: &[(CompIdx, Event)]) -> HashSet<(Key, Event)> {
+        fired.iter().map(|&(c, e)| (self.key(c), e)).collect()
+    }
+
+    /// Whether each pressed component's condition holds now.
+    fn conditions(&self) -> HashMap<Key, bool> {
+        self.pressed
+            .iter()
+            .filter_map(|&c| {
+                let when = self.component_type(c).def().triggers?.when;
+                let held = self.cells[self.comp_cells(c)[when].index()] == 1.0;
+                Some((self.key(c), held))
+            })
+            .collect()
+    }
+
+    /// The components a tick presses, in document order: those whose
+    /// condition was false `before` it and holds now (one not there before
+    /// it, a new iteration's, was not false), and those waiting on an
+    /// event in `fired`.
+    fn follow_ups(&self, before: &HashMap<Key, bool>, fired: &HashSet<(Key, Event)>) -> Vec<Key> {
+        let now = self.conditions();
+        let mut out: Vec<CompIdx> = self
+            .pressed
+            .iter()
+            .copied()
+            .filter(|&c| {
+                let k = self.key(c);
+                now.get(&k) == Some(&true) && before.get(&k) == Some(&false)
+            })
+            .collect();
+        if !fired.is_empty() {
+            let pressed: HashSet<CompIdx> = self.pressed.iter().copied().collect();
+            for &(c, attr, named) in &self.components.links {
+                if !pressed.contains(&c) {
+                    continue;
+                }
+                let kind = self.component_type(c).def().attributes[attr as usize].kind;
+                if let AttrKind::After(event) = kind
+                    && fired.contains(&(self.key(named), event))
+                {
+                    out.push(c);
+                }
+            }
+        }
+        out.sort_unstable();
+        out.dedup();
+        out.into_iter().map(|c| self.key(c)).collect()
     }
 
     /// The requests `comp`'s action `name` makes, recording it and every
@@ -133,5 +247,37 @@ impl Document {
             fired,
         };
         Some((action.run)(&view, args))
+    }
+}
+
+/// A follow-up's outcome folded into the first tick's: after a rebuild the
+/// cells are numbered anew, so the outcome says it rebuilt and lists no
+/// changed cell.
+fn fold(out: &mut TickOutcome, tick: TickOutcome) {
+    out.dropped.extend(tick.dropped);
+    out.rebuild_passes += tick.rebuild_passes;
+    if tick.rebuild_error.is_some() {
+        out.rebuild_error = tick.rebuild_error;
+    }
+    if out.rebuilt || tick.rebuilt {
+        out.rebuilt = true;
+        out.changed.clear();
+        return;
+    }
+    let seen: HashSet<_> = out.changed.iter().copied().collect();
+    out.changed
+        .extend(tick.changed.into_iter().filter(|c| !seen.contains(c)));
+}
+
+impl Built {
+    /// The components something other than a student presses (ADR 0042),
+    /// in document order: those of a type with `triggers`, but not one
+    /// inside another such (a `<triggerSet>`'s buttons), which only it
+    /// presses.
+    pub(super) fn pressed_components(&self) -> Vec<CompIdx> {
+        let presses = |c: CompIdx| self.component_type(c).def().triggers.is_some();
+        CompIdx::below(self.n_components())
+            .filter(|&c| presses(c) && !self.parent(c).is_some_and(presses))
+            .collect()
     }
 }

@@ -36,16 +36,17 @@ impl Document {
         requests: &[Request],
         groups: &[Vec<PointRequest>],
     ) -> TickOutcome {
-        self.tick(requests, groups, true)
+        self.tick_and_follow(requests, groups, true, &[])
     }
 
     /// A tick on any cell, without the check that it is an input's.
+    #[cfg_attr(not(feature = "testing"), allow(dead_code))]
     pub(crate) fn tick_unchecked(
         &mut self,
         requests: &[Request],
         groups: &[Vec<PointRequest>],
     ) -> TickOutcome {
-        self.tick(requests, groups, false)
+        self.tick_and_follow(requests, groups, false, &[])
     }
 
     /// Choose how ticks recompute: "full" or "dirty-closure" (the
@@ -65,7 +66,8 @@ impl Document {
         self.recompute.name()
     }
 
-    fn tick(
+    /// One tick, no follow-ups.
+    pub(super) fn tick(
         &mut self,
         requests: &[Request],
         groups: &[Vec<PointRequest>],

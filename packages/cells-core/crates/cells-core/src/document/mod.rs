@@ -105,6 +105,9 @@ pub struct Built {
     refused: Vec<u64>,
     /// Which cells the document computes.
     live: crate::build::Live,
+    /// The components something other than a student presses (ADR 0042),
+    /// in document order: a type with `triggers` not inside another.
+    pub(crate) pressed: Vec<CompIdx>,
 }
 
 impl std::ops::Deref for Document {
@@ -177,10 +180,12 @@ impl Built {
             interactive: Vec::new(),
             refused: Vec::new(),
             live,
+            pressed: Vec::new(),
         };
         built.sticky = built.sticky_tables();
         built.interactive = built.interactive_bits();
         built.refused = built.refused_bits();
+        built.pressed = built.pressed_components();
         built
     }
 

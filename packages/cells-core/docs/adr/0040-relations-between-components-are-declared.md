@@ -307,6 +307,8 @@ Each step lands alone with the golden diff unchanged.
      (`cells-no-such-action`), or when `actionName` is `addChildren`,
      `deleteChildren` or `resample` (`cells-action-unsupported`: the
      components and their draws stay fixed, ADR 0037).
+   - *Fired by the document.* What the ADR left undecided, an action
+     fired by a condition, is ADR 0042: a follow-up tick per press.
 5. **The trial again.** Port `<solution>`, `<sequence>` and
    `<callAction>` with the guide alone, then five types not tried
    before. Accepted when four of five need no core edit; what the fifth

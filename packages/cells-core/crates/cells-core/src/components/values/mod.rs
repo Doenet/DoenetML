@@ -243,35 +243,3 @@ pub mod tuple {
         wiring
     }
 }
-
-/// `<updateValue>`: a request on another cell, performed by a trigger.
-pub mod update_value {
-    use super::*;
-
-    component! {
-        /// `<updateValue target="$a" newValue="$b"/>`: `target` aliases the
-        /// target's value cell, so performing it is a request on that cell
-        /// for `newValue`'s current value.
-        tags: ["updateValue"],
-        renders: Never,
-        props {
-            // Pressing it, or its `<triggerSet>`, requests it (`trigger`).
-            target: attr(NO_VALUE) { written_by_action },
-            newValue: attr(NO_VALUE) { read_by_action },
-        }
-        actions { trigger: update, updateValue: update }
-        planner: Props,
-    }
-
-    /// `trigger` (and the current core's `updateValue`): requests
-    /// `newValue`'s current value on its target.
-    fn update(view: &crate::document::ActionView<'_>, _args: &[f64]) -> Vec<crate::tick::Request> {
-        let at = Props::AT;
-        vec![view.request(at.target, view.value(at.newValue))]
-    }
-
-    /// The position of `target`: an alias of the target's value cell.
-    pub const TARGET: usize = Props::AT.target;
-    /// The position of `newValue`: the value it requests.
-    pub const NEW_VALUE: usize = Props::AT.newValue;
-}

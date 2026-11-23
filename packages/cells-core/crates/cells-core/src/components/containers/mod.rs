@@ -348,27 +348,3 @@ pub(crate) mod legend {
         planner: Props,
     }
 }
-
-pub(crate) mod trigger_set {
-    use super::*;
-
-    component! {
-        /// `<triggerSet>`: a button that, when pressed, performs every
-        /// `<updateValue>` inside it at once. Its `<label>` is the button's
-        /// text.
-        tags: ["triggerSet"],
-        flags: [container],
-        actions { trigger: press, triggerActions: press }
-        planner: Props,
-    }
-
-    /// `trigger` (and the current core's `triggerActions`): presses each
-    /// child, in order, in one tick.
-    fn press(view: &crate::document::ActionView<'_>, _args: &[f64]) -> Vec<crate::tick::Request> {
-        let children: Vec<_> = view.children().collect();
-        children
-            .into_iter()
-            .flat_map(|c| view.act(c, "trigger"))
-            .collect()
-    }
-}
