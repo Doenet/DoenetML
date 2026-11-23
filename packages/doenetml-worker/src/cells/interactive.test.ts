@@ -91,6 +91,13 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
         switchLine: [{}],
     },
     _fractionInputComponent: { updateValue: [{ text: "3" }] },
+    curve: {
+        moveThroughPoint: [{ throughPointInd: 1, throughPoint: [2, 3] }],
+    },
+    equilibriumCurve: {
+        moveThroughPoint: [{ throughPointInd: 0, throughPoint: [2, 3] }],
+        switchCurve: [{}],
+    },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -120,6 +127,10 @@ const DOC = `
   <equilibriumPoint name="ep" switchable>(3,0)</equilibriumPoint>
   <endpoint name="ept" open switchable>(4,0)</endpoint>
   <equilibriumLine name="el" through="(0,2) (1,3)" switchable/>
+  <curve name="cv" through="(0,0) (1,2) (3,1)"/>
+  <equilibriumCurve name="ec" through="(0,1) (2,2)" switchable/>
+  <piecewiseFunction name="pw"><function domain="[0,1]">x</function><function>0</function></piecewiseFunction>
+  <curve name="pc">(t, t^2)</curve>
 </graph>
 <p><vector>(1, 2)</vector> <angle through="(1,0) (0,0) (0,1)"/></p>
 <graph name="g2"><point>(0,0)</point><point>(1,1)</point></graph>

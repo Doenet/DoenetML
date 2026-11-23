@@ -92,6 +92,20 @@ const movePoint: Resolver = (t, c, { x, y }) => ({
     ],
 });
 
+/** A curve's through point dragged, as the current core's
+ * moveThroughPoint (`throughPointInd` its 0-based index, `throughPoint`
+ * where to). */
+const moveThroughPoint: Resolver = (
+    t,
+    c,
+    { throughPointInd, throughPoint },
+) => {
+    const at = listPoints(t, c)[Number(throughPointInd)];
+    return at && throughPoint
+        ? movePoints([[at, [throughPoint[0], throughPoint[1]]]])
+        : { kind: "none" };
+};
+
 /** A whole-line drag, as the current core's moveLine: a line given by a
  * direction moves by its first point only. */
 const moveLine: Resolver = (t, c, { point1coords, point2coords }) => {
@@ -315,6 +329,10 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     equilibriumPoint: { move: movePoint, switchPoint: switchFlag("stable") },
     endpoint: { move: movePoint, switchPoint: switchFlag("open") },
     equilibriumLine: { moveLine, switchLine: switchFlag("stable") },
+    // A curve's through point dragged (ADR 0049), as the current core's
+    // moveThroughPoint; an equilibrium curve switches its flag too.
+    curve: { moveThroughPoint },
+    equilibriumCurve: { moveThroughPoint, switchCurve: switchFlag("stable") },
     // A fraction input's box (ADR 0045): typed into as a math input.
     _fractionInputComponent: {
         updateValue: (t, c, args) =>

@@ -384,6 +384,68 @@ function counterNameReaders(
     };
 }
 
+/** A function's domain (ADR 0049) as the current core's `domain`: one
+ * interval, its endpoints and whether each is closed. */
+const functionDomain: Reader = (g) => [
+    me.fromAst([
+        "interval",
+        ["tuple", g("domainMin"), g("domainMax")],
+        ["tuple", g("domainMinClosed") === 1, g("domainMaxClosed") === 1],
+    ]),
+];
+
+/** A function of one variable at `x`, as the cells core's own engine
+ * evaluates it (`function_value`); a gap for one it does not evaluate. */
+function numericalFunction(x: Ctx): (v: number) => number {
+    return (v: number) => {
+        const y = x.cells.core.function_value(x.idx, v);
+        if (y === undefined) {
+            throw new CellsCoreGap(
+                `${x.cells.table.tag(x.idx)}.numericalfs: not a function of one variable`,
+            );
+        }
+        return y;
+    };
+}
+
+const functionReaders: Record<string, Reader> = {
+    domain: functionDomain,
+    numericalfs: (_g, x) => [numericalFunction(x)],
+    numericalf: (_g, x) => numericalFunction(x),
+    formula: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+    variables: (_g, x) => [exprOf(x.cells, x.cell("variable")!)],
+};
+
+/** A curve's type, as the current core names it (ADR 0049). */
+const CURVE_TYPES = ["function", "parameterization", "bezier"];
+
+const curveReaders: Record<string, Reader> = {
+    curveType: (g) => CURVE_TYPES[g("curveType")],
+    parMin: (g) => g("parMin"),
+    parMax: (g) => g("parMax"),
+    numThroughPoints: (_g, x) =>
+        x.cells.propCells(x.idx, "throughPoints").length / 2,
+    numericalThroughPoints: (_g, x) => {
+        const cells = Array.from(x.cells.propCells(x.idx, "throughPoints"));
+        const out: number[][] = [];
+        for (let i = 0; i + 1 < cells.length; i += 2) {
+            out.push([x.cells.value(cells[i]), x.cells.value(cells[i + 1])]);
+        }
+        return out;
+    },
+    throughPoints: (_g, x) => {
+        const cells = Array.from(x.cells.propCells(x.idx, "throughPoints"));
+        const out: unknown[] = [];
+        for (let i = 0; i + 1 < cells.length; i += 2) {
+            out.push([
+                M(x.cells.value(cells[i])),
+                M(x.cells.value(cells[i + 1])),
+            ]);
+        }
+        return out;
+    },
+};
+
 /**
  * JavaScript-core state variable name -> reader over the cells core's props,
  * per component type.
@@ -637,6 +699,18 @@ const STATE: Record<string, Record<string, Reader>> = {
         value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
         immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
     },
+    // Function machinery (ADR 0049).
+    function: functionReaders,
+    derivative: functionReaders,
+    piecewiseFunction: {
+        domain: functionDomain,
+        numericalfs: (_g, x) => [numericalFunction(x)],
+    },
+    curve: curveReaders,
+    equilibriumCurve: {
+        ...curveReaders,
+        stable: (g) => g("stable") !== 0,
+    },
 };
 
 /** The component fields the harness answers for some types: a fraction
@@ -670,6 +744,8 @@ const BRIDGE_ACTIONS: Record<string, string[]> = {
     rectangle: ["movePolygon"],
     regularPolygon: ["movePolygon"],
     solution: ["revealSolution", "closeSolution"],
+    curve: ["moveThroughPoint"],
+    equilibriumCurve: ["moveThroughPoint", "switchCurve"],
 };
 
 function stripPositions(o: any): any {

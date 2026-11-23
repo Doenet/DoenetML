@@ -463,6 +463,29 @@ const CURVE: Contract = {
     noChildren: true,
 };
 
+/** A `<curve>` (ADR 0049): a polyline through its samples. A function's
+ * graph (`parametric` 0) is sampled as a function's curve; a parametric
+ * curve or a spline has its points' x-coordinates from `samplesX` and
+ * y-coordinates from `samples`. A spline's through points are sent too,
+ * for a renderer that drags them. */
+const PLANE_CURVE: Contract = {
+    name: (table, c, inGraph) => (inGraph ? "polyline" : table.tag(c)),
+    props: (r, c, inGraph) => {
+        if (!inGraph) return {};
+        if (!r.bool(c, "parametric")) return CURVE.props!(r, c, inGraph);
+        const n = r.table.core.n_samples();
+        const ys = r.run(c, "samples", n);
+        const vertices = r
+            .run(c, "samplesX", n)
+            .map((x, i) => [x, ys[i]] as [number, number]);
+        return {
+            numericalVertices: vertices,
+            numericalThroughPoints: pairs(r, r.table.listCells(c)),
+        };
+    },
+    noChildren: true,
+};
+
 /** A contract whose element is drawn only in a graph: outside one it
  * sends no props and reads no cells, since the core counts the component
  * rendered only in a graph (ADR 0019). */
@@ -1157,6 +1180,23 @@ export const CONTRACTS: Record<string, Contract> = {
             switchable: flagOr(r.table, c, "switchable", false),
         }),
     }),
+    // Function machinery (ADR 0049): a piecewise function as a function's
+    // curve, its pieces never drawn on their own; a curve as a polyline
+    // through its samples, and an equilibrium curve dashed when it is
+    // not stable.
+    piecewiseFunction: CURVE,
+    curve: PLANE_CURVE,
+    equilibriumCurve: {
+        ...PLANE_CURVE,
+        props: (r, c, inGraph) =>
+            inGraph
+                ? {
+                      ...PLANE_CURVE.props!(r, c, inGraph),
+                      dashed: !r.bool(c, "stable"),
+                      switchable: flagOr(r.table, c, "switchable", false),
+                  }
+                : {},
+    },
     // A fraction input's box (ADR 0045): a math input, drawn as one.
     _fractionInputComponent: {
         name: () => "mathInput",

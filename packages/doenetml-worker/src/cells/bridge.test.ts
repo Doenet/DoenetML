@@ -1278,6 +1278,40 @@ describe("derived geometry", () => {
         expect(vertices[199]).toEqual([2, 2]);
     });
 
+    it("draws a function on its domain, a piecewise function and the curves (ADR 0049)", async () => {
+        const { all, send } = await open(`<graph xmin="-2" xmax="2">
+<function domain="[0, 5]">x^2</function>
+<piecewiseFunction><function domain="(0, Infinity)">1</function><function>0</function></piecewiseFunction>
+<curve parMin="0" parMax="1">(2t, t)</curve>
+<curve through="(1,2) (3,4)"/>
+<equilibriumCurve stable="false" through="(0,0) (1,1)" switchable/>
+</graph>`);
+        const [f, pw, par, spline, eq] = all("polyline");
+        // Cut to the domain: from 0 to the graph's 2.
+        expect(props(f).numericalVertices[0]).toEqual([0, 0]);
+        expect(props(f).numericalVertices[199]).toEqual([2, 4]);
+        expect(props(pw).numericalVertices[0]).toEqual([-2, 0]);
+        expect(props(pw).numericalVertices[199]).toEqual([2, 1]);
+        expect(props(par).numericalVertices[199]).toEqual([2, 1]);
+        expect(props(spline).numericalVertices[0]).toEqual([1, 2]);
+        expect(props(spline).numericalThroughPoints).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
+        expect(props(eq)).toMatchObject({ dashed: true, switchable: true });
+        let payload = send(spline.data.id, "polyline", "moveThroughPoint", {
+            throughPointInd: 0,
+            throughPoint: [0, 0],
+        });
+        expect(
+            payload[spline.data.id]?.changedState?.numericalVertices[0],
+        ).toEqual([0, 0]);
+        payload = send(eq.data.id, "polyline", "switchCurve", {});
+        expect(payload[eq.data.id]?.changedState).toMatchObject({
+            dashed: false,
+        });
+    });
+
     it("draws equilibrium points and lines and endpoints with their flags, and switches them", async () => {
         const { all, send } = await open(`<graph>
 <equilibriumPoint switchable>(4,0)</equilibriumPoint>
