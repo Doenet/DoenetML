@@ -41,7 +41,7 @@ Each row is sound for what it covers. Together they have three costs.
   when it has a meaning. Nothing checks the rules but review.
 - **Reads that go around.** `enclosing_graph_prop` reads another element's
   row and records nothing: a box of the graph is not propagated to the
-  point by any recorded edge. Forty-nine sites under `stages/plan/` reach
+  point by any recorded edge. Fifty-six sites under `stages/plan/` reach
   `rd.outlined` or the source directly; most read the element's own row,
   and which do not is found only by reading them.
 - **Boxing by kind.** ADR 0032's decision 6 asked for "one recorder" so
@@ -115,7 +115,7 @@ bound at Plan, so no planner can read one.
 ### 3. The schema is one table
 
 ```rust,ignore
-/// What each stage may read across elements (ADR 0042).
+/// What each stage may read across elements (ADR 0050).
 pub(in crate::compile) const READS: &[(Stage, FactKind, Within)] = &[
     (Stage::Outline, FactKind::Settled, Within::Demand),   // with_clones
     (Stage::Parse,   FactKind::Settled, Within::Earlier),
@@ -247,7 +247,7 @@ Each step lands alone, with the golden diff unchanged and
    the debug assertion in `Facts::read`. Test: the crate's suite in debug,
    and a test that a read the table forbids panics.
 4. **The reads that go around.** `enclosing_graph_prop` reads the scope's
-   row through the recorder. The 49 sites under `stages/plan/` that reach
+   row through the recorder. The 56 sites under `stages/plan/` that reach
    `rd.outlined` or the source are sorted into reads of the element's own
    row, left as they are, and reads of another's, which go through the
    recorder. Test: a point in a graph whose graph is boxed is boxed, in
