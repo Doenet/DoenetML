@@ -443,6 +443,11 @@ impl Engine {
         me::to_latex(&self.exprs[h.index()], &LatexOpts::default())
     }
 
+    /// `h` as LaTeX, rounded and written as `display` asks.
+    pub fn display_latex(&self, h: Handle, display: &super::Display) -> String {
+        display.latex(&self.exprs[h.index()])
+    }
+
     /// Number of stored expressions.
     pub fn len(&self) -> usize {
         self.exprs.len()

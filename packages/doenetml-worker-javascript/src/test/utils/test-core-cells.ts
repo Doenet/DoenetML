@@ -31,8 +31,16 @@ import { resolveRendererAction } from "../../../../doenetml-worker/src/cells/act
 import { CellsBridge } from "../../../../doenetml-worker/src/cells/bridge";
 import {
     LIST_LIKE,
+    Reads,
+    SECTION_KINDS,
     TRANSPARENT,
+    childrenLatex,
+    mdLatex,
+    pointLatex,
 } from "../../../../doenetml-worker/src/cells/contracts";
+import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
+import { latexToText } from "../../utils/math";
+import { convertLatexWithBlanks } from "../../utils/embeddedMathInputs";
 
 /** The types whose children are their entries' rows (ADR 0041, decision
  * 4): each row is addressed as `list:k`. */
@@ -225,11 +233,34 @@ const awardReaders: Record<string, Reader> = {
     },
     awarded: (g) => g("awarded") > 0,
 };
+/** What the bridge reads of the core to write a renderer's props, here
+ * unrecorded: the LaTeX is the bridge's (`cells/contracts.ts`), the
+ * rounding and writing the core's (`sym::Display`). */
+function reads(x: Ctx): Reads {
+    return new Reads(x.cells.table, (c) => c, null);
+}
+
+/** Whether an `<md>` has `<mrow>`s (an `<me>` has none). */
+function hasRows(x: Ctx): boolean {
+    return x.cells.table
+        .children(x.idx)
+        .some(
+            (c) =>
+                "component" in c &&
+                x.cells.table.componentType(c.component) === "mrow",
+        );
+}
+
+/** A math's `latex`: its value rounded and written by its number-display
+ * settings, as the bridge sends it. */
+const mathLatex: Reader = (_g, x) => reads(x).mathLatex(x.idx);
+
 const mathReaders: Record<string, Reader> = {
     value: mathValue,
     immediateValue: mathValue,
     valueForDisplay: mathValue,
     text: (_g, x) => x.cells.core.component_text(x.idx),
+    latex: mathLatex,
 };
 
 /** The text a container shows, through active cases only (ADR 0009). */
@@ -411,27 +442,133 @@ const mathListOperatorReaders: Record<string, Reader> = {
     text: textOf,
 };
 
-/** A section's full number as its parts ([2, 1] for "2.1"): its own,
- * after its nearest section ancestor's when it includes it, as the bridge
- * composes it (`cells/contracts.ts`). */
-function sectionEnumeration(cells: Cells, c: number): number[] {
-    const own = cells.value(cells.propCells(c, "number")[0]);
-    if (cells.value(cells.propCells(c, "includeParentNumber")[0]) !== 0) {
-        for (
-            let p = cells.table.parent(c);
-            p !== null;
-            p = cells.table.parent(p)
-        ) {
-            if (["section", "aside"].includes(cells.table.componentType(p))) {
-                return [...sectionEnumeration(cells, p), own];
-            }
+/** A section's full number ("2.1") as the core composes it: its own, after
+ * its nearest section ancestor's when it includes it and is no list item
+ * (ADR 0054); null for a component that takes none. */
+function sectionNumberOf(cells: Cells, c: number): string | null {
+    return cells.core.section_number(c) ?? null;
+}
+
+/** The translator a test's document gets when it names no language: each
+ * message's English, the fallback its call site carries. */
+function english(_key: string, _args: unknown, fallback: string): string {
+    return fallback;
+}
+
+/** The last `<title>` child, which the current core's `title` reads. */
+function titleChild(cells: Cells, c: number): number | null {
+    const titles = cells.table
+        .children(c)
+        .flatMap((child) =>
+            "component" in child &&
+            cells.table.componentType(child.component) === "title"
+                ? [child.component]
+                : [],
+        );
+    return titles.length ? titles[titles.length - 1] : null;
+}
+
+/** The types that are sectioning components in the current core, for
+ * `level`: the divisions, an aside and a proof. */
+const SECTIONING_TYPES = new Set(["section", "aside", "proof"]);
+
+/** The tag a sectioning component was written as: a division's by its
+ * `label` cell (the core's `SECTION_TAGS`), else its type's. */
+function sectioningTag(cells: Cells, c: number): string {
+    const type = cells.table.componentType(c);
+    if (type !== "section") return type;
+    const label = cells.value(cells.propCells(c, "label")[0]);
+    return SECTION_KINDS[label]?.[0] ?? type;
+}
+
+/** The heading level the current core gives a division: one below the
+ * sectioning component around it, apart from the tags with a level of
+ * their own. */
+function sectionLevel(cells: Cells, c: number): number {
+    const tag = sectioningTag(cells, c);
+    if (tag === "paragraphs") return 4;
+    if (["objectives", "aside", "proof"].includes(tag)) return 3;
+    for (let p = cells.table.parent(c); p !== null; p = cells.table.parent(p)) {
+        if (SECTIONING_TYPES.has(cells.table.componentType(p))) {
+            return sectionLevel(cells, p) + 1;
         }
     }
-    return [own];
+    return 1;
 }
+
+/** Nothing, for a component no `lang` other than English applies to; the
+ * words are English only, so one in another language is a gap. */
+function englishOnly(x: Ctx): undefined {
+    for (
+        let p: number | null = x.idx;
+        p !== null;
+        p = x.cells.table.parent(p)
+    ) {
+        const lang = x.cells.table.attr(p, "lang");
+        if (lang !== null) {
+            if (lang.trim().toLowerCase().startsWith("en")) return undefined;
+            throw new CellsCoreGap(`section words in the language \`${lang}\``);
+        }
+    }
+    return undefined;
+}
+
+/** The readers of a sectioning component's heading (`title`,
+ * `titlePrefix`, `sectionName`), composed in English as the current
+ * core's `composeTitlePrefix` composes them, from the number the core
+ * holds, its `<title>` child's text, and the attributes the renderer
+ * reads. A `numbered` component has a number; `autoNumber` is the
+ * default of `includeAutoNumberIfNoTitle`. */
+function headingReaders(autoNumber: boolean): Record<string, Reader> {
+    const sectionName = (x: Ctx) =>
+        x.cells.table.attr(x.idx, "renameTo") ??
+        englishOnly(x) ??
+        sectionNameWord(
+            english,
+            sectioningTag(x.cells, x.idx),
+            sectioningTag(x.cells, x.idx),
+        );
+    const titlePrefix = (x: Ctx) => {
+        const flag = (name: string, fallback: boolean) =>
+            attrFlag(x.cells, x.idx, name) ?? fallback;
+        const haveTitleChild = titleChild(x.cells, x.idx) !== null;
+        const noAutoTitle = flag("noAutoTitle", false);
+        return composeTitlePrefix({
+            t: english,
+            includeAutoName:
+                flag("includeAutoName", false) ||
+                (!haveTitleChild &&
+                    flag("includeAutoNameIfNoTitle", true) &&
+                    !noAutoTitle),
+            includeAutoNumber:
+                flag("includeAutoNumber", false) ||
+                (!haveTitleChild &&
+                    flag("includeAutoNumberIfNoTitle", autoNumber) &&
+                    !noAutoTitle),
+            haveTitleChild,
+            sectionName: sectionName(x),
+            sectionNumber: sectionNumberOf(x.cells, x.idx),
+        });
+    };
+    return {
+        sectionName: (_g, x) => sectionName(x),
+        titlePrefix: (_g, x) => titlePrefix(x),
+        title: (_g, x) => {
+            const title = titleChild(x.cells, x.idx);
+            return title === null
+                ? titlePrefix(x)
+                : x.cells.core.component_text(title);
+        },
+        level: (_g, x) => sectionLevel(x.cells, x.idx),
+    };
+}
+
 const sectionReaders: Record<string, Reader> = {
-    sectionNumber: (_g, x) => sectionEnumeration(x.cells, x.idx).join("."),
-    enumeration: (_g, x) => sectionEnumeration(x.cells, x.idx),
+    ...headingReaders(true),
+    sectionNumber: (_g, x) => sectionNumberOf(x.cells, x.idx),
+    enumeration: (_g, x) =>
+        (sectionNumberOf(x.cells, x.idx) ?? "").split(".").map(Number),
+    isListItem: (_g, x) => x.cells.core.is_list_item(x.idx),
     creditAchieved: (g) => g("creditAchieved"),
     percentCreditAchieved: (g) => g("percentCreditAchieved"),
     weight: (g) => g("weight"),
@@ -554,6 +691,7 @@ const STATE: Record<string, Record<string, Reader>> = {
         numDimensions: () => 2,
         hidden: (g) => g("hide") !== 0,
         hide: (g) => g("hide") !== 0,
+        latex: (_g, x) => pointLatex(reads(x), x.idx),
     },
     circle: {
         center: (g) => pt(g, "cx", "cy"),
@@ -788,6 +926,7 @@ const STATE: Record<string, Record<string, Reader>> = {
         footnoteTag: (_g, x) => String(counterNumber(x) ?? ""),
     },
     aside: {
+        ...headingReaders(true),
         sectionNumber: sectionReaders.sectionNumber,
         enumeration: sectionReaders.enumeration,
         includeParentNumber: sectionReaders.includeParentNumber,
@@ -845,6 +984,36 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     // Values with entries inside a math (ADR 0041, decision 8).
     interval: mathReaders,
+    // Math notation's LaTeX, and a point's, as the bridge writes them.
+    // An `<m>`'s text is its LaTeX read as math, as the current core's
+    // `MMeMen.js` makes it.
+    m: {
+        latex: (_g, x) => childrenLatex(reads(x), x.idx),
+        text: (_g, x) =>
+            convertLatexWithBlanks(childrenLatex(reads(x), x.idx), latexToText),
+        renderMode: () => "inline",
+    },
+    // An `<md>` with rows is aligned; one without (an `<me>`) is one
+    // displayed equation, whose text is an `<m>`'s.
+    md: {
+        latex: (_g, x) => mdLatex(reads(x), x.idx),
+        renderMode: (_g, x) => (hasRows(x) ? "align" : "display"),
+        text: (_g, x) => {
+            if (hasRows(x)) {
+                throw new CellsCoreGap("state variable `md.text` of rows");
+            }
+            return convertLatexWithBlanks(
+                mdLatex(reads(x), x.idx),
+                latexToText,
+            );
+        },
+    },
+    // A proof: a sectioning component that takes no number (ADR 0054).
+    proof: {
+        ...headingReaders(false),
+        sectionNumber: () => null,
+        enumeration: () => [],
+    },
     // A sort's and a shuffle's order (ADR 0053): the 1-based operand at
     // each position, the list's companion sequence.
     ...Object.fromEntries(

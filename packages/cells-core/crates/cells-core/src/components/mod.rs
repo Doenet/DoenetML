@@ -36,6 +36,13 @@ pub const PRESENTATION_ATTRS: &[&str] = &[
     "layer",
     "shortDescription",
     "styleNumber",
+    // How a number shows, beside `displayDecimals`: the display's only,
+    // read where the LaTeX is written (`sym::Display`).
+    "displayDigits",
+    "displaySmallAsZero",
+    "padZeros",
+    "avoidScientificNotation",
+    "displayBlanks",
 ];
 /// Presentation attributes a renderer reads and the core does not, accepted
 /// on any type with an anchor ([`PropFrom::Anchor`]): where the value sits
@@ -937,6 +944,12 @@ impl ComponentType {
     /// How the type is structure rather than content, if it is.
     pub fn structure_kind(self) -> Option<StructureKind> {
         self.def().structure_kind
+    }
+
+    /// What the type is to the sequences numbering the divisions and the
+    /// list items, when it is neither numbered nor structure (ADR 0054).
+    pub fn numbering(self) -> Option<Numbering> {
+        self.def().numbering
     }
 
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as

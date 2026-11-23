@@ -309,6 +309,21 @@ impl Document {
         }
     }
 
+    /// LaTeX of the expression a math cell holds, rounded and written as
+    /// `display` asks (a math's `displayDigits`, `padZeros`, ...), as the
+    /// current core writes a math's `latex`; empty for a NaN handle. A
+    /// number is [`Display::number_latex`](crate::sym::Display::number_latex)'s.
+    pub fn display_latex(&self, cell: CellIdx, display: &crate::sym::Display) -> String {
+        let h = self.cells[cell.index()];
+        if h.is_nan() {
+            String::new()
+        } else {
+            self.math
+                .engine
+                .display_latex(Handle::from_value(h), display)
+        }
+    }
+
     /// A `<mathInput>` holds any math value, infinity included (a prop
     /// marked `infinite`); every other request site rejects an infinite
     /// ask.

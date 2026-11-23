@@ -69,6 +69,10 @@ pub struct ComponentDef {
     /// The document-wide counter a component of the type takes its number
     /// from ("Figure 2", a footnote's marker), read when asked (ADR 0044).
     pub counted: Option<Counted>,
+    /// What the type is to the sequences that number the divisions and
+    /// the list items, when it is neither numbered nor structure (ADR
+    /// 0054).
+    pub numbering: Option<Numbering>,
     /// The inputs a component of the type owns, made for it in this order
     /// as its first children and wired by its planner (ADR 0045).
     pub inner: &'static [InnerInput],
@@ -707,6 +711,31 @@ pub struct Numbered {
     pub label: usize,
     /// The word a title shows for a `label`.
     pub title: fn(usize) -> &'static str,
+    /// The 0/1 constant prop that says it is always an item of its
+    /// parent's list (a `<part>`), numbered among the list items rather
+    /// than the divisions (ADR 0054); never without one.
+    pub list_item: Option<usize>,
+    /// The 0/1 constant prop that says its sectioning children are the
+    /// items of its list (a `<problems>`); never without one.
+    pub as_list: Option<usize>,
+}
+
+/// What a type that is neither numbered nor structure is to the two
+/// sequences that number the divisions and the list items (ADR 0054), as
+/// the current core's `utils/sequenceNumbering.js` has them. A type with
+/// none bounds both: it numbers the divisions and the items among its
+/// children from 1 and takes no place in either around it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Numbering {
+    /// The divisions' sequence passes through it (a `<div>`, an
+    /// `<introduction>`): a division inside it is numbered among the
+    /// divisions around it, and the count continues after it. The list
+    /// items' sequence does not: it bounds that one.
+    PassesDivisions,
+    /// A sectioning component that shows no number (a `<proof>`): it takes
+    /// a place among its parent's list items, none among the divisions,
+    /// and bounds both.
+    Unnumbered,
 }
 
 /// A group of element children of given types (`constraints:

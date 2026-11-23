@@ -73,14 +73,15 @@ impl Document {
 
     /// A section's full number, such as "2.1": its own `number` cell,
     /// after its nearest section ancestor's full number when it includes
-    /// its parent's. None for other components.
+    /// its parent's and is no list item (ADR 0054). None for other
+    /// components.
     pub fn section_number(&self, c: CompIdx) -> Option<String> {
         let ty = self.component_type(c);
         let numbered = ty.def().numbered?;
         let number = ty.aggregate_prop(AggOp::Count, Collection::SectionsThrough)?;
         let cells = self.comp_cells(c);
         let own = self.cells[cells[number].index()].to_string();
-        if self.cells[cells[numbered.include_parent].index()] == 0.0 {
+        if self.cells[cells[numbered.include_parent].index()] == 0.0 || self.is_list_item(c) {
             return Some(own);
         }
         let mut p = self.parent(c);
@@ -91,6 +92,30 @@ impl Document {
             p = self.parent(x);
         }
         Some(own)
+    }
+
+    /// Whether numbered component `c` is an item of its parent's list
+    /// (ADR 0054): always (a `<part>`), or its parent, the nearest
+    /// ancestor that is no structure, makes its sectioning children its
+    /// list's items (a `<problems>`).
+    pub fn is_list_item(&self, c: CompIdx) -> bool {
+        let flag = |c: CompIdx, prop: fn(&crate::components::Numbered) -> Option<usize>| {
+            let Some(n) = self.component_type(c).def().numbered else {
+                return false;
+            };
+            prop(&n).is_some_and(|p| self.cells[self.comp_cells(c)[p].index()] != 0.0)
+        };
+        if flag(c, |n| n.list_item) {
+            return true;
+        }
+        let mut p = self.parent(c);
+        while let Some(x) = p {
+            if self.component_type(x).structure_kind().is_none() {
+                return flag(x, |n| n.as_list);
+            }
+            p = self.parent(x);
+        }
+        false
     }
 
     /// A section's automatic title, such as "Section 2.1" or "Problem 3".
