@@ -24,6 +24,11 @@
  *     to it so far.
  *   - `release(count)`: hand the oldest `count` held updates (all of them if
  *     omitted) to the viewer, in order.
+ *   - `releaseWithNextAction`: set to `true` to stop holding and hand every
+ *     held update to the viewer as soon as the next action is sent to core.
+ *     The viewer records the value that action's renderer shows before it
+ *     sends the action, and core's reply cannot be handled in the same task,
+ *     so the updates arrive while that action is in flight.
  *
  * Only the Comlink message shapes are relied on: an APPLY message carrying an
  * object with `updateInstructions` is a renderer update, an APPLY message
@@ -34,6 +39,7 @@ export function controlCoreMessages(win) {
     const control = {
         hold: false,
         held: [],
+        releaseWithNextAction: false,
         allActionsAnswered() {
             return unanswered.size === 0;
         },
@@ -84,6 +90,13 @@ export function controlCoreMessages(win) {
                     );
                 }
                 listenForReplies(this);
+                const result = originalPostMessage.call(this, message, ...rest);
+                if (control.releaseWithNextAction) {
+                    control.releaseWithNextAction = false;
+                    control.hold = false;
+                    control.release();
+                }
+                return result;
             }
             return originalPostMessage.call(this, message, ...rest);
         };

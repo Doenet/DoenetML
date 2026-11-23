@@ -285,10 +285,10 @@ describe("updates held while the component's own action is in flight", () => {
         expect(heldUpdates.size).toBe(0);
     });
 
-    it("puts a held update on screen in a read-only document", async () => {
+    it("puts a held update on screen when core sent it under no action", async () => {
         const { eagerlyShow, updateFromCore, settle, shown } = setup();
-        // Core redraws the input with its old value, under no action, and
-        // sends the action itself no update.
+        // Core redraws the input on its own, under no action, and sends the
+        // reader's action no update.
         eagerlyShow("key9", "9", COMPONENT_IDX);
         expect(await updateFromCore({ value: "" })).toBe(true);
         await settle("key9", false);

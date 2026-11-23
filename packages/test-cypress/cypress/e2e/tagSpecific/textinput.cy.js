@@ -689,6 +689,47 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#iv").should("have.text", "908");
     });
 
+    it("shows another action's change held back while an Enter that changes nothing was in flight", () => {
+        // A change to the input made through a second input arrives while the
+        // reader's Enter in the first is in flight, so it is left off the
+        // screen. The Enter has nothing to commit, so core sends it no update;
+        // the change held back must then be shown.
+        const doenetML = `<p><textInput name="ti" /></p>
+<p><textInput name="ti2" bindValueTo="$ti" /></p>
+<p><text name="v">$ti</text></p>`;
+        let control;
+        cy.window().then((win) => {
+            control = controlCoreMessages(win);
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#ti_input").should("exist");
+        cy.window().then(() => {
+            control.hold = true;
+        });
+        cy.get("#ti2_input").type("5{enter}");
+        cy.get("#ti_input").focus();
+
+        cy.window().should(() => {
+            expect(control.allActionsAnswered()).eq(true);
+            // the update for the Enter in the second input, which changed
+            // the first
+            expect(control.held.some((u) => u.actionName === "updateValue")).eq(
+                true,
+            );
+        });
+        // none of it has reached the screen yet
+        cy.get("#ti_input").should("have.value", "");
+
+        cy.window().then(() => {
+            control.releaseWithNextAction = true;
+        });
+        cy.get("#ti_input").type("{enter}");
+
+        cy.get("#v").should("have.text", "5");
+        cy.get("#ti_input").should("have.value", "5");
+    });
+
     it("an update still due from a replaced core does not hold back the next one's", () => {
         // Core replies to the key before its renderer update arrives, so the
         // viewer keeps the typed value until that update. Then the document is

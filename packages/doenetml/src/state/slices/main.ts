@@ -110,10 +110,9 @@ export type HeldRendererUpdates = Map<number, HeldRendererUpdate>;
  * click it came with). Usually the action's own update follows and replaces
  * it. But an action that changes nothing, such as a bare Enter in an input
  * whose value is already committed, gets no update. The held one is then
- * core's latest, and it can carry a value the renderer does not show: another
- * action changed the input meanwhile, or core refused the change (a read-only
- * document). The viewer calls this once the pending values of an action are
- * dropped.
+ * core's latest, and it can carry a value the renderer does not show, as
+ * when another action changed the input meanwhile. The viewer calls this once
+ * the pending values of an action are dropped.
  */
 export function takeHeldUpdatesNoLongerInFlight(
     updatesToIgnore: UpdatesToIgnore,
