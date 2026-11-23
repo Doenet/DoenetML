@@ -77,6 +77,21 @@ export function contentGivesACoordinate(
 }
 
 /**
+ * Whether `children`, the content of a `<point>` or `<vector>`, holds
+ * something besides errors and blank strings. Content that is only an error
+ * (a tag left unclosed, `<point coords="(4,5)"` before `</graph>`) already
+ * reports that error, so a written `coords` or `displacement` gives no
+ * `doenet-w0202` for it.
+ */
+export function contentHoldsMoreThanErrors(children: any[]): boolean {
+    return children.some((child) =>
+        typeof child === "string"
+            ? child.trim() !== ""
+            : child?.componentType !== "_error",
+    );
+}
+
+/**
  * The warning that the content of a `<point>` or `<vector>` isn't used,
  * since its attributes give its whole value (D49): `reason` `coords` or
  * `displacement`, the attribute that does, or `coordinates`, for `x`, `y`

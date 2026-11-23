@@ -24,6 +24,7 @@ import {
 } from "../utils/numberDisplay";
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import {
+    contentHoldsMoreThanErrors,
     contentUnusedDiagnostic,
     unusedContentAttribute,
 } from "../utils/coordinateContent";
@@ -238,7 +239,10 @@ export default class Vector extends GraphicalComponent {
                 return { success: false };
             }
 
-            if (displacementWritten) {
+            if (
+                displacementWritten &&
+                contentHoldsMoreThanErrors(componentChildren)
+            ) {
                 diagnostics.push(
                     contentUnusedDiagnostic({
                         componentType: "vector",

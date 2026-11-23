@@ -2617,6 +2617,7 @@ describe("Missing values, round 4 (#2596) @group2", () => {
             `<vector displacement="(3,4)">(5,6)</vector>`,
             `<vector displacement="(3,4)">$nothing</vector>`,
             `<vector displacement="(3,4)"><point>(5,6)</point></vector>`,
+            `<point coords="(3,4)"> <a/> 5</point>`,
         ]) {
             expect(await warningsOf(doenetML), doenetML).eqls(["w0202"]);
         }
@@ -2633,6 +2634,12 @@ describe("Missing values, round 4 (#2596) @group2", () => {
             `<vector x="3" y="4">(5,6)</vector>`,
             `<vector head="(1,2)" tail="(3,4)">$nothing</vector>`,
             `<vector displacement="(3,4)"/>`,
+            // content that is only an error, which reports itself: an
+            // unclosed tag, or an invalid one
+            `<point coords="(4,5)"\n`,
+            `<vector displacement="(4,5)"\n`,
+            `<point coords="(3,4)"> <a/> </point>`,
+            `<vector displacement="(3,4)"><a/></vector>`,
         ]) {
             expect(await warningsOf(doenetML), doenetML).eqls([]);
         }

@@ -29,6 +29,7 @@ import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import {
     COORDINATE_ATTRIBUTES,
     contentGivesACoordinate,
+    contentHoldsMoreThanErrors,
     contentUnusedDiagnostic,
     unusedContentAttribute,
 } from "../utils/coordinateContent";
@@ -294,7 +295,10 @@ export default class Point extends GraphicalComponent {
                 }
             }
 
-            if (coordsWritten) {
+            if (
+                coordsWritten &&
+                contentHoldsMoreThanErrors(componentChildren)
+            ) {
                 diagnostics.push(
                     contentUnusedDiagnostic({
                         componentType: "point",
