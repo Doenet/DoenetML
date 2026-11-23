@@ -55,9 +55,15 @@ fn census() {
     // Since a `fixed` holds cells rather than rewriting plans (ADR 0022,
     // amended), a literal under a literal `fixed` is an author's value like
     // any other, which the classing makes a constant: five in the golden
-    // set and one in `sir.doenet` count here and not below.
-    assert_eq!(golden.0, 241, "the golden set as Context counted it");
-    assert_eq!(sir.0, 630, "sir.doenet as Context counted it");
+    // set and one in `sir.doenet` count here and not below. Since a
+    // button has a `hide` (ADR 0042), `sir.doenet`'s `<triggerSet>` and
+    // its seven `<updateValue>`s count one literal default each. A value
+    // placed in a graph has an anchor a drag writes, two author's values
+    // (the origin without `anchor`): six in the golden set and six in
+    // `sir.doenet`, which no student's action writes there, so count only
+    // here.
+    assert_eq!(golden.0, 247, "the golden set as Context counted it");
+    assert_eq!(sir.0, 644, "sir.doenet as Context counted it");
     assert!(golden.1 > 0 && golden.1 <= 164, "golden set: {golden:?}");
     assert!(sir.1 > 0 && sir.1 <= 16, "sir.doenet: {sir:?}");
 }

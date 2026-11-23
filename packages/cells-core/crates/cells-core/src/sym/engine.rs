@@ -10,7 +10,8 @@ use std::hash::{BuildHasher, RandomState};
 use math_expressions as me;
 use me::{EqOptions, Expr, LatexOpts, Number, TextOpts, TextToAst, TextToAstOptions};
 
-use super::{Handle, Leaf, Tree};
+use super::compare::CompareOpts;
+use super::{Handle, Leaf, Shape, Tree};
 
 /// The symbolic engine: every math expression a document holds, by handle, and
 /// the operations on them.
@@ -41,7 +42,7 @@ impl Clone for Engine {
             leaves: self.leaves.clone(),
             index: self.index.clone(),
             hasher: self.hasher.clone(),
-            parser: TextToAst::new(TextToAstOptions::default()),
+            parser: parser(),
             eq: self.eq.clone(),
         }
     }
@@ -61,7 +62,7 @@ impl Engine {
             leaves: HashMap::new(),
             index: HashMap::new(),
             hasher: RandomState::new(),
-            parser: TextToAst::new(TextToAstOptions::default()),
+            parser: parser(),
             eq: EqOptions::default(),
         }
     }
@@ -111,12 +112,16 @@ impl Engine {
     }
 
     /// Parse math text into a builder tree without storing it; `cellN<i>`
-    /// symbols become leaves. Fails on what a tree cannot say (a relation, a
-    /// tuple, a function of several arguments).
+    /// symbols become leaves. Fails on what a tree cannot say (a relation,
+    /// a function of several arguments).
     pub fn parse_tree<L: Leaf>(&mut self, text: &str) -> Result<Tree<L>, String> {
-        let e = self.convert_text(text)?;
+        // Sums and products flat: a math of many terms parses as a deep
+        // chain, which every walk of the tree would recurse through.
+        let e = me::expr::flatten(self.convert_text(text)?);
         to_tree(&e).ok_or_else(|| {
-            format!("'{text}' is not supported in a math cell (a relation, tuple or multi-argument function)")
+            format!(
+                "'{text}' is not supported in a math cell (a relation or multi-argument function)"
+            )
         })
     }
 
@@ -139,7 +144,11 @@ impl Engine {
         let mut subs = HashMap::with_capacity(leaves.len());
         for &(cell, math) in leaves.iter() {
             let v = cells[cell as usize];
-            let e = if math && !v.is_nan() {
+            // A missing value, and a math leaf with no expression (a blank
+            // input), take part as the blank (D40, ADR 0046).
+            let e = if crate::program::is_missing(v) || (math && v.is_nan()) {
+                Expr::Blank
+            } else if math {
                 self.exprs[Handle::from_value(v).index()].clone()
             } else {
                 number(v)
@@ -161,6 +170,21 @@ impl Engine {
         Ok(self.push(e))
     }
 
+    /// `h` with its tuples made vectors (`createVectors`), then its tuples
+    /// and arrays of two made intervals (`createIntervals`), as asked
+    /// (ADR 0041, decision 8).
+    pub fn normalize_shapes(&mut self, mut h: Handle, vectors: bool, intervals: bool) -> Handle {
+        if vectors {
+            let e = me::tuples_to_vectors(&self.exprs[h.index()]);
+            h = self.push(e);
+        }
+        if intervals {
+            let e = me::to_intervals(&self.exprs[h.index()]);
+            h = self.push(e);
+        }
+        h
+    }
+
     /// `h` simplified.
     pub fn simplify(&mut self, h: Handle) -> Handle {
         let e = me::simplify(&self.exprs[h.index()]);
@@ -179,10 +203,97 @@ impl Engine {
         self.push(e)
     }
 
+    /// `h` with its values held between `lo` and `hi`, as `max(lo, min(hi,
+    /// h))`, spelled with `abs` so it stays a tree (a template, a curve's
+    /// tape): `(|h - lo| - |h - hi| + lo + hi) / 2`. Bounds out of order
+    /// hold every value at `lo`, as the max of the min does.
+    pub fn clamp(&mut self, h: Handle, lo: f64, hi: f64) -> Handle {
+        if lo > hi {
+            return self.num(lo);
+        }
+        let e = &self.exprs[h.index()];
+        let abs_minus = |b: f64| apply("abs", minus(e.clone(), number(b)));
+        let sum = Expr::Add(vec![
+            abs_minus(lo),
+            Expr::Neg(Box::new(abs_minus(hi))),
+            number(lo),
+            number(hi),
+        ]);
+        self.push(Expr::Div(Box::new(sum), Box::new(number(2.0))))
+    }
+
+    /// `h` with its values wrapped into the range from `lo` to `hi`, as
+    /// `lo + mod(h - lo, hi - lo)`: `h - p floor((h - lo) / p)` with period
+    /// `p`. Bounds in either order are the same range; equal bounds hold
+    /// every value there.
+    pub fn wrap_periodic(&mut self, h: Handle, lo: f64, hi: f64) -> Handle {
+        if lo == hi {
+            return self.num(lo);
+        }
+        let (lo, hi) = if lo > hi { (hi, lo) } else { (lo, hi) };
+        let p = hi - lo;
+        let e = &self.exprs[h.index()];
+        let turns = apply(
+            "floor",
+            Expr::Div(Box::new(minus(e.clone(), number(lo))), Box::new(number(p))),
+        );
+        let wrapped = minus(e.clone(), Expr::Mul(vec![number(p), turns]));
+        self.push(wrapped)
+    }
+
+    /// `f` of `h`'s value when it evaluates to a real number, else the
+    /// function `name` applied to `h`: a one-input operator over math
+    /// (`<abs>`, `<sign>`, `<floor>`, `<ceil>`), as the current core's
+    /// computes one.
+    pub fn apply_numeric(&mut self, h: Handle, name: &str, f: fn(f64) -> f64) -> Handle {
+        match real(me::evaluate_to_constant(&self.exprs[h.index()])) {
+            v if v.is_finite() => self.num(f(v)),
+            _ => {
+                let e = apply(name, self.exprs[h.index()].clone());
+                self.push(e)
+            }
+        }
+    }
+
+    /// `h` with every number in it rounded to `decimals` decimal places,
+    /// after its numbers, constants and functions of numbers are made
+    /// floats (`<round>`): `1/3` rounds, and `sin(2.1 x)` keeps its `x`.
+    pub fn round_decimals(&mut self, h: Handle, decimals: i32) -> Handle {
+        let e = self.floated(h);
+        self.push(me::round_numbers_to_decimals(&e, decimals))
+    }
+
+    /// `h` with every number in it rounded to `digits` significant digits,
+    /// after floating them as [`Engine::round_decimals`] does.
+    pub fn round_digits(&mut self, h: Handle, digits: i32) -> Handle {
+        let e = self.floated(h);
+        self.push(me::round_numbers_to_precision(&e, digits))
+    }
+
+    /// `h`'s numbers, constants and functions of numbers as floats.
+    fn floated(&self, h: Handle) -> Expr {
+        me::evaluate_numbers_evaluate_functions_with_digits(
+            &self.exprs[h.index()],
+            me::MaxDigits::Unlimited,
+        )
+    }
+
+    /// `h` with its numbers folded, in the order written, and each one of
+    /// magnitude below `threshold` made 0 (`<setSmallToZero>`).
+    pub fn small_to_zero(&mut self, h: Handle, threshold: f64) -> Handle {
+        let e = me::evaluate_numbers_preserve_order(&self.exprs[h.index()]);
+        self.push(me::set_small_zero(&e, threshold))
+    }
+
     /// Evaluate to a real number with `var` bound; any other free symbol
     /// gives NaN.
     pub fn evaluate(&mut self, h: Handle, var: Option<(&str, f64)>) -> f64 {
         let e = &self.exprs[h.index()];
+        // A number cannot hold a blank: one computed from it is missing
+        // (D40, ADR 0046).
+        if has_blank(e) || var.is_some_and(|(_, x)| crate::program::is_missing(x)) {
+            return crate::program::MISSING;
+        }
         match var {
             Some((name, x)) => {
                 let mut b = HashMap::with_capacity(1);
@@ -199,14 +310,31 @@ impl Engine {
         out.copy_from_slice(&ys[..out.len()]);
     }
 
-    /// Mathematical equality, by numeric sampling.
+    /// Mathematical equality, by numeric sampling, over the lattice of
+    /// values with entries (`sym::compare`).
     pub fn equals(&mut self, a: Handle, b: Handle) -> bool {
-        me::equals(&self.exprs[a.index()], &self.exprs[b.index()], &self.eq)
+        self.compare(a, b, CompareOpts::default()) == 1.0
     }
 
-    /// Structural equality after reordering (`symbolicEquality`).
+    /// Structural equality after reordering (`symbolicEquality`), over the
+    /// same lattice.
     pub fn equals_syntax(&mut self, a: Handle, b: Handle) -> bool {
-        me::equals_syntactic(&self.exprs[a.index()], &self.exprs[b.index()], &self.eq)
+        let opts = CompareOpts {
+            syntactic: true,
+            ..CompareOpts::default()
+        };
+        self.compare(a, b, opts) == 1.0
+    }
+
+    /// How equal `a` and `b` are, from 0 to 1, as `opts` compares them
+    /// (ADR 0041, decision 8).
+    pub fn compare(&mut self, a: Handle, b: Handle, opts: CompareOpts) -> f64 {
+        super::compare::check_equality(
+            &self.exprs[a.index()],
+            &self.exprs[b.index()],
+            opts,
+            &self.eq,
+        )
     }
 
     /// The expression as a builder tree, cell leaves included as the `L`
@@ -216,9 +344,23 @@ impl Engine {
         to_tree(&self.exprs[h.index()])
     }
 
+    /// The name of the symbol `h` is, if it is one (a function's
+    /// variable).
+    pub fn symbol(&self, h: Handle) -> Option<String> {
+        match &self.exprs[h.index()] {
+            Expr::Sym(s) => Some(s.name()),
+            _ => None,
+        }
+    }
+
     /// `h` as math text.
     pub fn text(&self, h: Handle) -> String {
         me::to_text(&self.exprs[h.index()], &TextOpts::default())
+    }
+
+    /// `h` as the JavaScript math tree, in JSON.
+    pub fn ast_json(&self, h: Handle) -> String {
+        me::expr::serde::to_js(&self.exprs[h.index()]).to_string()
     }
 
     /// `h` as LaTeX.
@@ -240,6 +382,37 @@ impl Engine {
     pub fn heap_bytes(&self) -> usize {
         self.exprs.iter().map(count_nodes).sum::<usize>() * std::mem::size_of::<Expr>()
             + self.index.capacity() * 16
+    }
+}
+
+/// Functions DoenetML applies in math text beyond the engine's own
+/// (`appliedFunctionSymbolsDefault` in the current core's `utils/math.ts`),
+/// and `gcd` and `lcm`, which an operator over math spells (ADR 0043):
+/// `min(x, 3)` is the function, not `m i n (x, 3)`.
+const DOENET_APPLIED: &[&str] = &[
+    "min", "max", "mean", "median", "sum", "prod", "variance", "std", "count", "gcd", "lcm",
+];
+
+/// The math text parser: the engine's, with DoenetML's applied functions.
+fn parser() -> TextToAst {
+    let mut opts = TextToAstOptions::default();
+    for f in DOENET_APPLIED {
+        if !opts.applied_function_symbols.iter().any(|g| g == f) {
+            opts.applied_function_symbols.push(f.to_string());
+        }
+    }
+    TextToAst::new(opts)
+}
+
+/// A number as math text the engine parses back to it: `-3`, `0.5`,
+/// `0.00000000000001`; the infinities as `infinity`, and NaN as the blank.
+pub(crate) fn number_text(v: f64) -> String {
+    if v.is_nan() {
+        BLANK.to_string()
+    } else if v.is_infinite() {
+        if v > 0.0 { "infinity" } else { "-infinity" }.to_string()
+    } else {
+        format!("{v}")
     }
 }
 
@@ -273,6 +446,38 @@ fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
         Tree::Neg(x) => Expr::Neg(Box::new(convert(x, leaves))),
         Tree::Pow(a, b) => Expr::Pow(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
         Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![convert(x, leaves)]),
+        Tree::Call(f, xs) => Expr::Apply(
+            Box::new(Expr::sym(f)),
+            xs.iter().map(|x| convert(x, leaves)).collect(),
+        ),
+        Tree::Shape(head, ts) => shape_expr(*head, ts.iter().map(|t| convert(t, leaves)).collect()),
+    }
+}
+
+/// The expression a shape's head makes of its entries (ADR 0041, decision
+/// 8). An interval of other than two entries, or a matrix whose entries do
+/// not fill it, is the blank expression: no tree the core makes is one.
+pub(crate) fn shape_expr(head: Shape, xs: Vec<Expr>) -> Expr {
+    use me::expr::SeqKind;
+    match head {
+        Shape::List => Expr::Seq(SeqKind::List, xs),
+        Shape::Tuple => Expr::Seq(SeqKind::Tuple, xs),
+        Shape::Vector => Expr::Seq(SeqKind::Vector, xs),
+        Shape::AltVector => Expr::Seq(SeqKind::AltVector, xs),
+        Shape::Array => Expr::Seq(SeqKind::Array, xs),
+        Shape::Set => Expr::Seq(SeqKind::Set, xs),
+        Shape::Union => Expr::Union(xs),
+        Shape::Intersect => Expr::Intersect(xs),
+        Shape::Interval(closed) => match <[Expr; 2]>::try_from(xs) {
+            Ok([lo, hi]) => Expr::Interval {
+                endpoints: Box::new((lo, hi)),
+                closed: (closed[0], closed[1]),
+            },
+            Err(_) => Expr::Blank,
+        },
+        Shape::Matrix { rows, cols } => me::Mat::new(rows, cols, xs)
+            .map(Expr::Matrix)
+            .unwrap_or(Expr::Blank),
     }
 }
 
@@ -305,6 +510,16 @@ fn cell_leaves(e: &Expr) -> Vec<(u32, bool)> {
     out
 }
 
+/// `f(x)` for a named function of one argument.
+fn apply(f: &str, x: Expr) -> Expr {
+    Expr::Apply(Box::new(Expr::sym(f)), vec![x])
+}
+
+/// `a - b`, as the engine spells a difference.
+fn minus(a: Expr, b: Expr) -> Expr {
+    Expr::Add(vec![a, Expr::Neg(Box::new(b))])
+}
+
 /// A number as the engine spells it: the infinities are constants, since a
 /// float infinity does not evaluate.
 fn number(v: f64) -> Expr {
@@ -322,6 +537,11 @@ fn real(c: Option<num_complex::Complex64>) -> f64 {
         Some(z) if z.im.abs() <= 1e-12 * z.re.abs().max(1.0) => z.re,
         _ => f64::NAN,
     }
+}
+
+/// Whether `e` holds the blank expression anywhere.
+fn has_blank(e: &Expr) -> bool {
+    matches!(e, Expr::Blank) || e.children().into_iter().any(has_blank)
 }
 
 fn count_nodes(e: &Expr) -> usize {
@@ -361,6 +581,34 @@ fn to_tree<L: Leaf>(e: &Expr) -> Option<Tree<L>> {
         Expr::Neg(a) => Tree::Neg(one(a)?),
         Expr::Apply(head, args) if args.len() == 1 => match &**head {
             Expr::Sym(f) => Tree::Apply(f.name(), one(&args[0])?),
+            _ => return None,
+        },
+        Expr::Seq(kind, xs) => Tree::Shape(
+            match kind {
+                me::expr::SeqKind::List => Shape::List,
+                me::expr::SeqKind::Tuple => Shape::Tuple,
+                me::expr::SeqKind::Vector => Shape::Vector,
+                me::expr::SeqKind::AltVector => Shape::AltVector,
+                me::expr::SeqKind::Array => Shape::Array,
+                me::expr::SeqKind::Set => Shape::Set,
+            },
+            all(xs)?,
+        ),
+        Expr::Union(xs) => Tree::Shape(Shape::Union, all(xs)?),
+        Expr::Intersect(xs) => Tree::Shape(Shape::Intersect, all(xs)?),
+        Expr::Interval { endpoints, closed } => Tree::Shape(
+            Shape::Interval([closed.0, closed.1]),
+            vec![to_tree(&endpoints.0)?, to_tree(&endpoints.1)?],
+        ),
+        Expr::Matrix(m) => Tree::Shape(
+            Shape::Matrix {
+                rows: m.rows(),
+                cols: m.cols(),
+            },
+            all(m.entries())?,
+        ),
+        Expr::Apply(head, args) => match &**head {
+            Expr::Sym(f) => Tree::Call(f.name(), all(args)?),
             _ => return None,
         },
         _ => return None,
@@ -419,6 +667,27 @@ mod tests {
     }
 
     #[test]
+    fn an_empty_math_leaf_is_the_blank_expression() {
+        let mut e = Engine::new();
+        let t = e.import(&Tree::Div(
+            Box::new(Tree::Num(2.0)),
+            Box::new(Tree::Cell {
+                cell: 0u32,
+                math: true,
+            }),
+        ));
+        let h = e.instantiate(t, &[f64::NAN]);
+        assert_eq!(e.text(h), "2/\u{ff3f}");
+        // A numeric leaf's NaN stays a number.
+        let t = e.import(&Tree::Cell {
+            cell: 0u32,
+            math: false,
+        });
+        let h = e.instantiate(t, &[f64::NAN]);
+        assert!(e.evaluate(h, None).is_nan());
+    }
+
+    #[test]
     fn a_derivative_is_a_template_too() {
         let mut e = Engine::new();
         let t = e.import(&Tree::Mul(vec![
@@ -435,9 +704,33 @@ mod tests {
     }
 
     #[test]
+    fn clamp_and_wrap_hold_the_values() {
+        let mut e = Engine::new();
+        let cube = e.parse("x^3").unwrap();
+        let c = e.clamp(cube, -3.0, 5.0);
+        for (x, want) in [(-2.0, -3.0), (1.0, 1.0), (1.5, 3.375), (2.0, 5.0)] {
+            assert!(
+                (e.evaluate(c, Some(("x", x))) - want).abs() < 1e-12,
+                "clamp at {x}"
+            );
+        }
+        assert!(e.export::<u32>(c).is_some(), "a clamp is a tree");
+        let w = e.wrap_periodic(cube, 3.0, -2.0);
+        for x in [-2.0, -1.2, 0.4, 1.6, 2.0] {
+            let want = -2.0 + (x * x * x + 2.0f64).rem_euclid(5.0);
+            assert!(
+                (e.evaluate(w, Some(("x", x))) - want).abs() < 1e-9,
+                "wrap at {x}"
+            );
+        }
+        assert!(e.export::<u32>(w).is_some(), "a wrap is a tree");
+        let flat = e.clamp(cube, 2.0, 1.0);
+        assert_eq!(e.evaluate(flat, Some(("x", 7.0))), 2.0);
+    }
+
+    #[test]
     fn unsupported_shapes_are_errors() {
         let mut e = Engine::new();
         assert!(e.parse_tree::<u32>("x = 2").is_err());
-        assert!(e.parse_tree::<u32>("(1, 2)").is_err());
     }
 }

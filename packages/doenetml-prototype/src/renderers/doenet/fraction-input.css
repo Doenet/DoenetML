@@ -1,0 +1,25 @@
+.doenet-document .fraction-input {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 4px;
+    vertical-align: middle;
+
+    & .fraction {
+        border-collapse: collapse;
+    }
+
+    & .fraction-numerator,
+    & .fraction-denominator {
+        text-align: center;
+        padding: 4px 0;
+    }
+
+    /* A filled box rather than a border, which a high-density screen can
+       round away to nothing. */
+    & .fraction-vinculum {
+        height: 2px;
+        padding: 0;
+        background-color: currentColor;
+    }
+}

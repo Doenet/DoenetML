@@ -1,9 +1,13 @@
-//! Document, graph, p, setup, group, sticky group, section, and the text
-//! and layout containers: types that hold other components. Document and section also hold credit.
+//! Document, graph, p, setup, group, sticky group, section, the text
+//! and layout containers, and the text markup: types that hold other components. Document and section also hold credit.
 
 use super::define::*;
 
+pub(crate) mod layout;
+pub(crate) mod markup;
 pub mod section;
+
+pub(crate) mod blocks;
 
 pub use section::SECTION_TAGS;
 
@@ -224,6 +228,10 @@ pub(crate) mod inline_math {
         /// shows the referent's value.
         tags: ["m"],
         flags: [container],
+        props {
+            anchorX: anchor(0),
+            anchorY: anchor(1),
+        }
         planner: Props,
     }
 }
@@ -235,6 +243,10 @@ pub(crate) mod display_math {
         /// `<md>` and `<me>`: displayed math notation, one line per `<mrow>`.
         tags: ["md", "me"],
         flags: [container],
+        props {
+            anchorX: anchor(0),
+            anchorY: anchor(1),
+        }
         planner: Props,
     }
 }
@@ -250,16 +262,7 @@ pub(crate) mod math_row {
     }
 }
 
-pub(crate) mod aside {
-    use super::*;
-
-    component! {
-        /// `<aside>`: a collapsible block whose `<title>` is the summary.
-        tags: ["aside"],
-        flags: [container],
-        planner: Props,
-    }
-}
+pub(crate) mod aside;
 
 pub(crate) mod side_by_side {
     use super::*;
@@ -339,19 +342,6 @@ pub(crate) mod legend {
         tags: ["legend"],
         flags: [container],
         renders: InGraph,
-        planner: Props,
-    }
-}
-
-pub(crate) mod trigger_set {
-    use super::*;
-
-    component! {
-        /// `<triggerSet>`: a button that, when pressed, performs every
-        /// `<updateValue>` inside it at once. Its `<label>` is the button's
-        /// text.
-        tags: ["triggerSet"],
-        flags: [container],
         planner: Props,
     }
 }

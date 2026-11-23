@@ -95,6 +95,9 @@ impl<'a> Reader<'a> {
                         text = s;
                     }
                 }
+                // An element is content no literal holds: not one value
+                // with the element dropped (COMP-1).
+                NodeKind::Element if !self.is_presentation_child(n) => return Ok(None),
                 _ => {}
             }
         }
@@ -126,7 +129,8 @@ impl<'a> Reader<'a> {
     }
 
     /// Math text and `$ref` children to an expression template whose cell
-    /// leaves are plan ids.
+    /// leaves are plan ids, its text kept for the symbolic engine: an
+    /// operator over math reads it as math (ADR 0043).
     pub(in crate::compile) fn plan_math(
         &self,
         ar: &mut Arenas,
@@ -135,8 +139,7 @@ impl<'a> Reader<'a> {
         nodes: &[NodeId],
     ) -> Result<ExprId> {
         let _s = crate::trace::tally("plan math");
-        let (toks, src) = self.math_tokens(ar, t, scope, nodes)?;
-        self.parse_tokens(ar, &toks, src)
+        self.plan_sym_math(ar, t, scope, nodes)
     }
 
     /// Math text and `$ref` children to an expression template, recording
@@ -300,12 +303,15 @@ impl<'a> Reader<'a> {
     }
 }
 
-/// A literal value: `true`, `false` or a number.
+/// A literal value: `true`, `false` (in any case, as every keyword in an
+/// attribute's value is; NAME-0, D51) or a number.
 pub(in crate::compile) fn literal_value(text: &str) -> Option<Source> {
-    match text {
-        "true" => Some(Source::given(1.0)),
-        "false" => Some(Source::given(0.0)),
-        _ => text.parse::<f64>().ok().map(Source::given),
+    if text.eq_ignore_ascii_case("true") {
+        Some(Source::given(1.0))
+    } else if text.eq_ignore_ascii_case("false") {
+        Some(Source::given(0.0))
+    } else {
+        text.parse::<f64>().ok().map(Source::given)
     }
 }
 

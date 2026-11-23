@@ -98,6 +98,13 @@ export function setCoords(p: JSG.Point, x: number, y: number) {
     refresh(p);
 }
 
+/** Put a text (a label) at `(x, y)`, where its anchor is; drawn by the
+ * next redraw. */
+export function setTextCoords(t: JSG.Text, x: number, y: number) {
+    t.coords.setCoordinates(JSG.COORDS_BY_USER, [1, x, y]);
+    refresh(t);
+}
+
 /** Bring an object's derived state up to date (it is drawn by the next
  * redraw). */
 export function refresh(o: JSG.GeometryElement) {
@@ -110,4 +117,21 @@ export function setVisible(o: JSG.GeometryElement, visible: boolean) {
     if (o.getAttribute("visible") !== visible) {
         o.setAttribute({ visible });
     }
+}
+
+/** Call `handler` when `o` is clicked: pressed and let go without being
+ * dragged in between. */
+export function onClick(o: JSG.GeometryElement, handler: () => void) {
+    let dragged = false;
+    o.on("down", () => {
+        dragged = false;
+    });
+    o.on("drag", () => {
+        dragged = true;
+    });
+    o.on("up", () => {
+        if (!dragged) {
+            handler();
+        }
+    });
 }

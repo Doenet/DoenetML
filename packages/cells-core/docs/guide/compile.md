@@ -85,8 +85,10 @@ A failure no element can carry in place, one sealing or the check finds,
 ends the compile at the next stage boundary as a
 [`Failure`](crate::compile::Failure) that names the element to box. The
 compile then runs again from outlining with that element's node boxed
-from the start, until the check passes. Only a failure with no element
-to box, a dependency cycle, fails the load. The diagnostics are the
+from the start, until the check passes. A dependency cycle boxes the
+component it names (ADR 0013's amendment). Only a failure with no
+element to box, a cycle through no component the author wrote, fails
+the load. The diagnostics are the
 boxes' errors, the planners' and the check's warnings, and the lint
 findings: a function of the source alone (ADR 0014), which
 [`diagnose`](crate::diagnose) reports without loading.

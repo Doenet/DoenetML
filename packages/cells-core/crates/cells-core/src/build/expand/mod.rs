@@ -43,7 +43,14 @@ crate::index::index_type! {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(in crate::build) enum PlannedOp {
     Spec(OpSpec),
-    Template { template: SymTemplateId, post: Post },
+    /// A symbolic template over its leaves; with `blank`, a lowered math's
+    /// expression, made only while its value (the first input, before the
+    /// leaves) is missing (ADR 0046).
+    Template {
+        template: SymTemplateId,
+        post: Post,
+        blank: bool,
+    },
 }
 
 impl PlannedOp {
@@ -537,6 +544,7 @@ impl<'c> Builder<'c> {
                 dast_node: Vec::with_capacity(guess),
                 scope: Vec::with_capacity(guess),
                 referent: Vec::with_capacity(guess),
+                links: Vec::new(),
             },
             slot_base: Vec::with_capacity(guess),
             n_public: Vec::with_capacity(guess),
@@ -653,6 +661,19 @@ impl<'c> Builder<'c> {
             .extend(std::iter::repeat_n(self.components.scope[comp.index()], n));
     }
 
+    /// Slots for a `$ref` child shown as a value of `ty`: every prop of
+    /// its table, each the missing value until its value prop is set (an
+    /// anchor, which nothing gives it).
+    fn allocate_value_slots(&mut self, comp: CompIdx, ty: ComponentType) {
+        let n = ty.prop_defs().len();
+        self.allocate_slots(comp, n);
+        let missing = self.missing_slot();
+        for pi in 0..n {
+            let s = self.slot(comp, pi);
+            self.sources[s.index()] = BuiltSource::Alias(missing);
+        }
+    }
+
     #[inline]
     pub(in crate::build) fn slot(&self, comp: CompIdx, prop_index: usize) -> SlotId {
         self.slot_base[comp.index()].offset(prop_index)
@@ -714,7 +735,10 @@ impl<'c> Builder<'c> {
         if let Some(s) = self.missing {
             return s;
         }
-        let s = self.anon_slot(BuiltSource::Const(f64::NAN), ScopeId::DOCUMENT);
+        let s = self.anon_slot(
+            BuiltSource::Const(crate::program::MISSING),
+            ScopeId::DOCUMENT,
+        );
         self.missing = Some(s);
         s
     }
@@ -997,6 +1021,7 @@ impl<'c> Builder<'c> {
                 return Err(e);
             }
         }
+        self.resolve_links();
         self.choice_sources();
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
@@ -1007,6 +1032,24 @@ impl<'c> Builder<'c> {
         }
         self.aggregate_sources();
         self.hold_all()
+    }
+
+    /// What each element's `Component` and `After` attributes name
+    /// (ADR 0040, 0042), resolved in its instance's scope to the component
+    /// table's links. A reference to anything but one component (an
+    /// iteration, a list's entry) names none.
+    fn resolve_links(&mut self) {
+        for i in 0..self.instances.len() {
+            let inst = self.instances[i];
+            let tpl = &self.compiled.plans.templates[inst.template.index()];
+            for &(attr, p) in &tpl.plan(inst.elem).links {
+                if let Ok((Resolved::Comp(c), _)) = self.resolve(p, inst.scope) {
+                    self.components.links.push((inst.comp, attr, c));
+                }
+            }
+        }
+        // Stable: each attribute's components stay in the order written.
+        self.components.links.sort_by_key(|&(c, attr, _)| (c, attr));
     }
 
     /// Hold every slot of every element the compile says is held, each by
@@ -1088,22 +1131,23 @@ impl<'c> Builder<'c> {
             (Resolved::Missing, _) => {
                 let ty = Role::Value.ty();
                 self.components.component_type[idx.index()] = ty;
-                self.allocate_slots(idx, 1);
+                self.allocate_value_slots(idx, ty);
                 let s = self.slot(idx, ty.scalar_prop().expect("a value"));
                 self.sources[s.index()] = BuiltSource::Alias(self.missing_slot());
             }
             (target, Some(prop)) => {
                 let targets = self.port_targets(target, Some(prop), plan, Some(1), scope)?;
-                // A string id shows as a text.
-                let is_text = self.value_type(targets[0]) == ValueType::Text;
+                // A string id shows as a text, a math cell as a math.
+                let held = self.value_type(targets[0]);
                 let component_type = match prop.of.shows_as(prop.sel) {
                     Some(role) => role.ty(),
-                    None if is_text => Role::TextValue.ty(),
+                    None if held == ValueType::Text => Role::TextValue.ty(),
+                    None if held == ValueType::Math => Role::MathValue.ty(),
                     None => Role::Value.ty(),
                 };
                 let value = component_type.scalar_prop().expect("a value");
                 self.components.component_type[idx.index()] = component_type;
-                self.allocate_slots(idx, 1);
+                self.allocate_value_slots(idx, component_type);
                 let s = self.slot(idx, value);
                 self.sources[s.index()] = BuiltSource::Alias(targets[0]);
             }
@@ -1554,8 +1598,13 @@ impl<'c> Builder<'c> {
                         == PortType::Math
                     {
                         self.sym_source(*expr, *post, inst.scope)?
+                    } else if let Some(vp) = self.lowered_value(inst, component_type, pi, *expr) {
+                        // A numeric math is not a math cell (ADR 0005),
+                        // but shows its expression while its value is
+                        // missing (ADR 0046).
+                        let value = self.slot(comp, vp);
+                        self.blank_source(*expr, *post, inst.scope, value)?
                     } else {
-                        // A numeric math is not a math cell (ADR 0005).
                         BuiltSource::Const(f64::NAN)
                     }
                 }
@@ -1581,6 +1630,20 @@ impl<'c> Builder<'c> {
                     }
                 }
                 Flow::SymExpr(expr, post) => self.sym_source(*expr, *post, inst.scope)?,
+                // Symbolic when the compile typed the operator's `expr` math
+                // (ADR 0043).
+                Flow::ValueOf(expr, numeric) => {
+                    if self.compiled.plans.port_type(
+                        inst.template.index(),
+                        slot_off_of(self, inst).offset(expr.index()),
+                    ) == PortType::Math
+                    {
+                        let expr = self.slot(comp, expr.index());
+                        self.op_source(OpSpec::Sym(SymKind::Evaluate), &[expr])
+                    } else {
+                        BuiltSource::Alias(self.slot(comp, numeric.index()))
+                    }
+                }
                 // Left unset: materialized from the tree (`fill_aggregate`).
                 Flow::Aggregate(_) => BuiltSource::Unset,
             },

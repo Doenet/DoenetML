@@ -47,6 +47,20 @@ export const look = {
         hasInnerPoints: true,
     }),
 
+    /** An angle: its arc and the sector inside it, tinted, unlabeled. */
+    angle: () => ({
+        name: "",
+        withLabel: false,
+        ...stroke(LINE_COLOR),
+        strokeWidth: 1,
+        layer: LAYER_OFFSETS.line,
+        fillColor: LINE_COLOR,
+        fillOpacity: 0.2,
+        highlightFillColor: LINE_COLOR,
+        highlightFillOpacity: 0.2,
+        fixed: true,
+    }),
+
     /** A point that defines a shape, drawn as a small handle. */
     vertex: () => ({
         name: "",
@@ -69,8 +83,16 @@ export const look = {
 
     /** A point of its own. */
     point: () => ({
-        name: "test",
+        name: "",
+        withLabel: false,
         ...stroke(POINT_COLOR),
         layer: LAYER_OFFSETS.line,
+    }),
+
+    /** How a point is filled when it is drawn hollow (an open endpoint, an
+     * unstable equilibrium): with the board's background. */
+    hollow: () => ({
+        fillColor: "var(--canvas)",
+        highlightFillColor: "var(--canvas)",
     }),
 };

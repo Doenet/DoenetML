@@ -271,6 +271,48 @@ fn problems_exercises_and_examples_share_one_counter() {
 }
 
 #[test]
+fn every_division_names_its_title_by_its_tag() {
+    // sectioning.test.ts:2495 ("the types of division share one sequence"),
+    // with the words of `sectionWords.js`.
+    let doc = load(
+        r#"<section name="s"><title>S</title>
+  <question name="a"/><activity name="b"/><definition name="c"/><note name="d"/>
+  <theorem name="e"/><proof name="pf"><p>Clear.</p></proof>
+  <paragraphs name="f"/><objectives name="g"/>
+  <introduction><subsection name="h"/></introduction>
+  <problems name="i"><problem name="i1"><part name="j"/><task name="k"/></problem></problems>
+  <exercises name="l"/>
+</section>"#,
+    )
+    .unwrap();
+    let title = |n: &str| doc.section_title(doc.resolve_path(n).unwrap());
+    let titles: Vec<String> = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+        .iter()
+        .map(|n| title(n).unwrap())
+        .collect();
+    assert_eq!(
+        titles,
+        [
+            "Question 1",
+            "Activity 2",
+            "Definition 3",
+            "Note 4",
+            "Theorem 5",
+            "Paragraphs 6",
+            "Objectives 7",
+            "Section 1.8",
+            "Problems 9",
+            "Part 1",
+            "Task 2",
+            "Exercises 10",
+        ]
+    );
+    assert_eq!(title("i1").unwrap(), "Problem 1");
+    // A proof takes no number, nor a place among the divisions.
+    assert_eq!(title("pf"), None);
+}
+
+#[test]
 fn sections_in_inactive_cases_take_no_number() {
     let mut doc = load(
         r#"

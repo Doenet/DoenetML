@@ -117,6 +117,14 @@ impl Wire {
             given: Some(id),
         }
     }
+    /// A given math value, given by `id`, initially the expression
+    /// `tree`, or blank.
+    pub(crate) fn given_math(id: GivenId, tree: Option<Tree<RefId>>) -> Self {
+        Wire {
+            source: Source::Leaf(Leaf::GivenMath(tree)),
+            given: Some(id),
+        }
+    }
     /// A constant, not NaN: a value not given is
     /// `absent`, one the element cannot have `undefined`.
     pub(crate) fn constant(v: f64) -> Self {
@@ -342,6 +350,17 @@ impl ElemWiring {
             self.given.insert(id, port);
         }
         port
+    }
+    /// Hidden ports holding the outputs of a vector instruction over own
+    /// ports, consecutive, in order: what a type uses and does not show (a
+    /// rectangle's two opposite corners).
+    pub(crate) fn hidden_vector(&mut self, op: VecOp, args: Vec<Port>) -> Vec<Port> {
+        let head = self.hidden(Source::vector(op, args));
+        let mut ports = vec![head];
+        for k in 1..op.n_out() {
+            ports.push(self.hidden(Source::Flow(Flow::VecOut(head, byte(k)))));
+        }
+        ports
     }
     /// A hidden port holding parameter `param` at `value`.
     pub(crate) fn param(&mut self, param: Param, value: f64) -> Port {

@@ -58,6 +58,7 @@ impl<'a> Planning<'a> {
                 PropFrom::Children => "children",
                 PropFrom::ByPlanner => "by planner",
                 PropFrom::Aggregate(_) => "aggregate",
+                PropFrom::Anchor { .. } => "anchor",
             });
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
@@ -120,10 +121,12 @@ impl<'a> Planning<'a> {
                         },
                         None => default(def.default, pi),
                     },
-                    _ => self.plan_value_children(t, scope, &children)?,
+                    _ => self.plan_value_children(t, e, scope, &children)?,
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
+                // Planned after the table, for every type (`plan_anchor`).
+                (None, PropFrom::Anchor { .. }) => Source::absent(),
                 // A table says what every prop is; only a function
                 // plans a `by_planner` prop, or machinery (`by_machinery`).
                 (None, PropFrom::ByPlanner) if by_machinery => Source::absent(),
@@ -147,11 +150,18 @@ impl<'a> Planning<'a> {
     pub(super) fn plan_value_children(
         &mut self,
         t: TemplateId,
+        e: ElemId,
         scope: ElemId,
         v: &ValueChildren,
     ) -> Result<Source> {
         Ok(match &v.value {
-            ChildValue::Reference(p) => Source::reference(*p),
+            // A list of no entries is the missing value where one value is
+            // read (ADR 0041, decision 5; ADR 0046); an entry past a list's
+            // end reads it through the reference.
+            ChildValue::Reference(p) => match self.splice(t, e, *p) {
+                super::lists::Splice::Entries(0) => Source::constant(crate::program::MISSING),
+                _ => Source::reference(*p),
+            },
             ChildValue::Text { text, .. } if literal_value(text.trim()).is_some() => {
                 literal_value(text.trim()).expect("a literal")
             }
@@ -200,7 +210,8 @@ impl<'a> Planning<'a> {
                 inlining.pop();
                 inlined
             }
-            Expr::Num(_) | Expr::Sym(_) => id,
+            // An operator's text is its own: nothing inlines into it.
+            Expr::Num(_) | Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => id,
             Expr::Neg(a) => {
                 let a = self.inline_maths(t, a, inlining);
                 self.ar.arena.push(Expr::Neg(a))

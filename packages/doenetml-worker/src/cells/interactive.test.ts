@@ -19,7 +19,11 @@ const CELLS_CORE = path.resolve(__dirname, "../../../cells-core");
 /** The arguments each renderer action is carried out with: what its
  * renderer would send. */
 const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
-    point: { move: [{ x: 2, y: 3 }] },
+    point: {
+        move: [{ x: 2, y: 3 }],
+        pointClicked: [{}],
+        pointFocused: [{}],
+    },
     graph: {
         changeBoundingBox: [{ xMin: -9, xMax: 9, yMin: -8, yMax: 8 }],
     },
@@ -51,6 +55,55 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
     hint: { toggle: [{ open: true }] },
     answer: { submitAnswer: [{}] },
     triggerSet: { triggerActions: [{}] },
+    solution: { revealSolution: [{}], closeSolution: [{}] },
+    ray: {
+        moveRay: [{ endpointcoords: [1, 1], throughcoords: [2, 3] }],
+    },
+    vector: {
+        moveVector: [
+            { tailcoords: [1, 1], headcoords: [2, 3] },
+            { headcoords: [4, 4] },
+            { tailcoords: [0, 1] },
+        ],
+    },
+    rectangle: {
+        movePolygon: [
+            { pointCoords: { 0: [1, 1], 1: [2, 1], 2: [2, 2], 3: [1, 2] } },
+            { pointCoords: { 1: [3, 1] } },
+        ],
+    },
+    regularPolygon: {
+        movePolygon: [
+            { pointCoords: { 0: [1, 1], 1: [2, 1], 2: [1, 2] } },
+            { pointCoords: { 1: [3, 1] } },
+        ],
+    },
+    triangle: {
+        movePolygon: [
+            { pointCoords: { 0: [1, 1], 1: [2, 1], 2: [1, 2] } },
+            { pointCoords: { 1: [3, 1] } },
+        ],
+    },
+    bestFitLine: {
+        moveLine: [{ point1coords: [1, 1], point2coords: [2, 3] }],
+    },
+    intersection: { move: [{ x: 2, y: 3 }] },
+    equilibriumPoint: { move: [{ x: 2, y: 3 }], switchPoint: [{}] },
+    endpoint: { move: [{ x: 2, y: 3 }], switchPoint: [{}] },
+    equilibriumLine: {
+        moveLine: [{ point1coords: [1, 1], point2coords: [2, 3] }],
+        switchLine: [{}],
+    },
+    callAction: { callAction: [{}] },
+    updateValue: { updateValue: [{}] },
+    _fractionInputComponent: { updateValue: [{ text: "3" }] },
+    curve: {
+        moveThroughPoint: [{ throughPointInd: 1, throughPoint: [2, 3] }],
+    },
+    equilibriumCurve: {
+        moveThroughPoint: [{ throughPointInd: 0, throughPoint: [2, 3] }],
+        switchCurve: [{}],
+    },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -67,7 +120,25 @@ const DOC = `
   <collect name="pts" componentType="point" from="$g2"/>
   <polyline name="pl" vertices="$pts"/>
   <function name="f">x^2</function>
+  <ray name="ry" endpoint="(0,0)" direction="(1,1)"/>
+  <vector name="v" tail="(1,1)" head="(2,3)"/>
+  <rectangle name="rc" center="(1,1)" width="2"/>
+  <regularPolygon name="rp" numVertices="5"/>
+  <triangle name="tri" vertices="(2,2) (3,2)"/>
+  <clampFunction name="cf" lowerValue="-1" upperValue="2">$f</clampFunction>
+  <wrapFunctionPeriodic name="wf">$f</wrapFunctionPeriodic>
+  <bestFitLine name="bf" data="$p $q (3,3)"/>
+  <intersection name="int">$l $ld</intersection>
+  <parabola name="pb" through="(0,0) (1,1)"/>
+  <equilibriumPoint name="ep" switchable>(3,0)</equilibriumPoint>
+  <endpoint name="ept" open switchable>(4,0)</endpoint>
+  <equilibriumLine name="el" through="(0,2) (1,3)" switchable/>
+  <curve name="cv" through="(0,0) (1,2) (3,1)"/>
+  <equilibriumCurve name="ec" through="(0,1) (2,2)" switchable/>
+  <piecewiseFunction name="pw"><function domain="[0,1]">x</function><function>0</function></piecewiseFunction>
+  <curve name="pc">(t, t^2)</curve>
 </graph>
+<p><vector>(1, 2)</vector> <angle through="(1,0) (0,0) (0,1)"/></p>
 <graph name="g2"><point>(0,0)</point><point>(1,1)</point></graph>
 <graph name="bound" xmin="$n" xmax="$n + 20"><point>(5,5)</point></graph>
 <numberInput name="n" value="1"/>
@@ -81,9 +152,16 @@ const DOC = `
 <slider name="slBound" from="0" to="10" bindValueTo="$n"/>
 <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
 <hint name="h"><p>help</p></hint>
+<solution name="sol"><p>answer</p></solution>
+<theorem><statement><p>claim</p></statement></theorem>
+<proof><p>reason</p></proof>
 <boolean name="k"/>
 <triggerSet name="t"><label>Go</label><updateValue target="$k" newValue="true"/></triggerSet>
 <answer name="a">2x</answer>
+<callAction name="ca" target="$a" actionName="submitAnswer"><label>Check</label></callAction>
+<number name="clicks">0</number><number name="clicks1">$clicks + 1</number>
+<updateValue name="uv" target="$clicks" newValue="$clicks1"><label>Count</label></updateValue>
+<updateValue target="$clicks" newValue="$clicks1" triggerWhenObjectsClicked="$p" triggerWhen="$n > 5"/>
 <number name="num">$n + 1</number>
 <clampNumber name="cl">5</clampNumber>
 <math name="mm">x + $n</math>
@@ -98,6 +176,7 @@ const DOC = `
 <select name="sel"><option><p>one</p></option><option><p>two</p></option></select>
 <repeatForSequence name="r" from="1" to="3" valueName="v"><number>$v</number></repeatForSequence>
 <setup><number name="hidden">$n + 2</number></setup>
+<fractionInput name="fi" prefillNumerator="1"/>
 `;
 
 /** What the bridge must have requested, as `type.prop`: one per kind of
@@ -123,6 +202,20 @@ const EXPECTED_REQUESTS = [
     "slider.value",
     "choiceInput.selectedIndex",
     "hint.open",
+    "solution.open",
+    "ray.endpointX",
+    "ray.throughY",
+    "vector.tailX",
+    "vector.headY",
+    "rectangle.list[0]",
+    "regularPolygon.list[0]",
+    "triangle.list[0]",
+    "equilibriumPoint.x",
+    "equilibriumPoint.stable",
+    "endpoint.open",
+    "equilibriumLine.x1",
+    "equilibriumLine.stable",
+    "_fractionInputComponent.expr",
 ];
 
 /** What the bridge must have read, as `type.prop`: one or more per
@@ -153,11 +246,32 @@ const EXPECTED_READS = [
     "slider.step",
     "choiceInput.selectedIndex",
     "hint.open",
+    "solution.open",
     "answer.credit",
     "answer.numSubmissions",
     "section.number",
     "section.label",
     "case.active",
+    "ray.throughX",
+    "vector.x",
+    "vector.tailY",
+    "rectangle.list[0]",
+    "regularPolygon.list[0]",
+    "angle.radians",
+    "triangle.list[0]",
+    "clampFunction.samples",
+    "wrapFunctionPeriodic.curve",
+    "bestFitLine.x1",
+    "intersection.x",
+    "intersection.hide",
+    "parabola.samples",
+    "equilibriumPoint.stable",
+    "endpoint.open",
+    "equilibriumLine.stable",
+    "callAction.hide",
+    "updateValue.hide",
+    "triggerSet.hide",
+    "_fractionInputComponent.expr",
 ];
 
 beforeAll(async () => {
@@ -261,6 +375,66 @@ describe("the bridge requests only interactive cells and reads only outputs", ()
             expect.arrayContaining(EXPECTED_REQUESTS),
         );
         expect([...read]).toEqual(expect.arrayContaining(EXPECTED_READS));
+    });
+
+    it("a drag of a value in a graph moves its anchor", async () => {
+        const bridge = await loadCellsDocument(
+            normalizeDocumentDast(
+                lezerToDast(`<graph>
+  <shortDescription>values</shortDescription>
+  <number name="n">3</number>
+  <math name="m" anchor="(1,2)">x</math>
+  <text name="t">hi</text>
+  <point name="P">(4,5)</point>
+  <abs name="a" anchor="$P">-2</abs>
+  <angle name="ang" through="(1,0) (0,0) (0,1)"/>
+</graph>`),
+            ),
+        );
+        const root = bridge.flatDast();
+        const byName = (name: string) => {
+            const c = bridge.core.resolve_path(name);
+            const id = bridge._idByComponent.get(c)!;
+            return root.elements[id] as any;
+        };
+        expect(byName("m").data.props.numericalAnchor).toEqual([1, 2]);
+        expect(byName("n").data.props.numericalAnchor).toEqual([0, 0]);
+        expect(byName("t").data.props.positionFromAnchor).toBe("center");
+        expect(byName("ang").data.props).toMatchObject({
+            numericalFirstPoint: [1, 0],
+            numericalVertex: [0, 0],
+            radians: Math.PI / 2,
+            radius: 1,
+        });
+        const value = (name: string, prop: string) =>
+            bridge.table.value(
+                bridge.table.cell(bridge.core.resolve_path(name), prop)!,
+            );
+        for (const [name, actionName, x, y] of [
+            ["n", "moveNumber", -1, 2],
+            ["m", "moveMath", 3, 4],
+            ["t", "moveText", 5, 6],
+        ] as const) {
+            bridge.dispatch({
+                component:
+                    name === "t" ? "text" : name === "m" ? "math" : "number",
+                actionName,
+                componentIdx: byName(name).data.id,
+                args: { x, y },
+            });
+            expect([value(name, "anchorX"), value(name, "anchorY")]).toEqual([
+                x,
+                y,
+            ]);
+        }
+        // Anchored at a point, the drag moves the point.
+        bridge.dispatch({
+            component: "abs",
+            actionName: "moveMath",
+            componentIdx: byName("a").data.id,
+            args: { x: 1, y: 1 },
+        });
+        expect([value("P", "x"), value("P", "y")]).toEqual([1, 1]);
     });
 
     const golden = path.join(CELLS_CORE, "crates/cells-bench/golden");

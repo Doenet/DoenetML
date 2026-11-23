@@ -20,7 +20,7 @@ prop table (`Props`) or a function of the element's record (`Plan`).
 A component type is one [`component!`](crate::components::define::component)
 block ([`components::define`](crate::components::define)) in one of the
 family directories under `components/`: `containers/`, `geometry/`,
-`inputs/`, `structure/` or `values/`.
+`inputs/`, `operators/`, `structure/` or `values/`.
 
 **A type built entirely from its prop table** (attributes, children,
 defaults, and operators over its own props) goes in an inline module of the
@@ -112,7 +112,9 @@ methods. Rules for planners:
   written: a `<math>`'s, a point's `(a, b)`), `Value` (a blank, a literal,
   one reference or math text: a `<number>`'s, a `<text>`'s), `List` (a
   list's entries: pieces of text split at the spaces outside any bracket
-  pair, and each reference one, a `<numberList>`'s; ADR 0041), or, the
+  pair, each reference and each element child, a component of the
+  list, the entries of the sequence it names, a `<numberList>`'s; ADR
+  0041, read through `PlanCtx::list_entries`), or, the
   default, `Rendered` (built as components). Groups of element children
   follow the kind (`children: Math { constraints: [ConstrainTo,
   ConstrainToGrid] }`): each member is parsed into a record of its own, as
@@ -178,15 +180,31 @@ methods. Rules for planners:
   `Collects(Point)` or `CollectsByAttr(componentType)` for what outlining
   settles from the source; `extend_value: Scalar(value)`, `Point(f)`,
   `Expr(f)` or `List` for what `extend="$x.prop"` makes of a value;
-  `triggered: Sets(target, newValue)` for a trigger; `numbered:
-  Titled(include, label, f)` for a section's number and title; and the
-  prop option `infinite`. A free owned type is refused with what owns it
+  `numbered:
+  Titled(include, label, f)` for a section's number and title;
+  `counted: Figures(number)` for a document-wide counter it takes a
+  number from (ADR 0044); `inner { numerator: FractionInputPart, .. }`
+  for the inputs it owns, which its planner plans (`ctx.inner(k)`,
+  `ctx.plan_inner`) and wires (ADR 0045); and the prop option
+  `infinite`. A free owned type is refused with what owns it
   ([`ComponentType::free_owned_refusal`](crate::components::ComponentType::free_owned_refusal)).
 - The core names no type: a unit test in `components/mod.rs`
   (`the_core_names_no_type`) refuses any `ComponentType` variant or
   `components::prop` position outside `components/`. What the core needs
   of a type is one of the declarations above, a role, or a `Machinery`
   variant.
+- A type a student acts on lists its actions (`actions { submitAnswer:
+  submit }`, ADR 0040): each a function beside the type over a read-only
+  [`ActionView`](crate::ActionView) (a prop's value, a request on a prop of
+  its own, its children, its target, another component's action) that
+  returns requests. [`Document::act`](crate::Document::act) carries one out
+  as a tick; a press is the action `trigger` and a submit `submitAnswer`. An
+  action requests only props marked `written_by_action` or `interactive`
+  (ADR 0018), and a spec reaches one with `act("name", "trigger")`. A
+  button the document presses declares the 0/1 prop whose rise presses it
+  (`triggers { when: triggerWhen }`) and the components it waits on as
+  attributes (`triggerWith: After(Act)`, ADR 0042); an action that is a
+  click or a focus says so (`pointClicked: nothing [Click]`).
 - `fixed` is not the planner's: `plan_elem` records, beside the plans,
   what holds the element ([`ElemPlan::hold`](crate::compile::ir::ElemPlan::hold), from the table `HOLD_ATTRS`): the
   element's own setting, else the nearest container's (ADR 0022). The
@@ -262,16 +280,18 @@ candidate for a hook, or for removal.
 | is a shape | `renders: InGraph`, `flags: [located]`, `list { .. }` or `combined_props`, `sticky:`, `constrain_target` |
 | is a container | `flags: [container]`, `structure:` when looked through, `scored: Skip` when scores skip it, `encloses: Graph(..)` for a graph's like |
 | takes attributes a renderer reads | `presentation { .. }` |
+| is a value a graph draws as a label | `anchorX: anchor(0), anchorY: anchor(1)` (ADR 0047), planned for it; `Wire::absent()` for each in a planner's `Props` |
 | accepts the current core's spellings | `alternate_names { .. }` |
 
 **Beyond a typical component** (one type's behavior, or the machinery's):
 `roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
-`rewrite`, `settle`, `submit`, `triggered`, `numbered`, `scored: Item(..)`
+`rewrite`, `settle`, `submit`, `numbered`, `counted`,
+`inner`, `scored: Item(..)`
 and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
 `encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.
 
 The baseline: 5 items for every type, 3 more with a planner, 20
-declarations by what the type is, and 14 beyond a typical component that
+declarations by what the type is, and 16 beyond a typical component that
 sit in the same block, which an author reads past. ADR 0039 (proposed)
 shrinks the last to 5.
 
@@ -294,6 +314,13 @@ in `program/vector.rs`, checked by the `writes` tests there.
 A document reaches an operator through a component's prop table or planner,
 or through math lowering (`build/expand/math.rs`). Operators over several
 cells are `VecOp`s in `program/vector.rs`.
+
+A component type that is an operator over operands that may be
+expressions (`<abs>`, `<sum>`) is numeric or symbolic by its operands'
+types (ADR 0043): its planner wires an `expr` and a `value` through
+`components/operators/over_math.rs`, the operator over numbers for the one
+and the engine's operator, spelled as text over the operands
+(`PlanCtx::operator_expr`) and finished by a `Post`, for the other.
 
 ## Change how a request inverts
 

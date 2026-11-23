@@ -9,8 +9,8 @@ a fractional step counts its items as the current core does: cells 19 · essenti
 a request on index snaps too: cells 20 · essential 1 · constant 11 · instrs 8 · components 3
 an index outside the range is projected onto it: cells 20 · essential 1 · constant 11 · instrs 8 · components 3
 bindValueTo an input: the input receives the snapped value: cells 19 · essential 1 · constant 10 · instrs 8 · components 3
-bindValueTo a derived value: the request continues down the chain: cells 21 · essential 1 · constant 11 · instrs 9 · components 4
-bound to a sum with an emptied input: the request is dropped, not written as NaN: cells 21 · essential 2 · constant 10 · instrs 9 · components 5
+bindValueTo a derived value: the request continues down the chain: cells 22 · essential 1 · constant 12 · instrs 9 · components 4
+bound to a sum with an emptied input: the request is dropped, not written as NaN: cells 22 · essential 2 · constant 11 · instrs 9 · components 5
 a slider bound to a slider with another step: cells 32 · essential 1 · constant 15 · instrs 16 · components 3
 step from another slider: cells 33 · essential 2 · constant 12 · instrs 19 · components 3
 a point whose x is a slider drags the slider: cells 25 · essential 6 · constant 11 · instrs 8 · components 4

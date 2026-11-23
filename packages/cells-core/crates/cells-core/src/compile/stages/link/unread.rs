@@ -11,11 +11,14 @@ impl Linking<'_, '_> {
     /// Box in place every element, outside every box, with an attribute
     /// nothing read while planning; what is under it is left out of the
     /// diagnostics. A node the check names with no element made for it is
-    /// boxed by compiling again.
-    pub(super) fn box_unread_attributes(&mut self) {
+    /// boxed by compiling again. The root component cannot be boxed, since
+    /// every other one is inside it: an attribute nothing read on it is a
+    /// warning, returned, and the document goes on (DIAG-5).
+    pub(super) fn box_unread_attributes(&mut self) -> Vec<Diagnostic> {
+        let mut warnings = Vec::new();
         let unread = unread_attributes(self.rd.dast, &self.boxes.all());
         if unread.is_empty() {
-            return;
+            return warnings;
         }
         let mut at: HashMap<NodeId, (TemplateId, ElemId)> = HashMap::new();
         for ti in 0..self.tables.len() {
@@ -37,9 +40,18 @@ impl Linking<'_, '_> {
                 self.boxes.fail(error, Some(node));
                 continue;
             };
+            if (t, e) == (TemplateId::new(0), ElemId::from_index(0)) {
+                warnings.push(Diagnostic::warning(
+                    error.code(),
+                    Some(node),
+                    format!("{error}; it is ignored"),
+                ));
+                continue;
+            }
             self.boxes
                 .box_in_place(&self.rd.settled().templates, self.tables, t, e, error);
         }
+        warnings
     }
 }
 
@@ -50,10 +62,16 @@ impl Linking<'_, '_> {
 /// element the normalizer made (a tag starting with `_`) are accepted.
 fn unread_attributes(dast: &Dast, boxed: &HashSet<NodeId>) -> Vec<(NodeId, Error)> {
     let presentation = |tag: &str, name: &str| {
-        let of_type = ComponentType::from_tag(tag).map_or(&[][..], |k| k.def().presentation);
+        let ty = ComponentType::from_tag(tag);
+        let of_type = ty.map_or(&[][..], |k| k.def().presentation);
+        let of_anchor = match ty.and_then(|k| k.anchor_props()) {
+            Some(_) => crate::components::ANCHOR_PRESENTATION_ATTRS,
+            None => &[],
+        };
         crate::components::PRESENTATION_ATTRS
             .iter()
             .chain(of_type)
+            .chain(of_anchor)
             .any(|p| p.eq_ignore_ascii_case(name))
     };
     let mut out = Vec::new();

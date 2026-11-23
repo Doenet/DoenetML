@@ -52,11 +52,21 @@ pub struct ComponentDef {
     /// What `extend="$x.prop"` makes of the value for an element of the
     /// type; `None` for a type that cannot extend a prop.
     pub(crate) extend_value: Option<ExtendValue>,
-    /// What pressing a trigger above an element of the type requests.
-    pub triggered: Option<Triggered>,
+    /// The type's actions, each a function over the built document that
+    /// returns requests (ADR 0040).
+    pub actions: &'static [ActionDecl],
+    /// What presses a component of the type besides a student (ADR 0042).
+    pub triggers: Option<Triggers>,
     /// How a numbered component's full number and title read.
     pub numbered: Option<Numbered>,
-    /// What a submit does to a component of the type.
+    /// The document-wide counter a component of the type takes its number
+    /// from ("Figure 2", a footnote's marker), read when asked (ADR 0044).
+    pub counted: Option<Counted>,
+    /// The inputs a component of the type owns, made for it in this order
+    /// as its first children and wired by its planner (ADR 0045).
+    pub inner: &'static [InnerInput],
+    /// What an answer's response is, for what reads an answer's responses
+    /// (not for its submit, which is an action).
     pub submit: Option<Submit>,
     /// The roles the type plays for the core: what it makes when it needs a
     /// root, a refused element's box, an iteration's index, ... Each role is
@@ -157,6 +167,14 @@ pub enum AttrKind {
     Math,
     /// One reference and nothing else.
     Ref,
+    /// One reference to a component, not a prop (`target="$ans"`): the
+    /// component an action of the type acts on (ADR 0040). The compile
+    /// records it on the element's plan and the build resolves it.
+    Component,
+    /// References to components, separated by spaces, whose `event`
+    /// presses the element (`triggerWith="$a $b"`, ADR 0042). The compile
+    /// records them on the element's plan and the build resolves them.
+    After(Event),
 }
 
 /// One attribute a type's planner reads.
@@ -211,8 +229,27 @@ pub enum ConstrainTarget {
     Graph {
         /// The target's prop holding the curve's expression.
         expr: &'static str,
+        /// Whether the target is a function with a variable and a domain
+        /// (ADR 0049), in the props [`FUNCTION_PROPS`] names (`constrain_target
+        /// { function: expr }`): the point is held in the domain, and the
+        /// expression evaluated in the variable. Without, it is in `x` on
+        /// the whole line (a `<parabola>`).
+        function: bool,
     },
 }
+
+/// The props of a function of one variable (ADR 0049) besides its
+/// expression: the math cell holding its variable, and its domain's lower
+/// and upper endpoints and whether each is closed, as
+/// [`SymKind::EvalFunction`](crate::program::SymKind::EvalFunction) reads
+/// a piece.
+pub const FUNCTION_PROPS: [&str; 5] = [
+    "variable",
+    "domainMin",
+    "domainMax",
+    "domainMinClosed",
+    "domainMaxClosed",
+];
 
 /// Machinery several types share, which plans an element of a type that names
 /// it.
@@ -266,6 +303,9 @@ pub enum Role {
     /// What a `$ref` child naming an entry of a boolean list shows as
     /// (ADR 0041).
     BooleanValue,
+    /// What a `$ref` child naming a math cell that stands for no
+    /// component's expression shows as: an entry of a math list (ADR 0041).
+    MathValue,
     /// An answer's award: the credit it gives when its condition holds.
     Award,
     /// An award's condition.
@@ -273,8 +313,14 @@ pub enum Role {
     /// One option of an input whose response is an index (a
     /// `<choiceInput>`'s `<choice>`).
     Choice,
-    /// What a function's iterates iterate (a `<function>`).
+    /// What a function's iterates iterate (a `<function>`), and a piece
+    /// of a piecewise function.
     Function,
+    /// A function of one variable made of the functions among its
+    /// children, each on its own domain (a `<piecewiseFunction>`,
+    /// ADR 0049): its value at `x` is its first piece's whose domain holds
+    /// `x`.
+    PiecewiseFunction,
 }
 
 impl Role {
@@ -292,10 +338,12 @@ impl Role {
         Role::Value,
         Role::TextValue,
         Role::BooleanValue,
+        Role::MathValue,
         Role::Award,
         Role::When,
         Role::Choice,
         Role::Function,
+        Role::PiecewiseFunction,
     ];
 }
 
@@ -364,6 +412,9 @@ impl ResponseKind {
 pub enum TextKind {
     /// A number, formatted.
     Number(usize),
+    /// A number, formatted with its integer digits in groups of three,
+    /// separated by commas (`25,236,501.35`): an `<intComma>`'s.
+    Grouped(usize),
     /// A string id's text.
     Text(usize),
     /// `true` when the value is 1, else `false`.
@@ -371,6 +422,16 @@ pub enum TextKind {
     /// The expression's text (`expr`, the first), or the number (`value`)
     /// when there is no expression.
     Math(usize, usize),
+    /// What the cell holds: an expression's text for a math cell, a
+    /// number otherwise (a math list's entry, ADR 0041).
+    Held(usize),
+    /// The children's text between two fixed strings: a `<q>`'s quotes, a
+    /// `<tag>`'s angle brackets, or, with no children, a single character
+    /// (`<mdash/>` is `Delimited("—", "")`).
+    Delimited(&'static str, &'static str),
+    /// Each child's text, trimmed, the empty ones left out, joined by a
+    /// separator: an `<asList>`'s, its children separated by commas.
+    Separated(&'static str),
 }
 
 /// What a component changes about where its descendants are (ADR 0038):
@@ -470,29 +531,99 @@ pub(crate) enum ExtendValue {
     List,
 }
 
-/// What pressing a trigger above an element requests (ADR 0038): `target`
-/// gets `value`'s current value (an `<updateValue>`). Positions in the
-/// type's table.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Triggered {
-    /// The prop requested.
-    pub target: usize,
-    /// The prop whose current value it asks for.
-    pub value: usize,
+/// One of a type's actions (ADR 0040): a name a renderer, a
+/// `<callAction>` or another action calls it by, and the function that
+/// returns the requests it makes, over a read-only view of the built
+/// document. `event` says what it is to a component waiting on it
+/// (`triggerWith`, `triggerWhenObjectsClicked`, ADR 0042).
+#[derive(Clone, Copy)]
+pub struct ActionDecl {
+    /// The name it is called by, matched without regard to case.
+    pub name: &'static str,
+    /// What it requests, given its arguments.
+    pub run: fn(&crate::document::ActionView<'_>, &[f64]) -> Vec<crate::tick::Request>,
+    /// What it is to a component waiting on it.
+    pub event: Event,
 }
 
-/// What a submit does to a component (ADR 0038): copies its live
-/// `response` into `submitted`, and counts the submission in `count` when
-/// it counts them (an answer, and each response of one). Positions in the
-/// type's table.
+impl std::fmt::Debug for ActionDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ActionDecl")
+            .field("name", &self.name)
+            .field("event", &self.event)
+            .finish()
+    }
+}
+
+/// What an action is to a component waiting on it (ADR 0042): an act
+/// (`triggerWith` waits on one), a click (`triggerWhenObjectsClicked`) or
+/// a focus (`triggerWhenObjectsFocused`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Event {
+    /// The action itself: a press, a submit.
+    Act,
+    /// A click on the component, which changes nothing of it.
+    Click,
+    /// The component taking focus, which changes nothing of it.
+    Focus,
+}
+
+/// What presses a component of the type besides a student (ADR 0042): the
+/// rise of its 0/1 prop `when` (`triggerWhen`), and the events of the
+/// components its `after` attributes name (`triggerWith`), each a
+/// follow-up tick of the tick that raised or fired it.
+#[derive(Debug, Clone, Copy)]
+pub struct Triggers {
+    /// The 0/1 prop whose rise from 0 to 1 presses it.
+    pub when: usize,
+}
+
+/// What an answer's response is (ADR 0038): its live `response` and the
+/// `submitted` copy its submit takes, for what reads an answer's responses
+/// and inputs. The submit itself is an action of the type (ADR 0040).
+/// Positions in the type's table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Submit {
     /// The prop a submit reads.
     pub response: usize,
     /// The prop it writes the response into.
     pub submitted: usize,
-    /// The prop counting the submissions, when it counts them.
-    pub count: Option<usize>,
+}
+
+/// An input a component owns (ADR 0045): made for every element of the
+/// type as one of its first children, in the order the type declares
+/// them, with no element in the source; the owner's planner plans it and
+/// wires its own props to its ports. A `<fractionInput>`'s numerator and
+/// denominator.
+#[derive(Debug, Clone, Copy)]
+pub struct InnerInput {
+    /// What the owner calls it (`numerator`).
+    pub name: &'static str,
+    /// Its type.
+    pub ty: ComponentType,
+}
+
+/// A document-wide counter (ADR 0044): the components that advance one
+/// are numbered 1, 2, ... in document order, through the active cases
+/// only, whatever their type. The current core's counters: figures and
+/// tables share `sectioning`, footnotes have their own.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Counter {
+    /// Figures and tables ("Figure 1", "Table 2").
+    Figures,
+    /// Footnotes (their markers).
+    Footnotes,
+}
+
+/// How a component of the type takes a number from a [`Counter`] (ADR
+/// 0044): it advances `counter` when its `when` prop is nonzero (a
+/// figure's `number`), or always without one.
+#[derive(Debug, Clone, Copy)]
+pub struct Counted {
+    /// The counter it advances.
+    pub counter: Counter,
+    /// The 0/1 prop saying whether it takes a number; always without one.
+    pub when: Option<usize>,
 }
 
 /// How a numbered component's full number and title read (ADR 0038): its
@@ -578,6 +709,10 @@ pub enum Renders {
     Never,
     /// Only with a `<graph>` above it: a line, a circle.
     InGraph,
+    /// Only with a `<graph>` above it, as one drawing: its children are
+    /// parts it draws, none drawn on its own (a `<piecewiseFunction>`'s
+    /// functions, ADR 0049).
+    InGraphAlone,
 }
 
 /// Where a list's points are.
@@ -601,6 +736,14 @@ pub enum ListPoints {
         attribute: Option<crate::compile::api::Attr>,
         /// The most points the list keeps.
         max: Option<usize>,
+        /// The attribute whose literal number cuts the entries a value
+        /// list's children give (`maxNumber`, ADR 0041).
+        max_by: Option<crate::compile::api::Attr>,
+        /// How a value list's count follows its children (ADR 0041): as
+        /// many entries as they contribute, less this many (one for a
+        /// `<differences>`), cut at `max_by`; None for a list whose count
+        /// is no count of its children (a sequence's, a sampler's).
+        from_children: Option<u8>,
         /// What an entry is: a point, or a value of a kind.
         entry: EntryKind,
     },
@@ -621,6 +764,8 @@ pub enum EntryKind {
     Text,
     /// 1 for true, else false.
     Boolean,
+    /// An expression handle, or a number where an entry aliases one.
+    Math,
 }
 
 /// Where a sticky group member's points are, as (x, y) pairs.
@@ -735,6 +880,16 @@ pub enum PropFrom {
     /// materialized by the build: no planner can wire it, and nothing overrides
     /// it.
     Aggregate(Aggregate),
+    /// Coordinate `coord` (0 for x, 1 for y) of the point where a value is
+    /// drawn in a graph, given by the `anchor` attribute (`anchor="(1,2)"`
+    /// or `anchor="$P"`): planned by the compile for every type that has
+    /// one, whatever its planner, after the planner runs (ADR 0047). Without
+    /// the attribute it is the origin, or under `extend` the referent's;
+    /// with no graph above the element, not given, and no state.
+    Anchor {
+        /// 0 for x, 1 for y.
+        coord: u8,
+    },
 }
 
 /// A set of components around an element, described at compile time and

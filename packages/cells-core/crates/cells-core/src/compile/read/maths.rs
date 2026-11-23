@@ -59,7 +59,18 @@ impl Reader<'_> {
                     macros.push(n);
                     toks.push(Token::Cell(RefId::NONE));
                 }
-                _ => {}
+                // A label or description is presentation, not content.
+                NodeKind::Element if self.is_presentation_child(n) => {}
+                // Any other element would be content this text cannot hold:
+                // dropping it would give a wrong value with no diagnostic
+                // (COMP-1). Its value can be written as a reference.
+                NodeKind::Element => {
+                    return Err(Error::Unsupported(format!(
+                        "a <{}> inside math: name it and write its value as a reference",
+                        d.str(n)
+                    )));
+                }
+                NodeKind::Other => {}
             }
         }
         Ok((toks, macros))
@@ -159,6 +170,92 @@ impl Reader<'_> {
             .map(|part| self.parse_tokens(ar, part, mt.src()))
             .collect::<Result<_>>()?;
         Ok(ParsedMath::Entries(entries))
+    }
+
+    /// Math text written as one interval, `[a, b)` (ADR 0049): its
+    /// endpoints planned from `scope` and whether each end is closed.
+    /// `None` when the text is not one interval of two endpoints (several
+    /// intervals, a reference to one, anything else), which the planner
+    /// warns about.
+    pub(in crate::compile) fn plan_interval(
+        &self,
+        ar: &mut Arenas,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+    ) -> Result<Option<IntervalAttr>> {
+        let d = self.dast;
+        let (Some(&first), Some(&last)) = (nodes.first(), nodes.last()) else {
+            return Ok(None);
+        };
+        if d.kind(first) != NodeKind::Text || d.kind(last) != NodeKind::Text {
+            return Ok(None);
+        }
+        let opening = d.str(first).trim_start().chars().next();
+        let closing = d.str(last).trim_end().chars().last();
+        let (lo_closed, hi_closed) = match (opening, closing) {
+            (Some(o @ ('[' | '(')), Some(c @ (']' | ')'))) => (o == '[', c == ']'),
+            _ => return Ok(None),
+        };
+        // The text with the brackets taken off, `∞` spelled as a word.
+        let mut toks = Vec::new();
+        let mut macros = Vec::new();
+        for (k, &n) in nodes.iter().enumerate() {
+            match d.kind(n) {
+                NodeKind::Text => {
+                    let mut text = d.str(n);
+                    if k == 0 {
+                        text = &text.trim_start()[1..];
+                    }
+                    if k + 1 == nodes.len() {
+                        let end = text.trim_end();
+                        text = &end[..end.len() - 1];
+                    }
+                    let text = text.replace('\u{221e}', " infinity ");
+                    if expr::tokenize(&text, &mut toks).is_err() {
+                        return Ok(None);
+                    }
+                }
+                NodeKind::Macro => {
+                    macros.push(n);
+                    toks.push(Token::Cell(RefId::NONE));
+                }
+                NodeKind::Element if self.is_presentation_child(n) => {}
+                _ => return Ok(None),
+            }
+        }
+        let (toks, _) = self.resolve_tokens(ar, t, scope, &toks, &macros)?;
+        let [lo, hi] = &expr::split_top(&toks, &Token::Comma)[..] else {
+            return Ok(None);
+        };
+        let src = MathSrc(nodes);
+        let mut endpoint = |toks: &[Token]| -> Result<Source> {
+            let infinite = |name: &str| {
+                matches!(
+                    name.to_ascii_lowercase().as_str(),
+                    "infinity" | "inf" | "oo"
+                )
+            };
+            Ok(match toks {
+                [Token::Ident(name)] if infinite(name) => Source::constant(f64::INFINITY),
+                [Token::Op('+'), Token::Ident(name)] if infinite(name) => {
+                    Source::constant(f64::INFINITY)
+                }
+                [Token::Op('-'), Token::Ident(name)] if infinite(name) => {
+                    Source::constant(f64::NEG_INFINITY)
+                }
+                _ => {
+                    let id = self.parse_tokens(ar, toks, src)?;
+                    self.plan_from_expr(ar, id)
+                }
+            })
+        };
+        Ok(Some(IntervalAttr {
+            lo: endpoint(lo)?,
+            hi: endpoint(hi)?,
+            lo_closed,
+            hi_closed,
+        }))
     }
 
     /// Parse math tokens into the arena; `src` is for the error.

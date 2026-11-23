@@ -119,6 +119,10 @@ pub(crate) enum Flow {
     /// without cell leaves, an alias of a lone math leaf, else an
     /// `Instantiate` instruction over the leaves.
     SymExpr(ExprId, Post),
+    /// The value of an operator whose kind the type pass decides (ADR
+    /// 0043): an `Evaluate` of its own port `expr` when that port is math,
+    /// else an alias of its own port `numeric`, the operator over numbers.
+    ValueOf(Port, Port),
     /// An operator over a collection of components around the element:
     /// credit over the scored items, a section's number among its
     /// siblings, a collect's count of what it gathers.
@@ -234,6 +238,16 @@ impl Source {
     pub(crate) fn vector(op: VecOp, args: Vec<Port>) -> Self {
         Source::computed(OpSpec::Vec(op), args)
     }
+    /// The value of an operator over `expr` or, numerically, `numeric`
+    /// ([`Flow::ValueOf`]).
+    pub(crate) fn value_of(expr: Port, numeric: Port) -> Self {
+        Source::Flow(Flow::ValueOf(expr, numeric))
+    }
+    /// A math cell when math text `id` is symbolic, else no value
+    /// ([`Flow::MathHandle`]).
+    pub(crate) fn math_handle(id: ExprId, post: Post) -> Self {
+        Source::Flow(Flow::MathHandle(id, post))
+    }
     /// A math cell from math text ([`Flow::SymExpr`]).
     pub(crate) fn sym_expr(id: ExprId, post: Post) -> Self {
         Source::Flow(Flow::SymExpr(id, post))
@@ -312,4 +326,20 @@ mod tests {
         };
         assert!(!Source::aggregate(credit).gives_document_constant());
     }
+}
+
+/// An interval as an attribute writes one (`domain="[-4, $b)"`), read the
+/// way the JavaScript core parses it into endpoints and closedness
+/// (ADR 0049): no interval value, only its parts. An endpoint written as
+/// infinity (`Infinity`, `-inf`, `∞`) is that number.
+#[derive(Debug, Clone)]
+pub(crate) struct IntervalAttr {
+    /// The lower endpoint.
+    pub(crate) lo: Source,
+    /// The upper endpoint.
+    pub(crate) hi: Source,
+    /// Whether the lower end is closed (`[`).
+    pub(crate) lo_closed: bool,
+    /// Whether the upper end is closed (`]`).
+    pub(crate) hi_closed: bool,
 }

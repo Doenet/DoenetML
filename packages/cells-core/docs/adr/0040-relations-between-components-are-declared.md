@@ -1,6 +1,6 @@
 # Relations between components are declared: context, items and actions
 
-Status: proposed 2026-11-10. Draft; no migration step is done. Builds on
+Status: proposed 2026-11-10. Draft; step 4 is done (see Migration). Builds on
 ADR 0034 (a planner is a function of its record), ADR 0038 (the core
 names no component type) and ADR 0039 (the declaration language has two
 tiers), whose `action` hook this gives its shape and whose reconsidering
@@ -273,6 +273,42 @@ Each step lands alone with the golden diff unchanged.
    attribute kind; `submit` and `trigger` become actions; `triggered`
    and `submit` go. The spec language gains an `act` step, so a button
    and a submit can be specced.
+   Landed 2026-11-23, in pieces, each with the suite green:
+   - *Actions.* `ComponentDef::actions` (`actions { submitAnswer: submit
+     }`, an `ActionDecl` per name), `ActionView` and `Document::act`
+     (`document/act.rs`). `Document::submit` is `act(answer,
+     "submitAnswer")` and `Document::trigger` is `act(c, "trigger")`; the
+     wasm interface and the renderers are unchanged. The answer's action
+     copies its own response, calls `submit` on each child (a `<response>`
+     lists it), and counts; `<updateValue>` and `<triggerSet>` list
+     `trigger` beside the current core's names (`updateValue`,
+     `triggerActions`), which a `<callAction>` names. `triggered` and its
+     variant go, and so does `Counted`. Departures: `submit: Copies(..)`
+     stays as what an answer's response *is*, for the readers of an
+     answer's responses and inputs (`answer_responses`, `answer_inputs`),
+     which are not the submit; so `Role::Response` stays there too. A
+     `<triggerSet>` presses its children, not every descendant, as the
+     current core's does. `ActionView` has two methods beside the five:
+     `attr_text` (the ADR's own example reads `actionName` with it) and
+     `text`, a text prop's string. A chain of actions calling actions
+     stops at depth `MAX_ACTION_DEPTH` (16). The spec language's `act`
+     step is `act("name", "action")`.
+   - *Targets.* `AttrKind::Component` (one reference to a component, not
+     a prop of one), and `AttrKind::After(event)` for ADR 0042's
+     `triggerWith`. Planning records what an element's own attributes of
+     these kinds name on its plan (`ElemPlan::links`, beside `from`), never
+     its referent's, so a copy of a button acts on nothing its original
+     does; the build resolves each in the instance's scope to a component
+     (`ComponentTable::links`), and `ActionView::target` reads it. A
+     reference to an iteration or a list's entry names nothing yet.
+     `<callAction>` (`components/inputs/call_action.rs`) lists `trigger`
+     (and `callAction`); its planner warns when its target is an element of
+     its scope whose type lists no action `actionName`
+     (`cells-no-such-action`), or when `actionName` is `addChildren`,
+     `deleteChildren` or `resample` (`cells-action-unsupported`: the
+     components and their draws stay fixed, ADR 0037).
+   - *Fired by the document.* What the ADR left undecided, an action
+     fired by a condition, is ADR 0042: a follow-up tick per press.
 5. **The trial again.** Port `<solution>`, `<sequence>` and
    `<callAction>` with the guide alone, then five types not tried
    before. Accepted when four of five need no core edit; what the fifth

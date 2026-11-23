@@ -37,9 +37,37 @@ pub struct ComponentTable {
     /// holds no cell for (a label, how a number is displayed) a renderer reads
     /// through it.
     pub referent: Vec<CompIdx>,
+    /// What each component's `Component` and `After` attributes name
+    /// (ADR 0040, 0042), as (component, attribute's position among its
+    /// type's declared attributes, the component named), sorted by
+    /// component.
+    pub links: Vec<(CompIdx, u16, CompIdx)>,
 }
 
 impl ComponentTable {
+    /// What `c`'s attributes of the declarations' position `attr` name,
+    /// in the order written.
+    pub fn linked(&self, c: CompIdx, attr: u16) -> impl Iterator<Item = CompIdx> + '_ {
+        let start = self.links.partition_point(|&(k, _, _)| k < c);
+        self.links[start..]
+            .iter()
+            .take_while(move |&&(k, _, _)| k == c)
+            .filter(move |&&(_, a, _)| a == attr)
+            .map(|&(_, _, t)| t)
+    }
+
+    /// The component `c`'s `target` names: what its type's `Component`
+    /// attribute resolved to (ADR 0040).
+    pub fn target(&self, c: CompIdx) -> Option<CompIdx> {
+        let ty = self.component_type[c.index()];
+        let attr = ty
+            .def()
+            .attributes
+            .iter()
+            .position(|a| a.kind == crate::components::AttrKind::Component)?;
+        self.linked(c, attr as u16).next()
+    }
+
     /// The cell indices of component `c`'s props, in prop order
     /// (`prop_cells` from `prop_base[c]`); the cells themselves are not
     /// contiguous.
@@ -111,11 +139,15 @@ impl ComponentTable {
             let ty = self.component_type[c.index()];
             match ty.renders() {
                 Renders::Never => continue,
-                Renders::InGraph if !in_graph => continue,
+                Renders::InGraph | Renders::InGraphAlone if !in_graph => continue,
                 _ => {}
             }
             rendered[c.index()] = true;
             in_sticky[c.index()] = sticky;
+            // Its children are parts it draws.
+            if ty.renders() == Renders::InGraphAlone {
+                continue;
+            }
             let in_graph = in_graph || ty.graph_bounds().is_some();
             let sticky = sticky || ty.is_sticky_group();
             let start = self.child_start[c.index()] as usize;
@@ -230,7 +262,9 @@ impl Built {
     /// The string a `<text>` value cell holds (its string id), or "".
     pub fn text_value(&self, cell: CellIdx) -> String {
         let v = self.cells[cell.index()];
-        if v.is_nan() || v < 0.0 || v as usize >= self.strings.len() {
+        if crate::program::is_missing(v) {
+            BLANK.into()
+        } else if v.is_nan() || v < 0.0 || v as usize >= self.strings.len() {
             String::new()
         } else {
             self.strings.get(StrId::from_value(v)).to_string()
@@ -310,7 +344,8 @@ impl Document {
                 match kind {
                     EntryKind::Number => out.push_str(&format_number(v)),
                     EntryKind::Text => out.push_str(&self.text_value(*cell)),
-                    EntryKind::Boolean => out.push_str(if v == 1.0 { "true" } else { "false" }),
+                    EntryKind::Boolean => out.push_str(boolean_text(v)),
+                    EntryKind::Math => out.push_str(&self.held_text(*cell)),
                     EntryKind::Point => unreachable!("filtered above"),
                 }
             }
@@ -321,15 +356,41 @@ impl Document {
             Some(TextKind::Number(pi)) => {
                 out.push_str(&format_number(value(pi).unwrap_or(f64::NAN)))
             }
-            Some(TextKind::Boolean(pi)) => out.push_str(if value(pi) == Some(1.0) {
-                "true"
-            } else {
-                "false"
-            }),
+            Some(TextKind::Grouped(pi)) => {
+                out.push_str(&group_digits(&format_number(value(pi).unwrap_or(f64::NAN))))
+            }
+            Some(TextKind::Boolean(pi)) => out.push_str(boolean_text(value(pi).unwrap_or(0.0))),
+            Some(TextKind::Held(pi)) => {
+                if let Some(&cell) = cells.get(pi) {
+                    out.push_str(&self.held_text(cell));
+                }
+            }
             Some(TextKind::Math(expr, pi)) => match cells.get(expr) {
                 Some(&e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
                 _ => out.push_str(&format_number(value(pi).unwrap_or(f64::NAN))),
             },
+            Some(TextKind::Delimited(before, after)) => {
+                out.push_str(before);
+                self.push_children_text(c, out);
+                out.push_str(after);
+            }
+            Some(TextKind::Separated(separator)) => {
+                let mut first = true;
+                for ch in self.children(c) {
+                    let text = match ch {
+                        Child::Text(t) => t.trim().to_string(),
+                        Child::Component(k) => self.rendered_text(k).trim().to_string(),
+                    };
+                    if text.is_empty() {
+                        continue;
+                    }
+                    if !first {
+                        out.push_str(separator);
+                    }
+                    out.push_str(&text);
+                    first = false;
+                }
+            }
             None if ty
                 .gate_prop()
                 .is_some_and(|active| value(active) != Some(1.0)) => {}
@@ -338,13 +399,28 @@ impl Document {
                     .prop_index("hide")
                     .and_then(value)
                     .is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
-            None => {
-                for ch in self.children(c) {
-                    match ch {
-                        Child::Text(t) => out.push_str(t),
-                        Child::Component(k) => self.push_text(k, out),
-                    }
-                }
+            None => self.push_children_text(c, out),
+        }
+    }
+
+    /// The text of what `cell` holds: a math cell's expression (the blank
+    /// one for none), a string, or a number.
+    fn held_text(&self, cell: CellIdx) -> String {
+        match self.value_types[cell.index()] {
+            crate::program::ValueType::Math if self.cells[cell.index()].is_nan() => {
+                "\u{ff3f}".into()
+            }
+            crate::program::ValueType::Math => self.math_text(cell),
+            crate::program::ValueType::Text => self.text_value(cell),
+            crate::program::ValueType::Number => format_number(self.cells[cell.index()]),
+        }
+    }
+
+    fn push_children_text(&self, c: CompIdx, out: &mut String) {
+        for ch in self.children(c) {
+            match ch {
+                Child::Text(t) => out.push_str(t),
+                Child::Component(k) => self.push_text(k, out),
             }
         }
     }
@@ -367,9 +443,54 @@ impl Document {
     }
 }
 
+/// A formatted number with its integer digits in groups of three, separated
+/// by commas, as the current core's `<intComma>` groups one in English:
+/// `25236501.35` is `25,236,501.35`. Text that does not begin with a digit
+/// (after a minus sign), `NaN` or `∞`, is unchanged.
+fn group_digits(number: &str) -> String {
+    let (sign, rest) = match number.strip_prefix('-') {
+        Some(rest) => ("-", rest),
+        None => ("", number),
+    };
+    let digits = rest.bytes().take_while(u8::is_ascii_digit).count();
+    if digits == 0 {
+        return number.to_string();
+    }
+    let (int, tail) = rest.split_at(digits);
+    let mut out = String::from(sign);
+    for (k, ch) in int.chars().enumerate() {
+        if k > 0 && (digits - k) % 3 == 0 {
+            out.push(',');
+        }
+        out.push(ch);
+    }
+    out.push_str(tail);
+    out
+}
+
 /// A number as text the way the current core shows one: integers without a
 /// decimal point, otherwise up to ten significant digits.
+/// How the missing value shows (ADR 0046): `＿`, as DoenetML prints a
+/// blank.
+pub(crate) const BLANK: &str = "\u{ff3f}";
+
+/// A boolean as text: `true`, `false`, or the blank for a missing one.
+fn boolean_text(v: f64) -> &'static str {
+    if crate::program::is_missing(v) {
+        BLANK
+    } else if v == 1.0 {
+        "true"
+    } else {
+        "false"
+    }
+}
+
+/// A number as text, as the current core formats one; the missing value is
+/// the blank and the NaN of a computation with no value `NaN`.
 fn format_number(v: f64) -> String {
+    if crate::program::is_missing(v) {
+        return BLANK.into();
+    }
     if v.is_nan() {
         return "NaN".into();
     }

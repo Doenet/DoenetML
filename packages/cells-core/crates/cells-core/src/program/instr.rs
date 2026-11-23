@@ -30,6 +30,20 @@ pub enum SymKind {
         /// What to do to the result.
         post: Post,
     },
+    /// A lowered math's expression, shown while its value is missing (ADR
+    /// 0046): with input 0, the value, missing, the template instantiated
+    /// as [`SymKind::Instantiate`] does (its leaves are inputs 1 on), so a
+    /// missing operand shows as the blank in it (`＿ + 1`); otherwise NaN,
+    /// the numeric math's expression (ADR 0005), at the cost of one check.
+    /// Its cell keeps its port's type, a number: the handle is for the
+    /// math's display alone, which reads it only while the value is
+    /// missing.
+    InstantiateBlank {
+        /// The engine expression whose leaves are inputs 1 on.
+        template: Handle,
+        /// What to do to the result.
+        post: Post,
+    },
     /// The expression in input 0 as a number; NaN with free symbols.
     Evaluate,
     /// Input 0 with `x` set to input 1.
@@ -49,9 +63,76 @@ pub enum SymKind {
         /// The compiled curve it runs.
         tape: TapeIdx,
     },
+    /// Input 0, an expression in `x`, with its values held between inputs 1
+    /// and 2 (`<clampFunction>`): an expression again.
+    ClampFunction,
+    /// Input 0, an expression in `x`, with its values wrapped periodically
+    /// into the range from input 1 to input 2 (`<wrapFunctionPeriodic>`): an
+    /// expression again.
+    WrapFunctionPeriodic,
+    /// `a x² + b x + c` (inputs 0 to 2) at `SAMPLES` evenly spaced x from
+    /// input 3 to input 4: a `<parabola>`'s curve. Numeric, but a run of
+    /// `SAMPLES` outputs, more than a vector instruction holds.
+    SampleQuadratic,
+    // Functions of one variable with domains (ADR 0049). A function is
+    // given as its domain and its pieces: `D` is four cells, an
+    // interval's lower and upper endpoints and whether each is closed
+    // (1) or open (0); a piece is six, its expression, the variable it is
+    // in (a math cell holding a symbol) and its own domain. Its value at
+    // `x` is NaN outside `D`, else the first piece whose domain holds `x`,
+    // evaluated there, else NaN ([`in_domain`]). An endpoint of `D` that
+    // is no number is no bound; a piece with one is left out, as the
+    // current core's `<function>` and `<piecewiseFunction>` read them. A
+    // `<function>` is one piece on the whole line, its domain `D`.
+    /// Input 1.. a function (`D`, then pieces) at input 0.
+    EvalFunction,
+    /// Inputs 2.. a function (`D`, then pieces) at `SAMPLES` evenly spaced
+    /// x from input 0 to input 1: its curve.
+    SampleFunction,
+    /// d/dv of input 0, where input 1 is a math cell holding the symbol
+    /// `v`: a derivative in a function's own variable.
+    DerivativeBy,
+    /// Coordinate `coord` of a `<curve>`'s Bézier spline through `n`
+    /// points (ADR 0049) at `SAMPLES` evenly spaced parameters from 0 to
+    /// `n - 1`: input 0 is the spline's tension, then [`BEZIER_POINT_CELLS`]
+    /// per point, its coordinates, its two control vectors (toward the
+    /// previous point and toward the next) and how they are given
+    /// ([`bezier_controls`](crate::program::bezier_controls)). Numeric, but
+    /// a run of `SAMPLES` outputs.
+    SampleBezier {
+        /// 0 for x, 1 for y.
+        coord: u8,
+        /// The uniform spline instead of the centripetal one.
+        uniform: bool,
+    },
 }
 
-/// What a `<math>` does to its expression after instantiating it.
+/// How many cells a point takes in [`SymKind::SampleBezier`]'s inputs.
+pub const BEZIER_POINT_CELLS: usize = 7;
+
+/// How many cells a domain takes in [`SymKind::EvalFunction`]'s inputs.
+pub const DOMAIN_CELLS: usize = 4;
+/// How many cells a piece takes in [`SymKind::EvalFunction`]'s inputs.
+pub const PIECE_CELLS: usize = 6;
+
+/// Whether `x` lies in the domain `d` (lower, upper, lower closed, upper
+/// closed), as the JavaScript core's `find_effective_domain` reads one: an
+/// endpoint that is no number is no bound, and an infinite end holds
+/// every number on its side. A `piece`'s domain with an endpoint that is
+/// no number holds nothing, as the current core leaves such a piece out
+/// of a `<piecewiseFunction>`.
+pub fn in_domain(x: f64, d: &[f64], piece: bool) -> bool {
+    let (lo, hi, lo_closed, hi_closed) = (d[0], d[1], d[2], d[3]);
+    if piece && (lo.is_nan() || hi.is_nan()) {
+        return false;
+    }
+    let above = lo.is_nan() || x > lo || (x == lo && (lo_closed != 0.0 || lo == f64::NEG_INFINITY));
+    let below = hi.is_nan() || x < hi || (x == hi && (hi_closed != 0.0 || hi == f64::INFINITY));
+    !x.is_nan() && above && below
+}
+
+/// What a `<math>`, or an operator over math (ADR 0043), does to its
+/// expression after instantiating it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Post {
     /// Nothing: the expression as instantiated.
@@ -63,13 +144,120 @@ pub enum Post {
     /// Simplified, then expanded (a `<boolean simplifyOnCompare
     /// expandOnCompare>`): the engine's expand does not simplify first.
     SimplifyExpand,
+    /// Its absolute value: a number when it evaluates to one, else
+    /// `abs(..)` (`<abs>`).
+    Abs,
+    /// Its sign, likewise (`<sign>`).
+    Sign,
+    /// Rounded down, likewise, a value within roundoff of an integer
+    /// taken as it (`<floor>`).
+    Floor,
+    /// Rounded up, likewise (`<ceil>`).
+    Ceil,
+    /// Every number in it rounded to this many decimal places (`<round>`).
+    RoundDecimals(i32),
+    /// Every number in it rounded to this many significant digits.
+    RoundDigits(i32),
+    /// Every number in it of magnitude below the threshold, these bits of
+    /// an `f64`, made 0 (`<setSmallToZero>`).
+    SmallToZero(u64),
+    /// Its tuples made vectors (`createVectors`), then its tuples and
+    /// arrays of two made intervals (`createIntervals`; ADR 0041, decision
+    /// 8), then simplified, then expanded, as the flags say: a `<math>`'s
+    /// post when it creates vectors or intervals.
+    Shapes {
+        /// Tuples made vectors.
+        vectors: bool,
+        /// Tuples and arrays of two made intervals.
+        intervals: bool,
+        /// Simplified after.
+        simplify: bool,
+        /// Expanded after.
+        expand: bool,
+    },
+}
+
+impl Post {
+    /// `h` with this applied, by `engine`.
+    pub fn apply(self, engine: &mut crate::sym::Engine, h: Handle) -> Handle {
+        match self {
+            Post::None => h,
+            Post::Simplify => engine.simplify(h),
+            Post::Expand => engine.expand(h),
+            Post::SimplifyExpand => {
+                let h = engine.simplify(h);
+                engine.expand(h)
+            }
+            Post::Abs => engine.apply_numeric(h, "abs", f64::abs),
+            Post::Sign => engine.apply_numeric(h, "sign", sign),
+            Post::Floor => {
+                engine.apply_numeric(h, "floor", |v| near_integer(v).unwrap_or(v.floor()))
+            }
+            Post::Ceil => engine.apply_numeric(h, "ceil", |v| near_integer(v).unwrap_or(v.ceil())),
+            Post::RoundDecimals(n) => engine.round_decimals(h, n),
+            Post::RoundDigits(n) => engine.round_digits(h, n),
+            Post::SmallToZero(bits) => engine.small_to_zero(h, f64::from_bits(bits)),
+            Post::Shapes {
+                vectors,
+                intervals,
+                simplify,
+                expand,
+            } => {
+                let mut h = engine.normalize_shapes(h, vectors, intervals);
+                if simplify {
+                    h = engine.simplify(h);
+                }
+                if expand {
+                    h = engine.expand(h);
+                }
+                h
+            }
+        }
+    }
+
+    /// A math's post with its tuples made vectors and its pairs made
+    /// intervals first, as asked (`createVectors`, `createIntervals`); the
+    /// same when neither is.
+    pub fn with_shapes(self, vectors: bool, intervals: bool) -> Post {
+        if !vectors && !intervals {
+            return self;
+        }
+        let (simplify, expand) = match self {
+            Post::Simplify => (true, false),
+            Post::Expand => (false, true),
+            Post::SimplifyExpand => (true, true),
+            _ => (false, false),
+        };
+        Post::Shapes {
+            vectors,
+            intervals,
+            simplify,
+            expand,
+        }
+    }
+}
+
+/// -1, 0 or 1 by the sign of `v`, as JavaScript's `Math.sign`.
+fn sign(v: f64) -> f64 {
+    if v == 0.0 { 0.0 } else { v.signum() }
+}
+
+/// The integer `v` is within roundoff of (relative 1e-15), as the current
+/// core's `<floor>` and `<ceil>` take one.
+fn near_integer(v: f64) -> Option<f64> {
+    let r = v.round();
+    ((r - v).abs() < 1e-15 * v.abs()).then_some(r)
 }
 
 impl SymKind {
     /// How many cells it writes: [`SAMPLES`] for a sampler, else 1.
     pub fn n_out(self) -> usize {
         match self {
-            SymKind::Sample | SymKind::SampleTape { .. } => SAMPLES,
+            SymKind::Sample
+            | SymKind::SampleTape { .. }
+            | SymKind::SampleQuadratic
+            | SymKind::SampleFunction
+            | SymKind::SampleBezier { .. } => SAMPLES,
             _ => 1,
         }
     }
@@ -85,7 +273,14 @@ impl SymKind {
 
     /// Whether the output is an expression handle (a math cell).
     pub fn makes_math(self) -> bool {
-        matches!(self, SymKind::Instantiate { .. } | SymKind::Derivative)
+        matches!(
+            self,
+            SymKind::Instantiate { .. }
+                | SymKind::Derivative
+                | SymKind::ClampFunction
+                | SymKind::WrapFunctionPeriodic
+                | SymKind::DerivativeBy
+        )
     }
 }
 
@@ -194,10 +389,21 @@ impl OpSpec {
         }
         match self {
             OpSpec::Vec(v) => v.n_in(),
-            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => usize::MAX,
+            OpSpec::Sym(
+                SymKind::Instantiate { .. }
+                | SymKind::InstantiateBlank { .. }
+                | SymKind::SampleTape { .. },
+            ) => usize::MAX,
             OpSpec::Sym(SymKind::Evaluate | SymKind::Derivative) => 1,
             OpSpec::Sym(SymKind::EvalAt | SymKind::Equals | SymKind::EqualsSyntax) => 2,
-            OpSpec::Sym(SymKind::Sample) => 3,
+            OpSpec::Sym(
+                SymKind::Sample | SymKind::ClampFunction | SymKind::WrapFunctionPeriodic,
+            ) => 3,
+            OpSpec::Sym(SymKind::SampleQuadratic) => 5,
+            OpSpec::Sym(
+                SymKind::EvalFunction | SymKind::SampleFunction | SymKind::SampleBezier { .. },
+            ) => usize::MAX,
+            OpSpec::Sym(SymKind::DerivativeBy) => 2,
             _ => unreachable!(),
         }
     }
@@ -206,7 +412,21 @@ impl OpSpec {
     /// for a template's leaves.
     pub const fn accepts(&self, n: usize) -> bool {
         match self {
-            OpSpec::Sym(SymKind::Instantiate { .. } | SymKind::SampleTape { .. }) => true,
+            OpSpec::Sym(
+                SymKind::Instantiate { .. }
+                | SymKind::InstantiateBlank { .. }
+                | SymKind::SampleTape { .. },
+            ) => true,
+            // A domain and at least one piece, after the input or range.
+            OpSpec::Sym(SymKind::EvalFunction) => {
+                n > 1 + DOMAIN_CELLS && (n - 1 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
+            }
+            OpSpec::Sym(SymKind::SampleFunction) => {
+                n > 2 + DOMAIN_CELLS && (n - 2 - DOMAIN_CELLS).is_multiple_of(PIECE_CELLS)
+            }
+            OpSpec::Sym(SymKind::SampleBezier { .. }) => {
+                n > 1 && (n - 1).is_multiple_of(BEZIER_POINT_CELLS)
+            }
             _ => self.arity() == n,
         }
     }
@@ -258,7 +478,7 @@ impl OpSpec {
 #[cfg(test)]
 mod arity {
     use super::*;
-    use crate::program::vector::{RigidOpts, VecOp};
+    use crate::program::vector::{PairBy, Reflex, RegularBy, RigidOpts, VecOp};
 
     /// Every operator: the scalar ones, then every vector and symbolic one.
     fn every() -> Vec<OpSpec> {
@@ -284,7 +504,48 @@ mod arity {
             OpSpec::Vec(VecOp::Clamp),
             OpSpec::Vec(VecOp::Centroid { n: 3 }),
             OpSpec::Vec(VecOp::SequencePick { n_exclude: 1 }),
+            OpSpec::Vec(VecOp::Reduce {
+                op: crate::program::Reduction::Sum,
+                n: 3,
+            }),
+            OpSpec::Vec(VecOp::Wrap),
+            OpSpec::Vec(VecOp::Pair { by: PairBy::Offset }),
+            OpSpec::Vec(VecOp::Extent),
+            OpSpec::Vec(VecOp::AngleAt {
+                reflex: Reflex::Allowed,
+            }),
+            OpSpec::Vec(VecOp::RegularPolygon {
+                n: 3,
+                by: RegularBy::CenterVertex,
+            }),
+            OpSpec::Vec(VecOp::Scan {
+                op: crate::program::Scan::Sum,
+                n: 3,
+            }),
+            OpSpec::Vec(VecOp::Sort {
+                n: 3,
+                decreasing: true,
+            }),
+            OpSpec::Vec(VecOp::Shuffle { n: 3 }),
+            OpSpec::Vec(VecOp::Draws {
+                dist: crate::program::Dist::Uniform,
+                n: 2,
+                n_exclude: 0,
+            }),
+            OpSpec::Vec(VecOp::BestFitLine { n: 3 }),
+            OpSpec::Vec(VecOp::IntersectLines {
+                segment1: true,
+                segment2: false,
+            }),
+            OpSpec::Vec(VecOp::Parabola {
+                through: 2,
+                vertex: false,
+            }),
             OpSpec::Sym(SymKind::Instantiate {
+                template: Handle::new(0),
+                post: Post::None,
+            }),
+            OpSpec::Sym(SymKind::InstantiateBlank {
                 template: Handle::new(0),
                 post: Post::None,
             }),
@@ -297,6 +558,19 @@ mod arity {
             OpSpec::Sym(SymKind::SampleTape {
                 tape: TapeIdx::new(0),
             }),
+            OpSpec::Sym(SymKind::ClampFunction),
+            OpSpec::Sym(SymKind::WrapFunctionPeriodic),
+            OpSpec::Sym(SymKind::SampleQuadratic),
+            OpSpec::Sym(SymKind::EvalFunction),
+            OpSpec::Sym(SymKind::SampleFunction),
+            OpSpec::Sym(SymKind::DerivativeBy),
+            OpSpec::Sym(SymKind::SampleBezier {
+                coord: 1,
+                uniform: false,
+            }),
+            OpSpec::Vec(VecOp::IntoDomain),
+            OpSpec::Vec(VecOp::DomainRange),
+            OpSpec::Vec(VecOp::DomainHull { n: 2 }),
         ]);
         ops
     }
@@ -320,9 +594,25 @@ mod arity {
                 VecOp::Clamp => 12,
                 VecOp::Centroid { .. } => 13,
                 VecOp::SequencePick { .. } => 14,
+                VecOp::Reduce { .. } => 15,
+                VecOp::Wrap => 16,
+                VecOp::Pair { .. } => 17,
+                VecOp::Extent => 18,
+                VecOp::AngleAt { .. } => 19,
+                VecOp::RegularPolygon { .. } => 20,
+                VecOp::Scan { .. } => 21,
+                VecOp::Sort { .. } => 22,
+                VecOp::Shuffle { .. } => 23,
+                VecOp::Draws { .. } => 24,
+                VecOp::BestFitLine { .. } => 25,
+                VecOp::IntersectLines { .. } => 26,
+                VecOp::Parabola { .. } => 27,
+                VecOp::IntoDomain => 44,
+                VecOp::DomainRange => 45,
+                VecOp::DomainHull { .. } => 46,
             },
             OpSpec::Sym(k) => {
-                15 + match k {
+                28 + match k {
                     SymKind::Instantiate { .. } => 0,
                     SymKind::Evaluate => 1,
                     SymKind::EvalAt => 2,
@@ -331,12 +621,20 @@ mod arity {
                     SymKind::EqualsSyntax => 5,
                     SymKind::Sample => 6,
                     SymKind::SampleTape { .. } => 7,
+                    SymKind::ClampFunction => 8,
+                    SymKind::WrapFunctionPeriodic => 9,
+                    SymKind::SampleQuadratic => 10,
+                    SymKind::InstantiateBlank { .. } => 11,
+                    SymKind::EvalFunction => 12,
+                    SymKind::SampleFunction => 13,
+                    SymKind::DerivativeBy => 14,
+                    SymKind::SampleBezier { .. } => 15,
                 }
             }
             _ => return None,
         })
     }
-    const N_TAGS: usize = 23;
+    const N_TAGS: usize = 47;
 
     // Each operator binds, evaluates and inverts at the arity it declares,
     // so an arity group that disagrees with the operator's arms (an input
@@ -353,10 +651,12 @@ mod arity {
             "`every` misses an operator"
         );
         for spec in ops {
-            let n = if spec.arity() == usize::MAX {
-                2
-            } else {
-                spec.arity()
+            let n = match spec {
+                OpSpec::Sym(SymKind::EvalFunction) => 1 + DOMAIN_CELLS + PIECE_CELLS,
+                OpSpec::Sym(SymKind::SampleFunction) => 2 + DOMAIN_CELLS + PIECE_CELLS,
+                OpSpec::Sym(SymKind::SampleBezier { .. }) => 1 + 2 * BEZIER_POINT_CELLS,
+                _ if spec.arity() == usize::MAX => 2,
+                _ => spec.arity(),
             };
             assert!(spec.accepts(n));
             let inputs: Vec<CellIdx> = CellIdx::below(n).collect();

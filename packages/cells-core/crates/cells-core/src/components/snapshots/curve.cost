@@ -1,0 +1,8 @@
+a function's graph, cut to its domain: cells 217 · essential 4 · constant 11 · instrs 2 · components 3
+a parametric curve written as a tuple in its variable: cells 416 · essential 4 · constant 412 · instrs 0 · components 3
+a parametric curve of two functions, each in its own variable: cells 417 · essential 4 · constant 413 · instrs 0 · components 3
+a parametric curve of a function returning a tuple: cells 415 · essential 4 · constant 411 · instrs 0 · components 3
+a parameter range that follows an input: cells 415 · essential 5 · constant 10 · instrs 2 · components 4
+a spline through points, which a drag moves: cells 420 · essential 12 · constant 8 · instrs 2 · components 3
+control vectors written as vectors: cells 824 · essential 12 · constant 12 · instrs 4 · components 4
+a control vector direction it does not know is refused: cells 6 · essential 4 · constant 2 · instrs 0 · components 3

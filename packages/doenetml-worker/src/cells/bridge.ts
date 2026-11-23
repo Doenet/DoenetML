@@ -21,6 +21,7 @@ import type {
 import {
     BLOCKS,
     CONTRACTS,
+    anchorProps,
     LIST_LIKE,
     OMITTED,
     PER_SCOPE,
@@ -207,6 +208,12 @@ export class CellsBridge {
                 break;
             case "trigger":
                 changed = this.core.trigger(effect.component);
+                break;
+            case "act":
+                changed = this.core.act_by_name(
+                    effect.component,
+                    effect.action,
+                );
                 break;
         }
         const ticked = performance.now();
@@ -436,6 +443,8 @@ export class CellsBridge {
         } else {
             const contract = CONTRACTS[type];
             const props = contract?.props?.(reads, c, inGraph) ?? {};
+            // A value in a graph is drawn at its anchor, whatever its type.
+            if (inGraph) Object.assign(props, anchorProps(reads, c));
             const children: FlatDastElementContent[] = [];
             this._children(reads, c, children, c);
             element = {
@@ -549,12 +558,31 @@ export class CellsBridge {
             const part: FlatDastElementContent[] = [];
             this._child(reads, child, part, owner);
             if (part.length === 0) continue;
+            // The space between two gathered or grouped children (an
+            // `<asList>`'s) is no item.
+            if (
+                !byScope &&
+                part.every((e) => typeof e === "string" && !e.trim())
+            ) {
+                continue;
+            }
             if (scope !== null && scope === lastScope && items.length) {
                 items[items.length - 1].push(...part);
             } else {
                 items.push(part);
             }
             lastScope = scope;
+        }
+        // Whitespace around an item is layout, not an item (COMP-2): a
+        // `<group asList>` written over several lines lists its children.
+        const isSpace = (e: FlatDastElementContent) =>
+            typeof e === "string" && e.trim() === "";
+        for (const item of items) {
+            while (item.length && isSpace(item[0])) item.shift();
+            while (item.length && isSpace(item[item.length - 1])) item.pop();
+        }
+        for (let i = items.length - 1; i >= 0; i--) {
+            if (items[i].length === 0) items.splice(i, 1);
         }
         const block = items.some((item) =>
             item.some(

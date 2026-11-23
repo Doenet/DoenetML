@@ -75,8 +75,9 @@ check raises records the innermost element it concerns, which is boxed
 from the start of a new compile, and the check runs again until every
 element builds. A box keeps its name (ADR 0027): a reference to it
 resolves and reads as undefined, with no diagnostic of its own, and an
-extend of it is boxed in turn (`cells-boxed-referent`). Only an error with
-no element to box, a dependency cycle, fails the load.
+extend of it is boxed in turn (`cells-boxed-referent`). A dependency cycle
+boxes the component it names. Only an error with no element to box, a
+cycle through no component the author wrote, fails the load.
 
 [`Document::diagnostics`](crate::Document::diagnostics) lists, in node order, the lint findings plus the
 errors and warnings of the elements that built.
@@ -106,10 +107,13 @@ count, and equals what a load reports.
 ## An answer is submitted
 
 [`Document::submit`](crate::Document::submit) (`document/sections.rs`) is an action, not a request (ADR
-0018): the core copies the response into the answer's `submitted` cell and
-counts the submission as one tick, through the same inversion a request
-uses, and credit recomputes through the cells that
+0018): [`Document::act`](crate::Document::act) (`document/act.rs`, ADR 0040) runs the answer's
+action `submitAnswer`, a function beside the type that returns the
+requests copying each response into its `submitted` cell and counting the
+submission, and the core carries them out as one tick, through the same
+inversion a request uses; credit recomputes through the cells that
 `build/expand/aggregate.rs` materialized. The props it writes are marked
 `written_by_action`, not `interactive`, so no renderer can set them.
-[`Document::trigger`](crate::Document::trigger) (`document/request.rs`), a `<triggerSet>`'s press, is
-the other action: it sets each `<updateValue>`'s target.
+[`Document::trigger`](crate::Document::trigger) (`document/request.rs`), a button's press, is the
+action `trigger`: a `<triggerSet>`'s presses each child, an
+`<updateValue>`'s sets its target.

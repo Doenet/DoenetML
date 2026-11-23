@@ -219,6 +219,11 @@ export function withListEntriesAsComponents<
         resolvePathToNodeIdx: ResolvePathToNodeIdx;
     },
 >(testCore: T): T {
+    // The cells core (`DOENET_TEST_CORE=cells`) has no renderer instruction
+    // builder to read entries from: its test core is used as it is.
+    if (process.env.DOENET_TEST_CORE === "cells") {
+        return testCore;
+    }
     const { core, resolvePathToNodeIdx } = testCore;
     const builder = (core as any).core.rendererInstructionBuilder;
 

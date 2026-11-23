@@ -124,9 +124,11 @@ parents, declared in the type's block:
 - `Renders::Always`, the default; `Never` (a `<setup>`, an `<award>`, a
   `<when>`, a `<response>`, a `<selectFromSequence>`, an `<updateValue>`,
   a `<functionIterates>`, a `<shortDescription>`, a `<function>`); or
-  `InGraph`, drawn only with a `<graph>` above it (a line, a segment, a
-  circle, a polygon, a polyline, a legend), written `renders: InGraph`
-  after the block's `flags`;
+  `InGraph`, drawn only with a `<graph>` above it (a segment, a circle, a
+  polygon, a polyline, a legend), written `renders: InGraph` after the
+  block's `flags`. A line was one until it was drawn in text as its
+  equation, written from its two points (2026-11-23), which are outputs
+  there too;
 - a component is rendered when its type's rule allows it where it is and
   its parent is rendered; the document is. So nothing inside a `<setup>`
   or an `<award>` is.

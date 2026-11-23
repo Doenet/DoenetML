@@ -409,6 +409,43 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         </repeatForSequence>
         <number name="c">$r[$k].m[2] + $nl[$k]</number>"#,
     ),
+    (
+        // Nested lists spliced, element children, math pieces and math
+        // lists (ADR 0041, step 2), inside a repeat whose count a cell
+        // sets: a list in an iteration reading one outside it, and an
+        // operator one operand per entry.
+        "nested-value-lists",
+        r#"<numberInput name="k" value="1"/>
+        <numberList name="nl">1 $k <number>3</number> 1+1</numberList>
+        <mathList name="ml">x <math>y</math> $nl</mathList>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <numberList name="m" maxNumber="4">$nl $i <numberList>7 8</numberList></numberList>
+          <mathList name="q">$ml[$i] $ml</mathList>
+          <sum name="s">$m $nl[9]</sum>
+          <p>$q $m</p>
+        </repeatForSequence>
+        <math name="c">$ml[1] + $r[$k].q[2]</math>"#,
+    ),
+    (
+        // Operators over math (ADR 0043): numeric and symbolic by their
+        // operands, forced, an operand read twice over (a variance's),
+        // element children and a list's entries as operands, and an
+        // angle's measure, inside a repeat whose count a cell sets.
+        "operators-over-math",
+        r#"<numberInput name="k" value="1"/>
+        <mathInput name="mi" prefill="x"/>
+        <numberList name="nl">1 $k</numberList>
+        <sum name="s" simplify>$mi 2x $k <math>y</math> $nl</sum>
+        <variance name="v">$mi $k</variance>
+        <abs name="a">$mi</abs><round name="rd" numDecimals="1">$s</round>
+        <max name="m" forceSymbolic>$k 3</max><mod name="md">$k 3</mod>
+        <angle name="an" radians="$mi"/>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <product name="p">$i $mi $r[$k].c</product>
+          <ceil name="c">$i x</ceil>
+        </repeatForSequence>
+        <number name="n">$s + $r[$k].c</number>"#,
+    ),
 ];
 
 #[test]
@@ -579,11 +616,10 @@ fn loads<'a>(name: &str, bytes: &'a [u8]) -> Vec<Load<'a>> {
         let Ok((doc, _)) = Document::load(bytes, options) else {
             continue; // the promise is about documents that load
         };
-        let compiled = doc
-            .loaded
-            .compiled
-            .clone()
-            .expect("a document with a repeat");
+        // A repeat a cycle boxed leaves none to walk.
+        let Some(compiled) = doc.loaded.compiled.clone() else {
+            continue;
+        };
         let edges = graph_edges(&compiled);
         out.push(Load {
             name: name.to_string(),
@@ -914,11 +950,10 @@ fn a_constant_is_the_same_in_every_build() {
             let Ok((doc, _)) = Document::load(bytes, options) else {
                 continue;
             };
-            let compiled = doc
-                .loaded
-                .compiled
-                .clone()
-                .expect("a document with a repeat");
+            // A repeat a cycle boxed leaves none to walk.
+            let Some(compiled) = doc.loaded.compiled.clone() else {
+                continue;
+            };
             // (scope, template, template slot) -> (count it was first seen
             // at, class).
             let mut seen: HashMap<(ScopeId, u32, TemplateSlot), (u32, SlotClass)> = HashMap::new();

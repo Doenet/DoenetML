@@ -1,0 +1,3 @@
+inside, on a limit, and outside, either order of limits: cells 14 · essential 0 · constant 14 · instrs 0 · components 7
+without both limits, nothing, or math with free symbols: false: cells 12 · essential 0 · constant 12 · instrs 0 · components 5
+limits and strictness from references: cells 9 · essential 2 · constant 5 · instrs 2 · components 7

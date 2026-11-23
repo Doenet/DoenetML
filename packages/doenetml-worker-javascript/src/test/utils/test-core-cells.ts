@@ -27,6 +27,7 @@ import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "../../CoreWo
 // path, as `test-core.ts` reads `doenetml/src/flags`: the worker's
 // package exports only its `dist/`.
 import { CellsTable, NONE } from "../../../../doenetml-worker/src/cells/table";
+import { resolveRendererAction } from "../../../../doenetml-worker/src/cells/actions";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -100,11 +101,15 @@ const valueReaders: Record<string, Reader> = {
 /** The blank expression the current core shows for an empty input. */
 const BLANK = "\uff3f";
 
+/** The expression a math cell holds, read as the core's math tree (which
+ * text cannot tell from a tuple, an open interval; ADR 0041, decision 8). */
+function heldExpr(cells: Cells, cell: number) {
+    return me.fromAst(JSON.parse(cells.core.expr_ast(cell)));
+}
+
 /** The expression a math cell holds; blank when the handle is NaN. */
 const exprOf = (cells: Cells, cell: number) =>
-    Number.isNaN(cells.value(cell))
-        ? me.fromAst(BLANK)
-        : me.fromText(cells.core.expr_text(cell));
+    Number.isNaN(cells.value(cell)) ? me.fromAst(BLANK) : heldExpr(cells, cell);
 
 /** A math's value: its expression when it is a math cell (plan 5), else
  * the number its lowered chain computes. An unbound mathInput's blank
@@ -113,7 +118,7 @@ const mathValue: Reader = (g, x) => {
     const e = x.cell("expr");
     if (e !== undefined) {
         if (!Number.isNaN(x.cells.value(e))) {
-            return me.fromText(x.cells.core.expr_text(e));
+            return heldExpr(x.cells, e);
         }
         if (x.cells.core.cell_class(e) === "essential")
             return me.fromAst(BLANK);
@@ -221,6 +226,280 @@ const polygonReaders: Record<string, Reader> = {
     center: (g) => pt(g, "cx", "cy"),
 };
 
+/** A tuple of two numbers, as the current core's `coords` of a vector. */
+const vec2 = (g: Get, x: string, y: string) =>
+    me.fromAst(["vector", g(x), g(y)]);
+
+const vectorReaders: Record<string, Reader> = {
+    tail: (g) => pt(g, "tailX", "tailY"),
+    head: (g) => pt(g, "headX", "headY"),
+    displacement: (g) => pt(g, "x", "y"),
+    numericalEndpoints: (g) => [
+        npt(g, "tailX", "tailY"),
+        npt(g, "headX", "headY"),
+    ],
+    x: (g) => M(g("x")),
+    y: (g) => M(g("y")),
+    magnitude: (g) => M(g("magnitude")),
+    displacementCoords: (g) => vec2(g, "x", "y"),
+    value: (g) => vec2(g, "x", "y"),
+    numDimensions: () => 2,
+};
+
+const rayReaders: Record<string, Reader> = {
+    endpoint: (g) => pt(g, "endpointX", "endpointY"),
+    through: (g) => pt(g, "throughX", "throughY"),
+    direction: (g) => pt(g, "directionX", "directionY"),
+    numericalEndpoint: (g) => npt(g, "endpointX", "endpointY"),
+    numericalThroughpoint: (g) => npt(g, "throughX", "throughY"),
+    directionCoords: (g) => vec2(g, "directionX", "directionY"),
+    numDimensions: () => 2,
+};
+
+/** A prop that is a number and, when it is one, an expression in
+ * `exprProp` (ADR 0043): the expression, else the number. */
+function exprOr(exprProp: string, prop: string): Reader {
+    return (g, x) => {
+        const e = x.cell(exprProp);
+        if (e !== undefined && !Number.isNaN(x.cells.value(e))) {
+            return me.fromText(x.cells.core.expr_text(e));
+        }
+        return M(g(prop));
+    };
+}
+
+const angleReaders: Record<string, Reader> = {
+    radians: exprOr("radiansExpr", "radians"),
+    value: exprOr("radiansExpr", "radians"),
+    angle: exprOr("radiansExpr", "radians"),
+    degrees: exprOr("degreesExpr", "degrees"),
+};
+
+/** A rectangle's and a regular polygon's sizes are numbers in the current
+ * core; the vertices read as a polygon's. */
+const rectangleReaders: Record<string, Reader> = {
+    ...polygonReaders,
+    width: (g) => g("width"),
+    height: (g) => g("height"),
+    area: (g) => g("area"),
+    perimeter: (g) => g("perimeter"),
+};
+const regularPolygonReaders: Record<string, Reader> = {
+    ...polygonReaders,
+    circumradius: (g) => g("circumradius"),
+    radius: (g) => g("circumradius"),
+    inradius: (g) => g("inradius"),
+    apothem: (g) => g("inradius"),
+    sideLength: (g) => g("sideLength"),
+    perimeter: (g) => g("perimeter"),
+    area: (g) => g("area"),
+    numSides: (g) => g("numVertices"),
+};
+
+/** Whether an operator over math is numeric (ADR 0043): its `expr` holds
+ * no expression. */
+const isNumericOperator: Reader = (_g, x) => {
+    const e = x.cell("expr");
+    return e === undefined || Number.isNaN(x.cells.value(e));
+};
+/** An operator's value is a math in the current core: the expression a
+ * symbolic one holds, else the number the cells core computes, as an
+ * expression. */
+const mathOperatorReaders: Record<string, Reader> = {
+    value: exprOr("expr", "value"),
+    isNumericOperator,
+    // Whether the value is a number: a numeric one's, or the expression's
+    // tree.
+    isNumber: (g, x) =>
+        isNumericOperator(g, x)
+            ? Number.isFinite(g("value"))
+            : typeof (exprOr("expr", "value")(g, x) as any).tree === "number",
+    text: textOf,
+};
+const booleanOperatorReaders: Record<string, Reader> = {
+    value: (g) => g("value") !== 0,
+    text: textOf,
+};
+
+/** The entries of a value list (ADR 0041), as the numbers they are. */
+const listNumbers: Reader = (_g, x) =>
+    Array.from(x.cells.propCells(x.idx, "numbers")).map((c) =>
+        x.cells.value(c),
+    );
+/** A list of numbers (`sequence`, the samplers): `numbers`, and the state
+ * variable the current core computes them in (`valuesVariable`). */
+function numberListReaders(valuesVariable?: string): Record<string, Reader> {
+    const readers: Record<string, Reader> = {
+        numbers: listNumbers,
+        numEntries: (g) => g("numComponents"),
+        numValues: (g) => g("numComponents"),
+        text: textOf,
+    };
+    if (valuesVariable) readers[valuesVariable] = listNumbers;
+    return readers;
+}
+/** What a cell of a math list's entry holds, as the current core's math:
+ * its expression (the blank one for none), or the number an entry
+ * aliasing one holds (ADR 0041). */
+function heldMath(cells: Cells, cell: number): unknown {
+    return cells.core.cell_holds(cell) === "math"
+        ? exprOf(cells, cell)
+        : M(cells.value(cell));
+}
+/** A value list (ADR 0041): its entries `entries`, each as `read` reads
+ * its cell, and how many there are. */
+function valueListReaders(
+    entries: string,
+    read: (x: Ctx, cell: number) => unknown,
+): Record<string, Reader> {
+    return {
+        [entries]: (_g, x) =>
+            Array.from(x.cells.propCells(x.idx, entries)).map((c) =>
+                read(x, c),
+            ),
+        numComponents: (g) => g("numComponents"),
+        numValues: (g) => g("numComponents"),
+        text: textOf,
+    };
+}
+/** A list operator's results are maths in the current core. */
+const mathListOperatorReaders: Record<string, Reader> = {
+    maths: (g, x) => (listNumbers(g, x) as number[]).map(M),
+    operatorResults: (g, x) => (listNumbers(g, x) as number[]).map(M),
+    numEntries: (g) => g("numComponents"),
+    numValues: (g) => g("numComponents"),
+    text: textOf,
+};
+
+/** A section's full number as its parts ([2, 1] for "2.1"): its own,
+ * after its nearest section ancestor's when it includes it, as the bridge
+ * composes it (`cells/contracts.ts`). */
+function sectionEnumeration(cells: Cells, c: number): number[] {
+    const own = cells.value(cells.propCells(c, "number")[0]);
+    if (cells.value(cells.propCells(c, "includeParentNumber")[0]) !== 0) {
+        for (
+            let p = cells.table.parent(c);
+            p !== null;
+            p = cells.table.parent(p)
+        ) {
+            if (["section", "aside"].includes(cells.table.componentType(p))) {
+                return [...sectionEnumeration(cells, p), own];
+            }
+        }
+    }
+    return [own];
+}
+const sectionReaders: Record<string, Reader> = {
+    sectionNumber: (_g, x) => sectionEnumeration(x.cells, x.idx).join("."),
+    enumeration: (_g, x) => sectionEnumeration(x.cells, x.idx),
+    creditAchieved: (g) => g("creditAchieved"),
+    percentCreditAchieved: (g) => g("percentCreditAchieved"),
+    weight: (g) => g("weight"),
+    aggregateScores: (g) => g("aggregateScores") !== 0,
+    includeParentNumber: (g) => g("includeParentNumber") !== 0,
+};
+
+/** The number a figure, table or footnote takes from its document-wide
+ * counter, as the core counts it (ADR 0044); null for none. */
+function counterNumber(x: Ctx): number | null {
+    return x.cells.core.counter_number(x.idx) ?? null;
+}
+
+/** A figure's or a table's enumeration and names ("Table 2", and "Table 2: "
+ * before a title or caption), as `composeFigureName` and `composeTableName`
+ * compose them in English from the core's counter. */
+function counterNameReaders(
+    kind: "figure" | "table",
+    word: string,
+    titleType: string,
+): Record<string, Reader> {
+    const name = (x: Ctx) => {
+        const n = counterNumber(x);
+        return n === null ? word : `${word} ${n}`;
+    };
+    return {
+        [`${kind}Enumeration`]: (_g, x) => {
+            const n = counterNumber(x);
+            return n === null ? null : String(n);
+        },
+        [`${kind}Name`]: (_g, x) => name(x),
+        [`${kind}NamePrefix`]: (_g, x) =>
+            x.cells.table
+                .children(x.idx)
+                .some(
+                    (c) =>
+                        "component" in c &&
+                        x.cells.table.componentType(c.component) === titleType,
+                )
+                ? `${name(x)}: `
+                : name(x),
+        number: (g) => g("number") !== 0,
+        text: textOf,
+    };
+}
+
+/** A function's domain (ADR 0049) as the current core's `domain`: one
+ * interval, its endpoints and whether each is closed. */
+const functionDomain: Reader = (g) => [
+    me.fromAst([
+        "interval",
+        ["tuple", g("domainMin"), g("domainMax")],
+        ["tuple", g("domainMinClosed") === 1, g("domainMaxClosed") === 1],
+    ]),
+];
+
+/** A function of one variable at `x`, as the cells core's own engine
+ * evaluates it (`function_value`); a gap for one it does not evaluate. */
+function numericalFunction(x: Ctx): (v: number) => number {
+    return (v: number) => {
+        const y = x.cells.core.function_value(x.idx, v);
+        if (y === undefined) {
+            throw new CellsCoreGap(
+                `${x.cells.table.tag(x.idx)}.numericalfs: not a function of one variable`,
+            );
+        }
+        return y;
+    };
+}
+
+const functionReaders: Record<string, Reader> = {
+    domain: functionDomain,
+    numericalfs: (_g, x) => [numericalFunction(x)],
+    numericalf: (_g, x) => numericalFunction(x),
+    formula: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+    variables: (_g, x) => [exprOf(x.cells, x.cell("variable")!)],
+};
+
+/** A curve's type, as the current core names it (ADR 0049). */
+const CURVE_TYPES = ["function", "parameterization", "bezier"];
+
+const curveReaders: Record<string, Reader> = {
+    curveType: (g) => CURVE_TYPES[g("curveType")],
+    parMin: (g) => g("parMin"),
+    parMax: (g) => g("parMax"),
+    numThroughPoints: (_g, x) =>
+        x.cells.propCells(x.idx, "throughPoints").length / 2,
+    numericalThroughPoints: (_g, x) => {
+        const cells = Array.from(x.cells.propCells(x.idx, "throughPoints"));
+        const out: number[][] = [];
+        for (let i = 0; i + 1 < cells.length; i += 2) {
+            out.push([x.cells.value(cells[i]), x.cells.value(cells[i + 1])]);
+        }
+        return out;
+    },
+    throughPoints: (_g, x) => {
+        const cells = Array.from(x.cells.propCells(x.idx, "throughPoints"));
+        const out: unknown[] = [];
+        for (let i = 0; i + 1 < cells.length; i += 2) {
+            out.push([
+                M(x.cells.value(cells[i])),
+                M(x.cells.value(cells[i + 1])),
+            ]);
+        }
+        return out;
+    },
+};
+
 /**
  * JavaScript-core state variable name -> reader over the cells core's props,
  * per component type.
@@ -290,6 +569,11 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     polygon: polygonReaders,
     triangle: polygonReaders,
+    rectangle: rectangleReaders,
+    regularPolygon: regularPolygonReaders,
+    vector: vectorReaders,
+    ray: rayReaders,
+    angle: angleReaders,
     mathInput: mathReaders,
     math: mathReaders,
     // The current core's number values are plain numbers.
@@ -324,6 +608,228 @@ const STATE: Record<string, Record<string, Reader>> = {
     },
     answer: answerReaders,
     award: awardReaders,
+    ...Object.fromEntries(
+        [
+            "abs",
+            "sign",
+            "floor",
+            "ceil",
+            "round",
+            "setSmallToZero",
+            "wrapNumberPeriodic",
+            "clampNumber",
+            "sum",
+            "product",
+            "mean",
+            "median",
+            "variance",
+            "standardDeviation",
+            "count",
+            "min",
+            "max",
+            "mod",
+            "gcd",
+            "lcm",
+            "argMin",
+            "argMax",
+        ].map((t) => [t, mathOperatorReaders]),
+    ),
+    ...Object.fromEntries(
+        [
+            "and",
+            "or",
+            "xor",
+            "iff",
+            "implies",
+            "not",
+            "isInteger",
+            "isNumber",
+            "isBetween",
+        ].map((t) => [t, booleanOperatorReaders]),
+    ),
+    // An integer is a number in the current core; an intComma and a
+    // pluralize are texts, the grouped number and the word.
+    integer: {
+        value: (g) => g("value"),
+        valueForDisplay: (g) => g("value"),
+        text: textOf,
+    },
+    intComma: { value: textOf, text: textOf },
+    pluralize: {
+        value: (_g, x) => x.cells.text(x.cell("value")!),
+        text: (_g, x) => x.cells.text(x.cell("value")!),
+    },
+    latex: { value: textOf, text: textOf },
+    sequence: numberListReaders("sequenceValues"),
+    sampleRandomNumbers: numberListReaders("sampledValues"),
+    selectRandomNumbers: numberListReaders("selectedValues"),
+    samplePrimeNumbers: numberListReaders("sampledValues"),
+    selectPrimeNumbers: numberListReaders("selectedValues"),
+    ...Object.fromEntries(
+        [
+            "cumulativeSum",
+            "cumulativeProduct",
+            "cumulativeMin",
+            "cumulativeMax",
+            "differences",
+        ].map((t) => [t, mathListOperatorReaders]),
+    ),
+    // The text containers whose text the current core computes.
+    ...Object.fromEntries(
+        [
+            "em",
+            "alert",
+            "term",
+            "q",
+            "sq",
+            "c",
+            "attr",
+            "span",
+            "tag",
+            "tagc",
+            "tage",
+            "ndash",
+            "mdash",
+            "nbsp",
+            "ellipsis",
+            "lq",
+            "rq",
+            "lsq",
+            "rsq",
+            "li",
+            "caption",
+            "footnote",
+            "asList",
+        ].map((t) => [t, containerReaders]),
+    ),
+    solution: { open: (g) => g("open") !== 0 },
+    // The divisions are sections in the cells core.
+    ...Object.fromEntries(
+        [
+            "section",
+            "subsection",
+            "subsubsection",
+            "problem",
+            "exercise",
+            "example",
+            "question",
+            "activity",
+            "definition",
+            "note",
+            "theorem",
+            "paragraphs",
+            "objectives",
+            "part",
+            "task",
+            "problems",
+            "exercises",
+        ].map((t) => [t, sectionReaders]),
+    ),
+    // The buttons (ADR 0040): a press is the core's action `trigger`; one
+    // something else presses (ADR 0042) is hidden.
+    callAction: {
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
+    updateValue: {
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
+    triggerSet: {
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
+    // The document-wide counters (ADR 0044), and an aside, numbered among
+    // the divisions.
+    figure: counterNameReaders("figure", "Figure", "caption"),
+    table: counterNameReaders("table", "Table", "title"),
+    footnote: {
+        text: textOf,
+        footnoteTag: (_g, x) => String(counterNumber(x) ?? ""),
+    },
+    aside: {
+        sectionNumber: sectionReaders.sectionNumber,
+        enumeration: sectionReaders.enumeration,
+        includeParentNumber: sectionReaders.includeParentNumber,
+    },
+    // A fraction input and the boxes it owns (ADR 0045): each prop is the
+    // expression its math cell holds, the blank expression when it holds
+    // none. The core has no uncommitted value, so `immediateValue` is
+    // `value`.
+    fractionInput: {
+        value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        numerator: (_g, x) => exprOf(x.cells, x.cell("numerator")!),
+        denominator: (_g, x) => exprOf(x.cells, x.cell("denominator")!),
+        text: textOf,
+    },
+    _fractionInputComponent: {
+        value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+    },
+    // The value lists (ADR 0041): their entries as the current core holds
+    // them, and how many there are.
+    numberList: numberListReaders(),
+    textList: valueListReaders("texts", (x, c) => x.cells.text(c)),
+    booleanList: valueListReaders("booleans", (x, c) => x.cells.value(c) === 1),
+    mathList: valueListReaders("maths", (x, c) => heldMath(x.cells, c)),
+    // Function machinery (ADR 0049).
+    function: functionReaders,
+    derivative: functionReaders,
+    piecewiseFunction: {
+        domain: functionDomain,
+        numericalfs: (_g, x) => [numericalFunction(x)],
+    },
+    curve: curveReaders,
+    equilibriumCurve: {
+        ...curveReaders,
+        stable: (g) => g("stable") !== 0,
+    },
+    // Values with entries inside a math (ADR 0041, decision 8).
+    interval: mathReaders,
+};
+
+/** The component fields the harness answers for some types: a fraction
+ * input's `activeChildren` are the boxes it owns (ADR 0045), which the
+ * current core's actions on it address. */
+const FIELDS: Record<
+    string,
+    Record<string, (cells: Cells, idx: number) => unknown>
+> = {
+    fractionInput: {
+        activeChildren: (cells, idx) =>
+            cells.table.children(idx).flatMap((c) =>
+                "component" in c &&
+                cells.table.tag(c.component) === "_fractionInputComponent"
+                    ? [
+                          {
+                              componentIdx: c.component,
+                              componentType: "_fractionInputComponent",
+                          },
+                      ]
+                    : [],
+            ),
+    },
+};
+
+/** The current core's name of each button's press, carried out as the
+ * cells core's action `trigger` (ADR 0040). */
+const PRESSES: Record<string, string> = {
+    callAction: "callAction",
+    updateValue: "updateValue",
+    triggerSet: "triggerActions",
+};
+
+/** Actions the bridge's renderer table resolves (`cells/actions.ts`) whose
+ * arguments are the current core's, per component type. */
+const BRIDGE_ACTIONS: Record<string, string[]> = {
+    vector: ["moveVector"],
+    ray: ["moveRay"],
+    rectangle: ["movePolygon"],
+    regularPolygon: ["movePolygon"],
+    solution: ["revealSolution", "closeSolution"],
+    curve: ["moveThroughPoint"],
+    equilibriumCurve: ["moveThroughPoint", "switchCurve"],
 };
 
 function stripPositions(o: any): any {
@@ -475,7 +981,11 @@ export async function createTestCoreCells({
             {},
             {
                 get(_target, name) {
-                    if (typeof name !== "string") return undefined;
+                    // Not a state variable: what `await` looks for when
+                    // a test returns the state values from an async
+                    // function.
+                    if (typeof name !== "string" || name === "then")
+                        return undefined;
                     assertCurrent(takenAt, `\`${componentType}.${name}\``);
                     return stateValue(componentIdx, componentType, name);
                 },
@@ -493,6 +1003,8 @@ export async function createTestCoreCells({
             },
         );
         const unsupported = (field: string) => () => {
+            const answer = FIELDS[componentType]?.[field];
+            if (answer) return answer(cells, componentIdx);
             throw new CellsCoreGap(`\`${field}\` of \`${componentType}\``);
         };
         return Object.defineProperties(
@@ -601,6 +1113,34 @@ export async function createTestCoreCells({
                 console.log(
                     `[cells] ${componentType}#${componentIdx}.${actionName} ${JSON.stringify(args)}`,
                 );
+            }
+            // The shapes whose drags the bridge resolves with the same
+            // arguments as the current core's actions: a ray's and a
+            // vector's both ends, a rectangle's held opposite corner.
+            if (BRIDGE_ACTIONS[componentType]?.includes(actionName)) {
+                const effect = resolveRendererAction(
+                    table,
+                    componentIdx,
+                    actionName,
+                    args,
+                );
+                if (effect?.kind === "request") request(effect.pairs);
+                else if (effect?.kind === "points") request(effect.pairs, true);
+                return;
+            }
+            if (PRESSES[componentType] === actionName) {
+                core.trigger(componentIdx);
+                table.reload();
+                return;
+            }
+            // A click or a focus, which a button may wait on (ADR 0042).
+            if (
+                componentType === "point" &&
+                (actionName === "pointClicked" || actionName === "pointFocused")
+            ) {
+                core.act_by_name(componentIdx, actionName);
+                table.reload();
+                return;
             }
             switch (actionName) {
                 case "movePoint":

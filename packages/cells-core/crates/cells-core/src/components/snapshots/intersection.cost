@@ -1,0 +1,6 @@
+two lines: none when they coincide or are parallel: cells 19 · essential 12 · constant 3 · instrs 2 · components 9
+segments: none when one stops short: cells 19 · essential 12 · constant 3 · instrs 2 · components 7
+hidden by the author: cells 20 · essential 13 · constant 3 · instrs 2 · components 6
+one item or none: nothing: cells 13 · essential 8 · constant 5 · instrs 0 · components 5
+three lines: a warning: cells 21 · essential 16 · constant 5 · instrs 0 · components 6
+a circle: a warning: cells 16 · essential 10 · constant 6 · instrs 0 · components 5

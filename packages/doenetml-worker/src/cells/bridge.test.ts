@@ -10,6 +10,7 @@ import path from "node:path";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { initCellsCore, loadCellsDocument } from "./loadCellsCore";
 import { CellsBridge, type ElementUpdate } from "./bridge";
+import { lineEquationLatex } from "./contracts";
 
 const CELLS_CORE = path.resolve(__dirname, "../../../cells-core");
 
@@ -40,6 +41,33 @@ describe("flat DAST", () => {
             { value: "1, 2.5, 3" },
             { value: "a, b" },
             { value: "true, false" },
+        ]);
+    });
+
+    it("draws a math list as the text of its entries, and an entry as a math (ADR 0041)", async () => {
+        const bridge =
+            await load(`<mathList name="ml">x y+1 <number>3</number></mathList>
+<p>$ml[2]</p>`);
+        const root = bridge.flatDast();
+        expect(byName(root, "text").map((e) => (e.data as any).props)).toEqual([
+            { value: "x, y + 1, 3" },
+        ]);
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual(["y + 1"]);
+    });
+
+    it("draws a math holding a value with entries, and an interval, as a math (ADR 0041)", async () => {
+        const bridge = await load(`<math>{1, x}</math>
+<math>[1, 2)</math>
+<interval>(1, 2)</interval>`);
+        const root = bridge.flatDast();
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual([
+            "\\left\\{ 1, x \\right\\}",
+            "\\left[ 1, 2 \\right)",
+            "\\left( 1, 2 \\right)",
         ]);
     });
 
@@ -203,6 +231,52 @@ describe("values and lists", () => {
         expect(ps[3]).toEqual(["<number>1", ", ", "<number>2"]);
         expect(ps[4]).toEqual(["<number>1", "<number>2"]);
         void vals;
+    });
+
+    it("lists the items of a list written over several lines, not the whitespace between them", async () => {
+        const bridge = await load(`<p><group asList>
+    <number>1</number>
+    <number>2</number>
+</group></p>
+<p><repeatForSequence from="1" to="2" valueName="v"> $v </repeatForSequence></p>`);
+        const root = bridge.flatDast();
+        const ps = byName(root, "p").map((e: any) =>
+            e.children.map((c: any) =>
+                typeof c === "string"
+                    ? c
+                    : `<${(root.elements[c.id] as any).name}>`,
+            ),
+        );
+        // COMP-2: commas between the items, and no whitespace item.
+        expect(ps[0]).toEqual(["<number>", ", ", "<number>"]);
+        expect(ps[1]).toEqual(["<number>", ", ", "<number>"]);
+    });
+});
+
+describe("missing values", () => {
+    it("shows a reference that names nothing, and what is made from it, as a blank, and keeps NaN for a computation", async () => {
+        const bridge = await load(`<numberList name="l">1 2</numberList>
+<p><number>$l[5]</number> <number>$l[5] + 3</number> <number>0/0</number></p>
+<booleanList name="bl">true</booleanList>
+<p><text extend="$nope"/> <boolean>$bl[3]</boolean> <boolean>$l[5] > 0</boolean></p>
+<p><math>x + $nope</math> <point>($l[5], 1)</point> <math>1 + $l[5]</math></p>
+<p><numberList>$l[5] 2</numberList></p>`);
+        const root = bridge.flatDast();
+        const props = (name: string) =>
+            byName(root, name).map((e) => (e.data as any).props);
+        // VAL-5, D40: missing is the blank; NaN stays for 0/0 (ADR 0046).
+        expect(props("number").map((p) => p.text)).toEqual(["＿", "＿", "NaN"]);
+        expect(props("text").map((p) => p.value)).toContain("＿");
+        // A missing boolean is the blank; a comparison with a missing side
+        // is false, since a blank never equals anything (D37, D40).
+        expect(props("boolean").map((p) => p.value)).toEqual(["＿", false]);
+        // A lowered math (ADR 0005) shows the blank in its expression.
+        expect(props("math").map((p) => p.latex)).toEqual(["x + ＿", "1 + ＿"]);
+        expect(props("point")).toEqual([
+            { coordsLatex: "\\left( ＿, 1 \\right)" },
+        ]);
+        // The element that names nothing still builds: a warning, no box.
+        expect(byName(root, "_error")).toEqual([]);
     });
 });
 
@@ -511,6 +585,28 @@ describe("step 3 components", () => {
         expect([4, 6]).toContain(changed(payload, "slider")?.value);
     });
 
+    // A fraction input has its label, and as its children the two math
+    // inputs it owns (ADR 0045), typed into as any math input.
+    it("draws a fraction input over its numerator and denominator inputs", async () => {
+        const { all, props, send, changed } = await open(`
+<answer><fractionInput prefillNumerator="1"><label>Ratio</label></fractionInput><award><math>2/3</math></award></answer>`);
+        const [fraction] = all("fractionInput");
+        expect((fraction.data as any).props).toMatchObject({ label: "Ratio" });
+        const boxes = all("mathInput");
+        expect(boxes).toHaveLength(2);
+        // Its children are the two boxes, its label no text among them.
+        expect(fraction.type === "element" && fraction.children).toEqual(
+            boxes.map((b) => ({ id: b.data.id, annotation: "original" })),
+        );
+        expect(props("mathInput", 0).text).toBe("1");
+        expect(props("mathInput", 1).text).toBe("");
+        let payload = send("mathInput", "updateValue", { text: "2" }, 0);
+        expect(changed(payload, "mathInput", 0)?.text).toBe("2");
+        send("mathInput", "updateValue", { text: "3" }, 1);
+        payload = send("answer", "submitAnswer", {});
+        expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
+    });
+
     it("opens a hint and scores a submitted answer", async () => {
         const { props, send, changed } = await open(`
 <hint><p>Try harder</p></hint>
@@ -527,6 +623,104 @@ describe("step 3 components", () => {
         });
     });
 
+    it("presses a call action, which submits the answer it names", async () => {
+        const { props, send, changed } = await open(`
+<answer name="a"><mathInput name="mi"/><award><when>$mi = x</when></award></answer>
+<callAction target="$a" actionName="submitAnswer"><label>Check it</label></callAction>`);
+        expect(props("callAction")).toEqual({
+            clickAction: "callAction",
+            label: "Check it",
+            labelHasLatex: false,
+            disabled: false,
+        });
+        send("mathInput", "updateValue", { text: "x" });
+        const payload = send("callAction", "callAction", {});
+        expect(changed(payload, "answer")).toEqual({
+            creditAchieved: 1,
+            numSubmissions: 1,
+        });
+    });
+
+    it("presses an update value, and one waiting on a click or a condition", async () => {
+        const { all, props, send, changed } = await open(`
+<graph><point name="P">(1,2)</point></graph>
+<number name="n">0</number><number name="n1">$n + 1</number>
+<number name="m">0</number><number name="m1">$m + 1</number>
+<updateValue target="$n" newValue="$n1"><label>Add</label></updateValue>
+<updateValue target="$m" newValue="$m1" triggerWhenObjectsClicked="$P"/>
+<updateValue target="$m" newValue="$m1" triggerWhen="$n > 1"/>
+<p name="out">$n $m</p>`);
+        // The two pressed otherwise are hidden: one button is sent.
+        expect(all("updateValue")).toHaveLength(1);
+        expect(props("updateValue")).toEqual({
+            clickAction: "updateValue",
+            label: "Add",
+            labelHasLatex: false,
+            disabled: false,
+        });
+        let payload = send("updateValue", "updateValue", {});
+        expect(changed(payload, "number")).toEqual({ text: "1" });
+        payload = send("point", "pointClicked", {});
+        expect(changed(payload, "number", 2)).toEqual({ text: "1" });
+        // `n` rises past 1: the condition's button presses as a follow-up.
+        payload = send("updateValue", "updateValue", {});
+        expect(changed(payload, "number")).toEqual({ text: "2" });
+        expect(changed(payload, "number", 2)).toEqual({ text: "2" });
+    });
+
+    it("draws operators as math notation and booleans, without their operands", async () => {
+        const { all, props, send, changed } = await open(`
+<numberInput name="n" value="-4"/>
+<abs>$n</abs> <round numDecimals="1">2.25</round> <sum>1 2 $n</sum>
+<mean>2 3 5 7</mean> <max>$n 3</max>
+<and>true false</and> <or>true $b</or> <not>true</not>
+<isBetween limits="1 5">3</isBetween> <booleanInput name="b"/>
+<count name="c">x y</count><m>k = $c</m>`);
+        expect(props("abs")).toEqual({ latex: "4", renderMode: "inline" });
+        expect(props("round").latex).toBe("2.3");
+        expect(props("sum").latex).toBe("-1");
+        expect(props("mean").latex).toBe("4.25");
+        expect(props("max").latex).toBe("3");
+        for (const name of ["abs", "sum", "and"]) {
+            expect(all(name)[0].children).toEqual([]);
+        }
+        expect(props("and")).toEqual({ value: false });
+        expect(props("or")).toEqual({ value: true });
+        expect(props("not")).toEqual({ value: false });
+        expect(props("isBetween")).toEqual({ value: true });
+        // Math notation refers to an operator by its value.
+        expect(props("m").latex).toBe("k = 2");
+
+        const payload = send("numberInput", "updateValue", { value: 6 });
+        expect(changed(payload, "abs")).toEqual({ latex: "6" });
+        expect(changed(payload, "sum")).toEqual({ latex: "9" });
+        expect(changed(payload, "max")).toEqual({ latex: "6" });
+    });
+
+    it("draws an operator over math as its expression, which follows its operands", async () => {
+        const { all, props, send, changed } = await open(`
+<mathInput name="mi" prefill="x"/>
+<abs>$mi</abs> <sum name="s" simplify>$mi 2x</sum> <sum forceSymbolic>1 2</sum>
+<angle radians="alpha" inDegrees/> <angle>pi/2</angle>
+<m>k = $s</m>`);
+        expect(props("abs")).toEqual({
+            latex: "\\left|x\\right|",
+            renderMode: "inline",
+        });
+        expect(props("sum").latex).toBe("3 x");
+        expect((all("sum")[1].data as any).props.latex).toBe("1 + 2");
+        expect(all("angle").map((e) => (e.data as any).props.latex)).toEqual([
+            "\\frac{180 \\alpha}{\\pi}^\\circ",
+            "\\frac{\\pi}{2}",
+        ]);
+        // Math notation refers to an operator by its expression.
+        expect(props("m").latex).toBe("k = 3 x");
+
+        const payload = send("mathInput", "updateValue", { text: "-2" });
+        expect(changed(payload, "abs")).toEqual({ latex: "2" });
+        expect(changed(payload, "sum")).toEqual({ latex: "2 x - 2" });
+    });
+
     it("writes math notation with the values it refers to", async () => {
         const { all, props } = await open(`<number name="n">3</number>
 <m>x^{$n}</m><md><mrow>a</mrow><mrow>b</mrow></md>
@@ -538,5 +732,797 @@ describe("step 3 components", () => {
             renderMode: "align",
         });
         expect(props("tuple").latex).toBe("\\left( 1, 2, 3 \\right)");
+    });
+
+    it("draws text markup, characters and plain blocks by their tags", async () => {
+        const { root, all, props } =
+            await open(`<p><em>a</em><alert>b</alert><term>c</term><q>d</q><sq>e</sq><c>f</c><attr>g</attr><span>h</span><tag>i</tag><tagc>j</tagc><tage>k</tage></p>
+<p>1<ndash/>2<mdash/>3<nbsp/><ellipsis/><lq/><rq/><lsq/><rsq/><br/></p>
+<hr/><div>x</div><pre>  y  z</pre><blockQuote>w</blockQuote>
+<ol><li>one</li><li>two</li></ol>`);
+        const names = (id: number): string[] => {
+            const e = root.elements[id] as any;
+            return [
+                e.name,
+                ...e.children.flatMap((c: any) =>
+                    typeof c === "string" ? [] : names(c.id),
+                ),
+            ];
+        };
+        const [doc] = all("document");
+        expect(names(doc.data.id).slice(1)).toEqual([
+            "p",
+            "em",
+            "alert",
+            "alert",
+            "q",
+            "sq",
+            "c",
+            "attr",
+            "span",
+            "tag",
+            "tagc",
+            "tag",
+            "p",
+            "ndash",
+            "mdash",
+            "nbsp",
+            "ellipsis",
+            "lq",
+            "rq",
+            "lsq",
+            "rsq",
+            "br",
+            "hr",
+            "div",
+            "pre",
+            "blockQuote",
+            "ol",
+            "li",
+            "li",
+        ]);
+        // An element with no props has none; a `<tage>` is a self-closed tag.
+        expect(props("em")).toEqual({});
+        expect(all("tag").map((e) => (e.data as any).props)).toEqual([
+            {},
+            { selfClosed: true },
+        ]);
+        expect(all("tag")[1].children).toEqual(["k"]);
+        expect(all("ndash")[0].children).toEqual([]);
+        // Preformatted text keeps its whitespace.
+        expect(all("pre")[0].children).toEqual(["  y  z"]);
+        // The items of an `<ol>` are numbered.
+        expect(all("li").map((e) => (e.data as any).props)).toEqual([
+            { label: "1." },
+            { label: "2." },
+        ]);
+        expect(props("ol")).toEqual({ listDepth: { Ol: 1 } });
+    });
+
+    it("draws and moves rays, vectors, rectangles and regular polygons, and shows angles", async () => {
+        const { all, props, send, changed } = await open(`<graph>
+<ray endpoint="(1,2)" through="(3,2)"/>
+<vector tail="(0,0)" head="(1,2)" headDraggable="false"/>
+<rectangle width="2" height="1"/>
+<regularPolygon numVertices="4" circumradius="2"/>
+</graph>
+<p><ray/><vector>(3, 4)</vector></p>
+<p><angle through="(1,0) (0,0) (0,1)"/> <angle degrees="45" inDegrees/></p>`);
+        expect(props("ray")).toEqual({
+            numericalEndpoint: [1, 2],
+            numericalThroughpoint: [3, 2],
+        });
+        // Outside a graph a ray sends nothing, a vector its displacement.
+        expect(props("ray", 1)).toEqual({});
+        expect(props("vector")).toEqual({
+            numericalEndpoints: [
+                [0, 0],
+                [1, 2],
+            ],
+            headDraggable: false,
+            tailDraggable: true,
+        });
+        expect(props("vector", 1)).toEqual({
+            latex: "\\left( 3, 4 \\right)",
+            renderMode: "inline",
+        });
+        expect(props("rectangle").numericalVertices).toEqual([
+            [0, 0],
+            [2, 0],
+            [2, 1],
+            [0, 1],
+        ]);
+        const square = props("regularPolygon").numericalVertices;
+        expect(square).toHaveLength(4);
+        expect(square[0]).toEqual([2, 0]);
+        expect(all("angle").map((e) => (e.data as any).props)).toEqual([
+            { latex: String(Number((Math.PI / 2).toPrecision(10))) },
+            { latex: "45^\\circ" },
+        ]);
+
+        // A ray's drag moves both points.
+        let payload = send("ray", "moveRay", {
+            endpointcoords: [0, 0],
+            throughcoords: [1, 1],
+        });
+        expect(changed(payload, "ray")).toEqual({
+            numericalEndpoint: [0, 0],
+            numericalThroughpoint: [1, 1],
+        });
+        // A vector's tail dragged alone: its head stays.
+        payload = send("vector", "moveVector", { tailcoords: [-1, -1] });
+        expect(changed(payload, "vector")).toEqual({
+            numericalEndpoints: [
+                [-1, -1],
+                [1, 2],
+            ],
+        });
+        // A rectangle's corner dragged: the opposite corner holds.
+        payload = send("rectangle", "movePolygon", {
+            pointCoords: { 1: [5, -1] },
+        });
+        expect(changed(payload, "rectangle")).toEqual({
+            numericalVertices: [
+                [0, -1],
+                [5, -1],
+                [5, 1],
+                [0, 1],
+            ],
+        });
+        // A regular polygon's vertex dragged turns it about its center.
+        payload = send("regularPolygon", "movePolygon", {
+            pointCoords: { 0: [0, 3] },
+        });
+        const turned = changed(payload, "regularPolygon").numericalVertices;
+        const near = (got: number[], want: number[]) =>
+            want.forEach((v, j) => expect(got[j]).toBeCloseTo(v));
+        near(turned[0], [0, 3]);
+        near(turned[1], [-3, 0]);
+    });
+});
+
+describe("sectioning and document-structure blocks", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const props = (name: string, i = 0) => (all(name)[i].data as any).props;
+        const ids = (name: string) => all(name).map((e) => e.data.id);
+        const childIds = (name: string, i = 0) =>
+            (all(name)[i].children as any[])
+                .filter((c) => typeof c !== "string")
+                .map((c) => c.id);
+        return { bridge, all, props, ids, childIds };
+    }
+
+    it("draws every division as a division of its kind, numbered among its siblings", async () => {
+        const { all } = await open(`<section><title>S</title>
+<theorem><title>Pythagoras</title><statement><p>a</p></statement></theorem>
+<introduction><subsection/></introduction>
+<objectives><p>learn</p></objectives>
+<problems><problem><part><p>a</p></part><part><p>b</p></part></problem></problems>
+<question/><definition/><note/><paragraphs/><activity/><exercises/>
+</section>`);
+        const divisions = all("division").map((e) => {
+            const p = (e.data as any).props;
+            return [p.divisionType, p.xrefLabel.label, p.codeNumber, p.boxed];
+        });
+        expect(divisions).toEqual([
+            ["section", "Section", "1", false],
+            ["theorem", "Theorem", "1", false],
+            ["subsection", "Section", "1.2", false],
+            ["objectives", "Objectives", "3", true],
+            ["problems", "Problems", "4", false],
+            ["problem", "Problem", "1", false],
+            ["part", "Part", "1", false],
+            ["part", "Part", "2", false],
+            ["question", "Question", "5", false],
+            ["definition", "Definition", "6", false],
+            ["note", "Note", "7", false],
+            ["paragraphs", "Paragraphs", "8", false],
+            ["activity", "Activity", "9", false],
+            ["exercises", "Exercises", "10", false],
+        ]);
+        // A statement and an introduction are elements of their own.
+        expect(all("statement")).toHaveLength(1);
+        expect(all("introduction")).toHaveLength(1);
+    });
+
+    it("draws a proof as an unnumbered division that starts closed", async () => {
+        const { props, ids, childIds } = await open(`<theorem/>
+<proof><p>Clear.</p></proof>
+<proof startOpen boxed><title>Why</title><p>Because.</p></proof>
+<theorem/>`);
+        expect(props("proof")).toMatchObject({
+            title: null,
+            codeNumber: "",
+            divisionType: "proof",
+            xrefLabel: { label: "Proof" },
+            collapsible: true,
+            boxed: false,
+            open: false,
+        });
+        const [title] = ids("title");
+        expect(props("proof", 1)).toMatchObject({
+            title,
+            xrefLabel: { label: "" },
+            boxed: true,
+            open: true,
+        });
+        expect(childIds("proof", 1)).not.toContain(title);
+        expect(props("division", 1).codeNumber).toBe("2");
+    });
+
+    it("reveals and closes a solution", async () => {
+        const { bridge, all, props, ids, childIds } = await open(
+            `<solution><p>It is 2.</p></solution>`,
+        );
+        expect(props("solution")).toEqual({
+            open: false,
+            canBeClosed: true,
+            sectionName: "Solution",
+            hide: false,
+        });
+        // The parser's wrapper around its content is spliced away.
+        expect(childIds("solution")).toEqual(ids("p"));
+        const id = all("solution")[0].data.id;
+        const send = (actionName: string) =>
+            (
+                bridge.dispatch({
+                    component: "solution",
+                    actionName,
+                    componentIdx: id,
+                    args: {},
+                }).payload as Record<number, ElementUpdate>
+            )[id]?.changedState;
+        expect(send("revealSolution")).toEqual({ open: true });
+        expect(send("closeSolution")).toEqual({ open: false });
+    });
+
+    it("draws a figure's caption from a prop, and a footnote's text", async () => {
+        const { props, ids, childIds } = await open(`<figure>
+<caption>A graph</caption><graph/></figure>
+<figure suppressFigureNameInCaption><graph/></figure>
+<p>Claim.<footnote>See page 3.</footnote></p>`);
+        const [caption] = ids("caption");
+        expect(props("figure")).toEqual({
+            caption: "",
+            captionChild: caption,
+            figureName: "Figure 1",
+            figureNamePrefix: "Figure 1: ",
+            suppressFigureNameInCaption: false,
+        });
+        expect(childIds("figure")).not.toContain(caption);
+        expect(props("figure", 1)).toMatchObject({
+            captionChild: null,
+            figureName: "Figure 2",
+            figureNamePrefix: "Figure 2",
+            suppressFigureNameInCaption: true,
+        });
+        expect(props("footnote")).toEqual({
+            footnoteTag: "1",
+            text: "See page 3.",
+        });
+        expect(childIds("footnote")).toEqual([]);
+    });
+});
+
+describe("the document-wide counters (ADR 0044)", () => {
+    it("numbers figures and tables in one sequence and footnotes in another, through the active case", async () => {
+        const bridge = await load(`<booleanInput name="b"/>
+<figure name="f1"/>
+<conditionalContent><case condition="$b"><table name="t"><title>T</title></table></case></conditionalContent>
+<figure name="f3" number="false"/>
+<p>a<footnote>one</footnote><figure name="f4"/><footnote>two</footnote></p>
+<section name="s"/><aside name="a"><title>More</title></aside><section name="s3"/>`);
+        const root = bridge.flatDast();
+        const names = (r: typeof root) =>
+            byName(r, "figure").map((e) => (e.data as any).props.figureName);
+        expect(names(root)).toEqual(["Figure 1", "Figure", "Figure 2"]);
+        expect(
+            byName(root, "footnote").map(
+                (e) => (e.data as any).props.footnoteTag,
+            ),
+        ).toEqual(["1", "2"]);
+        // The aside takes its place among the divisions.
+        expect(
+            byName(root, "aside").map((e) => (e.data as any).props.codeNumber),
+        ).toEqual(["2"]);
+        expect(
+            byName(root, "division").map(
+                (e) => (e.data as any).props.codeNumber,
+            ),
+        ).toEqual(["1", "3"]);
+
+        // The case opens: the table takes a number, and the figure after
+        // it, which read the case's `active` cell, follows.
+        const input = byName(root, "booleanInput")[0];
+        const updates = bridge.dispatch({
+            component: "booleanInput",
+            actionName: "updateBoolean",
+            componentIdx: input.data.id,
+            args: { boolean: true },
+        }).payload as Record<number, ElementUpdate>;
+        const f4 = byName(root, "figure")[2].data.id;
+        expect(updates[f4]?.changedState).toMatchObject({
+            figureName: "Figure 3",
+        });
+        const after = bridge.flatDast();
+        expect(
+            byName(after, "table").map(
+                (e) => (e.data as any).props.titlePrefix,
+            ),
+        ).toEqual(["Table 2: "]);
+    });
+});
+
+describe("the layout containers and the formatted values", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const props = (name: string) =>
+            all(name).map((e) => (e.data as any).props);
+        /** An element's children: text as written, an element as
+         * `<name>` and its text or value prop. */
+        const children = (e: any) =>
+            e.children.map((c: any) => {
+                if (typeof c === "string") return c;
+                const el = root.elements[c.id] as any;
+                return `<${el.name}>${el.data.props?.text ?? el.data.props?.value ?? ""}`;
+            });
+        return { root, all, props, children };
+    }
+
+    it("draws the formatted values as their text", async () => {
+        const { props } = await open(`<p><integer>2.6</integer>
+<intComma>25236501.35</intComma> <intComma>-1234</intComma>
+<pluralize>two mouse</pluralize> <pluralize basedOnNumber="1">dog</pluralize>
+<pluralize>goose</pluralize>
+<latex>\\frac{<number>3</number>}{2}</latex></p>`);
+        expect(props("integer")).toEqual([{ text: "3" }]);
+        expect(props("intComma")).toEqual([
+            { text: "25,236,501.35" },
+            { text: "-1,234" },
+        ]);
+        expect(props("pluralize")).toEqual([
+            { text: "two mice" },
+            { text: "dog" },
+            { text: "geese" },
+        ]);
+        expect(props("latex")).toEqual([{ text: "\\frac{ 3 }{2}" }]);
+    });
+
+    it("shows an asList's children separated by commas", async () => {
+        const { all, children } = await open(
+            `<p><asList><number>1</number> <number>2</number><text>c</text></asList></p>`,
+        );
+        expect(all("asList")).toEqual([]);
+        expect(children(all("p")[0])).toEqual([
+            "<number>1",
+            ", ",
+            "<number>2",
+            ", ",
+            "<text>c",
+        ]);
+    });
+
+    it("draws a table's title from a prop", async () => {
+        const { all, props } = await open(`<section>
+<table><title>Data</title><tabular><row><cell>1</cell></row></tabular></table>
+<table suppressTableNameInTitle><tabular><row><cell>2</cell></row></tabular></table>
+</section>`);
+        const [title] = all("title");
+        const [table] = all("table");
+        expect(props("table")).toEqual([
+            {
+                title: title.data.id,
+                titlePrefix: "Table 1: ",
+                codeNumber: "1",
+                divisionDepth: 2,
+                divisionType: "table",
+                xrefLabel: {
+                    label: "Table",
+                    global_ident: "1",
+                    local_ident: "1",
+                    preferred_form: "Global",
+                },
+            },
+            expect.objectContaining({ title: null, titlePrefix: "" }),
+        ]);
+        expect(table.children).not.toContainEqual(
+            expect.objectContaining({ id: title.data.id }),
+        );
+        expect(all("tabular")).toHaveLength(2);
+    });
+
+    it("draws an sbsGroup as a stack whose side-by-sides share its widths", async () => {
+        const { all, props } = await open(`<sbsGroup widths="30% 70%">
+<sideBySide><p>a</p><p>b</p></sideBySide>
+<sideBySide widths="50% 50%"><p>c</p><p>d</p></sideBySide>
+</sbsGroup>`);
+        expect(all("sbsGroup")).toEqual([]);
+        expect(all("stack")).toHaveLength(1);
+        expect(props("sideBySide")).toEqual([
+            { widths: [30, 70] },
+            { widths: [50, 50] },
+        ]);
+    });
+
+    it("draws the PreTeXt wrappers and leaves the axis labels out", async () => {
+        const { all, root } = await open(`<pretext><article>
+<p>x</p>
+<graph><xLabel>t</xLabel><yLabel>y</yLabel><point>(1,2)</point></graph>
+</article></pretext>`);
+        expect(all("pretext")).toHaveLength(1);
+        expect(all("article")).toHaveLength(1);
+        expect(all("xLabel")).toEqual([]);
+        expect(all("yLabel")).toEqual([]);
+        const [graph] = all("graph");
+        expect(
+            graph.children
+                .filter((c: any) => typeof c !== "string")
+                .map((c: any) => (root.elements[c.id] as any).name),
+        ).toEqual(["point"]);
+    });
+});
+
+describe("random selections, sequences, reordering and list operators", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const texts = () =>
+            all("text").map((e) => (e.data as any).props.value as string);
+        const send = (component: string, actionName: string, args: object) =>
+            bridge.dispatch({
+                component,
+                actionName,
+                componentIdx: all(component)[0].data.id,
+                args,
+            }).payload as Record<number, ElementUpdate>;
+        return { bridge, all, texts, send };
+    }
+
+    it("draws computed lists of numbers as the text of their entries, without their operands", async () => {
+        const { all, texts, send } = await open(`
+<numberInput name="a" value="5"/>
+<cumulativeSum>1 $a 2</cumulativeSum>
+<cumulativeProduct>1 2 3</cumulativeProduct>
+<cumulativeMin>3 1 4</cumulativeMin>
+<cumulativeMax>3 1 4</cumulativeMax>
+<differences>30 75 87</differences>
+<sort>5 3 1</sort>
+<sequence from="2" to="10" step="4"/>
+<selectPrimeNumbers to="5" numToSelect="3" sort/>
+<argMax>3 9 2</argMax> <indexOf target="2">3 9 2</indexOf>`);
+        expect(texts()).toEqual([
+            "1, 6, 8",
+            "1, 2, 6",
+            "3, 1, 1",
+            "3, 3, 4",
+            "45, 12",
+            "1, 3, 5",
+            "2, 6, 10",
+            "2, 3, 5",
+        ]);
+        for (const e of all("text")) {
+            expect(e.children).toEqual([]);
+        }
+        expect((all("argMax")[0].data as any).props).toEqual({
+            latex: "2",
+            renderMode: "inline",
+        });
+        expect((all("indexOf")[0].data as any).props.latex).toBe("3");
+
+        const payload = send("numberInput", "updateValue", { value: 10 });
+        expect(payload[all("text")[0].data.id]?.changedState).toEqual({
+            value: "1, 11, 13",
+        });
+    });
+
+    it("draws the numbers a sampler or a shuffle drew, the same on every load", async () => {
+        const source = `<selectRandomNumbers type="discreteUniform" from="1" to="6" numToSelect="4"/>
+<sampleRandomNumbers numSamples="2"/>
+<samplePrimeNumbers numSamples="3"/>
+<shuffle>1 2 3 4</shuffle>`;
+        const first = (await open(source)).texts();
+        expect(first).toHaveLength(4);
+        const dice = first[0].split(", ").map(Number);
+        expect(dice).toHaveLength(4);
+        for (const x of dice) {
+            expect(Number.isInteger(x) && x >= 1 && x <= 6).toBe(true);
+        }
+        expect(first[3].split(", ").map(Number).sort()).toEqual([1, 2, 3, 4]);
+        expect((await open(source)).texts()).toEqual(first);
+    });
+});
+
+describe("function operators and triangles", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const send = (component: string, actionName: string, args: object) =>
+            bridge.dispatch({
+                component,
+                actionName,
+                componentIdx: all(component)[0].data.id,
+                args,
+            }).payload as Record<number, ElementUpdate>;
+        return { bridge, all, send };
+    }
+
+    it("draws a clamped and a wrapped function as curves through their samples", async () => {
+        const { all, send } = await open(`<graph xmin="-2" xmax="2">
+<function name="f">x^3</function>
+<clampFunction lowerValue="-3" upperValue="$n">$f</clampFunction>
+<wrapFunctionPeriodic lowerValue="-2" upperValue="3">$f</wrapFunctionPeriodic>
+</graph>
+<numberInput name="n" value="5"/>`);
+        const curves = all("polyline");
+        expect(curves).toHaveLength(3);
+        const [, clamped, wrapped] = curves.map(
+            (e) => (e.data as any).props.numericalVertices,
+        );
+        expect(clamped).toHaveLength(200);
+        expect(clamped[0]).toEqual([-2, -3]);
+        expect(clamped[199]).toEqual([2, 5]);
+        // -2 + mod(f(x) + 2, 5): 2 at x = -2, -2 at x = 2.
+        expect(wrapped[0][0]).toBe(-2);
+        expect(wrapped[0][1]).toBeCloseTo(2);
+        expect(wrapped[199][1]).toBeCloseTo(-2);
+        expect(curves[1].children).toEqual([]);
+
+        // A bound that follows an input resamples the curve.
+        const payload = send("numberInput", "updateValue", { value: 1 });
+        const resampled = payload[curves[1].data.id]?.changedState as any;
+        expect(resampled.numericalVertices[199]).toEqual([2, 1]);
+    });
+
+    it("draws a triangle as a polygon and moves its vertices", async () => {
+        const { all, send } = await open(`<graph>
+<triangle vertices="(1,1) (3,1)"/>
+</graph>`);
+        const [triangle] = all("triangle");
+        expect((triangle.data as any).props).toEqual({
+            numericalVertices: [
+                [1, 1],
+                [3, 1],
+                [0, 0],
+            ],
+        });
+        let payload = send("triangle", "movePolygon", {
+            pointCoords: { 2: [2, 4] },
+        });
+        expect(payload[triangle.data.id]?.changedState).toEqual({
+            numericalVertices: [
+                [1, 1],
+                [3, 1],
+                [2, 4],
+            ],
+        });
+        // A whole drag moves the three together.
+        payload = send("triangle", "movePolygon", {
+            pointCoords: { 0: [2, 2], 1: [4, 2], 2: [3, 5] },
+        });
+        expect(payload[triangle.data.id]?.changedState).toEqual({
+            numericalVertices: [
+                [2, 2],
+                [4, 2],
+                [3, 5],
+            ],
+        });
+    });
+});
+
+describe("derived geometry", () => {
+    async function open(source: string) {
+        const bridge = await load(source);
+        const root = bridge.flatDast();
+        const all = (name: string) => byName(root, name);
+        const send = (
+            id: number,
+            component: string,
+            actionName: string,
+            args: object,
+        ) =>
+            bridge.dispatch({ component, actionName, componentIdx: id, args })
+                .payload as Record<number, ElementUpdate>;
+        return { bridge, all, send };
+    }
+    const props = (e: { data: unknown }) => (e.data as any).props;
+    const childIds = (children: unknown[]) =>
+        children.flatMap((c) =>
+            c !== null && typeof c === "object" && "id" in c
+                ? [(c as { id: number }).id]
+                : [],
+        );
+
+    it("draws a best-fit line as a line that follows its data and does not move", async () => {
+        const { all, send } = await open(`<graph>
+<point name="P1">(1,2)</point><point name="P2">(1,6)</point>
+<point name="P3">(7,3)</point><point name="P4">(7,-1)</point>
+<bestFitLine data="$P1 $P2 $P3 $P4"/>
+</graph>`);
+        const [fit] = all("line");
+        // y = -0.5x + 4.5, through two of its points.
+        const [[x1, y1], [x2, y2]] = props(fit).numericalPoints;
+        expect(y1).toBeCloseTo(-0.5 * x1 + 4.5);
+        expect(y2).toBeCloseTo(-0.5 * x2 + 4.5);
+        expect(x1).not.toBeCloseTo(x2);
+        expect(
+            send(fit.data.id, "line", "moveLine", {
+                point1coords: [0, 0],
+                point2coords: [1, 1],
+            }),
+        ).toEqual({});
+        // A data point moved refits it: through (1,-2), (1,6), (7,3) and
+        // (7,-1), the line through the means at each x, (1, 2) and (7, 1).
+        const [p1] = all("point");
+        const payload = send(p1.data.id, "point", "move", { x: 1, y: -2 });
+        const [[a, b], [c, d]] = (payload[fit.data.id]?.changedState as any)
+            .numericalPoints;
+        expect(b).toBeCloseTo((13 - a) / 6);
+        expect(d).toBeCloseTo((13 - c) / 6);
+    });
+
+    it("draws an intersection as a point, left out while the lines do not cross", async () => {
+        const { all, send } = await open(`<graph>
+<point name="A">(0,0)</point>
+<line name="l1" through="$A (1,1)"/>
+<line name="l2" through="(0,2) (1,1)"/>
+<intersection>$l1 $l2</intersection>
+</graph>`);
+        const [graph] = all("graph");
+        const [a, crossing] = all("point");
+        expect(props(crossing)).toEqual({
+            x: { math_object: "1" },
+            y: { math_object: "1" },
+        });
+        expect(childIds(graph.children)).toContain(crossing.data.id);
+        // The same line: no crossing.
+        let payload = send(a.data.id, "point", "move", { x: 0, y: 2 });
+        expect(childIds(payload[graph.data.id].newChildren!)).not.toContain(
+            crossing.data.id,
+        );
+        payload = send(a.data.id, "point", "move", { x: 0, y: 1 });
+        expect(childIds(payload[graph.data.id].newChildren!)).toContain(
+            crossing.data.id,
+        );
+        // It does not move.
+        expect(send(crossing.data.id, "point", "move", { x: 5, y: 5 })).toEqual(
+            {},
+        );
+    });
+
+    it("draws a parabola as a curve through its samples", async () => {
+        const { all } = await open(`<graph xmin="-2" xmax="2">
+<parabola through="(1,2) (3,4)"/>
+</graph>`);
+        const [curve] = all("polyline");
+        const vertices = props(curve).numericalVertices;
+        expect(vertices).toHaveLength(200);
+        // y = x² - 3x + 4.
+        expect(vertices[0]).toEqual([-2, 14]);
+        expect(vertices[199]).toEqual([2, 2]);
+    });
+
+    it("draws a function on its domain, a piecewise function and the curves (ADR 0049)", async () => {
+        const { all, send } = await open(`<graph xmin="-2" xmax="2">
+<function domain="[0, 5]">x^2</function>
+<piecewiseFunction><function domain="(0, Infinity)">1</function><function>0</function></piecewiseFunction>
+<curve parMin="0" parMax="1" variable="t">(2t, t)</curve>
+<curve through="(1,2) (3,4)"/>
+<equilibriumCurve stable="false" through="(0,0) (1,1)" switchable/>
+</graph>`);
+        const [f, pw, par, spline, eq] = all("polyline");
+        // Cut to the domain: from 0 to the graph's 2.
+        expect(props(f).numericalVertices[0]).toEqual([0, 0]);
+        expect(props(f).numericalVertices[199]).toEqual([2, 4]);
+        expect(props(pw).numericalVertices[0]).toEqual([-2, 0]);
+        expect(props(pw).numericalVertices[199]).toEqual([2, 1]);
+        expect(props(par).numericalVertices[199]).toEqual([2, 1]);
+        expect(props(spline).numericalVertices[0]).toEqual([1, 2]);
+        expect(props(spline).numericalThroughPoints).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
+        expect(props(eq)).toMatchObject({ dashed: true, switchable: true });
+        let payload = send(spline.data.id, "polyline", "moveThroughPoint", {
+            throughPointInd: 0,
+            throughPoint: [0, 0],
+        });
+        expect(
+            payload[spline.data.id]?.changedState?.numericalVertices[0],
+        ).toEqual([0, 0]);
+        payload = send(eq.data.id, "polyline", "switchCurve", {});
+        expect(payload[eq.data.id]?.changedState).toMatchObject({
+            dashed: false,
+        });
+    });
+
+    it("draws equilibrium points and lines and endpoints with their flags, and switches them", async () => {
+        const { all, send } = await open(`<graph>
+<equilibriumPoint switchable>(4,0)</equilibriumPoint>
+<equilibriumPoint stable="false">(7,0)</equilibriumPoint>
+<endpoint open>(1,0)</endpoint>
+<equilibriumLine through="(0,1) (1,2)" switchAble/>
+</graph>`);
+        const [stable, unstable, end] = all("point");
+        expect(props(stable)).toEqual({
+            x: { math_object: "4" },
+            y: { math_object: "0" },
+            open: false,
+            switchable: true,
+        });
+        expect(props(unstable)).toMatchObject({
+            open: true,
+            switchable: false,
+        });
+        expect(props(end)).toMatchObject({ open: true, switchable: false });
+        const [line] = all("line");
+        expect(props(line)).toEqual({
+            numericalPoints: [
+                [0, 1],
+                [1, 2],
+            ],
+            dashed: false,
+            switchable: true,
+        });
+
+        let payload = send(stable.data.id, "point", "switchPoint", {});
+        expect(payload[stable.data.id]?.changedState).toEqual({ open: true });
+        // Not switchable: nothing.
+        expect(send(unstable.data.id, "point", "switchPoint", {})).toEqual({});
+        expect(send(end.data.id, "point", "switchPoint", {})).toEqual({});
+        payload = send(line.data.id, "line", "switchLine", {});
+        expect(payload[line.data.id]?.changedState).toEqual({ dashed: true });
+        // They move as a point and a line do.
+        payload = send(stable.data.id, "point", "move", { x: 3, y: 1 });
+        expect(payload[stable.data.id]?.changedState).toEqual({
+            x: { math_object: "3" },
+            y: { math_object: "1" },
+        });
+    });
+});
+
+describe("a line in text", () => {
+    it("is its equation, as the current core writes it from two points", () => {
+        const cases: [[number, number], [number, number], string][] = [
+            [[1, 2], [3, 5], "0 = -3 x + 2 y - 1"],
+            [[0, 0], [1, 1], "0 = -x + y"],
+            [[0, 1], [1, 0], "0 = x + y - 1"],
+            [[2, 0], [2, 5], "0 = -5 x + 10"],
+            [[0, 3], [4, 3], "0 = 4 y - 12"],
+            [[1.5, 2], [3, 5.25], "0 = -3.25 x + 1.5 y + 1.875"],
+        ];
+        for (const [p1, p2, latex] of cases) {
+            expect(lineEquationLatex(p1, p2, null)).toBe(latex);
+        }
+        expect(lineEquationLatex([0, 0], [1, 1], "(s, t)")).toBe("0 = -s + t");
+        expect(lineEquationLatex([1, 1], [1, 1], null)).toBe("＿");
+    });
+
+    it("sends its equation, which follows its points", async () => {
+        const bridge = await load(
+            `<point name="P">(1,2)</point><p><line name="l" through="$P (3,5)"/> <bestFitLine data="(0,0) (1,1)"/></p>`,
+        );
+        const root = bridge.flatDast();
+        const lines = byName(root, "line");
+        expect(lines.map((e) => (e.data as any).props.latex)).toEqual([
+            "0 = -3 x + 2 y - 1",
+            // Written from the fitted line's own two points.
+            "0 = -0.5 x + 0.5 y",
+        ]);
+        const p = bridge._idByComponent.get(bridge.core.resolve_path("P"))!;
+        const updates = bridge.dispatch({
+            component: "point",
+            actionName: "move",
+            componentIdx: p,
+            args: { x: 0, y: 0 },
+        }).payload as Record<number, ElementUpdate>;
+        const l = lines[0].data.id;
+        expect((updates[l].changedState as any).latex).toBe("0 = -5 x + 3 y");
     });
 });

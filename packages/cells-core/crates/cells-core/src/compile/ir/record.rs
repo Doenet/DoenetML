@@ -87,15 +87,31 @@ enum Content {
     List(Vec<ListPiece>),
 }
 
-/// One entry of a list's children (`children: List`, ADR 0041): a piece
-/// of text, or a reference.
+/// One piece of a list's children (`children: List`, ADR 0041): a piece
+/// of text, math text with references inside its brackets, a reference,
+/// or an element child. A reference or an element names a sequence whose
+/// entries it contributes (decision 9: a reference's items are spliced),
+/// one when it names a value.
 #[derive(Debug, Clone)]
 pub(crate) enum ListPiece {
     /// Text between spaces outside any bracket pair, trimmed: `2.5`,
     /// `(a, b)`.
     Text(String),
+    /// A piece with references inside its brackets, `($a, 2)`: its text
+    /// and references in order, read as math.
+    Math(Vec<PieceFrag>),
     /// A reference, planned where it was written.
     Reference(RefId),
+    /// An element child, a component of the list, read through a plan that
+    /// names it (`<number>5</number>`).
+    Element(RefId),
+}
+
+/// A part of a [`ListPiece::Math`]: text, or a reference.
+#[derive(Debug, Clone)]
+pub(crate) enum PieceFrag {
+    Text(String),
+    Ref(RefId),
 }
 
 /// Children read as a value (`children: Value`): a [`PropFrom::Children`]
@@ -253,7 +269,7 @@ impl Record {
         }
     }
 
-    /// A `Ref`: the reference, none when absent. No type declares one yet.
+    /// A `Ref` or a `Component`: the reference, none when absent.
     #[allow(dead_code)]
     pub(crate) fn reference(&self, attr: Attr) -> Option<RefId> {
         match self.get(attr) {
@@ -280,9 +296,14 @@ impl Record {
 
     /// `children: List`: the entries, none when there are no children.
     pub(crate) fn child_list(&self) -> Vec<ListPiece> {
+        self.list_pieces().to_vec()
+    }
+
+    /// `children: List`: the entries, borrowed.
+    pub(crate) fn list_pieces(&self) -> &[ListPiece] {
         match &self.children.content {
-            Content::List(pieces) => pieces.clone(),
-            _ => Vec::new(),
+            Content::List(pieces) => pieces,
+            _ => &[],
         }
     }
 
@@ -440,7 +461,25 @@ impl Reader<'_> {
             record.own.push(!matches!(value, AttrValue::Absent));
             record.values.push(value);
         }
-        record.children = self.parse_children(ar, t, scope, node, &def.children)?;
+        // A list's `mergeMathLists` (ADR 0041, decision 5's corollary):
+        // a literal flag, none when absent. One a cell sets would split
+        // the children by a value, which makes the count structural (step
+        // 4): refused rather than read as false (VAL-7).
+        let merge = match decls
+            .iter()
+            .position(|d| d.name == "mergeMathLists")
+            .map(|i| &record.values[i])
+        {
+            Some(AttrValue::LiteralFlag(Some(v))) => Some(*v),
+            Some(AttrValue::LiteralFlag(None)) => {
+                return Err(Error::Banned(
+                    "'mergeMathLists' must be written as a literal value, not with a reference"
+                        .into(),
+                ));
+            }
+            _ => None,
+        };
+        record.children = self.parse_children(ar, t, scope, node, &def.children, merge)?;
         Ok(record)
     }
 
@@ -456,6 +495,7 @@ impl Reader<'_> {
         scope: ElemId,
         node: NodeId,
         decl: &ChildrenDecl,
+        merge: Option<bool>,
     ) -> Result<Children> {
         let mut children = Children {
             content: Content::Absent,
@@ -510,7 +550,7 @@ impl Reader<'_> {
                 Content::Value(self.parse_value_children(ar, t, scope, content)?)
             }
             ChildrenKind::List => {
-                Content::List(self.parse_list_children(ar, t, scope, node, &content)?)
+                Content::List(self.parse_list_children(ar, t, scope, node, &content, merge)?)
             }
         };
         Ok(children)
@@ -548,9 +588,15 @@ impl Reader<'_> {
     }
 
     /// Content nodes read as a list's entries ([`ListPiece`]): text split
-    /// at the spaces outside any bracket pair (`(1, 2) [3, 4]` is two), and
-    /// each reference one entry, planned here, where it was written. A
-    /// reference inside brackets, or an element, is not yet read.
+    /// at the spaces outside any bracket pair (`(1, 2) [3, 4]` is two),
+    /// each reference outside brackets one piece, planned here, where it
+    /// was written, one inside brackets part of its piece's math text, and
+    /// each element child, outlined as a component of the list, a piece
+    /// read through a plan naming it. A `<math>` child of literal text
+    /// that is a list (`1,2,3`) is split into a piece per item, its
+    /// entries the list's own (`mergeMathLists`): when it is the list's
+    /// one child and `merge` is not false, and every such child when
+    /// `merge` is true.
     fn parse_list_children(
         &self,
         ar: &mut Arenas,
@@ -558,15 +604,29 @@ impl Reader<'_> {
         scope: ElemId,
         owner: NodeId,
         nodes: &[NodeId],
+        merge: Option<bool>,
     ) -> Result<Vec<ListPiece>> {
         let d = self.dast;
+        let merge_all = merge == Some(true);
+        let merge_one = merge != Some(false);
+        let only_child = nodes.len() == 1;
         let mut pieces = Vec::new();
+        // The piece being read: its references inside brackets with the
+        // text before each, and the text after the last.
+        let mut frags: Vec<PieceFrag> = Vec::new();
         let mut piece = String::new();
         let mut depth = 0i32;
-        fn end(piece: &mut String, pieces: &mut Vec<ListPiece>) {
-            let text = piece.trim();
-            if !text.is_empty() {
-                pieces.push(ListPiece::Text(text.to_string()));
+        fn end(frags: &mut Vec<PieceFrag>, piece: &mut String, pieces: &mut Vec<ListPiece>) {
+            if frags.is_empty() {
+                let text = piece.trim();
+                if !text.is_empty() {
+                    pieces.push(ListPiece::Text(text.to_string()));
+                }
+            } else {
+                if !piece.is_empty() {
+                    frags.push(PieceFrag::Text(std::mem::take(piece)));
+                }
+                pieces.push(ListPiece::Math(std::mem::take(frags)));
             }
             piece.clear();
         }
@@ -580,25 +640,35 @@ impl Reader<'_> {
                             _ => {}
                         }
                         if c.is_whitespace() && depth <= 0 {
-                            end(&mut piece, &mut pieces);
+                            end(&mut frags, &mut piece, &mut pieces);
                         } else {
                             piece.push(c);
                         }
                     }
                 }
                 NodeKind::Macro if depth <= 0 => {
-                    end(&mut piece, &mut pieces);
+                    end(&mut frags, &mut piece, &mut pieces);
                     pieces.push(ListPiece::Reference(self.plan_ref(ar, t, scope, n)?));
                 }
                 NodeKind::Macro => {
-                    return Err(Error::Unsupported(format!(
-                        "a reference inside brackets in <{}>",
-                        d.str(owner)
-                    )));
+                    frags.push(PieceFrag::Text(std::mem::take(&mut piece)));
+                    frags.push(PieceFrag::Ref(self.plan_ref(ar, t, scope, n)?));
+                }
+                NodeKind::Element if depth <= 0 => {
+                    end(&mut frags, &mut piece, &mut pieces);
+                    let split = (merge_all || (merge_one && only_child))
+                        .then(|| self.literal_math_items(n))
+                        .flatten();
+                    match split {
+                        Some(items) => {
+                            pieces.extend(items.into_iter().map(ListPiece::Text));
+                        }
+                        None => pieces.push(ListPiece::Element(self.plan_child_elem(ar, t, n)?)),
+                    }
                 }
                 NodeKind::Element => {
                     return Err(Error::Unsupported(format!(
-                        "<{}> among the children of <{}>",
+                        "<{}> inside brackets among the children of <{}>",
                         d.str(n),
                         d.str(owner)
                     )));
@@ -606,8 +676,63 @@ impl Reader<'_> {
                 _ => {}
             }
         }
-        end(&mut piece, &mut pieces);
+        end(&mut frags, &mut piece, &mut pieces);
         Ok(pieces)
+    }
+
+    /// The items of `<math>` element `n` when its content is literal text
+    /// that is a list, split at the commas outside any bracket pair
+    /// (`1,2,3` is three); none for anything else, one item included.
+    fn literal_math_items(&self, n: NodeId) -> Option<Vec<String>> {
+        let d = self.dast;
+        if d.str(n) != "math" || d.attrs(n).next().is_some() {
+            return None;
+        }
+        let mut text = String::new();
+        for &c in d.children(n) {
+            match d.kind(c) {
+                NodeKind::Text => text.push_str(d.str(c)),
+                _ if self.is_blank(c) => {}
+                _ => return None,
+            }
+        }
+        let (mut items, mut item, mut depth) = (Vec::new(), String::new(), 0i32);
+        for c in text.chars() {
+            match c {
+                '(' | '[' | '{' => depth += 1,
+                ')' | ']' | '}' => depth -= 1,
+                _ => {}
+            }
+            if c == ',' && depth <= 0 {
+                items.push(std::mem::take(&mut item).trim().to_string());
+            } else {
+                item.push(c);
+            }
+        }
+        items.push(item.trim().to_string());
+        (items.len() > 1 && items.iter().all(|i| !i.is_empty())).then_some(items)
+    }
+
+    /// A plan naming element child `n` of a list, which outlining made a
+    /// component of the list in template `t` (ADR 0041): read as a
+    /// reference to it is.
+    fn plan_child_elem(&self, ar: &mut Arenas, t: TemplateId, n: NodeId) -> Result<RefId> {
+        let d = self.dast;
+        let x = self
+            .outlined(t)
+            .elems
+            .iter()
+            .position(|el| el.node == n)
+            .map(ElemId::from_index)
+            .ok_or_else(|| Error::Internal(format!("<{}> was never outlined", d.str(n))))?;
+        Ok(ar.push_ref(RefPlan {
+            hops: 0,
+            steps: vec![Step::Elem(x)],
+            prop: None,
+            entries: Vec::new(),
+            display: RefDisplay::Spelled(format!("<{}>", d.str(n)).into()),
+            node: NodeId::NONE,
+        }))
     }
 
     /// Content nodes read as a value ([`ChildValue`]): a reference among
@@ -630,11 +755,17 @@ impl Reader<'_> {
                     macro_node = n;
                 }
                 NodeKind::Text => texts.push(n),
-                NodeKind::Element if element.is_none() => element = Some(d.str(n).to_string()),
+                NodeKind::Element if element.is_none() && !self.is_presentation_child(n) => {
+                    element = Some(d.str(n).to_string())
+                }
                 _ => {}
             }
         }
         let value = match (macros, texts.len()) {
+            // An element is content no literal or reference holds: read as
+            // math, which refuses it, not as the value with it dropped
+            // (COMP-1).
+            _ if element.is_some() => ChildValue::Math,
             (1, 0) => ChildValue::Reference(self.plan_ref(ar, t, scope, macro_node)?),
             (0, 1..) => ChildValue::Text {
                 text: texts.iter().map(|&n| d.str(n)).collect(),
@@ -663,6 +794,30 @@ impl Reader<'_> {
         let Some(a) = d.attr(node, decl.name) else {
             return Ok(AttrValue::Absent);
         };
+        // A kind read as written takes no reference: reading one as absent
+        // or as its text gave the default, or a wrong value, with no
+        // diagnostic (VAL-7, TYPE-5).
+        let literal_only = matches!(
+            decl.kind,
+            AttrKind::Bool { .. } | AttrKind::On | AttrKind::Number { .. } | AttrKind::Text
+        );
+        if literal_only && self.attr_text(a).is_none() {
+            return Err(Error::Banned(format!(
+                "'{}' must be written as a literal value, not with a reference",
+                decl.name
+            )));
+        }
+        // A flag is a literal or exactly one reference; an expression was
+        // read as a bare attribute, so always true (VAL-8).
+        if matches!(decl.kind, AttrKind::Flag { .. })
+            && self.attr_text(a).is_none()
+            && self.single_macro(a).is_none()
+        {
+            return Err(Error::Banned(format!(
+                "'{}' must be true, false or one reference, not an expression",
+                decl.name
+            )));
+        }
         Ok(match decl.kind {
             AttrKind::Scalar => {
                 AttrValue::Scalar(self.plan_scalar(ar, t, scope, d.attr_children(a))?)
@@ -728,6 +883,26 @@ impl Reader<'_> {
                 })?;
                 AttrValue::Ref(self.plan_ref(ar, t, scope, m)?)
             }
+            // A component, not a prop of one; the compile records it on the
+            // plan as well (`Planning::plan_links`).
+            AttrKind::Component => {
+                let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+                    attr: decl.name.into(),
+                    text: self.attr_text(a).unwrap_or_default(),
+                })?;
+                let p = self.plan_ref(ar, t, scope, m)?;
+                if ar.refs[p.index()].prop.is_some() {
+                    return Err(Error::Unsupported(format!(
+                        "{}=\"{}\" must name a component, not a prop of one",
+                        decl.name,
+                        self.attr_text(a).unwrap_or_default()
+                    )));
+                }
+                AttrValue::Ref(p)
+            }
+            // Only whether it is written: the compile records what it names
+            // on the plan (`Planning::plan_links`).
+            AttrKind::After(_) => AttrValue::Bool(true),
         })
     }
 }

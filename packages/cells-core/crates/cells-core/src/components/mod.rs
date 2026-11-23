@@ -16,6 +16,7 @@ mod decl;
 pub(crate) mod define;
 pub(crate) mod geometry;
 pub(crate) mod inputs;
+pub(crate) mod operators;
 pub mod prop;
 pub(crate) mod structure;
 #[cfg(test)]
@@ -36,6 +37,10 @@ pub const PRESENTATION_ATTRS: &[&str] = &[
     "shortDescription",
     "styleNumber",
 ];
+/// Presentation attributes a renderer reads and the core does not, accepted
+/// on any type with an anchor ([`PropFrom::Anchor`]): where the value sits
+/// against its anchor, and whether a drag moves it.
+pub const ANCHOR_PRESENTATION_ATTRS: &[&str] = &["positionFromAnchor", "draggable"];
 pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub use values::MAX_TUPLE;
 
@@ -50,10 +55,11 @@ macro_rules! component_types {
             $($(#[$tdoc:meta])* $tvariant:ident => $tdef:expr,)*
         }
     ) => {
-        /// `repr(u8)` so the renderer can read the type column as a byte
-        /// array; the discriminants follow the list in `component_types!`.
+        /// `repr(u16)` so the renderer can read the type column as a
+        /// 16-bit array; the discriminants follow the list in
+        /// `component_types!`.
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        #[repr(u8)]
+        #[repr(u16)]
         pub enum ComponentType {
             $(
                 $(#[$doc])*
@@ -114,6 +120,8 @@ component_types! {
     NumberList => values::number_list::DEFINITION,
     TextList => values::text_list::DEFINITION,
     BooleanList => values::boolean_list::DEFINITION,
+    MathList => values::math_list::DEFINITION,
+    MathValue => values::math_value::DEFINITION,
     P => containers::p::DEFINITION,
     ShortDescription => containers::short_description::DEFINITION,
     Error => containers::error::DEFINITION,
@@ -145,8 +153,8 @@ component_types! {
     Row => containers::row::DEFINITION,
     Cell => containers::cell::DEFINITION,
     Legend => containers::legend::DEFINITION,
-    TriggerSet => containers::trigger_set::DEFINITION,
-    UpdateValue => values::update_value::DEFINITION,
+    TriggerSet => inputs::trigger_set::DEFINITION,
+    UpdateValue => inputs::update_value::DEFINITION,
     ClampNumber => values::clamp_number::DEFINITION,
     Tuple => values::tuple::DEFINITION,
     RepeatFor => structure::repeat_for::DEFINITION,
@@ -160,6 +168,117 @@ component_types! {
     Triangle => geometry::triangle::DEFINITION,
     ConstrainTo => geometry::constrain_to::DEFINITION,
     ConstrainToGrid => geometry::constrain_to_grid::DEFINITION,
+    Em => containers::markup::EM,
+    Alert => containers::markup::ALERT,
+    Term => containers::markup::TERM,
+    Q => containers::markup::Q,
+    Sq => containers::markup::SQ,
+    C => containers::markup::C,
+    Attr => containers::markup::ATTR,
+    Span => containers::markup::SPAN,
+    Tag => containers::markup::TAG,
+    Tagc => containers::markup::TAGC,
+    Tage => containers::markup::TAGE,
+    Ndash => containers::markup::NDASH,
+    Mdash => containers::markup::MDASH,
+    Nbsp => containers::markup::NBSP,
+    Ellipsis => containers::markup::ELLIPSIS,
+    Lq => containers::markup::LQ,
+    Rq => containers::markup::RQ,
+    Lsq => containers::markup::LSQ,
+    Rsq => containers::markup::RSQ,
+    Br => containers::markup::BR,
+    Hr => containers::markup::HR,
+    Div => containers::markup::DIV,
+    Pre => containers::markup::PRE,
+    BlockQuote => containers::markup::BLOCK_QUOTE,
+    Ol => containers::markup::OL,
+    Proof => containers::blocks::proof::DEFINITION,
+    Solution => containers::blocks::solution::DEFINITION,
+    Introduction => containers::blocks::introduction::DEFINITION,
+    Conclusion => containers::blocks::conclusion::DEFINITION,
+    Statement => containers::blocks::statement::DEFINITION,
+    Figure => containers::blocks::figure::DEFINITION,
+    Caption => containers::blocks::caption::DEFINITION,
+    Footnote => containers::blocks::footnote::DEFINITION,
+    PostponeRenderContainer => containers::blocks::postpone_render_container::DEFINITION,
+    Abs => operators::abs::DEFINITION,
+    Sign => operators::sign::DEFINITION,
+    Floor => operators::floor::DEFINITION,
+    Ceil => operators::ceil::DEFINITION,
+    Round => operators::round::DEFINITION,
+    SetSmallToZero => operators::set_small_to_zero::DEFINITION,
+    WrapNumberPeriodic => operators::wrap_number_periodic::DEFINITION,
+    Sum => operators::fold::DEFINITION,
+    Product => operators::fold::PRODUCT,
+    Mean => operators::fold::MEAN,
+    Median => operators::fold::MEDIAN,
+    Min => operators::fold::MIN,
+    Max => operators::fold::MAX,
+    Mod => operators::fold::MOD,
+    Gcd => operators::fold::GCD,
+    Lcm => operators::fold::LCM,
+    Count => operators::fold::COUNT,
+    Variance => operators::variance::DEFINITION,
+    StandardDeviation => operators::variance::STANDARD_DEVIATION,
+    And => operators::logic::DEFINITION,
+    Or => operators::logic::OR,
+    Xor => operators::logic::XOR,
+    Iff => operators::logic::IFF,
+    Implies => operators::logic::IMPLIES,
+    Not => operators::not::DEFINITION,
+    IsInteger => operators::is_integer::DEFINITION,
+    IsNumber => operators::is_number::DEFINITION,
+    IsBetween => operators::is_between::DEFINITION,
+    Ray => geometry::ray::DEFINITION,
+    Vector => geometry::vector::DEFINITION,
+    Rectangle => geometry::rectangle::DEFINITION,
+    RegularPolygon => geometry::regular_polygon::DEFINITION,
+    Angle => geometry::angle::DEFINITION,
+    Integer => values::formatted::INTEGER,
+    IntComma => values::formatted::INT_COMMA,
+    Pluralize => values::pluralize::DEFINITION,
+    Table => containers::layout::TABLE,
+    SbsGroup => containers::layout::SBS_GROUP,
+    AsList => containers::layout::AS_LIST,
+    Latex => containers::layout::LATEX,
+    Pretext => containers::layout::PRETEXT,
+    Article => containers::layout::ARTICLE,
+    Book => containers::layout::BOOK,
+    AxisLabel => containers::layout::AXIS_LABEL,
+    CumulativeSum => operators::scan::DEFINITION,
+    CumulativeProduct => operators::scan::CUMULATIVE_PRODUCT,
+    CumulativeMin => operators::scan::CUMULATIVE_MIN,
+    CumulativeMax => operators::scan::CUMULATIVE_MAX,
+    Differences => operators::scan::DIFFERENCES,
+    ArgMin => operators::index_of::DEFINITION,
+    ArgMax => operators::index_of::ARG_MAX,
+    IndexOf => operators::index_of::INDEX_OF,
+    SearchSorted => operators::index_of::SEARCH_SORTED,
+    Sort => operators::sort::DEFINITION,
+    Shuffle => operators::sort::SHUFFLE,
+    Sequence => values::sequence::DEFINITION,
+    SelectRandomNumbers => structure::select_random_numbers::DEFINITION,
+    SampleRandomNumbers => structure::sample_random_numbers::DEFINITION,
+    SelectPrimeNumbers => structure::select_prime_numbers::DEFINITION,
+    SamplePrimeNumbers => structure::sample_prime_numbers::DEFINITION,
+    ClampFunction => values::function_operators::DEFINITION,
+    WrapFunctionPeriodic => values::function_operators::WRAP_FUNCTION_PERIODIC,
+    BestFitLine => geometry::best_fit_line::DEFINITION,
+    Intersection => geometry::intersection::DEFINITION,
+    EquilibriumPoint => geometry::equilibrium_point::DEFINITION,
+    EquilibriumLine => geometry::equilibrium_line::DEFINITION,
+    Endpoint => geometry::endpoint::DEFINITION,
+    Parabola => geometry::parabola::DEFINITION,
+    CallAction => inputs::call_action::DEFINITION,
+    FractionInput => inputs::fraction_input::DEFINITION,
+    FractionInputPart => inputs::fraction_input::part::DEFINITION,
+    PiecewiseFunction => values::piecewise_function::DEFINITION,
+    Curve => geometry::curve::DEFINITION,
+    BezierControls => geometry::curve::bezier_controls_tag::DEFINITION,
+    ControlVectors => geometry::curve::control_vectors_tag::DEFINITION,
+    EquilibriumCurve => geometry::equilibrium_curve::DEFINITION,
+    Interval => values::interval::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -331,6 +450,25 @@ impl ComponentType {
     pub fn list_entry(self) -> Option<EntryKind> {
         match self.list()?.points {
             ListPoints::Given { entry, .. } => Some(entry),
+            ListPoints::Table(_) => None,
+        }
+    }
+
+    /// The attribute whose literal number cuts a value list's entries
+    /// (`maxNumber`), if the type declares one.
+    pub(crate) fn list_max_attr(self) -> Option<crate::compile::api::Attr> {
+        match self.list()?.points {
+            ListPoints::Given { max_by, .. } => max_by,
+            ListPoints::Table(_) => None,
+        }
+    }
+
+    /// How many fewer entries the type's list has than its children
+    /// contribute, when its count follows its children's (a value list's,
+    /// a `<sort>`'s, a `<cumulativeSum>`'s, one for a `<differences>`).
+    pub(crate) fn list_from_children(self) -> Option<u8> {
+        match self.list()?.points {
+            ListPoints::Given { from_children, .. } => from_children,
             ListPoints::Table(_) => None,
         }
     }
@@ -599,6 +737,17 @@ impl ComponentType {
         self.def().renders
     }
 
+    /// The positions of the props giving where a component of the type is
+    /// drawn in a graph, x then y ([`PropFrom::Anchor`]), if it has them.
+    pub fn anchor_props(self) -> Option<[usize; 2]> {
+        let defs = self.prop_defs();
+        let at = |k: u8| {
+            defs.iter()
+                .position(|d| d.from == PropFrom::Anchor { coord: k })
+        };
+        Some([at(0)?, at(1)?])
+    }
+
     /// Whether prop `pi` is one an action writes.
     pub fn is_action_prop(self, pi: usize) -> bool {
         self.prop_defs()
@@ -664,14 +813,15 @@ impl ComponentType {
     }
 
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
-    /// its value, when `to` takes a value rather than a copy: `value`
-    /// whatever `from` is for a boolean (the coercion of a referent's value
-    /// to a boolean, until ADR 0032's table of coercions lands), else
-    /// `from`'s default prop when `extends_as` relates them. Called with
-    /// `from` and `to` different.
+    /// its value, when `to` takes a value rather than a copy: `value` for a
+    /// boolean of an input that reads as a boolean, else `from`'s default
+    /// prop when `extends_as` relates them. A boolean of any other type is
+    /// refused: reading a number's or a text's cell as a boolean gave a
+    /// wrong value with no diagnostic (REF-5, D47). Called with `from` and
+    /// `to` different.
     pub fn extend_reads(from: ComponentType, to: ComponentType) -> Option<&'static str> {
         if to == ComponentType::Boolean {
-            Some("value")
+            (from.reads_as() == Some(ComponentType::Boolean)).then_some("value")
         } else if ComponentType::extends_as(from, to) {
             from.default_prop()
         } else {
@@ -694,10 +844,22 @@ impl ComponentType {
         self.prop_defs().get(pi)?.expr
     }
 
+    /// The prop that stands for the expression prop `pi` holds, if one
+    /// does: a `<math>`'s `value` for its `expr`.
+    pub fn value_of_expr(self, pi: usize) -> Option<usize> {
+        (0..self.prop_defs().len())
+            .find(|&k| k != pi && self.expr_of(k).is_some_and(|x| usize::from(x.at) == pi))
+    }
+
     /// What an answer's response reads of an input of the type; None for a
     /// type that is no answer's input.
     pub fn response(self) -> Option<ResponseKind> {
         self.def().response
+    }
+
+    /// The inputs a component of the type owns ([`InnerInput`], ADR 0045).
+    pub fn inner(self) -> &'static [InnerInput] {
+        self.def().inner
     }
 
     /// How a component of the type shows in text; None for its children's
@@ -1002,7 +1164,15 @@ mod tests {
     /// grows only deliberately.
     #[test]
     fn plan_ctx_grows_deliberately() {
-        const PLAN_CTX_METHODS: usize = 19;
+        // 25: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
+        // `Inner::port`, for the inputs a type owns; ADR 0041 a list's
+        // entries and an entry read as math. 27: ADR 0043 added
+        // `operand_expr` and `operator_expr`, for operators over math. 31:
+        // ADR 0049 added `interval`, a domain's endpoints and closedness,
+        // `symbol`, a function's variable as a math cell,
+        // `children_playing`, a piecewise function's pieces, and
+        // `sym_tokens`, a curve's coordinate from its tuple's entry.
+        const PLAN_CTX_METHODS: usize = 31;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1144,8 +1314,6 @@ mod tests {
             Hint,
             Setup,
             StickyGroup,
-            Function,
-            Derivative,
             Answer,
             Text,
             ConditionalContent,
@@ -1153,7 +1321,6 @@ mod tests {
             Select,
             SelectFromSequence,
             Group,
-            Section,
             Title,
             Ref,
             List,
@@ -1161,7 +1328,6 @@ mod tests {
             InlineMath,
             DisplayMath,
             MathRow,
-            Aside,
             SideBySide,
             Stack,
             Tabular,
@@ -1169,8 +1335,6 @@ mod tests {
             Row,
             Cell,
             Legend,
-            TriggerSet,
-            UpdateValue,
             ClampNumber,
             RepeatFor,
             FunctionIterates,

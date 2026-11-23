@@ -58,6 +58,10 @@ import {
     Slider,
     Solution,
     Stack,
+    inGraphControl,
+    AngleInGraph,
+    ValueInGraph,
+    FractionInput,
 } from "./doenet";
 export {
     PRETEXT_TEXT_MODE_COMPONENTS,
@@ -172,6 +176,12 @@ const Section: ComponentWithPassthroughChildren = {
 };
 
 /**
+ * A shape drawn only in a graph. Outside one it is nothing but its anchor,
+ * as in production.
+ */
+const GraphOnly: Component = renderAs(null, { wrapInSpanWithId: true });
+
+/**
  * A map of tag names to components. This is used for naive component rendering, where the
  * tag name uniquely determines the component to render.
  */
@@ -205,6 +215,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     ceil: { component: M },
     choice: PassThroughWithoutTagConverter,
     choiceInput: { component: ChoiceInput },
+    circle: GraphOnly,
     clampFunction: { component: M },
     clampNumber: { component: M },
     convertSetToList: { component: M },
@@ -228,12 +239,14 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     figure: { component: Figure, passthroughChildren: true },
     floor: { component: M },
     footnote: { component: Footnote },
+    fractionInput: { component: FractionInput, passthroughChildren: true },
     function: { component: M },
     gcd: { component: M },
     graph: { component: Graph },
     hasSameFactoring: { component: Boolean },
     hint: { component: Hint, passthroughChildren: true },
     hr: { component: _PassThroughWithTag },
+    indexOf: { component: M },
     iff: { component: Boolean },
     implies: { component: Boolean },
     intComma: showAttrOnly("text"),
@@ -247,7 +260,11 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     isNumber: { component: Boolean },
     latex: showAttrOnly("text"),
     lcm: { component: M },
+    legend: GraphOnly,
     li: { component: Li, passthroughChildren: true },
+    // Outside a graph a line is its equation.
+    line: { component: M },
+    lineSegment: GraphOnly,
     lq: renderAs("“"),
     lsq: renderAs("‘"),
     m: { component: M, passthroughChildren: true },
@@ -276,10 +293,13 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     or: { component: Boolean },
     orbitalDiagram: { component: OrbitalDiagram },
     p: { component: P, passthroughChildren: true },
+    parabola: GraphOnly,
     piecewiseFunction: { component: M },
     paragraphs: Section,
     pluralize: showAttrOnly("text"),
     point: { component: PointInText },
+    polygon: GraphOnly,
+    polyline: GraphOnly,
     pre: passThroughWithRenamedTag("pre"),
     problem: {
         component: Problem,
@@ -296,7 +316,10 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     rightHandSide: { component: M },
     round: { component: M },
     rq: renderAs("”"),
+    rectangle: GraphOnly,
+    regularPolygon: GraphOnly,
     rsq: renderAs("’"),
+    searchSorted: { component: M },
     setSmallToZero: { component: M },
     sideBySide: { component: SideBySide, passthroughChildren: true },
     sign: { component: M },
@@ -317,6 +340,7 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     theorem: Section,
     textInput: { component: TextInput },
     title: { component: Title, passthroughChildren: true },
+    triangle: GraphOnly,
     triggerSet: { component: Button },
     tuple: { component: M },
     ul: { component: Ul, passthroughChildren: true },
@@ -334,7 +358,81 @@ export const TEXT_MODE_COMPONENTS: RendererObject = {
     xref: { component: Xref, passthroughChildren: true },
 };
 
+/**
+ * The elements a core sends for a value, which a graph would draw as a label
+ * (an operator's number, a boolean, a formatted text, math notation).
+ */
+/**
+ * The elements a core sends for a value it draws in a graph as a label at
+ * its anchor, which a drag moves (an operator's number, a formatted text,
+ * math notation).
+ */
+const VALUES_AT_AN_ANCHOR = [
+    "abs",
+    "argMax",
+    "argMin",
+    "ceil",
+    "clampNumber",
+    "count",
+    "evaluate",
+    "floor",
+    "gcd",
+    "indexOf",
+    "intComma",
+    "integer",
+    "latex",
+    "lcm",
+    "m",
+    "math",
+    "max",
+    "md",
+    "mean",
+    "median",
+    "min",
+    "mod",
+    "number",
+    "pluralize",
+    "product",
+    "round",
+    "searchSorted",
+    "setSmallToZero",
+    "sign",
+    "standardDeviation",
+    "sum",
+    "text",
+    "variance",
+    "wrapNumberPeriodic",
+];
+
+/**
+ * The values a graph does not draw, as in production: a boolean and the
+ * boolean operators, and a tuple.
+ */
+const VALUES_NOT_IN_A_GRAPH = [
+    "and",
+    "boolean",
+    "iff",
+    "implies",
+    "isBetween",
+    "isInteger",
+    "isNumber",
+    "not",
+    "or",
+    "tuple",
+    "xor",
+];
+
 export const GRAPH_MODE_COMPONENTS: RendererObject = {
+    // Inputs and buttons, over the board's corner (see `inGraphControl`).
+    booleanInput: { component: inGraphControl(BooleanInput) },
+    callAction: { component: inGraphControl(Button) },
+    choiceInput: { component: inGraphControl(ChoiceInput) },
+    mathInput: { component: inGraphControl(MathInput) },
+    numberInput: { component: inGraphControl(NumberInput) },
+    slider: { component: inGraphControl(Slider) },
+    textInput: { component: inGraphControl(TextInput) },
+    triggerSet: { component: inGraphControl(Button) },
+    updateValue: { component: inGraphControl(Button) },
     circle: { component: CircleInGraph },
     legend: { component: LegendInGraph },
     line: { component: LineInGraph },
@@ -348,9 +446,13 @@ export const GRAPH_MODE_COMPONENTS: RendererObject = {
     regularPolygon: { component: PolygonInGraph },
     triangle: { component: PolygonInGraph },
     vector: { component: VectorInGraph },
-    // A value placed in a graph is drawn as a label at its anchor, which no
-    // core sends yet: until one does, it is not drawn.
-    math: OmitElementConverter,
-    number: OmitElementConverter,
-    text: OmitElementConverter,
+    angle: { component: AngleInGraph },
+    // A value placed in a graph is a label at its anchor. One whose core
+    // sends no anchor is not drawn (`ValueInGraph`).
+    ...Object.fromEntries(
+        VALUES_AT_AN_ANCHOR.map((name) => [name, { component: ValueInGraph }]),
+    ),
+    ...Object.fromEntries(
+        VALUES_NOT_IN_A_GRAPH.map((name) => [name, OmitElementConverter]),
+    ),
 };

@@ -17,6 +17,9 @@ use crate::program::{Program, SymRun, SymState, ValueType};
 use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::{Request, TickOutcome};
 
+mod act;
+mod counters;
+mod functions;
 mod interactive;
 mod load;
 mod outputs;
@@ -27,6 +30,7 @@ mod state;
 mod sticky;
 mod table;
 
+pub use act::ActionView;
 pub use load::{LoadOptions, LoadTimings};
 pub(crate) use table::ChildEntry;
 pub use table::{Child, ComponentTable};
@@ -103,6 +107,9 @@ pub struct Built {
     refused: Vec<u64>,
     /// Which cells the document computes.
     live: crate::build::Live,
+    /// The components something other than a student presses (ADR 0042),
+    /// in document order: a type with `triggers` not inside another.
+    pub(crate) pressed: Vec<CompIdx>,
 }
 
 impl std::ops::Deref for Document {
@@ -175,10 +182,12 @@ impl Built {
             interactive: Vec::new(),
             refused: Vec::new(),
             live,
+            pressed: Vec::new(),
         };
         built.sticky = built.sticky_tables();
         built.interactive = built.interactive_bits();
         built.refused = built.refused_bits();
+        built.pressed = built.pressed_components();
         built
     }
 
@@ -270,13 +279,29 @@ impl Document {
         id.to_value()
     }
 
-    /// The expression a math cell holds, as text; empty when blank.
+    /// The expression a math cell holds, as text; empty when blank, `＿` when
+    /// missing.
     pub fn math_text(&self, cell: CellIdx) -> String {
+        let h = self.cells[cell.index()];
+        if crate::program::is_missing(h) {
+            crate::document::table::BLANK.into()
+        } else if h.is_nan() {
+            String::new()
+        } else {
+            self.math.engine.text(Handle::from_value(h))
+        }
+    }
+
+    /// The expression a math cell holds as the JavaScript math tree, in
+    /// JSON (`["interval", ["tuple", 1, 2], ["tuple", false, true]]`):
+    /// what text cannot tell apart (an open interval from a tuple); empty
+    /// for a NaN handle.
+    pub fn math_ast(&self, cell: CellIdx) -> String {
         let h = self.cells[cell.index()];
         if h.is_nan() {
             String::new()
         } else {
-            self.math.engine.text(Handle::from_value(h))
+            self.math.engine.ast_json(Handle::from_value(h))
         }
     }
 

@@ -11,9 +11,10 @@ use crate::program::VecOp;
 component! {
     /// `<line>`: its own two points are derived cells; slope,
     /// intercepts and coefficients follow from them or from the equation.
+    /// Drawn in a graph, and in text as its equation, which a renderer
+    /// writes from its two points.
     tags: ["line"],
     flags: [copyable, located],
-    renders: InGraph,
     props {
         // The first four props are the line's own points (ADR 0006).
         // `basedOnDirection` is 1 when the second point is derived from a slope or
@@ -79,8 +80,21 @@ fn variables(attrs: &Attrs) -> (String, String) {
 /// Plans a line from its equation, or its `through` points and a
 /// `slope`, `parallelTo` or `perpendicularTo`.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+    plan_as(ctx, ComponentType::Line, [])
+}
+
+/// Plans an element of `component_type`, whose table starts as a line's
+/// and whose attributes, parameters and children start as a line's declare
+/// them (an `<equilibriumLine>`), as a line; `extra` plans the props its
+/// table has after a line's.
+pub(super) fn plan_as(
+    ctx: &mut PlanCtx<'_, '_>,
+    component_type: ComponentType,
+    extra: impl IntoIterator<Item = Wire>,
+) -> Result<ElemWiring> {
+    let extra: Vec<Wire> = extra.into_iter().collect();
     let at = Props::PORTS;
-    let mut wiring = ElemWiring::of(ComponentType::Line);
+    let mut wiring = ElemWiring::of(component_type);
     let attrs = Attrs::of(ctx.record());
     let through = attrs.through.clone();
     let by_direction =
@@ -128,19 +142,23 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         ));
         let xi = wiring.hidden(Source::computed(OpSpec::Div, vec![at.coeff0, at.coeffvar1]));
         let yi = wiring.hidden(Source::computed(OpSpec::Div, vec![at.coeff0, at.coeffvar2]));
-        wiring.set_public(Props {
-            x1,
-            y1,
-            x2,
-            y2,
-            slope: Wire::computed(OpSpec::Negate, vec![q]),
-            xintercept: Wire::computed(OpSpec::Negate, vec![xi]),
-            yintercept: Wire::computed(OpSpec::Negate, vec![yi]),
-            coeffvar1: a.into(),
-            coeffvar2: b.into(),
-            coeff0: c.into(),
-            basedOnDirection: Wire::constant(0.0),
-        });
+        wiring.set_public(
+            Props {
+                x1,
+                y1,
+                x2,
+                y2,
+                slope: Wire::computed(OpSpec::Negate, vec![q]),
+                xintercept: Wire::computed(OpSpec::Negate, vec![xi]),
+                yintercept: Wire::computed(OpSpec::Negate, vec![yi]),
+                coeffvar1: a.into(),
+                coeffvar2: b.into(),
+                coeff0: c.into(),
+                basedOnDirection: Wire::constant(0.0),
+            }
+            .into_iter()
+            .chain(extra),
+        );
         return Ok(wiring);
     }
 
@@ -192,19 +210,23 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ax = wiring.hidden(Source::computed(OpSpec::Mul, vec![at.coeffvar1, at.x1]));
     let by = wiring.hidden(Source::computed(OpSpec::Mul, vec![at.coeffvar2, at.y1]));
     let sum = wiring.hidden(Source::computed(OpSpec::Add, vec![ax, by]));
-    wiring.set_public(Props {
-        x1,
-        y1,
-        x2,
-        y2,
-        slope: Wire::computed(OpSpec::Div, vec![dy, dx]),
-        xintercept: Wire::computed(OpSpec::Sub, vec![at.x1, q]),
-        yintercept: Wire::computed(OpSpec::Sub, vec![at.y1, mx]),
-        coeffvar1: Wire::own(dy),
-        coeffvar2: Wire::computed(OpSpec::Sub, vec![at.x1, at.x2]),
-        coeff0: Wire::computed(OpSpec::Negate, vec![sum]),
-        basedOnDirection: based_on_direction,
-    });
+    wiring.set_public(
+        Props {
+            x1,
+            y1,
+            x2,
+            y2,
+            slope: Wire::computed(OpSpec::Div, vec![dy, dx]),
+            xintercept: Wire::computed(OpSpec::Sub, vec![at.x1, q]),
+            yintercept: Wire::computed(OpSpec::Sub, vec![at.y1, mx]),
+            coeffvar1: Wire::own(dy),
+            coeffvar2: Wire::computed(OpSpec::Sub, vec![at.x1, at.x2]),
+            coeff0: Wire::computed(OpSpec::Negate, vec![sum]),
+            basedOnDirection: based_on_direction,
+        }
+        .into_iter()
+        .chain(extra),
+    );
     Ok(wiring)
 }
 

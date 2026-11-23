@@ -10,7 +10,8 @@
 //! merge only when their cells would carry the same request marks, port
 //! types and hold. The kept port is the referent's where an extend's
 //! matches one, else the lowest. A leaf, a scope specialization, an
-//! aggregate and a copy are never merged.
+//! aggregate, a copy and a bare-number math (its own cell) are never
+//! merged.
 
 use crate::compile::*;
 
@@ -400,6 +401,15 @@ impl Share<'_> {
                 (What::Op(std::mem::discriminant(spec)), Some(*spec), inputs)
             }
             Flow::VecOut(head, k) => (What::VecOut(*k), None, vec![own(self, Arg::Own(*head))]),
+            // A bare number is its own cell, not a shared constant, which
+            // the classing makes essential when an input reaches it (ADR
+            // 0018): two such are two values a student can write apart
+            // (INT-2), never one.
+            Flow::Math(x) | Flow::MathHandle(x, _) | Flow::MathValue(x) | Flow::SymExpr(x, _)
+                if matches!(self.c.arena.get(*x), Expr::Num(_)) =>
+            {
+                return None;
+            }
             // Lowered from its expression alone.
             Flow::Math(x) if own_math => {
                 (What::Math(self.c.expr_class[x.index()].get()), None, vec![])
@@ -689,6 +699,9 @@ fn expr_classes<'c>(
                 .map(c)
                 .collect::<Option<Vec<u32>>>()
                 .map(|xs| K::Call(*f as u8, xs)),
+            // Its text says what it is: its own class.
+            // A shape's head is in its text, not here: its own class.
+            Expr::Operator(_) | Expr::Shape(_) => None,
         };
         let class = match key {
             Some(k) => *seen.entry(k).or_insert(id),

@@ -2,6 +2,8 @@
 
 use crate::compile::api::*;
 use crate::components::define::*;
+use crate::document::ActionView;
+use crate::tick::Request;
 
 component! {
     /// `<answer>`: `submitted` is an essential math cell that a submit request
@@ -11,7 +13,7 @@ component! {
     tags: ["answer"],
     flags: [copyable, symbolic],
     scored: Item(credit, weight),
-    submit: Counted(response, submitted, numSubmissions),
+    submit: Copies(response, submitted),
     default_prop: credit,
     props {
         response: attr(NO_VALUE) { ref_prop: expr, read_by_action, expr_when: submitted },
@@ -27,7 +29,20 @@ component! {
         // resolves.
         creditAchieved: credit,
     }
+    actions { submitAnswer: submit }
     machinery: Answer,
+}
+
+/// `submitAnswer`: copies its own response, then each response child's
+/// (their `submit`), into the submitted cells, and counts the submission.
+fn submit(view: &ActionView<'_>, _args: &[f64]) -> Vec<Request> {
+    let at = Props::AT;
+    let mut requests = vec![view.request(at.submitted, view.value(at.response))];
+    for child in view.children() {
+        requests.extend(view.act(child, "submit"));
+    }
+    requests.push(view.request(at.numSubmissions, view.value(at.numSubmissions) + 1.0));
+    requests
 }
 
 /// The position of `response`: the live response a submit takes.

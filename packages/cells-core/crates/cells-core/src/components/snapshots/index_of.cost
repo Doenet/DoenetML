@@ -1,0 +1,7 @@
+the least and the greatest, the first of equal ones: cells 13 · essential 0 · constant 13 · instrs 0 · components 4
+the first equal to the target, or 0: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
+a target from an input follows it: cells 8 · essential 1 · constant 6 · instrs 1 · components 4
+where the target goes among sorted values, before or after equal ones: cells 13 · essential 0 · constant 13 · instrs 0 · components 6
+unsorted values get 0, unless allowUnsorted: cells 9 · essential 0 · constant 9 · instrs 0 · components 3
+no target is a warning: cells 3 · essential 0 · constant 3 · instrs 0 · components 2
+a target on argMin is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2

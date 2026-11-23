@@ -25,6 +25,10 @@ pub(crate) const MAX_CASES: usize = MAX_VEC_IN - 1;
 /// longer list is averaged in chunks.
 pub(crate) const SCORE_CHUNK: usize = MAX_VEC_IN / 2;
 
+/// The most follow-up ticks one tick runs (ADR 0042): buttons pressed by a
+/// condition's rise or by what they wait on, which may press others.
+pub(crate) const MAX_FOLLOW_UPS: u32 = 64;
+
 /// The most distinct references in one math template (its leaves).
 pub(crate) const MAX_REFERENCES: usize = u8::MAX as usize;
 

@@ -1,6 +1,7 @@
 //! [`PlanCtx`]: what every component planner is given.
 
-use super::Planning;
+use super::{ListEntry, Planning};
+use crate::compile::ir::record::ListPiece;
 use crate::compile::*;
 use crate::components::ConstrainTarget;
 
@@ -26,6 +27,8 @@ pub(crate) struct PlanCtx<'c, 'a> {
 /// The `extend` referent of a `Plan` type planned with overrides: an
 /// element of the same template.
 struct Base {
+    /// The referent.
+    elem: ElemId,
     /// Where its children are planned.
     scope: ElemId,
     /// Every node under it: what a planner reads from it rather than from
@@ -60,6 +63,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
                 }
             }
             Base {
+                elem: b,
                 scope: name_scope,
                 subtree,
             }
@@ -146,7 +150,58 @@ impl<'a> PlanCtx<'_, 'a> {
     /// a literal, or math text, as a table prop of `children` is planned.
     pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
         let scope = self.scope_for(&v.nodes);
-        self.p.plan_value_children(self.t, scope, v)
+        self.p.plan_value_children(self.t, self.e, scope, v)
+    }
+
+    /// Math text written as one interval, `[a, b)`: its endpoints and
+    /// closedness (ADR 0049); `None` when it is not one interval.
+    pub(crate) fn interval(&mut self, nodes: &[NodeId]) -> Result<Option<IntervalAttr>> {
+        let scope = self.scope_for(nodes);
+        self.p
+            .rd
+            .plan_interval(&mut self.p.ar, self.t, scope, nodes)
+    }
+
+    /// The math cell of the symbol `name`, a constant: a function's
+    /// variable (ADR 0049).
+    pub(crate) fn symbol(&mut self, name: &str) -> Source {
+        let id = self.p.ar.arena.push(Expr::Sym(name.into()));
+        self.p
+            .ar
+            .sym_text
+            .insert(id, SymText::Spelled(name.to_string()));
+        Source::sym_expr(id, crate::program::Post::None)
+    }
+
+    /// Math tokens (an entry of a tuple, `math_tokens`) as an expression
+    /// that may be symbolic, a math cell: a curve's coordinate in its
+    /// parameter (ADR 0049). Its text for the engine is spelled from the
+    /// tokens.
+    pub(crate) fn sym_tokens(&mut self, toks: &[Token]) -> Result<Source> {
+        let src = MathSrc(&[]);
+        let id = self.p.rd.parse_tokens(&mut self.p.ar, toks, src)?;
+        let mut text = String::new();
+        for (k, tok) in toks.iter().enumerate() {
+            let glued = matches!(tok, Token::LParen)
+                && matches!(k.checked_sub(1).map(|j| &toks[j]), Some(Token::Ident(_)));
+            if k > 0 && !glued {
+                text.push(' ');
+            }
+            match tok {
+                Token::Num(v) if *v == std::f64::consts::PI => text.push_str("pi"),
+                Token::Num(v) => text.push_str(&format!("{v}")),
+                Token::Ident(name) => text.push_str(name),
+                Token::Cell(r) => text.push_str(&crate::sym::engine::leaf_name(r.get(), false)),
+                Token::Op(c) => text.push(*c),
+                Token::LParen => text.push('('),
+                Token::RParen => text.push(')'),
+                Token::Comma => text.push(','),
+                Token::Eq => text.push('='),
+                Token::Open(c) | Token::Close(c) => text.push(*c),
+            }
+        }
+        self.p.ar.sym_text.insert(id, SymText::Spelled(text));
+        Ok(Source::sym_expr(id, crate::program::Post::None))
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
@@ -272,6 +327,34 @@ impl<'a> PlanCtx<'_, 'a> {
             .plan_condition_content(self.t, scope, nodes, compare, wiring)
     }
 
+    /// The entries the children `pieces` of a list (or an operator)
+    /// contribute, in order, at most `max` (ADR 0041, decision 9): each
+    /// reference or element child naming a static sequence spliced into
+    /// its entries, one naming an entry past such a list's end dropped,
+    /// and math text with references inside its brackets parsed.
+    pub(crate) fn list_entries(
+        &mut self,
+        pieces: Vec<ListPiece>,
+        max: f64,
+    ) -> Result<Vec<ListEntry>> {
+        self.p.list_entries(self.t, self.e, pieces, max)
+    }
+
+    /// An entry of a list read as math: a piece of text as written
+    /// (`1+1`, `pi`, `x`), none when it is no math; a reference alone, its
+    /// one cell or the expression that cell stands for.
+    pub(crate) fn entry_math(&mut self, entry: &ListEntry) -> Option<ExprId> {
+        match entry {
+            ListEntry::Text(_, text) => self.p.text_math(text),
+            ListEntry::Math(id) => Some(*id),
+            ListEntry::Ref(p) => {
+                let id = self.p.ar.arena.push(Expr::Cell(*p));
+                self.p.ar.sym_text.insert(id, SymText::Leaf(*p));
+                Some(id)
+            }
+        }
+    }
+
     /// Warns that the element cannot be what its attributes ask, with a
     /// diagnostic code and message. What the planner cannot define is
     /// [`Wire::undefined`] of what this returns.
@@ -280,16 +363,161 @@ impl<'a> PlanCtx<'_, 'a> {
         self.p.ar.warn(node, code, message)
     }
 
+    // Operators over math (ADR 0043).
+
+    /// An operand planned from the record (a literal, a reference, math
+    /// text, as [`PlanCtx::value_of`] plans one) as an expression the
+    /// symbolic engine reads: the number, the reference's leaf, or the math
+    /// text. `None` for a source that is none of these.
+    pub(crate) fn operand_expr(&mut self, source: &Source) -> Option<ExprId> {
+        let ar = &mut self.p.ar;
+        Some(match source {
+            Source::Leaf(Leaf::Given(v) | Leaf::Const(v)) => ar.arena.push(Expr::Num(*v)),
+            Source::Flow(Flow::Math(id)) => *id,
+            Source::Flow(Flow::Alias(Arg::Ref(p, Sel::Whole))) => {
+                let id = ar.arena.push(Expr::Cell(*p));
+                ar.sym_text.insert(id, SymText::Leaf(*p));
+                id
+            }
+            _ => return None,
+        })
+    }
+
+    /// An operator over math `args` that only the symbolic engine computes
+    /// (`Expr::Operator`): its text is `spell` of the operands' texts, each
+    /// in parentheses, as the engine reads them (a number as written, a
+    /// reference as its leaf).
+    pub(crate) fn operator_expr(
+        &mut self,
+        args: &[ExprId],
+        spell: impl FnOnce(&[String]) -> String,
+    ) -> ExprId {
+        let dast = self.p.rd.dast;
+        let ar = &mut self.p.ar;
+        let texts: Vec<String> = args
+            .iter()
+            .map(|id| {
+                let text = match (ar.sym_text.get(id), ar.arena.get(*id)) {
+                    (Some(sym), _) => sym.spell(dast),
+                    (None, Expr::Num(v)) => crate::sym::engine::number_text(*v),
+                    (None, other) => unreachable!("an operand with no text: {other:?}"),
+                };
+                format!("({text})")
+            })
+            .collect();
+        let text = spell(&texts);
+        let id = ar.arena.push(Expr::Operator(args.to_vec()));
+        ar.sym_text.insert(id, SymText::Spelled(text));
+        id
+    }
+
     // The element's wiring.
 
     /// The element's `<math>` text as it was parsed, or the
-    /// error parsing it met.
+    /// error parsing it met. An extend that writes no text of its own reads
+    /// its referent's, whose references were planned where the referent
+    /// sits (REF-3, REF-6): math text is no attribute, so it is not in the
+    /// merged record.
     pub(crate) fn parsed_math(&self) -> Result<ParsedMath> {
-        match self.p.parsed.math(self.t, self.e) {
+        let d = self.p.rd.dast;
+        let own_text = d
+            .children(self.node())
+            .iter()
+            .any(|&n| !self.p.rd.is_not_content(n));
+        let at = match &self.referent {
+            Some(b) if !own_text => b.elem,
+            _ => self.e,
+        };
+        match self.p.parsed.math(self.t, at) {
             Some(parsed) => parsed.clone(),
             None => Err(Error::Internal("a <math> that was never parsed".into())),
         }
     }
 
+    /// The element's children whose type plays `role`, in order: the
+    /// pieces of a piecewise function (ADR 0049), whose ports it reads.
+    pub(crate) fn children_playing(&self, role: crate::components::Role) -> Vec<Inner> {
+        self.p
+            .rd
+            .elem_children(self.t, self.e)
+            .into_iter()
+            .filter(|&x| self.p.rd.elem(self.t, x).component_type.plays(role))
+            .map(Inner)
+            .collect()
+    }
+
+    // The inputs the element owns (ADR 0045).
+
+    /// The `k`-th input the element owns, as its type declares them
+    /// (`inner { .. }`): among the element's children of its type, the one
+    /// in its place, the normalizer's or one outlining made.
+    pub(crate) fn inner(&self, k: usize) -> Result<Inner> {
+        let missing = || Error::Internal("an owned input outlining did not make".into());
+        let decls = self.elem().component_type.inner();
+        let decl = decls.get(k).ok_or_else(missing)?;
+        let nth = decls[..k].iter().filter(|i| i.ty == decl.ty).count();
+        self.p
+            .rd
+            .elem_children(self.t, self.e)
+            .into_iter()
+            .filter(|&x| self.p.rd.elem(self.t, x).component_type == decl.ty)
+            .nth(nth)
+            .map(Inner)
+            .ok_or_else(missing)
+    }
+
+    /// Plans owned input `inner` with `wiring`: the one plan a planner
+    /// writes besides its element's, since nothing else plans it.
+    pub(crate) fn plan_inner(&mut self, inner: Inner, wiring: ElemWiring) {
+        let (props, list) = wiring.finish();
+        let plan = &mut self.p.tables[self.t.index()].plans[inner.0.index()];
+        plan.props = props;
+        plan.list = list;
+    }
+
+    /// The expression `num / den` over two expressions the owned inputs
+    /// hold (a port each, a math cell): a math cell, never lowered.
+    pub(crate) fn inner_quotient(&mut self, num: (Inner, Port), den: (Inner, Port)) -> Source {
+        let mut leaf = |(inner, port): (Inner, Port)| {
+            let ty = self.p.rd.elem(self.t, inner.0).component_type;
+            let plan = RefPlan {
+                hops: 0,
+                steps: vec![Step::Elem(inner.0)],
+                prop: Some(RefProp::of(
+                    ty,
+                    crate::components::PropSel::At(crate::components::PropAt::Position(
+                        port.index(),
+                    )),
+                )),
+                entries: Vec::new(),
+                display: RefDisplay::Spelled(format!("(owned <{}>)", ty.tag()).into()),
+                node: NodeId::NONE,
+            };
+            let r = self.p.ar.push_ref(plan);
+            (r, self.p.ar.arena.push(Expr::Cell(r)))
+        };
+        let ((ra, a), (rb, b)) = (leaf(num), leaf(den));
+        let id = self.p.ar.arena.push(Expr::Div(a, b));
+        // The engine's text, each leaf written `cellN<plan>`, which it
+        // parses when the element expands.
+        let name = |r: RefId| crate::sym::engine::leaf_name(r.get(), false);
+        let text = format!("( {} ) / ( {} )", name(ra), name(rb));
+        self.p.ar.sym_text.insert(id, SymText::Spelled(text));
+        Source::sym_expr(id, crate::program::Post::None)
+    }
+
     // Machinery several components build on.
+}
+
+/// A child element whose ports its parent's planner reads: an input it
+/// owns (ADR 0045), as [`PlanCtx::inner`] finds it, or a piece of a
+/// piecewise function (ADR 0049, [`PlanCtx::children_playing`]).
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct Inner(ElemId);
+
+impl Inner {
+    /// Its port `port`, read by the owner.
+    pub(crate) fn port(self, port: Port) -> Source {
+        Source::alias(Arg::Elem(self.0, port))
+    }
 }

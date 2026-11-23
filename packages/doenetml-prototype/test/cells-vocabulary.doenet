@@ -1,0 +1,233 @@
+<!-- Every component type the cells core has, placed where it can be drawn: in
+     text, and in a graph. The prototype's cells prerender test renders it
+     through the cells bridge and fails on any element no renderer draws, and
+     on any component type of the core this document does not use: a type
+     added to the core is added here, with its renderer. -->
+<setup>
+    <number name="n">3</number>
+    <text name="t">dog</text>
+    <boolean name="b">true</boolean>
+    <function name="f">x^2</function>
+    <point name="P1">(0,0)</point>
+    <point name="P2">(1,1)</point>
+    <point name="P3">(2,3)</point>
+    <line name="l1" through="(0,0) (1,1)" />
+    <line name="l2" through="(0,1) (1,0)" />
+    <functionIterates name="it" function="$f" initialValue="1" numIterates="3" />
+</setup>
+
+<section>
+    <title>Text</title>
+    <p>
+        <em>e</em> <alert>a</alert> <term>t</term> <q>q</q> <sq>s</sq>
+        <c>c</c> <attr>at</attr> <span>sp</span> <tag>t</tag> <tagc>tc</tagc>
+        <tage>te</tage> 1<ndash />2<mdash />3<nbsp />4<ellipsis /><lq />x<rq />
+        <lsq />y<rsq /><br />
+    </p>
+    <hr />
+    <div>d</div>
+    <pre>pr</pre>
+    <blockQuote>bq</blockQuote>
+    <ol>
+        <li>a</li>
+    </ol>
+    <ul>
+        <li>b</li>
+    </ul>
+    <p>Hi<footnote>See page 3.</footnote></p>
+    <p><m>y</m></p>
+    <md>
+        <mrow>x</mrow>
+        <mrow>y</mrow>
+    </md>
+    <me>x^2</me>
+    <latex>\frac{1}{2}</latex>
+</section>
+
+<subsection />
+<subsubsection />
+<problem />
+<exercise />
+<example />
+<question />
+<activity />
+<definition />
+<note />
+<theorem>
+    <statement>s</statement>
+    <proof><p>p</p></proof>
+</theorem>
+<paragraphs />
+<objectives />
+<part />
+<task />
+<problems />
+<exercises />
+<division type="section" />
+<introduction>i</introduction>
+<conclusion>c</conclusion>
+<aside><title>A</title><p>z</p></aside>
+<hint><p>h</p></hint>
+<solution><p>s</p></solution>
+<figure><caption>A figure</caption><p>x</p></figure>
+<table>
+    <title>T</title>
+    <tabular>
+        <row><cell>1</cell></row>
+    </tabular>
+</table>
+<spreadsheet>
+    <row><cell>1</cell></row>
+</spreadsheet>
+<sideBySide widths="40% 60%"><p>a</p><p>b</p></sideBySide>
+<sbsGroup widths="30% 70%">
+    <sideBySide><p>a</p><p>b</p></sideBySide>
+</sbsGroup>
+<stack><p>c</p></stack>
+<pretext><article><p>x</p></article></pretext>
+<pretext><book><p>y</p></book></pretext>
+<p><ref to="https://doenet.org">d</ref></p>
+
+<section>
+    <title>Values</title>
+    <p>
+        $n $t $b <math>x+1</math> <evaluate function="$f" input="2" />
+        <clampNumber lowerValue="0" upperValue="1">5</clampNumber>
+        $it.iterates
+        <numberList>1 2 3</numberList> <textList>a b</textList>
+        <mathList name="ml">x y+1</mathList> $ml[2]
+        <booleanList>true false</booleanList>
+        <integer>3.7</integer> <intComma>25236501.35</intComma>
+        <pluralize>dog</pluralize>
+    </p>
+    <p>
+        <abs>-3</abs> <sign>-2</sign> <floor>2.5</floor> <ceil>2.5</ceil>
+        <round>2.5</round> <setSmallToZero>1e-20</setSmallToZero>
+        <wrapNumberPeriodic lowerValue="0" upperValue="5">7</wrapNumberPeriodic>
+        <sum>1 2</sum> <product>2 3</product> <mean>1 2</mean>
+        <median>1 2 3</median> <variance>1 2</variance>
+        <standardDeviation>1 2</standardDeviation> <count>1 2</count>
+        <min>1 2</min> <max>1 2</max> <mod>7 3</mod> <gcd>4 6</gcd>
+        <lcm>4 6</lcm> <argMin>3 1 4</argMin> <argMax>3 1 4</argMax>
+        <indexOf target="20">10 20 30</indexOf>
+        <searchSorted target="25">10 20 30</searchSorted>
+    </p>
+    <p>
+        <and>true false</and> <or>true false</or> <xor>true false</xor>
+        <iff>true true</iff> <implies>true false</implies> <not>true</not>
+        <isInteger>2</isInteger> <isNumber>2</isNumber>
+        <isBetween limits="3 5">4</isBetween>
+    </p>
+    <p>
+        <cumulativeSum>30 45 12</cumulativeSum>
+        <cumulativeProduct>1 2 3</cumulativeProduct>
+        <cumulativeMin>3 1 2</cumulativeMin>
+        <cumulativeMax>1 3 2</cumulativeMax>
+        <differences>1 4 9</differences> <sort type="number">3 1 2</sort>
+        <shuffle>1 2 3</shuffle> <sequence from="1" to="5" />
+        <selectRandomNumbers from="3" to="5" /> <sampleRandomNumbers />
+        <selectPrimeNumbers /> <samplePrimeNumbers />
+        <selectFromSequence from="1" to="10" />
+        <select><option>a</option><option>b</option></select>
+    </p>
+    <p>
+        <repeatForSequence from="1" to="3" valueName="v">$v</repeatForSequence>
+        <repeat for="$it.iterates" valueName="w">$w</repeat>
+        <asList><number>1</number><number>2</number></asList>
+        <group><text>g</text></group>
+    </p>
+    <conditionalContent>
+        <case condition="$n=3"><p>three</p></case>
+    </conditionalContent>
+    <feedback condition="$b"><p>Right!</p></feedback>
+</section>
+
+<section>
+    <title>Inputs</title>
+    <p>
+        <numberInput><label>N</label></numberInput>
+        <slider from="0" to="10"><label>S</label></slider>
+        <booleanInput><label>B</label></booleanInput>
+        <mathInput><label>M</label></mathInput>
+        <textInput><label>T</label></textInput>
+        <fractionInput prefillNumerator="1"><label>F</label></fractionInput>
+        <choiceInput>
+            <label>C</label>
+            <choice>a</choice>
+            <choice>b</choice>
+        </choiceInput>
+    </p>
+    <answer name="ansX">x</answer>
+    <callAction target="$ansX" actionName="submitAnswer">
+        <label>Submit</label>
+    </callAction>
+    <answer>
+        <mathInput name="mi"><label>Answer</label></mathInput>
+        <award><when>$mi = x</when></award>
+    </answer>
+    <triggerSet>
+        <label>Go</label>
+        <updateValue target="$n" newValue="4" />
+    </triggerSet>
+</section>
+
+<section>
+    <title>Shapes in text</title>
+    <p>
+        $P1 <vector /> <ray /> <rectangle /> <regularPolygon /> <triangle />
+        <circle /> <line /> <lineSegment />
+        <polygon vertices="(0,0) (1,0) (0,1)" />
+        <angle through="$P1 $P2 $P3" /> <angle through="$P1 $P2 $P3" inDegrees />
+        <bestFitLine data="$P1 $P2 $P3" /> <parabola />
+        <equilibriumPoint>(4,0)</equilibriumPoint> <endpoint>(7,0)</endpoint>
+        <intersection>$l1 $l2</intersection> $f
+        <clampFunction>$f</clampFunction>
+        <wrapFunctionPeriodic>$f</wrapFunctionPeriodic>
+        <derivative>$f</derivative>
+    </p>
+</section>
+
+<graph name="g">
+    <shortDescription>Every shape</shortDescription>
+    <xLabel>x</xLabel>
+    <yLabel>y</yLabel>
+    <point>(1,2)<constraints><constrainToGrid dx="3" dy="2" /></constraints></point>
+    <circle name="c" />
+    <point>(1,2)<constraints><constrainTo>$c</constrainTo></constraints></point>
+    $P1 $P2 $P3 $l1 $l2
+    <lineSegment />
+    <polygon name="poly" vertices="(0,0) (1,0) (0,1)" />
+    <pointList extend="$poly.vertices" />
+    <repeatForSequence name="r" from="1" to="3" valueName="v">
+        <point>($v, $v)</point>
+    </repeatForSequence>
+    <polyline vertices="$r" />
+    <triangle vertices="(1,2) (3,5) (-5,2)" />
+    <rectangle />
+    <regularPolygon />
+    <ray />
+    <vector />
+    <angle through="$P1 $P2 $P3" />
+    <stickyGroup>
+        <point>(3,4)</point>
+        <point>(5,4)</point>
+    </stickyGroup>
+    $f
+    <derivative>$f</derivative>
+    <clampFunction>$f</clampFunction>
+    <wrapFunctionPeriodic>$f</wrapFunctionPeriodic>
+    <parabola />
+    <bestFitLine data="$P1 $P2 $P3" />
+    <intersection>$l1 $l2</intersection>
+    <equilibriumPoint switchable>(4,0)</equilibriumPoint>
+    <equilibriumLine through="(1,2) (3,4)" />
+    <endpoint open>(7,0)</endpoint>
+    <legend><label>f</label></legend>
+    <collect from="$g" componentType="point" />
+    $n $t $b <math>x</math> <m>x</m> <abs>-3</abs> <and>true</and>
+    <math anchor="(2,3)" positionFromAnchor="upperRight" draggable="false">x^2</math>
+    <text anchor="$P1">origin</text>
+    <integer>2</integer> <intComma>2000</intComma> <pluralize>dog</pluralize>
+    <booleanInput><label>B</label></booleanInput>
+    <slider><label>S</label></slider>
+</graph>

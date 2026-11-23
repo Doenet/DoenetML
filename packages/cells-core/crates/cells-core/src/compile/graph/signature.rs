@@ -97,7 +97,8 @@ impl<'a, 'c> Signer<'a, 'c> {
         signer.seed();
         for s in GraphNode::below(n) {
             let makes_math = match g.defs[s.index()] {
-                Def::Op(GraphOp::Template(_), _) => true,
+                // A lowered math's expression keeps its port's type.
+                Def::Op(GraphOp::Template(i), _) => !g.templates[i as usize].blank,
                 Def::Op(GraphOp::Spec(OpSpec::Sym(kind)), _) => kind.makes_math(),
                 _ => false,
             };
@@ -159,7 +160,7 @@ impl<'a, 'c> Signer<'a, 'c> {
         let mut found: Vec<Found> = Vec::new();
         for (ci, comp) in g.comps.iter().enumerate() {
             let (ty, np) = (comp.component_type, comp.n_public as usize);
-            let interactive: Vec<usize> = (0..np).filter(|&pi| ty.is_input_prop(np, pi)).collect();
+            let interactive: Vec<usize> = (0..np).filter(|&pi| self.signs(ci, pi)).collect();
             // A choice made at load is an input of its own: its picks.
             if (interactive.is_empty() && !ty.chooses_at_load())
                 || self.comp_key(ci) == ElemKey::NONE
@@ -242,7 +243,7 @@ impl<'a, 'c> Signer<'a, 'c> {
                 node,
                 tag: ty.tag(),
                 props: (0..np)
-                    .filter(|&pi| ty.is_input_prop(np, pi))
+                    .filter(|&pi| self.signs(ci, pi))
                     .map(|pi| {
                         (
                             prop_label(ty, np, pi),
@@ -261,6 +262,19 @@ impl<'a, 'c> Signer<'a, 'c> {
             sig.inputs.entry(key).or_insert(input);
         }
         sig
+    }
+
+    /// Whether prop `pi` of the component at `ci` is one of the signature's
+    /// inputs: an input prop, except an anchor that holds no state, a
+    /// constant with no graph above it (ADR 0047).
+    fn signs(&self, ci: usize, pi: usize) -> bool {
+        let comp = self.g.comps[ci];
+        let (ty, np) = (comp.component_type, comp.n_public as usize);
+        ty.is_input_prop(np, pi)
+            && (!ty.anchor_props().is_some_and(|a| a.contains(&pi))
+                || !self
+                    .essential_leaves(std::iter::once(self.prop_cell(ci, pi)))
+                    .is_empty())
     }
 
     /// The stable key of the component at `ci`; NONE for one no element
@@ -481,7 +495,14 @@ impl<'a, 'c> Signer<'a, 'c> {
         };
         match *planned {
             GraphOp::Template(i) => {
-                let TemplateOp { expr, post, math } = &self.g.templates[i as usize];
+                let TemplateOp {
+                    expr,
+                    post,
+                    math,
+                    blank,
+                } = &self.g.templates[i as usize];
+                // A lowered math's value comes first, before the leaves.
+                let inputs = if *blank { &inputs[1..] } else { inputs };
                 let text = self.c.plans.sym_text[expr].spell(self.c.dast);
                 let tree = self
                     .engine
@@ -502,9 +523,13 @@ impl<'a, 'c> Signer<'a, 'c> {
                     })
                     .unwrap_or_else(|never| match never {});
                 hash_of((
-                    "instantiate",
+                    if *blank {
+                        "instantiate blank"
+                    } else {
+                        "instantiate"
+                    },
                     canonical_leaves(&template_text(&tree)),
-                    *post as u8,
+                    *post,
                 ))
             }
             GraphOp::Spec(OpSpec::Sym(kind)) => hash_of(format!("{kind:?}")),

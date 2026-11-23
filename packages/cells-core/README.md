@@ -19,8 +19,9 @@ inverses. `ARCHITECTURE.md` is the map, `CONTEXT.md` the vocabulary,
 Tags the core understands: `document`, `graph`, `point`, `number`,
 `numberInput`, `booleanInput`, `slider` (numeric mode), `math`, `evaluate`,
 `repeatForSequence`, `collect`, `line`, `lineSegment`, `circle`, `polygon`
-(and `triangle`), `pointList`, `numberList`, `textList` and `booleanList`
-(from text and references), `p`, `setup`, `stickyGroup`, `mathInput`,
+(and `triangle`), `pointList`, `numberList`, `mathList`, `textList` and
+`booleanList` (from text, references, element children and nested lists,
+literal `maxNumber` and `mergeMathLists`), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
 or a `choiceInput` of `choice`s), `conditionalContent` (`case`, `else`) and
 `feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
@@ -28,8 +29,51 @@ pick), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
 `functionIterates`, `repeat` (over a function's iterates), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers
-`title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside`, `sideBySide`,
-`stack`, `tabular`, `spreadsheet`, `row`, `cell` and `legend`. A `<math>` tuple of three or more entries is a tuple
+`title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside` (numbered with the
+sections), `sideBySide`,
+`stack`, `tabular`, `spreadsheet`, `row`, `cell` and `legend`, the text
+markup `em`, `alert`, `term`, `q`, `sq`, `c`, `attr`, `span`, `tag`, `tagc`
+and `tage`, the characters `ndash`, `mdash`, `nbsp`, `ellipsis`, `lq`, `rq`,
+`lsq` and `rsq`, `br`, `hr`, the blocks `div`, `pre`, `blockQuote` and
+`ol`, the other divisions (`question`, `activity`, `definition`, `note`,
+`theorem`, `paragraphs`, `objectives`, `part`, `task`, `problems`,
+`exercises`, numbered with the sections) and the unnumbered `proof`, the
+blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
+`caption`) and `footnote`, numbered through the document (ADR 0044), the
+numeric operators
+`abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
+`wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
+`standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
+from text, references and element children, one per entry of a list) and the boolean ones `and`, `or`, `xor`, `iff`,
+`implies`, `not`, `isInteger`, `isNumber` and `isBetween`, the shapes
+`ray`, `vector`, `rectangle`, `regularPolygon` (a literal number of
+vertices) and `angle` (by points or a measure), the formatted values
+`integer`, `intComma` (a number, English grouping) and `pluralize` (one
+literal word, or a number and a word), the layout containers `table`
+(numbered with the figures), `sbsGroup`, `asList`, `latex`, `xLabel` and `yLabel` (not
+drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
+operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
+`cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
+`indexOf` and `searchSorted` (one target), `sort` and `shuffle` (of
+numbers), `sequence` (numbers, literal parameters), and
+`selectRandomNumbers`, `sampleRandomNumbers` (`uniform`, `discreteUniform`,
+`gaussian`), `selectPrimeNumbers` and `samplePrimeNumbers`, drawn at load
+from the document seed, and the function operators `clampFunction` and
+`wrapFunctionPeriodic` (literal or numeric bounds), and the derived
+geometry `bestFitLine` (data from points or a list of points), `intersection`
+(of two lines or line segments), `parabola` (through 0 to 3 points, or a
+vertex and at most one), `equilibriumPoint`, `equilibriumLine` and
+`endpoint`, `callAction` (a button calling another component's
+action: `submitAnswer`, a button's press; not one that adds, deletes or
+redraws components). A `callAction`, `updateValue` or `triggerSet` may be
+pressed by the document instead of a student: `triggerWhen`, `triggerWith`
+and `triggerWhenObjectsClicked` or `...Focused` on a point, each press a
+follow-up tick (ADR 0042). The input `fractionInput` (its numerator and denominator boxes, a
+prefill each; no bound value). A function's `domain` (one interval) and
+`variables` (one), `piecewiseFunction` (of `function` children), `curve`
+(a function's graph, a parametric curve, or a spline through points with
+`bezierControls` and `controlVectors`) and `equilibriumCurve` (ADR 0049).
+A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

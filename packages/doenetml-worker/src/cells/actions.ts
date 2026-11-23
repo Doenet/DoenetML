@@ -1,7 +1,8 @@
 /**
  * Renderer actions, resolved for the cells core (ADR 0020): each one the
  * prototype's component renderers send becomes requests, a point group, or a
- * core action (`submit`, `trigger`). The core never sees a renderer action.
+ * core action (`submit`, `trigger`, or one by name). The core never sees a
+ * renderer action.
  */
 import { CellsTable } from "./table";
 
@@ -12,7 +13,10 @@ export type Effect =
      * into pairs, as `Core.request_points` takes them. */
     | { kind: "points"; pairs: [cell: number, value: number][] }
     | { kind: "submit"; answer: number }
-    | { kind: "trigger"; component: number };
+    | { kind: "trigger"; component: number }
+    /** A core action by name (ADR 0040), such as a click a button waits
+     * on (ADR 0042). */
+    | { kind: "act"; component: number; action: string };
 
 type Resolver = (
     table: CellsTable,
@@ -59,15 +63,104 @@ function vertexMoves(
     ) as [Point, Point][];
 }
 
+/** The cells of `c`'s list points, `[xCell, yCell]` each. */
+function listPoints(table: CellsTable, c: number): Point[] {
+    const cells = table.listCells(c);
+    const points: Point[] = [];
+    for (let i = 0; i + 1 < cells.length; i += 2) {
+        points.push([cells[i], cells[i + 1]]);
+    }
+    return points;
+}
+
+/** Both of a two-point shape's points, `[xProp, yProp, coords]` each, as one
+ * point group: one the action does not move is asked for where it is. */
+function moveBoth(
+    table: CellsTable,
+    c: number,
+    ...ends: [x: string, y: string, at: Point | undefined][]
+): Effect {
+    const moves = ends.map(([xp, yp, at]): [Point, Point] => {
+        const cells: Point = [cellOf(table, c, xp), cellOf(table, c, yp)];
+        return [cells, at ?? [table.value(cells[0]), table.value(cells[1])]];
+    });
+    return movePoints(moves);
+}
+
+/** A point's drag. */
+const movePoint: Resolver = (t, c, { x, y }) => ({
+    kind: "points",
+    pairs: [
+        [cellOf(t, c, "x"), x],
+        [cellOf(t, c, "y"), y],
+    ],
+});
+
+/** A curve's through point dragged, as the current core's
+ * moveThroughPoint (`throughPointInd` its 0-based index, `throughPoint`
+ * where to). */
+const moveThroughPoint: Resolver = (
+    t,
+    c,
+    { throughPointInd, throughPoint },
+) => {
+    const at = listPoints(t, c)[Number(throughPointInd)];
+    return at && throughPoint
+        ? movePoints([[at, [throughPoint[0], throughPoint[1]]]])
+        : { kind: "none" };
+};
+
+/** A whole-line drag, as the current core's moveLine: a line given by a
+ * direction moves by its first point only. */
+const moveLine: Resolver = (t, c, { point1coords, point2coords }) => {
+    const p1: Point = [cellOf(t, c, "x1"), cellOf(t, c, "y1")];
+    const p2: Point = [cellOf(t, c, "x2"), cellOf(t, c, "y2")];
+    const direction = t.value(cellOf(t, c, "basedOnDirection")) === 1;
+    return movePoints(
+        direction
+            ? [[p1, point1coords]]
+            : [
+                  [p1, point1coords],
+                  [p2, point2coords],
+              ],
+    );
+};
+
+/** A click that flips the 0/1 prop `prop` when the element's literal
+ * `switchable` holds, as the current core's switchPoint and switchLine. */
+function switchFlag(prop: string): Resolver {
+    return (t, c) => {
+        const switchable = t.attrThrough(c, "switchable");
+        if (switchable === null || switchable.trim().toLowerCase() === "false")
+            return { kind: "none" };
+        const cell = cellOf(t, c, prop);
+        return {
+            kind: "request",
+            pairs: [[cell, t.value(cell) === 1 ? 0 : 1]],
+        };
+    };
+}
+
+/** What follows other components and does not move, as in the current
+ * core (a best-fit line, an intersection): a drag changes nothing. */
+const fixed: Resolver = () => ({ kind: "none" });
+
 /** Keyed by component type, then action name. */
 export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
+    // A click or a focus changes nothing of a point: the core's action of
+    // that name, which a button may wait on (ADR 0042). The prototype's
+    // point renderer does not send them yet.
     point: {
-        move: (t, c, { x, y }) => ({
-            kind: "points",
-            pairs: [
-                [cellOf(t, c, "x"), x],
-                [cellOf(t, c, "y"), y],
-            ],
+        move: movePoint,
+        pointClicked: (_t, c) => ({
+            kind: "act",
+            component: c,
+            action: "pointClicked",
+        }),
+        pointFocused: (_t, c) => ({
+            kind: "act",
+            component: c,
+            action: "pointFocused",
         }),
     },
     graph: {
@@ -102,23 +195,7 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
             pairs: [[cellOf(t, c, "selectedIndex"), selectedIndices[0] ?? 0]],
         }),
     },
-    // A whole-line drag, as the current core's moveLine: a line given by a
-    // direction moves by its first point only.
-    line: {
-        moveLine: (t, c, { point1coords, point2coords }) => {
-            const p1: Point = [cellOf(t, c, "x1"), cellOf(t, c, "y1")];
-            const p2: Point = [cellOf(t, c, "x2"), cellOf(t, c, "y2")];
-            const direction = t.value(cellOf(t, c, "basedOnDirection")) === 1;
-            return movePoints(
-                direction
-                    ? [[p1, point1coords]]
-                    : [
-                          [p1, point1coords],
-                          [p2, point2coords],
-                      ],
-            );
-        },
-    },
+    line: { moveLine },
     // A whole-segment drag sends both endpoints; an endpoint's drag, one.
     lineSegment: {
         moveLineSegment: (t, c, { point1coords, point2coords }) => {
@@ -152,6 +229,55 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
             }
             return movePoints(vertexMoves(vertices, pointCoords));
         },
+    },
+    // A ray's and a vector's drag asks for both points, the one not dragged
+    // where it is, as the current core's moveRay and moveVector keep it.
+    ray: {
+        moveRay: (t, c, { endpointcoords, throughcoords }) =>
+            moveBoth(
+                t,
+                c,
+                ["endpointX", "endpointY", endpointcoords],
+                ["throughX", "throughY", throughcoords],
+            ),
+    },
+    vector: {
+        moveVector: (t, c, { tailcoords, headcoords }) =>
+            moveBoth(
+                t,
+                c,
+                ["tailX", "tailY", tailcoords],
+                ["headX", "headY", headcoords],
+            ),
+    },
+    // A rectangle's corner drag holds the opposite corner, as the current
+    // core's movePolygon does; a whole drag moves every vertex.
+    rectangle: {
+        movePolygon: (t, c, { pointCoords }) => {
+            const vertices = listPoints(t, c);
+            const moves = vertexMoves(vertices, pointCoords);
+            const dragged = Object.keys(pointCoords).map(Number);
+            if (dragged.length === 1 && vertices.length === 4) {
+                const [cx, cy] = vertices[(dragged[0] + 2) % 4];
+                moves.push([
+                    [cx, cy],
+                    [t.value(cx), t.value(cy)],
+                ]);
+            }
+            return movePoints(moves);
+        },
+    },
+    // A vertex drag turns and scales it about its center (the core's
+    // inverse); a whole drag moves it.
+    regularPolygon: {
+        movePolygon: (t, c, { pointCoords }) =>
+            movePoints(vertexMoves(listPoints(t, c), pointCoords)),
+    },
+    // A vertex drag moves that vertex; a whole drag moves all three, as a
+    // polygon's.
+    triangle: {
+        movePolygon: (t, c, { pointCoords }) =>
+            movePoints(vertexMoves(listPoints(t, c), pointCoords)),
     },
     // The core snaps and clamps (ADR 0003).
     slider: {
@@ -200,10 +326,65 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     answer: {
         submitAnswer: (_t, c) => ({ kind: "submit", answer: c }),
     },
+    solution: {
+        revealSolution: (t, c) => ({
+            kind: "request",
+            pairs: [[cellOf(t, c, "open"), 1]],
+        }),
+        closeSolution: (t, c) => ({
+            kind: "request",
+            pairs: [[cellOf(t, c, "open"), 0]],
+        }),
+    },
     triggerSet: {
         triggerActions: (_t, c) => ({ kind: "trigger", component: c }),
     },
+    // Derived geometry: what the renderers of the shapes they are drawn as
+    // send. An equilibrium point or line and an endpoint move as a point
+    // or a line does, and switch their flag on the current core's switch
+    // actions, which the prototype's renderers do not send yet.
+    bestFitLine: { moveLine: fixed },
+    intersection: { move: fixed },
+    equilibriumPoint: { move: movePoint, switchPoint: switchFlag("stable") },
+    endpoint: { move: movePoint, switchPoint: switchFlag("open") },
+    equilibriumLine: { moveLine, switchLine: switchFlag("stable") },
+    // A button calling another component's action: the core's `trigger`.
+    callAction: {
+        callAction: (_t, c) => ({ kind: "trigger", component: c }),
+    },
+    // A button setting another component's value, alone: the same press.
+    updateValue: {
+        updateValue: (_t, c) => ({ kind: "trigger", component: c }),
+    },
+    // A curve's through point dragged (ADR 0049), as the current core's
+    // moveThroughPoint; an equilibrium curve switches its flag too.
+    curve: { moveThroughPoint },
+    equilibriumCurve: { moveThroughPoint, switchCurve: switchFlag("stable") },
+    // A fraction input's box (ADR 0045): typed into as a math input.
+    _fractionInputComponent: {
+        updateValue: (t, c, args) =>
+            RENDERER_ACTIONS.mathInput.updateValue(t, c, args),
+    },
 };
+
+/** A value's drag in a graph, as the current core's `moveText`, `moveMath`
+ * and `moveNumber`: its anchor, a point (`anchorX`, `anchorY`), for every
+ * type that has one. */
+const ANCHOR_MOVES = new Set(["moveText", "moveMath", "moveNumber"]);
+
+function moveAnchor(
+    t: CellsTable,
+    c: number,
+    { x, y }: Record<string, any>,
+): Effect {
+    return {
+        kind: "points",
+        pairs: [
+            [cellOf(t, c, "anchorX"), x],
+            [cellOf(t, c, "anchorY"), y],
+        ],
+    };
+}
 
 /** What a renderer action does to the cells core, or null when the table
  * has no entry for it. */
@@ -214,6 +395,10 @@ export function resolveRendererAction(
     args: Record<string, any>,
 ): Effect | null {
     const resolver =
-        RENDERER_ACTIONS[table.componentType(component)]?.[actionName];
+        RENDERER_ACTIONS[table.componentType(component)]?.[actionName] ??
+        (ANCHOR_MOVES.has(actionName) &&
+        table.cell(component, "anchorX") !== undefined
+            ? moveAnchor
+            : undefined);
     return resolver ? resolver(table, component, args) : null;
 }
