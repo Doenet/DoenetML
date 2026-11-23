@@ -59,7 +59,18 @@ impl Reader<'_> {
                     macros.push(n);
                     toks.push(Token::Cell(RefId::NONE));
                 }
-                _ => {}
+                // A label or description is presentation, not content.
+                NodeKind::Element if self.is_presentation_child(n) => {}
+                // Any other element would be content this text cannot hold:
+                // dropping it would give a wrong value with no diagnostic
+                // (COMP-1). Its value can be written as a reference.
+                NodeKind::Element => {
+                    return Err(Error::Unsupported(format!(
+                        "a <{}> inside math: name it and write its value as a reference",
+                        d.str(n)
+                    )));
+                }
+                NodeKind::Other => {}
             }
         }
         Ok((toks, macros))

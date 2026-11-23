@@ -2,8 +2,8 @@
 //! document can reach is rejected at load, whatever the count at load; a
 //! loop that only marches through the iterations is not.
 
-use cells_core::testing::test_utils::{dast_json, load};
-use cells_core::{Document, Error, LoadOptions};
+use cells_core::testing::test_utils::{cycle_of, dast_json, load};
+use cells_core::{Document, LoadOptions};
 
 fn load_unchecked(src: &str) -> cells_core::Result<Document> {
     Document::load(
@@ -16,14 +16,13 @@ fn load_unchecked(src: &str) -> cells_core::Result<Document> {
     .map(|(d, _)| d)
 }
 
-/// The document loads with the check off and fails with it on.
+/// The document loads with the check off, and with it on reports a cycle
+/// on the component it names, which is boxed (DIAG-5).
 fn rejected(src: &str, naming: &str) {
     load_unchecked(src).unwrap_or_else(|e| panic!("loads without the check: {e}"));
-    let err = load(src).unwrap_err();
-    match err {
-        Error::Cycle(at) => assert!(at.contains(naming), "cycle names '{at}', not '{naming}'"),
-        other => panic!("expected a cycle, got {other}"),
-    }
+    let doc = load(src).unwrap_or_else(|e| panic!("a cycle boxes, not fails: {e}"));
+    let at = cycle_of(&doc).expect("a cycle");
+    assert!(at.contains(naming), "cycle names '{at}', not '{naming}'");
 }
 
 #[test]
@@ -134,12 +133,10 @@ fn a_cycle_without_repeats_is_found_by_the_compile() {
         r#"<number name="a">$b</number><number name="b">$a</number>"#,
         r#"<point name="p" x="$q.y + 1"/><point name="q" y="2 $p.x"/>"#,
     ] {
-        match load(src).unwrap_err() {
-            Error::Cycle(at) => assert!(
-                ["a", "b", "p", "q"].iter().any(|n| at.starts_with(n)),
-                "{src}: cycle names '{at}'"
-            ),
-            other => panic!("{src}: expected a cycle, got {other}"),
-        }
+        let at = cells_core::testing::test_utils::load_cycle(src);
+        assert!(
+            ["'a", "'b", "'p", "'q"].iter().any(|n| at.contains(n)),
+            "{src}: cycle names '{at}'"
+        );
     }
 }

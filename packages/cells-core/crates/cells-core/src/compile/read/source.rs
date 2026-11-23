@@ -22,10 +22,24 @@ impl Reader<'_> {
             && matches!(self.dast.str(n), "label" | "shortDescription")
     }
 
+    /// Whether a child node is an input its element owns (ADR 0045): an
+    /// element of an owned type its owner declares (`inner { .. }`), as the
+    /// normalizer writes a fraction input's boxes. A component of its
+    /// owner, which plans it; never content.
+    pub(in crate::compile) fn is_owned_input(&self, n: NodeId) -> bool {
+        self.dast.kind(n) == NodeKind::Element
+            && ComponentType::from_tag(self.dast.str(n)).is_some_and(|ty| {
+                ty.def()
+                    .owner
+                    .is_some_and(|o| o.inner().iter().any(|i| i.ty == ty))
+            })
+    }
+
     /// Whether a child node is no content of its element: layout
-    /// (`is_blank`) or presentation (`is_presentation_child`).
+    /// (`is_blank`), presentation (`is_presentation_child`) or an owned
+    /// input (`is_owned_input`).
     pub(in crate::compile) fn is_not_content(&self, n: NodeId) -> bool {
-        self.is_blank(n) || self.is_presentation_child(n)
+        self.is_blank(n) || self.is_presentation_child(n) || self.is_owned_input(n)
     }
 
     /// Children of element `e` have `e` as their parent.

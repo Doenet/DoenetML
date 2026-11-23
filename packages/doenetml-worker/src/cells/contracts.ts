@@ -81,6 +81,17 @@ export class Reads {
         return this.table.core.expr_latex(cell);
     }
 
+    /** The number `c` takes from its document-wide counter (a figure's,
+     * a table's, a footnote's; ADR 0044), null when it takes none. The
+     * core counts it through the active cases; the cells it read are
+     * recorded, so a case that switches recomputes it. */
+    counter(c: number): number | null {
+        for (const cell of this.table.core.counter_reads(c) as Uint32Array) {
+            this.cell(cell);
+        }
+        return this.table.core.counter_number(c) ?? null;
+    }
+
     /** LaTeX of a math component's value: the number its lowered chain
      * computes, or the expression its math cell holds (ADR 0005). */
     mathLatex(c: number): string {
@@ -232,13 +243,17 @@ const SECTION_KINDS: [tag: string, word: string][] = [
 /** Divisions drawn boxed unless `boxed="false"`, as in the current core. */
 const BOXED_BY_DEFAULT = new Set(["objectives"]);
 
+/** The types numbered among their sibling divisions: the core's types
+ * that declare `numbered`. */
+const NUMBERED_TYPES = new Set(["section", "aside"]);
+
 /** A section's full number ("2.1"): its own, after its nearest section
  * ancestor's when it includes it. */
 function sectionNumber(r: Reads, c: number): string {
     const own = r.num(c, "number");
     if (r.num(c, "includeParentNumber") !== 0) {
         for (let p = r.table.parent(c); p !== null; p = r.table.parent(p)) {
-            if (r.table.componentType(p) === "section") {
+            if (NUMBERED_TYPES.has(r.table.componentType(p))) {
                 return `${sectionNumber(r, p)}.${own}`;
             }
         }
@@ -252,6 +267,12 @@ function sectionDepth(table: CellsTable, c: number): number {
         if (table.componentType(p) === "section") depth++;
     }
     return depth;
+}
+
+/** What a figure or a table calls itself: "Figure 2", or the word alone
+ * when it takes no number. */
+function counterName(word: string, number: number | null): string {
+    return number === null ? word : `${word} ${number}`;
 }
 
 /** The last `<title>` child: of several, the last one written is used,
@@ -468,6 +489,18 @@ const CURVE: Contract = {
     noChildren: true,
 };
 
+/** A contract whose element is drawn only in a graph: outside one it
+ * sends no props and reads no cells, since the core counts the component
+ * rendered only in a graph (ADR 0019). */
+function inGraphOnly(contract: Contract): Contract {
+    const props = contract.props;
+    return {
+        ...contract,
+        props:
+            props && ((r, c, inGraph) => (inGraph ? props(r, c, inGraph) : {})),
+    };
+}
+
 /** A point's props: in a graph its coordinates, which the renderer
  * parses, else their LaTeX. */
 function pointProps(r: Reads, c: number, inGraph: boolean) {
@@ -601,28 +634,28 @@ export const CONTRACTS: Record<string, Contract> = {
             yMax: r.num(c, "ymax"),
         }),
     },
-    line: { props: lineProps },
-    lineSegment: {
+    line: inGraphOnly({ props: lineProps }),
+    lineSegment: inGraphOnly({
         props: (r, c) => ({
             numericalEndpoints: [
                 [r.num(c, "x1"), r.num(c, "y1")],
                 [r.num(c, "x2"), r.num(c, "y2")],
             ],
         }),
-    },
-    circle: {
+    }),
+    circle: inGraphOnly({
         props: (r, c) => ({
             numericalCenter: [r.num(c, "cx"), r.num(c, "cy")],
             numericalRadius: r.num(c, "radius"),
         }),
-    },
-    polygon: {
+    }),
+    polygon: inGraphOnly({
         props: (r, c) => ({
             numericalVertices: pairs(r, r.table.listCells(c)),
         }),
-    },
+    }),
     // Its vertices are the points it gathered, which it draws itself.
-    polyline: {
+    polyline: inGraphOnly({
         props: (r, c) => ({
             numericalVertices: pointsUnder(r.table, c).map((p) => [
                 r.num(p, "x"),
@@ -630,7 +663,7 @@ export const CONTRACTS: Record<string, Contract> = {
             ]),
         }),
         noChildren: true,
-    },
+    }),
     // Its labels, in order, beside the graph's curves in order. Their
     // colors are the renderer's: Doenet's styles are not ported.
     legend: {
@@ -768,20 +801,22 @@ export const CONTRACTS: Record<string, Contract> = {
         excludeChild: (table, _c, child) =>
             table.componentType(child) === "title",
     },
-    // An aside: a collapsed division.
+    // An aside: a collapsed division, numbered among the divisions around
+    // it as a section is.
     aside: {
         props: (r, c) => {
             const title = titleChild(r.table, c);
+            const number = sectionNumber(r, c);
             return {
                 title: title === null ? null : r.idOf(title),
                 titlePrefix: "",
-                codeNumber: "",
+                codeNumber: number,
                 divisionDepth: sectionDepth(r.table, c),
                 divisionType: "aside",
                 xrefLabel: {
-                    label: title === null ? "Aside" : "",
-                    global_ident: "",
-                    local_ident: "",
+                    label: "Aside",
+                    global_ident: number,
+                    local_ident: number,
                     preferred_form: "Global",
                 },
                 collapsible: true,
@@ -917,16 +952,17 @@ export const CONTRACTS: Record<string, Contract> = {
     conclusion: {},
     statement: {},
     // A figure's caption is drawn from `captionChild`, not as a child. Its
-    // number runs through the document apart from the sections, which the
-    // core does not keep: it is named "Figure" alone.
+    // number runs through the document apart from the sections, shared with
+    // the tables (ADR 0044): "Figure 2", or "Figure" with `number="false"`.
     figure: {
         props: (r, c) => {
             const caption = childrenOfType(r.table, c, "caption")[0];
+            const name = counterName("Figure", r.counter(c));
             return {
                 caption: "",
                 captionChild: caption === undefined ? null : r.idOf(caption),
-                figureName: "Figure",
-                figureNamePrefix: caption === undefined ? "Figure" : "Figure: ",
+                figureName: name,
+                figureNamePrefix: caption === undefined ? name : `${name}: `,
                 suppressFigureNameInCaption: flag(
                     r.table,
                     c,
@@ -938,11 +974,11 @@ export const CONTRACTS: Record<string, Contract> = {
             table.componentType(child) === "caption",
     },
     caption: {},
-    // Its text is the marker's tooltip. Its number runs through the
-    // document, which the core does not keep: the marker shows none.
+    // Its text is the marker's tooltip, and the marker its number among
+    // the document's footnotes (ADR 0044).
     footnote: {
         props: (r, c) => ({
-            footnoteTag: "",
+            footnoteTag: String(r.counter(c) ?? ""),
             text: r.table.core.component_text(c),
         }),
         noChildren: true,
@@ -1071,26 +1107,28 @@ export const CONTRACTS: Record<string, Contract> = {
         props: (r, c) => ({ text: latexText(r, c) }),
         noChildren: true,
     },
-    // A table: its title after the word "Table", then its content. Its
-    // number runs through the document apart from the sections, which the
-    // core does not keep: it is named "Table" alone.
+    // A table: its title after its name, then its content. Its number runs
+    // through the document apart from the sections, shared with the figures
+    // (ADR 0044): "Table 2", or "Table" with `number="false"`.
     table: {
         props: (r, c) => {
             const title = titleChild(r.table, c);
+            const number = r.counter(c);
+            const name = counterName("Table", number);
             return {
                 title: title === null ? null : r.idOf(title),
                 titlePrefix: flag(r.table, c, "suppressTableNameInTitle")
                     ? ""
                     : title === null
-                      ? "Table"
-                      : "Table: ",
-                codeNumber: "",
+                      ? name
+                      : `${name}: `,
+                codeNumber: number === null ? "" : String(number),
                 divisionDepth: sectionDepth(r.table, c),
                 divisionType: "table",
                 xrefLabel: {
                     label: "Table",
-                    global_ident: "",
-                    local_ident: "",
+                    global_ident: number === null ? "" : String(number),
+                    local_ident: number === null ? "" : String(number),
                     preferred_form: "Global",
                 },
             };
@@ -1140,18 +1178,23 @@ export const CONTRACTS: Record<string, Contract> = {
     // equilibrium point or line and an endpoint also send their flag as
     // the current core's renderers read it (`open`, `dashed`), which the
     // prototype's renderers do not draw yet.
-    bestFitLine: { name: () => "line", props: lineProps },
+    bestFitLine: inGraphOnly({ name: () => "line", props: lineProps }),
     intersection: { name: () => "point", props: pointProps },
     parabola: CURVE,
     equilibriumPoint: flaggedPoint((r, c) => !r.bool(c, "stable")),
     endpoint: flaggedPoint((r, c) => r.bool(c, "open")),
-    equilibriumLine: {
+    equilibriumLine: inGraphOnly({
         name: () => "line",
         props: (r, c) => ({
             ...lineProps(r, c),
             dashed: !r.bool(c, "stable"),
             switchable: flagOr(r.table, c, "switchable", false),
         }),
+    }),
+    // A fraction input's box (ADR 0045): a math input, drawn as one.
+    _fractionInputComponent: {
+        name: () => "mathInput",
+        props: (r, c, inGraph) => CONTRACTS.mathInput.props!(r, c, inGraph),
     },
 };
 
@@ -1179,6 +1222,9 @@ export const TRANSPARENT = new Set([
     "case",
     "_postponeRenderContainer",
     "asList",
+    // The prototype has no fraction input: it stands as the two math
+    // inputs it owns (ADR 0045), its numerator's and its denominator's.
+    "fractionInput",
 ]);
 
 /** Component types that show what they produce as a list, items

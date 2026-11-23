@@ -207,9 +207,8 @@ impl Outlining<'_> {
             && let Ok(Some(rt)) = self.rd().ref_target_type(&self.ar, t, p)
             && rt != component_type
         {
-            // `<boolean extend="$x"/>` reads `x`'s `value` whatever its
-            // type, and `<math extend="$n"/>` `n`'s default prop: here, not
-            // in a planner.
+            // `<boolean extend="$bi"/>` reads `bi`'s `value`, and `<math
+            // extend="$n"/>` `n`'s default prop: here, not in a planner.
             if let Some(dp) = ComponentType::extend_reads(rt, component_type) {
                 let named = self.rd().prop_named(&self.ar, t, p, dp)?;
                 let r = self.ar.ref_mut(p);

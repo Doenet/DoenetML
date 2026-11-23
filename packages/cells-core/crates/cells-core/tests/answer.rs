@@ -333,3 +333,40 @@ fn a_referenced_weight_reaches_choice_and_text_answers() {
     assert_eq!(doc.value("c", "weight"), Some(3.0));
     assert_eq!(doc.value("t", "weight"), Some(3.0));
 }
+
+// An answer whose input carries an attribute nothing reads: the input is
+// boxed (ADR 0021), and the answer is refused with it, as any reader of a
+// box is, never a panic in the check (once a debug assertion in
+// `TemplateGraph::port`).
+#[test]
+fn an_answer_whose_input_is_refused_is_refused() {
+    for src in [
+        r#"<answer name="a" type="text"><textInput name="ti" bogus="400px" /><award>concave</award></answer><number name="n">3</number>"#,
+        r#"<answer name="a"><choiceInput bogusOrder><choice>a</choice><choice credit="1">b</choice></choiceInput></answer><number name="n">3</number>"#,
+        r#"<answer name="a"><mathInput name="mi" bogus="1"/><award>x</award></answer><number name="n">3</number>"#,
+        r#"<answer name="a"><choiceInput><choice bogus>a</choice><choice credit="1">b</choice></choiceInput></answer><number name="n">3</number>"#,
+    ] {
+        let doc = load(src).unwrap();
+        assert_eq!(doc.value("n", "value"), Some(3.0), "{src}");
+        let a = doc.resolve_path("a").unwrap();
+        assert_eq!(doc.component_type(a), ComponentType::Error, "{src}");
+        let errs: Vec<_> = doc
+            .diagnostics()
+            .iter()
+            .filter(|d| d.code == "cells-unsupported-attribute")
+            .collect();
+        assert_eq!(errs.len(), 1, "{src}: {:?}", doc.diagnostics());
+        assert!(errs[0].message.contains("'bogus"), "{}", errs[0].message);
+        let dast =
+            cells_core::dast::load(cells_core::testing::test_utils::dast_json(src).as_bytes())
+                .unwrap();
+        let mut diagnosed: Vec<_> = cells_core::diagnose(&dast)
+            .into_iter()
+            .map(|d| (d.code, d.node))
+            .collect();
+        let mut loaded: Vec<_> = doc.diagnostics().iter().map(|d| (d.code, d.node)).collect();
+        diagnosed.sort();
+        loaded.sort();
+        assert_eq!(diagnosed, loaded, "{src}");
+    }
+}

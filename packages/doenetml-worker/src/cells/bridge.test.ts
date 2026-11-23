@@ -204,6 +204,25 @@ describe("values and lists", () => {
         expect(ps[4]).toEqual(["<number>1", "<number>2"]);
         void vals;
     });
+
+    it("lists the items of a list written over several lines, not the whitespace between them", async () => {
+        const bridge = await load(`<p><group asList>
+    <number>1</number>
+    <number>2</number>
+</group></p>
+<p><repeatForSequence from="1" to="2" valueName="v"> $v </repeatForSequence></p>`);
+        const root = bridge.flatDast();
+        const ps = byName(root, "p").map((e: any) =>
+            e.children.map((c: any) =>
+                typeof c === "string"
+                    ? c
+                    : `<${(root.elements[c.id] as any).name}>`,
+            ),
+        );
+        // COMP-2: commas between the items, and no whitespace item.
+        expect(ps[0]).toEqual(["<number>", ", ", "<number>"]);
+        expect(ps[1]).toEqual(["<number>", ", ", "<number>"]);
+    });
 });
 
 describe("renderer actions", () => {
@@ -509,6 +528,22 @@ describe("step 3 components", () => {
         payload = send("slider", "changeValue", { value: 5 });
         // The core snaps to the slider's steps.
         expect([4, 6]).toContain(changed(payload, "slider")?.value);
+    });
+
+    // The prototype has no fraction input: it stands as the two math inputs
+    // it owns (ADR 0045), typed into as any math input.
+    it("draws a fraction input as its numerator and denominator inputs", async () => {
+        const { all, props, send, changed } = await open(`
+<answer><fractionInput prefillNumerator="1"/><award><math>2/3</math></award></answer>`);
+        expect(all("fractionInput")).toEqual([]);
+        expect(all("mathInput")).toHaveLength(2);
+        expect(props("mathInput", 0).text).toBe("1");
+        expect(props("mathInput", 1).text).toBe("");
+        let payload = send("mathInput", "updateValue", { text: "2" }, 0);
+        expect(changed(payload, "mathInput", 0)?.text).toBe("2");
+        send("mathInput", "updateValue", { text: "3" }, 1);
+        payload = send("answer", "submitAnswer", {});
+        expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
     });
 
     it("opens a hint and scores a submitted answer", async () => {
@@ -847,20 +882,71 @@ describe("sectioning and document-structure blocks", () => {
         expect(props("figure")).toEqual({
             caption: "",
             captionChild: caption,
-            figureName: "Figure",
-            figureNamePrefix: "Figure: ",
+            figureName: "Figure 1",
+            figureNamePrefix: "Figure 1: ",
             suppressFigureNameInCaption: false,
         });
         expect(childIds("figure")).not.toContain(caption);
         expect(props("figure", 1)).toMatchObject({
             captionChild: null,
+            figureName: "Figure 2",
+            figureNamePrefix: "Figure 2",
             suppressFigureNameInCaption: true,
         });
         expect(props("footnote")).toEqual({
-            footnoteTag: "",
+            footnoteTag: "1",
             text: "See page 3.",
         });
         expect(childIds("footnote")).toEqual([]);
+    });
+});
+
+describe("the document-wide counters (ADR 0044)", () => {
+    it("numbers figures and tables in one sequence and footnotes in another, through the active case", async () => {
+        const bridge = await load(`<booleanInput name="b"/>
+<figure name="f1"/>
+<conditionalContent><case condition="$b"><table name="t"><title>T</title></table></case></conditionalContent>
+<figure name="f3" number="false"/>
+<p>a<footnote>one</footnote><figure name="f4"/><footnote>two</footnote></p>
+<section name="s"/><aside name="a"><title>More</title></aside><section name="s3"/>`);
+        const root = bridge.flatDast();
+        const names = (r: typeof root) =>
+            byName(r, "figure").map((e) => (e.data as any).props.figureName);
+        expect(names(root)).toEqual(["Figure 1", "Figure", "Figure 2"]);
+        expect(
+            byName(root, "footnote").map(
+                (e) => (e.data as any).props.footnoteTag,
+            ),
+        ).toEqual(["1", "2"]);
+        // The aside takes its place among the divisions.
+        expect(
+            byName(root, "aside").map((e) => (e.data as any).props.codeNumber),
+        ).toEqual(["2"]);
+        expect(
+            byName(root, "division").map(
+                (e) => (e.data as any).props.codeNumber,
+            ),
+        ).toEqual(["1", "3"]);
+
+        // The case opens: the table takes a number, and the figure after
+        // it, which read the case's `active` cell, follows.
+        const input = byName(root, "booleanInput")[0];
+        const updates = bridge.dispatch({
+            component: "booleanInput",
+            actionName: "updateBoolean",
+            componentIdx: input.data.id,
+            args: { boolean: true },
+        }).payload as Record<number, ElementUpdate>;
+        const f4 = byName(root, "figure")[2].data.id;
+        expect(updates[f4]?.changedState).toMatchObject({
+            figureName: "Figure 3",
+        });
+        const after = bridge.flatDast();
+        expect(
+            byName(after, "table").map(
+                (e) => (e.data as any).props.titlePrefix,
+            ),
+        ).toEqual(["Table 2: "]);
     });
 });
 
@@ -925,14 +1011,14 @@ describe("the layout containers and the formatted values", () => {
         expect(props("table")).toEqual([
             {
                 title: title.data.id,
-                titlePrefix: "Table: ",
-                codeNumber: "",
+                titlePrefix: "Table 1: ",
+                codeNumber: "1",
                 divisionDepth: 2,
                 divisionType: "table",
                 xrefLabel: {
                     label: "Table",
-                    global_ident: "",
-                    local_ident: "",
+                    global_ident: "1",
+                    local_ident: "1",
                     preferred_form: "Global",
                 },
             },

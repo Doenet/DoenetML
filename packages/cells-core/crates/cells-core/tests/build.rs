@@ -1,7 +1,7 @@
 use cells_core::CompIdx;
 use cells_core::components::ComponentType;
 use cells_core::testing::reference;
-use cells_core::testing::test_utils::{load, load_error, load_via_binary};
+use cells_core::testing::test_utils::{load, load_cycle, load_error, load_via_binary};
 use cells_core::{Child, Document, Error};
 
 fn load_ok(src: &str) -> Document {
@@ -182,14 +182,12 @@ fn graph_defaults_and_tree() {
 
 #[test]
 fn alias_cycle_is_rejected() {
-    let err = load(r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/>"#).unwrap_err();
-    assert!(matches!(err, Error::Cycle(_)), "{err}");
+    load_cycle(r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/>"#);
 }
 
 #[test]
 fn operator_cycle_is_rejected() {
-    let err = load(r#"<number name="a">-$b</number><number name="b">-$a</number>"#).unwrap_err();
-    assert!(matches!(err, Error::Cycle(_)), "{err}");
+    load_cycle(r#"<number name="a">-$b</number><number name="b">-$a</number>"#);
 }
 
 #[test]

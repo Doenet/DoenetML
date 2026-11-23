@@ -442,6 +442,25 @@ impl Core {
         }
     }
 
+    /// The number a figure, table or footnote takes from its document-wide
+    /// counter (ADR 0044), through the active cases; none when it takes
+    /// none.
+    pub fn counter_number(&self, idx: u32) -> Option<u32> {
+        if (idx as usize) >= self.doc.n_components() {
+            return None;
+        }
+        self.doc.counter_number(CompIdx::new(idx)).map(|n| n as u32)
+    }
+
+    /// The cells `counter_number` of `idx` reads, for a reader to recompute
+    /// it when one changes.
+    pub fn counter_reads(&self, idx: u32) -> Vec<u32> {
+        if (idx as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        raw_cells(self.doc.counter_reads(CompIdx::new(idx)))
+    }
+
     /// Text of the expression a math cell holds, for display.
     pub fn expr_text(&self, cell: u32) -> String {
         self.doc.math_text(CellIdx::new(cell))

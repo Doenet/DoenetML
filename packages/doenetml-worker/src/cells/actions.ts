@@ -315,6 +315,11 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     equilibriumPoint: { move: movePoint, switchPoint: switchFlag("stable") },
     endpoint: { move: movePoint, switchPoint: switchFlag("open") },
     equilibriumLine: { moveLine, switchLine: switchFlag("stable") },
+    // A fraction input's box (ADR 0045): typed into as a math input.
+    _fractionInputComponent: {
+        updateValue: (t, c, args) =>
+            RENDERER_ACTIONS.mathInput.updateValue(t, c, args),
+    },
 };
 
 /** What a renderer action does to the cells core, or null when the table
