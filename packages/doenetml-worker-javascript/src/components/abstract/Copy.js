@@ -39,6 +39,7 @@ import {
 import AuthoredValueList from "./AuthoredValueList";
 import {
     madeFromInputValue,
+    typeChangeChecksValue,
     typeChangeRule,
     valueAllowsTypeChange,
 } from "../../utils/typeChange";
@@ -1372,11 +1373,10 @@ export default class Copy extends CompositeComponent {
                     // is, checked again as the value changes (#2488).
                     return {
                         setValue: {
-                            typeChangeValueCheck: typeChangeRule({
+                            typeChangeValueCheck: typeChangeChecksValue({
                                 writtenType,
-                                sourceType: "math",
                                 componentInfoObjects,
-                            }).valueCheck
+                            })
                                 ? "value"
                                 : null,
                         },
@@ -1414,11 +1414,10 @@ export default class Copy extends CompositeComponent {
                             componentType: writtenType,
                         })
                     ) {
-                        typeChangeValueCheck = typeChangeRule({
+                        typeChangeValueCheck = typeChangeChecksValue({
                             writtenType,
-                            sourceType: "math",
                             componentInfoObjects,
-                        }).valueCheck
+                        })
                             ? "contentValue"
                             : "content";
                     }
@@ -1432,11 +1431,10 @@ export default class Copy extends CompositeComponent {
                     // against its value, as a math is.
                     let typeChangeValueCheck = null;
                     if (listIsDecided(sourceType, { componentInfoObjects })) {
-                        typeChangeValueCheck = typeChangeRule({
+                        typeChangeValueCheck = typeChangeChecksValue({
                             writtenType,
-                            sourceType: "math",
                             componentInfoObjects,
-                        }).valueCheck
+                        })
                             ? "numEntriesValue"
                             : "numEntries";
                     }

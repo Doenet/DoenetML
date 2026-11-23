@@ -1576,6 +1576,46 @@ describe("A related type made from a value follows it, and writes back (#2440, #
         expect(d.newDiagnostics()).eqls([info(0)]);
     });
 
+    it("a boolean from a choiceInput of texts is missing, with an info, while the selection isn't true or false or isn't one", async () => {
+        // A boolean is made from a text, never a math (D47 decision 4), and
+        // is still checked against the selected value as it changes. It was
+        // `false`, silently, while what decides whether a tag is checked
+        // asked only whether it is checked against a math.
+        const d = await setup(`
+<choiceInput name="ci" preselectChoice="1"><label>c</label><choice>true</choice><choice>maybe</choice><choice>false</choice></choiceInput>
+<p name="p1"><boolean extend="$ci.selectedValues" name="B1"/></p>
+<p name="p2"><boolean extend="$ci" name="B2"/></p>
+`);
+        async function select(indices: number[]) {
+            await updateSelectedIndices({
+                componentIdx: await d.resolvePathToNodeIdx("ci"),
+                selectedIndices: indices,
+                core: await d.core(),
+            });
+        }
+        const names = ["p1", "p2"];
+        expect(await shown(d, names)).eqls({ p1: "true", p2: "true" });
+        expect(d.newDiagnostics()).eqls([]);
+
+        await select([2]);
+        expect(await shown(d, names)).eqls({ p1: "＿", p2: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0053", 3],
+            ["doenet-i0053", 4],
+        ]);
+
+        await select([3]);
+        expect(await shown(d, names)).eqls({ p1: "false", p2: "false" });
+        expect(d.newDiagnostics()).eqls([]);
+
+        await select([]);
+        expect(await shown(d, names)).eqls({ p1: "＿", p2: "＿" });
+        expect(d.newDiagnostics().map((x) => [x.code, x.line])).eqls([
+            ["doenet-i0061", 3],
+            ["doenet-i0061", 4],
+        ]);
+    });
+
     it("a point from a choiceInput with a text choice is an error at load, whatever is selected", async () => {
         // #2546 item 8: the type of what is selected is decided from the
         // choices (D36), also while none is selected.

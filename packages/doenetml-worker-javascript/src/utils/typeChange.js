@@ -255,6 +255,21 @@ function booleanNumberMix(sourceType, writtenType) {
 }
 
 /**
+ * Whether a `writtenType` made from a value whose type is not known yet is
+ * checked against that value (`valueAllowsTypeChange`): a point, vector or
+ * coords made from a math, or a boolean made from a text. What it is made
+ * from is decided later, as the selected values of a `<choiceInput>` or the
+ * one component a composite holds.
+ */
+export function typeChangeChecksValue({ writtenType, componentInfoObjects }) {
+    return ["math", "text"].some(
+        (sourceType) =>
+            typeChangeRule({ writtenType, sourceType, componentInfoObjects })
+                .valueCheck !== undefined,
+    );
+}
+
+/**
  * Whether a `writtenType` made from an input of `sourceType` is made from
  * the input's value (`INPUT_VALUE_TYPES`), as the type change allows
  * (`typeChangeRule`): `<point extend="$mi"/>` of a `<mathInput>` is a point
