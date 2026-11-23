@@ -10,9 +10,9 @@ import { normalizeAttrs } from "../../utils/pretext/normalize-attrs";
 const DOENET_VIEWER_URL = "https://doenet.org/activityViewer";
 
 /**
- * The props core gives a `<ref>`: a `referent` when it points at a component of
- * this document, otherwise the `url` (and, for a `doenet:` URI, the
- * `activityId`) of what it links to.
+ * The props a `<ref>` arrives with: a `referent` when its target is a rendered
+ * component of this document, and core's `url` (and, for a `doenet:` URI, the
+ * `activityId` and `activityUrlPostfix`) of what it links to.
  */
 type RefProps = XrefPropsInText & {
     url?: string;
@@ -27,9 +27,10 @@ export const Xref: BasicComponentWithPassthroughChildren<{
 
     if (referent == null) {
         // Not a link within the document: an external link is a PreTeXt `<url>`.
-        // With no children, PreTeXt shows the address itself. A `#` address is
-        // a link within the page with no component found for it, so it stays an
-        // `<xref>` below and PreTeXt reports the missing target.
+        // With no children, PreTeXt shows the address itself. A `#` address
+        // (a target not found or not rendered, or an authored `#anchor`) has
+        // no PreTeXt id to link to, so it stays an `<xref>` below and PreTeXt
+        // reports the missing target.
         const href = activityId
             ? `${DOENET_VIEWER_URL}/${activityId}${activityUrlPostfix ?? ""}`
             : url;
