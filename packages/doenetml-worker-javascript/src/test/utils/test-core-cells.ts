@@ -622,6 +622,44 @@ const STATE: Record<string, Record<string, Reader>> = {
         enumeration: sectionReaders.enumeration,
         includeParentNumber: sectionReaders.includeParentNumber,
     },
+    // A fraction input and the boxes it owns (ADR 0045): each prop is the
+    // expression its math cell holds, the blank expression when it holds
+    // none. The core has no uncommitted value, so `immediateValue` is
+    // `value`.
+    fractionInput: {
+        value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        numerator: (_g, x) => exprOf(x.cells, x.cell("numerator")!),
+        denominator: (_g, x) => exprOf(x.cells, x.cell("denominator")!),
+        text: textOf,
+    },
+    _fractionInputComponent: {
+        value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+    },
+};
+
+/** The component fields the harness answers for some types: a fraction
+ * input's `activeChildren` are the boxes it owns (ADR 0045), which the
+ * current core's actions on it address. */
+const FIELDS: Record<
+    string,
+    Record<string, (cells: Cells, idx: number) => unknown>
+> = {
+    fractionInput: {
+        activeChildren: (cells, idx) =>
+            cells.table.children(idx).flatMap((c) =>
+                "component" in c &&
+                cells.table.tag(c.component) === "_fractionInputComponent"
+                    ? [
+                          {
+                              componentIdx: c.component,
+                              componentType: "_fractionInputComponent",
+                          },
+                      ]
+                    : [],
+            ),
+    },
 };
 
 /** Actions the bridge's renderer table resolves (`cells/actions.ts`) whose
@@ -805,6 +843,8 @@ export async function createTestCoreCells({
             },
         );
         const unsupported = (field: string) => () => {
+            const answer = FIELDS[componentType]?.[field];
+            if (answer) return answer(cells, componentIdx);
             throw new CellsCoreGap(`\`${field}\` of \`${componentType}\``);
         };
         return Object.defineProperties(

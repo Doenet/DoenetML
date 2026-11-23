@@ -511,6 +511,22 @@ describe("step 3 components", () => {
         expect([4, 6]).toContain(changed(payload, "slider")?.value);
     });
 
+    // The prototype has no fraction input: it stands as the two math inputs
+    // it owns (ADR 0045), typed into as any math input.
+    it("draws a fraction input as its numerator and denominator inputs", async () => {
+        const { all, props, send, changed } = await open(`
+<answer><fractionInput prefillNumerator="1"/><award><math>2/3</math></award></answer>`);
+        expect(all("fractionInput")).toEqual([]);
+        expect(all("mathInput")).toHaveLength(2);
+        expect(props("mathInput", 0).text).toBe("1");
+        expect(props("mathInput", 1).text).toBe("");
+        let payload = send("mathInput", "updateValue", { text: "2" }, 0);
+        expect(changed(payload, "mathInput", 0)?.text).toBe("2");
+        send("mathInput", "updateValue", { text: "3" }, 1);
+        payload = send("answer", "submitAnswer", {});
+        expect(changed(payload, "answer")).toMatchObject({ creditAchieved: 1 });
+    });
+
     it("opens a hint and scores a submitted answer", async () => {
         const { props, send, changed } = await open(`
 <hint><p>Try harder</p></hint>

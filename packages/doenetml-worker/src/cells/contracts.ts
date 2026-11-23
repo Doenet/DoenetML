@@ -1145,6 +1145,11 @@ export const CONTRACTS: Record<string, Contract> = {
             switchable: flagOr(r.table, c, "switchable", false),
         }),
     },
+    // A fraction input's box (ADR 0045): a math input, drawn as one.
+    _fractionInputComponent: {
+        name: () => "mathInput",
+        props: (r, c, inGraph) => CONTRACTS.mathInput.props!(r, c, inGraph),
+    },
 };
 
 /** A literal on/off attribute, `fallback` when it is absent. */
@@ -1171,6 +1176,9 @@ export const TRANSPARENT = new Set([
     "case",
     "_postponeRenderContainer",
     "asList",
+    // The prototype has no fraction input: it stands as the two math
+    // inputs it owns (ADR 0045), its numerator's and its denominator's.
+    "fractionInput",
 ]);
 
 /** Component types that show what they produce as a list, items

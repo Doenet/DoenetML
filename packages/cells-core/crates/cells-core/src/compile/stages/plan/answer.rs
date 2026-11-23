@@ -124,17 +124,17 @@ impl<'a> Planning<'a> {
                 ));
             }
             (true, None, [mi]) => {
-                if !matches!(
-                    self.rd.outlined(t).elems[mi.index()]
-                        .component_type
-                        .response(),
-                    Some(ResponseKind::Math(_))
-                ) {
+                // The expression the input declares its response
+                // (`response: Math(expr)`): a mathInput's, a fractionInput's.
+                let Some(ResponseKind::Math(expr)) = self.rd.outlined(t).elems[mi.index()]
+                    .component_type
+                    .response()
+                else {
                     return Err(Error::Unsupported(
                         "an <answer> comparing a <booleanInput>: <answer type=\"boolean\">".into(),
                     ));
-                }
-                Source::alias(Arg::Elem(*mi, math_input::Props::PORTS.expr))
+                };
+                Source::alias(Arg::Elem(*mi, Port::table(expr)))
             }
             (true, None, []) => {
                 let mi = self.plan_implicit_input(t, e)?;
