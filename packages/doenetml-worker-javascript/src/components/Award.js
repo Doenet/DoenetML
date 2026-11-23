@@ -318,6 +318,9 @@ export default class Award extends BaseComponent {
                 }
             }
 
+            // The answer's type, decided at load from its input or its
+            // awards' typed content (D55, `answerTypesAtLoad.ts`), so that
+            // plain text in every award is read as one type.
             let type;
             if (parentAttributes.type) {
                 type = parentAttributes.type.value;
