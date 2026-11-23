@@ -90,6 +90,18 @@ export class Reads {
         }
         return this.exprLatex(c, "expr");
     }
+
+    /** LaTeX of a value that is a number or, when the core made it one, an
+     * expression in `exprProp` (an operator over math, an angle's measure;
+     * ADR 0043): the expression when its cell holds one, else the number
+     * `prop`. */
+    exprOrNumberLatex(c: number, exprProp: string, prop: string): string {
+        const cell = this.table.cell(c, exprProp);
+        if (cell !== undefined && !Number.isNaN(this.cell(cell))) {
+            return this.table.core.expr_latex(cell);
+        }
+        return numberLatex(this.num(c, prop));
+    }
 }
 
 export type Role =
@@ -301,7 +313,14 @@ const NUMBER_TYPES = new Set([
 function valueLatex(r: Reads, c: number): string {
     const type = r.table.componentType(c);
     if (type === "math" || type === "mathInput") return r.mathLatex(c);
-    if (NUMBER_TYPES.has(type)) return mathNumber(r.num(c, "value"));
+    if (NUMBER_TYPES.has(type)) {
+        // An operator over math holds an expression (ADR 0043).
+        const expr = r.table.cell(c, "expr");
+        if (expr !== undefined && !Number.isNaN(r.cell(expr))) {
+            return r.table.core.expr_latex(expr);
+        }
+        return mathNumber(r.num(c, "value"));
+    }
     if (type === "intComma") {
         return groupDigits(formatNumber(r.num(c, "value"), null));
     }
@@ -407,9 +426,16 @@ const MATH_VALUE: Contract = {
     props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
 };
 
-/** A numeric operator: its value as math notation. Its children are its
- * operands, never drawn. */
-const OPERATOR_VALUE: Contract = { ...MATH_VALUE, noChildren: true };
+/** An operator: its value as math notation, the expression an operator over
+ * math holds (ADR 0043), else its number. Its children are its operands,
+ * never drawn. */
+const OPERATOR_VALUE: Contract = {
+    props: (r, c) => ({
+        latex: r.exprOrNumberLatex(c, "expr", "value"),
+        renderMode: "inline",
+    }),
+    noChildren: true,
+};
 
 /** A boolean operator: its value. Its children are its operands, never
  * drawn. */
@@ -1002,14 +1028,22 @@ export const CONTRACTS: Record<string, Contract> = {
                 ? { numericalVertices: pairs(r, r.table.listCells(c)) }
                 : {},
     },
-    // Its measure, in radians or, with `inDegrees`, in degrees.
+    // Its measure, in radians or, with `inDegrees`, in degrees: the
+    // expression when the measure is one (ADR 0043), else the number.
     angle: {
         props: (r, c) => {
             const decimals = r.table.attrThrough(c, "displayDecimals");
-            const latex = flag(r.table, c, "inDegrees")
-                ? `${formatNumber(r.num(c, "degrees"), decimals)}^\\circ`
-                : formatNumber(r.num(c, "radians"), decimals);
-            return { latex };
+            const inDegrees = flag(r.table, c, "inDegrees");
+            const exprProp = inDegrees ? "degreesExpr" : "radiansExpr";
+            const expr = r.table.cell(c, exprProp);
+            const measure =
+                expr !== undefined && !Number.isNaN(r.cell(expr))
+                    ? r.exprLatex(c, exprProp)
+                    : formatNumber(
+                          r.num(c, inDegrees ? "degrees" : "radians"),
+                          decimals,
+                      );
+            return { latex: inDegrees ? `${measure}^\\circ` : measure };
         },
         noChildren: true,
     },
