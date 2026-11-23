@@ -1006,8 +1006,8 @@ export async function verifyReplacementsMatchSpecifiedType({
  * tuple, a `<text>` a math). A boolean is `1` or `0` as a number or a math:
  * a `<number>` reads a boolean child so with `convertBoolean`, and a
  * `<math>` reads it through such a number, which writes `1` or `0` back as
- * `true` or `false`. A `<boolean>` reads a text as the word `true` or `false`
- * with `_textAsWord`. A component that is missing makes `wrapper` missing.
+ * `true` or `false`. A `<boolean>` reads a text (or a `<label>`, as its text)
+ * as the word `true` or `false` with `_textAsWord`. A component that is missing makes `wrapper` missing.
  */
 function wrapAsWrittenType({
     wrapper,
@@ -1051,10 +1051,12 @@ function wrapAsWrittenType({
 
     if (
         typeof wrapped === "object" &&
-        isOfType(wrapped.componentType, "text") &&
+        (isOfType(wrapped.componentType, "text") ||
+            isOfType(wrapped.componentType, "label")) &&
         isOfType(wrapper.componentType, "boolean")
     ) {
-        // read as the word `true` or `false`
+        // read as the word `true` or `false`, a `<label>` as its text, as
+        // the type change reads it (`VALUED_AS`, `typeChange.js`)
         wrapper.attributes._textAsWord = {
             type: "primitive",
             name: "_textAsWord",

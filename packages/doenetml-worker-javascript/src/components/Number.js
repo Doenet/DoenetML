@@ -4,7 +4,11 @@ import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
-import { buildParsedExpression, evaluateLogic } from "../utils/booleanLogic";
+import {
+    buildParsedExpression,
+    evaluateLogic,
+    logicTreeMissing,
+} from "../utils/booleanLogic";
 import {
     moveGraphicalObjectWithAnchorAction,
     returnAnchorAttributes,
@@ -31,6 +35,137 @@ import {
     numberValueForDisplay,
     numberValueFromCodes,
 } from "../utils/valueFunctions/number";
+
+/**
+ * The operators of logic, and the relations and tests that `evaluateLogic`
+ * decides as true or false.
+ */
+const LOGIC_OPERATORS = new Set([
+    "not",
+    "and",
+    "or",
+    "=",
+    "ne",
+    "<",
+    ">",
+    "le",
+    "ge",
+    "lts",
+    "gts",
+    "in",
+    "notin",
+    "subset",
+    "notsubset",
+    "superset",
+    "notsuperset",
+]);
+
+/** Stands for a missing operand in `numberCountingBooleans`. */
+const MISSING_OPERAND = Symbol("missing operand");
+
+/**
+ * The value of a `<number convertBoolean>` whose content is an expression:
+ * every boolean in it counts as `1` or `0` (D47 decision 3, D67 decision 1,
+ * #2656), a boolean child (`$b + 1` is `2` when `b` is true) as well as logic
+ * (`($n > 2) + 1`, `$b and not $c`). Anything else is read as a `<number>`
+ * reads it. A missing operand (`$nothing`, a blank a type mix left, VAL-5)
+ * makes the value `valueOnNaN`, which `computedFromMissing` then shows as
+ * missing, as `<number>$nothing</number>` is, and so does logic a missing
+ * operand makes missing in a `<boolean>` (`logicTreeMissing`:
+ * `not $nothing`).
+ */
+function numberCountingBooleans(dependencyValues) {
+    const {
+        mathChildrenByCode,
+        numberChildrenByCode,
+        booleanChildrenByCode,
+        textChildrenByCode,
+        valueOnNaN,
+    } = dependencyValues;
+    const logicValues = {
+        ...dependencyValues,
+        mathListChildrenByCode: {},
+        numberListChildrenByCode: {},
+        textListChildrenByCode: {},
+        booleanListChildrenByCode: {},
+        otherChildrenByCode: {},
+    };
+    const isMissingCode = (code) =>
+        [mathChildrenByCode, numberChildrenByCode, booleanChildrenByCode].some(
+            (byCode) => byCode[code] && isMissingInput(byCode[code]),
+        );
+
+    /**
+     * `tree` with each boolean replaced by `1` or `0`, or `MISSING_OPERAND`
+     * if an operand it is computed from is missing.
+     */
+    function counted(tree) {
+        if (typeof tree === "string") {
+            if (isMissingCode(tree)) {
+                return MISSING_OPERAND;
+            }
+            const booleanChild = booleanChildrenByCode[tree];
+            if (booleanChild) {
+                return booleanChild.stateValues.value ? 1 : 0;
+            }
+            if (textChildrenByCode[tree]) {
+                return evaluateLogic({
+                    logicTree: tree,
+                    dependencyValues: logicValues,
+                    valueOnInvalid: NaN,
+                });
+            }
+            return tree;
+        }
+        if (!Array.isArray(tree)) {
+            return tree;
+        }
+        const [operator, ...operands] = tree;
+        if (
+            LOGIC_OPERATORS.has(operator) ||
+            (operator === "apply" &&
+                ["isnumber", "isinteger"].includes(operands[0]))
+        ) {
+            if (logicTreeMissing({ logicTree: tree, isMissingCode })) {
+                return MISSING_OPERAND;
+            }
+            return evaluateLogic({
+                logicTree: tree,
+                dependencyValues: logicValues,
+                valueOnInvalid: NaN,
+            });
+        }
+        const countedOperands = operands.map(counted);
+        if (countedOperands.includes(MISSING_OPERAND)) {
+            return MISSING_OPERAND;
+        }
+        return [operator, ...countedOperands];
+    }
+
+    const tree = counted(dependencyValues.parsedExpression.tree);
+    if (tree === MISSING_OPERAND) {
+        return valueOnNaN;
+    }
+    if (typeof tree === "number") {
+        return Number.isNaN(tree) ? valueOnNaN : tree;
+    }
+    const mathValuesByCode = {};
+    for (const code in mathChildrenByCode) {
+        mathValuesByCode[code] = mathChildrenByCode[code].stateValues.value;
+    }
+    const numberValuesByCode = {};
+    for (const code in numberChildrenByCode) {
+        numberValuesByCode[code] = numberChildrenByCode[code].stateValues.value;
+    }
+    return (
+        numberValueFromCodes({
+            parsedExpression: { tree },
+            mathValuesByCode,
+            numberValuesByCode,
+            valueOnNaN,
+        }) ?? valueOnNaN
+    );
+}
 
 export default class NumberComponent extends InlineComponent {
     constructor(args) {
@@ -78,7 +213,7 @@ export default class NumberComponent extends InlineComponent {
             createStateVariable: "convertBoolean",
             defaultValue: false,
             description:
-                "Whether to read the content as true or false (a comparison or a boolean), giving 1 or 0. It is the one place a boolean counts as a number: without it, a boolean in a number is a blank, with a warning.",
+                "Whether to count every boolean in the content (a boolean or a comparison) as 1 when true and 0 when false. It is the one place a boolean counts as a number: without it, a boolean in a number is a blank, with a warning.",
         };
         attributes.valueOnNaN = {
             createPrimitiveOfType: "number",
@@ -349,6 +484,7 @@ export default class NumberComponent extends InlineComponent {
                         "maths",
                         "booleans",
                         "number",
+                        "valueMissing",
                     ],
                     variablesOptional: true,
                 },
@@ -616,6 +752,14 @@ export default class NumberComponent extends InlineComponent {
                         };
                     }
 
+                    if (dependencyValues.convertBoolean) {
+                        return {
+                            setValue: {
+                                value: numberCountingBooleans(dependencyValues),
+                            },
+                        };
+                    }
+
                     if (
                         Object.keys(dependencyValues.textChildrenByCode)
                             .length === 0 &&
@@ -648,29 +792,9 @@ export default class NumberComponent extends InlineComponent {
                         }
                     }
 
-                    if (!dependencyValues.convertBoolean) {
-                        return {
-                            setValue: { value: dependencyValues.valueOnNaN },
-                        };
-                    }
-
-                    dependencyValues = Object.assign({}, dependencyValues);
-                    dependencyValues.mathListChildrenByCode = {};
-                    dependencyValues.numberListChildrenByCode = {};
-                    dependencyValues.textListChildrenByCode = {};
-                    dependencyValues.booleanListChildrenByCode = {};
-                    dependencyValues.otherChildrenByCode = {};
-
-                    let fractionSatisfied = evaluateLogic({
-                        logicTree: dependencyValues.parsedExpression.tree,
-                        dependencyValues,
-                        valueOnInvalid: dependencyValues.valueOnNaN,
-                    });
-
-                    // fractionSatisfied will be either 0 or 1 (or valueOnNaN)
-                    // as have not specified matchPartial
-
-                    return { setValue: { value: fractionSatisfied } };
+                    return {
+                        setValue: { value: dependencyValues.valueOnNaN },
+                    };
                 }
             },
             set: function (value) {

@@ -4452,6 +4452,47 @@ Enter any letter:
         ).eqls([]);
     });
 
+    // A mix in an award's condition is a blank, and a condition made from a
+    // blank is missing, so it equals no response, "false" included (VAL-5,
+    // #2656): before, `$b = 1` was false, which a `<booleanInput>` answer
+    // credited for "false".
+    it("a boolean answer whose award holds a type mix credits no response", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <number name="n">2</number>
+    <answer name="a1"><booleanInput name="bi1"><label>1</label></booleanInput><award>$b = 1</award></answer>
+    <answer name="a2"><booleanInput name="bi2"><label>2</label></booleanInput><award>$n + 0</award></answer>
+    <answer name="a3"><booleanInput name="bi3"><label>3</label></booleanInput><award><boolean>$n + 0</boolean></award></answer>
+    <answer name="a4"><booleanInput name="bi4"><label>4</label></booleanInput><award><when>$bi4 = not ($b = 1)</when></award></answer>
+    <answer name="a5"><booleanInput name="bi5"><label>5</label></booleanInput><award>$b = true</award></answer>
+    `,
+        });
+
+        async function creditFor(ind: number, response: boolean) {
+            await updateBooleanInputValue({
+                boolean: response,
+                componentIdx: await resolvePathToNodeIdx(`bi${ind}`),
+                core,
+            });
+            const answerIdx = await resolvePathToNodeIdx(`a${ind}`);
+            await submitAnswer({ componentIdx: answerIdx, core });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[answerIdx].stateValues.creditAchieved;
+        }
+
+        for (const ind of [1, 2, 3, 4]) {
+            expect(await creditFor(ind, false), `a${ind} false`).eq(0);
+            expect(await creditFor(ind, true), `a${ind} true`).eq(0);
+        }
+        // what the warning suggests works
+        expect(await creditFor(5, false)).eq(0);
+        expect(await creditFor(5, true)).eq(1);
+    });
+
     it("award credit from boolean", async () => {
         let options = ["meow", "woof", "squeak", "blub"];
         for (let ind = 1; ind <= 4; ind++) {

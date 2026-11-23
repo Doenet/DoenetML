@@ -1167,6 +1167,8 @@ attribute-written-twice = The attribute `{ $attribute }` is written more than on
 #   `hide`); a comparison such as `!= 0` decides a boolean from a number.
 # - `literalAsBoolean`: a literal number where true or false is wanted.
 # - `comparedWithNumber`: a boolean compared with a number (`$b = 1`).
+# - `numberComparedWithBoolean`: a number compared with the word `true` or
+#   `false` (`$n = true`); $literal is that word.
 # - `mathInputBoundToBoolean`, `booleanInputBoundToNumber`: an input bound
 #   with `bindValueTo` to a value of the other type.
 # The words `true`, `false`, `convertBoolean`, `bindValueTo` and the tags are
@@ -1190,6 +1192,11 @@ boolean-number-mix = { $reason ->
                 [attribute] `{ $source }` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `{ $source } = true`. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>` outside this attribute, give it a name, and refer to it here.
                *[other] `{ $source }` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `{ $source } = true`. To count it as 1 or 0, write `<number convertBoolean>{ $source }</number>`.
             }
+        }
+        [numberComparedWithBoolean] { $form ->
+            [tag] This `{ $source }` is a number, not true or false, so comparing it with `{ $literal }` is a blank. To test it, write a comparison, such as one with `!= 0`.
+            [literal] `{ $source }` is a number, not true or false, so comparing it with `{ $literal }` is a blank. Write `true` or `false` instead.
+           *[other] `{ $source }` is a number, not true or false, so comparing it with `{ $literal }` is a blank. To test it, write a comparison such as `{ $source } != 0`.
         }
         [mathInputBoundToBoolean] A `<mathInput>` can't edit `{ $source }`, which is true or false, not a number, so it is bound to a blank. To edit it, write `<booleanInput bindValueTo="{ $source }"/>`.
         [booleanInputBoundToNumber] A `<booleanInput>` can't edit `{ $source }`, which is a number, not true or false, so it is bound to a blank. To edit it, write `<mathInput bindValueTo="{ $source }"/>`.

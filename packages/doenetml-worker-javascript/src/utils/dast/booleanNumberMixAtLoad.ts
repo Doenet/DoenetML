@@ -69,6 +69,7 @@ type MixReason =
     | "numberAsBoolean"
     | "literalAsBoolean"
     | "comparedWithNumber"
+    | "numberComparedWithBoolean"
     | "mathInputBoundToBoolean"
     | "booleanInputBoundToNumber";
 
@@ -545,6 +546,60 @@ export function checkBooleanNumberMixAtLoad({
         };
     }
 
+    /**
+     * Make the place of `child`, one of `parent`'s children, a blank (VAL-5).
+     * A bare reference (`$b`) is that place, and is made the blank. A tag
+     * written there (`<boolean name="q">true</boolean>`, also one written
+     * with `extend` or `copy`) is a component of its own, which a reference
+     * elsewhere (`$q`) still reads: a new blank takes its place, and the tag
+     * is kept in a `<setup>` after it, which shows nothing and gives its
+     * parent nothing.
+     */
+    function blankPlace(
+        parent: SerializedComponent,
+        child: SerializedComponent,
+    ) {
+        if (child.doenetAttributes?.typeMixAtLoad) {
+            return;
+        }
+        const children = parent.children ?? [];
+        const ind = children.indexOf(child);
+        if (isBareReference(child) || ind === -1) {
+            blank(child);
+            return;
+        }
+        const sourceDoc = child.sourceDoc ?? parent.sourceDoc;
+        children[ind] = newBlank(
+            child.position,
+            sourceDoc,
+            fullyAsWritten(child),
+        );
+        children.push(setupHolding([child], child.position, sourceDoc));
+    }
+
+    /**
+     * A new `<setup>` holding `tags`, which keeps them, for references
+     * elsewhere to read, while it shows nothing and gives its parent
+     * nothing.
+     */
+    function setupHolding(
+        tags: SerializedComponent[],
+        position: SerializedComponent["position"],
+        sourceDoc: number | undefined,
+    ): SerializedComponent {
+        return {
+            type: "serialized",
+            componentType: "setup",
+            componentIdx: nComponents++,
+            attributes: {},
+            children: tags,
+            state: {},
+            doenetAttributes: {},
+            position,
+            sourceDoc,
+        };
+    }
+
     /** A new blank, to stand for content that is all literal. */
     function newBlank(
         position: SerializedComponent["position"],
@@ -575,6 +630,7 @@ export function checkBooleanNumberMixAtLoad({
         reason,
         source,
         form,
+        literal,
         position,
         sourceDoc,
         inAttribute,
@@ -582,6 +638,7 @@ export function checkBooleanNumberMixAtLoad({
         reason: MixReason;
         source: string;
         form: "reference" | "tag" | "list" | "literal" | "expression";
+        literal?: string;
         position: SerializedComponent["position"];
         sourceDoc: number | undefined;
         inAttribute: boolean;
@@ -595,6 +652,7 @@ export function checkBooleanNumberMixAtLoad({
                     source,
                     form,
                     place: inAttribute ? "attribute" : "content",
+                    literal: literal ?? "",
                 },
                 position,
                 sourceDoc,
@@ -707,6 +765,8 @@ export function checkBooleanNumberMixAtLoad({
             reason: MixReason;
             source: string;
             form: "reference" | "tag" | "list" | "literal" | "expression";
+            /** the word `true` or `false` a number is compared with */
+            literal?: string;
             /** in full, for a random choice's error */
             written: string;
             /**
@@ -748,6 +808,32 @@ export function checkBooleanNumberMixAtLoad({
                 source = source.split(code).join(asWritten(child).source);
             }
             return { source, form: "expression" };
+        }
+
+        /**
+         * The boolean children that are operands of arithmetic in `tree`, a
+         * value compared (`$b` of `$b + 1`), but not of a function applied
+         * (`isnumber($x)`) or of components written side by side, which
+         * `typeOfTree` doesn't take for arithmetic either.
+         */
+        function booleansInArithmetic(tree: any): SerializedComponent[] {
+            if (!Array.isArray(tree)) {
+                return [];
+            }
+            const [operator, ...operands] = tree;
+            const sideBySide =
+                operator === "*" &&
+                operands.every((x) => childOfCode(x) !== undefined);
+            if (!ARITHMETIC.has(operator) || sideBySide) {
+                return [];
+            }
+            return operands.flatMap((operand) => {
+                const child = childOfCode(operand);
+                if (child) {
+                    return valueOf(child)?.type === "boolean" ? [child] : [];
+                }
+                return booleansInArithmetic(operand);
+            });
         }
 
         /** The children of a number or a math in `tree`. */
@@ -803,6 +889,27 @@ export function checkBooleanNumberMixAtLoad({
                 tree: x,
                 ...typeOfTree(x),
             }));
+            // Logic compared (`$bi = not ($b = 1)`) is read as logic too.
+            for (const operand of operands) {
+                if (
+                    Array.isArray(operand) &&
+                    (LOGIC.has(operand[0]) || RELATIONS.has(operand[0]))
+                ) {
+                    atPlaceOfLogic(operand);
+                }
+            }
+            // A boolean in arithmetic (`$b + 1 = 2`) is one where a number
+            // is wanted, as in a `<math>`.
+            for (const { tree: operand } of typed) {
+                for (const child of booleansInArithmetic(operand)) {
+                    found.push({
+                        reason: "booleanAsNumber",
+                        ...asWrittenOrList(child),
+                        written: fullyAsWritten(child),
+                        children: [child],
+                    });
+                }
+            }
             for (let i = 0; i + 1 < typed.length; i++) {
                 const pair = [typed[i], typed[i + 1]];
                 const boolean = pair.find((x) => x.type === "boolean");
@@ -814,6 +921,29 @@ export function checkBooleanNumberMixAtLoad({
                         ...asWritten(boolean.child),
                         written: fullyAsWritten(boolean.child),
                         children: [boolean.child],
+                    });
+                } else if (
+                    boolean &&
+                    number &&
+                    booleanLiteral(boolean.tree) !== undefined
+                ) {
+                    // a number compared with the word `true` or `false`
+                    // (`$n = true`)
+                    const { source, form } = describe(
+                        number.tree,
+                        number.child,
+                    );
+                    found.push({
+                        reason: "numberComparedWithBoolean",
+                        source,
+                        form,
+                        literal: booleanLiteral(boolean.tree),
+                        written: number.child
+                            ? fullyAsWritten(number.child)
+                            : source,
+                        children: number.child
+                            ? [number.child]
+                            : mathChildrenIn(number.tree),
                     });
                 }
                 if (orders && text && number && text.child) {
@@ -838,8 +968,16 @@ export function checkBooleanNumberMixAtLoad({
 
         atPlaceOfLogic(parsed.tree);
 
-        for (const { reason, source, form } of found) {
-            warn({ reason, source, form, position, sourceDoc, inAttribute });
+        for (const { reason, source, form, literal } of found) {
+            warn({
+                reason,
+                source,
+                form,
+                literal,
+                position,
+                sourceDoc,
+                inAttribute,
+            });
         }
         for (const { source, operator, sectionOf } of orderings) {
             diagnostics.push(
@@ -859,21 +997,40 @@ export function checkBooleanNumberMixAtLoad({
             );
         }
         if (found.length > 0) {
-            // A type mix is a blank in its place (VAL-5): each child it is
-            // made of, so that what else is written stays (an award's
-            // responses), or, for a literal (`1`), the whole content, which
-            // is then missing.
-            if (found.every((item) => item.children.length > 0)) {
+            // A type mix is a blank in its place (VAL-5), and logic made from
+            // a blank is missing: a missing value never equals anything, so
+            // `<boolean>$b = 1</boolean>` must not be `false`, which a
+            // `<booleanInput>`'s answer would credit. In a component written
+            // as a tag, each child the mix is made of is made a blank, so
+            // that what else is written stays (an award's responses), and
+            // the component is marked missing (`typeMixInLogic`, read by
+            // `computedFromMissing` in `Boolean.js` and by `When.js`).
+            // Otherwise (in an attribute, in an `extend` or a `copy`, whose
+            // mark would not reach what it makes, and for a literal, `1`),
+            // the whole content is made one blank, so the component is
+            // missing as its content is; a tag written in it is kept in a
+            // `<setup>`, for a reference elsewhere to read.
+            if (
+                !inAttribute &&
+                component.componentType !== "_copy" &&
+                found.every((item) => item.children.length > 0)
+            ) {
                 for (const item of found) {
                     for (const child of item.children) {
-                        if (!child.doenetAttributes?.typeMixAtLoad) {
-                            blank(child);
-                        }
+                        blankPlace(component, child);
                     }
                 }
+                component.doenetAttributes = {
+                    ...component.doenetAttributes,
+                    typeMixInLogic: true,
+                };
             } else {
+                const tags = objects.filter((c) => !isBareReference(c));
                 component.children = [
                     newBlank(position, sourceDoc, found[0].written),
+                    ...(tags.length > 0
+                        ? [setupHolding(tags, position, sourceDoc)]
+                        : []),
                 ];
             }
         }
@@ -937,59 +1094,80 @@ export function checkBooleanNumberMixAtLoad({
                     takes(componentClass, "math") ||
                     takes(componentClass, "number");
                 const takesBoolean = takes(componentClass, "boolean");
+                /**
+                 * Judge `child`, one of the children of `holder`: the
+                 * component itself, or a `<group>` among them, written in
+                 * place, which holds values of several types (a boolean
+                 * beside a math), each judged in its place.
+                 */
+                const judge = (
+                    holder: SerializedComponent,
+                    child: SerializedComponent,
+                ) => {
+                    const value = valueOf(child);
+                    if (value === undefined) {
+                        if (
+                            child.componentType === "group" &&
+                            child.extending === undefined
+                        ) {
+                            for (const held of [...(child.children ?? [])]) {
+                                if (typeof held === "object") {
+                                    judge(child, held);
+                                }
+                            }
+                        }
+                        return;
+                    }
+                    let reason: MixReason | undefined;
+                    // Taken neither as its tag (an input, a `<sum>`)
+                    // nor as its value's type, but the other type is
+                    // wanted (`ChildMatcher` would drop it, `w0107`).
+                    const takesIt =
+                        takes(componentClass, value.tag) ||
+                        (value.type === "boolean"
+                            ? takes(componentClass, "boolean")
+                            : takes(componentClass, "math") ||
+                              takes(componentClass, "number"));
+                    if (value.type === "boolean") {
+                        const wantsNumber = isNumber
+                            ? true
+                            : !takesIt &&
+                              (takes(componentClass, "math") ||
+                                  takes(componentClass, "number"));
+                        if (wantsNumber) {
+                            reason =
+                                bound !== undefined &&
+                                inherits(bound, "mathInput")
+                                    ? "mathInputBoundToBoolean"
+                                    : "booleanAsNumber";
+                        }
+                    } else if (value.type === "math" && !isNumber) {
+                        if (!takesIt && takes(componentClass, "boolean")) {
+                            reason = "numberAsBoolean";
+                        }
+                    }
+                    if (reason !== undefined) {
+                        const { source, form } = asWrittenOrList(child);
+                        warn({
+                            reason,
+                            source,
+                            form,
+                            position: child.position ?? fallback,
+                            sourceDoc: child.sourceDoc ?? component.sourceDoc,
+                            inAttribute,
+                        });
+                        blankPlace(holder, child);
+                    }
+                };
                 if (
                     isNumber
                         ? !mayConvertBoolean(component)
                         : takesMath !== takesBoolean
                 ) {
-                    for (const child of component.children ?? []) {
-                        if (typeof child !== "object") {
-                            continue;
-                        }
-                        const value = valueOf(child);
-                        if (value === undefined) {
-                            continue;
-                        }
-                        let reason: MixReason | undefined;
-                        // Taken neither as its tag (an input, a `<sum>`)
-                        // nor as its value's type, but the other type is
-                        // wanted (`ChildMatcher` would drop it, `w0107`).
-                        const takesIt =
-                            takes(componentClass, value.tag) ||
-                            (value.type === "boolean"
-                                ? takes(componentClass, "boolean")
-                                : takes(componentClass, "math") ||
-                                  takes(componentClass, "number"));
-                        if (value.type === "boolean") {
-                            const wantsNumber = isNumber
-                                ? true
-                                : !takesIt &&
-                                  (takes(componentClass, "math") ||
-                                      takes(componentClass, "number"));
-                            if (wantsNumber) {
-                                reason =
-                                    bound !== undefined &&
-                                    inherits(bound, "mathInput")
-                                        ? "mathInputBoundToBoolean"
-                                        : "booleanAsNumber";
-                            }
-                        } else if (value.type === "math" && !isNumber) {
-                            if (!takesIt && takes(componentClass, "boolean")) {
-                                reason = "numberAsBoolean";
-                            }
-                        }
-                        if (reason !== undefined) {
-                            const { source, form } = asWrittenOrList(child);
-                            warn({
-                                reason,
-                                source,
-                                form,
-                                position: child.position ?? fallback,
-                                sourceDoc:
-                                    child.sourceDoc ?? component.sourceDoc,
-                                inAttribute,
-                            });
-                            blank(child);
+                    // a copy: a child judged may be moved into a `<setup>`
+                    for (const child of [...(component.children ?? [])]) {
+                        if (typeof child === "object") {
+                            judge(component, child);
                         }
                     }
                 }
@@ -1199,6 +1377,28 @@ function withoutSugarGroup(children: (SerializedComponent | string)[]) {
         return only.children;
     }
     return children;
+}
+
+/** Whether `component` is a reference written alone (`$b`), not as a tag. */
+function isBareReference(component: SerializedComponent) {
+    return (
+        component.componentType === "_copy" &&
+        component.attributes?._createComponentOfType === undefined
+    );
+}
+
+/**
+ * The word `true` or `false`, if `tree` is that literal in an expression, as
+ * `typeOfTree` reads it.
+ */
+function booleanLiteral(tree: any): string | undefined {
+    if (tree === true || tree === "true") {
+        return "true";
+    }
+    if (tree === false || tree === "false") {
+        return "false";
+    }
+    return undefined;
 }
 
 /** How an ordering is written, for the message. */

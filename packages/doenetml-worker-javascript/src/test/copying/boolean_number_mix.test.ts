@@ -97,8 +97,9 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("s")).value.tree).eqls(["+", "＿", 2]);
         expect((await sv("mbl")).value.tree).eq("＿");
         expect((await sv("Q")).xs.map((x: any) => x.tree)).eqls(["＿", 3]);
-        // (a blank in a repeat's template of maths is dropped, as
-        // `$nothing` is there: #2596)
+        // a blank in a repeat's template of maths takes part, as `$nothing`
+        // does there (#2656)
+        expect((await sv("pr")).text).eq("＿ + 1, ＿ + 1");
         // where a text is wanted, it is still the word
         expect((await sv("t")).value).eq("true");
         expect((await sv("p")).text).eq("true");
@@ -528,6 +529,255 @@ describe("Booleans and numbers kept apart @group2", () => {
             [
                 7,
                 "`$t` is a text, so ordering it against a number with `<=` is never true.",
+            ],
+        ]);
+    });
+    // A mix in logic is a blank, and logic made from a blank is missing, not
+    // false: a missing value never equals anything (VAL-5), so an answer
+    // can't credit the response "false" for it (#2656).
+    it("logic holding a mix is missing, not false", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <number name="n">2</number>
+    <boolean name="c1">$b = 1</boolean>
+    <boolean name="c2">$n + 0</boolean>
+    <boolean name="c3">$b = 1 or true</boolean>
+    <boolean name="c4">not ($b = 1)</boolean>
+    <boolean name="r1">$c1</boolean>
+    <boolean name="r2" extend="$c1"/>
+    <boolean name="r3" copy="$c1"/>
+    <p name="p">$c1</p>
+    <text name="t" hide="not ($b = 1)">hi</text>
+    <boolean name="c5">$nothing = 1</boolean>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        for (const name of ["c1", "c2", "c3", "c4", "r1", "r2", "r3"]) {
+            expect((await sv(name)).valueMissing, name).eq(true);
+        }
+        expect((await sv("p")).text).eq("＿");
+        expect((await sv("t")).hidden).eq(false);
+        // a missing operand that is no mix is compared as before: never
+        // equal (D40)
+        expect((await sv("c5")).value).eq(false);
+        expect((await sv("c5")).valueMissing).eq(false);
+    });
+
+    // D67 decision 1 (#2656 item 2)
+    it("convertBoolean counts every boolean in its expression", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi" prefill="true"><label>b</label></booleanInput>
+    <boolean name="b">$bi</boolean>
+    <number name="n">2</number>
+    <number name="n1" convertBoolean>$b + 1</number>
+    <number name="n2" convertBoolean>($n > 1) + $b</number>
+    <number name="n3" convertBoolean>2$b</number>
+    <number name="n4" convertBoolean>$b and not $b</number>
+    <number name="n5" convertBoolean>$b</number>
+    <number name="n6" convertBoolean>$nothing</number>
+    <number name="n7" convertBoolean>$nothing + $b</number>
+    <p name="p">$n6 $n7</p>
+    `,
+        });
+        const values = async () => {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, any> = {};
+            for (const name of ["n1", "n2", "n3", "n4", "n5", "n6", "n7"]) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                result[name] = stateValues.valueMissing
+                    ? "＿"
+                    : stateValues.value;
+            }
+            result.p =
+                stateVariables[
+                    await resolvePathToNodeIdx("p")
+                ].stateValues.text;
+            return result;
+        };
+
+        expect(await values()).eqls({
+            n1: 2,
+            n2: 2,
+            n3: 2,
+            n4: 0,
+            n5: 1,
+            n6: "＿",
+            n7: "＿",
+            p: "＿ ＿",
+        });
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        expect(await values()).eqls({
+            n1: 1,
+            n2: 1,
+            n3: 0,
+            n4: 0,
+            n5: 0,
+            n6: "＿",
+            n7: "＿",
+            p: "＿ ＿",
+        });
+
+        // the author asked for the conversion, so none is a mix
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([]);
+    });
+
+    it("a number compared with true or false, and a boolean in arithmetic compared, are mixes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <number name="n">1</number>
+    <boolean name="c1">$n = true</boolean>
+    <boolean name="c2">1 = true</boolean>
+    <boolean name="c3">$b + 1 = 2</boolean>
+    <boolean name="c4">$b = not ($b = 1)</boolean>
+    <boolean name="c5">$b = true</boolean>
+    <boolean name="c6"><number>1</number> = false</boolean>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        for (const name of ["c1", "c2", "c3", "c4", "c6"]) {
+            expect((await sv(name)).valueMissing, name).eq(true);
+        }
+        expect((await sv("c5")).value).eq(true);
+        expect((await sv("c5")).valueMissing).eq(false);
+
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
+            [
+                4,
+                "`$n` is a number, not true or false, so comparing it with `true` is a blank. To test it, write a comparison such as `$n != 0`.",
+            ],
+            [
+                5,
+                "`1` is a number, not true or false, so comparing it with `true` is a blank. Write `true` or `false` instead.",
+            ],
+            [6, booleanAsNumber("$b")],
+            [
+                7,
+                "`$b` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `$b = true`. To count it as 1 or 0, write `<number convertBoolean>$b</number>`.",
+            ],
+            [
+                9,
+                "This `<number>` is a number, not true or false, so comparing it with `false` is a blank. To test it, write a comparison, such as one with `!= 0`.",
+            ],
+        ]);
+    });
+
+    // A mix is a blank in its place only (VAL-5): a tag written there is
+    // still a component of its own, which a reference elsewhere reads
+    // (#2656 item 5).
+    it("a tag written where a mix is keeps its value elsewhere", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m1"><boolean name="q">true</boolean> + 1</math>
+    <boolean name="q2">$q</boolean>
+    <boolean name="c1"><number name="z">2</number> = true</boolean>
+    <number name="z2">$z</number>
+    <boolean name="c2"><math name="w">x</math> = x and 3</boolean>
+    <math name="w2">$w</math>
+    <p name="p"><math><boolean name="h">true</boolean></math></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("m1")).value.tree).eqls(["+", "＿", 1]);
+        expect((await sv("q")).value).eq(true);
+        expect((await sv("q2")).value).eq(true);
+        expect((await sv("q2")).valueMissing).eq(false);
+        expect((await sv("c1")).valueMissing).eq(true);
+        expect((await sv("z2")).value).eq(2);
+        expect((await sv("c2")).valueMissing).eq(true);
+        expect((await sv("w2")).value.tree).eq("x");
+        // kept, it shows nothing where the mix was
+        expect((await sv("p")).text).eq("＿");
+
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
+            [
+                2,
+                "This `<boolean>` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.",
+            ],
+            [
+                4,
+                "This `<number>` is a number, not true or false, so comparing it with `true` is a blank. To test it, write a comparison, such as one with `!= 0`.",
+            ],
+            [6, literalAsBoolean("3")],
+            [
+                8,
+                "This `<boolean>` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.",
+            ],
+        ]);
+        expect(diagnosticsOf(core, ["doenet-w0106", "doenet-w0107"])).eqls([]);
+    });
+
+    // #2656 item 4
+    it("a group holding a boolean beside other values in a math is judged at load", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m1"><group><boolean name="g">true</boolean><math>x</math></group></math>
+    <boolean name="g2">$g</boolean>
+    <math name="m2"><group><group><boolean>false</boolean> <math>y</math></group></group> + 1</math>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("m1")).value.tree).eqls(["*", "＿", "x"]);
+        expect((await sv("g2")).value).eq(true);
+        expect((await sv("m2")).value.tree).eqls(["+", ["*", "＿", "y"], 1]);
+        const tagMessage =
+            "This `<boolean>` is true or false, not a number, so it is a blank here. To count it as 1 or 0, write it inside a `<number convertBoolean>`.";
+        expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([
+            [2, tagMessage],
+            [4, tagMessage],
+        ]);
+        // no longer dropped at run time
+        expect(diagnosticsOf(core, ["doenet-w0106", "doenet-w0107"])).eqls([]);
+    });
+
+    // #2656 item 6: a label's value is its text (`VALUED_AS`, D26)
+    it("a boolean made from a label reads its text as the word true or false", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <label name="l1">true</label>
+    <label name="l2">false</label>
+    <label name="l3">maybe</label>
+    <boolean name="b1" extend="$l1"/>
+    <boolean name="b2" extend="$l2"/>
+    <boolean name="b3" extend="$l3"/>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        expect((await sv("b1")).value).eq(true);
+        expect((await sv("b1")).valueMissing).eq(false);
+        expect((await sv("b2")).value).eq(false);
+        expect((await sv("b2")).valueMissing).eq(false);
+        expect((await sv("b3")).valueMissing).eq(true);
+        expect(diagnosticsOf(core, ["doenet-i0053"])).eqls([
+            [
+                7,
+                "A `<boolean>` can't be made from `$l3` while its value, maybe, isn't true or false, so it is missing until it is.",
             ],
         ]);
     });
