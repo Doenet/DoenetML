@@ -774,15 +774,35 @@ export function valueFalseWhileMissing(definition: any) {
                 ...args,
                 dependencyValues,
             });
-            if (
-                __valueMissing &&
-                result?.setValue &&
-                "value" in result.setValue
-            ) {
+            if (!__valueMissing || !result) {
+                return result;
+            }
+            if (result.setValue && "value" in result.setValue) {
                 return {
                     ...result,
                     setValue: { ...result.setValue, value: false },
                 };
+            }
+            // A missing `<boolean>` with no children, such as
+            // `<boolean extend="$nothing"/>`, is false even after a
+            // `<booleanInput>` bound to it wrote `true` to its essential value.
+            if (
+                result.useEssentialOrDefaultValue &&
+                "value" in result.useEssentialOrDefaultValue
+            ) {
+                const { value: _value, ...useEssentialOrDefaultValue } =
+                    result.useEssentialOrDefaultValue;
+                const adjusted = {
+                    ...result,
+                    setValue: { ...result.setValue, value: false },
+                };
+                if (Object.keys(useEssentialOrDefaultValue).length > 0) {
+                    adjusted.useEssentialOrDefaultValue =
+                        useEssentialOrDefaultValue;
+                } else {
+                    delete adjusted.useEssentialOrDefaultValue;
+                }
+                return adjusted;
             }
             return result;
         },

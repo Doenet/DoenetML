@@ -757,6 +757,73 @@ describe("Booleans and numbers kept apart @group2", () => {
         expect((await sv("a1")).creditAchieved).eq(0);
     });
 
+    // The same rule where a `hide` or a `condition` refers to a component
+    // that is missing (an attribute held as an expression, with no attribute
+    // component, `utils/expressionAttribute.js`), and as a list index starts
+    // and stops naming an entry.
+    it("a reference to a missing boolean is false as a condition", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b0">$nothing</boolean>
+    <boolean name="e" extend="$nothing"/>
+    <booleanInput name="bie" bindValueTo="$e"><label>e</label></booleanInput>
+    <isNumber name="inm">$nothing</isNumber>
+    <booleanList name="bl">true false</booleanList>
+    <mathInput name="mi" prefill="5"><label>i</label></mathInput>
+    <boolean name="bli" extend="$bl[$mi]"/>
+    <mathInput name="mx"><label>mx</label></mathInput>
+    <text name="t1" hide="not $b0">t1</text>
+    <text name="t2" hide="$b0 != true">t2</text>
+    <text name="t3" hide="$b0 or true">t3</text>
+    <text name="t4" hide="not $inm">t4</text>
+    <text name="t5" hide="not $bl[5]">t5</text>
+    <text name="t6" hide="not $e">t6</text>
+    <text name="t7" hide="$e">t7</text>
+    <text name="t8" hide="not ($mx = x)">t8</text>
+    <conditionalContent><case condition="not $bli"><text name="ca">A</text></case><else><text name="cb">B</text></else></conditionalContent>
+    `,
+        });
+        const sv = async (name: string) =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx(name)
+            ]?.stateValues;
+
+        // writing `true` to a missing boolean leaves it false
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bie"),
+            core,
+        });
+        expect((await sv("e")).valueMissing).eq(true);
+        expect((await sv("e")).value).eq(false);
+
+        for (const name of ["t1", "t2", "t3", "t4", "t5", "t6", "t7"]) {
+            expect((await sv(name)).hidden, name).eq(false);
+        }
+        // a blank input is a value, compared
+        expect((await sv("t8")).hidden).eq(true);
+
+        // `$bl[5]` names nothing: the `<else>`
+        expect(await sv("ca")).eq(undefined);
+        expect((await sv("cb")).value).eq("B");
+        // `$bl[2]` is false: the case
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect((await sv("ca")).value).eq("A");
+        expect(await sv("cb")).eq(undefined);
+        // `$bl[7]` names nothing again
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await sv("ca")).eq(undefined);
+        expect((await sv("cb")).value).eq("B");
+    });
+
     // D67 decision 1 (#2656 item 2)
     it("convertBoolean counts every boolean in its expression", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
