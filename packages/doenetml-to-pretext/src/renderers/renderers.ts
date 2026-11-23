@@ -268,7 +268,8 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
         component: PretextComponent._Fragment,
         passthroughChildren: true,
     },
-    // Ref and Xref are treated the same, but PreTeXt only has <xref>.
+    // Ref and Xref share a renderer: a link within the document becomes a
+    // PreTeXt <xref>, a link to a URL becomes a <url>.
     ref: { component: PretextComponent.Xref, passthroughChildren: true },
     xref: { component: PretextComponent.Xref, passthroughChildren: true },
     ol: { component: PretextComponent.Ol, passthroughChildren: true },
