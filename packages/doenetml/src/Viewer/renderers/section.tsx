@@ -32,6 +32,8 @@ import {
 } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
 import { NoClickTargetContext } from "./utils/ClickTarget";
+import { DisclosureButton } from "./utils/DisclosureButton";
+import "./section.css";
 
 interface SectionSVs {
     [key: string]: any;
@@ -439,18 +441,36 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
     }
 
     let headingId = id + "_title";
+    const contentId = id + "_content";
 
     if (SVs.collapsible) {
+        // A list item may have no title. Then the words are all the button
+        // says, so they stay in its name rather than leave it empty.
+        const hasTitleText = Boolean(title);
+        // The heading keeps its level for the document outline; the control is
+        // a native button inside it (the WAI-ARIA disclosure pattern). The
+        // button has no handler of its own: Enter and Space make it fire a
+        // `click`, which bubbles to the heading box's `onClick` below, so a
+        // pointer click anywhere in the box and a key on the button run the
+        // same single handler. The state is announced by `aria-expanded`, so
+        // the "(click to open)" words are hidden from the accessible name.
         title = (
-            <>
+            <DisclosureButton
+                className="section-disclosure-button"
+                open={SVs.open}
+                contentId={contentId}
+            >
                 <FontAwesomeIcon
                     icon={SVs.open ? twirlIsOpen : twirlIsClosed}
                 />{" "}
                 {title}{" "}
-                <span {...chromeLangDir}>
+                <span
+                    {...chromeLangDir}
+                    aria-hidden={hasTitleText ? "true" : undefined}
+                >
                     {clickToToggleLabel(t, SVs.open)}
                 </span>
-            </>
+            </DisclosureButton>
         );
     }
 
@@ -597,7 +617,7 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                 ...(SVs.isListItem && { paddingInlineStart: LIST_ITEM_INDENT }),
             };
             innerContent = (
-                <div style={innerContentStyle}>
+                <div id={contentId} style={innerContentStyle}>
                     {SVs.rendered ? (
                         children
                     ) : (
@@ -628,16 +648,8 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                 <div
                     className={headingBoxClassName}
                     style={headingBoxStyle}
-                    tabIndex={0}
-                    onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                            callAction({
-                                action: SVs.open
-                                    ? actions.closeSection
-                                    : actions.revealSection,
-                            });
-                        }
-                    }}
+                    // Not a tab stop: the button in the heading is. Keyboard
+                    // activation of that button arrives here as a click.
                     onClick={() =>
                         callAction({
                             action: SVs.open

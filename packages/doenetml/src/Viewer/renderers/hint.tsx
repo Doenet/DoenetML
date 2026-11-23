@@ -10,6 +10,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import { useChromeLangDir, useT } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
+import { DisclosureButton } from "./utils/DisclosureButton";
 import "./hint.css";
 import { NoClickTargetContext } from "./utils/ClickTarget";
 
@@ -29,6 +30,7 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
     const t = useT();
 
     const ref = useRef(null);
+    const contentId = id + "_content";
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -69,13 +71,6 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
             action: actions.revealHint,
         });
     };
-    let onKeyPressFunction = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") {
-            callAction({
-                action: actions.revealHint,
-            });
-        }
-    };
 
     const openCloseText = clickToToggleLabel(t, SVs.open);
     // The heading is mixed: `title` is the author's and follows the document,
@@ -108,14 +103,6 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
             borderBottomRightRadius: "5px",
             backgroundColor: "var(--canvas)",
         };
-        onKeyPressFunction = (e) => {
-            if (e.key === "Enter") {
-                callAction({
-                    action: actions.closeHint,
-                });
-            }
-        };
-
         onClickFunction = () => {
             callAction({
                 action: actions.closeHint,
@@ -125,26 +112,33 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
 
     return (
         <aside id={id} key={id} ref={ref}>
-            <span
+            {/* A native button (`DisclosureButton`): Enter and Space fire its `click`, and
+                `aria-expanded` carries the state, so the "(click to open)"
+                words are hidden from its accessible name. */}
+            <DisclosureButton
                 className="hint-title"
                 style={{
                     margin: SVs.open ? "12px 4px 0px 4px" : "12px 4px 12px 4px",
                     borderBottomLeftRadius: SVs.open ? "0px" : "5px",
                     borderBottomRightRadius: SVs.open ? "0px" : "5px",
                 }}
-                tabIndex={0}
                 data-test="hint-heading"
+                open={SVs.open}
+                contentId={contentId}
                 onClick={onClickFunction}
-                onKeyDown={onKeyPressFunction}
             >
                 {" "}
                 {icon}{" "}
                 <NoClickTargetContext.Provider value={true}>
                     {title}
                 </NoClickTargetContext.Provider>{" "}
-                <span {...chromeLangDir}>{openCloseText}</span>
+                <span {...chromeLangDir} aria-hidden="true">
+                    {openCloseText}
+                </span>
+            </DisclosureButton>
+            <span id={contentId} style={infoBlockStyle}>
+                {info}
             </span>
-            <span style={infoBlockStyle}>{info}</span>
         </aside>
     );
 });
