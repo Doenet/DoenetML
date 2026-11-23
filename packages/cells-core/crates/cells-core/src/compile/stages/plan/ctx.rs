@@ -388,7 +388,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The type of the element reference `p` names by a path of names
     /// alone (no prop, no entry), as the records tell: None for any
     /// other reference.
-    pub(crate) fn ref_elem_type(&self, p: RefId) -> Option<ComponentType> {
+    fn ref_elem_type(&self, p: RefId) -> Option<ComponentType> {
         let r = &self.p.ar.refs[p.index()];
         if r.prop.is_some() || !r.entries.is_empty() {
             return None;

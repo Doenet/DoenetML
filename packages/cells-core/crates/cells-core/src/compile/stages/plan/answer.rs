@@ -251,7 +251,30 @@ impl<'a> Planning<'a> {
         let ports = answer::Props::PORTS;
         let mut wiring = ElemWiring::of(self.rd.outlined(t).elems[e.index()].component_type);
         let weight = self.plan_weight(t, e, el)?;
-        let mut args = vec![Arg::Own(ports.submitted)];
+        // The submitted index is a choice's place as shown: with
+        // `shuffleOrder` the choice there is the one `choiceOrder` names
+        // (ADR 0053), as the current core's `childIndicesSelected`.
+        let shuffled = self
+            .parsed
+            .record_ref(t, ci)
+            .is_some_and(|r| choice_input::Attrs::of(r).shuffleOrder);
+        let submitted = if shuffled {
+            let first = self.rd.outlined(t).elems[ci.index()]
+                .component_type
+                .prop_defs()
+                .len();
+            let mut order = vec![Arg::Own(ports.submitted)];
+            order.extend((0..choices.len()).map(|k| Arg::Elem(ci, Port::table(first + k))));
+            Arg::Own(wiring.hidden(Source::op(
+                OpSpec::Vec(VecOp::Choose {
+                    n: byte(choices.len()),
+                }),
+                order,
+            )))
+        } else {
+            Arg::Own(ports.submitted)
+        };
+        let mut args = vec![submitted];
         args.extend(
             choices
                 .iter()

@@ -354,6 +354,7 @@ impl Document {
         if let Some(kind) = shape
             .entry()
             .filter(|&k| k != EntryKind::Point || ty.entry_row().is_some())
+            .filter(|_| shape.width() > 0)
         {
             let n_table = ty.prop_defs().len();
             let end = n_table + shape.width() * shape.list_len(cells.len());

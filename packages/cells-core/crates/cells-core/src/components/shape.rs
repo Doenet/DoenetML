@@ -65,13 +65,12 @@ impl ListShape {
         self.width() == 2
     }
 
-    /// How many entries the list of an element with `n_props` props holds.
+    /// How many entries the list of an element with `n_props` props holds:
+    /// a list of no cells an entry (`sequence: name`) has its companion's.
     pub fn list_len(self, n_props: usize) -> usize {
-        match self.width() {
+        match self.width() + self.ty.companion_width() {
             0 => 0,
-            w => {
-                n_props.saturating_sub(self.ty.prop_defs().len()) / (w + self.ty.companion_width())
-            }
+            w => n_props.saturating_sub(self.ty.prop_defs().len()) / w,
         }
     }
 
@@ -119,6 +118,9 @@ impl ListShape {
         }
         let w = self.width().max(1);
         let (k, j) = ((pi - n_table) / w + 1, (pi - n_table) % w);
+        if coords.is_empty() {
+            return None;
+        }
         Some(match coords.get(j) {
             Some(c) if coords.len() == w => format!("{c}{k}").into(),
             _ => format!("{}{k}_{}", coords[0], j + 1).into(),
@@ -130,6 +132,10 @@ impl ListShape {
     /// value or a point, as the entry is.
     pub fn entry_row(self) -> Option<ComponentType> {
         let row = self.ty.entry_row()?;
+        if self.width() == 0 {
+            return None;
+        }
+
         Some(match self.own {
             None => row,
             Some(entry) => entry_row_type(entry),

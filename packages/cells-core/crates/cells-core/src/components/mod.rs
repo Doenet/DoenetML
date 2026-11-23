@@ -510,7 +510,7 @@ impl ComponentType {
         else {
             return None;
         };
-        Some(shape::entry_row_type(entry))
+        (!self.given_coords()?.is_empty()).then(|| shape::entry_row_type(entry))
     }
 
     /// The ports of a row of this type (an [`ComponentType::entry_row`])
@@ -697,7 +697,7 @@ impl ComponentType {
     /// element with `n_props` props, if the element has that point, when
     /// the element's entries are the type's ([`ListShape::list_slot`]).
     pub fn list_slot(self, n_props: usize, k: usize, j: usize) -> Option<usize> {
-        self.shape().list_slot(n_props, k, j)
+        ListShape::list_slot(self.shape(), n_props, k, j)
     }
 
     /// The name of prop `pi` of an element with `n_props` public props:
@@ -1248,8 +1248,10 @@ mod tests {
         // 33: ADR 0041 step 3 added which entries are a value list's
         // element children as they stand, and a point list's points. 35:
         // ADR 0053 added `entry_kind` and `reference_entries`, for what a
-        // sort compares and what a text joins.
-        const PLAN_CTX_METHODS: usize = 35;
+        // sort compares and what a text joins. 38: ADR 0053 added
+        // `ref_prop`, `ref_of_elem` and `ref_cells`, for a sort by a prop
+        // of its operands (`sortByProp`, a vector's displacement or tail).
+        const PLAN_CTX_METHODS: usize = 38;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
