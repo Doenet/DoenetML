@@ -26,6 +26,8 @@ component! {
     alternate_names {
         numValues: numComponents,
     }
+    // Whether a renderer shows the entries separated by commas.
+    presentation { asList }
     attributes {
         maxNumber: Literal(f64::INFINITY),
     }

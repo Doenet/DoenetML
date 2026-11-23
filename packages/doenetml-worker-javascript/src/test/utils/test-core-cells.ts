@@ -28,6 +28,23 @@ import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "../../CoreWo
 // package exports only its `dist/`.
 import { CellsTable, NONE } from "../../../../doenetml-worker/src/cells/table";
 import { resolveRendererAction } from "../../../../doenetml-worker/src/cells/actions";
+import { CellsBridge } from "../../../../doenetml-worker/src/cells/bridge";
+import { LIST_LIKE } from "../../../../doenetml-worker/src/cells/contracts";
+
+/** The types whose children are their entries' rows (ADR 0041, decision
+ * 4): each row is addressed as `list:k`. */
+const ROW_LISTS = new Set(
+    [...LIST_LIKE].filter(
+        (t) =>
+            ![
+                "repeat",
+                "repeatForSequence",
+                "collect",
+                "select",
+                "asList",
+            ].includes(t),
+    ),
+);
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -773,6 +790,24 @@ const STATE: Record<string, Record<string, Reader>> = {
     textList: valueListReaders("texts", (x, c) => x.cells.text(c)),
     booleanList: valueListReaders("booleans", (x, c) => x.cells.value(c) === 1),
     mathList: valueListReaders("maths", (x, c) => heldMath(x.cells, c)),
+    // A point list's own points (ADR 0041), each a row of type point.
+    pointList: {
+        points: (_g, x) => {
+            const cells = Array.from(x.cells.propCells(x.idx, "points"));
+            return Array.from({ length: cells.length / 2 }, (_, k) => [
+                M(x.cells.value(cells[2 * k])),
+                M(x.cells.value(cells[2 * k + 1])),
+            ]);
+        },
+        numPoints: (g) => g("numPoints"),
+        numValues: (g) => g("numPoints"),
+        text: textOf,
+    },
+    // A math list's entry row (ADR 0041): what its one cell holds.
+    mathValue: {
+        value: (_g, x) => heldMath(x.cells, x.cell("value")!),
+        text: textOf,
+    },
     // Function machinery (ADR 0049).
     function: functionReaders,
     derivative: functionReaders,
@@ -1352,8 +1387,83 @@ export async function createTestCoreCells({
         return idx === NONE ? -1 : idx;
     }
 
+    /** What the renderers are sent, as the current core's
+     * `rendererInstructionBuilder.rendererState` holds it, by component:
+     * the cells bridge's flat DAST (ADR 0020), each child an instruction
+     * naming its component, and its renderer's state the component's
+     * state variables (`STATE`), else the props the bridge sends. A list's
+     * row (ADR 0041) has the id `list:k`. */
+    function rendererState() {
+        const strict = CellsBridge.strict;
+        CellsBridge.strict = false;
+        const bridge = new CellsBridge(core, wasm.memory);
+        const root = bridge.flatDast();
+        CellsBridge.strict = strict;
+        const takenAt = actionCount;
+        const name = (c: number) => {
+            const id = table.cols.name[c];
+            return id === NONE ? null : table.string(id);
+        };
+        const anchor = (c: number): string | null => {
+            const parent = table.parent(c);
+            if (parent !== null && ROW_LISTS.has(table.componentType(parent))) {
+                const k = table
+                    .children(parent)
+                    .findIndex((ch) => "component" in ch && ch.component === c);
+                const list = name(parent);
+                if (list !== null && k >= 0) return `${list}:${k + 1}`;
+            }
+            return name(c);
+        };
+        const typeOf = (c: number) => {
+            const type = table.componentType(c);
+            return type === "mathValue" ? "math" : type;
+        };
+        return new Proxy({} as Record<number, any>, {
+            get(_target, key) {
+                if (typeof key !== "string" || !/^\d+$/.test(key))
+                    return undefined;
+                assertCurrent(takenAt, `renderer state of ${key}`);
+                const c = Number(key);
+                const id = bridge._idByComponent.get(c);
+                const element =
+                    id === undefined ? undefined : root.elements[id];
+                if (!element || element.type !== "element") return undefined;
+                const props = (element.data as any).props ?? {};
+                const type = table.componentType(c);
+                const stateValues = new Proxy(props, {
+                    get(target, sv) {
+                        if (typeof sv !== "string") return undefined;
+                        if (STATE[type]?.[sv]) return stateValue(c, type, sv);
+                        return target[sv];
+                    },
+                });
+                return {
+                    stateValues,
+                    childrenInstructions: element.children.map((ch: any) => {
+                        if (typeof ch === "string") return ch;
+                        const k = bridge._componentById.get(ch.id)!;
+                        const childElement = root.elements[ch.id] as any;
+                        return {
+                            componentIdx: k,
+                            componentType: typeOf(k),
+                            rendererType: childElement?.name,
+                            id: anchor(k),
+                        };
+                    }),
+                };
+            },
+        });
+    }
+
     return {
-        core: withJavascriptOnlyGaps(adapter),
+        core: withJavascriptOnlyGaps(adapter, {
+            rendererInstructionBuilder: {
+                get rendererState() {
+                    return rendererState();
+                },
+            },
+        }),
         cells: core,
         resolvePathToNodeIdx,
         /** Bytes of wasm linear memory; the benchmark's memory column. */
@@ -1378,12 +1488,18 @@ function unreported(name: string) {
     );
 }
 
-function withJavascriptOnlyGaps<T extends object>(core: T): T {
+function withJavascriptOnlyGaps<T extends object>(
+    core: T,
+    answered: Record<string, unknown> = {},
+): T {
     const internals = new Proxy(
         {},
         {
             get(_target, key) {
                 if (typeof key !== "string" || key === "then") return undefined;
+                // What the cells core answers of the current core's
+                // internals: the renderers' state, from the bridge.
+                if (key in answered) return (answered as any)[key];
                 throw new CellsCoreGap(
                     `JavaScript core internals \`core.core.${key}\``,
                 );

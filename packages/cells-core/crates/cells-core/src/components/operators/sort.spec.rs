@@ -19,9 +19,9 @@ spec! {
         doenet r#"<numberInput name="a" value="4"><label>a</label></numberInput>
                   <sort name="s">5 3 $a 1</sort>
                   <number name="first">$s[1]</number>"#;
-        expect { "s.values" = [1, 3, 4, 5], "first.value" = 1 }
+        expect { "s.values" = [1, 3, 4, 5], "first.value" = 1, "s.componentOrder" = [4, 2, 3, 1] }
         request { "a.value" = 0 }
-        expect { "s.values" = [0, 1, 3, 5], "first.value" = 0 }
+        expect { "s.values" = [0, 1, 3, 5], "first.value" = 0, "s.componentOrder" = [3, 4, 2, 1] }
     }
 
     case "a write to a sorted entry is dropped: it would move the entry" {
@@ -48,6 +48,7 @@ spec! {
                   <sort name="back">$s[1] $s[2] $s[3] $s[4] $s[5]</sort>"#;
         expect {
             "s.values" = [1, 3, 2, 4, 5], "s.numComponents" = 5,
+            "s.componentOrder" = [1, 3, 2, 4, 5],
             "back.values" = [1, 2, 3, 4, 5],
         }
     }

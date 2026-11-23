@@ -21,8 +21,10 @@ use crate::tick::invert::PointRequest;
 use crate::tick::{Request, TickOutcome};
 
 /// A component as it is known across a rebuild, which numbers the
-/// components anew: its element and the scope it was made in.
-type Key = (NodeId, ScopeId);
+/// components anew: its element and the scope it was made in, and for one
+/// the compile made (a list's row, ADR 0041; a `$ref` child), its place
+/// under the nearest component that has an element (0 for one that has).
+type Key = (NodeId, ScopeId, u64);
 
 /// How deep one action may call another's (`<callAction>` naming a
 /// `<triggerSet>` naming a `<callAction>`...): a chain that deep is a
@@ -168,14 +170,35 @@ impl Document {
 
     /// A component's key across rebuilds.
     fn key(&self, c: CompIdx) -> Key {
-        (
-            self.components.dast_node[c.index()],
-            self.components.scope[c.index()],
-        )
+        let scope = self.components.scope[c.index()];
+        let (mut k, mut place, mut width) = (c, 0u64, 1u64);
+        while self.components.dast_node[k.index()] == NodeId::NONE {
+            let Some(parent) = self.parent(k) else { break };
+            let at = self
+                .children(parent)
+                .position(|ch| matches!(ch, Child::Component(x) if x == k))
+                .map_or(0, |i| i as u64 + 1);
+            place = place.wrapping_add(at.wrapping_mul(width));
+            width = width.wrapping_mul(1 << 16);
+            k = parent;
+        }
+        (self.components.dast_node[k.index()], scope, place)
     }
 
+    /// The events `fired`, by key. An event on a list's row (ADR 0041,
+    /// decision 4) is one on the list too: a click on an entry is a click
+    /// on the list.
     fn keyed(&self, fired: &[(CompIdx, Event)]) -> HashSet<(Key, Event)> {
-        fired.iter().map(|&(c, e)| (self.key(c), e)).collect()
+        let mut out = HashSet::new();
+        for &(c, e) in fired {
+            out.insert((self.key(c), e));
+            if let Some(list) = self.parent(c)
+                && self.component_type(list).entry_row().is_some()
+            {
+                out.insert((self.key(list), e));
+            }
+        }
+        out
     }
 
     /// Whether each pressed component's condition holds now.

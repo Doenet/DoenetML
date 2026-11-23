@@ -846,10 +846,14 @@ macro_rules! component {
                 $(, max_by: $lvmax:ident)?
                 $(, entries: $lventries:ident $(less $lvless:literal)?)?
                 $(, interactive: $lvinteractive:literal)?
-                $(, rendered: $lvrendered:literal)? $(,)?)?
+                $(, rendered: $lvrendered:literal)?
+                $(, companion: $lvcompanion:ident)? $(,)?)?
             $(points: [$([$px:ident, $py:ident]),+ $(,)?]
                 $(, interactive: $lpinteractive:literal)?
                 $(, rendered: $lprendered:literal)? $(,)?)?
+            $(entry_coords: [$ex:ident, $ey:ident], max_by: $emax:ident, entries: children
+                $(, interactive: $einteractive:literal)?
+                $(, rendered: $erendered:literal)? $(,)?)?
             $(coords: [$lx:ident, $ly:ident] $(, alternate_name: $lalt:ident)?,
                 attribute: $lattr:ident $(, max: $lmax:expr)?
                 $(, interactive: $lcinteractive:literal)?
@@ -907,9 +911,11 @@ macro_rules! component {
                         $(table [$([$px, $py]),+])?
                         $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
                         $(values [$lv $lvkind] [$($lvmax)?] [$($lventries $($lvless)?)?])?
+                        $(entry_points [$ex, $ey] [$emax])?
                     ),
-                    interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)? $($($lvinteractive)?)?),
-                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)?),
+                    interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)? $($($lvinteractive)?)? $($($einteractive)?)?),
+                    rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)? $($($erendered)?)?),
+                    companion: $crate::components::define::component!(@companion $($($lvcompanion)?)?),
                 }))?
                 $(.alternate_names(&[$((stringify!($afrom), stringify!($ato))),*]))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
@@ -1344,6 +1350,17 @@ macro_rules! component {
             entry: $crate::components::EntryKind::Point,
         }
     };
+    (@list_points entry_points [$x:ident, $y:ident] [$max:ident]) => {
+        $crate::components::ListPoints::Given {
+            coords: &[stringify!($x), stringify!($y)],
+            alternate_name: None,
+            attribute: None,
+            max: None,
+            max_by: Some(attr::$max),
+            from_children: Some(0),
+            entry: $crate::components::EntryKind::Point,
+        }
+    };
     (@list_points values [$v:ident $kind:ident] [$($vmax:ident)?] [$($entries:tt)*]) => {
         $crate::components::ListPoints::Given {
             coords: &[stringify!($v)],
@@ -1360,6 +1377,8 @@ macro_rules! component {
             "component!: a list needs `points: [[x1, y1], ..]` (points that are the table's props) or `coords: [x, y], attribute: a` (as many points as an element gives in its attribute `a`, which `attributes { .. }` declares; optionally `max: n`), either optionally ending `interactive: true` and then `rendered: true`"
         )
     };
+    (@companion) => { None };
+    (@companion $name:ident) => { Some(stringify!($name)) };
     (@flag) => { false };
     (@flag $flag:literal) => { $flag };
     (@entries) => { None };

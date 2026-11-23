@@ -506,9 +506,18 @@ repeat is a scope. A name inside a repeat template exists once per scope, so
 `p` in iteration 3 is `$r[3].p`. A bare `$p` resolves from the referencing
 component's scope outward. Scope ids are stable for the life of a document.
 
-**Point list** — A `<pointList>` that extends a list prop of points (a
-line's `points`, a polygon's `vertices`): one point per item, each aliasing
-the item's cells.
+**Point list** — A `<pointList>`: a static sequence of its own points
+(pieces `(1,2)`, references, authored points, other point lists' points),
+each entry a row; or one that extends a list prop of points (a line's
+`points`, a polygon's `vertices`): one point per item, each aliasing the
+item's cells.
+
+**Row** — An entry of a list whose entries are its own (a value list, a list
+operator, a sampler, a point list) as a component of the entry's type, a
+child of the list, its ports aliasing the entry's cells (ADR 0041, decision
+4). An authored child that is one entry of the entry's type is its own row.
+`$pl[k]` names the row as a component (a link, a port after it); a renderer
+draws it by its own type.
 
 **Missing referent** — An indexed reference that names no component or
 entry (`$r[32]` when there are ten iterations, `$r[2.5]`, `$P[3]`). It resolves to the shared constant

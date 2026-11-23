@@ -145,9 +145,22 @@ pub(crate) struct ElemPlan {
     /// each with the attribute's position among its type's declarations,
     /// in the order written: a build resolves each to a component.
     pub(crate) links: Vec<(u16, RefId)>,
+    /// The entries of its list that are its element children as they
+    /// stand (ADR 0041, decision 4): (entry, 0-based; the child), for a
+    /// child of the type an entry's row is that contributes that one
+    /// entry. Every other entry's row is made when built.
+    pub(crate) entry_elems: Vec<(u32, ElemId)>,
 }
 
 impl ElemPlan {
+    /// Whether a point list's children are made from what it extends: the
+    /// points of the list prop it extends (`from`), or copies of the
+    /// children of the point list it copies; else its entries are its
+    /// own, each a row (ADR 0041, decision 4).
+    pub(crate) fn points_from_elsewhere(&self) -> bool {
+        self.from.is_some() || self.extend.is_some()
+    }
+
     /// The plan of a box, and of an element not planned: nothing.
     pub(crate) const NONE: ElemPlan = ElemPlan {
         props: Vec::new(),
@@ -156,6 +169,7 @@ impl ElemPlan {
         from: None,
         extend: None,
         links: Vec::new(),
+        entry_elems: Vec::new(),
     };
 
     /// How many of the element's ports are public, for an element of
@@ -165,7 +179,7 @@ impl ElemPlan {
         let n_table = component_type.prop_defs().len();
         match self.list {
             ListLen::None => Some(n_table),
-            ListLen::Points(n) => Some(n_table + component_type.list_width() * n as usize),
+            ListLen::Points(n) => Some(n_table + component_type.list_props(n as usize)),
             ListLen::AsReferent => None,
         }
     }

@@ -142,3 +142,37 @@ fn a_list_reads_its_element_children_and_refuses_a_bound_merge() {
     );
     assert!(message.contains("mergeMathLists"), "{message}");
 }
+
+/// A point list's own points show as pairs, and each is a row of the
+/// list: `$pl[2]` is a point (ADR 0041, step 3).
+#[test]
+fn a_point_list_shows_its_points_and_its_entries_are_rows() {
+    let doc = load(
+        r#"<graph><pointList name="pl">(1,2) (3,4)</pointList></graph>
+           <p name="p">$pl</p>
+           <numberList name="nl"><number name="a">5</number> 6</numberList>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "p"), "(1, 2), (3, 4)");
+    let row = doc.resolve_path("pl[2]").unwrap();
+    assert_eq!(doc.component_type(row).tag(), "point");
+    assert_eq!(doc.parent(row), doc.resolve_path("pl"));
+    // An authored entry of the entry's type is its own row; another is made.
+    assert_eq!(doc.resolve_path("nl[1]"), doc.resolve_path("a"));
+    let made = doc.resolve_path("nl[2]").unwrap();
+    assert_eq!(doc.component_type(made).tag(), "number");
+    assert_eq!(doc.value("nl[2]", "value"), Some(6.0));
+    assert_eq!(reference::check(&doc), None);
+}
+
+/// `asList="false"` shows a list's entries with nothing between them.
+#[test]
+fn as_list_false_joins_the_entries() {
+    let doc = load(
+        r#"<p name="p"><numberList asList="false">1 2 3</numberList></p>
+           <p name="q"><cumulativeSum asList="false">1 2 3</cumulativeSum></p>"#,
+    )
+    .unwrap();
+    assert_eq!(text(&doc, "p"), "123");
+    assert_eq!(text(&doc, "q"), "136");
+}

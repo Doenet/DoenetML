@@ -12,6 +12,7 @@ pub mod circle;
 pub mod line;
 mod pair;
 pub mod point;
+pub(crate) mod point_list;
 pub mod polygon;
 pub mod polyline;
 pub(crate) mod ray;
@@ -69,19 +70,5 @@ pub(crate) mod constrain_to_grid {
             yoffset: Literal(0.0),
         }
         owner: Point,
-    }
-}
-
-pub(crate) mod point_list {
-    use super::*;
-
-    component! {
-        /// `<pointList extend="$l.points">`: its children are points aliasing
-        /// the items of a list prop.
-        /// It only exists as `extend="$shape.points"`; any other is
-        /// refused.
-        tags: ["pointList"],
-        flags: [owned],
-        extend_value: List,
     }
 }

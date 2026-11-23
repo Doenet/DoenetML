@@ -473,6 +473,47 @@ impl ComponentType {
         }
     }
 
+    /// The type of a row of an entry of the type's list (ADR 0041,
+    /// decision 4), when the entries are the element's own (its children
+    /// or its planner give them, never an attribute: a value list's, a
+    /// list operator's, a sampler's): a number, a text, a boolean, a math
+    /// value or a point, as the entry is. Each entry of such an element is
+    /// a component of this type, a child of the list, whose ports
+    /// ([`ComponentType::entry_ports`]) alias the entry's cells.
+    pub fn entry_row(self) -> Option<ComponentType> {
+        let ListPoints::Given {
+            attribute: None,
+            entry,
+            ..
+        } = self.list()?.points
+        else {
+            return None;
+        };
+        Some(
+            match entry {
+                EntryKind::Number => Role::Value,
+                EntryKind::Text => Role::TextValue,
+                EntryKind::Boolean => Role::BooleanValue,
+                // What the cell holds, read as it holds it (ADR 0053).
+                EntryKind::Math | EntryKind::Any => Role::MathValue,
+                EntryKind::Point => Role::ListPoint,
+            }
+            .ty(),
+        )
+    }
+
+    /// The ports of a row of this type (an [`ComponentType::entry_row`])
+    /// that alias an entry's cells, in the entry's order: a value's one,
+    /// a point's two coordinates.
+    pub fn entry_ports(self) -> Vec<usize> {
+        match self.default_sel() {
+            Some(sel @ PropSel::Parts { .. }) => {
+                sel.parts().iter().map(|&p| usize::from(p)).collect()
+            }
+            _ => self.scalar_prop().into_iter().collect(),
+        }
+    }
+
     /// Whether the type's given list holds points, two cells an entry.
     pub fn lists_points(self) -> bool {
         self.list_width() == 2
@@ -590,6 +631,7 @@ impl ComponentType {
                 format!("{}{k}", self.given_coords().map_or("", |c| c[j])).into()
             }
             PropSel::At(PropAt::List) | PropSel::TableList => list_name().into(),
+            PropSel::At(PropAt::Companion) => list.and_then(|l| l.companion).unwrap_or("").into(),
             PropSel::Parts { .. } => {
                 let named = |parts: &[&str]| self.parts_sel(parts) == sel;
                 if let Some((name, _)) = self.def().combined_props.iter().find(|(_, p)| named(p)) {
@@ -618,6 +660,9 @@ impl ComponentType {
         let (list, coords, alternate_name) = self.given_list()?;
         if list.names.contains(&name) {
             return Some(PropAt::List);
+        }
+        if list.companion == Some(name) {
+            return Some(PropAt::Companion);
         }
         let index = |s: &str| s.parse::<usize>().ok().filter(|&k| k >= 1);
         if let Some(k) = name.strip_prefix(list.item).and_then(index) {
@@ -653,6 +698,12 @@ impl ComponentType {
             return Some(self.prop_defs()[pi].name.into());
         }
         let coords = self.given_coords().filter(|_| pi < n_props)?;
+        if let Some(companion) = self.list().and_then(|l| l.companion)
+            && self.companion_slots(n_props).contains(&pi)
+        {
+            let k = pi - self.companion_slots(n_props).start + 1;
+            return Some(format!("{companion}{k}").into());
+        }
         let w = coords.len();
         let (k, j) = ((pi - n_table) / w + 1, (pi - n_table) % w);
         Some(format!("{}{k}", coords[j]).into())
@@ -662,8 +713,31 @@ impl ComponentType {
     pub fn list_len(self, n_props: usize) -> usize {
         match self.list_width() {
             0 => 0,
-            w => (n_props - self.prop_defs().len()) / w,
+            w => (n_props - self.prop_defs().len()) / (w + self.companion_width()),
         }
+    }
+
+    /// How many cells an entry has in the list's companion sequence
+    /// ([`ListProp::companion`]): one when the list has one, else none.
+    pub fn companion_width(self) -> usize {
+        usize::from(self.list().is_some_and(|l| l.companion.is_some()))
+    }
+
+    /// How many public props an element with `n` list entries has after
+    /// its table's: the entries' cells, then the companion sequence's.
+    pub fn list_props(self, n: usize) -> usize {
+        (self.list_width() + self.companion_width()) * n
+    }
+
+    /// The positions of the companion sequence ([`ListProp::companion`])
+    /// of an element with `n_props` props.
+    pub fn companion_slots(self, n_props: usize) -> std::ops::Range<usize> {
+        if self.companion_width() == 0 {
+            return 0..0;
+        }
+        let n = self.list_len(n_props);
+        let start = self.prop_defs().len() + self.list_width() * n;
+        start..start + n
     }
 
     /// Whether prop `pi` of an element with `n_props` public props is
@@ -1171,10 +1245,12 @@ mod tests {
         // ADR 0049 added `interval`, a domain's endpoints and closedness,
         // `symbol`, a function's variable as a math cell,
         // `children_playing`, a piecewise function's pieces, and
-        // `sym_tokens`, a curve's coordinate from its tuple's entry. 33:
+        // `sym_tokens`, a curve's coordinate from its tuple's entry.
+        // 33: ADR 0041 step 3 added which entries are a value list's
+        // element children as they stand, and a point list's points. 35:
         // ADR 0053 added `entry_kind` and `reference_entries`, for what a
         // sort compares and what a text joins.
-        const PLAN_CTX_METHODS: usize = 33;
+        const PLAN_CTX_METHODS: usize = 35;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1310,7 +1386,6 @@ mod tests {
             MathInput,
             ChoiceInput,
             Choice,
-            PointList,
             P,
             ShortDescription,
             Hint,

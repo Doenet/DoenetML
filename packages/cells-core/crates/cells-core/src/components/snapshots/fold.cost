@@ -9,5 +9,5 @@ a copy has its value: cells 6 · essential 0 · constant 6 · instrs 0 · compon
 over math, the engine's operator over the operands (ADR 0043): cells 17 · essential 0 · constant 17 · instrs 0 · components 8
 an operand that is an expression makes it symbolic, and it follows: cells 10 · essential 1 · constant 6 · instrs 3 · components 6
 forced: symbolic over numbers, numeric over math; math text as written: cells 11 · essential 0 · constant 11 · instrs 0 · components 5
-one operand per entry of a list, and per element child: cells 15 · essential 0 · constant 14 · instrs 1 · components 10
-an element child or a list's entry that is math makes it symbolic (ADR 0043): cells 14 · essential 0 · constant 14 · instrs 0 · components 10
+one operand per entry of a list, and per element child: cells 15 · essential 0 · constant 14 · instrs 1 · components 13
+an element child or a list's entry that is math makes it symbolic (ADR 0043): cells 14 · essential 0 · constant 14 · instrs 0 · components 12

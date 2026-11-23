@@ -432,6 +432,9 @@ pub enum TextKind {
     /// Each child's text, trimmed, the empty ones left out, joined by a
     /// separator: an `<asList>`'s, its children separated by commas.
     Separated(&'static str),
+    /// Two numbers as a pair, `(1, 2)`: a point's coordinates, an entry of
+    /// a point list shown by itself (ADR 0041).
+    Pair(usize, usize),
 }
 
 /// What a component changes about where its descendants are (ADR 0038):
@@ -694,6 +697,10 @@ pub struct ListProp {
     pub interactive: bool,
     /// A renderer reads every point (a polygon's vertices).
     pub rendered: bool,
+    /// A second public sequence over the element's own ports, one cell
+    /// per entry, after the entries, by this name (ADR 0041 decision 1,
+    /// ADR 0053): a `<shuffle>`'s `componentOrder`.
+    pub companion: Option<&'static str>,
 }
 
 /// Where a component of a type is drawn, and so whether the props a renderer
@@ -798,6 +805,8 @@ pub enum PropAt {
     Coord(usize, usize),
     /// The list as a whole (`throughPoints`).
     List,
+    /// The list's companion sequence as a whole ([`ListProp::companion`]).
+    Companion,
 }
 
 /// A prop of a component type, resolved from its name.

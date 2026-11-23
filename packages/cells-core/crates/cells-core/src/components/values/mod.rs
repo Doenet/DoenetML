@@ -47,8 +47,9 @@ pub(crate) fn plan_list(
 ) -> crate::error::Result<(ElemWiring, usize)> {
     let component_type = ctx.component_type();
     let kind = component_type.list_entry().expect("a value list");
-    let entries = ctx.list_entries(pieces, max)?;
+    let entries = ctx.list_entries(pieces.clone(), max)?;
     let n = entries.len();
+    ctx.element_rows(&pieces, n);
     let mut wiring = ElemWiring::with_list(component_type, n);
     // Math text with references inside its brackets is read where math is.
     if !matches!(kind, EntryKind::Number | EntryKind::Math)

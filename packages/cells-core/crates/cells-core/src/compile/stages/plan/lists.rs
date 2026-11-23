@@ -39,7 +39,10 @@ impl<'a> Planning<'a> {
     /// contributes among a list's children. A read of a sequence is
     /// recorded, so a box it names boxes `e` (ADR 0032).
     pub(super) fn splice(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Splice {
-        let splice = self.splice_within(t, p, &mut Vec::new());
+        let points = self.rd.outlined(t).elems[e.index()]
+            .component_type
+            .lists_points();
+        let splice = self.splice_within(t, p, &mut Vec::new(), points);
         if splice != Splice::Value {
             crate::compile::read::record_read(&mut self.planned.reads, t, e, p);
         }
@@ -51,6 +54,7 @@ impl<'a> Planning<'a> {
         t: TemplateId,
         p: RefId,
         visiting: &mut Vec<(TemplateId, ElemId)>,
+        points: bool,
     ) -> Splice {
         let plan = &self.ar.refs[p.index()];
         let mut last = None;
@@ -68,7 +72,7 @@ impl<'a> Planning<'a> {
         };
         let rt = self.rd.template_up(t, plan.hops);
         let ty = self.rd.outlined(rt).elems[x.index()].component_type;
-        if !is_value_list(ty) {
+        if !is_value_list(ty, points) {
             return Splice::Value;
         }
         // The list itself, by its default prop or its list prop by name.
@@ -79,7 +83,7 @@ impl<'a> Planning<'a> {
         if !names_list {
             return Splice::Value;
         }
-        let Some(n) = self.list_len(rt, x, visiting) else {
+        let Some(n) = self.list_len(rt, x, visiting, points) else {
             return Splice::Value;
         };
         match &plan.entries[..] {
@@ -104,6 +108,7 @@ impl<'a> Planning<'a> {
         t: TemplateId,
         x: ElemId,
         visiting: &mut Vec<(TemplateId, ElemId)>,
+        points: bool,
     ) -> Option<usize> {
         if visiting.contains(&(t, x)) {
             return None;
@@ -114,7 +119,7 @@ impl<'a> Planning<'a> {
         let pieces = record.list_pieces();
         let n = match (pieces, el.extend) {
             // A copy with no children of its own has its referent's.
-            ([], Some(q)) => match self.splice_within(t, q, visiting) {
+            ([], Some(q)) => match self.splice_within(t, q, visiting, points) {
                 Splice::Entries(n) => Some(n),
                 _ => None,
             },
@@ -124,7 +129,7 @@ impl<'a> Planning<'a> {
                     n += match piece {
                         ListPiece::Text(_) | ListPiece::Math(_) => 1,
                         ListPiece::Reference(q) | ListPiece::Element(q) => {
-                            match self.splice_within(t, *q, visiting) {
+                            match self.splice_within(t, *q, visiting, points) {
                                 Splice::Value | Splice::Nothing => 1,
                                 Splice::Entries(k) => k,
                             }
@@ -177,6 +182,137 @@ impl<'a> Planning<'a> {
         Ok(entries)
     }
 
+    /// The entries of value list `e` of template `t` that are its element
+    /// children as they stand (ADR 0041, decision 4), recorded on its plan
+    /// for a build to make them the entries' rows: a child of the type the
+    /// list's entries are, contributing one entry. `pieces` are its
+    /// children, `n` how many entries they make.
+    pub(super) fn element_rows(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        pieces: &[ListPiece],
+        n: usize,
+    ) {
+        let Some(row) = self.rd.outlined(t).elems[e.index()]
+            .component_type
+            .entry_row()
+        else {
+            return;
+        };
+        let children = self.rd.elem_children(t, e);
+        let mut rows = Vec::new();
+        let mut k = 0;
+        for piece in pieces {
+            k += match piece {
+                ListPiece::Text(_) | ListPiece::Math(_) => 1,
+                ListPiece::Reference(q) | ListPiece::Element(q) => {
+                    match self.splice_within(t, *q, &mut Vec::new(), row.entry_ports().len() == 2) {
+                        // An entry past a list's end is one missing entry
+                        // (ADR 0046).
+                        Splice::Nothing => 1,
+                        Splice::Entries(m) => m,
+                        Splice::Value => {
+                            let plan = &self.ar.refs[q.index()];
+                            if let (ListPiece::Element(_), 0, [Step::Elem(x)], None, true) = (
+                                piece,
+                                plan.hops,
+                                &plan.steps[..],
+                                plan.prop,
+                                plan.entries.is_empty(),
+                            ) && children.contains(x)
+                                && self.rd.outlined(t).elems[x.index()].component_type == row
+                                && k < n
+                            {
+                                rows.push((k as u32, *x));
+                            }
+                            1
+                        }
+                    }
+                }
+            };
+        }
+        self.tables[t.index()].plans[e.index()].entry_elems = rows;
+    }
+
+    /// The points `pieces`, the children of point list `e` of template
+    /// `t`, contribute (ADR 0041, decision 9): a piece of text or math
+    /// text is a pair (`(1,2)`, `($a, 2)`); a reference or an element
+    /// child the point it names, a point list's points spliced, a list
+    /// prop's points (`$pg.vertices`) one per item, and an entry past such
+    /// a list's end a missing point (ADR 0046). At most `max` of them (`maxNumber`).
+    pub(super) fn point_entries(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        pieces: Vec<ListPiece>,
+        max: f64,
+    ) -> Result<Vec<GivenPoint>> {
+        let mut out = Vec::with_capacity(pieces.len());
+        for piece in pieces {
+            match piece {
+                ListPiece::Text(text) => {
+                    let mut toks = Vec::new();
+                    crate::compile::ir::expr::tokenize(&text, &mut toks).map_err(|reason| {
+                        Error::BadMath {
+                            text: text.clone(),
+                            reason,
+                        }
+                    })?;
+                    out.push(GivenPoint::Tuple(self.piece_point(&toks, &text)?));
+                }
+                ListPiece::Math(frags) => {
+                    let mut toks = Vec::new();
+                    let mut spelled = String::new();
+                    for frag in &frags {
+                        match frag {
+                            PieceFrag::Text(text) => {
+                                crate::compile::ir::expr::tokenize(text, &mut toks).map_err(
+                                    |reason| Error::BadMath {
+                                        text: text.clone(),
+                                        reason,
+                                    },
+                                )?;
+                                spelled.push_str(text);
+                            }
+                            PieceFrag::Ref(p) => toks.push(Token::Cell(*p)),
+                        }
+                    }
+                    out.push(GivenPoint::Tuple(self.piece_point(&toks, &spelled)?));
+                }
+                ListPiece::Reference(p) | ListPiece::Element(p) => match self.splice(t, e, p) {
+                    // An entry past a list's end: a missing point (ADR 0046).
+                    Splice::Nothing => out.push(GivenPoint::Ref(p)),
+                    Splice::Entries(n) => {
+                        for k in 1..=n {
+                            out.push(GivenPoint::Ref(self.entry_ref(t, p, k)));
+                        }
+                    }
+                    Splice::Value => match self.rd.array_items_of_plan(&self.ar, t, p)? {
+                        Some(n) => out.extend((0..n).map(|k| GivenPoint::Item(p, k))),
+                        None => out.push(GivenPoint::Ref(p)),
+                    },
+                },
+            }
+        }
+        out.truncate(cut_at(out.len(), max));
+        Ok(out)
+    }
+
+    /// A piece of a point list, `(a, b)`, as its two coordinates.
+    fn piece_point(&mut self, toks: &[Token], text: &str) -> Result<[Source; 2]> {
+        let bad = || Error::BadMath {
+            text: text.to_string(),
+            reason: "a point list's entry is a pair, `(a, b)`".into(),
+        };
+        let entries = crate::compile::ir::expr::tuple_entries(toks).ok_or_else(bad)?;
+        if entries.len() != 2 {
+            return Err(bad());
+        }
+        self.rd
+            .point_from_entries(&mut self.ar, &entries, MathSrc(&[]))
+    }
+
     /// Plan `p`, which names a value list, with entry `k` taken: `$p[k]`.
     pub(super) fn entry_ref(&mut self, t: TemplateId, p: RefId, k: usize) -> RefId {
         let mut plan = self.ar.refs[p.index()].clone();
@@ -190,9 +326,10 @@ impl<'a> Planning<'a> {
                 self.rd.outlined(self.rd.template_up(t, plan.hops)).elems[x.index()].component_type;
             plan.prop = Some(RefProp::of(ty, PropSel::At(PropAt::List)));
         }
+        let width = plan.prop.map_or(1, |rp| rp.of.list_width().max(1) as u8);
         plan.entries.push(EntryIndex {
             index: IndexPlan::constant(k as i64),
-            width: 1,
+            width,
         });
         self.ar.push_ref(plan)
     }
@@ -246,12 +383,12 @@ impl<'a> Planning<'a> {
 /// (ADR 0041, a static sequence): a value list's, cut at its `maxNumber`,
 /// or a list operator's (`<sort>`, `<cumulativeSum>`, `<differences>`),
 /// as its list declares (`from_children`).
-fn is_value_list(ty: ComponentType) -> bool {
+fn is_value_list(ty: ComponentType, points: bool) -> bool {
     ty.def().children.kind == crate::components::ChildrenKind::List
         && ty.list_from_children().is_some()
         && ty
             .list_entry()
-            .is_some_and(|k| k != crate::components::EntryKind::Point)
+            .is_some_and(|k| (k == crate::components::EntryKind::Point) == points)
 }
 
 /// `n` entries cut at `maxNumber` `max`: none below 1, the whole entries

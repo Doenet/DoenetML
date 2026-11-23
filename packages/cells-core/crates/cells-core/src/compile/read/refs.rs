@@ -433,6 +433,15 @@ impl<'a> Reader<'a> {
                             Body::Collect {
                                 component_type: ck, ..
                             } if steps.len() > 1 => ck,
+                            // After `$pl[k]` the component is the list's row
+                            // for that entry (ADR 0041, decision 4).
+                            _ if matches!(
+                                steps.last(),
+                                Some(Step::Item(Collection::ListPoints, _))
+                            ) =>
+                            {
+                                Role::ListPoint.ty()
+                            }
                             _ => component_type,
                         };
                         // `$l.points[1]`, `$l.points[$k][2]`, `$l.points[2].y`:

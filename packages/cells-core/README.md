@@ -21,7 +21,7 @@ Tags the core understands: `document`, `graph`, `point`, `number`,
 `repeatForSequence`, `collect`, `line`, `lineSegment`, `circle`, `polygon`
 (and `triangle`), `pointList`, `numberList`, `mathList`, `textList` and
 `booleanList` (from text, references, element children and nested lists,
-literal `maxNumber` and `mergeMathLists`), `p`, `setup`, `stickyGroup`, `mathInput`,
+literal `maxNumber` and `mergeMathLists`; each entry a row, ADR 0041), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
 or a `choiceInput` of `choice`s), `conditionalContent` (`case`, `else`) and
 `feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one

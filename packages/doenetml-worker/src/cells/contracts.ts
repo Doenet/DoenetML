@@ -237,59 +237,18 @@ function inputPresentation(table: CellsTable, c: number) {
     };
 }
 
-/** The contract of a value list whose entries read as text by `show`:
- * drawn as a `<text>` of them, comma-separated. */
-function valueList(show: (r: Reads, cell: number) => string): Contract {
-    return {
-        name: () => "text",
-        props: (r, c) => ({
-            value: r.table
-                .listCells(c)
-                .map((cell) => show(r, cell))
-                .join(", "),
-        }),
-        noChildren: true,
-    };
-}
-
-/** What a cell of a math list's entry holds, as text: its expression (the
- * blank one for none), or the number an entry aliasing one holds. */
-function heldText(r: Reads, cell: number): string {
-    const v = r.cell(cell);
-    if (r.table.core.cell_holds(cell) !== "math") return formatNumber(v, null);
-    return Number.isNaN(v) ? BLANK : r.table.core.expr_text(cell);
-}
-
-/** `heldText` as LaTeX. */
+/** LaTeX of what a cell of a math list's entry holds: its expression (the
+ * blank one for none), or the number an entry aliasing one holds; a
+ * sort's text entry (ADR 0053) as text. */
 function heldLatex(r: Reads, cell: number): string {
     const v = r.cell(cell);
+    if (r.table.core.cell_holds(cell) === "text") {
+        if (r.missingCell(cell)) return BLANK;
+        return `\\text{${Number.isNaN(v) ? "" : r.table.string(v)}}`;
+    }
     if (r.table.core.cell_holds(cell) !== "math") return numberLatex(v);
     return Number.isNaN(v) ? BLANK : r.table.core.expr_latex(cell);
 }
-
-/** A list of numbers, drawn as the text of its entries. */
-const NUMBER_LIST = valueList((r, cell) => r.cellText(cell, null));
-
-/** A `<sort>`'s or a `<shuffle>`'s entries (ADR 0053): each as its cell
- * holds it, a text, an expression or a number, separated by commas, or
- * by nothing with `asList="false"`. */
-const ORDERED_LIST: Contract = {
-    name: () => "text",
-    props: (r, c) => ({
-        value: r.table
-            .listCells(c)
-            .map((cell) => {
-                if (r.missingCell(cell)) return BLANK;
-                if (r.table.core.cell_holds(cell) === "text") {
-                    const id = r.cell(cell);
-                    return Number.isNaN(id) ? "" : r.table.string(id);
-                }
-                return heldText(r, cell);
-            })
-            .join(r.num(c, "asList") === 0 ? "" : ", "),
-    }),
-    noChildren: true,
-};
 
 function flag(table: CellsTable, c: number, name: string): boolean {
     const text = table.attr(c, name);
@@ -779,18 +738,6 @@ export const CONTRACTS: Record<string, Contract> = {
             ),
         }),
     },
-    // A value list (ADR 0041) is drawn, until its entries are rows of
-    // their own, as the text of its entries separated by commas, each as
-    // its kind reads.
-    numberList: NUMBER_LIST,
-    textList: valueList((r, cell) => {
-        if (r.missingCell(cell)) return BLANK;
-        const id = r.cell(cell);
-        return Number.isNaN(id) ? "" : r.table.string(id);
-    }),
-    booleanList: valueList((r, cell) =>
-        r.missingCell(cell) ? BLANK : r.cell(cell) === 1 ? "true" : "false",
-    ),
     tuple: {
         props: (r, c) => {
             const n = r.num(c, "n");
@@ -1342,18 +1289,6 @@ export const CONTRACTS: Record<string, Contract> = {
     // Lists of numbers a component computes or draws (the list and index
     // operators, `<sort>`, `<shuffle>`, `<sequence>` and the samplers):
     // drawn as a number list is, the text of their entries.
-    cumulativeSum: NUMBER_LIST,
-    cumulativeProduct: NUMBER_LIST,
-    cumulativeMin: NUMBER_LIST,
-    cumulativeMax: NUMBER_LIST,
-    differences: NUMBER_LIST,
-    sort: ORDERED_LIST,
-    shuffle: ORDERED_LIST,
-    sequence: NUMBER_LIST,
-    selectRandomNumbers: NUMBER_LIST,
-    sampleRandomNumbers: NUMBER_LIST,
-    selectPrimeNumbers: NUMBER_LIST,
-    samplePrimeNumbers: NUMBER_LIST,
     argMin: OPERATOR_VALUE,
     argMax: OPERATOR_VALUE,
     indexOf: OPERATOR_VALUE,
@@ -1434,13 +1369,25 @@ export const CONTRACTS: Record<string, Contract> = {
         }),
         noChildren: true,
     },
-    // A math list (ADR 0041) is drawn as the other value lists are, as the
-    // text of its entries; an entry read by itself (`$ml[2]`) is a math.
-    mathList: valueList((r, cell) => heldText(r, cell)),
+    // A sort's or a shuffle's row holds what its operands do (ADR 0053):
+    // a text one is drawn as a text.
     mathValue: {
-        name: () => "math",
+        name: (table, c) => {
+            const cell = table.cell(c, "value");
+            return cell !== undefined && table.core.cell_holds(cell) === "text"
+                ? "text"
+                : "math";
+        },
         props: (r, c) => {
             const cell = r.table.cell(c, "value");
+            if (
+                cell !== undefined &&
+                r.table.core.cell_holds(cell) === "text"
+            ) {
+                return {
+                    value: r.missingCell(cell) ? BLANK : r.text(c, "value"),
+                };
+            }
             return {
                 latex: cell === undefined ? BLANK : heldLatex(r, cell),
                 renderMode: "inline",
@@ -1479,6 +1426,25 @@ export const TRANSPARENT = new Set([
     "case",
     "_postponeRenderContainer",
     "asList",
+    // A list whose entries are its own (ADR 0041, decision 4) stands as
+    // its rows, each drawn by its own type's contract: a number, a text, a
+    // boolean, a math value or a point.
+    "numberList",
+    "textList",
+    "booleanList",
+    "mathList",
+    "cumulativeSum",
+    "cumulativeProduct",
+    "cumulativeMin",
+    "cumulativeMax",
+    "differences",
+    "sort",
+    "shuffle",
+    "sequence",
+    "selectRandomNumbers",
+    "sampleRandomNumbers",
+    "selectPrimeNumbers",
+    "samplePrimeNumbers",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1490,6 +1456,25 @@ export const LIST_LIKE = new Set([
     "collect",
     "select",
     "asList",
+    // A list's rows (ADR 0041, decision 4), as the list components of the
+    // other cores show their entries.
+    "pointList",
+    "numberList",
+    "textList",
+    "booleanList",
+    "mathList",
+    "cumulativeSum",
+    "cumulativeProduct",
+    "cumulativeMin",
+    "cumulativeMax",
+    "differences",
+    "sort",
+    "shuffle",
+    "sequence",
+    "selectRandomNumbers",
+    "sampleRandomNumbers",
+    "selectPrimeNumbers",
+    "samplePrimeNumbers",
 ]);
 
 /** List-like types whose items are the children of one scope (an

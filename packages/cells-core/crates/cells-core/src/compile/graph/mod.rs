@@ -41,6 +41,7 @@ mod eval;
 mod expand;
 mod math;
 mod refuse;
+mod rows;
 mod signature;
 mod walk;
 
@@ -890,7 +891,11 @@ impl<'c> Stamp<'c> {
                 }
                 Body::Choice(cid) => self.choice(t, e, cid),
                 Body::Collect { .. } => self.collects.push((t, e)),
-                _ if row.component_type.holds_list_points() => self.point_lists.push((t, e)),
+                _ if row.component_type.holds_list_points()
+                    && tpl.plan(e).points_from_elsewhere() =>
+                {
+                    self.point_lists.push((t, e))
+                }
                 Body::Plain => self.ref_children_of(t, &row.children),
             }
         }
@@ -1045,6 +1050,7 @@ impl<'c> Stamp<'c> {
             self.context = self.c.plans.templates[t.index()].row(e).node;
             self.place_list_copy(t, e, &mut Vec::new());
         }
+        self.expand_rows();
         let pending = std::mem::take(&mut self.pending);
         for &(t, id, _) in pending.iter().filter(|p| !p.2) {
             self.place(t, id);
@@ -1439,7 +1445,11 @@ impl<'c> Stamp<'c> {
             _ if row.component_type.holds_list_points() => {
                 self.elem_children.get(&(t, e)).cloned().unwrap_or_default()
             }
-            Body::Plain => self.child_comps(t, &row.children),
+            // A list's rows, once made.
+            Body::Plain => match self.elem_children.get(&(t, e)) {
+                Some(rows) => rows.clone(),
+                None => self.child_comps(t, &row.children),
+            },
         }
     }
 
@@ -1590,6 +1600,10 @@ impl<'c> Stamp<'c> {
             PropAt::List => (1..=component_type.list_len(n))
                 .flat_map(|k| (0..w).map(move |j| (k, j)))
                 .map(|(k, j)| coord(k, j))
+                .collect(),
+            PropAt::Companion => component_type
+                .companion_slots(n)
+                .map(|i| Some(self.slot(c, i)))
                 .collect(),
         })
     }

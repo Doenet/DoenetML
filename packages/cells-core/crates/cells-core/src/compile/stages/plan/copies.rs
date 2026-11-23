@@ -31,10 +31,11 @@ impl<'a> Planning<'a> {
                 self.ar.sym_text.insert(id, SymText::Leaf(p));
                 wire(id)
             }
-            // Its points are the list's, synthesized when built.
+            // Its points are the list's, synthesized when built; its own
+            // props are none.
             Some(ExtendValue::List) => {
                 self.tables[t.index()].plans[e.index()].from = Some(p);
-                Vec::new()
+                vec![Source::absent(); component_type.prop_defs().len()]
             }
             None => return Err(Error::PathTooDeep(self.ar.ref_display(self.rd.dast, p))),
         };

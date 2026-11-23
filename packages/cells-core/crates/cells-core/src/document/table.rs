@@ -302,6 +302,12 @@ impl Built {
                 .flat_map(|k| (0..component_type.list_width()).map(move |j| (k, j)))
                 .map(|(k, j)| coord(k, j))
                 .collect(),
+            PropAt::Companion => Some(
+                component_type
+                    .companion_slots(n)
+                    .map(|i| cells[i])
+                    .collect(),
+            ),
         }
     }
 
@@ -334,24 +340,34 @@ impl Document {
         let value = |pi: usize| cells.get(pi).map(|cell| self.cells[cell.index()]);
         let ty = self.component_type(c);
         // A value list shows its entries, separated by commas (ADR 0041).
-        if let Some(kind) = ty.list_entry().filter(|&k| k != EntryKind::Point) {
+        // A point list's own points (`(1, 2), (3, 4)`) likewise; a shape's
+        // vertices are no text of it.
+        if let Some(kind) = ty
+            .list_entry()
+            .filter(|&k| k != EntryKind::Point || ty.entry_row().is_some())
+        {
             let n_table = ty.prop_defs().len();
-            // `asList="false"`: no separator (a `<sort>`'s, a `<shuffle>`'s).
-            let separator = match ty.prop_index("asList").and_then(value) {
-                Some(0.0) => "",
+            let entries = &cells[n_table.min(cells.len())..];
+            // Commas between the entries, unless the list says not.
+            let separator = match self.attr_text(c, "asList") {
+                Some(t) if t.trim().eq_ignore_ascii_case("false") => "",
                 _ => ", ",
             };
-            for (k, cell) in cells.iter().skip(n_table).enumerate() {
+            for (k, entry) in entries.chunks(ty.list_width().max(1)).enumerate() {
                 if k > 0 {
                     out.push_str(separator);
                 }
+                let cell = entry[0];
                 let v = self.cells[cell.index()];
                 match kind {
                     EntryKind::Number => out.push_str(&format_number(v)),
-                    EntryKind::Text => out.push_str(&self.text_value(*cell)),
+                    EntryKind::Text => out.push_str(&self.text_value(cell)),
                     EntryKind::Boolean => out.push_str(boolean_text(v)),
-                    EntryKind::Math | EntryKind::Any => out.push_str(&self.held_text(*cell)),
-                    EntryKind::Point => unreachable!("filtered above"),
+                    EntryKind::Math | EntryKind::Any => out.push_str(&self.held_text(cell)),
+                    EntryKind::Point => {
+                        let y = entry.get(1).map_or(f64::NAN, |c| self.cells[c.index()]);
+                        out.push_str(&format!("({}, {})", format_number(v), format_number(y)));
+                    }
                 }
             }
             return;
@@ -374,6 +390,11 @@ impl Document {
                 Some(&e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
                 _ => out.push_str(&format_number(value(pi).unwrap_or(f64::NAN))),
             },
+            Some(TextKind::Pair(x, y)) => out.push_str(&format!(
+                "({}, {})",
+                format_number(value(x).unwrap_or(f64::NAN)),
+                format_number(value(y).unwrap_or(f64::NAN))
+            )),
             Some(TextKind::Delimited(before, after)) => {
                 out.push_str(before);
                 self.push_children_text(c, out);

@@ -153,6 +153,12 @@ impl<'c> Stamp<'c> {
                             self.set(s, Def::Alias(target));
                             self.label(s, target, &label);
                         }
+                        // A copy of a list has rows of its own over its
+                        // entries.
+                        let rows = self.rows_of(Comp::Made(m), t, &[]);
+                        if !rows.is_empty() {
+                            self.g.made[m as usize].children = rows;
+                        }
                     }
                 }
             }

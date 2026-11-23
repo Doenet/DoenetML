@@ -44,10 +44,13 @@ component! {
         item: math,
         values: value of Any, entries: children,
         rendered: true,
+        companion: componentOrder,
     }
     alternate_names {
         numValues: numComponents,
     }
+    // Whether a renderer shows the entries separated by commas.
+    presentation { asList }
     attributes {
         r#type: Text,
         asList: LiteralFlag,
@@ -191,6 +194,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             })
             .collect();
         wiring.set_entries(chosen);
+        // The order, public as the list's companion sequence (ADR 0053):
+        // a shuffle's `componentOrder`, and a sort's.
+        wiring.set_companion(order.iter().map(|&o| Wire::own(o)).collect());
     }
     wiring.set_public(Props {
         numComponents: Wire::constant(n as f64),
