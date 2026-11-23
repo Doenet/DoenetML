@@ -1147,6 +1147,16 @@ export function breakReferenceCycles({
                 continue;
             }
             edges.push(child.componentIdx);
+            if (
+                child.componentType === "_copy" &&
+                child.extending &&
+                !("Ref" in child.extending) &&
+                writtenAsContent(child)
+            ) {
+                // a tag written with `extend` or `copy` holds the label of
+                // what it is of, as what holds it copies it (`heldNode`)
+                edges.push(heldNode(child.componentIdx));
+            }
         }
         return edges;
     }
@@ -1193,6 +1203,18 @@ export function breakReferenceCycles({
     const COUNT = 3 * RESPONSES;
     function countNode(idx: number) {
         return -COUNT - idx;
+    }
+
+    /**
+     * The node for the tag `idx` written with `extend` or `copy` as content
+     * (`<point name="b" extend="$a"/>` in a `<p>`), as what holds it copies
+     * it (`heldEdges`): with the label of what it is of. Apart from the tag,
+     * which a reference to it as a value (`$b` in a `<when>`) reads without
+     * that label. Negative, apart from the other nodes.
+     */
+    const HELD = 4 * RESPONSES;
+    function heldNode(idx: number) {
+        return -HELD - idx;
     }
 
     /**
@@ -1392,7 +1414,8 @@ export function breakReferenceCycles({
             // holds its label as the component does, wherever it is
             // written: in a `<p>`, a `<cell>` or a `<stack>` too, where
             // `$b` in a `<when>` in what its label holds reads its value,
-            // not its label (Doenet/DoenetML#2654, review)
+            // not its label (Doenet/DoenetML#2654, review). What holds it
+            // as content holds that label (`heldNode`).
             return false;
         }
         if (writtenAsContent(copy)) {
@@ -1472,6 +1495,69 @@ export function breakReferenceCycles({
                   componentInfoObjects,
               });
         return readsValue === undefined;
+    }
+
+    /**
+     * The edges to the labels `target` has: its own, and, if it is a
+     * reference, those of what it is of, which a copy of it holds too.
+     */
+    function labelEdges(target: SerializedComponent) {
+        const edges: number[] = [];
+        const seen = new Set<SerializedComponent>();
+        let labelled: SerializedComponent | undefined = target;
+        while (labelled && !seen.has(labelled)) {
+            seen.add(labelled);
+            for (const child of labelled.children ?? []) {
+                if (
+                    typeof child === "object" &&
+                    inherits(child.componentType, "label")
+                ) {
+                    edges.push(child.componentIdx);
+                }
+            }
+            labelled =
+                labelled.componentType === "_copy" &&
+                !referenceOf(labelled)?.unresolvedPath?.length
+                    ? targetOf(labelled)
+                    : undefined;
+        }
+        return edges;
+    }
+
+    /**
+     * The edges from the tag `held`, written with `extend` or `copy` as
+     * content (`heldNode`), as what holds it copies it: to the labels of the
+     * graphical component it is of, which it holds as that component does
+     * (`<p name="q"><point name="b" extend="$a"/></p>` with `$q` in a's
+     * label holds itself). Not from the tag itself, which a reference to it
+     * as a value (`$b` in a `<when>` in what a's label holds) reads without
+     * its label (Doenet/DoenetML#2654, review).
+     */
+    function heldEdges(held: SerializedComponent): number[] {
+        if (typeof held.doenetAttributes?.typeChangeAtLoad === "object") {
+            // an error already, which holds nothing
+            return [];
+        }
+        const reference = referenceOf(held);
+        if (
+            !reference ||
+            reference.unresolvedPath?.length ||
+            branchReads.has(held) ||
+            indexThroughCopy(reference)
+        ) {
+            return [];
+        }
+        const target = targetOf(held);
+        const targetType = target ? typeOf(target) : undefined;
+        if (
+            !target ||
+            target === held ||
+            targetType === undefined ||
+            !inherits(targetType, "_graphical")
+        ) {
+            return [];
+        }
+        return labelEdges(target);
     }
 
     /**
@@ -1996,24 +2082,7 @@ export function breakReferenceCycles({
                     // the value of the label it does not (#1384). An extend
                     // of a component holds its label too (`<point name="b"
                     // extend="$a"/>`, `$b` in a `<p>` in a's label).
-                    const seen = new Set<SerializedComponent>();
-                    let labelled: SerializedComponent | undefined = target;
-                    while (labelled && !seen.has(labelled)) {
-                        seen.add(labelled);
-                        for (const child of labelled.children ?? []) {
-                            if (
-                                typeof child === "object" &&
-                                inherits(child.componentType, "label")
-                            ) {
-                                edges.push(child.componentIdx);
-                            }
-                        }
-                        labelled =
-                            labelled.componentType === "_copy" &&
-                            !referenceOf(labelled)?.unresolvedPath?.length
-                                ? targetOf(labelled)
-                                : undefined;
-                    }
+                    edges.push(...labelEdges(target));
                 }
             }
             const written = writtenType(component);
@@ -2233,7 +2302,10 @@ export function breakReferenceCycles({
     function edges(idx: number) {
         let result = edgesByIdx.get(idx);
         if (result === undefined) {
-            if (idx <= -COUNT) {
+            if (idx <= -HELD) {
+                const held = componentsByIdx.get(-idx - HELD);
+                result = held ? heldEdges(held) : [];
+            } else if (idx <= -COUNT) {
                 const composite = componentsByIdx.get(-idx - COUNT);
                 result = composite ? countEdges(composite) : [];
             } else if (idx <= -EXPANSION) {
@@ -2350,6 +2422,13 @@ export function breakReferenceCycles({
         // reads the one entry it names, when the list says which child that
         // is (`prefill="$l[2]"` of `<mathList name="l">1 $mi</mathList>`)
         findCycles(listIndexEdges, listEntryEdges);
+    }
+    // a tag written with `extend` or `copy` is on a cycle through what it
+    // holds as what holds it copies it (`heldNode`)
+    for (const idx of [...onCycle]) {
+        if (idx <= -HELD) {
+            onCycle.add(-idx - HELD);
+        }
     }
 
     // What a load that stopped on a circular dependency blamed (D57). First,

@@ -5,6 +5,7 @@ import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
 import { PASSED } from "../../core/dependencies/circularCheckMarks";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { takeErrorsReportedAfterLoad } from "../utils/errorsAfterLoad";
+import { setLoadCycleBackstop } from "../../utils/loadCycleBlame";
 import {
     ATTRIBUTES_READ,
     INPUTS,
@@ -1747,6 +1748,57 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
         });
     }
 
+    // A tag written with `extend` or `copy` holds the label of what it is
+    // of, and what holds it as content copies it, label and all: `$q` in
+    // a's label, with `q` holding `b`, holds itself. Each was an error at
+    // load before a tag written with `extend` stopped copying its target's
+    // label by where it is written, which left the `<p>` ones to the
+    // run-time backstop and the `copy` ones hanging the worker; the
+    // `<cell>` and `<hint>` ones with `copy` hung before this PR too.
+    for (const [container, close] of [
+        ['<p name="q">', "</p>"],
+        ['<tabular><row><cell name="q">', "</cell></row></tabular>"],
+        ['<figure><caption name="q">', "</caption></figure>"],
+        ['<hint name="q">', "</hint>"],
+        ['<section name="q"><p>', "</p></section>"],
+    ]) {
+        for (const [shape, attributes] of [
+            ["point", ""],
+            ["line", ' through="(1,2) (3,4)"'],
+            ["circle", ""],
+        ]) {
+            for (const how of ["extend", "copy", "copyWithState"]) {
+                const tag = `<${shape} name="b" ${how}="$a"/>`;
+                const doenetML = `${container}${tag}${close}<graph><${shape} name="a"${attributes}><label>$q</label></${shape}></graph>`;
+                it(`a ${shape} written with ${how} in ${container} holding its target's label holding the container is an error at load`, async () => {
+                    // Found by the load check, not by the run-time backstop
+                    // nor by the check for a shadow of itself when the copy
+                    // is expanded, which names no component type and warns
+                    // of what the label then holds: each error names the
+                    // type of the component in error, and nothing warns.
+                    const backstopWas = setLoadCycleBackstop(false);
+                    try {
+                        const { core, errors, rest } =
+                            await errorsAndRest(doenetML);
+                        expect(errors).eqls(at(doenetML, [tag, "$q"]));
+                        expect(rest).eq("rest");
+                        expect(
+                            getDiagnosticsByType(core).errors.map(
+                                (error) => error.message,
+                            ),
+                        ).eqls([
+                            `Circular dependency detected involving \`<${shape}>\` component.`,
+                            `Circular dependency detected involving \`<${container.match(/<(\w+) name="q"/)![1]}>\` component.`,
+                        ]);
+                        expect(getDiagnosticsByType(core).warnings).eqls([]);
+                    } finally {
+                        setLoadCycleBackstop(backstopWas);
+                    }
+                });
+            }
+        }
+    }
+
     for (const [description, doenetML] of [
         // `fixed` changes no value, so a value is read as ever
         [
@@ -1774,10 +1826,12 @@ describe("Cycles through what a container holds, through fixed, and a copy in it
         // label held as the component holds it, wherever it is written.
         // A `<cell>` or a `<stack>` here was a false error at load, as a
         // `<p>` was before.
-        ...["cell", "stack", "p"].map((tag) => [
-            `an award reading a point extended in a ${tag}, whose label holds the award`,
-            `<answer><mathInput/><award name="q"><when>$b=1</when></award></answer><graph><point name="a"><label>$q</label></point></graph><${tag}><point name="b" extend="$a"/></${tag}>`,
-        ]),
+        ...["cell", "stack", "p", "hint"].flatMap((tag) =>
+            ["extend", "copy"].map((how) => [
+                `an award reading a point made with ${how} in a ${tag}, whose label holds the award`,
+                `<answer><mathInput/><award name="q"><when>$b=1</when></award></answer><graph><point name="a"><label>$q</label></point></graph><${tag}><point name="b" ${how}="$a"/></${tag}>`,
+            ]),
+        ),
         // A point made with `copy` or `copyWithState` pastes the DoenetML of
         // what it copies, the reference to itself in its label included,
         // which reads its value (VAL-10), as with `extend` (item 3). It
