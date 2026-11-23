@@ -679,3 +679,27 @@ fn what_inherits_a_boxed_containers_fixed_is_boxed_with_it() {
     assert_eq!(doc.value("k", "value"), Some(5.0));
     assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
 }
+
+/// Sealing's type checks run once every type is settled, so every element
+/// that fails one is reported by one pass and they are boxed together:
+/// a document with several compiles twice, not once more per failure
+/// (ADR 0050, decision 4). What reads one of them reads a box, and what
+/// is under one reports nothing.
+#[test]
+fn several_type_failures_compile_twice() {
+    let bad = r#"<point x="$p"/>"#;
+    let src = format!(
+        r#"<point name="p"/>{}<number name="k">5</number>
+        <group name="g"><point name="A" x="$p"/><number name="m">$A.x</number></group>
+        <graph name="s" xmin="$p"><point x="$p"/></graph>"#,
+        bad.repeat(5)
+    );
+    let (codes, plans) = error_codes_and_plans(&src);
+    // The five, `A`, and the graph; not the point in the graph.
+    assert_eq!(codes, ["cells-arity-mismatch"; 7], "{codes:?}");
+    assert_eq!(plans, 2);
+    let doc = load(&src).unwrap();
+    assert_eq!(doc.value("k", "value"), Some(5.0));
+    assert!(doc.value("m", "value").unwrap().is_nan());
+    assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()));
+}

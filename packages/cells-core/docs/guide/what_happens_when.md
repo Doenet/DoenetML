@@ -72,10 +72,11 @@ for a read of a referent's settled type, in the read list (an extend's
 of its referent, a container copy's of what it clones, a clone's of its
 original), and what is under a box is boxed with it and linking boxes
 its readers to a fixpoint (ADR 0050), so a box's readers never stand on
-what it was. An error the
+what it was. An error sealing or the
 check raises records the innermost element it concerns, which is boxed
 from the start of a new compile, and the check runs again until every
-element builds. A box keeps its name (ADR 0027): a reference to it
+element builds; the elements sealing's type checks fail on are boxed
+together. A box keeps its name (ADR 0027): a reference to it
 resolves and reads as undefined, with no diagnostic of its own, and an
 extend of it is boxed in turn (`cells-boxed-referent`). A dependency cycle
 boxes the component it names. Only an error with no element to box, a

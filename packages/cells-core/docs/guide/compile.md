@@ -122,7 +122,12 @@ A failure no element can carry in place, one sealing or the check finds,
 ends the compile at the next stage boundary as a
 [`Failure`](crate::compile::Failure) that names the element to box. The
 compile then runs again from outlining with that element's node boxed
-from the start, until the check passes. A dependency cycle boxes the
+from the start, until the check passes: given leaves are tied and types
+inferred by then, and a compile that runs again keeps nothing that could
+be stale (ADR 0050, decision 4). Sealing's type checks run once every
+type is settled, so they report every element that fails one, outermost
+only, and those are boxed together: a document with several compiles
+twice, not once more per failure. A dependency cycle boxes the
 component it names (ADR 0013's amendment). Only a failure with no
 element to box, a cycle through no component the author wrote, fails
 the load. The diagnostics are the

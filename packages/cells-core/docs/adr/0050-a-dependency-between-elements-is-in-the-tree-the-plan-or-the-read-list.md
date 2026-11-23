@@ -1,6 +1,7 @@
 # A dependency between elements is in the tree, in the plan, or in the read list
 
-Status: proposed 2026-11-23. Draft; no migration step is done. Replaces
+Status: accepted 2026-11-23. Migration steps 1 to 4 are done; what step 2
+found is listed under it. Replaces
 the first draft of this number ("Every read across elements is a fact of
 a declared kind", commit 04f940f), which proposed a `Fact` enum, a schema
 table and one recorder. Sets aside ADR 0032's decision 6 (a facts graph
@@ -118,11 +119,20 @@ planners' files. Planning reads a row through one of:
   exception, `docs/machinery-context.md`). Unrecorded: the plan reads a
   port of `k`, the second row. A site that reads `k` to decide and puts
   no port of `k` in the plan is not this accessor's; see the open
-  questions.
+  questions. `body_rows(t, e)` is the same for the hidden elements
+  outlining made in a repeat's body, which the repeat plans.
+- `referent_row(rt, x)`: an element a reference of the one planned
+  names, read for more than its type (its node, its scope, its own
+  `extend`). Added by step 2, which found such reads. Unrecorded: each
+  follows a `referent_type` of the same reference, or puts the reference
+  in a source of the plan.
 
-The accessors live in one file under `stages/plan/`. Which relation a
-read is, is then said where the read is written, and a read of an
-element that is none of the four does not compile.
+The accessors live in one file under `stages/plan/`, `rows.rs`. Which
+relation a read is, is then said where the read is written, and the raw
+index does not compile in the other files. The accessors take ids, so
+they name the relation and do not prove it: `owned_row` asserts in debug
+builds that `k` is under `e`, and the others are held by review of the
+one line that calls them.
 
 ### 4. A failure is boxed in place up to linking and by compiling again after
 
@@ -139,18 +149,22 @@ container copy whose clones are not made fails naming it
 (`Error::AwaitsClones`), outlining makes them, and the read runs again
 (`with_clones`).
 
-A document with k failures in sealing compiles k + 1 times. That is a
-cost on documents with errors only, and it is not measured. If it is
-shown to matter (step 4), sealing reports every failure of a pass and
-the compile runs twice, not once per failure. Boxing from sealing in
-place is not the remedy.
+A document with k failures in sealing compiled k + 1 times. That is a
+cost on documents with errors only. Step 4 measured it and took the
+remedy: sealing's type checks, which run once every type is settled,
+report every element that fails one, and the compile runs twice, not
+once per failure. Sealing's other failures (a choice's interface, the
+inference itself) and the check's still name one node each. Boxing from
+sealing in place is not the remedy.
 
 ### 5. What this does not change
 
 - The stages, their tables and their fixpoints (ADRs 0027, 0030, 0031).
 - `Read`, the two `reads` vectors, `attr_read` and `link/unread.rs`
   (ADR 0021), `Planned::shares`, sealing's fixpoint, sharing (ADR 0033).
-- The retry for what the check finds, and the rebuild (ADR 0004).
+- The retry for what the check finds, and the rebuild (ADR 0004). Step 4
+  changes how many nodes one retry boxes, not that sealing ends the
+  compile to box.
 - Load: no read is added to a compile, and none is recorded that is not
   recorded today.
 
@@ -191,52 +205,119 @@ place is not the remedy.
   case that would need the read list widened from references to
   elements. None is known.
 - ADR 0032's "a document compiles once however many elements fail" is
-  not carried out. A document with errors compiles more than once, and
-  how often is bounded by step 4 if it is taken.
+  not carried out. A document with errors compiles more than once: twice
+  for any number of failed type checks (step 4), and once more per node
+  for what the check finds.
 - What would reopen this: a compile that recompiles part of a document
   after an edit (against ADRs 0004 and 0015), or relations of the kind
   in the point above arriving in number.
 
 ## Migration
 
-Each step lands alone, with the golden diff unchanged. Steps 1 and 2
-change no behaviour; `scripts/load-diff.sh` is recorded for step 2 and
-is within noise.
+Each step landed alone in behaviour: the golden diff is unchanged over
+all four (37 documents, programs identical), and
+`scripts/load-diff.sh` against the commit before them is within noise
+(new / base from 0.97 to 1.03 over the eight shapes at 1,000 and 10,000
+after step 2, and from 0.96 to 1.05 after step 4; the 1.05, `poly` at
+10,000, was the 0.97 of the run before).
 
-1. **Pin what holds.** Tests in `tests/diagnostics.rs`: an element in a
-   graph that is boxed (an unread attribute; a bad `xmin`) is boxed with
-   it, and a reference to that element from outside is
-   `cells-boxed-referent`; the same for an element under a boxed
-   container whose `fixed` it inherits (ADR 0022). These pass today.
-2. **The accessors.** `own_row`, `enclosing_row`, `owned_row` in one
-   file under `stages/plan/`; the 62 sites that index `rd.outlined` are
-   sorted into them, and the raw index is no longer reachable from the
-   other files of `stages/plan/`. A site that fits none is the finding
-   of this step and is listed here before it is changed.
-3. **The rule in the code's own words.** The module docs of
-   `stages/link/mod.rs` and `ir/boxes.rs` carry decision 2's table, and
-   `docs/guide/` says which row a new relation is.
-4. **Sealing's failures, if measured.** `trace::count("boxed")` over the
-   fixtures and a document with several type failures says how many
-   compiles an erroneous document costs. If that is a cost worth
-   removing, `seal/types.rs` returns every failure of a pass and
-   `plan_and_check` boxes them together. Test: the diagnostics unchanged,
-   and two compiles where there were k + 1.
+1. **Pin what holds.** Done. `tests/diagnostics.rs`:
+   `what_sits_in_a_boxed_graph_is_boxed_with_it` (an unread attribute; a
+   bad `xmin`; a `<number extend="$p.vertex.x"/>` outside is
+   `cells-boxed-referent`) and
+   `what_inherits_a_boxed_containers_fixed_is_boxed_with_it` (ADR 0022).
+   Both passed before any other step, in one compile.
+2. **The accessors.** Done. `Reader` is split in two:
+   `SourceReader`, the readers, whose row access is private to
+   `compile/read/`; and `Reader`, which derefs to it and adds the rows,
+   for every stage but planning. Planning holds `Rows`
+   (`stages/plan/rows.rs`), which derefs to `SourceReader` and keeps its
+   `Reader` private, so `rd.outlined(t)`, `rd.elem(t, e)` and
+   `rd.settled()` do not compile in the planners' files. The sites
+   (62 of `outlined`, 6 of `elem`, 3 of `settled`) sort as:
+   - *own*: 32 reads, among them every `Elem { .. } = ..` at the head of a
+     planner.
+   - *enclosing*: the three walks (`under_graph`, `nearest_attr`,
+     `enclosing_graph_prop`), now `Rows`'s, over one `enclosing_row`.
+   - *owned*: 14 reads, of an answer's children and a choice input's choices
+     (`answer.rs`), a list's entry elements (`lists.rs`), a type's owned
+     inputs and a piecewise function's pieces (`ctx.rs`), and a repeat's
+     hidden body elements (`iterates.rs`, through `body_rows`).
+   - *the tables' shape*, no element's row: a template's element count,
+     its `$ref` children, its parent; and `box_in_place`, which is
+     handed every row.
+   - *outlining's facts of the element*, not rows: an answer's when
+     references and responses, now readers of `SourceReader`
+     (`when_ref`, `answer_response`).
+
+   What fit none of the three accessors, the findings:
+   - **Nine reads of a referent's row for more than its type.**
+     `copies.rs` (whether an `extend` referent is one the author wrote,
+     twice), `ctx.rs` (the referent's node and scope, for a copy with
+     overrides), `iterates.rs` (a `<functionIterates>`'s function: that
+     it is one, and its node; a `<repeat for>`'s target: that it is a
+     `<functionIterates>`), `lists.rs` (whether a piece names a value
+     list, what a copy of a list extends, the type an entry is taken
+     of). Each follows a `referent_type` of the same reference, which
+     recorded the read, or puts the reference in a source of the plan,
+     so each is in decision 2's second or third row. They read through
+     `referent_row`, a fourth accessor; nothing else was changed.
+   - **No read of an element under the reader that puts no port of it
+     in the plan** (the first open question). An answer that finds a
+     child of a type it does not take fails, and has no plan. A list
+     whose child is an entry element holds a reference to it.
+   - **One read that decides a plan and is in none of the three places,
+     outside this step's sites.** `inline_maths` (`attrs.rs`), which a
+     line's equation calls, replaces a reference to a `<math>` with that
+     math's parsed expression, read from parsing's table, not from a
+     row. The reference is then in no source and the read is not
+     recorded, so `<math name="b" bogus="1">2x + 1</math>` is boxed and
+     `<line>y = $b</line>` still has slope 2, where every other
+     reference to a box reads the missing value. Not changed here,
+     since the step changes no behaviour. The remedy is one line,
+     `record_read` of the reference inlined, which makes it the third
+     row; whether the line should then be boxed with its cause or read
+     the box as missing is the decision that line needs.
+3. **The rule in the code's own words.** Done. The module docs of
+   `stages/link/mod.rs`, `ir/boxes.rs` and `stages/plan/rows.rs` carry
+   decision 2's table, and `docs/guide/compile.md` ("Boxing") says which
+   row a new relation is.
+4. **Sealing's failures, measured and taken.** Done. Every golden
+   document and fixture (63) compiles once. A 1,000-element document
+   with k `<point x="$p"/>` (an arity failure of sealing's type checks)
+   compiled k + 1 times, each compile the cost of the first: 5 ms with
+   none, 20 ms with 5, 108 ms with 40, in a release build. Sealing's
+   checks run in a pass of their own after the types' fixpoint, so
+   `infer_types` now returns every element's first failure of that
+   pass, less those under another failing element, and
+   `plan_and_check` boxes them together. Test:
+   `several_type_failures_compile_twice` (seven failures, a failing
+   element under a failing graph among them: seven errors less the
+   nested one, two compiles), and the diagnostics otherwise unchanged.
 
 ## Open questions
 
-- Whether any site under `stages/plan/` reads an element under it to
-  decide its plan and puts no port of that element in the plan. Such a
-  read is in none of decision 2's rows. Step 2 finds it; the remedy is a
-  second read list keyed by element, not a new kind of thing.
-- How the raw index is kept out of the planners' files. `Reader` is what
-  every stage reads rows through, so its `outlined` cannot be made
-  private to planning. A wrapper planning holds in place of the bare
-  `Reader` is the likely form; it has not been tried.
-- Whether reporting every failure of a sealing pass (step 4) can add an
-  error that compiling once per failure would not: a failure that is
-  there only because another element failed. The diagnostics tests
-  decide it.
+- Answered by step 2: no site under `stages/plan/` reads an element
+  under it to decide its plan and puts no port of that element in the
+  plan. The one read found in none of decision 2's rows is of a
+  referent's parsed math (`inline_maths`), listed under step 2 and left
+  to be decided.
+- Answered by step 2: the raw index is kept out of the planners' files
+  by splitting `Reader`, not by forwarding its methods. The readers are
+  `SourceReader`'s, with row access private to `compile/read/`; `Reader`
+  adds the rows; planning's `Rows` derefs to the first and hides the
+  second.
+- Answered by step 4, in part: reporting every failure of a sealing pass
+  can report an element that compiling once per failure would not.
+  Where B fails a check on a port it reads of A, and A fails one of its
+  own, compiling per failure boxed A first and B then read a box and
+  passed; both are reported now. B's failure is of what B wrote and
+  would be reported once A is fixed, so it is kept. A failure under
+  another failing element is dropped, as a box reports nothing of what
+  is under it. No test in the suite changed.
+- Whether the accessors of decision 3 should be held by more than their
+  names: `own_row` takes any element, and only `owned_row` checks its
+  relation, in debug builds.
 - The first draft's second open question stands apart from this ADR:
   whether the maps between stages that change what a node is (ports to
   template graph nodes, nodes to slots, slots to cells) should each
