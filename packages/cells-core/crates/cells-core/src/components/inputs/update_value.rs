@@ -53,10 +53,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         || attrs.triggerWhenObjectsClicked
         || attrs.triggerWhenObjectsFocused;
     let when = super::trigger_when(ctx, attrs.triggerWhen, &mut wiring)?;
-    let target = match attrs.target {
-        Some(s) => Wire::scalar(s, GivenId::Attr(attr::target, 0)),
-        None => Wire::absent(),
-    };
+    let target = Wire::attr(attr::target, attrs.target).unwrap_or(Wire::absent());
     let new_value = new_value(ctx, attrs.newValue, attrs.r#type.as_deref(), &mut wiring)?;
     wiring.set_planned(Planned {
         target,

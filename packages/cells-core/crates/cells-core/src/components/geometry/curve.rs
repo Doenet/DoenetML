@@ -435,9 +435,8 @@ pub(crate) fn plan_curve(
         }
         // A parametric curve.
         2 => {
-            let range = |source: Option<Source>, a: Attr, default: f64| match source {
-                Some(source) => Wire::scalar(source, GivenId::Attr(a, 0)),
-                None => constant(default),
+            let range = |source: Option<Source>, a: Attr, default: f64| {
+                Wire::attr(a, source).unwrap_or_else(|| constant(default))
             };
             let mut sample = |(expr, parts): Coordinate| {
                 let expr = wiring.hidden(expr);

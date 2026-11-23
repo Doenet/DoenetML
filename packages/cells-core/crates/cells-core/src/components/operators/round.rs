@@ -58,14 +58,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             },
         ),
     };
-    let num_decimals = match attrs.numDecimals {
-        Some(s) => Wire::scalar(s, GivenId::Attr(attr::numDecimals, 0)),
-        None => Wire::constant(0.0),
-    };
-    let num_digits = match attrs.numDigits {
-        Some(s) => Wire::scalar(s, GivenId::Attr(attr::numDigits, 0)),
-        None => Wire::absent(),
-    };
+    let num_decimals =
+        Wire::attr(attr::numDecimals, attrs.numDecimals).unwrap_or(Wire::constant(0.0));
+    let num_digits = Wire::attr(attr::numDigits, attrs.numDigits).unwrap_or(Wire::absent());
     over_math::plan_one_input(
         ctx,
         &attrs.children,

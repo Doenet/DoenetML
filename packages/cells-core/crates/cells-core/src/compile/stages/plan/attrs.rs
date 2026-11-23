@@ -3,6 +3,7 @@
 
 use super::Planning;
 use crate::compile::*;
+use crate::components::ListPoints;
 
 /// Planning, attributes: each prop's source from the element's record, and the
 /// `<math>`s a plan inlines. Run by every planner; reads the record, never
@@ -59,6 +60,7 @@ impl<'a> Planning<'a> {
                 PropFrom::ByPlanner => "by planner",
                 PropFrom::Aggregate(_) => "aggregate",
                 PropFrom::Anchor { .. } => "anchor",
+                PropFrom::ListLen => "list length",
             });
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
@@ -127,6 +129,17 @@ impl<'a> Planning<'a> {
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
                 // Planned after the table, for every type (`plan_anchor`).
                 (None, PropFrom::Anchor { .. }) => Source::absent(),
+                // A table's list is its own props' points.
+                (None, PropFrom::ListLen) => match component_type.list().map(|l| &l.points) {
+                    Some(ListPoints::Table(points)) => Source::constant(points.len() as f64),
+                    _ => {
+                        return Err(Error::Internal(format!(
+                            "<{}>'s `{}` is the length of a list only a planner gives",
+                            component_type.tag(),
+                            def.name
+                        )));
+                    }
+                },
                 // A table says what every prop is; only a function
                 // plans a `by_planner` prop, or machinery (`by_machinery`).
                 (None, PropFrom::ByPlanner) if by_machinery => Source::absent(),

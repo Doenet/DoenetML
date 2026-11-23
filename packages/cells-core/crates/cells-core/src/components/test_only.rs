@@ -81,10 +81,7 @@ pub(crate) mod test_shape {
     /// Attribute `name`'s value as the given leaf it gives: a literal is
     /// its value, anything else is what it computes, and none is 0.
     fn given(source: Option<Source>, name: Attr) -> Wire {
-        match source {
-            Some(source) => Wire::scalar(source, GivenId::Attr(name, 0)),
-            None => Wire::given_by(name, 0.0),
-        }
+        Wire::attr(name, source).unwrap_or_else(|| Wire::given_by(name, 0.0))
     }
 }
 
@@ -101,7 +98,7 @@ pub(crate) mod test_list {
         tags: ["testList"],
         flags: [copyable],
         props {
-            numPoints: by_planner,
+            numPoints: list_len,
         }
         list {
             names: [points],
@@ -117,9 +114,7 @@ pub(crate) mod test_list {
     pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let points = Attrs::of(ctx.record()).points;
         let mut wiring = ElemWiring::with_list(ComponentType::TestList, points.len());
-        wiring.set_planned(Planned {
-            numPoints: Wire::constant(points.len() as f64),
-        });
+        wiring.set_planned(Planned {});
         wiring.set_list(
             points
                 .iter()

@@ -21,7 +21,7 @@ component! {
     extend_value: List,
     default_prop: points,
     props {
-        numPoints: by_planner { rendered },
+        numPoints: list_len { rendered },
     }
     list {
         names: [points],
@@ -59,9 +59,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         .map(|(k, p)| Wire::point_given(p, |j| GivenId::Children((2 * k + j) as u32)))
         .collect();
     wiring.set_list(list);
-    wiring.set_planned(Planned {
-        numPoints: Wire::constant(n as f64),
-    });
+    wiring.set_planned(Planned {});
     Ok(wiring)
 }
 

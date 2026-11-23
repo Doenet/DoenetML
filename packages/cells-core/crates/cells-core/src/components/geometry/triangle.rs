@@ -16,7 +16,7 @@ component! {
     flags: [copyable, located],
     renders: InGraph,
     props {
-        numVertices: by_planner { rendered },
+        numVertices: list_len { rendered },
         // The mean of the vertices; the renderer's center handle requests
         // it, and it translates every vertex. The vertices follow, as the
         // list.
