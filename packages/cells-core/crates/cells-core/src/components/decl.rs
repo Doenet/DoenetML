@@ -229,8 +229,27 @@ pub enum ConstrainTarget {
     Graph {
         /// The target's prop holding the curve's expression.
         expr: &'static str,
+        /// Whether the target is a function with a variable and a domain
+        /// (ADR 0049), in the props [`FUNCTION_PROPS`] names (`constrain_target
+        /// { function: expr }`): the point is held in the domain, and the
+        /// expression evaluated in the variable. Without, it is in `x` on
+        /// the whole line (a `<parabola>`).
+        function: bool,
     },
 }
+
+/// The props of a function of one variable (ADR 0049) besides its
+/// expression: the math cell holding its variable, and its domain's lower
+/// and upper endpoints and whether each is closed, as
+/// [`SymKind::EvalFunction`](crate::program::SymKind::EvalFunction) reads
+/// a piece.
+pub const FUNCTION_PROPS: [&str; 5] = [
+    "variable",
+    "domainMin",
+    "domainMax",
+    "domainMinClosed",
+    "domainMaxClosed",
+];
 
 /// Machinery several types share, which plans an element of a type that names
 /// it.
@@ -294,8 +313,14 @@ pub enum Role {
     /// One option of an input whose response is an index (a
     /// `<choiceInput>`'s `<choice>`).
     Choice,
-    /// What a function's iterates iterate (a `<function>`).
+    /// What a function's iterates iterate (a `<function>`), and a piece
+    /// of a piecewise function.
     Function,
+    /// A function of one variable made of the functions among its
+    /// children, each on its own domain (a `<piecewiseFunction>`,
+    /// ADR 0049): its value at `x` is its first piece's whose domain holds
+    /// `x`.
+    PiecewiseFunction,
 }
 
 impl Role {
@@ -318,6 +343,7 @@ impl Role {
         Role::When,
         Role::Choice,
         Role::Function,
+        Role::PiecewiseFunction,
     ];
 }
 
@@ -686,6 +712,10 @@ pub enum Renders {
     Never,
     /// Only with a `<graph>` above it: a line, a circle.
     InGraph,
+    /// Only with a `<graph>` above it, as one drawing: its children are
+    /// parts it draws, none drawn on its own (a `<piecewiseFunction>`'s
+    /// functions, ADR 0049).
+    InGraphAlone,
 }
 
 /// Where a list's points are.
@@ -853,6 +883,16 @@ pub enum PropFrom {
     /// materialized by the build: no planner can wire it, and nothing overrides
     /// it.
     Aggregate(Aggregate),
+    /// Coordinate `coord` (0 for x, 1 for y) of the point where a value is
+    /// drawn in a graph, given by the `anchor` attribute (`anchor="(1,2)"`
+    /// or `anchor="$P"`): planned by the compile for every type that has
+    /// one, whatever its planner, after the planner runs (ADR 0047). Without
+    /// the attribute it is the origin, or under `extend` the referent's;
+    /// with no graph above the element, not given, and no state.
+    Anchor {
+        /// 0 for x, 1 for y.
+        coord: u8,
+    },
 }
 
 /// A set of components around an element, described at compile time and

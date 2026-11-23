@@ -58,6 +58,7 @@ impl<'a> Planning<'a> {
                 PropFrom::Children => "children",
                 PropFrom::ByPlanner => "by planner",
                 PropFrom::Aggregate(_) => "aggregate",
+                PropFrom::Anchor { .. } => "anchor",
             });
             let bound = match def.bind.and_then(|b| d.attr(el, b)) {
                 Some(a) => {
@@ -124,6 +125,8 @@ impl<'a> Planning<'a> {
                 },
                 // Wired by the build from the tree (ADR 0032, decision 4).
                 (None, PropFrom::Aggregate(a)) => Source::aggregate(a),
+                // Planned after the table, for every type (`plan_anchor`).
+                (None, PropFrom::Anchor { .. }) => Source::absent(),
                 // A table says what every prop is; only a function
                 // plans a `by_planner` prop, or machinery (`by_machinery`).
                 (None, PropFrom::ByPlanner) if by_machinery => Source::absent(),
@@ -208,7 +211,7 @@ impl<'a> Planning<'a> {
                 inlined
             }
             // An operator's text is its own: nothing inlines into it.
-            Expr::Num(_) | Expr::Sym(_) | Expr::Operator(_) => id,
+            Expr::Num(_) | Expr::Sym(_) | Expr::Operator(_) | Expr::Shape(_) => id,
             Expr::Neg(a) => {
                 let a = self.inline_maths(t, a, inlining);
                 self.ar.arena.push(Expr::Neg(a))

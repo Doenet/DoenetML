@@ -35,6 +35,10 @@ pub(crate) enum Expr<L> {
     /// symbols and leaves, which decide whether it is symbolic, and is
     /// never numeric.
     Operator(Vec<ExprId>),
+    /// A value with entries (ADR 0041, decision 8): `a, b`, `(a, b)`,
+    /// `[a, b)`, `{a, b}`, `⟨a, b⟩`, its entries in order. Always
+    /// symbolic: the symbolic engine reads its head from the text.
+    Shape(Vec<ExprId>),
 }
 
 /// The functions numeric math text can call, each lowered to its operator.
@@ -159,7 +163,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.is_numeric(*a) && self.is_numeric(*b),
             Expr::Neg(a) => self.is_numeric(*a),
             Expr::Call(_, args) => args.iter().all(|&a| self.is_numeric(a)),
-            Expr::Operator(_) => false,
+            Expr::Operator(_) | Expr::Shape(_) => false,
         }
     }
 
@@ -181,7 +185,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.symbols(*b, out);
             }
             Expr::Neg(a) => self.symbols(*a, out),
-            Expr::Call(_, args) | Expr::Operator(args) => {
+            Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
                 args.iter().for_each(|&a| self.symbols(a, out))
             }
         }
@@ -205,10 +209,31 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
                 self.cell_leaves(*b, out);
             }
             Expr::Neg(a) => self.cell_leaves(*a, out),
-            Expr::Call(_, args) | Expr::Operator(args) => {
+            Expr::Call(_, args) | Expr::Operator(args) | Expr::Shape(args) => {
                 args.iter().for_each(|&a| self.cell_leaves(a, out))
             }
         }
+    }
+
+    /// Whether the expression holds a value with entries anywhere (ADR
+    /// 0041, decision 8), which makes it symbolic.
+    pub(crate) fn has_shape(&self, id: ExprId) -> bool {
+        // A loop, not a recursion: a math of many terms is a deep tree.
+        let mut todo = vec![id];
+        while let Some(id) = todo.pop() {
+            match self.get(id) {
+                Expr::Num(_) | Expr::Sym(_) | Expr::Cell(_) => {}
+                Expr::Add(a, b)
+                | Expr::Sub(a, b)
+                | Expr::Mul(a, b)
+                | Expr::Div(a, b)
+                | Expr::Pow(a, b) => todo.extend([*a, *b]),
+                Expr::Neg(a) => todo.push(*a),
+                Expr::Shape(_) => return true,
+                Expr::Call(_, args) | Expr::Operator(args) => todo.extend(args),
+            }
+        }
+        false
     }
 
     /// Whether the expression calls a function anywhere.
@@ -222,7 +247,7 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
             | Expr::Pow(a, b) => self.has_call(*a) || self.has_call(*b),
             Expr::Neg(a) => self.has_call(*a),
             Expr::Call(..) => true,
-            Expr::Operator(args) => args.iter().any(|&a| self.has_call(a)),
+            Expr::Operator(args) | Expr::Shape(args) => args.iter().any(|&a| self.has_call(a)),
         }
     }
 }
@@ -239,6 +264,23 @@ pub(crate) enum Token {
     RParen,
     Comma,
     Eq,
+    /// `[`, `{` or `⟨`: opens a value with entries.
+    Open(char),
+    /// `]`, `}` or `⟩`: closes one.
+    Close(char),
+}
+
+impl Token {
+    /// Whether it opens a bracket pair: `(`, `[`, `{`, `⟨`.
+    pub(crate) fn opens(&self) -> bool {
+        matches!(self, Token::LParen | Token::Open(_))
+    }
+
+    /// Whether it closes one: `)`, `]`, `}`, `⟩`. An interval's brackets
+    /// need not match (`[1, 2)`).
+    pub(crate) fn closes(&self) -> bool {
+        matches!(self, Token::RParen | Token::Close(_))
+    }
 }
 
 /// Tokenize one run of text. Identifiers are maximal letter runs (`pi` is a
@@ -291,6 +333,8 @@ pub(crate) fn tokenize(text: &str, out: &mut Vec<Token>) -> Result<(), String> {
                 ')' => Token::RParen,
                 ',' => Token::Comma,
                 '=' => Token::Eq,
+                '[' | '{' | '⟨' => Token::Open(c),
+                ']' | '}' | '⟩' => Token::Close(c),
                 other => return Err(format!("unexpected '{other}'")),
             });
             i += 1;
@@ -321,7 +365,7 @@ impl<'a> Parser<'a> {
             pos: 0,
             arena,
         };
-        let id = p.expr()?;
+        let id = p.entries()?;
         if p.pos != p.toks.len() {
             return Err(format!("unexpected token {:?}", p.toks[p.pos]));
         }
@@ -330,6 +374,21 @@ impl<'a> Parser<'a> {
 
     fn peek(&self) -> Option<&Token> {
         self.toks.get(self.pos)
+    }
+
+    /// Expressions separated by commas: one alone, or a value with
+    /// entries.
+    fn entries(&mut self) -> Result<ExprId, String> {
+        let first = self.expr()?;
+        if self.peek() != Some(&Token::Comma) {
+            return Ok(first);
+        }
+        let mut xs = vec![first];
+        while self.peek() == Some(&Token::Comma) {
+            self.pos += 1;
+            xs.push(self.expr()?);
+        }
+        Ok(self.arena.push(Expr::Shape(xs)))
     }
 
     fn expr(&mut self) -> Result<ExprId, String> {
@@ -362,7 +421,13 @@ impl<'a> Parser<'a> {
                     });
                 }
                 // Juxtaposition: a factor directly followed by another.
-                Some(Token::Num(_) | Token::Ident(_) | Token::Cell(_) | Token::LParen) => {
+                Some(
+                    Token::Num(_)
+                    | Token::Ident(_)
+                    | Token::Cell(_)
+                    | Token::LParen
+                    | Token::Open(_),
+                ) => {
                     let rhs = self.power()?;
                     lhs = self.arena.push(Expr::Mul(lhs, rhs));
                 }
@@ -410,13 +475,21 @@ impl<'a> Parser<'a> {
                 _ => self.arena.push(Expr::Sym(s)),
             },
             Token::Cell(c) => self.arena.push(Expr::Cell(c)),
-            Token::LParen => {
-                let e = self.expr()?;
-                match self.peek() {
-                    Some(Token::RParen) => self.pos += 1,
+            // `(e)` is `e`; any other bracket pair, or entries separated by
+            // commas, is a value with entries, which the engine reads.
+            open @ (Token::LParen | Token::Open(_)) => {
+                let e = self.entries()?;
+                let close = match self.peek() {
+                    Some(t) if t.closes() => t.clone(),
                     _ => return Err("missing ')'".into()),
+                };
+                self.pos += 1;
+                let shaped = matches!(self.arena.get(e), Expr::Shape(_));
+                if (open == Token::LParen && close == Token::RParen) || shaped {
+                    e
+                } else {
+                    self.arena.push(Expr::Shape(vec![e]))
                 }
-                e
             }
             other => return Err(format!("unexpected token {other:?}")),
         })
@@ -456,15 +529,15 @@ impl<'a> Parser<'a> {
     }
 }
 
-/// Split tokens at every `sep` that sits outside parentheses.
+/// Split tokens at every `sep` that sits outside brackets.
 pub(crate) fn split_top(toks: &[Token], sep: &Token) -> Vec<Vec<Token>> {
     let mut out = vec![Vec::new()];
     let mut depth = 0i32;
     for t in toks {
-        match t {
-            Token::LParen => depth += 1,
-            Token::RParen => depth -= 1,
-            _ => {}
+        if t.opens() {
+            depth += 1;
+        } else if t.closes() {
+            depth -= 1;
         }
         if depth == 0 && t == sep {
             out.push(Vec::new());
@@ -489,10 +562,10 @@ pub(crate) fn unwrap_parens(toks: &[Token]) -> Option<&[Token]> {
     }
     let mut depth = 0i32;
     for (i, t) in toks.iter().enumerate() {
-        match t {
-            Token::LParen => depth += 1,
-            Token::RParen => depth -= 1,
-            _ => {}
+        if t.opens() {
+            depth += 1;
+        } else if t.closes() {
+            depth -= 1;
         }
         if depth == 0 && i + 1 != toks.len() {
             return None;
@@ -625,7 +698,7 @@ pub(crate) fn linear_coeffs<L: Copy + PartialEq + std::fmt::Debug>(
                 [zero, zero, id]
             }
             // Never numeric, so no coefficient.
-            Expr::Operator(_) => return None,
+            Expr::Operator(_) | Expr::Shape(_) => return None,
             Expr::Pow(x, y) => {
                 let l = go(a, x, vx, vy)?;
                 let r = go(a, y, vx, vy)?;

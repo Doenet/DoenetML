@@ -186,6 +186,9 @@ macro_rules! one_input_plan {
                         operand,
                         expr,
                         value,
+                        // Planned after this, from the `anchor` (`plan_anchor`).
+                        anchorX: Wire::absent(),
+                        anchorY: Wire::absent(),
                     })
                 },
             )
@@ -210,6 +213,8 @@ pub(crate) mod abs {
             operand: by_planner,
             expr: by_planner { rendered, expr_of: expr },
             value: by_planner { rendered, expr_of: expr },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Plan(plan),
@@ -234,6 +239,8 @@ pub(crate) mod sign {
             operand: by_planner,
             expr: by_planner { rendered, expr_of: expr },
             value: by_planner { rendered, expr_of: expr },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Plan(plan),
@@ -258,6 +265,8 @@ pub(crate) mod floor {
             operand: by_planner,
             expr: by_planner { rendered, expr_of: expr },
             value: by_planner { rendered, expr_of: expr },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Plan(plan),
@@ -282,6 +291,8 @@ pub(crate) mod ceil {
             operand: by_planner,
             expr: by_planner { rendered, expr_of: expr },
             value: by_planner { rendered, expr_of: expr },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Plan(plan),
@@ -309,6 +320,8 @@ pub(crate) mod set_small_to_zero {
             expr: by_planner { rendered, expr_of: expr },
             threshold: by_planner,
             value: by_planner { rendered, expr_of: expr },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         attributes {
             threshold: Scalar,
@@ -344,6 +357,9 @@ pub(crate) mod set_small_to_zero {
                     expr,
                     threshold,
                     value,
+                    // Planned after this, from the `anchor` (`plan_anchor`).
+                    anchorX: Wire::absent(),
+                    anchorY: Wire::absent(),
                 })
             },
         )
@@ -367,6 +383,8 @@ pub(crate) mod wrap_number_periodic {
             lowerValue: attr(0.0),
             upperValue: attr(1.0),
             value: computed(OpSpec::Vec(VecOp::Wrap), [operand, lowerValue, upperValue]) { rendered },
+            anchorX: anchor(0),
+            anchorY: anchor(1),
         }
         children: Value,
         planner: Props,

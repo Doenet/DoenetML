@@ -97,6 +97,13 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
     callAction: { callAction: [{}] },
     updateValue: { updateValue: [{}] },
     _fractionInputComponent: { updateValue: [{ text: "3" }] },
+    curve: {
+        moveThroughPoint: [{ throughPointInd: 1, throughPoint: [2, 3] }],
+    },
+    equilibriumCurve: {
+        moveThroughPoint: [{ throughPointInd: 0, throughPoint: [2, 3] }],
+        switchCurve: [{}],
+    },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -126,6 +133,10 @@ const DOC = `
   <equilibriumPoint name="ep" switchable>(3,0)</equilibriumPoint>
   <endpoint name="ept" open switchable>(4,0)</endpoint>
   <equilibriumLine name="el" through="(0,2) (1,3)" switchable/>
+  <curve name="cv" through="(0,0) (1,2) (3,1)"/>
+  <equilibriumCurve name="ec" through="(0,1) (2,2)" switchable/>
+  <piecewiseFunction name="pw"><function domain="[0,1]">x</function><function>0</function></piecewiseFunction>
+  <curve name="pc">(t, t^2)</curve>
 </graph>
 <p><vector>(1, 2)</vector> <angle through="(1,0) (0,0) (0,1)"/></p>
 <graph name="g2"><point>(0,0)</point><point>(1,1)</point></graph>
@@ -364,6 +375,66 @@ describe("the bridge requests only interactive cells and reads only outputs", ()
             expect.arrayContaining(EXPECTED_REQUESTS),
         );
         expect([...read]).toEqual(expect.arrayContaining(EXPECTED_READS));
+    });
+
+    it("a drag of a value in a graph moves its anchor", async () => {
+        const bridge = await loadCellsDocument(
+            normalizeDocumentDast(
+                lezerToDast(`<graph>
+  <shortDescription>values</shortDescription>
+  <number name="n">3</number>
+  <math name="m" anchor="(1,2)">x</math>
+  <text name="t">hi</text>
+  <point name="P">(4,5)</point>
+  <abs name="a" anchor="$P">-2</abs>
+  <angle name="ang" through="(1,0) (0,0) (0,1)"/>
+</graph>`),
+            ),
+        );
+        const root = bridge.flatDast();
+        const byName = (name: string) => {
+            const c = bridge.core.resolve_path(name);
+            const id = bridge._idByComponent.get(c)!;
+            return root.elements[id] as any;
+        };
+        expect(byName("m").data.props.numericalAnchor).toEqual([1, 2]);
+        expect(byName("n").data.props.numericalAnchor).toEqual([0, 0]);
+        expect(byName("t").data.props.positionFromAnchor).toBe("center");
+        expect(byName("ang").data.props).toMatchObject({
+            numericalFirstPoint: [1, 0],
+            numericalVertex: [0, 0],
+            radians: Math.PI / 2,
+            radius: 1,
+        });
+        const value = (name: string, prop: string) =>
+            bridge.table.value(
+                bridge.table.cell(bridge.core.resolve_path(name), prop)!,
+            );
+        for (const [name, actionName, x, y] of [
+            ["n", "moveNumber", -1, 2],
+            ["m", "moveMath", 3, 4],
+            ["t", "moveText", 5, 6],
+        ] as const) {
+            bridge.dispatch({
+                component:
+                    name === "t" ? "text" : name === "m" ? "math" : "number",
+                actionName,
+                componentIdx: byName(name).data.id,
+                args: { x, y },
+            });
+            expect([value(name, "anchorX"), value(name, "anchorY")]).toEqual([
+                x,
+                y,
+            ]);
+        }
+        // Anchored at a point, the drag moves the point.
+        bridge.dispatch({
+            component: "abs",
+            actionName: "moveMath",
+            componentIdx: byName("a").data.id,
+            args: { x: 1, y: 1 },
+        });
+        expect([value("P", "x"), value("P", "y")]).toEqual([1, 1]);
     });
 
     const golden = path.join(CELLS_CORE, "crates/cells-bench/golden");

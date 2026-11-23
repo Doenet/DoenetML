@@ -95,6 +95,7 @@
         <clampNumber lowerValue="0" upperValue="1">5</clampNumber>
         $it.iterates
         <numberList>1 2 3</numberList> <textList>a b</textList>
+        <mathList name="ml">x y+1</mathList> $ml[2]
         <booleanList>true false</booleanList>
         <integer>3.7</integer> <intComma>25236501.35</intComma>
         <pluralize>dog</pluralize>
@@ -149,13 +150,17 @@
         <booleanInput><label>B</label></booleanInput>
         <mathInput><label>M</label></mathInput>
         <textInput><label>T</label></textInput>
+        <fractionInput prefillNumerator="1"><label>F</label></fractionInput>
         <choiceInput>
             <label>C</label>
             <choice>a</choice>
             <choice>b</choice>
         </choiceInput>
     </p>
-    <answer>x</answer>
+    <answer name="ansX">x</answer>
+    <callAction target="$ansX" actionName="submitAnswer">
+        <label>Submit</label>
+    </callAction>
     <answer>
         <mathInput name="mi"><label>Answer</label></mathInput>
         <award><when>$mi = x</when></award>
@@ -220,6 +225,8 @@
     <legend><label>f</label></legend>
     <collect from="$g" componentType="point" />
     $n $t $b <math>x</math> <m>x</m> <abs>-3</abs> <and>true</and>
+    <math anchor="(2,3)" positionFromAnchor="upperRight" draggable="false">x^2</math>
+    <text anchor="$P1">origin</text>
     <integer>2</integer> <intComma>2000</intComma> <pluralize>dog</pluralize>
     <booleanInput><label>B</label></booleanInput>
     <slider><label>S</label></slider>

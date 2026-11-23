@@ -1,6 +1,6 @@
 submits the answer it names: cells 12 · essential 3 · constant 4 · instrs 4 · components 6
-presses the update value it names: cells 6 · essential 1 · constant 4 · instrs 1 · components 7
-presses the trigger set it names, and a trigger set presses it: cells 8 · essential 2 · constant 4 · instrs 2 · components 14
-an action its target does not have is a warning, and does nothing: cells 6 · essential 2 · constant 4 · instrs 0 · components 5
-an action that would change which components exist is a warning: cells 9 · essential 0 · constant 9 · instrs 0 · components 6
-with no target it does nothing: cells 4 · essential 0 · constant 4 · instrs 0 · components 4
+presses the update value it names: cells 7 · essential 1 · constant 5 · instrs 1 · components 7
+presses the trigger set it names, and a trigger set presses it: cells 9 · essential 2 · constant 5 · instrs 2 · components 14
+an action its target does not have is a warning, and does nothing: cells 7 · essential 2 · constant 5 · instrs 0 · components 5
+an action that would change which components exist is a warning: cells 10 · essential 0 · constant 10 · instrs 0 · components 6
+with no target it does nothing: cells 5 · essential 0 · constant 5 · instrs 0 · components 4

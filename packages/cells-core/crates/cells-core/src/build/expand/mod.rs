@@ -662,6 +662,19 @@ impl<'c> Builder<'c> {
             .extend(std::iter::repeat_n(self.components.scope[comp.index()], n));
     }
 
+    /// Slots for a `$ref` child shown as a value of `ty`: every prop of
+    /// its table, each the missing value until its value prop is set (an
+    /// anchor, which nothing gives it).
+    fn allocate_value_slots(&mut self, comp: CompIdx, ty: ComponentType) {
+        let n = ty.prop_defs().len();
+        self.allocate_slots(comp, n);
+        let missing = self.missing_slot();
+        for pi in 0..n {
+            let s = self.slot(comp, pi);
+            self.sources[s.index()] = BuiltSource::Alias(missing);
+        }
+    }
+
     #[inline]
     pub(in crate::build) fn slot(&self, comp: CompIdx, prop_index: usize) -> SlotId {
         self.slot_base[comp.index()].offset(prop_index)
@@ -1134,7 +1147,7 @@ impl<'c> Builder<'c> {
             (Resolved::Missing, _) => {
                 let ty = Role::Value.ty();
                 self.components.component_type[idx.index()] = ty;
-                self.allocate_slots(idx, 1);
+                self.allocate_value_slots(idx, ty);
                 let s = self.slot(idx, ty.scalar_prop().expect("a value"));
                 self.sources[s.index()] = BuiltSource::Alias(self.missing_slot());
             }
@@ -1150,7 +1163,7 @@ impl<'c> Builder<'c> {
                 };
                 let value = component_type.scalar_prop().expect("a value");
                 self.components.component_type[idx.index()] = component_type;
-                self.allocate_slots(idx, 1);
+                self.allocate_value_slots(idx, component_type);
                 let s = self.slot(idx, value);
                 self.sources[s.index()] = BuiltSource::Alias(targets[0]);
             }

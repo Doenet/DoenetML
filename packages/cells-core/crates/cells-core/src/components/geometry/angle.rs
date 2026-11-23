@@ -20,8 +20,11 @@ component! {
     /// `<angle through="$A $B $C"/>`, `<angle radians="pi/4"/>`, `<angle
     /// degrees="45"/>` or `<angle>pi/4</angle>`: its measure in radians and
     /// in degrees, each a number, and an expression (`radiansExpr`,
-    /// `degreesExpr`) when the measure is one. Shown as its measure; not
-    /// drawn in a graph.
+    /// `degreesExpr`) when the measure is one. Shown in text as its
+    /// measure; drawn in a graph as an arc at its vertex `(x2, y2)`, from
+    /// the ray through its first point `(x1, y1)`, turning counterclockwise
+    /// by its measure. Without `through` points the first point is `(1, 0)`
+    /// and the vertex the origin, as in the current core.
     tags: ["angle"],
     flags: [copyable],
     text: Math(radiansExpr, radians),
@@ -31,6 +34,10 @@ component! {
         degrees: by_planner { rendered, expr_of: degreesExpr },
         radiansExpr: by_planner { rendered, expr_of: radiansExpr },
         degreesExpr: by_planner { rendered, expr_of: degreesExpr },
+        x1: by_planner { rendered },
+        y1: by_planner { rendered },
+        x2: by_planner { rendered },
+        y2: by_planner { rendered },
     }
     alternate_names {
         value: radians,
@@ -90,6 +97,15 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         _ => Reflex::Never,
     };
     let mut wiring = ElemWiring::of(ComponentType::Angle);
+    // The first point and the vertex, when `through` gives them.
+    let [x1, y1, x2, y2] = match attrs.through.as_slice() {
+        [p1, v, ..] => {
+            let [x1, y1] = Wire::point(p1, attr::through, 0);
+            let [x2, y2] = Wire::point(v, attr::through, 1);
+            [x1, y1, x2, y2]
+        }
+        _ => [1.0, 0.0, 0.0, 0.0].map(Wire::constant),
+    };
     // The measure's unit, its number and its expression; or a number in
     // radians.
     let (in_degrees, number, expr) = if let Some(r) = &attrs.radians {
@@ -101,11 +117,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     } else if let Some(nodes) = &attrs.children {
         let (n, e) = measure(ctx, nodes, GivenId::Children(0))?;
         (false, n, e)
-    } else if let [p1, v, p3, ..] = attrs.through.as_slice() {
-        let mut args = Vec::with_capacity(6);
-        for (k, p) in [p1, v, p3].into_iter().enumerate() {
-            args.extend(wiring.hidden_point_of(p, attr::through, k));
-        }
+    } else if let [_, _, p3, ..] = attrs.through.as_slice() {
+        let mut args = vec![at.x1, at.y1, at.x2, at.y2];
+        args.extend(wiring.hidden_point_of(p3, attr::through, 2));
         let [radians] = ElemWiring::vector([at.radians], VecOp::AngleAt { reflex }, args);
         (false, radians, None)
     } else {
@@ -157,6 +171,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         degrees,
         radiansExpr: radians_expr,
         degreesExpr: degrees_expr,
+        x1,
+        y1,
+        x2,
+        y2,
     });
     Ok(wiring)
 }

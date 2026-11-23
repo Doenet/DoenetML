@@ -37,6 +37,10 @@ pub const PRESENTATION_ATTRS: &[&str] = &[
     "shortDescription",
     "styleNumber",
 ];
+/// Presentation attributes a renderer reads and the core does not, accepted
+/// on any type with an anchor ([`PropFrom::Anchor`]): where the value sits
+/// against its anchor, and whether a drag moves it.
+pub const ANCHOR_PRESENTATION_ATTRS: &[&str] = &["positionFromAnchor", "draggable"];
 pub use geometry::{MAX_RIGID_VERTICES, MAX_VERTICES};
 pub use values::MAX_TUPLE;
 
@@ -269,6 +273,12 @@ component_types! {
     CallAction => inputs::call_action::DEFINITION,
     FractionInput => inputs::fraction_input::DEFINITION,
     FractionInputPart => inputs::fraction_input::part::DEFINITION,
+    PiecewiseFunction => values::piecewise_function::DEFINITION,
+    Curve => geometry::curve::DEFINITION,
+    BezierControls => geometry::curve::bezier_controls_tag::DEFINITION,
+    ControlVectors => geometry::curve::control_vectors_tag::DEFINITION,
+    EquilibriumCurve => geometry::equilibrium_curve::DEFINITION,
+    Interval => values::interval::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -767,6 +777,17 @@ impl ComponentType {
         self.def().renders
     }
 
+    /// The positions of the props giving where a component of the type is
+    /// drawn in a graph, x then y ([`PropFrom::Anchor`]), if it has them.
+    pub fn anchor_props(self) -> Option<[usize; 2]> {
+        let defs = self.prop_defs();
+        let at = |k: u8| {
+            defs.iter()
+                .position(|d| d.from == PropFrom::Anchor { coord: k })
+        };
+        Some([at(0)?, at(1)?])
+    }
+
     /// Whether prop `pi` is one an action writes.
     pub fn is_action_prop(self, pi: usize) -> bool {
         self.prop_defs()
@@ -1186,10 +1207,14 @@ mod tests {
         // 25: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
         // `Inner::port`, for the inputs a type owns; ADR 0041 a list's
         // entries and an entry read as math. 27: ADR 0043 added
-        // `operand_expr` and `operator_expr`, for operators over math.
-        // 29: ADR 0041 step 3 added which entries are a value list's
-        // element children as they stand, and a point list's points.
-        const PLAN_CTX_METHODS: usize = 29;
+        // `operand_expr` and `operator_expr`, for operators over math. 31:
+        // ADR 0049 added `interval`, a domain's endpoints and closedness,
+        // `symbol`, a function's variable as a math cell,
+        // `children_playing`, a piecewise function's pieces, and
+        // `sym_tokens`, a curve's coordinate from its tuple's entry.
+        // 33: ADR 0041 step 3 added which entries are a value list\'s
+        // element children as they stand, and a point list\'s points.
+        const PLAN_CTX_METHODS: usize = 33;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1330,8 +1355,6 @@ mod tests {
             Hint,
             Setup,
             StickyGroup,
-            Function,
-            Derivative,
             Answer,
             Text,
             ConditionalContent,

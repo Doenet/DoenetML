@@ -4,12 +4,14 @@
 //! [`Tree`] enters the engine through [`Engine::import`]. A compiled curve
 //! tape samples a constant-shape expression without the engine.
 
+pub(crate) mod compare;
 pub(crate) mod engine;
 pub(crate) mod tape;
 pub(crate) mod tree;
 
+pub use compare::CompareOpts;
 pub use engine::Engine;
-pub use tree::{Leaf, Tree};
+pub use tree::{Leaf, Shape, Tree};
 
 crate::index::index_type! {
     /// An expression in the [`Engine`]: a position in its store. A math

@@ -134,13 +134,6 @@ const RESOLVE_FAILURES: &[Findings] = &[
         ],
     ),
     (
-        "tuple-over-a-cell",
-        r#"<number name="n">1</number><boolean name="b">($n, x) = ($n, x)</boolean>"#,
-        &[
-            "cannot parse math '( cellN0 , x )': '( cellN0 , x )' is not supported in a math cell (a relation, tuple or multi-argument function)",
-        ],
-    ),
-    (
         "whole-pick-of-two",
         r#"<select name="s" numToSelect="1">
           <option><number name="x">1</number><number name="z">1</number></option>

@@ -1,3 +1,3 @@
-a press presses every button inside it, in one tick: cells 8 · essential 2 · constant 4 · instrs 2 · components 9
-its condition's rise presses it: cells 10 · essential 2 · constant 5 · instrs 3 · components 7
-a button waiting on it is pressed after it: cells 8 · essential 2 · constant 4 · instrs 2 · components 9
+a press presses every button inside it, in one tick: cells 9 · essential 2 · constant 5 · instrs 2 · components 9
+its condition's rise presses it: cells 11 · essential 2 · constant 6 · instrs 3 · components 7
+a button waiting on it is pressed after it: cells 9 · essential 2 · constant 5 · instrs 2 · components 9

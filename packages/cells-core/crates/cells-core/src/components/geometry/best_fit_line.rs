@@ -15,7 +15,6 @@ component! {
     /// core fits it; with none, no line.
     tags: ["bestFitLine"],
     flags: [copyable],
-    renders: InGraph,
     props {
         // Two points of the line, as a line's from its equation.
         x1: by_planner { rendered },

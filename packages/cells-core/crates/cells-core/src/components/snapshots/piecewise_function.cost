@@ -1,0 +1,5 @@
+a step: each piece on its domain, the last everywhere else: cells 219 · essential 4 · constant 13 · instrs 2 · components 5
+its domain is its pieces' hull, closed where one closes it: cells 219 · essential 4 · constant 13 · instrs 2 · components 6
+a piece whose domain is no number is left out: cells 219 · essential 4 · constant 13 · instrs 2 · components 5
+its own domain cuts its pieces: cells 214 · essential 4 · constant 8 · instrs 2 · components 4
+pieces in variables of their own: cells 221 · essential 4 · constant 15 · instrs 2 · components 5

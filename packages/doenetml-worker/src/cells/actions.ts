@@ -96,6 +96,20 @@ const movePoint: Resolver = (t, c, { x, y }) => ({
     ],
 });
 
+/** A curve's through point dragged, as the current core's
+ * moveThroughPoint (`throughPointInd` its 0-based index, `throughPoint`
+ * where to). */
+const moveThroughPoint: Resolver = (
+    t,
+    c,
+    { throughPointInd, throughPoint },
+) => {
+    const at = listPoints(t, c)[Number(throughPointInd)];
+    return at && throughPoint
+        ? movePoints([[at, [throughPoint[0], throughPoint[1]]]])
+        : { kind: "none" };
+};
+
 /** A whole-line drag, as the current core's moveLine: a line given by a
  * direction moves by its first point only. */
 const moveLine: Resolver = (t, c, { point1coords, point2coords }) => {
@@ -342,12 +356,35 @@ export const RENDERER_ACTIONS: Record<string, Record<string, Resolver>> = {
     updateValue: {
         updateValue: (_t, c) => ({ kind: "trigger", component: c }),
     },
+    // A curve's through point dragged (ADR 0049), as the current core's
+    // moveThroughPoint; an equilibrium curve switches its flag too.
+    curve: { moveThroughPoint },
+    equilibriumCurve: { moveThroughPoint, switchCurve: switchFlag("stable") },
     // A fraction input's box (ADR 0045): typed into as a math input.
     _fractionInputComponent: {
         updateValue: (t, c, args) =>
             RENDERER_ACTIONS.mathInput.updateValue(t, c, args),
     },
 };
+
+/** A value's drag in a graph, as the current core's `moveText`, `moveMath`
+ * and `moveNumber`: its anchor, a point (`anchorX`, `anchorY`), for every
+ * type that has one. */
+const ANCHOR_MOVES = new Set(["moveText", "moveMath", "moveNumber"]);
+
+function moveAnchor(
+    t: CellsTable,
+    c: number,
+    { x, y }: Record<string, any>,
+): Effect {
+    return {
+        kind: "points",
+        pairs: [
+            [cellOf(t, c, "anchorX"), x],
+            [cellOf(t, c, "anchorY"), y],
+        ],
+    };
+}
 
 /** What a renderer action does to the cells core, or null when the table
  * has no entry for it. */
@@ -358,6 +395,10 @@ export function resolveRendererAction(
     args: Record<string, any>,
 ): Effect | null {
     const resolver =
-        RENDERER_ACTIONS[table.componentType(component)]?.[actionName];
+        RENDERER_ACTIONS[table.componentType(component)]?.[actionName] ??
+        (ANCHOR_MOVES.has(actionName) &&
+        table.cell(component, "anchorX") !== undefined
+            ? moveAnchor
+            : undefined);
     return resolver ? resolver(table, component, args) : null;
 }

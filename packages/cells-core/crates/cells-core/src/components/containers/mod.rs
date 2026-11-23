@@ -228,6 +228,10 @@ pub(crate) mod inline_math {
         /// shows the referent's value.
         tags: ["m"],
         flags: [container],
+        props {
+            anchorX: anchor(0),
+            anchorY: anchor(1),
+        }
         planner: Props,
     }
 }
@@ -239,6 +243,10 @@ pub(crate) mod display_math {
         /// `<md>` and `<me>`: displayed math notation, one line per `<mrow>`.
         tags: ["md", "me"],
         flags: [container],
+        props {
+            anchorX: anchor(0),
+            anchorY: anchor(1),
+        }
         planner: Props,
     }
 }

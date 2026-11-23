@@ -1,8 +1,8 @@
-one uniform number, between from and to: cells 9 · essential 0 · constant 9 · instrs 0 · components 4
-uniform by default, from 0 to 1: cells 12 · essential 0 · constant 12 · instrs 0 · components 8
-discrete uniform: values of the sequence, less what it excludes: cells 11 · essential 0 · constant 11 · instrs 0 · components 6
-gaussian, about its mean: cells 11 · essential 0 · constant 11 · instrs 0 · components 4
-a parameter from a constant: cells 11 · essential 0 · constant 11 · instrs 0 · components 5
+one uniform number, between from and to: cells 10 · essential 0 · constant 10 · instrs 0 · components 4
+uniform by default, from 0 to 1: cells 13 · essential 0 · constant 13 · instrs 0 · components 8
+discrete uniform: values of the sequence, less what it excludes: cells 12 · essential 0 · constant 12 · instrs 0 · components 6
+gaussian, about its mean: cells 12 · essential 0 · constant 12 · instrs 0 · components 4
+a parameter from a constant: cells 13 · essential 0 · constant 13 · instrs 0 · components 5
 a parameter a student can change is refused: cells 3 · essential 1 · constant 2 · instrs 0 · components 4
 a discrete sequence that excludes every value is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
 an unknown type is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2

@@ -390,8 +390,10 @@ impl Emit<'_> {
                 let input = self.x.op_inputs[start.index()];
                 // A derivative of a constant shape is taken once, here; the tick
                 // only fills in the parameters.
+                // A derivative in a function's own variable (ADR 0049) too,
+                // when the variable is a constant.
                 if compile
-                    && kind == SymKind::Derivative
+                    && matches!(kind, SymKind::Derivative | SymKind::DerivativeBy)
                     && let Some(d) = self.constant_shape(
                         SlotId::from_index(s),
                         &slot_to_cell,
@@ -405,6 +407,30 @@ impl Emit<'_> {
                         template: d,
                         post: Post::Simplify,
                     });
+                }
+                // A function's curve (ADR 0049) of one piece on the whole
+                // line, in a constant variable, is a curve as any other.
+                if compile
+                    && kind == SymKind::SampleFunction
+                    && count as usize
+                        == 2 + crate::program::DOMAIN_CELLS + crate::program::PIECE_CELLS
+                    && let Some(piece) = self.whole_line_piece(start)
+                    && let Some(h) = self.constant_shape(piece, &slot_to_cell, &mut constant_shape)
+                    && let Some(var) = self.const_symbol(self.x.op_inputs[start.index() + 7])
+                    && let Some(tape) = self
+                        .x
+                        .engine
+                        .export(h)
+                        .and_then(|t| crate::sym::tape::Tape::compile(&t, &var))
+                {
+                    let (lo, hi) = (bound[0], bound[1]);
+                    bound.clear();
+                    bound.extend([lo, hi]);
+                    bound.extend_from_slice(&tape.params);
+                    spec = OpSpec::Sym(SymKind::SampleTape {
+                        tape: crate::program::TapeIdx::from_index(tapes.len()),
+                    });
+                    tapes.push(tape);
                 }
                 // A curve of a constant shape samples a compiled tape.
                 if compile
@@ -597,6 +623,40 @@ impl Emit<'_> {
         })
     }
 
+    /// The value a slot holds when it is a constant, through aliases.
+    fn const_value(&self, slot: SlotId) -> Option<f64> {
+        let mut root = slot;
+        while let BuiltSource::Alias(t) = self.x.sources[root.index()] {
+            root = t;
+        }
+        match self.x.sources[root.index()] {
+            BuiltSource::Const(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// The name of the symbol a constant math slot holds (a function's
+    /// variable, ADR 0049).
+    fn const_symbol(&self, slot: SlotId) -> Option<String> {
+        let v = self.const_value(slot)?;
+        (!v.is_nan())
+            .then(|| self.x.engine.symbol(Handle::from_value(v)))
+            .flatten()
+    }
+
+    /// The expression slot of a [`SymKind::SampleFunction`] whose inputs
+    /// from `start` are one piece with every domain, its own and the
+    /// function's, a constant holding the whole line: a curve no domain
+    /// cuts.
+    fn whole_line_piece(&self, start: OpInputIdx) -> Option<SlotId> {
+        let at = |k: usize| self.x.op_inputs[start.index() + k];
+        let whole = |k: usize| {
+            self.const_value(at(k)) == Some(f64::NEG_INFINITY)
+                && self.const_value(at(k + 1)) == Some(f64::INFINITY)
+        };
+        (whole(2) && whole(8)).then(|| at(6))
+    }
+
     /// The expression a slot will hold as a template over numeric cell
     /// leaves, when its shape is constant at build time: a constant handle, an
     /// instantiated template, or the derivative of one (taken here, once).
@@ -636,6 +696,15 @@ impl Emit<'_> {
                 let input = self.x.op_inputs[start.index()];
                 self.constant_shape(input, slot_to_cell, memo)
                     .map(|h| self.x.engine.derivative(h, "x"))
+            }
+            BuiltSource::Op(PlannedOp::Spec(OpSpec::Sym(SymKind::DerivativeBy)), start, _) => {
+                let input = self.x.op_inputs[start.index()];
+                match self.const_symbol(self.x.op_inputs[start.index() + 1]) {
+                    Some(var) => self
+                        .constant_shape(input, slot_to_cell, memo)
+                        .map(|h| self.x.engine.derivative(h, &var)),
+                    None => None,
+                }
             }
             _ => None,
         };
@@ -781,7 +850,9 @@ fn has_math_leaf<L>(t: &Tree<L>) -> bool {
     match t {
         Tree::Cell { math, .. } => *math,
         Tree::Num(_) | Tree::Sym(_) => false,
-        Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) => ts.iter().any(has_math_leaf),
+        Tree::Add(ts) | Tree::Mul(ts) | Tree::Call(_, ts) | Tree::Shape(_, ts) => {
+            ts.iter().any(has_math_leaf)
+        }
         Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => has_math_leaf(a) || has_math_leaf(b),
         Tree::Neg(a) | Tree::Apply(_, a) => has_math_leaf(a),
     }

@@ -205,11 +205,35 @@ fn constrain(
                 }
                 // Riding the target's graph: `x` is what was asked and `y`
                 // the target's expression there.
-                ConstrainTarget::Graph { expr } => {
+                ConstrainTarget::Graph {
+                    expr,
+                    function: false,
+                } => {
                     let f = refs(wiring, &[expr])?;
                     Ok([
                         Wire::own(raw_x),
                         Wire::computed(OpSpec::Sym(SymKind::EvalAt), vec![f[0], raw_x]),
+                    ])
+                }
+                // A function's (ADR 0049): `x` held in its domain, `y` the
+                // function there.
+                ConstrainTarget::Graph {
+                    expr,
+                    function: true,
+                } => {
+                    let mut props = vec![expr];
+                    props.extend(crate::components::FUNCTION_PROPS);
+                    let f = refs(wiring, &props)?;
+                    let domain = [f[2], f[3], f[4], f[5]];
+                    let mut held = vec![raw_x];
+                    held.extend(domain);
+                    let mut eval = vec![at.x];
+                    eval.extend(crate::components::values::curve::one_piece(
+                        wiring, f[0], f[1], domain,
+                    ));
+                    Ok([
+                        Source::vector(crate::program::VecOp::IntoDomain, held).into(),
+                        Wire::computed(OpSpec::Sym(SymKind::EvalFunction), eval),
                     ])
                 }
             }

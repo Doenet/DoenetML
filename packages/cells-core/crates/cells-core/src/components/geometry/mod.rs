@@ -23,7 +23,9 @@ pub(crate) mod triangle;
 pub(crate) mod vector;
 
 pub(crate) mod best_fit_line;
+pub(crate) mod curve;
 pub(crate) mod endpoint;
+pub(crate) mod equilibrium_curve;
 pub(crate) mod equilibrium_line;
 pub(crate) mod equilibrium_point;
 pub(crate) mod intersection;
