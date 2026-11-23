@@ -392,9 +392,9 @@ Evidence: `T/copying/value_references.test.ts`, the "references with nothing to 
   - **a boolean can't hold a blank either,** so a boolean computed from a missing operand is
     missing: `not ＿`, `＿ and true`, `＿ or false`, and a boolean function at a blank, all
     `＿`, whatever the other operand. This replaces the earlier rule that a boolean operator takes
-    a missing operand as not true. A comparison is not a computation on the value: `＿ = 1` is
-    false, because a blank never equals anything (D37). A missing condition gives no credit
-    (D40).
+    a missing operand as not true. A comparison with a missing operand is missing too:
+    `＿ = 1` and `not (＿ = 1)` are `＿` (D70, revising D40's `false`), since a `false` could
+    equal a response. A missing condition doesn't hold and gives no credit.
 
   **Done by #2543** (closing #2460): a `<number>` is missing while its value is a `NaN` and a child
   is a missing input; numeric operators, `<median>`, `<clampNumber>` and `<wrapNumberPeriodic>`

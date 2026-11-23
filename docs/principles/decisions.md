@@ -2527,6 +2527,7 @@ VAL-5). A math holds the blank (`＿ + 1`, a symbolic function's `f(＿)`); a nu
 computed from a missing input is missing (`<number>$nothing + 1</number>`, a numeric function at a
 blank, `not ＿`, `＿ and true`). This replaces VAL-5's rule that a boolean operator takes a missing
 operand as not true. Comparisons stay false (`＿ = 1`), since a blank never equals anything.
+**Revised by D70:** a comparison with a missing operand is missing too (`＿ = 1` is `＿`).
 
 **Still open** (recommendations from the review, not decided):
 - #2235 (D7, D23): a write to `fixed` through a reference. Recommendation: to the source for a
@@ -3573,4 +3574,18 @@ adapters a class declares (#2659).
 A value conversion that fails within an allowed pair is missing, with an info, as REF-5 already
 says (`<number extend="$t"/>` of `hello` is a silent `NaN` today: a known violation, #2659).
 Implementation: PR 50.
+
+## D70. A comparison with a missing operand is missing (decided, November 2026; revises D40)
+
+**Why.** D40 kept `<boolean>$nothing = 1</boolean>` `false`, "since a blank never equals
+anything". But `false` is a value that can equal something: a `<booleanInput>` answer whose award
+compares with something that names nothing credited the response "false", and `not ($nothing = 1)`
+was `true`. #2658 (PR 63) made logic holding a boolean–number mix missing for the same reason; one
+rule should cover both.
+
+**Decided:** any logic with a missing operand is missing, a comparison included: `＿ = 1`,
+`＿ < 2`, `not (＿ = 1)`, `＿ = ＿` are all `＿`. VAL-5's "a missing value never equals anything"
+still holds: a missing boolean equals nothing, so it never earns credit, and where a boolean decides
+something (an award's `<when>`, a case's `condition`, `credit`) a missing one doesn't hold.
+Implemented with PR 63 (#2658).
 
