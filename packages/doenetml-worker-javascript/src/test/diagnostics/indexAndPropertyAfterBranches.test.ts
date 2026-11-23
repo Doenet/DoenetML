@@ -222,9 +222,9 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
             .diagnostics()
             .filter((x: any) => x.code === "doenet-w0191");
         expect(atLoad.map((x: any) => x.message)).eqls([
-            '`$cc.x`: a property after `cc` passes into what the case shown holds only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.x`.',
-            '`$cc[1].x`: a property after `cc` passes into what the case shown holds only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P.x`.',
-            '`$cc[1][2]`: an index after `cc` passes into what the case shown holds only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
+            '`$cc.x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc.P.x`.',
+            '`$cc[1].x`: a property after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P.x`.',
+            '`$cc[1][2]`: an index after the case shown by `cc` passes into it only when it holds one component, and the `<else>` holds several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
         ]);
         expect(atLoad.every((x: any) => x.type === "warning")).eq(true);
 
@@ -251,8 +251,8 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
             .filter((x: any) => x.code === "doenet-w0191")
             .map((x: any) => x.message);
         expect(messages).eqls([
-            '`$s[1].x`: a property after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
-            '`$s[1][2]`: an index after `s` passes into what each pick holds only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
+            '`$s[1].x`: a property after a pick of `s` passes into it only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
+            '`$s[1][2]`: an index after a pick of `s` passes into it only when it holds one component, and options 2 and 3 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
         ]);
         expect(
             d.diagnostics().filter((x: any) => x.code === "doenet-w0200")
@@ -269,7 +269,7 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
         // decided at load from every option, one warning, nothing more
         // when the document runs.
         expect(d.diagnostics().map((x: any) => x.message)).eqls([
-            '`$s[1].x`: a property after `s` passes into what each pick holds only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
+            '`$s[1].x`: a property after a pick of `s` passes into it only when it holds one component, and options 1 and 2 hold several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P.x`.',
         ]);
         expect(d.codes()).eqls(["warning doenet-w0191"]);
         const shown = await d.text();

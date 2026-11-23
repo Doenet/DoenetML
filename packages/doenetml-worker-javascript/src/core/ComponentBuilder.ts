@@ -754,6 +754,9 @@ export async function createChildrenThenComponent({
             unresolvedPath: refResolution.unresolvedPath,
             originalPath,
             nodesInResolvedPath: refResolution.nodesInResolvedPath,
+            ...(refResolution.standIn
+                ? { standIn: refResolution.standIn }
+                : {}),
         };
     }
 
