@@ -270,6 +270,27 @@ function heldLatex(r: Reads, cell: number): string {
 /** A list of numbers, drawn as the text of its entries. */
 const NUMBER_LIST = valueList((r, cell) => r.cellText(cell, null));
 
+/** A `<sort>`'s or a `<shuffle>`'s entries (ADR 0053): each as its cell
+ * holds it, a text, an expression or a number, separated by commas, or
+ * by nothing with `asList="false"`. */
+const ORDERED_LIST: Contract = {
+    name: () => "text",
+    props: (r, c) => ({
+        value: r.table
+            .listCells(c)
+            .map((cell) => {
+                if (r.missingCell(cell)) return BLANK;
+                if (r.table.core.cell_holds(cell) === "text") {
+                    const id = r.cell(cell);
+                    return Number.isNaN(id) ? "" : r.table.string(id);
+                }
+                return heldText(r, cell);
+            })
+            .join(r.num(c, "asList") === 0 ? "" : ", "),
+    }),
+    noChildren: true,
+};
+
 function flag(table: CellsTable, c: number, name: string): boolean {
     const text = table.attr(c, name);
     return text !== null && text.trim().toLowerCase() !== "false";
@@ -1326,8 +1347,8 @@ export const CONTRACTS: Record<string, Contract> = {
     cumulativeMin: NUMBER_LIST,
     cumulativeMax: NUMBER_LIST,
     differences: NUMBER_LIST,
-    sort: NUMBER_LIST,
-    shuffle: NUMBER_LIST,
+    sort: ORDERED_LIST,
+    shuffle: ORDERED_LIST,
     sequence: NUMBER_LIST,
     selectRandomNumbers: NUMBER_LIST,
     sampleRandomNumbers: NUMBER_LIST,
