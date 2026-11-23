@@ -19,11 +19,17 @@ component! {
     list {
         names: [numbers, values],
         item: number,
-        values: number of Number,
+        values: number of Number, max_by: maxNumber,
         rendered: true,
     }
     alternate_names {
         numValues: numComponents,
+    }
+    attributes {
+        maxNumber: Literal(f64::INFINITY),
+        // Read as the children are parsed: whether a `<math>` child that
+        // is a list gives its items as entries (`mergeMathLists`).
+        mergeMathLists: LiteralFlag,
     }
     children: List,
     planner: Plan(plan),
@@ -31,8 +37,8 @@ component! {
 
 /// Plans the list from its children ([`super::plan_list`]).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let pieces = Attrs::of(ctx.record()).children;
-    let (mut wiring, n) = super::plan_list(ctx, pieces)?;
+    let attrs = Attrs::of(ctx.record());
+    let (mut wiring, n) = super::plan_list(ctx, attrs.children, attrs.maxNumber?)?;
     wiring.set_public(Props {
         numComponents: Wire::constant(n as f64),
     });

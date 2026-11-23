@@ -10,5 +10,6 @@ pub(crate) use super::ir::{
     Attr, DefaultPoint, ElemWiring, Flow, GivenId, GivenPoint, Leaf, MathText, NO_VALUE, Param,
     ParsedMath, Port, ScopeConst, Source, Wire,
 };
+pub(crate) use super::stages::plan::ListEntry;
 pub(crate) use super::stages::plan::{PlanCtx, Planner};
 pub(crate) use crate::components::ConstrainTarget;

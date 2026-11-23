@@ -10,12 +10,14 @@ mod copies;
 mod ctx;
 mod fix;
 mod iterates;
+mod lists;
 mod planner;
 
 use crate::compile::*;
 // What a planner is given and how a type names its planner: the planner-facing
 // part of planning, which `api` re-exports to the components.
 pub(crate) use ctx::PlanCtx;
+pub(crate) use lists::ListEntry;
 pub(crate) use planner::Planner;
 
 /// Planning's view (ADR 0031, "The planner context"): what outlining

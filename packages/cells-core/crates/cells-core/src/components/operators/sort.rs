@@ -59,7 +59,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             t.trim()
         )));
     }
-    let pieces = attrs.children;
+    let pieces = ctx.list_entries(attrs.children, f64::INFINITY)?;
     let n = pieces.len();
     let mut wiring = ElemWiring::with_list(ty, n);
     if n > 0 {

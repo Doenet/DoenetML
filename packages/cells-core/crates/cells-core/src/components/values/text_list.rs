@@ -19,11 +19,14 @@ component! {
     list {
         names: [texts, values],
         item: text,
-        values: text of Text,
+        values: text of Text, max_by: maxNumber,
         rendered: true,
     }
     alternate_names {
         numValues: numComponents,
+    }
+    attributes {
+        maxNumber: Literal(f64::INFINITY),
     }
     children: List,
     planner: Plan(plan),
@@ -31,8 +34,8 @@ component! {
 
 /// Plans the list from its children ([`super::plan_list`]).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-    let pieces = Attrs::of(ctx.record()).children;
-    let (mut wiring, n) = super::plan_list(ctx, pieces)?;
+    let attrs = Attrs::of(ctx.record());
+    let (mut wiring, n) = super::plan_list(ctx, attrs.children, attrs.maxNumber?)?;
     wiring.set_public(Props {
         numComponents: Wire::constant(n as f64),
     });

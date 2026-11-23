@@ -116,6 +116,8 @@ component_types! {
     NumberList => values::number_list::DEFINITION,
     TextList => values::text_list::DEFINITION,
     BooleanList => values::boolean_list::DEFINITION,
+    MathList => values::math_list::DEFINITION,
+    MathValue => values::math_value::DEFINITION,
     P => containers::p::DEFINITION,
     ShortDescription => containers::short_description::DEFINITION,
     Error => containers::error::DEFINITION,
@@ -435,6 +437,15 @@ impl ComponentType {
     pub fn list_entry(self) -> Option<EntryKind> {
         match self.list()?.points {
             ListPoints::Given { entry, .. } => Some(entry),
+            ListPoints::Table(_) => None,
+        }
+    }
+
+    /// The attribute whose literal number cuts a value list's entries
+    /// (`maxNumber`), if the type declares one.
+    pub(crate) fn list_max_attr(self) -> Option<crate::compile::api::Attr> {
+        match self.list()?.points {
+            ListPoints::Given { max_by, .. } => max_by,
             ListPoints::Table(_) => None,
         }
     }
@@ -1106,7 +1117,8 @@ mod tests {
     /// grows only deliberately.
     #[test]
     fn plan_ctx_grows_deliberately() {
-        const PLAN_CTX_METHODS: usize = 19;
+        // 21: a list's entries and an entry read as math (ADR 0041).
+        const PLAN_CTX_METHODS: usize = 21;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text

@@ -372,6 +372,21 @@ impl<'a> Outlining<'a> {
                 self.outlined_mut(t).elems[e.index()].children = kids;
             }
             _ if component_type.plays(Role::When) => {}
+            // A list's element children are components of it, each read
+            // as a reference to it is (ADR 0041), beside its presentational
+            // ones; its text and `$ref`s are pieces its record holds.
+            _ if component_type.def().children.kind == crate::components::ChildrenKind::List => {
+                let elements: Vec<NodeId> = d
+                    .children(el)
+                    .iter()
+                    .copied()
+                    .filter(|&n| d.kind(n) == NodeKind::Element)
+                    .collect();
+                if !elements.is_empty() {
+                    let kids = self.add_children(t, Some(e), child_scope, &elements);
+                    self.outlined_mut(t).elems[e.index()].children = kids;
+                }
+            }
             // Children the type reads (`children:`, ADR 0034) are parsed
             // into its record, not built: a number's value, a point's
             // constraints. Its presentational children (`<label>`) are

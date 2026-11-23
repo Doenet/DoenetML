@@ -7,9 +7,11 @@
 //! operators and answer are `symbolic`, planned as math cells.
 
 use super::define::*;
-use crate::compile::api::{ElemWiring, GivenId, ListPiece, NO_VALUE, PlanCtx, Source, Wire};
+use crate::compile::api::{
+    ElemWiring, GivenId, ListEntry, ListPiece, NO_VALUE, PlanCtx, Source, Wire,
+};
 use crate::components::EntryKind;
-use crate::program::SymKind;
+use crate::program::{Post, SymKind};
 
 pub mod answer;
 pub mod award;
@@ -19,6 +21,7 @@ pub mod curve;
 pub(crate) mod formatted;
 pub(crate) mod function_operators;
 pub mod math;
+pub(crate) mod math_list;
 pub(crate) mod number_list;
 pub(crate) mod pluralize;
 pub mod text;
@@ -29,30 +32,54 @@ pub mod when;
 
 /// Plans a value list's entries from its children (ADR 0041, decision 1:
 /// a static sequence, its count a fact of the source): one entry per
-/// piece, a piece of text a given value of the list's entry kind, a
-/// reference an alias of what it names. Returns the wiring, the entries
-/// set, and how many there are.
+/// piece of text, a given value of the list's entry kind (a number list's
+/// piece that is no number read as the math it is, `1+1`, `pi`); and the
+/// entries each reference and element child contributes, an alias each of
+/// what it names (decision 9: a nested list's entries spliced), at most
+/// `max` (`maxNumber`). Returns the wiring, the entries set, and how many
+/// there are.
 pub(crate) fn plan_list(
     ctx: &mut PlanCtx<'_, '_>,
     pieces: Vec<ListPiece>,
+    max: f64,
 ) -> crate::error::Result<(ElemWiring, usize)> {
     let component_type = ctx.component_type();
     let kind = component_type.list_entry().expect("a value list");
-    let n = pieces.len();
+    let entries = ctx.list_entries(pieces, max)?;
+    let n = entries.len();
     let mut wiring = ElemWiring::with_list(component_type, n);
-    let entries = pieces
+    let entries = entries
         .into_iter()
-        .enumerate()
-        .map(|(k, piece)| match piece {
-            ListPiece::Reference(p) => Source::reference(p).into(),
-            ListPiece::Text(text) => {
-                let id = GivenId::Children(k as u32);
+        .map(|entry| match entry {
+            ListEntry::Ref(_) if kind == EntryKind::Math => {
+                let id = ctx.entry_math(&entry).expect("a reference is math");
+                Source::sym_expr(id, Post::None).into()
+            }
+            ListEntry::Ref(p) => Source::reference(p).into(),
+            ListEntry::Math(id) => match kind {
+                EntryKind::Number => Source::math(id).into(),
+                EntryKind::Math => Source::sym_expr(id, Post::None).into(),
+                _ => Wire::absent(),
+            },
+            ListEntry::Text(k, text) => {
+                let id = GivenId::Children(k);
                 match kind {
-                    // A piece that is no number is the missing value.
-                    EntryKind::Number => Wire::given(id, text.parse().unwrap_or(NO_VALUE)),
+                    EntryKind::Number => match text.parse::<f64>() {
+                        Ok(v) => Wire::given(id, v),
+                        // Math, numeric or not (`1+1`, `x`), or none (`@`).
+                        Err(_) => match ctx.entry_math(&ListEntry::Text(k, text)) {
+                            Some(expr) => Source::math(expr).into(),
+                            None => Wire::given(id, NO_VALUE),
+                        },
+                    },
                     EntryKind::Text => Wire::given_text(id, ctx.intern(&text)),
                     EntryKind::Boolean => {
                         Wire::given(id, f64::from(u8::from(text.eq_ignore_ascii_case("true"))))
+                    }
+                    // As written: a given expression a write may change, or
+                    // blank for text that is no math.
+                    EntryKind::Math => {
+                        Wire::given_math(id, crate::sym::Engine::new().parse_tree(text.trim()).ok())
                     }
                     EntryKind::Point => unreachable!("a value list's entries are values"),
                 }
@@ -84,6 +111,27 @@ pub mod number {
 
     /// The position of `value`: the number.
     pub const VALUE: usize = Props::AT.value;
+}
+
+/// `mathValue`: a `$ref` child naming a math cell that stands for no
+/// component's expression, an entry of a math list (ADR 0041).
+pub(crate) mod math_value {
+    use super::*;
+
+    component! {
+        /// What `$ml[2]` shows as: the expression its one cell holds, or
+        /// the number where the entry aliases one. Made by the builder.
+        tags: ["mathValue"],
+        flags: [copyable, internal],
+        roles: [MathValue],
+        text: Held(value),
+        extend_value: Scalar(value),
+        default_prop: value,
+        props {
+            value: attr(NO_VALUE) { rendered },
+        }
+        planner: Props,
+    }
 }
 
 pub(crate) mod evaluate {

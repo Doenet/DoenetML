@@ -90,4 +90,17 @@ spec! {
         doenet r#"<sum name="s">x 1</sum>"#;
         diagnostics["cells-unsupported"]
     }
+
+    case "one operand per entry of a list, and per element child" {
+        doenet r#"<numberList name="l">1 2.5 3</numberList>
+                  <sum name="s">$l 4</sum>
+                  <mean name="m">$l</mean>
+                  <count name="c">$l $l</count>
+                  <sum name="e"><number>3</number><number>17</number><number>5-4</number></sum>
+                  <max name="past">$l[9] 5</max>"#;
+        expect {
+            "s.value" = 10.5, "m.value" = 6.5 / 3.0, "c.value" = 6, "e.value" = 21,
+            "past.value" = 5,
+        }
+    }
 }

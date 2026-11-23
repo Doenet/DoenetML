@@ -63,7 +63,7 @@ fn scan(ty: ComponentType) -> Scan {
 /// it has no entries.
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
-    let pieces = Attrs::of(ctx.record()).children;
+    let pieces = ctx.list_entries(Attrs::of(ctx.record()).children, f64::INFINITY)?;
     let op = VecOp::Scan {
         op: scan(ty),
         n: byte(pieces.len().min(u8::MAX as usize)),

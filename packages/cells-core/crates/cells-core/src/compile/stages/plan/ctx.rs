@@ -1,6 +1,7 @@
 //! [`PlanCtx`]: what every component planner is given.
 
-use super::Planning;
+use super::{ListEntry, Planning};
+use crate::compile::ir::record::ListPiece;
 use crate::compile::*;
 use crate::components::ConstrainTarget;
 
@@ -146,7 +147,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// a literal, or math text, as a table prop of `children` is planned.
     pub(crate) fn value_of(&mut self, v: &ValueChildren) -> Result<Source> {
         let scope = self.scope_for(&v.nodes);
-        self.p.plan_value_children(self.t, scope, v)
+        self.p.plan_value_children(self.t, self.e, scope, v)
     }
 
     /// A reference to a prop of the element `p` names (`$l` -> `$l.x2`);
@@ -270,6 +271,34 @@ impl<'a> PlanCtx<'_, 'a> {
         let compare = self.p.compare_attrs(&[self.node()]);
         self.p
             .plan_condition_content(self.t, scope, nodes, compare, wiring)
+    }
+
+    /// The entries the children `pieces` of a list (or an operator)
+    /// contribute, in order, at most `max` (ADR 0041, decision 9): each
+    /// reference or element child naming a static sequence spliced into
+    /// its entries, one naming an entry past such a list's end dropped,
+    /// and math text with references inside its brackets parsed.
+    pub(crate) fn list_entries(
+        &mut self,
+        pieces: Vec<ListPiece>,
+        max: f64,
+    ) -> Result<Vec<ListEntry>> {
+        self.p.list_entries(self.t, self.e, pieces, max)
+    }
+
+    /// An entry of a list read as math: a piece of text as written
+    /// (`1+1`, `pi`, `x`), none when it is no math; a reference alone, its
+    /// one cell or the expression that cell stands for.
+    pub(crate) fn entry_math(&mut self, entry: &ListEntry) -> Option<ExprId> {
+        match entry {
+            ListEntry::Text(_, text) => self.p.text_math(text),
+            ListEntry::Math(id) => Some(*id),
+            ListEntry::Ref(p) => {
+                let id = self.p.ar.arena.push(Expr::Cell(*p));
+                self.p.ar.sym_text.insert(id, SymText::Leaf(*p));
+                Some(id)
+            }
+        }
     }
 
     /// Warns that the element cannot be what its attributes ask, with a

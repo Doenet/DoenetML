@@ -784,6 +784,7 @@ macro_rules! component {
             names: [$($lname:ident),+ $(,)?],
             item: $litem:ident,
             $(values: $lv:ident of $lvkind:ident
+                $(, max_by: $lvmax:ident)?
                 $(, interactive: $lvinteractive:literal)?
                 $(, rendered: $lvrendered:literal)? $(,)?)?
             $(points: [$([$px:ident, $py:ident]),+ $(,)?]
@@ -839,7 +840,7 @@ macro_rules! component {
                     points: $crate::components::define::component!(@list_points
                         $(table [$([$px, $py]),+])?
                         $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
-                        $(values [$lv $lvkind])?
+                        $(values [$lv $lvkind] [$($lvmax)?])?
                     ),
                     interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)? $($($lvinteractive)?)?),
                     rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)?),
@@ -1235,15 +1236,17 @@ macro_rules! component {
             alternate_name: $crate::components::define::component!(@alternate_name $($alt)?),
             attribute: Some(attr::$attr),
             max: $crate::components::define::component!(@max $($max)?),
+            max_by: None,
             entry: $crate::components::EntryKind::Point,
         }
     };
-    (@list_points values [$v:ident $kind:ident]) => {
+    (@list_points values [$v:ident $kind:ident] [$($vmax:ident)?]) => {
         $crate::components::ListPoints::Given {
             coords: &[stringify!($v)],
             alternate_name: None,
             attribute: None,
             max: None,
+            max_by: $crate::components::define::component!(@max_by $($vmax)?),
             entry: $crate::components::EntryKind::$kind,
         }
     };
@@ -1254,6 +1257,8 @@ macro_rules! component {
     };
     (@flag) => { false };
     (@flag $flag:literal) => { $flag };
+    (@max_by) => { None };
+    (@max_by $attr:ident) => { Some(attr::$attr) };
     (@max) => { None };
     (@max $max:expr) => { Some($max) };
     (@alternate_name) => { None };

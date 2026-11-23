@@ -266,6 +266,9 @@ pub enum Role {
     /// What a `$ref` child naming an entry of a boolean list shows as
     /// (ADR 0041).
     BooleanValue,
+    /// What a `$ref` child naming a math cell that stands for no
+    /// component's expression shows as: an entry of a math list (ADR 0041).
+    MathValue,
     /// An answer's award: the credit it gives when its condition holds.
     Award,
     /// An award's condition.
@@ -292,6 +295,7 @@ impl Role {
         Role::Value,
         Role::TextValue,
         Role::BooleanValue,
+        Role::MathValue,
         Role::Award,
         Role::When,
         Role::Choice,
@@ -374,6 +378,9 @@ pub enum TextKind {
     /// The expression's text (`expr`, the first), or the number (`value`)
     /// when there is no expression.
     Math(usize, usize),
+    /// What the cell holds: an expression's text for a math cell, a
+    /// number otherwise (a math list's entry, ADR 0041).
+    Held(usize),
     /// The children's text between two fixed strings: a `<q>`'s quotes, a
     /// `<tag>`'s angle brackets, or, with no children, a single character
     /// (`<mdash/>` is `Delimited("—", "")`).
@@ -611,6 +618,9 @@ pub enum ListPoints {
         attribute: Option<crate::compile::api::Attr>,
         /// The most points the list keeps.
         max: Option<usize>,
+        /// The attribute whose literal number cuts the entries a value
+        /// list's children give (`maxNumber`, ADR 0041).
+        max_by: Option<crate::compile::api::Attr>,
         /// What an entry is: a point, or a value of a kind.
         entry: EntryKind,
     },
@@ -631,6 +641,8 @@ pub enum EntryKind {
     Text,
     /// 1 for true, else false.
     Boolean,
+    /// An expression handle, or a number where an entry aliases one.
+    Math,
 }
 
 /// Where a sticky group member's points are, as (x, y) pairs.

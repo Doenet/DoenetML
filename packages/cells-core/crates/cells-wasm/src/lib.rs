@@ -412,6 +412,17 @@ impl Core {
         }
     }
 
+    /// What a cell's value means: "number", "text" (a string id) or
+    /// "math" (an expression handle). An entry of a math list may hold
+    /// either a number or an expression (ADR 0041).
+    pub fn cell_holds(&self, cell: u32) -> String {
+        match self.doc.value_types.get(cell as usize) {
+            Some(cells_core::ValueType::Text) => "text".into(),
+            Some(cells_core::ValueType::Math) => "math".into(),
+            _ => "number".into(),
+        }
+    }
+
     /// Every cell a renderer may request, ascending; new indices after a
     /// rebuild.
     pub fn interactive_cells(&self) -> Vec<u32> {

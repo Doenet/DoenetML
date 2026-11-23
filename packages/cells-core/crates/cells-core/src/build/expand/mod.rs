@@ -1094,11 +1094,12 @@ impl<'c> Builder<'c> {
             }
             (target, Some(prop)) => {
                 let targets = self.port_targets(target, Some(prop), plan, Some(1), scope)?;
-                // A string id shows as a text.
-                let is_text = self.value_type(targets[0]) == ValueType::Text;
+                // A string id shows as a text, a math cell as a math.
+                let held = self.value_type(targets[0]);
                 let component_type = match prop.of.shows_as(prop.sel) {
                     Some(role) => role.ty(),
-                    None if is_text => Role::TextValue.ty(),
+                    None if held == ValueType::Text => Role::TextValue.ty(),
+                    None if held == ValueType::Math => Role::MathValue.ty(),
                     None => Role::Value.ty(),
                 };
                 let value = component_type.scalar_prop().expect("a value");
