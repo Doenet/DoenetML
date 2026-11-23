@@ -109,8 +109,10 @@ So whether `<math extend="$a.currentResponses[2]"/>` is allowed, and what `$x.p`
   on 15 tags after #2641). **Known violations** (#2647): `<collect componentType>` and
   `<dataFrame columnTypes>` take a reference. Three attributes named `type` choose a kind of
   something, not a type, and take a reference: `<chart type>` (`bar`, …), a sampler's
-  distribution (`<sampleRandomNumbers type="uniform">`), and `<extractMath type>`. Whether they
-  fall under TYPE-5 is for a decision (D63).
+  distribution (`<sampleRandomNumbers type="uniform">`), and `<extractMath type>`. They stay
+  keywords that may take a reference, like `simplify` (D63 decision 3), so they are not under
+  TYPE-5. A type named in an attribute is a tag name, matched exactly: `type="Math"` gets
+  `w0197` for the fallback release, as `componentType="Math"` does (D63 decision 4).
 
 **Done by #2602 and #2603** (#2568). Every property whose component doesn't declare its type
 is typed from the DoenetML when the document loads. A tag made from one is checked at load, also

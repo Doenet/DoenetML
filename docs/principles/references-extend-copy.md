@@ -45,7 +45,7 @@ every attribute (`name`, `for` and `valueName` included). An author learns one r
 everything they type: names in DoenetML are exact, as `$x` always was.
 
 **Values are words, not names,** unless they name a tag or a property (`componentType="point"`,
-`sortByProp="x"`), which are names and matched exactly (D62). An attribute's value is read without
+`sortByProp="x"`, `type="math"`), which are names and matched exactly (D62, D63 decision 4). An attribute's value is read without
 case where it is a keyword: `simplify="FULL"`, `hide="True"`, `<boolean>TRUE</boolean>`. The value can come
 from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't be held to a case.
 
@@ -82,7 +82,8 @@ from what a reader types (`<boolean>$ti</boolean>` reading `True`), which can't 
   `extend` or `copy`, where it used to stop the document;
 - left (#2647): `<collect componentType="$t">` is allowed and matched only as the document runs
   (decided, D63: `e0090`, TYPE-5); `<select type="Math">` is `w0145`, though a `type` from a
-  fixed list is a keyword (D63 decision 4, for a decision, may make every named type exact); on a `<collect>`, a passed-on
+  fixed list was a keyword (decided, D63 decision 4: a type named in an attribute is a tag name,
+  so `type="Math"` gets `w0197` like `componentType="Math"`); on a `<collect>`, a passed-on
   attribute no tag has, or one written beside its right spelling, is ignored silently;
   `sortByProp=" x "` isn't trimmed;
 - `w0197` becomes `e0004` in a later release.

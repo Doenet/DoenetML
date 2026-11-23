@@ -3330,7 +3330,8 @@ uncorrected (#2641).
    written literally too. Its values are `number` and `string`; TYPE's name for the second is
    `text`. Its "auto" type is worked out from a data file as the document runs; a file is not
    the DoenetML, so this is outside TYPE.
-3. **For a decision: three `type` attributes choose a kind, not a type.** `<chart type="bar">`,
+3. **Decided: (a). Three `type` attributes choose a kind, not a type,** and stay keywords that
+   may take a reference, like `simplify`. They are not under TYPE-5. `<chart type="bar">`,
    a sampler's distribution (`<sampleRandomNumbers type="uniform">`,
    `<selectRandomNumbers>`, `<sampleMultivariateRandomNumber>`) and `<extractMath
    type="operand">` take a reference today. A test lets a reader pick the chart's type with a
@@ -3343,7 +3344,8 @@ uncorrected (#2641).
    - (c) Rename them (`<chart kind>`, `distribution`, …) with `w0197`'s fallback for one release,
      so that `type` always means a type and is always literal. The most uniform, at the cost of
      a rename.
-4. **For a decision: case.** D51 decision 3 reads keywords without case "since a value can come
+4. **Decided: a type named in an attribute is a tag name, matched exactly** (the recommendation
+   below). Case: D51 decision 3 reads keywords without case "since a value can come
    from what a reader types". A `type` can't now (TYPE-5), so that reason no longer holds for
    it. Today `type="Math"` is read as `math` on most tags, while `componentType="Math"` is a tag
    name: given its spelling with `w0197` (D62). `<select type="Math">` is `w0145`.
