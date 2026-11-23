@@ -48,6 +48,15 @@ pub(crate) fn plan_list(
     let entries = ctx.list_entries(pieces, max)?;
     let n = entries.len();
     let mut wiring = ElemWiring::with_list(component_type, n);
+    // Math text with references inside its brackets is read where math is.
+    if !matches!(kind, EntryKind::Number | EntryKind::Math)
+        && entries.iter().any(|e| matches!(e, ListEntry::Math(_)))
+    {
+        return Err(crate::error::Error::Unsupported(format!(
+            "a reference inside brackets in <{}>",
+            component_type.tag()
+        )));
+    }
     let entries = entries
         .into_iter()
         .map(|entry| match entry {
@@ -56,11 +65,8 @@ pub(crate) fn plan_list(
                 Source::sym_expr(id, Post::None).into()
             }
             ListEntry::Ref(p) => Source::reference(p).into(),
-            ListEntry::Math(id) => match kind {
-                EntryKind::Number => Source::math(id).into(),
-                EntryKind::Math => Source::sym_expr(id, Post::None).into(),
-                _ => Wire::absent(),
-            },
+            ListEntry::Math(id) if kind == EntryKind::Number => Source::math(id).into(),
+            ListEntry::Math(id) => Source::sym_expr(id, Post::None).into(),
             ListEntry::Text(k, text) => {
                 let id = GivenId::Children(k);
                 match kind {

@@ -112,7 +112,9 @@ methods. Rules for planners:
   written: a `<math>`'s, a point's `(a, b)`), `Value` (a blank, a literal,
   one reference or math text: a `<number>`'s, a `<text>`'s), `List` (a
   list's entries: pieces of text split at the spaces outside any bracket
-  pair, and each reference one, a `<numberList>`'s; ADR 0041), or, the
+  pair, each reference and each element child, a component of the
+  list, the entries of the sequence it names, a `<numberList>`'s; ADR
+  0041, read through `PlanCtx::list_entries`), or, the
   default, `Rendered` (built as components). Groups of element children
   follow the kind (`children: Math { constraints: [ConstrainTo,
   ConstrainToGrid] }`): each member is parsed into a record of its own, as

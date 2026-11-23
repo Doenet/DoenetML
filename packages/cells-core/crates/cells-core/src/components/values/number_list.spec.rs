@@ -106,4 +106,10 @@ spec! {
                   <numberList name="l">$a[1] $a[5] 9</numberList>"#;
         expect { "l.numbers" = [7, 9] }
     }
+
+    case "a reference inside brackets is part of its piece's math" {
+        doenet r#"<number name="a">2</number>
+                  <numberList name="l">($a+1) 5</numberList>"#;
+        expect { "l.numbers" = [3, 5] }
+    }
 }

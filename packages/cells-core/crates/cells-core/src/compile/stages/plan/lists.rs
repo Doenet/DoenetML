@@ -236,10 +236,14 @@ impl<'a> Planning<'a> {
     }
 }
 
-/// Whether a type is a value list: a static sequence of values its
-/// children give (ADR 0041).
+/// Whether a type is a value list: a static sequence of the values its
+/// children give, cut at its `maxNumber` (ADR 0041), which is what its
+/// list declares (`max_by`). An operator over a list of operands
+/// (`<sort>`, `<differences>`) computes its entries, as many as its
+/// operator makes, and is not one.
 fn is_value_list(ty: ComponentType) -> bool {
     ty.def().children.kind == crate::components::ChildrenKind::List
+        && ty.list_max_attr().is_some()
         && ty
             .list_entry()
             .is_some_and(|k| k != crate::components::EntryKind::Point)
