@@ -139,26 +139,80 @@ concatenation in view.
   core's, and a joined text compares with `=` like any text.
 - A tick may grow the string table. The growth is bounded by the distinct
   texts made, and the strings are dropped with the session.
-- `<sort>` and `<shuffle>` sort and shuffle numbers, texts and maths.
-  Points and vectors are not sorted yet: an entry of a point is two cells,
-  and a type's entries have one width (`ComponentType::list_width`), while a
-  sort's entry type follows its operands. That needs entries as rows (ADR
-  0041 step 3), a point entry held as one math value (decision 8), or a
-  width per element; booleans likewise wait on a boolean entry kind for an
-  operand-typed list (`EntryKind::Any` reads a number as a number).
-- A sort's entry kind is `EntryKind::Any`: what its operands hold, read as
-  its cell holds it. Its rows (ADR 0041 step 3) are `mathValue` rows, which
-  the bridge draws as a text when the cell holds one.
+- `<sort>` and `<shuffle>` sort and shuffle numbers, texts, maths,
+  booleans, points and vectors. A sort's entry kind is `EntryKind::Any`:
+  what its operands hold, read as its cell holds it, its rows (ADR 0041
+  step 3) `mathValue` rows, which the bridge draws as a text when the cell
+  holds one; one of points or booleans has entries of its own kind and
+  width (see Migration), its rows points or booleans.
 
 ## Migration
 
 - *Done:* reading and making strings in the tick, joins, `<sort>` and
   `<shuffle>` of numbers, texts and maths, and the companion sequence with
   `componentOrder`.
-- *Left:* a per-element entry width for a sort or shuffle of points (every
-  reader of a list's width, `ComponentType::list_width`, in the compile,
-  the build, the rows and the document, reads the type's today; the
-  element's would come from its plan's `ListLen` and, in a document, from
-  its rows), and `<choiceInput shuffleOrder>` (`choiceOrder` as a
-  companion of a list the choice input does not have yet, a pick by the
-  order in the answer's credit, and the bridge's `choiceOrder`).
+- *Done 2026-11-23:* a per-element entry width (decision 8). An element
+  of a type whose entries are its operands' (`EntryKind::Any`) may decide
+  its entries' kind: its plan's list is `ListLen::Entries(n, kind)`
+  (`ElemWiring::with_entries`), and every reader of a list's cells reads
+  them through the element's `ListShape` (`components/shape.rs`: its type
+  and the kind it decides, so its width, length, slots, companion, prop
+  names and row type), never the type's width alone: the template graph
+  (`Stamp::shape`, `GraphComp::own_entry`), the seal's types, share, the
+  build's slots, rows and copies, and the document (`ComponentTable::
+  own_entries`, a sparse column: only such elements, and their copies,
+  which take their referent's). `ComponentType`'s own `list_len`,
+  `list_slot` and the rest remain for an element whose entries are its
+  type's.
+  `<sort>` and `<shuffle>` of points have entries of two cells, `x` then
+  `y` (a vector is its displacement, a reference to its `displacement`
+  prop, as the current core compares it), so their rows are points: a
+  drag of a shuffled one lands on the point it shows, one of a sorted one
+  is dropped (`Shown`; the load notes it, an info per coordinate, as for
+  any drop). A point compares by its coordinate `sortByComponent` (a
+  literal; one it does not have compares as the missing value, so the
+  points keep their order), the tail's with `sortVectorsBy="tail"`; any
+  operand by its prop `sortByProp`, spelled in any case, when it names an
+  element with a one-cell prop so called (a reference to that prop,
+  `PlanCtx::ref_prop`), else the missing value. Booleans every operand is
+  sort as booleans (false first), each entry a boolean (`type="boolean"`
+  reads bare text so); booleans among texts or numbers are their text.
+  Points among other values are refused. Tested by `sort.spec.rs`, a
+  `sorted-points` document in `tests/every_count.rs` and the bridge tests.
+  Departures and what is left:
+  - A reference to an entry of a sort of points (`$s[2]`), or such a sort
+    among another list's children, reads one cell an entry: an entry
+    step's width is planned from the records (`EntryIndex::width`), which
+    say a sort's entries are its operands' and not which; making it the
+    referent's as built (`ListShape` of the built element) is left.
+  - `sortByProp` reads a prop of the operand's element when the operand
+    names one by a path of names; an entry of a list (`$l[2]`) has none
+    here. `numDimensions` and points of other than two coordinates wait
+    on ADR 0041 step 5.
+  - A point list among a sort's children is one operand (refused), not
+    its points: splicing a list of points into a sort is left.
+- *Done 2026-11-23:* `<choiceInput shuffleOrder>`. A type may declare a
+  second public sequence with no list of entries before it (`sequence:
+  choiceOrder` in `component!`, `define::sequence_only`): a list of zero
+  cells an entry whose companion is one, so the element has no rows and
+  its text is unchanged (`ListShape::list_len` counts the companion's
+  cells; `entry_row` is none for no cells an entry). A choice input's
+  `choiceOrder` is the 1-based position among its choices of the one
+  shown at each place: in order, or a `Shuffle` of the positions by a draw
+  (ADR 0037), all but the last with `preserveLastChoice`, as the current
+  core's. `selectedIndex` is a place as shown, as the current core's
+  `selectedIndices`; an answer's credit picks the choice `choiceOrder`
+  names there (`plan_choice_answer`, a `Choose` of the order, as the
+  current core's `childIndicesSelected`). The bridge sends the cells as
+  the renderer's `choiceOrder`, so the choices are drawn in that order,
+  and `inline` (now a presentation attribute); the parity adapter reads
+  `choiceOrder`, `choiceTexts` (each choice's text, in that order),
+  `selectedIndex` and `selectedIndices`, and the literal flags. Tested by
+  `tests/choice_input.rs` and the bridge tests. Left: a copy with
+  attributes of its own (`<choiceInput extend="$ci" inline="false"/>`, a
+  `<shuffle extend="$s" asList="false"/>`) draws its own order, keyed by
+  its own element, where the current core's copies share the original's
+  (a bare copy aliases it): whether a copy shares its referent's draw is a
+  copy rule for every load-time choice, not decided here. `selectedValue`,
+  a choice's `selected` and `selectMultiple` are not modelled.
+

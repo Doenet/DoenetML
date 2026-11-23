@@ -597,10 +597,13 @@ otherwise.
      operand it shows decides the order, so the write would move it and no
      round trip is stable. A shuffled entry writes its operand.
    - Points and vectors (`sortByComponent`, `sortVectorsBy`, `sortByProp`)
-     are refused: a point entry is two cells and a type's entries have one
-     width, while a sort's entry type follows its operands. They wait on
-     entries as rows (step 3) or a point held as one value (decision 8).
-     Booleans are refused likewise.
+     and booleans: *done 2026-11-23* by a width per element (ADR 0053,
+     Migration): a sort or shuffle of points or booleans decides its
+     entries' kind, its rows points or booleans, every reader of a list's
+     cells reading them through the element's `ListShape`. A `<choiceInput>`'s
+     `choiceOrder` (`shuffleOrder`) is a second sequence with no list
+     before it (`sequence:`).
+
    - The order is public as a second named sequence over the element's
      own ports (decision 1), the list's `companion`: `componentOrder`, one
      cell per entry after the entries (`PropAt::Companion`). Its entries
