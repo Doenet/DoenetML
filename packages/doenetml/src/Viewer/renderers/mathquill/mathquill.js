@@ -3148,8 +3148,7 @@ var saneKeyboardEvents = (function () {
         // An `input` event that `typedText` will take as typed by an Android
         // on-screen keyboard: text the browser named, not composed, that is
         // all the textarea holds, after a keydown with no modifiers named
-        // "Unidentified" (Chrome) or "Process" (Firefox for Android, and
-        // desktop input methods, whose committed text is taken the same way).
+        // "Unidentified" (Chrome) or "Process" (Firefox for Android).
         function isOnScreenKeyboardInsert(input) {
             return (
                 !!keydown &&
@@ -3458,12 +3457,15 @@ var saneKeyboardEvents = (function () {
                 }
             } else if (insertedByOnScreenKeyboard && text.length > 1) {
                 // DOENET (#2557): text an on-screen keyboard inserted whole:
-                // a tapped suggestion, a swiped word, or a formula from the
-                // keyboard's clipboard. Pasted when it reads as LaTeX, as a
-                // paste would be, so that `x^2+1` keeps its exponent; typed
-                // otherwise.
+                // a tapped suggestion, a swiped word, an emoji, or a formula
+                // from the keyboard's clipboard. Typed character by
+                // character, as if each key had been pressed, so that a word
+                // such as `theta` becomes θ. Text with LaTeX structure in it
+                // (`^`, `_`, `\`, braces) that parses is pasted instead, so
+                // that `x^2+1` keeps its exponent.
                 textarea.value = "";
                 if (
+                    /[\\^_{}]/.test(text) &&
                     latexMathParser
                         .skip(Parser.eof)
                         .or(Parser.all.result(false))

@@ -525,8 +525,10 @@ describe(
         });
 
         it("pastes a formula the keyboard inserts whole", () => {
-            // Text that reads as LaTeX, as from the keyboard's clipboard,
-            // keeps its structure: the exponent ends after the 2.
+            // Text with LaTeX structure, as from the keyboard's clipboard,
+            // keeps it: the exponent ends after the 2. Typed key by key it
+            // would be x^{2+1}, which shows the same text, so the credit is
+            // what tells the two apart.
             cy.get("#mi textarea").focus();
             cy.get("#mi textarea").then(($ta) => {
                 androidKey($ta[0], "x^2+1");
@@ -534,6 +536,16 @@ describe(
             fieldShould("mi", "x2+1");
             cy.get("#mi textarea").type("{enter}", { force: true });
             cy.get("#c").should("have.text", "1");
+        });
+
+        it("types a word inserted whole as if each key were pressed", () => {
+            // A suggested or swiped word becomes what typing it makes:
+            // `theta` is one of the field's auto-commands.
+            cy.get("#mi textarea").focus();
+            cy.get("#mi textarea").then(($ta) => {
+                androidKey($ta[0], "theta");
+            });
+            fieldShould("mi", "θ");
         });
 
         it("types inserted text that does not read as LaTeX", () => {
@@ -561,7 +573,6 @@ describe(
                 // neither is the a beside the cursor.
                 samsungCompose($ta[0], "a");
             });
-            cy.wait(100);
             fieldShould("mi", "ab");
             cy.get("#mi textarea").then(($ta) => {
                 // What the composition adds now is typed at the cursor.
