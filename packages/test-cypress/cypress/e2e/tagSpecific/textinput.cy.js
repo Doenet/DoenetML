@@ -688,4 +688,46 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#ti_input").should("have.value", "908");
         cy.get("#iv").should("have.text", "908");
     });
+
+    it("an update still due from a replaced core does not hold back the next one's", () => {
+        // Core replies to the key before its renderer update arrives, so the
+        // viewer keeps the typed value until that update. Then the document is
+        // rebuilt (a new attempt), and the update, from the replaced core, is
+        // never delivered. The kept value must not go on holding the input's
+        // updates from the new core off the screen.
+        const doenetML = `<p><textInput name="ti" /></p>
+<p><textInput name="ti2" bindValueTo="$ti" /></p>
+<p><text name="v">$ti</text></p>`;
+        let control;
+        cy.window().then((win) => {
+            control = controlCoreMessages(win);
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#ti_input").should("exist");
+        cy.window().then(() => {
+            control.hold = true;
+        });
+        cy.get("#ti_input").type("9");
+
+        cy.window().should(() => {
+            expect(control.allActionsAnswered()).eq(true);
+            expect(
+                control.held.filter(
+                    (u) => u.actionName === "updateImmediateValue",
+                ),
+            ).to.have.length(1);
+        });
+
+        cy.window().then((win) => {
+            control.hold = false;
+            win.postMessage({ doenetML, attemptNumber: 2 }, "*");
+        });
+        // the new attempt starts empty
+        cy.get("#ti_input").should("have.value", "");
+
+        cy.get("#ti2_input").type("abc{enter}");
+        cy.get("#v").should("have.text", "abc");
+        cy.get("#ti_input").should("have.value", "abc");
+    });
 });

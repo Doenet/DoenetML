@@ -410,6 +410,10 @@ export function DocViewer({
     // Updates left off the screen while the component's own action was in
     // flight, put on screen if that action turns out to change nothing.
     const heldUpdatesRef = useRef<HeldRendererUpdates>(new Map());
+    // The actions sent to core that it has not settled yet: no reply, or a
+    // reply saying a renderer update follows. When a new core is built, their
+    // pending values are dropped (see `startCore`).
+    const actionsSentToCoreRef = useRef(new Set<string>());
     const dispatch = useAppDispatch();
 
     // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
@@ -1875,6 +1879,9 @@ export function DocViewer({
         // answered, so the math this action changes on screen goes first.
         const releaseIdleTypesets = holdIdleTypesets();
         idleTypesetHolds.current.add(releaseIdleTypesets);
+        if (actionArgs.args?.actionId) {
+            actionsSentToCoreRef.current.add(actionArgs.args.actionId);
+        }
         try {
             actionResult =
                 await coreWorker.current?.dispatchActionJavascript(actionArgs);
@@ -2296,6 +2303,7 @@ export function DocViewer({
         if (!rendererUpdateFollows) {
             // This action is being settled, so the value the renderer showed
             // ahead of it is no longer waiting on an answer.
+            actionsSentToCoreRef.current.delete(actionId);
             clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
             applyHeldUpdates();
         }
@@ -3322,6 +3330,16 @@ export function DocViewer({
         // here is what made complex documents unloadable (they time out before
         // core finishes), so we let it run to completion however long it takes.
         onActionCallbacks.current.clear();
+        // An action core has not settled keeps the value its renderer showed
+        // ahead of core until core's update for it arrives. Every action sent
+        // so far went to a core this one replaces, whose updates are no longer
+        // delivered, so drop those values: left behind, they would keep the
+        // component's updates from this core off the screen. (Actions queued
+        // for this core have not been sent and keep theirs.)
+        for (const actionId of actionsSentToCoreRef.current) {
+            clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+        }
+        actionsSentToCoreRef.current.clear();
         coreCreationInProgress.current = true;
 
         // The worker keeps the proxies below for the life of its core and
