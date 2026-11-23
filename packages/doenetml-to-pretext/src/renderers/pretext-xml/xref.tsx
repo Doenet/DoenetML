@@ -27,11 +27,13 @@ export const Xref: BasicComponentWithPassthroughChildren<{
 
     if (referent == null) {
         // Not a link within the document: an external link is a PreTeXt `<url>`.
-        // With no children, PreTeXt shows the address itself.
+        // With no children, PreTeXt shows the address itself. A `#` address is
+        // a link within the page with no component found for it, so it stays an
+        // `<xref>` below and PreTeXt reports the missing target.
         const href = activityId
             ? `${DOENET_VIEWER_URL}/${activityId}${activityUrlPostfix ?? ""}`
             : url;
-        if (href && href !== "#") {
+        if (href && !href.startsWith("#")) {
             return React.createElement(
                 "url",
                 { href },
