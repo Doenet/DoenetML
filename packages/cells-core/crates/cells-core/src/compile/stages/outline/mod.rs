@@ -383,10 +383,8 @@ impl<'a> Outlining<'a> {
                 self.outlined_mut(sub).children = kids;
                 self.outlined_mut(t).elems[e.index()].body = Body::Repeat { template: sub };
             }
-            // A collect's children are what it gathers, a point list's the
-            // points of the list it extends: none are written.
+            // A collect's children are what it gathers: none are written.
             Some(StructureKind::Transparent { .. }) if machinery == Some(Machinery::Collect) => {}
-            _ if component_type.holds_list_points() => {}
             _ if machinery == Some(Machinery::Choice) => self.add_choice(t, e, el)?,
             // An answer's and an award's element children are components
             // (inputs, awards, whens); their text and `$ref`s are math the

@@ -1,3 +1,3 @@
-samples may repeat a prime: cells 12 · essential 0 · constant 12 · instrs 0 · components 2
-one sample from 2 to 100 by default: cells 7 · essential 0 · constant 7 · instrs 0 · components 2
+samples may repeat a prime: cells 12 · essential 0 · constant 12 · instrs 0 · components 8
+one sample from 2 to 100 by default: cells 7 · essential 0 · constant 7 · instrs 0 · components 3
 an empty range is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2

@@ -463,6 +463,46 @@ impl ComponentType {
         }
     }
 
+    /// The type of a row of an entry of the type's list (ADR 0041,
+    /// decision 4), when the entries are the element's own (its children
+    /// or its planner give them, never an attribute: a value list's, a
+    /// list operator's, a sampler's): a number, a text, a boolean, a math
+    /// value or a point, as the entry is. Each entry of such an element is
+    /// a component of this type, a child of the list, whose ports
+    /// ([`ComponentType::entry_ports`]) alias the entry's cells.
+    pub fn entry_row(self) -> Option<ComponentType> {
+        let ListPoints::Given {
+            attribute: None,
+            entry,
+            ..
+        } = self.list()?.points
+        else {
+            return None;
+        };
+        Some(
+            match entry {
+                EntryKind::Number => Role::Value,
+                EntryKind::Text => Role::TextValue,
+                EntryKind::Boolean => Role::BooleanValue,
+                EntryKind::Math => Role::MathValue,
+                EntryKind::Point => Role::ListPoint,
+            }
+            .ty(),
+        )
+    }
+
+    /// The ports of a row of this type (an [`ComponentType::entry_row`])
+    /// that alias an entry's cells, in the entry's order: a value's one,
+    /// a point's two coordinates.
+    pub fn entry_ports(self) -> Vec<usize> {
+        match self.default_sel() {
+            Some(sel @ PropSel::Parts { .. }) => {
+                sel.parts().iter().map(|&p| usize::from(p)).collect()
+            }
+            _ => self.scalar_prop().into_iter().collect(),
+        }
+    }
+
     /// Whether the type's given list holds points, two cells an entry.
     pub fn lists_points(self) -> bool {
         self.list_width() == 2
@@ -1138,8 +1178,10 @@ mod tests {
     fn plan_ctx_grows_deliberately() {
         // 25: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
         // `Inner::port`, for the inputs a type owns; ADR 0041 a list's
-        // entries and an entry read as math.
-        const PLAN_CTX_METHODS: usize = 25;
+        // entries and an entry read as math, and (step 3) which entries
+        // are a value list's element children as they stand, and a point
+        // list's points.
+        const PLAN_CTX_METHODS: usize = 27;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1275,7 +1317,6 @@ mod tests {
             MathInput,
             ChoiceInput,
             Choice,
-            PointList,
             P,
             ShortDescription,
             Hint,

@@ -1,8 +1,8 @@
-one prime from 2 to 6: cells 7 · essential 0 · constant 7 · instrs 0 · components 2
-every prime up to 5, sorted: cells 9 · essential 0 · constant 9 · instrs 0 · components 2
-the first ten primes, without replacement, decreasing: cells 16 · essential 0 · constant 16 · instrs 0 · components 2
-excluded primes are never drawn: cells 11 · essential 0 · constant 11 · instrs 0 · components 2
-with replacement, in the order drawn: cells 11 · essential 0 · constant 11 · instrs 0 · components 2
+one prime from 2 to 6: cells 7 · essential 0 · constant 7 · instrs 0 · components 3
+every prime up to 5, sorted: cells 9 · essential 0 · constant 9 · instrs 0 · components 5
+the first ten primes, without replacement, decreasing: cells 16 · essential 0 · constant 16 · instrs 0 · components 12
+excluded primes are never drawn: cells 11 · essential 0 · constant 11 · instrs 0 · components 5
+with replacement, in the order drawn: cells 11 · essential 0 · constant 11 · instrs 0 · components 7
 more primes than the range holds is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
-a range from a constant: cells 6 · essential 0 · constant 6 · instrs 0 · components 3
+a range from a constant: cells 6 · essential 0 · constant 6 · instrs 0 · components 4
 excludeCombinations is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2

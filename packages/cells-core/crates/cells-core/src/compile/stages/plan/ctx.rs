@@ -289,6 +289,25 @@ impl<'a> PlanCtx<'_, 'a> {
         self.p.list_entries(self.t, self.e, pieces, max)
     }
 
+    /// The points a point list's children contribute: a pair per piece of
+    /// text, the point each reference or element child names, a point
+    /// list's points spliced (ADR 0041), at most `max` of them.
+    pub(crate) fn point_entries(
+        &mut self,
+        pieces: Vec<ListPiece>,
+        max: f64,
+    ) -> Result<Vec<GivenPoint>> {
+        self.p.point_entries(self.t, self.e, pieces, max)
+    }
+
+    /// Record which of the element's `n` entries, from its children
+    /// `pieces`, are its element children as they stand, each its own
+    /// row (ADR 0041, decision 4): a value list's, whose entries are its
+    /// children in order.
+    pub(crate) fn element_rows(&mut self, pieces: &[ListPiece], n: usize) {
+        self.p.element_rows(self.t, self.e, pieces, n);
+    }
+
     /// An entry of a list read as math: a piece of text as written
     /// (`1+1`, `pi`, `x`), none when it is no math; a reference alone, its
     /// one cell or the expression that cell stands for.

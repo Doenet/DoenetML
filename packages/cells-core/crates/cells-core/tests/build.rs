@@ -325,9 +325,10 @@ fn a_copys_own_hide_wins_over_the_inherited_one() {
 }
 
 #[test]
-fn point_list_needs_extend_of_a_list_prop() {
-    let (code, m) = load_error(r#"<graph><pointList name="ps"/></graph>"#);
-    assert_eq!(code, "cells-bad-attribute-value", "{m}");
+fn a_point_list_with_nothing_has_no_points() {
+    // A list of its own points (ADR 0041), none given.
+    let doc = load_ok(r#"<graph><pointList name="ps"/></graph>"#);
+    assert_eq!(doc.value("ps", "numPoints"), Some(0.0));
 }
 
 // A document keeps its literal attributes, not its DAST: what a renderer

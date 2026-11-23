@@ -10,6 +10,7 @@ mod aggregate;
 mod choice;
 mod math;
 mod resolve;
+mod rows;
 
 // ---------------------------------------------------------------------------
 // Expansion state
@@ -866,12 +867,16 @@ impl<'c> Builder<'c> {
                 _ if self.compiled.plans.templates[t.index()]
                     .row(ElemId::from_index(e))
                     .component_type
-                    .holds_list_points() =>
+                    .holds_list_points()
+                    && self.compiled.plans.templates[t.index()]
+                        .plan(ElemId::from_index(e))
+                        .points_from_elsewhere() =>
                 {
                     // A point list that extends a list prop, whose points
                     // are synthesized, or a copy of a point list, whose
                     // children are copied once the original's exist
-                    // (`expand_pointlist`).
+                    // (`expand_pointlist`); one of its own has rows
+                    // (`expand_rows`).
                     self.pointlists.push(comp);
                     Vec::new()
                 }
@@ -971,6 +976,7 @@ impl<'c> Builder<'c> {
                 return Err(e);
             }
         }
+        self.expand_rows();
         let pending = std::mem::take(&mut self.pending);
         for &(idx, plan, scope, _) in pending.iter().filter(|p| !p.3) {
             if let Err(e) = self.place(idx, plan, scope) {
@@ -1013,15 +1019,25 @@ impl<'c> Builder<'c> {
 
     /// What each element's `Component` and `After` attributes name
     /// (ADR 0040, 0042), resolved in its instance's scope to the component
-    /// table's links. A reference to anything but one component (an
-    /// iteration, a list's entry) names none.
+    /// table's links. An entry of a list with rows (`$l[2]`) names its row
+    /// (ADR 0041, decision 4); a reference to anything else but one
+    /// component (an iteration, an entry by a cell, an entry past the
+    /// end) names none.
     fn resolve_links(&mut self) {
         for i in 0..self.instances.len() {
             let inst = self.instances[i];
             let tpl = &self.compiled.plans.templates[inst.template.index()];
             for &(attr, p) in &tpl.plan(inst.elem).links {
-                if let Ok((Resolved::Comp(c), _)) = self.resolve(p, inst.scope) {
-                    self.components.links.push((inst.comp, attr, c));
+                let Ok((Resolved::Comp(c), prop)) = self.resolve(p, inst.scope) else {
+                    continue;
+                };
+                let target = match &self.compiled.plans.refs[p.index()].entries[..] {
+                    [] => Some(c),
+                    [only] => self.entry_row_of(c, prop, &only.index, inst.scope),
+                    _ => None,
+                };
+                if let Some(target) = target {
+                    self.components.links.push((inst.comp, attr, target));
                 }
             }
         }
@@ -1149,6 +1165,8 @@ impl<'c> Builder<'c> {
                     return Ok(());
                 }
                 self.copy_into(idx, referent);
+                // A copy of a list has rows of its own over its entries.
+                self.rows_of(idx, &[]);
             }
         }
         Ok(())
