@@ -65,7 +65,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let [x1, y1] = Wire::point_or_default(ends.first(), attr::endpoints, 0, first);
     let [x2, y2] = Wire::point_or_default(ends.get(1), attr::endpoints, 1, second);
     let mut wiring = ElemWiring::of(ComponentType::LineSegment);
-    wiring.set_public(Props { x1, y1, x2, y2 });
+    wiring.set_planned(Planned { x1, y1, x2, y2 });
     Ok(wiring)
 }
 

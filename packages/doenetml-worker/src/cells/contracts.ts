@@ -313,9 +313,14 @@ function inputPresentation(table: CellsTable, c: number) {
 }
 
 /** LaTeX of what a cell of a math list's entry holds: its expression (the
- * blank one for none), or the number an entry aliasing one holds. */
+ * blank one for none), or the number an entry aliasing one holds; a
+ * sort's text entry (ADR 0053) as text. */
 function heldLatex(r: Reads, cell: number): string {
     const v = r.cell(cell);
+    if (r.table.core.cell_holds(cell) === "text") {
+        if (r.missingCell(cell)) return BLANK;
+        return `\\text{${Number.isNaN(v) ? "" : r.table.string(v)}}`;
+    }
     if (r.table.core.cell_holds(cell) !== "math") return numberLatex(v);
     return Number.isNaN(v) ? BLANK : r.table.core.expr_latex(cell);
 }
@@ -439,7 +444,12 @@ const NUMBER_TYPES = new Set([
 /** A component's value as LaTeX, where math notation refers to it. */
 function valueLatex(r: Reads, c: number): string {
     const type = r.table.componentType(c);
-    if (type === "math" || type === "mathInput" || type === "interval") {
+    if (
+        type === "math" ||
+        type === "mathInput" ||
+        type === "interval" ||
+        type === "subsetOfReals"
+    ) {
         return r.mathLatex(c);
     }
     if (NUMBER_TYPES.has(type)) {
@@ -1447,10 +1457,25 @@ export const CONTRACTS: Record<string, Contract> = {
         }),
         noChildren: true,
     },
+    // A sort's or a shuffle's row holds what its operands do (ADR 0053):
+    // a text one is drawn as a text.
     mathValue: {
-        name: () => "math",
+        name: (table, c) => {
+            const cell = table.cell(c, "value");
+            return cell !== undefined && table.core.cell_holds(cell) === "text"
+                ? "text"
+                : "math";
+        },
         props: (r, c) => {
             const cell = r.table.cell(c, "value");
+            if (
+                cell !== undefined &&
+                r.table.core.cell_holds(cell) === "text"
+            ) {
+                return {
+                    value: r.missingCell(cell) ? BLANK : r.text(c, "value"),
+                };
+            }
             return {
                 latex: cell === undefined ? BLANK : heldLatex(r, cell),
                 renderMode: "inline",
@@ -1460,6 +1485,11 @@ export const CONTRACTS: Record<string, Contract> = {
     // Values with entries inside a math (ADR 0041, decision 8): an
     // interval is a math, drawn as one.
     interval: {
+        name: () => "math",
+        props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
+    },
+    // A subset of the reals is a math, drawn as one.
+    subsetOfReals: {
         name: () => "math",
         props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
     },
@@ -1508,6 +1538,7 @@ export const TRANSPARENT = new Set([
     "sampleRandomNumbers",
     "selectPrimeNumbers",
     "samplePrimeNumbers",
+    "intervalList",
 ]);
 
 /** Component types that show what they produce as a list, items
@@ -1538,6 +1569,7 @@ export const LIST_LIKE = new Set([
     "sampleRandomNumbers",
     "selectPrimeNumbers",
     "samplePrimeNumbers",
+    "intervalList",
 ]);
 
 /** List-like types whose items are the children of one scope (an

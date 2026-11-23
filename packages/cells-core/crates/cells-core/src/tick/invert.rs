@@ -30,6 +30,7 @@ use crate::index::CellIdx;
 use crate::program::Produced;
 use crate::program::{InstrIdx, Program, SymRun};
 use crate::program::{Op, SymKind};
+use crate::sym::Handle;
 use crate::tick::Request;
 
 /// A request on both cells of a point, issued together with others as a
@@ -318,6 +319,41 @@ impl RequestEngine<'_> {
                         self.sym.engine.num(d).to_value()
                     };
                     produced.write(expr, h);
+                    true
+                }
+                // A subset of the reals: the desired subset, as the
+                // subset writes it, to what it reads (`<subsetOfReals>`).
+                Op::Sym(_, _, s, start)
+                    if matches!(
+                        self.program.syms[s.index()].kind,
+                        SymKind::Subset {
+                            part: crate::sym::SubsetPart::Value,
+                            ..
+                        }
+                    ) =>
+                {
+                    let SymKind::Subset { inequalities, .. } = self.program.syms[s.index()].kind
+                    else {
+                        unreachable!("matched above")
+                    };
+                    let inputs = self.program.operands_at(start, 2);
+                    let d = desired[0].unwrap();
+                    let var = self.cells[inputs[1].index()];
+                    let h = if d.is_nan() {
+                        f64::NAN
+                    } else {
+                        let var = (!var.is_nan()).then(|| Handle::from_value(var));
+                        self.sym
+                            .engine
+                            .subset(
+                                Handle::from_value(d),
+                                var,
+                                crate::sym::SubsetPart::Value,
+                                inequalities,
+                            )
+                            .to_value()
+                    };
+                    produced.write(inputs[0], h);
                     true
                 }
                 _ => match ins.op.invert(self.cells, desired[0].unwrap()) {

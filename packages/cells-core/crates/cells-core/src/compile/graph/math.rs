@@ -245,8 +245,8 @@ impl<'c> Stamp<'c> {
 
     /// A lowered math's expression (ADR 0046): math text `id` with `post`,
     /// made from its leaves only while `value` is missing, as a build makes
-    /// it. Text no build makes an expression of (a numeric-only function,
-    /// text that does not parse, no leaf) is NaN, the numeric math's
+    /// it. Text no build makes an expression of (a `clamp`, text that does
+    /// not parse, no leaf) is NaN, the numeric math's
     /// expression, and no failure: the value was lowered all the same.
     pub(super) fn blank_source(
         &mut self,
@@ -285,13 +285,14 @@ impl<'c> Stamp<'c> {
     }
 
     /// Whether a build makes a lowered math's expression of math text
-    /// `id`: recorded, with no numeric-only function, and parsed.
+    /// `id`: recorded, with no function the engine does not read (a
+    /// `clamp`), and parsed.
     fn makes_blank(&mut self, id: ExprId) -> bool {
         let c = self.c;
         let Some(sym) = c.plans.sym_text.get(&id) else {
             return false;
         };
-        if c.plans.arena.has_call(id) || id_has_leafless_text(c, id) {
+        if c.plans.arena.calls_outside_engine(id) || id_has_leafless_text(c, id) {
             return false;
         }
         let text = sym.spell(c.dast);

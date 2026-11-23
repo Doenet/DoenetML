@@ -5,8 +5,8 @@
 use super::over_math::{self, Kind};
 use super::{PieceKind, operands};
 use crate::compile::api::*;
+use crate::components::ComponentDef;
 use crate::components::define::*;
-use crate::components::{ComponentDef, ComponentType};
 use crate::error::Result;
 use crate::limits::byte;
 use crate::program::{Reduction, VecOp};
@@ -19,6 +19,7 @@ component! {
     /// a sample's), when `population` is written as a literal. A request
     /// cannot change it, as in the current core.
     tags: ["variance"],
+    variant: Reduction::Variance,
     flags: [copyable],
     text: Math(expr, value),
     extend_value: Scalar(value),
@@ -42,14 +43,15 @@ component! {
 }
 
 /// `<standardDeviation>`: the square root of the variance.
-pub(crate) const STANDARD_DEVIATION: ComponentDef = DEFINITION.with_tags(&["standardDeviation"]);
+pub(crate) const STANDARD_DEVIATION: ComponentDef =
+    DEFINITION.variant(&["standardDeviation"], &Reduction::StandardDeviation);
 
 /// The variance of operands spelled `texts` (each in parentheses), as the
 /// current core builds it: a population's when `population`, and its
 /// square root for a standard deviation. `texts` are the operands twice
 /// over, once for the squares and once for the sum, in the order the text
 /// spells them, so the operator expression's leaves are the text's.
-fn spelled(ty: ComponentType, population: bool, texts: &[String]) -> String {
+fn spelled(op: Reduction, population: bool, texts: &[String]) -> String {
     let (squared, summed) = texts.split_at(texts.len() / 2);
     let n = squared.len();
     let squares: Vec<String> = squared.iter().map(|t| format!("{t}^2")).collect();
@@ -59,10 +61,10 @@ fn spelled(ty: ComponentType, population: bool, texts: &[String]) -> String {
         summed.join(" + "),
         if population { n } else { n - 1 }
     );
-    if ty == ComponentType::Variance {
-        spread
-    } else {
+    if op == Reduction::StandardDeviation {
         format!("sqrt({spread})")
+    } else {
+        spread
     }
 }
 
@@ -71,6 +73,7 @@ fn spelled(ty: ComponentType, population: bool, texts: &[String]) -> String {
 /// `expr` ([`over_math`]).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
+    let reduction = *ty.variant::<Reduction>();
     let attrs = Attrs::of(ctx.record());
     let at = Props::PORTS;
     let mut wiring = ElemWiring::of(ty);
@@ -83,7 +86,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         Some(population) if !pieces.is_empty() && kind != Kind::Numeric => {
             let args = over_math::operand_exprs(ctx, &pieces)?;
             let twice = [args.as_slice(), args.as_slice()].concat();
-            let id = ctx.operator_expr(&twice, |texts| spelled(ty, population, texts));
+            let id = ctx.operator_expr(&twice, |texts| spelled(reduction, population, texts));
             let post = over_math::simplify_post(attrs.simplify, attrs.expand);
             kind.expr(Some(id), post)
         }
@@ -94,24 +97,17 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         Wire::absent()
     } else {
         let op = VecOp::Reduce {
-            op: if ty == ComponentType::Variance {
-                Reduction::Variance
-            } else {
-                Reduction::StandardDeviation
-            },
+            op: reduction,
             n: byte(args.len() + 1),
         };
         let inputs = std::iter::once(at.population).chain(args).collect();
         Source::vector(op, inputs).into()
     };
     let value = over_math::value(&mut wiring, at.expr, numeric);
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         expr,
         population: Wire::scalar(attrs.population, GivenId::Attr(attr::population, 0)),
         value,
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
     });
     Ok(wiring)
 }

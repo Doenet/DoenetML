@@ -310,14 +310,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         )));
     }
     let mut wiring = ElemWiring::of(ComponentType::Section);
-    let table = |port: Port| Wire::from_table(ComponentType::Section, port);
-    let at = Props::PORTS;
-    wiring.set_public(Props {
-        creditAchieved: table(at.creditAchieved),
-        percentCreditAchieved: table(at.percentCreditAchieved),
+    wiring.set_planned(Planned {
         weight: attrs.weight.unwrap_or(Source::given(1.0)).into(),
         aggregateScores: Wire::constant(aggregate),
-        number: table(at.number),
         includeParentNumber: Wire::constant(include),
         label: Wire::constant(label as f64),
         listItem: Wire::constant(f64::from(section_tag.list_item)),

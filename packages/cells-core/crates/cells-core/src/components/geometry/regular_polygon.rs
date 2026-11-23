@@ -212,7 +212,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         vec![at.circumradius, at.circumradius],
     ));
     let times = |k: f64| -> Wire { Source::computed_k(OpSpec::Mul, at.circumradius, k).into() };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numVertices: Wire::constant(nf),
         cx,
         cy,

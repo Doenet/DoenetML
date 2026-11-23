@@ -103,10 +103,20 @@ pub struct ComponentDef {
     pub params: &'static [&'static str],
     /// Attributes of this type a renderer reads and the core does not.
     pub presentation: &'static [&'static str],
+    /// What the type is among the types that share its definition (a
+    /// `<product>` among the folds): a value of a type the planner they
+    /// share chooses, which it reads back
+    /// ([`ComponentType::variant`]). `None` for a type with a definition
+    /// of its own.
+    pub(crate) variant: Option<&'static Variant>,
     /// How a member of a sticky group attracts and snaps: its shape, and
     /// where its points are.
     pub sticky: Option<(crate::tick::snap::Shape, StickyPoints)>,
 }
+
+/// A variant's value, of whatever type its planner chose
+/// ([`ComponentDef::variant`]).
+pub(crate) type Variant = dyn std::any::Any + Send + Sync;
 
 /// What an attribute a planner reads holds: how it is parsed, and the type of
 /// its field in the type's `Attrs`.
@@ -726,6 +736,10 @@ pub struct ListProp {
     pub interactive: bool,
     /// A renderer reads every point (a polygon's vertices).
     pub rendered: bool,
+    /// A second public sequence over the element's own ports, one cell
+    /// per entry, after the entries, by this name (ADR 0041 decision 1,
+    /// ADR 0053): a `<shuffle>`'s `componentOrder`.
+    pub companion: Option<&'static str>,
 }
 
 /// Where a component of a type is drawn, and so whether the props a renderer
@@ -798,6 +812,10 @@ pub enum EntryKind {
     Boolean,
     /// An expression handle, or a number where an entry aliases one.
     Math,
+    /// What its operands hold, one kind for all, which the compile
+    /// decides per element (a `<sort>`'s, ADR 0053): read as its cell
+    /// holds it.
+    Any,
 }
 
 /// Where a sticky group member's points are, as (x, y) pairs.
@@ -826,6 +844,8 @@ pub enum PropAt {
     Coord(usize, usize),
     /// The list as a whole (`throughPoints`).
     List,
+    /// The list's companion sequence as a whole ([`ListProp::companion`]).
+    Companion,
 }
 
 /// A prop of a component type, resolved from its name.

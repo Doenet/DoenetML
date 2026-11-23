@@ -39,6 +39,7 @@ pub(crate) mod sort;
 use crate::compile::api::{
     ChildValue, ElemWiring, GivenId, ListEntry, PlanCtx, Port, Source, ValueChildren, Wire,
 };
+use crate::components::ComponentDef;
 use crate::error::{Error, Result};
 use crate::limits::MAX_VEC_IN;
 
@@ -167,35 +168,9 @@ pub(crate) fn value_operand(ctx: &mut PlanCtx<'_, '_>, children: &ValueChildren)
     })
 }
 
-/// The planner of a one-input operator over math whose public ports are
-/// `operand`, `expr` and `value` ([`over_math::plan_one_input`]): `$op`
-/// over numbers, the engine's `$post` over math.
-macro_rules! one_input_plan {
-    ($op:expr, $post:expr) => {
-        fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
-            let at = Props::PORTS;
-            let children = Attrs::of(ctx.record()).children;
-            over_math::plan_one_input(
-                ctx,
-                &children,
-                [at.operand, at.expr],
-                |x| Wire::computed($op, vec![x]),
-                Some($post),
-                |w, [operand, expr, value]| {
-                    w.set_public(Props {
-                        operand,
-                        expr,
-                        value,
-                        // Planned after this, from the `anchor` (`plan_anchor`).
-                        anchorX: Wire::absent(),
-                        anchorY: Wire::absent(),
-                    })
-                },
-            )
-        }
-    };
-}
-
+/// `<abs>`, `<sign>`, `<floor>` and `<ceil>`, which share their table: an
+/// operator of one input over numbers, the engine's over math
+/// ([`over_math::plan_one_input`]).
 pub(crate) mod abs {
     use super::*;
 
@@ -205,6 +180,7 @@ pub(crate) mod abs {
         /// evaluates to a number (ADR 0043). A request on a number writes
         /// the asked value, or 0 for a negative one, to them.
         tags: ["abs"],
+        variant: OneInput(OpSpec::Abs, Post::Abs),
         flags: [copyable],
         text: Math(expr, value),
         extend_value: Scalar(value),
@@ -220,85 +196,45 @@ pub(crate) mod abs {
         planner: Plan(plan),
     }
 
-    one_input_plan!(OpSpec::Abs, Post::Abs);
-}
+    /// `<sign>x</sign>`: -1, 0 or 1 by the sign of its children, and
+    /// over math `sign(..)` of them unless it evaluates to a number. A
+    /// request cannot change it, as in the current core.
+    pub(crate) const SIGN: ComponentDef =
+        DEFINITION.variant(&["sign"], &OneInput(OpSpec::Sign, Post::Sign));
+    /// `<floor>x</floor>`: its children rounded down, and over math
+    /// `floor(..)` of them unless it evaluates to a number. A request
+    /// on a number writes the asked value rounded down to them.
+    pub(crate) const FLOOR: ComponentDef =
+        DEFINITION.variant(&["floor"], &OneInput(OpSpec::SnapFloor, Post::Floor));
+    /// `<ceil>x</ceil>`: its children rounded up, and over math
+    /// `ceil(..)` of them unless it evaluates to a number. A request on
+    /// a number writes the asked value rounded up to them.
+    pub(crate) const CEIL: ComponentDef =
+        DEFINITION.variant(&["ceil"], &OneInput(OpSpec::SnapCeil, Post::Ceil));
 
-pub(crate) mod sign {
-    use super::*;
+    /// What a type of this table applies to its input: the operator over
+    /// a number, and the engine's over math.
+    pub(crate) struct OneInput(OpSpec, Post);
 
-    component! {
-        /// `<sign>x</sign>`: -1, 0 or 1 by the sign of its children, and
-        /// over math `sign(..)` of them unless it evaluates to a number. A
-        /// request cannot change it, as in the current core.
-        tags: ["sign"],
-        flags: [copyable],
-        text: Math(expr, value),
-        extend_value: Scalar(value),
-        default_prop: value,
-        props {
-            operand: by_planner,
-            expr: by_planner { rendered, expr_of: expr },
-            value: by_planner { rendered, expr_of: expr },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
-        }
-        children: Value,
-        planner: Plan(plan),
+    fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
+        let &OneInput(op, post) = ctx.component_type().variant();
+        let at = Props::PORTS;
+        let children = Attrs::of(ctx.record()).children;
+        over_math::plan_one_input(
+            ctx,
+            &children,
+            [at.operand, at.expr],
+            |x| Wire::computed(op, vec![x]),
+            Some(post),
+            |w, [operand, expr, value]| {
+                w.set_planned(Planned {
+                    operand,
+                    expr,
+                    value,
+                })
+            },
+        )
     }
-
-    one_input_plan!(OpSpec::Sign, Post::Sign);
-}
-
-pub(crate) mod floor {
-    use super::*;
-
-    component! {
-        /// `<floor>x</floor>`: its children rounded down, and over math
-        /// `floor(..)` of them unless it evaluates to a number. A request
-        /// on a number writes the asked value rounded down to them.
-        tags: ["floor"],
-        flags: [copyable],
-        text: Math(expr, value),
-        extend_value: Scalar(value),
-        default_prop: value,
-        props {
-            operand: by_planner,
-            expr: by_planner { rendered, expr_of: expr },
-            value: by_planner { rendered, expr_of: expr },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
-        }
-        children: Value,
-        planner: Plan(plan),
-    }
-
-    one_input_plan!(OpSpec::SnapFloor, Post::Floor);
-}
-
-pub(crate) mod ceil {
-    use super::*;
-
-    component! {
-        /// `<ceil>x</ceil>`: its children rounded up, and over math
-        /// `ceil(..)` of them unless it evaluates to a number. A request on
-        /// a number writes the asked value rounded up to them.
-        tags: ["ceil"],
-        flags: [copyable],
-        text: Math(expr, value),
-        extend_value: Scalar(value),
-        default_prop: value,
-        props {
-            operand: by_planner,
-            expr: by_planner { rendered, expr_of: expr },
-            value: by_planner { rendered, expr_of: expr },
-            anchorX: anchor(0),
-            anchorY: anchor(1),
-        }
-        children: Value,
-        planner: Plan(plan),
-    }
-
-    one_input_plan!(OpSpec::SnapCeil, Post::Ceil);
 }
 
 pub(crate) mod set_small_to_zero {
@@ -352,14 +288,11 @@ pub(crate) mod set_small_to_zero {
             |x| Wire::computed(OpSpec::SmallToZero, vec![x, at.threshold]),
             post,
             |w, [operand, expr, value]| {
-                w.set_public(Props {
+                w.set_planned(Planned {
                     operand,
                     expr,
                     threshold,
                     value,
-                    // Planned after this, from the `anchor` (`plan_anchor`).
-                    anchorX: Wire::absent(),
-                    anchorY: Wire::absent(),
                 })
             },
         )

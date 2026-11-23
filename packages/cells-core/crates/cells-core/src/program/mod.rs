@@ -9,6 +9,7 @@ mod ops;
 mod range;
 pub(crate) mod refuse;
 mod scalar;
+pub mod texts;
 mod vector;
 
 pub use instr::{
@@ -17,6 +18,7 @@ pub use instr::{
 };
 pub use range::Range;
 pub use scalar::{EQ_TOL, Inverse, MISSING, Op, OpSpec, is_missing, js_round};
+pub use texts::Texts;
 pub use vector::{
     Dist, MAX_PRIME, MAX_PRIME_SPAN, MAX_VEC_IN, Order, PairBy, Pivot, Produced, Reduction, Reflex,
     RegularBy, RigidOpts, Scan, VecOp, fewest_in_sequence, primes_between, sequence_count,
@@ -67,6 +69,9 @@ pub struct SymRun<'a> {
     pub state: &'a mut SymState,
     /// The document's symbolic engine.
     pub engine: &'a mut Engine,
+    /// The document's strings, which a text-reading instruction reads
+    /// and a join adds to (ADR 0053); None where nothing runs one.
+    pub texts: Option<Texts<'a>>,
 }
 
 impl SymRun<'_> {
@@ -75,6 +80,7 @@ impl SymRun<'_> {
         SymRun {
             state: self.state,
             engine: self.engine,
+            texts: self.texts.as_mut().map(Texts::reborrow),
         }
     }
 }
@@ -419,6 +425,8 @@ impl Program {
             if let SymKind::SampleTape { tape } = kind {
                 let stack = &mut state.tape_stack;
                 run_tape(&self.tapes[tape.index()], cells, inputs, outs, stack);
+            } else if kind.reads_text() {
+                run_text(sym.engine, sym.texts.as_mut(), kind, cells, inputs, outs);
             } else {
                 run_sym(sym.engine, kind, cells, inputs, outs);
             }
@@ -548,6 +556,13 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
         // A missing or blank expression evaluates to the missing value: a
         // number cannot hold a blank (D40, ADR 0046).
         SymKind::Evaluate => out[0] = handle(v(0)).map_or(MISSING, |h| engine.evaluate(h, None)),
+        SymKind::Subset { part, inequalities } => {
+            out[0] = handle(v(0)).map_or(f64::NAN, |h| {
+                engine
+                    .subset(h, handle(v(1)), part, inequalities)
+                    .to_value()
+            })
+        }
         SymKind::EvalAt => {
             out[0] = handle(v(0)).map_or(MISSING, |h| engine.evaluate(h, Some(("x", v(1)))))
         }
@@ -567,6 +582,12 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 _ => 0.0,
             }
         }
+        SymKind::Compare { opts } => {
+            out[0] = match (handle(v(0)), handle(v(1))) {
+                (Some(a), Some(b)) => engine.compare(a, b, opts),
+                _ => 0.0,
+            }
+        }
         SymKind::ClampFunction | SymKind::WrapFunctionPeriodic => {
             out[0] = match handle(v(0)) {
                 Some(h) if v(1).is_finite() && v(2).is_finite() => {
@@ -581,6 +602,7 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
             }
         }
         SymKind::SampleTape { .. } => unreachable!("tapes run in step_sym"),
+        SymKind::Join { .. } | SymKind::Order { .. } => unreachable!("text runs in step_sym"),
         SymKind::SampleQuadratic => {
             let (a, b, c, lo, hi) = (v(0), v(1), v(2), v(3), v(4));
             if lo.is_finite() && hi.is_finite() {
@@ -629,6 +651,93 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 _ => out.fill(f64::NAN),
             }
         }
+    }
+}
+
+/// One text-reading operation (ADR 0053): a join, which interns the text
+/// it makes, or an order, which only reads. Without the document's strings
+/// a join makes no string (NaN) and an order reads every string as empty.
+fn run_text(
+    engine: &mut Engine,
+    mut texts: Option<&mut Texts>,
+    kind: SymKind,
+    cells: &[f64],
+    inputs: &[CellIdx],
+    out: &mut [f64],
+) {
+    use crate::document::table::{BLANK, format_number};
+    use texts::{KIND_MATH, KIND_TEXT, kind_at};
+    let v = |k: usize| cells[inputs[k].index()];
+    match kind {
+        SymKind::Join { n, kinds, booleans } => {
+            if n == 0 {
+                out[0] = MISSING;
+                return;
+            }
+            let mut joined = String::new();
+            for i in 0..n as usize {
+                if i > 0 {
+                    joined.push_str(", ");
+                }
+                let x = v(i);
+                if is_missing(x) {
+                    joined.push_str(BLANK);
+                    continue;
+                }
+                match kind_at(kinds, i) {
+                    KIND_TEXT => {
+                        joined.push_str(texts.as_deref().and_then(|t| t.get(x)).unwrap_or(""))
+                    }
+                    KIND_MATH if x.is_nan() => joined.push_str(BLANK),
+                    KIND_MATH => joined.push_str(&engine.text(Handle::from_value(x))),
+                    _ if booleans => joined.push_str(if x != 0.0 && !x.is_nan() {
+                        "true"
+                    } else {
+                        "false"
+                    }),
+                    _ => joined.push_str(&format_number(x)),
+                }
+            }
+            out[0] = match texts.as_deref_mut() {
+                Some(t) => t.intern(&joined),
+                None => f64::NAN,
+            };
+        }
+        SymKind::Order { n, kinds } => {
+            let n = n as usize;
+            // Every input's number, when each is one: a number by kind, an
+            // expression by what it evaluates to.
+            let numbers: Option<Vec<f64>> = (0..n)
+                .map(|i| match kind_at(kinds, i) {
+                    KIND_TEXT => None,
+                    KIND_MATH => {
+                        let x = handle(v(i)).map_or(f64::NAN, |h| engine.evaluate(h, None));
+                        (!x.is_nan()).then_some(x)
+                    }
+                    _ => Some(v(i)),
+                })
+                .collect();
+            let mut order: Vec<usize> = (0..n).collect();
+            match numbers {
+                Some(x) => order.sort_by(|&a, &b| {
+                    let (a, b) = (x[a], x[b]);
+                    a.is_nan()
+                        .cmp(&b.is_nan())
+                        .then(a.partial_cmp(&b).unwrap_or(std::cmp::Ordering::Equal))
+                }),
+                None => {
+                    let t = texts.as_deref();
+                    let words: Vec<String> = (0..n)
+                        .map(|i| texts::compare_text(engine, t, kind_at(kinds, i), v(i)))
+                        .collect();
+                    order.sort_by(|&a, &b| words[a].cmp(&words[b]));
+                }
+            }
+            for (o, k) in out.iter_mut().zip(order) {
+                *o = (k + 1) as f64;
+            }
+        }
+        _ => unreachable!("not a text operation"),
     }
 }
 
