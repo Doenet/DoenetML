@@ -389,6 +389,9 @@ source's effective value. A reader's write to a reference's `fixed` stays on the
 
 ## D9. Is a reference to a hidden component hidden?
 
+**Decided (D66): (a).** A component's own `hide` carries to every reference to it; hiding from an
+ancestor or a `<setup>` doesn't. #246.
+
 **Today** the answer depends on what is hidden, and how it is referenced (**[probe]**, and #2265):
 
 | Hidden source | Bare `$x` elsewhere | `<T extend="$x"/>` elsewhere |
@@ -1820,7 +1823,7 @@ New tests:
 - the `copyWithState` error for each attribute that decides a choice, with literal and computed
   values, and the run-time warning for the module case above.
 
-## D34. A text's notation when it is read as math: `isLatex` and `format` (proposed Tier 2)
+## D34. A text's notation when it is read as math: `isLatex` and `format` (decided, D65; Tier 2)
 
 **Today** (#2408 and its comment; **[probe]** on main at `a53fbb9`). `tl` is
 `<text isLatex>\frac{x+1}{2}</text>`, `tt` is `<text>x+1</text>`, and `mm` is `<math>y/3</math>`.
@@ -3371,4 +3374,105 @@ select of several shows nothing. #2649.
 Unchanged: a `<group>` made from a group, an iteration, a pick or a one-shown-thing tag; a scalar
 tag made from a composite the DoenetML guarantees holds one component; a list made from a
 collection whose items all match its entry type. Implementation: PR 50 of #2509, with #2594 item 2.
+
+## D65. The decisions waiting in #2509's table (decided, November 2026)
+
+Each follows the recommendation in #2509, except where noted.
+
+1. **A write to `fixed` through a reference** (#2235; D7). It goes to the source for a component
+   reference that has no `fixed` of its own; it is refused for a property or a list entry;
+   default-fixed sequence entries can't be unfixed; a `copy` has its own `fixed`, an `extend`
+   shares the source's.
+2. **A drag writing one value twice: the first write wins** (#2257), during the drag and on
+   release alike. #1510 (a rectangle with `width="$l" height="$l"` flashing as its corner is
+   dragged) is the same question.
+3. **An event's identity across a reload** (#2365, D30): a component with no root name is reported
+   by its `stateId`.
+4. **Copy replacement ids derived from the sources' `stateId`s** (#2485 item 3): left to the new
+   core.
+5. **D34 is accepted** (#2408): a text's `isLatex` decides how it is read as math.
+6. **The converter (#2457) writes an input bound to a value as a reference child**, not
+   `bindValueTo` (changed from the recommendation). `<mathInput>$m</mathInput>` shows `$m` and
+   writes to it exactly as `bindValueTo="$m"` does (INT-1; checked for `<mathInput>`,
+   `<textInput>` and `<booleanInput>`, a property included), and authors find the child clearer.
+   `bindValueTo` stays for a `<choiceInput>`, whose children are its choices. The same goes for
+   messages that suggest a form, such as REF-5's input-from-a-value error: "To edit `$m1`,
+   write `<mathInput>$m1</mathInput>`". D32 extends are still rewritten to `copy`.
+7. **What a `<select>` returns** (#2156) is answered by the rules decided since it was opened,
+   so nothing is left to decide:
+   - options need not agree; a reference that needs a type is checked where it is used: a name
+     after a one-pick select must be declared in every option with one type (COMP-11), and a tag
+     made from a select needs every option to hold one component of a type it can become
+     (REF-5, D36), else an error at load;
+   - every type is decided at load (TYPE); `type` only says how bare text becomes options;
+   - an option holding several components is a pick, a wrapper of several, reached by name
+     (COLL-3, D44), and a select of several is many things (COLL-1);
+   - a select between unlike content keeps working; only a reference that needs one type fails;
+   - whether a select whose options agree is built as a list (#2128) is the core's choice,
+     invisible to authors (COMP-4).
+8. **Showing a student's answer** (#2155) is a feature, deferred.
+9. **The older count names on authored lists** (`numComponents`, `numPoints`, `numVertices`, …)
+   are retired in favor of `numItems`, so that eventually every collection has the same names.
+   As in D60, an old property spelling names nothing, with a suggestion of `numItems`.
+10. **A property that echoes an attribute stays** (changed from the recommendation). A public
+    attribute's default definition already makes a property of the same name; this lets
+    DoenetML read the value without reasoning about attributes, which matters most when layers
+    of `extend` build up. A list's `maxNumber`, `unordered` and `mergeMathLists`, `<tally>`'s
+    `categories` and a sampler's `mean`, `variance`, … stay as the collection's own properties
+    (since D59 they can't collide with an item's).
+
+Still open: #2127 item 9 (the `_copy` name and role), D46 part 1's tag name, #2581 item 4
+(`$slider.items` of a `from`/`to`/`step` slider).
+
+## D66. Decisions from the sweep of older issues (decided, November 2026)
+
+The sweep checked 121 older open issues against the principles on `main`. These were decided,
+each following the recommendation except where noted:
+
+1. **D9 (#246): (a).** A component's own `hide` carries to every reference to it.
+2. **An `<answer>`'s `<label>` labels its one input** when the input is written out and has no
+   label of its own (#1674); with several inputs, a warning.
+3. **`$x{…}` is removed from the reference grammar** (#1910, #1911, #1858; changed from the
+   recommendation): now, on the 0.8 branch, with no warning first. 0.7 has been out for a while,
+   and the braces did nothing there either. The braces are then plain text. The docs examples
+   that still use them are rewritten (#1857).
+4. **The core decides what an author sees** (#1555): it warns of a tag placed where no parent uses
+   it (DIAG-1, #1886). The schema's checks stay as an editor hint.
+5. **`<searchSorted>` with a target that takes no part in the ordering gives `0`** (#1965), as
+   `<indexOf>` does, with a warning at load for a literal target.
+6. **`<number>` reads text as `<math>` does** (#1849; D44: one type): no JavaScript literals
+   (`0x10`, `0b101`), and `1E3` only with `parseScientificNotation`.
+7. **`<isNumber>` and `isnumber()` read the expression as written**, neither simplifying first
+   (#1797).
+8. **Operator words in a `<boolean>` are keywords**, read without case (#1326; D51 decision 3):
+   `true AND true` is `true`.
+9. **A one-value operator applies to each entry of a list and gives a list** (#1954; `<floor>`,
+   `<abs>`, …), with lists of different lengths an error at load where known. A feature, after the
+   type chain.
+10. **A `<text>`'s value is trimmed and its runs of spaces collapsed** (#21), so value and display
+    agree. Low priority.
+11. **Variants named without `numVariants`** (#1169; changed): unique variants are extended to
+    cover this, rather than a rule of their own. When the document's other selections are
+    counted, the named variants trim the combinations as unique variants do; when they can't be
+    counted, `numVariants` is needed. With #385 and the other places the unique-variant count
+    gives up, this is #2653.
+12. **A select whose options depend on another selection** (#385; changed): allowed, as SEL-1
+    allows any parameter, the options included, to read another selection
+    (`<selectFromSequence to="$a">` is the same kind). Unique variants are extended to count
+    such selections, using SEL-5's enumeration (#2653); until then they are not claimed.
+13. **#1510 is #2257**: the first write wins (D65 decision 2).
+14. **A page with nothing to score gets full credit** (#388; changed): `creditAchieved` already
+    does this, and #2634 makes `creditAchievedIfSubmit` follow it.
+15. **One `submitLabel`** (#349), its default depending on `showCorrectness`;
+    `submitLabelNoCorrectness` is retired.
+16. **Sections are numbered among themselves; titled blocks** (`<aside>`, `<definition>`,
+    `<example>`, `<problem>`, …) **share one counter within their section**, as PreTeXt does
+    (#1490, #1262).
+17. **An angle can be made from a math** (#478), the reverse of the allowed angle-as-math: a
+    related pair for REF-5.
+18. **A `<module>`'s declared boolean written with no value is `true`** (#2013), as for a built-in
+    attribute, and a declared number left empty is `e0072` (COMP-13).
+
+Also from the sweep: 29 issues were found fixed or out of date and closed, and the rest still
+broken were scheduled in #2509 under rules already decided.
 

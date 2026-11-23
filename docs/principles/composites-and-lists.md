@@ -820,6 +820,9 @@ ADR 0009 also bans several forms that main's tests use (D13):
     attribute written on it is an error, `doenet-e0060` (D32, #2409; `module.test.ts:1474`,
     `:1571`). Like a group's extend, it can add children, `hide` or a name.
   - References in a supplied attribute resolve where the copy is written (NAME-4).
+  - A declared attribute acts as a built-in one of its type (D66): a boolean written with no
+    value is `true`, and a number left empty is `e0072`. **Known violation** (#2013): the bare
+    boolean is `false`, and the empty number `NaN` with no diagnostic.
   - **`<module copy="$m" …/>` is the pattern for a module defined in `<setup>`** (D33): each use
     is written again, with its own random values. `<module copyWithState="$m"/>` repeats the
     source's draws and reader state (CPY-8); an attribute on it that changes a nested choice

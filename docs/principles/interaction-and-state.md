@@ -28,6 +28,10 @@ can be changed. Otherwise the input snaps back to `$x`.
 The value comes from the first of these that exists: the child, then `bindValueTo`, then the
 input's own stored value, with `prefill` as its default.
 
+A reference as the child acts exactly as `bindValueTo` does, and is the form the docs, messages
+and converter suggest (D65): `<mathInput>$m</mathInput>`. `bindValueTo` stays for a
+`<choiceInput>`, whose children are its choices.
+
 ```xml
 <math name="m" fixed>1</math><mathInput bindValueTo="$m"/>   <!-- type 5: shows 1 again -->
 <number name="n">3</number><mathInput bindValueTo="$n"/>     <!-- type 5: n = 5 -->
