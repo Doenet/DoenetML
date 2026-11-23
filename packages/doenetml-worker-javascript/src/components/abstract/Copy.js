@@ -2635,6 +2635,15 @@ export default class Copy extends CompositeComponent {
         ) {
             const asValue = await valueInPlaceOfCopy();
             if (asValue) {
+                // Drawn, as in a `<label>`, it is hidden with the component, as
+                // a copy of it is and as a reference to a hidden `<math>` is;
+                // where a value is read (a `<text>`, an `<m>`), `hide` is
+                // ignored (`hiddenWithReferent` in `ValueRef.js`)
+                for (const repl of asValue.serializedReplacements) {
+                    if (repl?.componentType === "_ref") {
+                        repl.doenetAttributes.hiddenWithReferent = true;
+                    }
+                }
                 // made again only when the source is another component, as
                 // for a copy inside its source (`sourceContainsCopy`)
                 return { ...asValue, sourceContainsCopy: true };
@@ -8007,14 +8016,6 @@ async function isBareReferenceToOneThing(
 }
 
 /**
- * Make the changes `result` that leave the bare reference to one thing
- * `component` (`isBareReferenceToOneThing`) showing no component leave it
- * showing a blank instead (D37), whatever path decided them: an index that
- * comes to name nothing at run time (`$r[3]` once `r` has two iterations,
- * `$m[2]` once `m` is a scalar). The copy then names no source, so it is
- * made from its source again once that makes something.
- */
-/**
  * Whether `component` is written in an attribute of one of its ancestors
  * (`grid="$P"` of a `<graph>`), rather than among their children.
  */
@@ -8038,6 +8039,14 @@ function writtenInAnAttribute(component, components) {
     return false;
 }
 
+/**
+ * Make the changes `result` that leave the bare reference to one thing
+ * `component` (`isBareReferenceToOneThing`) showing no component leave it
+ * showing a blank instead (D37), whatever path decided them: an index that
+ * comes to name nothing at run time (`$r[3]` once `r` has two iterations,
+ * `$m[2]` once `m` is a scalar). The copy then names no source, so it is
+ * made from its source again once that makes something.
+ */
 async function blankInPlaceOfNothing({
     component,
     components,

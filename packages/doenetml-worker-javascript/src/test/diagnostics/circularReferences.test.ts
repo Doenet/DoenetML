@@ -3048,4 +3048,46 @@ describe("A point read where a value is read, in its own label through an extend
             "at (7, 8)",
         ]);
     });
+
+    it("in a label, is hidden with the point; in a text, is not", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<booleanInput name="h"/>
+<graph>
+<point name="P" hide="$h">(1,2)</point>
+<point name="Q"><label>a $P b</label></point>
+</graph>
+<text name="t">$P</text>`,
+        });
+        async function shown() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return [
+                stateVariables[await resolvePathToNodeIdx("Q")].stateValues
+                    .label,
+                stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                    .text,
+            ];
+        }
+        expect(await shown()).eqls([
+            "a \\(\\left( 1, 2 \\right)\\) b",
+            "(1, 2)",
+        ]);
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await shown()).eqls(["a  b", "(1, 2)"]);
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        expect(await shown()).eqls([
+            "a \\(\\left( 1, 2 \\right)\\) b",
+            "(1, 2)",
+        ]);
+    });
 });
