@@ -101,6 +101,15 @@ describe("Pretext export", async () => {
         `);
     });
 
+    it("a ref to a URL becomes a PreTeXt url", async () => {
+        source = `<p><ref to="https://example.com/a?b=1">Example</ref> <ref to="https://example.com" /> <ref to="doenet:abc123">Activity</ref></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p><url href="https://example.com/a?b=1">Example</url> <url href="https://example.com"></url> <url href="https://doenet.org/activityViewer/abc123">Activity</url></p>"`,
+        );
+    });
+
     // <br /> and <hr /> are removed when converting to PreTeXt
     it("<br /> and <hr /> are removed when converting to PreTeXt", async () => {
         source = `<p>Line 1<br />Line 2</p><hr /><p>After hr</p>`;
