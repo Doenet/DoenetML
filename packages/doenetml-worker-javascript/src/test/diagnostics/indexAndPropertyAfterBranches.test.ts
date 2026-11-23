@@ -287,7 +287,7 @@ describe("An index after options or cases that hold several, decided at load (Do
 <conditionalContent name="cc"><case condition="$b"><math>1</math><math>2</math></case><else><math>3</math><math>4</math></else></conditionalContent>
 <p name="p">[$cc[1][2]]</p>`);
         const atLoad = [
-            '`$cc[1][2]`: an index after `cc` passes into what the case shown holds only when it holds one component, and case 1 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
+            '`$cc[1][2]`: an index after the case shown by `cc` passes into it only when it holds one component, and case 1 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
         ];
         expect(d.diagnostics().map((x: any) => x.message)).eqls(atLoad);
         expect(d.codes()).eqls(["warning doenet-w0191"]);
@@ -346,7 +346,7 @@ describe("An index after options or cases that hold several, decided at load (Do
                 texts.add(text);
                 const { warnings, infos } = getDiagnosticsByType(core);
                 expect(warnings.map((x) => x.message)).eqls([
-                    '`$s[1][2]`: an index after `s` passes into what each pick holds only when it holds one component, and option 2 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
+                    '`$s[1][2]`: an index after a pick of `s` passes into it only when it holds one component, and option 2 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
                 ]);
                 expect(infos.map((x) => x.code)).eqls(
                     text === "[2]" ? [] : ["doenet-w0188"],

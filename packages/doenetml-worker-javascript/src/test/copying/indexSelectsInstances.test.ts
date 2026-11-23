@@ -800,9 +800,9 @@ describe("An index selects instances, not children @group4", async () => {
             `<select name="s"><option><math>a</math><math name="m">b</math></option></select><p name="p">$s[1][1] $s[1][2] $s[1][3]</p>`,
         );
         expect(warnings.map((w) => w.message).sort()).eqls([
-            '`$s[1][1]`: an index after `s` passes into what each pick holds only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[1]`.',
-            "`$s[1][2]`: an index after `s` passes into what each pick holds only when it holds one component, and option 1 holds several. The component it would select has the same name in each: write `$s[1].m`.",
-            '`$s[1][3]`: an index after `s` passes into what each pick holds only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[3]`.',
+            '`$s[1][1]`: an index after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[1]`.',
+            "`$s[1][2]`: an index after a pick of `s` passes into it only when it holds one component, and option 1 holds several. The component it would select has the same name in each: write `$s[1].m`.",
+            '`$s[1][3]`: an index after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[3]`.',
         ]);
         // in a group, the warning when the document runs
         const inGroup = await shownAndReported(
