@@ -1073,7 +1073,14 @@ the document renders.
 
 - **Allowed on any extend:** a bare extend (the same as `$x`, REF-1), a name, and attributes that
   only change appearance (`hide`, `styleNumber`, display settings, `asList`, `disabled`,
-  `fixed`). A `<group>` or `<module>` extend can also be given children, which are appended.
+  `fixed`), and a `<label>`, `<shortDescription>` or `<description>` written inside.
+- **A container's extend can present more** (D71). A value or an object *is* what it holds, so an
+  extend can't change that: children written inside one are an error that suggests a new tag
+  (`<math>$m+1</math>`) or `copy`. A container (`<section>`, `<p>`, `<graph>`, `<group>`,
+  `<module>`, …) *presents* what it holds: an extend shows the same content again, still linked,
+  and may add to it, so `<section extend="$mySec"><title>New Title</title></section>` is the
+  same section presented with a new title. Its properties that describe how it presents itself
+  (`.title`, `.text`) are the extend's own, as `hide` is; its shared state never differs.
 - **Errors** (Tier 2, the list authors are not given):
   - on a tag whose content is made rather than written, an attribute its class declares beyond
     those an extend applies, `doenet-e0056` (on a `pretzel`, only `mode`), and children written

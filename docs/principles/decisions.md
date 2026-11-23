@@ -3601,3 +3601,37 @@ award) reads `false`, so `hide="$nothing != 1"` no longer hides. An input left b
 not missing: `$mi != x` is true while `mi` is empty. `<isNumber>`, `<isBetween>`, `<matchesPattern>`
 and the like are missing with a missing operand. `credit="$nothing"` gives no credit.
 
+## D71. A container's extend can present more; a value's or object's can't (decided, November 2026; REF-7)
+
+**Why.** REF-7 allowed children only on a `<group>` or `<module>` extend, but every other tag
+appended them silently, so `<number extend="$n">5</number>` of `2` was `25` (#2668). The
+canonical way to reuse a section under another title, `<section extend="$mySec"><title>New
+Title</title></section>`, also gives the extend a `.title` its source doesn't have, and such
+divergence was a reason to disallow children on an extend. An author needs one reason why one is
+fine and the other isn't.
+
+**Decided:**
+1. **An extend shares its source's state** (what the reader has done to it, and what it holds) and
+   can be presented differently. This is REF-7's Tier 1 rule, restated.
+2. **A value or an object is what it holds** (D46's kinds: `<math>`, `<number>`, `<text>`,
+   `<boolean>`, lists and inputs; `<point>`, `<line>`, `<matrix>`, `<function>`, `<answer>`, …).
+   Children written inside an extend of one are an error at load. The message suggests a new tag
+   holding the reference and the children (`<math>$m+1</math>`, `<text>$t there</text>`), or
+   `copy` for an object (`<point copy="$P">(3,4)</point>`).
+3. **A container presents what it holds** (D46's content: `<section>`, `<p>`, `<graph>`,
+   `<figure>`, `<tabular>`, `<feedback>`, `<hint>`, …, and `<group>` and `<module>`). An extend of
+   one shows the same content again, still linked, and may present more: children written inside
+   are added, a `<title>` written inside replaces the title. What it adds is its own; the shared
+   content stays one (dragging a point in it moves the source's point).
+4. **So a container's properties that describe how it presents itself** (`.title`, `.text`, a
+   problem's credit over what it holds) **are the extend's own**, as `hide` is. They may differ
+   from the source's; its state never does.
+5. On any tag, a `<label>`, `<shortDescription>` or `<description>` written inside an extend is
+   allowed: it changes only how it is presented.
+
+**Recommended, not yet decided:** `<m>`, `<me>` and `<men>` are content in D46, but their children
+make one expression, so they count as values here (`<m extend="$e">+1</m>` is an error suggesting
+`<m>$e+1</m>`).
+
+Implementation: #2668, PR 50.
+
