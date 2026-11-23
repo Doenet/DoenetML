@@ -211,15 +211,7 @@ pub(super) fn math_handle(
                     .parse_constant(&text)
                     .expect("a constant math text parses"),
             };
-            match post {
-                Post::None => h,
-                Post::Simplify => engine.simplify(h),
-                Post::Expand => engine.expand(h),
-                Post::SimplifyExpand => {
-                    let h = engine.simplify(h);
-                    engine.expand(h)
-                }
-            }
+            engine.post(h, *post)
         }
     }
 }

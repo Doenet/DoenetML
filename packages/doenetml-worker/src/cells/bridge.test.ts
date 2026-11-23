@@ -56,6 +56,20 @@ describe("flat DAST", () => {
         ).toEqual(["y + 1"]);
     });
 
+    it("draws a math holding a value with entries, and an interval, as a math (ADR 0041)", async () => {
+        const bridge = await load(`<math>{1, x}</math>
+<math>[1, 2)</math>
+<interval>(1, 2)</interval>`);
+        const root = bridge.flatDast();
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual([
+            "\\left\\{ 1, x \\right\\}",
+            "\\left[ 1, 2 \\right)",
+            "\\left( 1, 2 \\right)",
+        ]);
+    });
+
     it("gives each component its renderer's props", async () => {
         const bridge = await load(`<section><title>Intro</title>
 <p><text>hello</text> <number>3.25</number> <math>x+1</math> <boolean>true</boolean> <point>(1,2)</point></p>

@@ -269,6 +269,7 @@ component_types! {
     CallAction => inputs::call_action::DEFINITION,
     FractionInput => inputs::fraction_input::DEFINITION,
     FractionInputPart => inputs::fraction_input::part::DEFINITION,
+    Interval => values::interval::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.

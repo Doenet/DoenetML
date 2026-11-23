@@ -336,7 +336,9 @@ const NUMBER_TYPES = new Set([
 /** A component's value as LaTeX, where math notation refers to it. */
 function valueLatex(r: Reads, c: number): string {
     const type = r.table.componentType(c);
-    if (type === "math" || type === "mathInput") return r.mathLatex(c);
+    if (type === "math" || type === "mathInput" || type === "interval") {
+        return r.mathLatex(c);
+    }
     if (NUMBER_TYPES.has(type)) return mathNumber(r.num(c, "value"));
     if (type === "intComma") {
         return groupDigits(formatNumber(r.num(c, "value"), null));
@@ -1211,6 +1213,12 @@ export const CONTRACTS: Record<string, Contract> = {
                 renderMode: "inline",
             };
         },
+    },
+    // Values with entries inside a math (ADR 0041, decision 8): an
+    // interval is a math, drawn as one.
+    interval: {
+        name: () => "math",
+        props: (r, c) => ({ latex: r.mathLatex(c), renderMode: "inline" }),
     },
 };
 

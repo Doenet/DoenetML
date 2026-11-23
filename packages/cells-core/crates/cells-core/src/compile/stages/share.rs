@@ -694,6 +694,8 @@ fn expr_classes<'c>(
             Expr::Div(a, b) => c(a).zip(c(b)).map(|(a, b)| K::Bin(3, a, b)),
             Expr::Pow(a, b) => c(a).zip(c(b)).map(|(a, b)| K::Bin(4, a, b)),
             Expr::Neg(a) => c(a).map(K::Neg),
+            // Its head is in its text, not here: its own class.
+            Expr::Shape(_) => None,
             Expr::Call(f, args) => args
                 .iter()
                 .map(c)

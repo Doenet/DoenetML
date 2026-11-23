@@ -10,7 +10,8 @@ use std::hash::{BuildHasher, RandomState};
 use math_expressions as me;
 use me::{EqOptions, Expr, LatexOpts, Number, TextOpts, TextToAst, TextToAstOptions};
 
-use super::{Handle, Leaf, Tree};
+use super::compare::CompareOpts;
+use super::{Handle, Leaf, Shape, Tree};
 
 /// The symbolic engine: every math expression a document holds, by handle, and
 /// the operations on them.
@@ -111,12 +112,14 @@ impl Engine {
     }
 
     /// Parse math text into a builder tree without storing it; `cellN<i>`
-    /// symbols become leaves. Fails on what a tree cannot say (a relation, a
-    /// tuple, a function of several arguments).
+    /// symbols become leaves. Fails on what a tree cannot say (a relation,
+    /// a function of several arguments).
     pub fn parse_tree<L: Leaf>(&mut self, text: &str) -> Result<Tree<L>, String> {
         let e = self.convert_text(text)?;
         to_tree(&e).ok_or_else(|| {
-            format!("'{text}' is not supported in a math cell (a relation, tuple or multi-argument function)")
+            format!(
+                "'{text}' is not supported in a math cell (a relation or multi-argument function)"
+            )
         })
     }
 
@@ -159,6 +162,27 @@ impl Engine {
             ));
         }
         Ok(self.push(e))
+    }
+
+    /// `h` with `post` applied: its shapes normalized (`createVectors`,
+    /// `createIntervals`; ADR 0041, decision 8), then simplified, then
+    /// expanded, as it says.
+    pub fn post(&mut self, mut h: Handle, post: crate::program::Post) -> Handle {
+        if post.creates_vectors() {
+            let e = me::tuples_to_vectors(&self.exprs[h.index()]);
+            h = self.push(e);
+        }
+        if post.creates_intervals() {
+            let e = me::to_intervals(&self.exprs[h.index()]);
+            h = self.push(e);
+        }
+        if post.simplifies() {
+            h = self.simplify(h);
+        }
+        if post.expands() {
+            h = self.expand(h);
+        }
+        h
     }
 
     /// `h` simplified.
@@ -237,14 +261,31 @@ impl Engine {
         out.copy_from_slice(&ys[..out.len()]);
     }
 
-    /// Mathematical equality, by numeric sampling.
+    /// Mathematical equality, by numeric sampling, over the lattice of
+    /// values with entries (`sym::compare`).
     pub fn equals(&mut self, a: Handle, b: Handle) -> bool {
-        me::equals(&self.exprs[a.index()], &self.exprs[b.index()], &self.eq)
+        self.compare(a, b, CompareOpts::default()) == 1.0
     }
 
-    /// Structural equality after reordering (`symbolicEquality`).
+    /// Structural equality after reordering (`symbolicEquality`), over the
+    /// same lattice.
     pub fn equals_syntax(&mut self, a: Handle, b: Handle) -> bool {
-        me::equals_syntactic(&self.exprs[a.index()], &self.exprs[b.index()], &self.eq)
+        let opts = CompareOpts {
+            syntactic: true,
+            ..CompareOpts::default()
+        };
+        self.compare(a, b, opts) == 1.0
+    }
+
+    /// How equal `a` and `b` are, from 0 to 1, as `opts` compares them
+    /// (ADR 0041, decision 8).
+    pub fn compare(&mut self, a: Handle, b: Handle, opts: CompareOpts) -> f64 {
+        super::compare::check_equality(
+            &self.exprs[a.index()],
+            &self.exprs[b.index()],
+            opts,
+            &self.eq,
+        )
     }
 
     /// The expression as a builder tree, cell leaves included as the `L`
@@ -257,6 +298,11 @@ impl Engine {
     /// `h` as math text.
     pub fn text(&self, h: Handle) -> String {
         me::to_text(&self.exprs[h.index()], &TextOpts::default())
+    }
+
+    /// `h` as the JavaScript math tree, in JSON.
+    pub fn ast_json(&self, h: Handle) -> String {
+        me::expr::serde::to_js(&self.exprs[h.index()]).to_string()
     }
 
     /// `h` as LaTeX.
@@ -311,6 +357,34 @@ fn convert<L: Leaf>(t: &Tree<L>, leaves: &mut Vec<(u32, bool)>) -> Expr {
         Tree::Neg(x) => Expr::Neg(Box::new(convert(x, leaves))),
         Tree::Pow(a, b) => Expr::Pow(Box::new(convert(a, leaves)), Box::new(convert(b, leaves))),
         Tree::Apply(f, x) => Expr::Apply(Box::new(Expr::sym(f)), vec![convert(x, leaves)]),
+        Tree::Shape(head, ts) => shape_expr(*head, ts.iter().map(|t| convert(t, leaves)).collect()),
+    }
+}
+
+/// The expression a shape's head makes of its entries (ADR 0041, decision
+/// 8). An interval of other than two entries, or a matrix whose entries do
+/// not fill it, is the blank expression: no tree the core makes is one.
+pub(crate) fn shape_expr(head: Shape, xs: Vec<Expr>) -> Expr {
+    use me::expr::SeqKind;
+    match head {
+        Shape::List => Expr::Seq(SeqKind::List, xs),
+        Shape::Tuple => Expr::Seq(SeqKind::Tuple, xs),
+        Shape::Vector => Expr::Seq(SeqKind::Vector, xs),
+        Shape::AltVector => Expr::Seq(SeqKind::AltVector, xs),
+        Shape::Array => Expr::Seq(SeqKind::Array, xs),
+        Shape::Set => Expr::Seq(SeqKind::Set, xs),
+        Shape::Union => Expr::Union(xs),
+        Shape::Intersect => Expr::Intersect(xs),
+        Shape::Interval(closed) => match <[Expr; 2]>::try_from(xs) {
+            Ok([lo, hi]) => Expr::Interval {
+                endpoints: Box::new((lo, hi)),
+                closed: (closed[0], closed[1]),
+            },
+            Err(_) => Expr::Blank,
+        },
+        Shape::Matrix { rows, cols } => me::Mat::new(rows, cols, xs)
+            .map(Expr::Matrix)
+            .unwrap_or(Expr::Blank),
     }
 }
 
@@ -411,6 +485,30 @@ fn to_tree<L: Leaf>(e: &Expr) -> Option<Tree<L>> {
             Expr::Sym(f) => Tree::Apply(f.name(), one(&args[0])?),
             _ => return None,
         },
+        Expr::Seq(kind, xs) => Tree::Shape(
+            match kind {
+                me::expr::SeqKind::List => Shape::List,
+                me::expr::SeqKind::Tuple => Shape::Tuple,
+                me::expr::SeqKind::Vector => Shape::Vector,
+                me::expr::SeqKind::AltVector => Shape::AltVector,
+                me::expr::SeqKind::Array => Shape::Array,
+                me::expr::SeqKind::Set => Shape::Set,
+            },
+            all(xs)?,
+        ),
+        Expr::Union(xs) => Tree::Shape(Shape::Union, all(xs)?),
+        Expr::Intersect(xs) => Tree::Shape(Shape::Intersect, all(xs)?),
+        Expr::Interval { endpoints, closed } => Tree::Shape(
+            Shape::Interval([closed.0, closed.1]),
+            vec![to_tree(&endpoints.0)?, to_tree(&endpoints.1)?],
+        ),
+        Expr::Matrix(m) => Tree::Shape(
+            Shape::Matrix {
+                rows: m.rows(),
+                cols: m.cols(),
+            },
+            all(m.entries())?,
+        ),
         _ => return None,
     })
 }
@@ -511,6 +609,6 @@ mod tests {
     fn unsupported_shapes_are_errors() {
         let mut e = Engine::new();
         assert!(e.parse_tree::<u32>("x = 2").is_err());
-        assert!(e.parse_tree::<u32>("(1, 2)").is_err());
+        assert!(e.parse_tree::<u32>("f(x, y)").is_err());
     }
 }

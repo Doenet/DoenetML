@@ -20,6 +20,7 @@ pub(crate) mod boolean_list;
 pub mod curve;
 pub(crate) mod formatted;
 pub(crate) mod function_operators;
+pub(crate) mod interval;
 pub mod math;
 pub(crate) mod math_list;
 pub(crate) mod number_list;

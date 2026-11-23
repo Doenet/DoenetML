@@ -388,9 +388,9 @@ impl CondParser<'_> {
         let mut depth = 0i32;
         while let Some(t) = self.peek(0) {
             match t {
-                Token::LParen => depth += 1,
-                Token::RParen if depth == 0 => break,
-                Token::RParen => depth -= 1,
+                t if t.opens() => depth += 1,
+                t if t.closes() && depth == 0 => break,
+                t if t.closes() => depth -= 1,
                 _ if depth == 0 && is_condition_token(t) => break,
                 _ => {}
             }
@@ -448,15 +448,13 @@ impl CondParser<'_> {
     fn matching(&self, open: usize) -> Result<usize> {
         let mut depth = 0i32;
         for (i, t) in self.toks.iter().enumerate().skip(open) {
-            match t {
-                Token::LParen => depth += 1,
-                Token::RParen => {
-                    depth -= 1;
-                    if depth == 0 {
-                        return Ok(i);
-                    }
+            if t.opens() {
+                depth += 1;
+            } else if t.closes() {
+                depth -= 1;
+                if depth == 0 {
+                    return Ok(i);
                 }
-                _ => {}
             }
         }
         Err(self.err("missing ')'".into()))
@@ -526,6 +524,7 @@ fn render_tokens(toks: &[Token]) -> String {
             Token::RParen => ")".into(),
             Token::Comma => ",".into(),
             Token::Eq => "=".into(),
+            Token::Open(c) | Token::Close(c) => c.to_string(),
         })
         .collect::<Vec<_>>()
         .join(" ")

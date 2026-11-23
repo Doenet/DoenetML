@@ -60,6 +60,39 @@ pub enum Tree<L> {
     Pow(Box<Tree<L>>, Box<Tree<L>>),
     /// A named function applied to one argument: `sin(x)`.
     Apply(String, Box<Tree<L>>),
+    /// A value with entries (ADR 0041, decision 8): a list, tuple, vector,
+    /// interval, set or matrix, its entries in order (a matrix's by row).
+    Shape(Shape, Vec<Tree<L>>),
+}
+
+/// The head of a [`Tree::Shape`]: what kind of value its entries make.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Shape {
+    /// `a, b, c`: entries written one after another.
+    List,
+    /// `(a, b)`.
+    Tuple,
+    /// A vector (`createVectors`, or a `<vector>`'s value).
+    Vector,
+    /// `⟨a, b⟩`.
+    AltVector,
+    /// `[a, b]`.
+    Array,
+    /// `{a, b}`: unordered.
+    Set,
+    /// An interval of two entries, its ends' closedness (left, right).
+    Interval([bool; 2]),
+    /// A matrix of `rows` by `cols` entries, by row.
+    Matrix {
+        /// How many rows.
+        rows: u32,
+        /// How many columns.
+        cols: u32,
+    },
+    /// A union of sets.
+    Union,
+    /// An intersection of sets.
+    Intersect,
 }
 
 impl<L: Copy> Tree<L> {
@@ -92,6 +125,12 @@ impl<L: Copy> Tree<L> {
             Tree::Pow(a, b) => Tree::Pow(one(a, f)?, one(b, f)?),
             Tree::Neg(a) => Tree::Neg(one(a, f)?),
             Tree::Apply(name, a) => Tree::Apply(name.clone(), one(a, f)?),
+            Tree::Shape(head, ts) => Tree::Shape(
+                *head,
+                ts.iter()
+                    .map(|t| t.try_map_leaves(f))
+                    .collect::<Result<_, _>>()?,
+            ),
         })
     }
 
@@ -109,7 +148,9 @@ impl<L: Copy> Tree<L> {
         match self {
             Tree::Num(_) | Tree::Sym(_) => {}
             Tree::Cell { cell, math } => f(*cell, *math),
-            Tree::Add(ts) | Tree::Mul(ts) => ts.iter().for_each(|t| t.for_each_leaf(f)),
+            Tree::Add(ts) | Tree::Mul(ts) | Tree::Shape(_, ts) => {
+                ts.iter().for_each(|t| t.for_each_leaf(f))
+            }
             Tree::Sub(a, b) | Tree::Div(a, b) | Tree::Pow(a, b) => {
                 a.for_each_leaf(f);
                 b.for_each_leaf(f);

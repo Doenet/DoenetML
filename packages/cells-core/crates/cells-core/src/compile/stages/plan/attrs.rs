@@ -221,6 +221,8 @@ impl<'a> Planning<'a> {
                     .collect();
                 self.ar.arena.push(Expr::Call(f, args))
             }
+            // A value with entries is never linear: left as it is.
+            Expr::Shape(_) => id,
             Expr::Add(a, b)
             | Expr::Sub(a, b)
             | Expr::Mul(a, b)

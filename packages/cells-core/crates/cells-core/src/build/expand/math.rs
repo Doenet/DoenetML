@@ -91,15 +91,7 @@ impl<'c> Builder<'c> {
 
     /// `post` applied to a constant expression at build time.
     fn post(&mut self, h: crate::sym::Handle, post: Post) -> crate::sym::Handle {
-        match post {
-            Post::None => h,
-            Post::Simplify => self.engine.simplify(h),
-            Post::Expand => self.engine.expand(h),
-            Post::SimplifyExpand => {
-                let h = self.engine.simplify(h);
-                self.engine.expand(h)
-            }
-        }
+        self.engine.post(h, post)
     }
 
     /// Rebind a parsed template's `cellN<plan>` leaves to slots: a math leaf
@@ -283,6 +275,11 @@ impl<'c> Builder<'c> {
                     .map(|a| self.instantiate_expr(a, scope))
                     .collect::<Result<_>>()?,
             ),
+            Expr::Shape(xs) => Expr::Shape(
+                xs.into_iter()
+                    .map(|a| self.instantiate_expr(a, scope))
+                    .collect::<Result<_>>()?,
+            ),
         };
         let done = self.arena.push(out);
         if let Some(key) = class {
@@ -305,7 +302,7 @@ impl<'c> Builder<'c> {
         match e {
             Expr::Num(v) => self.const_slot(v),
             Expr::Cell(slot) => slot,
-            Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
+            Expr::Sym(_) | Expr::Shape(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {
                 let a = self.lower_shared(a, scope);
                 self.math_op(OpSpec::Negate, &[a], scope)

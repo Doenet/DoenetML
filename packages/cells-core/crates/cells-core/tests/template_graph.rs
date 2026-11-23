@@ -134,10 +134,10 @@ const RESOLVE_FAILURES: &[Findings] = &[
         ],
     ),
     (
-        "tuple-over-a-cell",
-        r#"<number name="n">1</number><boolean name="b">($n, x) = ($n, x)</boolean>"#,
+        "function-of-two-over-a-cell",
+        r#"<number name="n">1</number><boolean name="b">f($n, x) = f($n, x)</boolean>"#,
         &[
-            "cannot parse math '( cellN0 , x )': '( cellN0 , x )' is not supported in a math cell (a relation, tuple or multi-argument function)",
+            "cannot parse math 'f ( cellN0 , x )': 'f ( cellN0 , x )' is not supported in a math cell (a relation or multi-argument function)",
         ],
     ),
     (

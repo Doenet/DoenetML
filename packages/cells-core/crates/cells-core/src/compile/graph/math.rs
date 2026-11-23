@@ -43,6 +43,9 @@ impl<'c> Stamp<'c> {
                 f,
                 args.into_iter().map(|a| self.instantiate(a, t)).collect(),
             ),
+            Expr::Shape(xs) => {
+                Expr::Shape(xs.into_iter().map(|a| self.instantiate(a, t)).collect())
+            }
         };
         let done = self.x.push(out);
         if let Some(key) = class {
@@ -96,7 +99,7 @@ impl<'c> Stamp<'c> {
         match e {
             Expr::Num(v) => self.constant(v),
             Expr::Cell(n) => n,
-            Expr::Sym(_) => unreachable!("lowering a symbolic expression"),
+            Expr::Sym(_) | Expr::Shape(_) => unreachable!("lowering a symbolic expression"),
             Expr::Neg(a) => {
                 let a = self.lower_shared(a, t);
                 self.math_op(OpSpec::Negate, vec![a], t)
@@ -276,7 +279,7 @@ fn occurrences(arena: &Arena<RefId>, id: ExprId, out: &mut Vec<RefId>) {
             occurrences(arena, *b, out);
         }
         Expr::Neg(a) => occurrences(arena, *a, out),
-        Expr::Call(_, args) => {
+        Expr::Call(_, args) | Expr::Shape(args) => {
             for &a in args {
                 occurrences(arena, a, out);
             }

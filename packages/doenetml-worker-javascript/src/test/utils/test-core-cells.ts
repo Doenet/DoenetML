@@ -101,11 +101,15 @@ const valueReaders: Record<string, Reader> = {
 /** The blank expression the current core shows for an empty input. */
 const BLANK = "\uff3f";
 
+/** The expression a math cell holds, read as the core's math tree (which
+ * text cannot tell from a tuple, an open interval; ADR 0041, decision 8). */
+function heldExpr(cells: Cells, cell: number) {
+    return me.fromAst(JSON.parse(cells.core.expr_ast(cell)));
+}
+
 /** The expression a math cell holds; blank when the handle is NaN. */
 const exprOf = (cells: Cells, cell: number) =>
-    Number.isNaN(cells.value(cell))
-        ? me.fromAst(BLANK)
-        : me.fromText(cells.core.expr_text(cell));
+    Number.isNaN(cells.value(cell)) ? me.fromAst(BLANK) : heldExpr(cells, cell);
 
 /** A math's value: its expression when it is a math cell (plan 5), else
  * the number its lowered chain computes. An unbound mathInput's blank
@@ -114,7 +118,7 @@ const mathValue: Reader = (g, x) => {
     const e = x.cell("expr");
     if (e !== undefined) {
         if (!Number.isNaN(x.cells.value(e))) {
-            return me.fromText(x.cells.core.expr_text(e));
+            return heldExpr(x.cells, e);
         }
         if (x.cells.core.cell_class(e) === "essential")
             return me.fromAst(BLANK);
@@ -681,6 +685,8 @@ const STATE: Record<string, Record<string, Reader>> = {
     textList: valueListReaders("texts", (x, c) => x.cells.text(c)),
     booleanList: valueListReaders("booleans", (x, c) => x.cells.value(c) === 1),
     mathList: valueListReaders("maths", (x, c) => heldMath(x.cells, c)),
+    // Values with entries inside a math (ADR 0041, decision 8).
+    interval: mathReaders,
 };
 
 /** The component fields the harness answers for some types: a fraction

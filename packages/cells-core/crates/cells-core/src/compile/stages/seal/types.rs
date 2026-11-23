@@ -308,14 +308,15 @@ impl<'s, 'a> Types<'s, 'a> {
     }
 
     /// Whether the handle of a `<math>` of template `t` with expression
-    /// `id` is a math cell: its text has a free symbol, or a leaf that
-    /// stands for an expression (`stands_for_expression`).
+    /// `id` is a math cell: its text has a free symbol or a value with
+    /// entries (ADR 0041, decision 8), or a leaf that stands for an
+    /// expression (`stands_for_expression`).
     fn symbolic(&mut self, t: TemplateId, id: ExprId) -> std::result::Result<bool, Failure> {
         let arena = &self.seal.ar.arena;
         let has_symbol = *self.has_symbol.entry(id).or_insert_with(|| {
             let mut syms = Vec::new();
             arena.symbols(id, &mut syms);
-            !syms.is_empty()
+            !syms.is_empty() || !arena.is_numeric(id)
         });
         if has_symbol {
             return Ok(true);

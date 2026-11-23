@@ -26,6 +26,8 @@ component! {
     attributes {
         expand: On,
         simplify: On,
+        createVectors: On,
+        createIntervals: On,
     }
     // Parsed as the type outlining settled (`compile/stages/parse.rs`), not here.
     children: Math,
@@ -50,12 +52,29 @@ pub(crate) fn extended(id: ExprId) -> Vec<Source> {
 
 /// A math's wiring: its expression, with `post` applied, and its value.
 fn wiring_of(id: ExprId, post: Post) -> ElemWiring {
-    let mut wiring = ElemWiring::of(ComponentType::Math);
+    wiring_of_type(ComponentType::Math, id, post)
+}
+
+/// The wiring of a type whose props are a math's (`expr`, `value`), as a
+/// math's: an `<interval>`'s.
+pub(crate) fn wiring_of_type(ty: ComponentType, id: ExprId, post: Post) -> ElemWiring {
+    let mut wiring = ElemWiring::of(ty);
     wiring.set_public(Props {
         expr: Source::Flow(Flow::MathHandle(id, post)).into(),
         value: Source::Flow(Flow::MathValue(id)).into(),
     });
     wiring
+}
+
+/// What a math does to its expression, from its `expand` and `simplify`.
+pub(crate) fn post_of(expand: bool, simplify: bool) -> Post {
+    if expand {
+        Post::Expand
+    } else if simplify {
+        Post::Simplify
+    } else {
+        Post::None
+    }
 }
 
 /// The type a `<math>` is, from its text alone: a tuple of two, `(a, b)`,
@@ -93,13 +112,10 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
         ParsedMath::Expr(id) => {
             let attrs = Attrs::of(ctx.record());
-            let post = if attrs.expand {
-                Post::Expand
-            } else if attrs.simplify {
-                Post::Simplify
-            } else {
-                Post::None
-            };
+            // Tuples made vectors and pairs made intervals before the rest
+            // (ADR 0041, decision 8).
+            let post = post_of(attrs.expand, attrs.simplify)
+                .with_shapes(attrs.createVectors, attrs.createIntervals);
             wiring_of(id, post)
         }
     })

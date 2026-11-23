@@ -288,6 +288,19 @@ impl Document {
         }
     }
 
+    /// The expression a math cell holds as the JavaScript math tree, in
+    /// JSON (`["interval", ["tuple", 1, 2], ["tuple", false, true]]`):
+    /// what text cannot tell apart (an open interval from a tuple); empty
+    /// for a NaN handle.
+    pub fn math_ast(&self, cell: CellIdx) -> String {
+        let h = self.cells[cell.index()];
+        if h.is_nan() {
+            String::new()
+        } else {
+            self.math.engine.ast_json(Handle::from_value(h))
+        }
+    }
+
     /// LaTeX of the expression a math cell holds, empty for a NaN handle.
     pub fn math_latex(&self, cell: CellIdx) -> String {
         let h = self.cells[cell.index()];

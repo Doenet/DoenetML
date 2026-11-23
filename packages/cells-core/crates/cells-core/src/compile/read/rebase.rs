@@ -201,6 +201,11 @@ impl<'a> Reader<'a> {
                     .collect();
                 Expr::Call(f, args)
             }
+            Expr::Shape(xs) => Expr::Shape(
+                xs.into_iter()
+                    .map(|a| self.rebase_expr(ar, path, down, a))
+                    .collect(),
+            ),
             Expr::Add(a, b)
             | Expr::Sub(a, b)
             | Expr::Mul(a, b)

@@ -504,7 +504,7 @@ impl<'a, 'c> Signer<'a, 'c> {
                 hash_of((
                     "instantiate",
                     canonical_leaves(&template_text(&tree)),
-                    *post as u8,
+                    post.bits(),
                 ))
             }
             GraphOp::Spec(OpSpec::Sym(kind)) => hash_of(format!("{kind:?}")),

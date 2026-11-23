@@ -62,18 +62,75 @@ pub enum SymKind {
     SampleQuadratic,
 }
 
-/// What a `<math>` does to its expression after instantiating it.
+/// What a `<math>` does to its expression after instantiating it: in
+/// order, its tuples made vectors (`createVectors`), its tuples and arrays
+/// of two made intervals (`createIntervals`; ADR 0041, decision 8), then
+/// simplified, then expanded. A set of flags; the names below are its
+/// common values, usable as patterns.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Post {
+pub struct Post {
+    bits: u8,
+}
+
+#[allow(non_upper_case_globals)]
+impl Post {
+    const SIMPLIFY: u8 = 1;
+    const EXPAND: u8 = 2;
+    const VECTORS: u8 = 4;
+    const INTERVALS: u8 = 8;
+
     /// Nothing: the expression as instantiated.
-    None,
+    pub const None: Post = Post { bits: 0 };
     /// The engine's simplify.
-    Simplify,
+    pub const Simplify: Post = Post {
+        bits: Post::SIMPLIFY,
+    };
     /// The engine's expand.
-    Expand,
+    pub const Expand: Post = Post { bits: Post::EXPAND };
     /// Simplified, then expanded (a `<boolean simplifyOnCompare
     /// expandOnCompare>`): the engine's expand does not simplify first.
-    SimplifyExpand,
+    pub const SimplifyExpand: Post = Post {
+        bits: Post::SIMPLIFY | Post::EXPAND,
+    };
+
+    /// The same, with tuples made vectors and pairs made intervals as
+    /// asked (`createVectors`, `createIntervals`).
+    pub fn with_shapes(self, vectors: bool, intervals: bool) -> Post {
+        let mut bits = self.bits;
+        if vectors {
+            bits |= Post::VECTORS;
+        }
+        if intervals {
+            bits |= Post::INTERVALS;
+        }
+        Post { bits }
+    }
+
+    /// Its flags as one number, the same for the same post: 0 to 3 for
+    /// the four named ones without shapes.
+    pub fn bits(self) -> u8 {
+        self.bits
+    }
+
+    /// Whether it simplifies.
+    pub fn simplifies(self) -> bool {
+        self.bits & Post::SIMPLIFY != 0
+    }
+
+    /// Whether it expands.
+    pub fn expands(self) -> bool {
+        self.bits & Post::EXPAND != 0
+    }
+
+    /// Whether it makes tuples vectors.
+    pub fn creates_vectors(self) -> bool {
+        self.bits & Post::VECTORS != 0
+    }
+
+    /// Whether it makes tuples and arrays of two intervals.
+    pub fn creates_intervals(self) -> bool {
+        self.bits & Post::INTERVALS != 0
+    }
 }
 
 impl SymKind {

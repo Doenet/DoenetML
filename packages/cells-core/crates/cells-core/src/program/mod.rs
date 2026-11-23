@@ -535,16 +535,7 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
     match kind {
         SymKind::Instantiate { template, post } => {
             let h = engine.instantiate(template, cells);
-            let h = match post {
-                crate::program::Post::None => h,
-                crate::program::Post::Simplify => engine.simplify(h),
-                crate::program::Post::Expand => engine.expand(h),
-                crate::program::Post::SimplifyExpand => {
-                    let h = engine.simplify(h);
-                    engine.expand(h)
-                }
-            };
-            out[0] = h.to_value();
+            out[0] = engine.post(h, post).to_value();
         }
         SymKind::Evaluate => out[0] = handle(v(0)).map_or(f64::NAN, |h| engine.evaluate(h, None)),
         SymKind::EvalAt => {
