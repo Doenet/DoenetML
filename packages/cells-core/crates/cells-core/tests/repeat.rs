@@ -150,8 +150,9 @@ fn a_forward_lag_is_a_cycle_and_a_dynamic_index_is_rejected() {
         err.is_none(),
         "a lag that only goes one way is fine: {err:?}"
     );
-    let err = load(r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">-$r[$i+1].y</number><number name="y">-$r[$i-1].x</number></repeatForSequence>"#).unwrap_err();
-    assert!(matches!(err, cells_core::Error::Cycle(_)), "{err}");
+    cells_core::testing::test_utils::load_cycle(
+        r#"<repeatForSequence name="r" length="2" indexName="i"><number name="x">-$r[$i+1].y</number><number name="y">-$r[$i-1].x</number></repeatForSequence>"#,
+    );
     // A cell plus a literal is no index the core plans.
     let (code, m) = load_error(
         r#"<numberInput name="k" value="1"/><point name="p" x="3" y="4"/><number>$p[$k+1]</number>"#,

@@ -95,6 +95,9 @@ impl<'a> Reader<'a> {
                         text = s;
                     }
                 }
+                // An element is content no literal holds: not one value
+                // with the element dropped (COMP-1).
+                NodeKind::Element if !self.is_presentation_child(n) => return Ok(None),
                 _ => {}
             }
         }
@@ -300,12 +303,15 @@ impl<'a> Reader<'a> {
     }
 }
 
-/// A literal value: `true`, `false` or a number.
+/// A literal value: `true`, `false` (in any case, as every keyword in an
+/// attribute's value is; NAME-0, D51) or a number.
 pub(in crate::compile) fn literal_value(text: &str) -> Option<Source> {
-    match text {
-        "true" => Some(Source::given(1.0)),
-        "false" => Some(Source::given(0.0)),
-        _ => text.parse::<f64>().ok().map(Source::given),
+    if text.eq_ignore_ascii_case("true") {
+        Some(Source::given(1.0))
+    } else if text.eq_ignore_ascii_case("false") {
+        Some(Source::given(0.0))
+    } else {
+        text.parse::<f64>().ok().map(Source::given)
     }
 }
 

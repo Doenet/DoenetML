@@ -266,6 +266,8 @@ component_types! {
     EquilibriumLine => geometry::equilibrium_line::DEFINITION,
     Endpoint => geometry::endpoint::DEFINITION,
     Parabola => geometry::parabola::DEFINITION,
+    FractionInput => inputs::fraction_input::DEFINITION,
+    FractionInputPart => inputs::fraction_input::part::DEFINITION,
     ;
     #[cfg(test)] {
         /// `<testValue>`: planned from its table alone.
@@ -789,14 +791,15 @@ impl ComponentType {
     }
 
     /// The prop of an `x` of type `from` that `<to extend="$x"/>` reads as
-    /// its value, when `to` takes a value rather than a copy: `value`
-    /// whatever `from` is for a boolean (the coercion of a referent's value
-    /// to a boolean, until ADR 0032's table of coercions lands), else
-    /// `from`'s default prop when `extends_as` relates them. Called with
-    /// `from` and `to` different.
+    /// its value, when `to` takes a value rather than a copy: `value` for a
+    /// boolean of an input that reads as a boolean, else `from`'s default
+    /// prop when `extends_as` relates them. A boolean of any other type is
+    /// refused: reading a number's or a text's cell as a boolean gave a
+    /// wrong value with no diagnostic (REF-5, D47). Called with `from` and
+    /// `to` different.
     pub fn extend_reads(from: ComponentType, to: ComponentType) -> Option<&'static str> {
         if to == ComponentType::Boolean {
-            Some("value")
+            (from.reads_as() == Some(ComponentType::Boolean)).then_some("value")
         } else if ComponentType::extends_as(from, to) {
             from.default_prop()
         } else {
@@ -823,6 +826,11 @@ impl ComponentType {
     /// type that is no answer's input.
     pub fn response(self) -> Option<ResponseKind> {
         self.def().response
+    }
+
+    /// The inputs a component of the type owns ([`InnerInput`], ADR 0045).
+    pub fn inner(self) -> &'static [InnerInput] {
+        self.def().inner
     }
 
     /// How a component of the type shows in text; None for its children's
@@ -1127,8 +1135,10 @@ mod tests {
     /// grows only deliberately.
     #[test]
     fn plan_ctx_grows_deliberately() {
-        // 21: a list's entries and an entry read as math (ADR 0041).
-        const PLAN_CTX_METHODS: usize = 21;
+        // 25: ADR 0045 added `inner`, `plan_inner`, `inner_quotient` and
+        // `Inner::port`, for the inputs a type owns; ADR 0041 a list's
+        // entries and an entry read as math.
+        const PLAN_CTX_METHODS: usize = 25;
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/compile/stages/plan/ctx.rs");
         let text = std::fs::read_to_string(path).unwrap();
         let n = text
@@ -1286,7 +1296,6 @@ mod tests {
             InlineMath,
             DisplayMath,
             MathRow,
-            Aside,
             SideBySide,
             Stack,
             Tabular,

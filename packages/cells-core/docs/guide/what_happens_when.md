@@ -75,8 +75,9 @@ check raises records the innermost element it concerns, which is boxed
 from the start of a new compile, and the check runs again until every
 element builds. A box keeps its name (ADR 0027): a reference to it
 resolves and reads as undefined, with no diagnostic of its own, and an
-extend of it is boxed in turn (`cells-boxed-referent`). Only an error with
-no element to box, a dependency cycle, fails the load.
+extend of it is boxed in turn (`cells-boxed-referent`). A dependency cycle
+boxes the component it names. Only an error with no element to box, a
+cycle through no component the author wrote, fails the load.
 
 [`Document::diagnostics`](crate::Document::diagnostics) lists, in node order, the lint findings plus the
 errors and warnings of the elements that built.

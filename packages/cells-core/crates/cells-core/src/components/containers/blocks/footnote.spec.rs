@@ -1,5 +1,6 @@
 //! `<footnote>`: a marker in the text whose content is built like any
-//! other's; its document-wide number is not kept here.
+//! other's; its document-wide number is counted when read (ADR 0044,
+//! `tests/counters.rs`).
 
 use crate::spec;
 

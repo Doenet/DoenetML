@@ -29,7 +29,8 @@ pick), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
 `functionIterates`, `repeat` (over a function's iterates), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers
-`title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside`, `sideBySide`,
+`title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside` (numbered with the
+sections), `sideBySide`,
 `stack`, `tabular`, `spreadsheet`, `row`, `cell` and `legend`, the text
 markup `em`, `alert`, `term`, `q`, `sq`, `c`, `attr`, `span`, `tag`, `tagc`
 and `tage`, the characters `ndash`, `mdash`, `nbsp`, `ellipsis`, `lq`, `rq`,
@@ -38,7 +39,8 @@ and `tage`, the characters `ndash`, `mdash`, `nbsp`, `ellipsis`, `lq`, `rq`,
 `theorem`, `paragraphs`, `objectives`, `part`, `task`, `problems`,
 `exercises`, numbered with the sections) and the unnumbered `proof`, the
 blocks `solution`, `introduction`, `conclusion`, `statement`, `figure` (with
-`caption`; unnumbered) and `footnote` (unnumbered), the numeric operators
+`caption`) and `footnote`, numbered through the document (ADR 0044), the
+numeric operators
 `abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
 `standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
@@ -48,7 +50,7 @@ from text, references and element children, one per entry of a list) and the boo
 vertices) and `angle` (by points or a measure), the formatted values
 `integer`, `intComma` (a number, English grouping) and `pluralize` (one
 literal word, or a number and a word), the layout containers `table`
-(unnumbered), `sbsGroup`, `asList`, `latex`, `xLabel` and `yLabel` (not
+(numbered with the figures), `sbsGroup`, `asList`, `latex`, `xLabel` and `yLabel` (not
 drawn) and the PreTeXt wrappers `pretext`, `article` and `book`, the list
 operators `cumulativeSum`, `cumulativeProduct`, `cumulativeMin`,
 `cumulativeMax` and `differences`, the index operators `argMin`, `argMax`,
@@ -61,7 +63,8 @@ from the document seed, and the function operators `clampFunction` and
 geometry `bestFitLine` (data from points or a list of points), `intersection`
 (of two lines or line segments), `parabola` (through 0 to 3 points, or a
 vertex and at most one), `equilibriumPoint`, `equilibriumLine` and
-`endpoint`. A `<math>` tuple of three or more entries is a tuple
+`endpoint`, and `fractionInput` (its numerator and denominator boxes, a
+prefill each; no bound value). A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 

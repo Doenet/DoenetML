@@ -25,6 +25,15 @@ import { arrayEq } from "../../utils/array";
 export const GraphContext = React.createContext<JSG.Board | null>(null);
 
 /**
+ * Where a graph's HTML controls go: the inputs placed in it, drawn over the
+ * board's corner until a core sends where each is anchored. Null on the
+ * server and before the graph mounts, when they are not drawn.
+ */
+export const GraphControlsContext = React.createContext<HTMLElement | null>(
+    null,
+);
+
+/**
  * Which layer each type of element is to be drawn on. These layers determine what shows up on top of what.
  *
  *  NOTE: there can be at most 10 different layer offsets,
@@ -50,6 +59,7 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
     const [xaxis, setXaxis] = React.useState<JSG.Axis | null>(null);
     const [yaxis, setYaxis] = React.useState<JSG.Axis | null>(null);
     const previousBoundingBox = React.useRef<BoundingBox | null>(null);
+    const [controls, setControls] = React.useState<HTMLDivElement | null>(null);
 
     const dispatch = useAppDispatch();
 
@@ -187,10 +197,13 @@ export const Graph: BasicComponent<GraphData> = ({ node }) => {
                 id={boardId}
                 ref={boardRef}
             ></div>
+            <div className="graph-controls" ref={setControls}></div>
             <GraphContext.Provider value={board}>
-                {elementChildrenIds.map((id) => (
-                    <Element key={id} id={id} constraint="graph" />
-                ))}
+                <GraphControlsContext.Provider value={controls}>
+                    {elementChildrenIds.map((id) => (
+                        <Element key={id} id={id} constraint="graph" />
+                    ))}
+                </GraphControlsContext.Provider>
             </GraphContext.Provider>
             <NavButtons board={board} />
         </div>

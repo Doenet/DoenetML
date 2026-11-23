@@ -3,13 +3,14 @@
 //! `<asList>`, a `<latex>` snippet, the graph's axis labels, and the
 //! PreTeXt wrappers `<pretext>`, `<article>` and `<book>`.
 //!
-//! None has props: what each looks like is its renderer's, from its
+//! Only a table has a prop, its `number` flag: what each looks like is its
+//! renderer's, from its
 //! children and its attributes. What the core cares about is where its
 //! sections are numbered, and what it shows in text. A table numbers the
-//! sections inside it among themselves, as a figure does, and is itself
-//! unnumbered: its number ("Table 2") runs through the document apart from
-//! the sections in the current core, which the core here does not keep
-//! (see [`blocks`](super::blocks)). An sbsGroup, an asList and the PreTeXt
+//! sections inside it among themselves, as a figure does, and itself
+//! takes no place among them: its number ("Table 2") runs through the
+//! document apart from the sections, shared with the figures (ADR 0044,
+//! see [`blocks`](super::blocks)). An sbsGroup, an asList and the PreTeXt
 //! wrappers are looked through: a section inside one is numbered among the
 //! sections around it.
 
@@ -20,11 +21,16 @@ mod table {
     use crate::components::define::*;
 
     component! {
-        /// A table: its `<title>`, under the word "Table", then its
-        /// content, usually a `<tabular>`.
+        /// A table: its `<title>`, under its name, "Table 2", its number
+        /// shared with the figures (ADR 0044) unless `number="false"`,
+        /// then its content, usually a `<tabular>`.
         tags: ["table"],
         flags: [container],
-        presentation { suppressTableNameInTitle, number }
+        counted: Figures(number),
+        props {
+            number: attr(1.0) { rendered },
+        }
+        presentation { suppressTableNameInTitle }
         planner: Props,
     }
 }

@@ -22,7 +22,7 @@ pub(in crate::compile) struct Checks {
 
 /// The check of `compiled`: its template graph, whose stamping fails on an
 /// element that cannot be built; checked for loops at any count with
-/// `check_cycles` (a cycle has no element to box), defined, which boxes a
+/// `check_cycles` (a cycle boxes the component it names), defined, which boxes a
 /// prefill the rule refuses, and walked, which gives each port's
 /// attributes, and the refuse analysis's warnings.
 pub(in crate::compile) fn check(
@@ -33,7 +33,7 @@ pub(in crate::compile) fn check(
         crate::trace::span("template graph").run(|| graph::template_graph_checked(compiled))?;
     let cycles = if check_cycles {
         let _s = crate::trace::span("cycle check");
-        graph::check_cycles(&g, compiled).map_err(|error| Failure { error, node: None })?
+        graph::check_cycles(&g, compiled)?
     } else {
         CycleFindings::default()
     };

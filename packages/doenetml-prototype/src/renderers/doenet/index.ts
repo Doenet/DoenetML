@@ -28,6 +28,7 @@ export * from "./graph-polyline";
 export * from "./graph-ray";
 export * from "./graph-vector";
 export * from "./hint";
+export * from "./in-graph-control";
 export * from "./li";
 export * from "./math-input";
 export * from "./m";
