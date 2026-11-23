@@ -650,6 +650,10 @@ impl<'c> Builder<'c> {
                 .flat_map(|k| (0..w).map(move |j| (k, j)))
                 .map(|(k, j)| coord(self, k, j))
                 .collect(),
+            PropAt::Companion => component_type
+                .companion_slots(n)
+                .map(|i| self.slot(comp, i))
+                .collect(),
         })
     }
 

@@ -28,7 +28,7 @@ mod request;
 mod sections;
 mod state;
 mod sticky;
-mod table;
+pub(crate) mod table;
 
 pub use act::ActionView;
 pub use load::{LoadOptions, LoadTimings};
@@ -209,11 +209,17 @@ impl Built {
         cell.index() < self.n_const
     }
 
-    /// Recompute all derived cells from the essential cells, in `engine`.
-    pub(crate) fn recompute(&mut self, engine: &mut crate::sym::Engine) {
+    /// Recompute all derived cells from the essential cells, in `engine`;
+    /// a string a join makes is added to `added`, the session's (ADR 0053).
+    pub(crate) fn recompute(&mut self, engine: &mut crate::sym::Engine, added: &mut Vec<String>) {
         let mut sym = SymRun {
             state: &mut self.sym,
             engine,
+            texts: Some(crate::program::Texts {
+                strings: &mut self.strings,
+                interned: &mut self.interned,
+                added,
+            }),
         };
         self.program.run_all(&mut sym, &mut self.cells);
     }
@@ -259,24 +265,12 @@ impl Document {
     /// request on a text cell (a `<textInput>`'s). Interns the text if the
     /// table does not have it yet; equal text gets equal ids.
     pub fn intern(&mut self, text: &str) -> f64 {
-        let strings = &mut self.built.strings;
-        let ids = self.built.interned.get_or_insert_with(|| {
-            let mut ids = HashMap::new();
-            for i in StrId::below(strings.len()).rev() {
-                ids.insert(strings.get(i).to_string(), i);
-            }
-            ids
-        });
-        let id = match ids.get(text) {
-            Some(&id) => id,
-            None => {
-                let id = strings.push(text);
-                ids.insert(text.to_string(), id);
-                self.session.runtime_strings.push(text.to_string());
-                id
-            }
-        };
-        id.to_value()
+        crate::program::Texts {
+            strings: &mut self.built.strings,
+            interned: &mut self.built.interned,
+            added: &mut self.session.runtime_strings,
+        }
+        .intern(text)
     }
 
     /// The expression a math cell holds, as text; empty when blank, `＿` when
@@ -343,7 +337,8 @@ impl Document {
 
     /// Recompute all derived cells from the essential cells.
     pub fn recompute(&mut self) {
-        self.built.recompute(&mut self.math.engine);
+        self.built
+            .recompute(&mut self.math.engine, &mut self.session.runtime_strings);
     }
 
     /// Write an essential cell and recompute. Panics if `cell` is derived.

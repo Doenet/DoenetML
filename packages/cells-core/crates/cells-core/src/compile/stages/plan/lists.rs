@@ -314,7 +314,7 @@ impl<'a> Planning<'a> {
     }
 
     /// Plan `p`, which names a value list, with entry `k` taken: `$p[k]`.
-    fn entry_ref(&mut self, t: TemplateId, p: RefId, k: usize) -> RefId {
+    pub(super) fn entry_ref(&mut self, t: TemplateId, p: RefId, k: usize) -> RefId {
         let mut plan = self.ar.refs[p.index()].clone();
         if plan.prop.is_none()
             && let Some(x) = plan.steps.iter().rev().find_map(|s| match s {

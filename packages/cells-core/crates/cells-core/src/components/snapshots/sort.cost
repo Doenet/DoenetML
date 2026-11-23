@@ -1,5 +1,8 @@
-numbers in increasing order: cells 18 · essential 0 · constant 18 · instrs 0 · components 9
-an operand from an input moves in the order: cells 13 · essential 1 · constant 8 · instrs 1 · components 9
-a shuffle holds every operand once, in the order the seed drew: cells 19 · essential 0 · constant 19 · instrs 0 · components 13
-a shuffled value follows its operand, in the place drawn: cells 14 · essential 1 · constant 7 · instrs 2 · components 11
-text is refused: cells 2 · essential 0 · constant 2 · instrs 0 · components 2
+numbers in increasing order: cells 32 · essential 0 · constant 32 · instrs 0 · components 9
+an operand from an input moves in the order: cells 20 · essential 1 · constant 10 · instrs 6 · components 9
+a write to a sorted entry is dropped: it would move the entry: cells 15 · essential 0 · constant 15 · instrs 0 · components 7
+a write to a shuffled entry lands on the operand it shows: cells 25 · essential 3 · constant 10 · instrs 10 · components 11
+a shuffle holds every operand once, in the order the seed drew: cells 33 · essential 0 · constant 33 · instrs 0 · components 13
+a shuffled value follows its operand, in the place drawn: cells 24 · essential 1 · constant 11 · instrs 10 · components 11
+an invalid type is reported and dropped: cells 14 · essential 0 · constant 14 · instrs 0 · components 5
+points are not sorted yet: cells 5 · essential 2 · constant 3 · instrs 0 · components 3

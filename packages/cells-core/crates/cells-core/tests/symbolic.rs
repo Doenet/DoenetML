@@ -236,6 +236,7 @@ fn a_lookahead_writes_no_cell_and_the_tick_after_it_agrees() {
             &mut SymRun {
                 state: &mut doc.built.sym,
                 engine: &mut doc.math.engine,
+                texts: None,
             },
             &doc.built.cells,
             essentials,

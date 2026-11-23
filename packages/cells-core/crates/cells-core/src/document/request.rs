@@ -111,6 +111,11 @@ impl Document {
         let mut sym = SymRun {
             state: &mut self.built.sym,
             engine: &mut self.math.engine,
+            texts: Some(crate::program::Texts {
+                strings: &mut self.built.strings,
+                interned: &mut self.built.interned,
+                added: &mut self.session.runtime_strings,
+            }),
         };
         let inv = invert_requests(
             &self.built.program,

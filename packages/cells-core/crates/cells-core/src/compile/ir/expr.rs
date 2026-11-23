@@ -64,6 +64,13 @@ impl Func {
         })
     }
 
+    /// Whether the symbolic engine reads and prints a call to it, so a
+    /// lowered math calling it can show its expression (ADR 0046):
+    /// `round(＿) + 1`, `min(＿, 1)`. The engine has no `clamp`.
+    pub(crate) fn engine_reads(self) -> bool {
+        !matches!(self, Func::Clamp)
+    }
+
     /// Whether `n` arguments are allowed: `min` and `max` take two or more.
     fn takes(self, n: usize) -> bool {
         match self {
@@ -238,16 +245,27 @@ impl<L: Copy + PartialEq + std::fmt::Debug> Arena<L> {
 
     /// Whether the expression calls a function anywhere.
     pub(crate) fn has_call(&self, id: ExprId) -> bool {
+        self.calls(id, &|_| true)
+    }
+
+    /// Whether the expression calls a function the symbolic engine does
+    /// not read ([`Func::engine_reads`]) anywhere.
+    pub(crate) fn calls_outside_engine(&self, id: ExprId) -> bool {
+        self.calls(id, &|f| !f.engine_reads())
+    }
+
+    /// Whether the expression calls a function `which` holds of anywhere.
+    fn calls(&self, id: ExprId, which: &dyn Fn(Func) -> bool) -> bool {
         match self.get(id) {
             Expr::Num(_) | Expr::Sym(_) | Expr::Cell(_) => false,
             Expr::Add(a, b)
             | Expr::Sub(a, b)
             | Expr::Mul(a, b)
             | Expr::Div(a, b)
-            | Expr::Pow(a, b) => self.has_call(*a) || self.has_call(*b),
-            Expr::Neg(a) => self.has_call(*a),
-            Expr::Call(..) => true,
-            Expr::Operator(args) | Expr::Shape(args) => args.iter().any(|&a| self.has_call(a)),
+            | Expr::Pow(a, b) => self.calls(*a, which) || self.calls(*b, which),
+            Expr::Neg(a) => self.calls(*a, which),
+            Expr::Call(f, args) => which(*f) || args.iter().any(|&a| self.calls(a, which)),
+            Expr::Operator(args) | Expr::Shape(args) => args.iter().any(|&a| self.calls(a, which)),
         }
     }
 }

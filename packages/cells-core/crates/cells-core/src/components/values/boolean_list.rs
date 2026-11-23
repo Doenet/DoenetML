@@ -15,6 +15,7 @@ component! {
     default_prop: booleans,
     props {
         numComponents: by_planner { rendered },
+        text: by_planner { text },
     }
     list {
         names: [booleans, values],
@@ -40,6 +41,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let (mut wiring, n) = super::plan_list(ctx, attrs.children, attrs.maxNumber?)?;
     wiring.set_planned(Planned {
         numComponents: Wire::constant(n as f64),
+        text: super::joined_entries(&wiring, n, true).into(),
     });
     Ok(wiring)
 }
