@@ -1901,9 +1901,11 @@ export function DocViewer({
             // Core sends an action's renderer update before replying, but on
             // a different channel, so the reply can arrive first. Settle the
             // action by the id it was sent with: some replies carry none (an
-            // action on a component that is gone).
+            // action on a component that is gone). An action core failed
+            // replies `success: false`, which its caller is told.
             resolveAction({
                 actionId: actionArgs.args?.actionId,
+                success: actionResult.success !== false,
                 rendererUpdateFollows: actionResult.rendererUpdateSent === true,
             });
         } else {
