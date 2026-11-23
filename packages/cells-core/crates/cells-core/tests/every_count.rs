@@ -409,6 +409,23 @@ const CONSTRUCTS: &[(&str, &str)] = &[
         </repeatForSequence>
         <number name="c">$r[$k].m[2] + $nl[$k]</number>"#,
     ),
+    (
+        // Nested lists spliced, element children, math pieces and math
+        // lists (ADR 0041, step 2), inside a repeat whose count a cell
+        // sets: a list in an iteration reading one outside it, and an
+        // operator one operand per entry.
+        "nested-value-lists",
+        r#"<numberInput name="k" value="1"/>
+        <numberList name="nl">1 $k <number>3</number> 1+1</numberList>
+        <mathList name="ml">x <math>y</math> $nl</mathList>
+        <repeatForSequence name="r" length="$k" indexName="i">
+          <numberList name="m" maxNumber="4">$nl $i <numberList>7 8</numberList></numberList>
+          <mathList name="q">$ml[$i] $ml</mathList>
+          <sum name="s">$m $nl[9]</sum>
+          <p>$q $m</p>
+        </repeatForSequence>
+        <math name="c">$ml[1] + $r[$k].q[2]</math>"#,
+    ),
 ];
 
 #[test]

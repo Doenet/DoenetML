@@ -59,6 +59,8 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 None => Err("what a reference names".to_string()),
             },
             ListPiece::Text(t) => Err(format!("`{t}`")),
+            ListPiece::Math(_) => Err("math text".to_string()),
+            ListPiece::Element(_) => Err("an element child".to_string()),
         };
         match kind {
             Ok(line) => lines.push(line),

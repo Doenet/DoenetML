@@ -43,6 +43,19 @@ describe("flat DAST", () => {
         ]);
     });
 
+    it("draws a math list as the text of its entries, and an entry as a math (ADR 0041)", async () => {
+        const bridge =
+            await load(`<mathList name="ml">x y+1 <number>3</number></mathList>
+<p>$ml[2]</p>`);
+        const root = bridge.flatDast();
+        expect(byName(root, "text").map((e) => (e.data as any).props)).toEqual([
+            { value: "x, y + 1, 3" },
+        ]);
+        expect(
+            byName(root, "math").map((e) => (e.data as any).props.latex),
+        ).toEqual(["y + 1"]);
+    });
+
     it("gives each component its renderer's props", async () => {
         const bridge = await load(`<section><title>Intro</title>
 <p><text>hello</text> <number>3.25</number> <math>x+1</math> <boolean>true</boolean> <point>(1,2)</point></p>

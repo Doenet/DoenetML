@@ -19,8 +19,9 @@ inverses. `ARCHITECTURE.md` is the map, `CONTEXT.md` the vocabulary,
 Tags the core understands: `document`, `graph`, `point`, `number`,
 `numberInput`, `booleanInput`, `slider` (numeric mode), `math`, `evaluate`,
 `repeatForSequence`, `collect`, `line`, `lineSegment`, `circle`, `polygon`
-(and `triangle`), `pointList`, `numberList`, `textList` and `booleanList`
-(from text and references), `p`, `setup`, `stickyGroup`, `mathInput`,
+(and `triangle`), `pointList`, `numberList`, `mathList`, `textList` and
+`booleanList` (from text, references, element children and nested lists,
+literal `maxNumber` and `mergeMathLists`), `p`, `setup`, `stickyGroup`, `mathInput`,
 `function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
 or a `choiceInput` of `choice`s), `conditionalContent` (`case`, `else`) and
 `feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
@@ -43,7 +44,7 @@ numeric operators
 `abs`, `sign`, `floor`, `ceil`, `round`, `setSmallToZero`,
 `wrapNumberPeriodic`, `sum`, `product`, `mean`, `median`, `variance`,
 `standardDeviation`, `count`, `min`, `max`, `mod`, `gcd`, `lcm` (operands
-from text and references) and the boolean ones `and`, `or`, `xor`, `iff`,
+from text, references and element children, one per entry of a list) and the boolean ones `and`, `or`, `xor`, `iff`,
 `implies`, `not`, `isInteger`, `isNumber` and `isBetween`, the shapes
 `ray`, `vector`, `rectangle`, `regularPolygon` (a literal number of
 vertices) and `angle` (by points or a measure), the formatted values

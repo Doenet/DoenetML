@@ -339,6 +339,7 @@ impl Document {
                     EntryKind::Number => out.push_str(&format_number(v)),
                     EntryKind::Text => out.push_str(&self.text_value(*cell)),
                     EntryKind::Boolean => out.push_str(if v == 1.0 { "true" } else { "false" }),
+                    EntryKind::Math => out.push_str(&self.held_text(*cell)),
                     EntryKind::Point => unreachable!("filtered above"),
                 }
             }
@@ -357,6 +358,11 @@ impl Document {
             } else {
                 "false"
             }),
+            Some(TextKind::Held(pi)) => {
+                if let Some(&cell) = cells.get(pi) {
+                    out.push_str(&self.held_text(cell));
+                }
+            }
             Some(TextKind::Math(expr, pi)) => match cells.get(expr) {
                 Some(&e) if !self.cells[e.index()].is_nan() => out.push_str(&self.math_text(e)),
                 _ => out.push_str(&format_number(value(pi).unwrap_or(f64::NAN))),
@@ -392,6 +398,19 @@ impl Document {
                     .and_then(value)
                     .is_some_and(|h| h != 0.0 && !h.is_nan()) => {}
             None => self.push_children_text(c, out),
+        }
+    }
+
+    /// The text of what `cell` holds: a math cell's expression (the blank
+    /// one for none), a string, or a number.
+    fn held_text(&self, cell: CellIdx) -> String {
+        match self.value_types[cell.index()] {
+            crate::program::ValueType::Math if self.cells[cell.index()].is_nan() => {
+                "\u{ff3f}".into()
+            }
+            crate::program::ValueType::Math => self.math_text(cell),
+            crate::program::ValueType::Text => self.text_value(cell),
+            crate::program::ValueType::Number => format_number(self.cells[cell.index()]),
         }
     }
 

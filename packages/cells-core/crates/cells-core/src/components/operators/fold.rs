@@ -70,7 +70,7 @@ fn reduction(ty: ComponentType) -> Reduction {
 /// does when one operand can change (of several, this core writes none).
 pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let ty = ctx.component_type();
-    let pieces = Attrs::of(ctx.record()).children;
+    let pieces = ctx.list_entries(Attrs::of(ctx.record()).children, f64::INFINITY)?;
     let mut wiring = ElemWiring::of(ty);
     let value = if pieces.is_empty() {
         Wire::absent()

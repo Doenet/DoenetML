@@ -454,6 +454,16 @@ impl ComponentDef {
         self.tags = tags;
         self
     }
+    /// A list whose entries are `less` fewer than its children's
+    /// (`<differences>`'s; [`ListPoints::Given::from_children`](super::ListPoints)).
+    pub(super) const fn with_entries_less(mut self, less: u8) -> Self {
+        if let Some(list) = &mut self.list
+            && let super::ListPoints::Given { from_children, .. } = &mut list.points
+        {
+            *from_children = Some(less);
+        }
+        self
+    }
     pub(super) const fn planner(mut self, planner: crate::compile::api::Planner) -> Self {
         self.planner = planner;
         self
@@ -820,6 +830,8 @@ macro_rules! component {
             names: [$($lname:ident),+ $(,)?],
             item: $litem:ident,
             $(values: $lv:ident of $lvkind:ident
+                $(, max_by: $lvmax:ident)?
+                $(, entries: $lventries:ident $(less $lvless:literal)?)?
                 $(, interactive: $lvinteractive:literal)?
                 $(, rendered: $lvrendered:literal)? $(,)?)?
             $(points: [$([$px:ident, $py:ident]),+ $(,)?]
@@ -880,7 +892,7 @@ macro_rules! component {
                     points: $crate::components::define::component!(@list_points
                         $(table [$([$px, $py]),+])?
                         $(given [$lx, $ly] [$($lalt)?] [$lattr] [$($lmax)?])?
-                        $(values [$lv $lvkind])?
+                        $(values [$lv $lvkind] [$($lvmax)?] [$($lventries $($lvless)?)?])?
                     ),
                     interactive: $crate::components::define::component!(@flag $($($lpinteractive)?)? $($($lcinteractive)?)? $($($lvinteractive)?)?),
                     rendered: $crate::components::define::component!(@flag $($($lprendered)?)? $($($lcrendered)?)? $($($lvrendered)?)?),
@@ -1294,15 +1306,19 @@ macro_rules! component {
             alternate_name: $crate::components::define::component!(@alternate_name $($alt)?),
             attribute: Some(attr::$attr),
             max: $crate::components::define::component!(@max $($max)?),
+            max_by: None,
+            from_children: None,
             entry: $crate::components::EntryKind::Point,
         }
     };
-    (@list_points values [$v:ident $kind:ident]) => {
+    (@list_points values [$v:ident $kind:ident] [$($vmax:ident)?] [$($entries:tt)*]) => {
         $crate::components::ListPoints::Given {
             coords: &[stringify!($v)],
             alternate_name: None,
             attribute: None,
             max: None,
+            max_by: $crate::components::define::component!(@max_by $($vmax)?),
+            from_children: $crate::components::define::component!(@entries $($entries)*),
             entry: $crate::components::EntryKind::$kind,
         }
     };
@@ -1313,6 +1329,11 @@ macro_rules! component {
     };
     (@flag) => { false };
     (@flag $flag:literal) => { $flag };
+    (@entries) => { None };
+    (@entries children) => { Some(0) };
+    (@entries children $less:literal) => { Some($less) };
+    (@max_by) => { None };
+    (@max_by $attr:ident) => { Some(attr::$attr) };
     (@max) => { None };
     (@max $max:expr) => { Some($max) };
     (@alternate_name) => { None };
