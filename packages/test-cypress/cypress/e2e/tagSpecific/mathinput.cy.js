@@ -5,6 +5,7 @@ import {
     mathTextMatchesExpected,
     toMathJaxString,
 } from "../../../src/util/mathDisplay";
+import { controlCoreMessages } from "../../support/coreMessages";
 
 function postDoenetML(doenetML) {
     cy.window().then(async (win) => {
@@ -1219,6 +1220,103 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
                 });
         });
     }
+
+    /**
+     * Type "90" while every renderer update is held back, so that core's
+     * replies to both keys reach the viewer before either key's update (as
+     * they can when keys come in a burst). Then hand over the updates up to the
+     * first key's: the box must still read "90". Taking that late update would
+     * put "9" back in the box, and a key typed next would follow the "9".
+     *
+     * The document needs `<text name="iv">$mi.immediateValue</text>`, which
+     * shows when the first key's update has been drawn. A key typed after
+     * that point is not a reliable check: Cypress fills MathQuill's textarea
+     * from its own record of the field, not from what a stale update put in it.
+     */
+    function typeWhileRepliesComeFirst(coreMessages) {
+        // MathQuill puts a zero-width space in the field for the cursor.
+        function boxShows(text) {
+            cy.get("#mi .mq-root-block").should(($el) => {
+                expect($el.text().replace(/\u200b/g, "")).eq(text);
+            });
+        }
+
+        let control;
+        cy.get("#mi textarea").should("exist");
+        cy.window().then(() => {
+            control = coreMessages.control;
+            control.hold = true;
+        });
+        cy.get("#mi textarea").type("90", { force: true });
+
+        cy.window().should(() => {
+            expect(control.allActionsAnswered()).eq(true);
+            expect(
+                control.held.filter((u) => u.actionName === "updateRawValue"),
+            ).to.have.length(2);
+        });
+
+        cy.window().then(() => {
+            const firstKey = control.held.findIndex(
+                (u) => u.actionName === "updateRawValue",
+            );
+            control.release(firstKey + 1);
+        });
+        cy.get("#iv").should("have.text", "9");
+        boxShows("90");
+
+        cy.get("#mi textarea").type("8", { force: true });
+        cy.window().then(() => {
+            control.hold = false;
+            control.release();
+        });
+
+        boxShows("908");
+        cy.get("#iv").should("have.text", "908");
+    }
+
+    it("keeps every key when core replies before the renderer update", () => {
+        const coreMessages = {};
+        cy.window().then((win) => {
+            coreMessages.control = controlCoreMessages(win);
+        });
+        postDoenetML(`<p><mathInput name="mi" /></p>
+<p><text name="iv">$mi.immediateValue</text></p>`);
+
+        typeWhileRepliesComeFirst(coreMessages);
+
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("mi")].stateValues
+                    .rawRendererValue,
+            ).eq("908");
+        });
+    });
+
+    it("keeps every key in an answer when core replies before the renderer update", () => {
+        const coreMessages = {};
+        cy.window().then((win) => {
+            coreMessages.control = controlCoreMessages(win);
+        });
+        postDoenetML(`<p><answer name="ans">
+  <mathInput name="mi" />
+  <award><when>$mi = 908</when></award>
+</answer></p>
+<p><text name="iv">$mi.immediateValue</text></p>`);
+
+        typeWhileRepliesComeFirst(coreMessages);
+
+        cy.get("#mi textarea").type("{enter}", { force: true });
+        cy.get("#mi_button").should("contain.text", "Correct");
+        cy.window().then(async (win) => {
+            const stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("ans")].stateValues
+                    .creditAchieved,
+            ).eq(1);
+        });
+    });
 });
 
 // Parse a computed color, which is `rgb()`/`rgba()` with 0-255 channels or,
