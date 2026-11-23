@@ -282,8 +282,16 @@ export async function expandCompositeOfDefiningChildren({
                     continue;
                 }
 
-                // will either succeed or throw error since is ready to expand
-                await expandCompositeComponent({ core, component: child });
+                // Resolving what it waits for can have expanded it already:
+                // a reference in what it makes reading the composite itself,
+                // as `$b` in the label of `<point name="a">` does in the
+                // `<point name="b" copy="$a"/>` that pastes it
+                // (Doenet/DoenetML#2654 item 3). Making its replacements
+                // again would give a second component the same index.
+                if (!child.isExpanded) {
+                    // will either succeed or throw error since is ready to expand
+                    await expandCompositeComponent({ core, component: child });
+                }
             }
 
             // recurse on replacements

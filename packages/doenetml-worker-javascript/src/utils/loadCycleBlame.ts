@@ -22,7 +22,7 @@
  *    is a reference read as a value (`_ref`), but one passed over, known to
  *    have no state variable on the cycle: a reference in the middle of a
  *    chain of copies (`n`, in `<number extend="$k" name="n"/>` then
- *    `<number extend="$n" name="m" fixed="$m.fixed"/>`), whose blame
+ *    `<number extend="$n" name="m" disabled="$m.disabled"/>`), whose blame
  *    wouldn't break the cycle (#2633 item 3), unless each is;
  * 3. else the first authored component in document order but the document.
  *
@@ -204,7 +204,7 @@ function isOfAttributeWritten(component: SerializedComponent, varName: string) {
  * way. But a copy made by an authored reference (`replacementOf` a `_copy`
  * written in the DoenetML, or an instance of one made from a repeat's
  * template) that writes the variable's attribute itself
- * (`<number extend="$n" name="m" fixed="$s.fixed"/>`) takes the variable
+ * (`<number extend="$n" name="m" disabled="$s.disabled"/>`) takes the variable
  * from the reference, not from what it copies, so it is the reference's.
  * The composite that made a component, or the component it is in, does not
  * have its state variables, so is not followed.

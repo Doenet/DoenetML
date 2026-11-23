@@ -275,21 +275,23 @@ describe("An index selects instances, not children @group4", async () => {
             ).eqls([["doenet-w0100", "$s[1][1]"]]);
         }
 
-        // and a reference to a group holding two names nothing after it,
-        // whose children have the names of what it copies, not of a child of
-        // the pick
+        // and a reference to a group holding two names nothing after it.
+        // The option is read through the group it names, so that is decided
+        // from the DoenetML when the document loads, the same in every
+        // variant (`doenet-w0191`, DIAG-7), as for a `<group>` written in
+        // the option; it was `doenet-w0188` when the document ran
+        // (Doenet/DoenetML#2654 item 6).
         const two = await shownAndReported(
             `<setup><group name="g"><math>y</math><math>z</math></group></setup><select name="s"><option>$g</option></select><p name="p">[$s[1][1]]</p>`,
         );
         expect(two.text).eq("[＿]");
-        expect(
-            two.warnings.map((w) => [
-                w.code,
-                w.args.container,
-                w.args.child,
-                w.args.count,
-            ]),
-        ).eqls([["doenet-w0188", "pick", "unnamed", 2]]);
+        expect(two.infos).eqls([]);
+        expect(two.warnings.map((w) => [w.code, w.message])).eqls([
+            [
+                "doenet-w0191",
+                '`$s[1][1]`: an index after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[1]`.',
+            ],
+        ]);
     });
 
     it("passes an index through a group or a case holding only a reference to a list or a repeat", async () => {
@@ -1577,5 +1579,59 @@ describe("One component stands for its holder (NAME-2, D27 revised again) @group
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("(1, 7, 3)");
+    });
+});
+
+/**
+ * Doenet/DoenetML#2654 item 4 (#2643 item 3): an index into a math made by
+ * an extend of an iteration that reads a name the cases of a
+ * `<conditionalContent>` declare. When the case changes, the copy that
+ * makes the math is made again, after the index was resolved in the same
+ * update; the index is resolved again once the math is made anew, so it
+ * follows the case, as the math does and as a reload shows (DIAG-6).
+ */
+describe("An index into an extend of an iteration, as the case changes @group4", async () => {
+    it("follows the case each time it changes", async () => {
+        const doenetML = `<booleanInput name="bi"/>
+<conditionalContent name="cc"><case condition="$bi"><math name="x">(1,2,3)</math></case><else><math name="x">(4,5)</math></else></conditionalContent>
+<repeat name="r" for="1" valueName="v">$cc.x</repeat>
+<math name="e2" extend="$r[1]"/>
+<p name="p">$e2 $e2[2]</p>`;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+        async function setCase(boolean: boolean) {
+            await updateBooleanInputValue({
+                boolean,
+                componentIdx: await resolvePathToNodeIdx("bi"),
+                core,
+            });
+        }
+        expect(await text()).eq("(4, 5) 5");
+        await setCase(true);
+        expect(await text()).eq("(1, 2, 3) 2");
+        // it was `(4, 5) ＿`
+        await setCase(false);
+        expect(await text()).eq("(4, 5) 5");
+        await setCase(true);
+        expect(await text()).eq("(1, 2, 3) 2");
+        await setCase(false);
+        expect(await text()).eq("(4, 5) 5");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await text()).eq("(4, 5) 5");
     });
 });

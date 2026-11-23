@@ -1,0 +1,19 @@
+---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/doenetml-headless": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+---
+
+Fixes for documents that hung, stopped, or showed a stale blank:
+
+- **A cycle through a `<caption>` no longer hangs the document.** `<figure><caption name="ca"><span>$b</span></caption><graph><point name="a"><label>$ca</label></point><point name="b" extend="$a"/></graph></figure>` never finished loading: `b` copies `a`'s label, which shows the caption, which shows `b`. It is now `doenet-e0005` at `$b` and at `$ca` when the document loads, and the rest renders. The same holds for the other tags whose content is what is written in them, which hung the same way: `<figure>`, `<table>`, `<tabular>`, `<row>`, `<column>`, `<cell>`, `<cellBlock>`, `<spreadsheet>`, `<chart>`, `<sideBySide>`, `<sbsGroup>`, `<stack>`, `<panel>`, `<page>`, `<cascade>`, `<hint>`, `<feedback>`, `<solution>`, `<givenAnswer>`, `<description>`, `<asList>` and `<ref>`. A reference to one of them written inside it (`<hint name="h"><p>$h</p></hint>`) is `doenet-e0005` when the document loads, as before, though in a `<solution>` or a `<givenAnswer>` it was not reported. A `<graph>` is now one of these tags too: `<graph name="g"><text>$g</text></graph>` was already `doenet-e0005` at `$g`, and its message now names the `<graph>`.
+- **A point written with `extend` in a paragraph whose label shows what reads its value now loads.** With `<answer><award name="q"><when>$b=1</when></award></answer>` and `<point name="a"><label>$q</label></point>`, a `<p><point name="b" extend="$a"/></p>` was `doenet-e0005`, though `$b` in the `<when>` reads `b`'s value, not its label. It loads, as it did in a `<graph>`, and so does the same point in any of the tags above. Where `a`'s label shows the tag holding `b` (`<p name="q"><point name="b" extend="$a"/></p>` with `<label>$q</label>`), `b` holds itself: that is `doenet-e0005` at `b` and at `$q` when the document loads, in a `<p>` as before and now in the tags above too, with `extend`, `copy` or `copyWithState`. With `copy` in a `<cell>` or a `<hint>`, the document hung.
+- **A group and a component in it that are each fixed by their own `fixed`** (`<group name="g" fixed="$g.fixed"><number name="n" fixed="$n.fixed">`) are each `doenet-e0005`. Before, only the group's was reported, and the number was gone from the document. A component fixed by whether something it holds is fixed (`<p fixed="$n.fixed">` around `n`) is `doenet-e0005` too, and so is the same construction with `fixLocation`. Reading a component's value, or the `fixed` of what holds it, is not a cycle.
+- **A point made with `copy` (or `copyWithState`) of a point whose label shows the copy now loads.** In `<point name="a"><label>$b</label></point><point name="b" copy="$a"/>`, both labels show `b`'s coordinates, as they do with `extend`. It was `doenet-e0005`.
+- **An index into an extend of a repeat's iteration follows a change of case.** With `<math name="e2" extend="$r[1]"/>`, where the iteration shows `$cc.x` of a `<conditionalContent>`, `$e2[2]` was `＿` after the case changed back, though `$e2` was right.
+- **A select option written as `<group extend="$g"/>`, `<group copy="$g"/>` or a bare `$g` is read through the group it names.** When `g` holds several components and another option holds one, an index after the select (`$s[1][2]`) is `doenet-w0191` when the document loads, in every variant, as for a `<group>` written in the option. Before, only the variants picking that option were warned, once the document ran. A select with one option, `<option>$g</option>`, whose group holds several, gets `doenet-w0191` at load in place of `doenet-w0188` when the document ran. A group extended there holding one component passes the index to it, as before.
+
+Part of #2654.
