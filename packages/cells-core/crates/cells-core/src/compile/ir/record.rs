@@ -630,11 +630,17 @@ impl Reader<'_> {
                     macro_node = n;
                 }
                 NodeKind::Text => texts.push(n),
-                NodeKind::Element if element.is_none() => element = Some(d.str(n).to_string()),
+                NodeKind::Element if element.is_none() && !self.is_presentation_child(n) => {
+                    element = Some(d.str(n).to_string())
+                }
                 _ => {}
             }
         }
         let value = match (macros, texts.len()) {
+            // An element is content no literal or reference holds: read as
+            // math, which refuses it, not as the value with it dropped
+            // (COMP-1).
+            _ if element.is_some() => ChildValue::Math,
             (1, 0) => ChildValue::Reference(self.plan_ref(ar, t, scope, macro_node)?),
             (0, 1..) => ChildValue::Text {
                 text: texts.iter().map(|&n| d.str(n)).collect(),
@@ -663,6 +669,30 @@ impl Reader<'_> {
         let Some(a) = d.attr(node, decl.name) else {
             return Ok(AttrValue::Absent);
         };
+        // A kind read as written takes no reference: reading one as absent
+        // or as its text gave the default, or a wrong value, with no
+        // diagnostic (VAL-7, TYPE-5).
+        let literal_only = matches!(
+            decl.kind,
+            AttrKind::Bool { .. } | AttrKind::On | AttrKind::Number { .. } | AttrKind::Text
+        );
+        if literal_only && self.attr_text(a).is_none() {
+            return Err(Error::Banned(format!(
+                "'{}' must be written as a literal value, not with a reference",
+                decl.name
+            )));
+        }
+        // A flag is a literal or exactly one reference; an expression was
+        // read as a bare attribute, so always true (VAL-8).
+        if matches!(decl.kind, AttrKind::Flag { .. })
+            && self.attr_text(a).is_none()
+            && self.single_macro(a).is_none()
+        {
+            return Err(Error::Banned(format!(
+                "'{}' must be true, false or one reference, not an expression",
+                decl.name
+            )));
+        }
         Ok(match decl.kind {
             AttrKind::Scalar => {
                 AttrValue::Scalar(self.plan_scalar(ar, t, scope, d.attr_children(a))?)

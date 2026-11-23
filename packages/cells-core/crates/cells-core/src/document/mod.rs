@@ -18,6 +18,7 @@ use crate::tick::eval::{DirtyClosure, Recompute};
 use crate::tick::{Request, TickOutcome};
 
 mod act;
+mod counters;
 mod interactive;
 mod load;
 mod outputs;

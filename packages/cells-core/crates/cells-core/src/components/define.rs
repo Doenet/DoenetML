@@ -303,6 +303,8 @@ pub(super) const fn definition(
         actions: &[],
         triggers: None,
         numbered: None,
+        counted: None,
+        inner: &[],
         submit: None,
         roles: &[],
         structure_kind: None,
@@ -416,6 +418,16 @@ impl ComponentDef {
     /// How its full number and title read ([`super::Numbered`]).
     pub(super) const fn numbered(mut self, numbered: super::Numbered) -> Self {
         self.numbered = Some(numbered);
+        self
+    }
+    /// The inputs it owns ([`super::InnerInput`], ADR 0045).
+    pub(super) const fn inner(mut self, inner: &'static [super::InnerInput]) -> Self {
+        self.inner = inner;
+        self
+    }
+    /// The counter it takes a number from ([`super::Counted`]).
+    pub(super) const fn counted(mut self, counted: super::Counted) -> Self {
+        self.counted = Some(counted);
         self
     }
     /// What an answer's response is ([`super::Submit`]).
@@ -649,7 +661,9 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// rise of the 0/1 prop `p` presses it ([`super::Triggers`], ADR 0042),
 /// and `numbered:
 /// Titled(include, label, f)` how a number and title read
-/// ([`super::Numbered`]). `submit: Copies(response, submitted)` says
+/// ([`super::Numbered`]); `counted: Figures(number)` or `counted:
+/// Footnotes` the document-wide counter it takes a number from, and the
+/// prop saying whether it does ([`super::Counted`], ADR 0044). `submit: Copies(response, submitted)` says
 /// what an answer's response is, for what reads one ([`super::Submit`]).
 /// `actions { submitAnswer: submit, pointClicked: nothing [Click] }`
 /// lists the type's actions, each a function over an
@@ -672,6 +686,11 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 ///
 /// `presentation { .. }` names the attributes of this type that a renderer
 /// reads and the core does not (a `<ref>`'s `to`).
+///
+/// `inner { numerator: MathInput, denominator: MathInput }`, after
+/// `params`, names the inputs a component of the type owns, made as its
+/// first children and wired by its planner ([`super::InnerInput`], ADR
+/// 0045).
 ///
 /// `attributes { .. }` declares the attributes the type's planner reads,
 /// each with its kind: `center: Point`, `radius: Scalar`,
@@ -729,6 +748,7 @@ macro_rules! component {
         $(settle: $sekind:ident ($($searg:tt)+),)?
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(numbered: $nukind:ident ($($nuarg:tt)+),)?
+        $(counted: $cokind:ident $(($cowhen:ident))?,)?
         $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(presentation { $($prname:ident),* $(,)? })?
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
@@ -752,6 +772,7 @@ macro_rules! component {
                 $(.settle($crate::components::define::component!(@settle $sekind($($searg)+))))?
                 $(.extend_value($crate::components::define::component!(@extend_value $evkind $(($($evarg)+))?)))?
                 $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
+                $(.counted($crate::components::define::component!(@counted $cokind [] $([$cowhen])?)))?
                 $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.presentation(&[$(stringify!($prname)),*]))?
                 .attributes(ATTRS)
@@ -788,6 +809,7 @@ macro_rules! component {
         $(extend_value: $evkind:ident $(($($evarg:tt)+))?,)?
         $(triggers { when: $twhen:ident $(,)? })?
         $(numbered: $nukind:ident ($($nuarg:tt)+),)?
+        $(counted: $cokind:ident $(($cowhen:ident))?,)?
         $(submit: $sbkind:ident ($($sbarg:tt)+),)?
         $(default_prop: $default:ident,)?
         props {
@@ -818,6 +840,7 @@ macro_rules! component {
         $(attributes { $($aname:ident : $akind:ident $(($($akarg:tt)*))?),* $(,)? })?
         $(actions { $($actname:ident : $actfn:path $([$actev:ident])?),* $(,)? })?
         $(params { $($param:ident),* $(,)? })?
+        $(inner { $($iname:ident : $ity:ident),* $(,)? })?
         $(children: $ckind:ident $({ $($gname:ident : [$($gty:ident),* $(,)?]),* $(,)? })? $(,)?)?
         $(machinery: $mach:ident,)?
         $(owner: $owner:ident,)?
@@ -847,6 +870,7 @@ macro_rules! component {
                     when: $crate::components::define::at(PROPS, stringify!($twhen)),
                 }))?
                 $(.numbered($crate::components::define::component!(@numbered $nukind($($nuarg)+))))?
+                $(.counted($crate::components::define::component!(@counted $cokind [PROPS] $([$cowhen])?)))?
                 $(.submit($crate::components::define::component!(@submit $sbkind($($sbarg)+))))?
                 $(.default_prop(stringify!($default)))?
                 $(.combined_props(&[$((stringify!($cname), &[$(stringify!($cpart)),+])),*]))?
@@ -876,6 +900,10 @@ macro_rules! component {
                 }),*]))?
                 .children(CHILDREN)
                 $(.params(&[$(stringify!($param)),*]))?
+                $(.inner(&[$($crate::components::InnerInput {
+                    name: stringify!($iname),
+                    ty: $crate::components::ComponentType::$ity,
+                }),*]))?
                 $(.machinery($crate::components::Machinery::$mach))?
                 $(.owner($crate::components::ComponentType::$owner))?
                 .planner($crate::components::define::component!(@planner $($pkind $(($pfn))?)?));
@@ -976,6 +1004,19 @@ macro_rules! component {
         $crate::components::Submit {
             response: $crate::components::define::at(PROPS, stringify!($response)),
             submitted: $crate::components::define::at(PROPS, stringify!($submitted)),
+        }
+    };
+    // The counter it takes a number from, and the prop saying whether.
+    (@counted $kind:ident [$($props:ident)?]) => {
+        $crate::components::Counted {
+            counter: $crate::components::Counter::$kind,
+            when: None,
+        }
+    };
+    (@counted $kind:ident [$props:ident] [$when:ident]) => {
+        $crate::components::Counted {
+            counter: $crate::components::Counter::$kind,
+            when: Some($crate::components::define::at($props, stringify!($when))),
         }
     };
     // What an action is to a component waiting on it: an act unless

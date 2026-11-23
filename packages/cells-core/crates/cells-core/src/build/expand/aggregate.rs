@@ -40,7 +40,13 @@ impl<'c> Builder<'c> {
     /// after every other prop has its source.
     pub(in crate::build) fn aggregate_sources(&mut self) {
         let root = self.root;
-        self.set_credit(root);
+        // A root boxed for an error of its own holds no credit.
+        if self.components.component_type[root.index()]
+            .aggregate_prop(AggOp::Credit, Collection::ScoredItems)
+            .is_some()
+        {
+            self.set_credit(root);
+        }
         for c in CompIdx::below(self.components.len()) {
             if let Some(Scored::Aggregates { .. }) =
                 self.components.component_type[c.index()].scored()

@@ -328,7 +328,7 @@ function sectionEnumeration(cells: Cells, c: number): number[] {
             p !== null;
             p = cells.table.parent(p)
         ) {
-            if (cells.table.componentType(p) === "section") {
+            if (["section", "aside"].includes(cells.table.componentType(p))) {
                 return [...sectionEnumeration(cells, p), own];
             }
         }
@@ -344,6 +344,45 @@ const sectionReaders: Record<string, Reader> = {
     aggregateScores: (g) => g("aggregateScores") !== 0,
     includeParentNumber: (g) => g("includeParentNumber") !== 0,
 };
+
+/** The number a figure, table or footnote takes from its document-wide
+ * counter, as the core counts it (ADR 0044); null for none. */
+function counterNumber(x: Ctx): number | null {
+    return x.cells.core.counter_number(x.idx) ?? null;
+}
+
+/** A figure's or a table's enumeration and names ("Table 2", and "Table 2: "
+ * before a title or caption), as `composeFigureName` and `composeTableName`
+ * compose them in English from the core's counter. */
+function counterNameReaders(
+    kind: "figure" | "table",
+    word: string,
+    titleType: string,
+): Record<string, Reader> {
+    const name = (x: Ctx) => {
+        const n = counterNumber(x);
+        return n === null ? word : `${word} ${n}`;
+    };
+    return {
+        [`${kind}Enumeration`]: (_g, x) => {
+            const n = counterNumber(x);
+            return n === null ? null : String(n);
+        },
+        [`${kind}Name`]: (_g, x) => name(x),
+        [`${kind}NamePrefix`]: (_g, x) =>
+            x.cells.table
+                .children(x.idx)
+                .some(
+                    (c) =>
+                        "component" in c &&
+                        x.cells.table.componentType(c.component) === titleType,
+                )
+                ? `${name(x)}: `
+                : name(x),
+        number: (g) => g("number") !== 0,
+        text: textOf,
+    };
+}
 
 /**
  * JavaScript-core state variable name -> reader over the cells core's props,
@@ -584,6 +623,57 @@ const STATE: Record<string, Record<string, Reader>> = {
         hidden: (g) => g("hide") !== 0,
         hide: (g) => g("hide") !== 0,
     },
+    // The document-wide counters (ADR 0044), and an aside, numbered among
+    // the divisions.
+    figure: counterNameReaders("figure", "Figure", "caption"),
+    table: counterNameReaders("table", "Table", "title"),
+    footnote: {
+        text: textOf,
+        footnoteTag: (_g, x) => String(counterNumber(x) ?? ""),
+    },
+    aside: {
+        sectionNumber: sectionReaders.sectionNumber,
+        enumeration: sectionReaders.enumeration,
+        includeParentNumber: sectionReaders.includeParentNumber,
+    },
+    // A fraction input and the boxes it owns (ADR 0045): each prop is the
+    // expression its math cell holds, the blank expression when it holds
+    // none. The core has no uncommitted value, so `immediateValue` is
+    // `value`.
+    fractionInput: {
+        value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        numerator: (_g, x) => exprOf(x.cells, x.cell("numerator")!),
+        denominator: (_g, x) => exprOf(x.cells, x.cell("denominator")!),
+        text: textOf,
+    },
+    _fractionInputComponent: {
+        value: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+        immediateValue: (_g, x) => exprOf(x.cells, x.cell("expr")!),
+    },
+};
+
+/** The component fields the harness answers for some types: a fraction
+ * input's `activeChildren` are the boxes it owns (ADR 0045), which the
+ * current core's actions on it address. */
+const FIELDS: Record<
+    string,
+    Record<string, (cells: Cells, idx: number) => unknown>
+> = {
+    fractionInput: {
+        activeChildren: (cells, idx) =>
+            cells.table.children(idx).flatMap((c) =>
+                "component" in c &&
+                cells.table.tag(c.component) === "_fractionInputComponent"
+                    ? [
+                          {
+                              componentIdx: c.component,
+                              componentType: "_fractionInputComponent",
+                          },
+                      ]
+                    : [],
+            ),
+    },
 };
 
 /** The current core's name of each button's press, carried out as the
@@ -775,6 +865,8 @@ export async function createTestCoreCells({
             },
         );
         const unsupported = (field: string) => () => {
+            const answer = FIELDS[componentType]?.[field];
+            if (answer) return answer(cells, componentIdx);
             throw new CellsCoreGap(`\`${field}\` of \`${componentType}\``);
         };
         return Object.defineProperties(

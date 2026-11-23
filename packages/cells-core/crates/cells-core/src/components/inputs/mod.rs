@@ -5,6 +5,7 @@ use super::define::*;
 
 pub(crate) mod call_action;
 pub mod choice_input;
+pub(crate) mod fraction_input;
 pub mod math_input;
 pub mod text_input;
 pub(crate) mod trigger_set;

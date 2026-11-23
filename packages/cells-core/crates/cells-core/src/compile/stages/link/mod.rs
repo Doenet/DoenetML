@@ -10,14 +10,15 @@ use crate::compile::*;
 /// Link what planning made: box the readers of boxes and the elements
 /// with an attribute nothing read, to a fixpoint, and tie the given leaves
 /// copies share. Writes the boxes, the tables' boxes and shared slots, and
-/// [`Planned`]'s shares.
+/// [`Planned`]'s shares; returns the warnings for what it could not box
+/// (an attribute nothing read on the root).
 pub(in crate::compile) fn link<'l, 'b>(
     rd: Reader<'l>,
     ar: &'l Arenas,
     tables: &'l mut [Tables],
     boxes: &'l mut Boxes<'b>,
     planned: &'l mut Planned,
-) -> std::result::Result<(), Failure> {
+) -> std::result::Result<Vec<Diagnostic>, Failure> {
     crate::trace::span("link").run(|| {
         Linking {
             rd,
@@ -54,17 +55,17 @@ impl Linking<'_, '_> {
     /// Linking: box the readers of boxes, then the elements with an
     /// attribute nothing read and their readers, then tie shared state
     /// between the elements left.
-    fn link(&mut self) -> std::result::Result<(), Failure> {
+    fn link(&mut self) -> std::result::Result<Vec<Diagnostic>, Failure> {
         let box_readers = |l: &mut Self| {
             crate::trace::span("box readers")
                 .run(|| l.box_readers_of_boxes())
                 .map_err(|error| Failure { error, node: None })
         };
         box_readers(self)?;
-        crate::trace::span("unread attributes").run(|| self.box_unread_attributes());
+        let warnings = crate::trace::span("unread attributes").run(|| self.box_unread_attributes());
         box_readers(self)?;
         crate::trace::span("given leaves").run(|| self.link_given_leaves());
-        Ok(())
+        Ok(warnings)
     }
 
     /// Box in place every element whose referent, by a read planning or
@@ -95,10 +96,39 @@ impl Linking<'_, '_> {
                     Ok(_) => {}
                 }
             }
+            boxed_one |= self.box_elem_readers_of_boxes();
             if !boxed_one {
                 return Ok(());
             }
         }
+    }
+
+    /// Box in place every live element whose plan reads a port of an
+    /// element of its template that is now a box (`Arg::Elem`: an answer
+    /// its input or awards, a choice input its choices), which has no
+    /// ports to read. Returns whether it boxed one.
+    fn box_elem_readers_of_boxes(&mut self) -> bool {
+        let mut boxed_one = false;
+        for ti in 0..self.tables.len() {
+            let t = TemplateId::from_index(ti);
+            for ei in 0..self.tables[ti].plans.len() {
+                let e = ElemId::from_index(ei);
+                if self.tables[ti].is_box(e) {
+                    continue;
+                }
+                let read_box = self.tables[ti].plans[ei]
+                    .props
+                    .iter()
+                    .flat_map(elem_reads)
+                    .find(|&x| self.tables[ti].is_box(x));
+                if let Some(x) = read_box {
+                    self.boxes
+                        .box_elem_reader(&self.rd.settled().templates, self.tables, t, e, x);
+                    boxed_one = true;
+                }
+            }
+        }
+        boxed_one
     }
 
     /// Alias each given leaf a copy shares to the referent's port holding
@@ -130,6 +160,25 @@ impl Linking<'_, '_> {
                 self.tables[s.t.index()].plans[s.e.index()].props[s.port.index()] =
                     Source::alias(arg);
             }
+        }
+    }
+}
+
+/// The elements of its template a source reads ports of (`Arg::Elem`).
+fn elem_reads(source: &Source) -> Vec<ElemId> {
+    let elem = |a: &Arg| match *a {
+        Arg::Elem(x, _) => Some(x),
+        _ => None,
+    };
+    match source {
+        Source::Leaf(_) => Vec::new(),
+        Source::Flow(Flow::Alias(a)) => elem(a).into_iter().collect(),
+        Source::Flow(Flow::Op(_, args)) => args.iter().filter_map(elem).collect(),
+        Source::Flow(_) => Vec::new(),
+        Source::Specialize(_, a, b) => {
+            let mut out = elem_reads(a);
+            out.extend(elem_reads(b));
+            out
         }
     }
 }

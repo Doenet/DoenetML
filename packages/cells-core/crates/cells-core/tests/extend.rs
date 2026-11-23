@@ -375,13 +375,8 @@ fn a_cycle_of_extends_is_reported() {
         r#"<graph><point name="A" extend="$B" x="1"/><point name="B" extend="$A" y="2"/></graph>"#,
         r#"<graph><point name="A" extend="$A" x="1"/></graph>"#,
     ] {
-        let err = load(source)
-            .err()
-            .unwrap_or_else(|| panic!("{source}: loaded"));
-        assert!(
-            err.to_string().contains("dependency cycle"),
-            "{source}: {err}"
-        );
+        let err = cells_core::testing::test_utils::load_cycle(source);
+        assert!(err.contains("dependency cycle"), "{source}: {err}");
     }
     let source = r#"<graph name="g" extend="$h"/><graph name="h" extend="$g"/>"#;
     let doc = load(source).unwrap_or_else(|e| panic!("{source}: {e}"));
@@ -428,13 +423,8 @@ fn a_cycle_of_values_is_the_builds() {
         r#"<point name="a" x="$b.x"/><point name="b" x="$a.x"/>"#,
         r#"<math name="a">$b + 1</math><math name="b">$a + 1</math>"#,
     ] {
-        let err = load(source)
-            .err()
-            .unwrap_or_else(|| panic!("{source}: loaded"));
-        assert!(
-            err.to_string().contains("dependency cycle"),
-            "{source}: {err}"
-        );
+        let err = cells_core::testing::test_utils::load_cycle(source);
+        assert!(err.contains("dependency cycle"), "{source}: {err}");
     }
 }
 

@@ -38,6 +38,15 @@ impl<'a> Planning<'a> {
             name_scope: scope,
             ..
         } = self.rd.outlined(t).elems[e.index()];
+        // An extend of an answer would be the same answer again (REF-7);
+        // planned from its own children it was a second answer graded on
+        // its own, with no diagnostic. Refused until it is the same one.
+        if d.attr_peek(el, "extend").is_some() {
+            return Err(Error::Banned(
+                "extend on an <answer>: reference its properties instead, as $a.creditAchieved"
+                    .into(),
+            ));
+        }
         let text_answer = self.rd.reject_answer_attrs(el)?;
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
@@ -124,17 +133,17 @@ impl<'a> Planning<'a> {
                 ));
             }
             (true, None, [mi]) => {
-                if !matches!(
-                    self.rd.outlined(t).elems[mi.index()]
-                        .component_type
-                        .response(),
-                    Some(ResponseKind::Math(_))
-                ) {
+                // The expression the input declares its response
+                // (`response: Math(expr)`): a mathInput's, a fractionInput's.
+                let Some(ResponseKind::Math(expr)) = self.rd.outlined(t).elems[mi.index()]
+                    .component_type
+                    .response()
+                else {
                     return Err(Error::Unsupported(
                         "an <answer> comparing a <booleanInput>: <answer type=\"boolean\">".into(),
                     ));
-                }
-                Source::alias(Arg::Elem(*mi, math_input::Props::PORTS.expr))
+                };
+                Source::alias(Arg::Elem(*mi, Port::table(expr)))
             }
             (true, None, []) => {
                 let mi = self.plan_implicit_input(t, e)?;

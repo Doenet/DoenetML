@@ -179,8 +179,12 @@ methods. Rules for planners:
   settles from the source; `extend_value: Scalar(value)`, `Point(f)`,
   `Expr(f)` or `List` for what `extend="$x.prop"` makes of a value;
   `numbered:
-  Titled(include, label, f)` for a section's number and title; and the
-  prop option `infinite`. A free owned type is refused with what owns it
+  Titled(include, label, f)` for a section's number and title;
+  `counted: Figures(number)` for a document-wide counter it takes a
+  number from (ADR 0044); `inner { numerator: FractionInputPart, .. }`
+  for the inputs it owns, which its planner plans (`ctx.inner(k)`,
+  `ctx.plan_inner`) and wires (ADR 0045); and the prop option
+  `infinite`. A free owned type is refused with what owns it
   ([`ComponentType::free_owned_refusal`](crate::components::ComponentType::free_owned_refusal)).
 - The core names no type: a unit test in `components/mod.rs`
   (`the_core_names_no_type`) refuses any `ComponentType` variant or
@@ -278,12 +282,13 @@ candidate for a hook, or for removal.
 
 **Beyond a typical component** (one type's behavior, or the machinery's):
 `roles`, `machinery`, `owner` and `flags: [owned]`, `not_extendable`,
-`rewrite`, `settle`, `submit`, `numbered`, `scored: Item(..)`
+`rewrite`, `settle`, `submit`, `numbered`, `counted`,
+`inner`, `scored: Item(..)`
 and `Aggregates(..)`, `extend_value: Point(..)`, `Expr(..)` and `List`,
 `encloses: Sticky(..)`, the prop option `infinite`, `expr_when`.
 
 The baseline: 5 items for every type, 3 more with a planner, 20
-declarations by what the type is, and 14 beyond a typical component that
+declarations by what the type is, and 16 beyond a typical component that
 sit in the same block, which an author reads past. ADR 0039 (proposed)
 shrinks the last to 5.
 

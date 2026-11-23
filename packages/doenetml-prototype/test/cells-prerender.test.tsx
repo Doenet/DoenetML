@@ -38,25 +38,36 @@ function doenetFiles(dir: string) {
         .map((f) => resolve(dir, f));
 }
 
+/** Every component type the core has, in text and in a graph. */
+const VOCABULARY = resolve(__dirname, "cells-vocabulary.doenet");
+
 /** The cells core's golden documents, the benchmark's real documents, the
  * SIR model and the cells viewer's dev page: the documents the cells
- * viewer's prerender test renders. */
+ * viewer's prerender test renders; and the vocabulary. */
 const documents = [
     ...doenetFiles(resolve(packages, "cells-core/crates/cells-bench/golden")),
     ...doenetFiles(resolve(packages, "benchmark/fixtures")),
     resolve(packages, "cells-core/fixtures/sir.doenet"),
     resolve(packages, "cells-viewer/dev/testCode.doenet"),
+    VOCABULARY,
 ].map((path) => [basename(path, ".doenet"), path] as const);
+
+/** Component types no document places as a component of its own: an
+ * element the core could not load, and a point's constraints, which the
+ * core folds into the point. */
+const NOT_PLACED = new Set(["_error", "constrainTo", "constrainToGrid"]);
 
 /** The elements no prototype renderer draws, by name and constraint, from
  * the warning the renderer gives for each. */
 const unrendered = new Set<string>();
 
-async function renderDocument(path: string) {
+async function loadDocument(path: string) {
     const source = readFileSync(path, "utf8");
-    const bridge = await loadCellsDocument(
-        normalizeDocumentDast(lezerToDast(source)),
-    );
+    return loadCellsDocument(normalizeDocumentDast(lezerToDast(source)));
+}
+
+async function renderDocument(path: string) {
+    const bridge = await loadDocument(path);
     const root = bridge.flatDast();
     store.dispatch(_dastReducerActions._setFlatDastRoot(root as any));
     const rootId = (root.children[0] as { id: number }).id;
@@ -95,6 +106,23 @@ describe("the cells core rendered to HTML by the prototype's renderers", () => {
             /<div class="jsxgraph-container" id="jsxgraph-board-\d+">/,
         );
         expect(html).toContain('class="graph-legend"');
+    });
+
+    test("the vocabulary uses every component type of the core", async () => {
+        const { table } = await loadDocument(VOCABULARY);
+        const used = new Set<string>();
+        for (let c = 0; c < table.length; c++) {
+            used.add(table.componentType(c));
+        }
+        const unused = table.typeTags.filter(
+            (type) => !used.has(type) && !NOT_PLACED.has(type),
+        );
+        expect(unused).toEqual([]);
+    });
+
+    test("the vocabulary loads without an error", async () => {
+        const html = await renderDocument(VOCABULARY);
+        expect(html).not.toContain("dast-error");
     });
 
     // Last: every document above has been rendered.

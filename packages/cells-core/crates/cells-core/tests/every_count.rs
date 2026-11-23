@@ -579,11 +579,10 @@ fn loads<'a>(name: &str, bytes: &'a [u8]) -> Vec<Load<'a>> {
         let Ok((doc, _)) = Document::load(bytes, options) else {
             continue; // the promise is about documents that load
         };
-        let compiled = doc
-            .loaded
-            .compiled
-            .clone()
-            .expect("a document with a repeat");
+        // A repeat a cycle boxed leaves none to walk.
+        let Some(compiled) = doc.loaded.compiled.clone() else {
+            continue;
+        };
         let edges = graph_edges(&compiled);
         out.push(Load {
             name: name.to_string(),
@@ -914,11 +913,10 @@ fn a_constant_is_the_same_in_every_build() {
             let Ok((doc, _)) = Document::load(bytes, options) else {
                 continue;
             };
-            let compiled = doc
-                .loaded
-                .compiled
-                .clone()
-                .expect("a document with a repeat");
+            // A repeat a cycle boxed leaves none to walk.
+            let Some(compiled) = doc.loaded.compiled.clone() else {
+                continue;
+            };
             // (scope, template, template slot) -> (count it was first seen
             // at, class).
             let mut seen: HashMap<(ScopeId, u32, TemplateSlot), (u32, SlotClass)> = HashMap::new();

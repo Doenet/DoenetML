@@ -45,7 +45,15 @@ impl<'c> Stamp<'c> {
     /// every section's number.
     pub(super) fn aggregates(&mut self) {
         let root = self.root_children(TemplateId::new(0))[0];
-        self.credit(root);
+        // A root boxed for an error of its own (`<document lang="es">`,
+        // an attribute nothing reads) holds no credit.
+        if self
+            .component_type(root)
+            .aggregate_prop(AggOp::Credit, Collection::ScoredItems)
+            .is_some()
+        {
+            self.credit(root);
+        }
         for i in 0..self.instances.len() {
             let (t, e) = self.instances[i];
             let c = Comp::Elem(t, e);

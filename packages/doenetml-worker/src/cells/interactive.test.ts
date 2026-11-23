@@ -96,6 +96,7 @@ const ARGS: Record<string, Record<string, Record<string, unknown>[]>> = {
     },
     callAction: { callAction: [{}] },
     updateValue: { updateValue: [{}] },
+    _fractionInputComponent: { updateValue: [{ text: "3" }] },
 };
 
 /** The viewer's interactive document (`interactive.test.tsx`). */
@@ -164,6 +165,7 @@ const DOC = `
 <select name="sel"><option><p>one</p></option><option><p>two</p></option></select>
 <repeatForSequence name="r" from="1" to="3" valueName="v"><number>$v</number></repeatForSequence>
 <setup><number name="hidden">$n + 2</number></setup>
+<fractionInput name="fi" prefillNumerator="1"/>
 `;
 
 /** What the bridge must have requested, as `type.prop`: one per kind of
@@ -202,6 +204,7 @@ const EXPECTED_REQUESTS = [
     "endpoint.open",
     "equilibriumLine.x1",
     "equilibriumLine.stable",
+    "_fractionInputComponent.expr",
 ];
 
 /** What the bridge must have read, as `type.prop`: one or more per
@@ -257,6 +260,7 @@ const EXPECTED_READS = [
     "callAction.hide",
     "updateValue.hide",
     "triggerSet.hide",
+    "_fractionInputComponent.expr",
 ];
 
 beforeAll(async () => {

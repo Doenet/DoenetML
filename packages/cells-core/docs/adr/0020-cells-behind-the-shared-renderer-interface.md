@@ -55,6 +55,20 @@ Rust core's do. Still undrawn: `image` and `video`, whose sources the
 production renderer resolves itself, `spreadsheet`, `matrixInput`,
 `fractionInput` and `codeEditor`.
 
+Every component type the cells core has is drawn (2026-11-23), which the
+prototype's prerender test holds to: `test/cells-vocabulary.doenet` there
+places every type, in text and in a graph, and the test fails on a type
+of the core the document does not use and on an element no renderer
+draws. A shape outside a graph (a circle, a polygon, a line, a curve) is
+only its anchor, as in production, and its contract reads no cells there,
+which the core does not count rendered outside a graph; a line's equation
+in text waits on a cell that holds it. In a graph, a value (a number, an
+operator, a boolean, math notation, an angle) is left out, as `<math>`
+was, until a core sends its anchor; an input or a button is drawn as it
+is in text among the graph's controls, over the board's corner. A point's
+`open` is drawn hollow and a line's `dashed` dashed, and a click on a
+`switchable` one sends `switchPoint` or `switchLine`.
+
 Both remain possible later, for all three cores, if large documents need
 them: a board redrawn once per update batch rather than by each element
 as it renders (step 2, the pattern ADR 0010 measured), and the store's
