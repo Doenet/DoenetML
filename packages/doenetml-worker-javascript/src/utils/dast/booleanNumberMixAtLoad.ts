@@ -31,6 +31,11 @@
  * extend="$n"/>`) is a REF-5 error, decided by `typeChangeRule`
  * (`typeChange.js`), not here.
  *
+ * What is written on an `extend` or a `copy` (`<boolean extend="$c">$n</boolean>`,
+ * `<p extend="$pp" hide="$n"/>`) is checked as it would be on a tag of the
+ * type it makes: its attributes are kept as written until the reference is
+ * expanded, so each is read as the attribute component it will become.
+ *
  * What a child is, is read as `itemReader` reads the items of a `<sort>`
  * (`reorderedItemsAtLoad.ts`): a bare reference is its referent's type, a
  * property its declared or decided type (TYPE, D45), a list its entries'
@@ -846,7 +851,14 @@ export function checkBooleanNumberMixAtLoad({
         parentPosition?: SerializedComponent["position"],
         inAttribute = false,
     ) {
-        const componentClass = allClasses[component.componentType];
+        // A reference that makes a component (`<boolean extend="$c">$n</boolean>`)
+        // takes what is written in it as that component would.
+        const checkedType =
+            component.componentType === "_copy"
+                ? createdTypeOf(component)
+                : component.componentType;
+        const componentClass =
+            checkedType === undefined ? undefined : allClasses[checkedType];
         // Where to report what has no position of its own: a component the
         // sugar made (a `<boolean>` from a `<booleanList>`'s text) is
         // reported at its parent, and an attribute component at its
@@ -862,7 +874,7 @@ export function checkBooleanNumberMixAtLoad({
                 ? owner.componentType
                 : undefined;
 
-        if (componentClass && component.componentType !== "_copy") {
+        if (componentClass) {
             if (
                 componentClass.returnChildGroups ===
                 booleanClass?.returnChildGroups
@@ -874,7 +886,7 @@ export function checkBooleanNumberMixAtLoad({
                     inAttribute,
                 );
             } else {
-                const isNumber = inherits(component.componentType, "number");
+                const isNumber = inherits(checkedType!, "number");
                 // Only a component that takes one of the two types, and not
                 // the other, can find a mix among its children: read what
                 // they are only then, as reading a reference can follow
@@ -960,6 +972,70 @@ export function checkBooleanNumberMixAtLoad({
                 );
             }
         }
+        if (component.componentType === "_copy") {
+            visitAttributesAsWritten(component);
+        }
+    }
+
+    /**
+     * Check the attributes written on a reference that makes a component
+     * (`<p extend="$pp" hide="$n"/>`, `<point copy="$P" x="$b"/>`). They
+     * are kept as written until the reference is expanded, so each is read
+     * here as the attribute component it will become, and what in it is
+     * blanked stays blanked in what is written.
+     */
+    function visitAttributesAsWritten(copy: SerializedComponent) {
+        const createdType = createdTypeOf(copy);
+        if (createdType === undefined) {
+            return;
+        }
+        const attributeDefinitions = attributesObjectOf(createdType);
+        const owner = { ...copy, componentType: createdType };
+        for (const [name, attribute] of Object.entries(copy.attributes ?? {})) {
+            const written: any = attribute;
+            const type = attributeDefinitions[name]?.createComponentOfType;
+            if (
+                written.type !== "unresolved" ||
+                typeof type !== "string" ||
+                allClasses[type] === undefined
+            ) {
+                continue;
+            }
+            const stand: SerializedComponent = {
+                type: "serialized",
+                componentType: type,
+                componentIdx: -1,
+                attributes: {},
+                children: written.children ?? [],
+                state: {},
+                doenetAttributes: {},
+                sourceDoc: written.sourceDoc ?? copy.sourceDoc,
+            };
+            visit(stand, owner, name, undefined, true);
+            // content all literal is made one new blank
+            written.children = stand.children;
+        }
+    }
+
+    /** The type of component the reference `copy` makes, if written. */
+    function createdTypeOf(copy: SerializedComponent) {
+        const created = copy.attributes?._createComponentOfType;
+        return created === undefined
+            ? undefined
+            : componentInfoObjects.componentTypeAsWritten(
+                  String(literalText(created) ?? ""),
+              );
+    }
+
+    const attributesObjects = new Map<string, Record<string, any>>();
+    /** The attributes a component of `componentType` takes, by name. */
+    function attributesObjectOf(componentType: string): Record<string, any> {
+        let attributes = attributesObjects.get(componentType);
+        if (attributes === undefined) {
+            attributes = allClasses[componentType].createAttributesObject();
+            attributesObjects.set(componentType, attributes!);
+        }
+        return attributes!;
     }
 
     /**

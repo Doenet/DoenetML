@@ -213,6 +213,51 @@ describe("Booleans and numbers kept apart @group2", () => {
         ]);
     });
 
+    it("what is written on an extend or a copy is checked as on the tag", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <boolean name="b">true</boolean>
+    <number name="n">2</number>
+    <p name="p">hello</p>
+    <p name="p1" extend="$p" hide="$n"/>
+    <p name="p2" extend="$p" hide="1"/>
+    <p name="p3" extend="$p" hide="$b = 1"/>
+    <point name="P">(1, 2)</point>
+    <point name="Q" copy="$P" x="$b"/>
+    <math name="Qx" extend="$Q.x"/>
+    <p name="p4" extend="$p" hide="$n > 1"/>
+    <point name="R" extend="$P" x="$n + 1"/>
+    <math name="Rx" extend="$R.x"/>
+    <boolean name="c"/>
+    <boolean name="c1" extend="$c">$n</boolean>
+    <boolean name="c2" extend="$c">$n > 1</boolean>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        // blanks, as on the tag: never hidden, a blank coordinate
+        expect((await sv("p1")).hidden).eq(false);
+        expect((await sv("p2")).hidden).eq(false);
+        expect((await sv("p3")).hidden).eq(false);
+        expect((await sv("Qx")).value.tree).eq("\uff3f");
+        // no mix, no warning
+        expect((await sv("p4")).hidden).eq(true);
+        expect((await sv("Rx")).value.tree).eq(3);
+        expect((await sv("c1")).value).eq(false);
+        expect((await sv("c2")).value).eq(true);
+        expect(diagnosticsOf(core, ["doenet-w0202"])).eqls([
+            [5, numberAsBoolean("$n")],
+            [6, literalAsBoolean("1")],
+            [
+                7,
+                "`$b` is true or false, not a number, so comparing it with a number is a blank. To compare it with true or false, write `$b = true`. To count it as 1 or 0, write `<number convertBoolean>$b</number>` outside this attribute, give it a name, and refer to it here.",
+            ],
+            [9, booleanAsNumberInAttribute("$b")],
+            [15, numberAsBoolean("$n")],
+        ]);
+    });
+
     it("an input bound to a value of the other type is bound to a blank, with a warning", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
