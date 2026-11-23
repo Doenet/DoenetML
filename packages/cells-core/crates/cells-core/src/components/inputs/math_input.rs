@@ -67,7 +67,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         && blank
         && let Some(ChildValue::Reference(p)) = attrs.prefill.as_ref().map(|v| &v.value)
     {
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             value: evaluated().into(),
             expr: Source::Leaf(Leaf::Scope(ScopeConst::Seed(*p))).into(),
         });
@@ -76,7 +76,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let text_of = attrs.prefill.unwrap_or(attrs.children);
     let bound = matches!(value, Source::Flow(Flow::Alias(_))) || text_of.references > 0;
     if bound {
-        wiring.set_public(Props {
+        wiring.set_planned(Planned {
             value: value.into(),
             expr: Wire::absent(),
         });
@@ -99,7 +99,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
                 })?,
         )
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         value: evaluated().into(),
         expr: Source::Leaf(Leaf::GivenMath(tree)).into(),
     });

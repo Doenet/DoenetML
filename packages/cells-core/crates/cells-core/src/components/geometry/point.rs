@@ -67,7 +67,7 @@ pub(crate) fn props_of(x: Source, y: Source) -> Vec<Source> {
 pub(crate) fn wiring_of(x: Source, y: Source) -> ElemWiring {
     let mut wiring = ElemWiring::of(ComponentType::Point);
     let hide = ComponentType::Point.prop_defs()[HIDE].default;
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         x: x.into(),
         y: y.into(),
         hide: Source::given(hide).into(),

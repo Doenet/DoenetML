@@ -44,7 +44,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         (None, ChildValue::Reference(p)) => Source::reference(p).into(),
         (None, _) => Wire::own(ctx.condition(&children.nodes, &mut wiring)?),
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         operand,
         value: Wire::computed(OpSpec::Not, vec![Props::PORTS.operand]),
     });

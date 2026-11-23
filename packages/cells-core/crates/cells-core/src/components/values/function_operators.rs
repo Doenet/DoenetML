@@ -103,7 +103,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         [at.xmin, at.xmax],
     );
     let [d0, d1, d2, d3] = parts.domain;
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         expr: Wire::computed(OpSpec::Sym(kind), vec![of, at.lowerValue, at.upperValue]),
         lowerValue: bound(attrs.lowerValue, attr::lowerValue, 0.0),
         upperValue: bound(attrs.upperValue, attr::upperValue, 1.0),

@@ -120,13 +120,12 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
     let [width] = ElemWiring::vector([at.width], VecOp::Extent, vec![px, qx]);
     let [height] = ElemWiring::vector([at.height], VecOp::Extent, vec![py, qy]);
     let half_perimeter = wiring.hidden(Source::computed(OpSpec::Add, vec![at.width, at.height]));
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numVertices: Wire::constant(4.0),
         cx,
         cy,
         width,
         height,
-        area: Wire::from_table(ComponentType::Rectangle, at.area),
         perimeter: Source::computed_k(OpSpec::Mul, half_perimeter, 2.0).into(),
     });
     let corner = |x: Port, y: Port| [Wire::own(x), Wire::own(y)];

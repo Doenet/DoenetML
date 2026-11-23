@@ -62,7 +62,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let n = byte(args.len());
         Source::vector(VecOp::Reduce { op, n }, args).into()
     };
-    wiring.set_public(Props { value });
+    wiring.set_planned(Planned { value });
     Ok(wiring)
 }
 

@@ -144,7 +144,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             })
             .collect(),
     );
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numComponents: Wire::constant(n as f64),
     });
     Ok(wiring)

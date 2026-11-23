@@ -696,11 +696,14 @@ pub(crate) const fn str_eq(a: &str, b: &str) -> bool {
 /// option `expr_of: expr` or `expr_when: submitted` says the prop stands
 /// for an expression ([`super::ExprOf`]).
 ///
-/// `Props<T>` has one field per prop of the table, in table order: a
-/// planner fills `Props<Wire>` as a struct literal, so a prop left
-/// unplanned does not compile; `Props::PORTS` holds every prop's port, by
-/// which a planner names it in its wiring; `Props::<usize>::AT` holds
-/// every prop's position.
+/// `Planned` has one field per prop the planner plans, in table order:
+/// every prop but a `computed`, an `aggregate` or an `anchor` one, which
+/// the table gives itself. A planner fills it as a struct literal
+/// (`wiring.set_planned(Planned { .. })`), so a prop left unplanned does
+/// not compile, and one the table gives is not the planner's to write.
+/// `Props<T>` has one field per prop of the table: `Props::PORTS` holds
+/// every prop's port, by which a planner names it in its wiring, and
+/// `Props::<usize>::AT` every prop's position.
 ///
 /// `params { .. }` names the parameters the planner introduces that no
 /// attribute gives: named given leaves with a default (a line's distance
@@ -1005,6 +1008,8 @@ macro_rules! component {
             };
         }
 
+        $crate::components::define::component!(@planned [] $($kind $pname)+);
+
         $crate::components::define::component!(@record
             [$($($aname : $akind $(($($akarg)*))?),*)?]
             [$($ckind $([$($gname : [$($gty),*]),*])?)?]
@@ -1029,6 +1034,42 @@ macro_rules! component {
                 ),
             );
         )+)*)?
+    };
+    // `Planned`: a field per prop the table does not give itself. A
+    // `computed`, `aggregate` or `anchor` prop is passed over; any other
+    // is kept, in table order.
+    (@planned [$($acc:ident)*] computed $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
+    (@planned [$($acc:ident)*] aggregate $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
+    (@planned [$($acc:ident)*] anchor $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)*] $($rest)*);
+    };
+    (@planned [$($acc:ident)*] $kind:ident $name:ident $($rest:ident)*) => {
+        $crate::components::define::component!(@planned [$($acc)* $name] $($rest)*);
+    };
+    (@planned [$($name:ident)*]) => {
+        /// What a planner of this type plans: one wire per prop the table
+        /// does not give itself. A `computed` or `aggregate` prop is
+        /// wired as the table says and an `anchor` from the element's
+        /// `anchor`, so none is a field
+        /// ([`ElemWiring::set_planned`](crate::compile::api::ElemWiring::set_planned)).
+        #[allow(non_snake_case, dead_code)]
+        #[derive(Debug, Clone)]
+        pub(crate) struct Planned {
+            $(pub(crate) $name: $crate::compile::api::Wire,)*
+        }
+
+        /// Each planned wire with its port, in table order.
+        impl IntoIterator for Planned {
+            type Item = ($crate::compile::api::Port, $crate::compile::api::Wire);
+            type IntoIter = std::vec::IntoIter<Self::Item>;
+            fn into_iter(self) -> Self::IntoIter {
+                vec![$((Props::PORTS.$name, self.$name)),*].into_iter()
+            }
+        }
     };
     // What a submit does.
     (@submit Copies($response:ident, $submitted:ident)) => {

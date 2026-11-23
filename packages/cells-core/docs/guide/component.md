@@ -69,8 +69,10 @@ example `values/text.rs`, registered as `values::text::DEFINITION`).
 function of its element's record (ADR 0034): given a [`PlanCtx`](crate::compile::api::PlanCtx), it reads
 the attributes and children the compile parsed (`Attrs::of(ctx.record())`),
 picks which ports are leaves and through which operators the rest derive,
-and returns its wiring from a `Props<Wire>` struct literal
-([`ElemWiring::set_public`](crate::compile::api::ElemWiring::set_public), ADR 0016). It reaches no DAST, node or `extend`:
+and returns its wiring from a `Planned` struct literal
+([`ElemWiring::set_planned`](crate::compile::api::ElemWiring::set_planned), ADR 0016): a field per prop
+the table does not give itself, so a `computed`, `aggregate` or `anchor`
+prop is not the planner's to write. It reaches no DAST, node or `extend`:
 a test keeps those out of `components/`, and another counts `PlanCtx`'s
 methods. Rules for planners:
 

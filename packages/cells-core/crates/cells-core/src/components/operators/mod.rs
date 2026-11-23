@@ -182,13 +182,10 @@ macro_rules! one_input_plan {
                 |x| Wire::computed($op, vec![x]),
                 Some($post),
                 |w, [operand, expr, value]| {
-                    w.set_public(Props {
+                    w.set_planned(Planned {
                         operand,
                         expr,
                         value,
-                        // Planned after this, from the `anchor` (`plan_anchor`).
-                        anchorX: Wire::absent(),
-                        anchorY: Wire::absent(),
                     })
                 },
             )
@@ -352,14 +349,11 @@ pub(crate) mod set_small_to_zero {
             |x| Wire::computed(OpSpec::SmallToZero, vec![x, at.threshold]),
             post,
             |w, [operand, expr, value]| {
-                w.set_public(Props {
+                w.set_planned(Planned {
                     operand,
                     expr,
                     threshold,
                     value,
-                    // Planned after this, from the `anchor` (`plan_anchor`).
-                    anchorX: Wire::absent(),
-                    anchorY: Wire::absent(),
                 })
             },
         )

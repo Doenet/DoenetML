@@ -85,12 +85,9 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
             )
         }
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         value,
         basedOnNumber: based_on_number,
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
     });
     Ok(wiring)
 }

@@ -78,7 +78,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         let head = wiring.entry(0);
         wiring.set_entries(ElemWiring::vector_from(head, op, args, &[]));
     }
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         numComponents: Wire::constant(n as f64),
     });
     Ok(wiring)

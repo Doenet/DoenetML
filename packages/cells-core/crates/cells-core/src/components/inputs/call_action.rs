@@ -85,7 +85,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         || attrs.triggerWhenObjectsClicked
         || attrs.triggerWhenObjectsFocused;
     let when = super::trigger_when(ctx, attrs.triggerWhen, &mut wiring)?;
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         triggerWhen: when,
         hide: if pressed_otherwise {
             Wire::constant(1.0)

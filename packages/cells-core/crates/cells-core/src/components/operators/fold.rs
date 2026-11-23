@@ -140,13 +140,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         }
     };
     let value = over_math::value(&mut wiring, at.expr, numeric);
-    wiring.set_public(Props {
-        expr,
-        value,
-        // Planned after this, from the element's `anchor` (`plan_anchor`).
-        anchorX: Wire::absent(),
-        anchorY: Wire::absent(),
-    });
+    wiring.set_planned(Planned { expr, value });
     Ok(wiring)
 }
 

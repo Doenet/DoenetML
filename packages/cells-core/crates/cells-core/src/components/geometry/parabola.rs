@@ -107,7 +107,7 @@ pub(crate) fn plan(ctx: &mut PlanCtx<'_, '_>) -> Result<ElemWiring> {
         (Some(xmin), Some(xmax)) => [xmin.into(), xmax.into()],
         _ => [Wire::constant(-10.0), Wire::constant(10.0)],
     };
-    wiring.set_public(Props {
+    wiring.set_planned(Planned {
         a,
         b,
         c,
