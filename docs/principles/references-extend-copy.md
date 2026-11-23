@@ -1080,7 +1080,11 @@ the document renders.
   `<module>`, …) *presents* what it holds: an extend shows the same content again, still linked,
   and may add to it, so `<section extend="$mySec"><title>New Title</title></section>` is the
   same section presented with a new title. Its properties that describe how it presents itself
-  (`.title`, `.text`) are the extend's own, as `hide` is; its shared state never differs.
+  (`.title`, `.text`) are the extend's own, as `hide` is; its shared state never differs. The
+  line falls there because a value has an equivalent written form (`<math>$m+1</math>`, and
+  `<m>$e+1</m>` for an `<m>`, which counts as a value here) and a container doesn't
+  (`<section>$mySec</section>` nests a section), so an extend is the only way to get a linked
+  container presented differently.
 - **Errors** (Tier 2, the list authors are not given):
   - on a tag whose content is made rather than written, an attribute its class declares beyond
     those an extend applies, `doenet-e0056` (on a `pretzel`, only `mode`), and children written

@@ -3629,9 +3629,14 @@ fine and the other isn't.
 5. On any tag, a `<label>`, `<shortDescription>` or `<description>` written inside an extend is
    allowed: it changes only how it is presented.
 
-**Recommended, not yet decided:** `<m>`, `<me>` and `<men>` are content in D46, but their children
-make one expression, so they count as values here (`<m extend="$e">+1</m>` is an error suggesting
-`<m>$e+1</m>`).
+6. **Why the line falls there: a value or object has an equivalent written form; a container
+   doesn't.** A new tag holding the reference and the children (`<math>$m+1</math>`,
+   `<m>$e+1</m>`) gives the value an extend with children would. A container has no such form:
+   `<section>$mySec</section>` puts a section inside a section. So an extend is the only way to get
+   a linked container presented differently.
+7. **`<m>`, `<me>` and `<men>` count as values here** (decided): they are content in D46, but
+   their children make one expression, and `<m>$e+1</m>` works the same way.
+   `<m extend="$e">+1</m>` is an error suggesting it.
 
 Implementation: #2668, PR 50.
 
