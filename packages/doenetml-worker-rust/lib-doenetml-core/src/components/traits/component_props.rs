@@ -12,12 +12,9 @@ pub trait ComponentProps {
     // to specify via index directly from a function created via macro
     fn get_local_prop_index_from_name(&self, name: &str) -> Option<LocalPropIdx>;
 
-    /// Get the prop index from this component of the prop with name
-    /// that has a case-insensitive match to `name`.
-    fn get_public_local_prop_index_from_name_case_insensitive(
-        &self,
-        name: &str,
-    ) -> Option<LocalPropIdx>;
+    /// Get the prop index from this component of the prop named `name`,
+    /// matched exactly, as every name is (D51): `X` is not `x`.
+    fn get_public_local_prop_index_from_name(&self, name: &str) -> Option<LocalPropIdx>;
 
     /// Return a vector of the indices of this component's props
     /// that have been given a `PropProfile`

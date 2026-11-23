@@ -32,12 +32,12 @@ function ballotsTabular() {
     const body = rows
         .map(
             (row, i) =>
-                `<row><cell halign="start">${i + 1}st</cell>${[...row]
+                `<row><cell hAlign="start">${i + 1}st</cell>${[...row]
                     .map((letter) => `<cell>${letter}</cell>`)
                     .join("")}</row>`,
         )
         .join("\n");
-    return `<tabular name="ballots" halign="center">${cols}\n${body}</tabular>`;
+    return `<tabular name="ballots" hAlign="center">${cols}\n${body}</tabular>`;
 }
 
 describe("Tabular Tag Tests", { tags: ["@group4"] }, function () {

@@ -22,6 +22,8 @@ export default class Slider extends BaseComponent {
         });
     }
     static componentType = "slider";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
     static renderChildren = true;
 
     static componentDocs = {
@@ -183,12 +185,14 @@ export default class Slider extends BaseComponent {
         );
 
         stateVariableDefinitions.items = {
-            description: "The values the slider can take.",
+            description:
+                "The values the slider can take, as a list, when given by its children. Empty for a slider given by `from`, `to` and `step`.",
             forRenderer: true,
             public: true,
-            shadowingInstructions: {
-                hasVariableComponentType: true,
-            },
+            // a list of the slider's type, decided by its written `type`
+            // when the document loads (TYPE-1, #2545,
+            // `propertyTypesAtLoad.ts`)
+            shadowingInstructions: {},
             // isArray: true,
             // entryPrefixes: ["item"],
             // entireArrayAtOnce: true,
@@ -246,10 +250,7 @@ export default class Slider extends BaseComponent {
                     }); //sort in number order
                 }
 
-                return {
-                    setValue: { items },
-                    setCreateComponentOfType: { items: dependencyValues.type },
-                };
+                return { setValue: { items } };
             },
         };
 
@@ -558,16 +559,13 @@ export default class Slider extends BaseComponent {
             description: "The current value of the slider.",
             forRenderer: true,
             public: true,
+            // of the slider's `type`, decided when the document loads
+            // (`propertyTypesAtLoad.ts`)
             shadowingInstructions: {
-                hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables:
                     returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
-                type: {
-                    dependencyType: "stateVariable",
-                    variableName: "type",
-                },
                 items: {
                     dependencyType: "stateVariable",
                     variableName: "items",
@@ -596,10 +594,7 @@ export default class Slider extends BaseComponent {
                         dependencyValues.step * dependencyValues.index;
                 }
 
-                return {
-                    setValue: { value },
-                    setCreateComponentOfType: { value: dependencyValues.type },
-                };
+                return { setValue: { value } };
             },
             inverseDefinition: invertSliderValue,
         };

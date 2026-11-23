@@ -47,7 +47,7 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
     <p>Change width 1a <mathInput name="width1a" bindValueTo="$image1.width" /></p>
     <p>Change width 2 <mathInput name="width2" bindValueTo="$image2.width" /></p>
     <p name="pAspectRatio1">Aspect Ratio 1: $image1.aspectRatio</p>
-    <p name="pAspectRatio2">Aspect Ratio 2: $image2.AspectRatio</p>
+    <p name="pAspectRatio2">Aspect Ratio 2: $image2.aspectRatio</p>
     <p>Change aspect ratio 1 <mathInput name="aspectRatio1" prefill="1" /></p>
     <p>Change aspect ratio 1a <mathInput name="aspectRatio1a" bindValueTo="$image1.aspectRatio" /></p>
     <p>Change aspect ratio 2 <mathInput name="aspectRatio2" bindValueTo="$image2.aspectRatio" /></p>

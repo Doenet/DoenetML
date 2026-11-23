@@ -221,7 +221,7 @@ struct Reached {
 
 /// The root names last reported by [`Resolver::update_root_names`],
 /// with what is needed to extend them when nodes are added.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub(super) struct RootNameCache {
     /// The root name of each node
     names: Vec<Option<String>>,

@@ -18,7 +18,7 @@ component that renders a line segment when nested within a [`<graph>{:dn}`](grap
 
 
 ```doenet-example
-<graph size="small" xmin="-2" xmax="2" ymin="-2" ymax="2">
+<graph size="small" xMin="-2" xMax="2" yMin="-2" yMax="2">
   <shortDescription>graph with a default line segment</shortDescription>
   <lineSegment/>
 </graph>
@@ -227,7 +227,7 @@ illustrated: `hide`, `fixLocation`, `layer`, `styleNumber`, `applyStyleToLabel` 
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-1" xmax="5" ymin="-1" ymax="5">
+<graph size="small" xMin="-1" xMax="5" yMin="-1" yMax="5">
   <shortDescription>graph of a line segment defined by a slope and a length</shortDescription>
   <lineSegment name="segment1" slope="1" length="4"/>
 </graph>
@@ -251,7 +251,7 @@ segment in the opposite direction.
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-1" xmax="5" ymin="-1" ymax="5">
+<graph size="small" xMin="-1" xMax="5" yMin="-1" yMax="5">
   <shortDescription>graph of a line segment defined by one endpoint and its midpoint</shortDescription>
   <lineSegment name="segment1" endpoints="(1,2)" midpoint="(2,3)"/>
   <point styleNumber="2">$segment1.midpoint</point>
@@ -278,7 +278,7 @@ given direction and length on a point.
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-3" ymax="3">
+<graph size="small" xMin="-5" xMax="5" yMin="-3" yMax="3">
   <shortDescription>graph showing how midpointOffset slides the reference point along a line segment</shortDescription>
   <point name="P" styleNumber="2">(0,0)</point>
   <lineSegment name="segment1" midpoint="$P" slope="0" length="4" midpointOffset="$offset"/>
@@ -385,7 +385,7 @@ i.e. the average of its endpoints.
 
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="3" ymin="-3" ymax="3">
+<graph size="small" xMin="-5" xMax="3" yMin="-3" yMax="3">
   <shortDescription>graph showing that the midpoint attribute point and the actual midpoint property differ when midpointOffset is nonzero</shortDescription>
   <point name="P" styleNumber="2">(0,0)</point>
   <lineSegment name="segment1" midpoint="$P" slope="0" length="4" midpointOffset="0.5"/>

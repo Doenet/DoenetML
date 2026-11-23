@@ -7,6 +7,7 @@ import {
 } from "../utils/attributes";
 import type { AttributeDefinition } from "../utils/dast/types";
 import { normalizeArrayStateVariableDefaults } from "./StateVariableInitializer";
+import { attributesAsProperties } from "../utils/numItems";
 
 /**
  * Map from `attributeSpecification.createPrimitiveOfType` codes to the
@@ -256,7 +257,10 @@ function createAttributeStateVariableDefinitions({
     stateVariableDefinitions: Record<string, any>;
 }) {
     let attributes = preprocessAttributesObject(
-        componentClass.createAttributesObject(),
+        attributesAsProperties(
+            componentClass,
+            componentClass.createAttributesObject(),
+        ),
     );
 
     for (let attrName in attributes) {
@@ -349,7 +353,10 @@ function createAdapterStateVariableDefinitions({
         ];
 
     let attributes = preprocessAttributesObject(
-        componentClass.createAttributesObject(),
+        attributesAsProperties(
+            componentClass,
+            componentClass.createAttributesObject(),
+        ),
     );
 
     for (let attrName in attributes) {
@@ -554,7 +561,10 @@ async function createReferenceShadowStateVariableDefinitions({
     // - then on targetComponent (if not copying a prop and attribute exists in targetComponent)
 
     let attributes = preprocessAttributesObject(
-        componentClass.createAttributesObject(),
+        attributesAsProperties(
+            componentClass,
+            componentClass.createAttributesObject(),
+        ),
     );
 
     for (let attrName in attributes) {
@@ -875,13 +885,6 @@ function shadowReturnDependencies(this: any, args: any) {
         componentIdx: this.shadowOfComponentIdx,
         variableName: this.shadowVarNameInTarget,
     };
-    if (this.shadowCopyComponentType) {
-        dependencies.targetVariableComponentType = {
-            dependencyType: "stateVariableComponentType",
-            componentIdx: this.shadowOfComponentIdx,
-            variableName: this.shadowVarNameInTarget,
-        };
-    }
     return dependencies;
 }
 
@@ -891,13 +894,6 @@ function shadowDefinition(
 ): Record<string, any> {
     const varName = this.shadowVarName;
     let result: Record<string, any> = {};
-
-    // TODO: how do we make it do this just once?
-    if ("targetVariableComponentType" in dependencyValues) {
-        result.setCreateComponentOfType = {
-            [varName]: dependencyValues.targetVariableComponentType,
-        };
-    }
 
     if (
         usedDefault.targetVariable &&
@@ -951,14 +947,6 @@ function shadowReturnArrayDependenciesByKey(this: any, { arrayKeys }: any) {
 
     let globalDependencies: Record<string, any> = {};
 
-    if (this.shadowCopyComponentType) {
-        globalDependencies.targetVariableComponentType = {
-            dependencyType: "stateVariableComponentType",
-            componentIdx: this.shadowOfComponentIdx,
-            variableName: this.shadowVarName,
-        };
-    }
-
     if (this.inverseShadowToSetEntireArray) {
         globalDependencies.targetArray = {
             dependencyType: "stateVariable",
@@ -991,13 +979,6 @@ function shadowArrayDefinitionByKey(
     let result: Record<string, any> = {
         setValue: { [varName]: newEntries },
     };
-
-    // TODO: how do we make it do this just once?
-    if ("targetVariableComponentType" in globalDependencyValues) {
-        result.setCreateComponentOfType = {
-            [varName]: globalDependencyValues.targetVariableComponentType,
-        };
-    }
 
     return result;
 }
@@ -1146,17 +1127,12 @@ export function applyPendingShadowModification(stateVarObj: any) {
             stateVarObj.stateVariablesDeterminingDependencies = undefined;
         }
 
-        let copyComponentType =
-            stateVarObj.public &&
-            stateVarObj.shadowingInstructions.hasVariableComponentType;
-
         // Parameters for the shared shadow definition functions (see the
         // module-level `shadow*` functions above), stored on the
         // per-instance state-variable object instead of captured in
         // per-variable closures.
         stateVarObj.shadowOfComponentIdx = params.targetComponentIdx;
         stateVarObj.shadowVarName = varName;
-        stateVarObj.shadowCopyComponentType = copyComponentType;
 
         if (stateVarObj.isArray) {
             stateVarObj.shadowOverrideVarName = params.overrideVarName;

@@ -78,15 +78,15 @@ type TabularData = {
 </tabular>
 
 <tabular topBorder="minor" bottomBorder="minor" startBorder="minor" endBorder="minor">
-  <row halign="start">
+  <row hAlign="start">
     <cell>1</cell>
     <cell>2</cell>
   </row>
-  <row halign="center">
+  <row hAlign="center">
     <cell>3</cell>
     <cell>4</cell>
   </row>
-  <row halign="end">
+  <row hAlign="end">
     <cell>5</cell>
     <cell>6</cell>
   </row>

@@ -238,9 +238,11 @@ describe("An index that names nothing @group4", async () => {
             expect([...warnings, ...errors, ...infos], body).eqls([]);
         }
 
-        // A collect with no limit has the property `maxNumber`.
+        // A list with no limit has the property `maxNumber`. (A
+        // `<collect>`'s `maxNumber` is an attribute, not a property, D41
+        // decision 2.)
         const { warnings, errors, infos } = await shownAndReported(
-            `<collect name="c" componentType="math" from="$l"/><p name="p">[$c.maxNumber]</p>`,
+            `<mathList name="c">1 2</mathList><p name="p">[$c.maxNumber]</p>`,
         );
         expect([...warnings, ...errors, ...infos]).eqls([]);
     });
@@ -254,6 +256,55 @@ describe("An index that names nothing @group4", async () => {
         expect([...errors, ...infos]).eqls([]);
         expect(warnings.map((w) => w.code)).eqls(["doenet-w0104"]);
         expect(warnings[0].message).contain("$$f.x");
+    });
+
+    it("past the end and back, in a group shown by a reference, live and after a reload", async () => {
+        // The reference kept replacing its blank with a new one, so it and
+        // the group's copy queued each other until the loop check made the
+        // copy `doenet-e0005`, which stayed once the index came back
+        // (Doenet/DoenetML#2643 item 2; DIAG-5, DIAG-6, DIAG-7).
+        const doenetML = `<mathInput name="mi" prefill="1"/><mathList name="ls">1 2</mathList>
+<number name="i">$mi</number><group name="s">$ls[$i]</group><p name="p">$s</p>`;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+
+        async function shown(c: any, resolve: typeof resolvePathToNodeIdx) {
+            const stateVariables = await c.returnAllStateVariables(false, true);
+            const { errors, warnings } = getDiagnosticsByType(c);
+            return {
+                text: stateVariables[await resolve("p")].stateValues.text,
+                errors: errors.map((d) => d.code),
+                warnings: warnings.map((d) => d.code),
+            };
+        }
+
+        for (const [value, text] of [
+            ["2", "2"],
+            ["5", "＿"],
+            ["1", "1"],
+            ["3", "＿"],
+            ["2", "2"],
+        ]) {
+            await updateMathInputValue({
+                latex: value,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            const expected = { text, errors: [], warnings: [] };
+            expect(await shown(core, resolvePathToNodeIdx), value).eqls(
+                expected,
+            );
+            await core.saveImmediately();
+            const reloaded = await createTestCore({
+                doenetML,
+                initialState: scoreState.state,
+            });
+            expect(
+                await shown(reloaded.core, reloaded.resolvePathToNodeIdx),
+                `${value}, after a reload`,
+            ).eqls(expected);
+        }
     });
 
     it("gives an info while a dynamic index is 0, and none once it names an entry", async () => {
@@ -418,16 +469,18 @@ describe("An index that names nothing @group4", async () => {
     });
 
     it("reads the reference of a tag whatever the case of its attribute", async () => {
-        // `Extend` is `extend`: the warning in its index says why the index
-        // names nothing, as for the lowercase attribute.
+        // `Extend` is applied as `extend` for now, with a warning that names
+        // are case-sensitive (D51): the warning in its index says why the
+        // index names nothing, as for the lowercase attribute.
         for (const attribute of ["extend", "Extend", "COPY"]) {
             const { warnings, infos } = await shownAndReported(
                 `<p name="p"><math ${attribute}="$l[$nothing]"/></p>`,
             );
-            expect(
-                warnings.map((w) => w.code),
-                attribute,
-            ).eqls(["doenet-w0104"]);
+            expect(warnings.map((w) => w.code).sort(), attribute).eqls(
+                attribute === "extend"
+                    ? ["doenet-w0104"]
+                    : ["doenet-w0104", "doenet-w0197"],
+            );
             expect(infos, attribute).eqls([]);
         }
     });

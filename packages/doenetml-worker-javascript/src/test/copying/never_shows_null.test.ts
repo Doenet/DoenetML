@@ -103,20 +103,28 @@ describe("Never shows null (D40) @group3", () => {
         expect(found).eqls([]);
     }, 1_800_000);
 
-    it("loads a reference to a property declared a number that holds another value, and shows the sizes of a subsetOfRealsInput", async () => {
-        // `$P.scales` holds an array, which a number entry once crashed on;
+    it("shows the sizes of a subsetOfRealsInput, and no property declared a number that holds another value", async () => {
         // the width and height defaults of `<subsetOfRealsInput>` read
-        // `undefined%` (#2460)
+        // `undefined%` (#2460). `$P.scales` held an array declared a number,
+        // which a number entry once crashed on; it is no longer a property,
+        // so names nothing, and a slider's `items` is a list (#2545)
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <point name="P"/>
     <subsetOfRealsInput name="s"/>
-    <p name="p">[$P.scales][$s.width][$s.height]</p>
+    <slider name="sl"><number>2</number><number>1</number></slider>
+    <p name="p">[$P.scales][$s.width][$s.height][$sl.items]</p>
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
-        ).eq("[NaN][800px][300px]");
+        ).eq("[＿][800px][300px][1, 2]");
+        expect(
+            core.core!.diagnostics.map((d: any) => [d.code, d.message]),
+        ).toContainEqual([
+            "doenet-w0104",
+            "No referent found for reference: `$P.scales`",
+        ]);
     });
 });

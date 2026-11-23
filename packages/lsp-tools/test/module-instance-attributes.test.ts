@@ -88,22 +88,17 @@ async function buildCompleter(source: string) {
     return { completer, adapter, sourceObj: completer.sourceObj };
 }
 
-/** Run validation and return the diagnostic messages that mention an
- *  attribute called `attrName` on `<module>`. Case-insensitive match on
- *  the attribute name, because the warning message uses the *normalized*
- *  canonical-cased name when the attribute exists in some other element's
- *  schema (e.g. `center` is normalized from `CENTER`), and the raw
- *  author-typed name otherwise. */
+/** Run validation and return the diagnostic messages that say `<module>`
+ *  has no attribute called `attrName` (quoted as written). */
 async function moduleAttrDiagnostics(source: string, attrName: string) {
     const { completer } = await buildCompleter(source);
     const diags = await completer.getSchemaViolations();
-    const lowered = attrName.toLowerCase();
     return diags
         .map((d) => d.message)
         .filter((m) => {
             if (!/Element `<module>`/.test(m)) return false;
             const match = m.match(/attribute called `([^`]+)`/);
-            return match != null && match[1].toLowerCase() === lowered;
+            return match != null && match[1] === attrName;
         });
 }
 
@@ -158,15 +153,50 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
                 expect(await moduleAttrDiagnostics(source, "hide")).toEqual([]);
             });
 
-            it("declared attribute matches case-insensitively (runtime semantics)", async () => {
-                // Author declared `Center` (mixed case); the copy uses
-                // lowercase `center`.  The runtime lowercases at
-                // ModuleAttributes.js:107-108; the LSP mirrors that.
+            it("declared attribute in another case is applied, for now, with doenet-w0197", async () => {
+                // Author declared `Center`; the copy writes `CENTER`. Names
+                // are matched exactly (NAME-0, D51), but for one release the
+                // core still sets the declared one from it, with
+                // `doenet-w0197` (`moduleAttributesWritten`); the LSP reports
+                // that warning, not an unknown attribute.
                 const source = `<setup><module name="m"><moduleAttributes><point name="Center">(0,0)</point></moduleAttributes></module></setup>
 <module copy="$m" CENTER="(1,1)" />`;
                 expect(await moduleAttrDiagnostics(source, "CENTER")).toEqual(
                     [],
                 );
+                const { completer } = await buildCompleter(source);
+                const caseWarnings = (await completer.getSchemaViolations())
+                    .filter((d) => d.code === "doenet-w0197")
+                    .map((d) => [d.message, d.data]);
+                expect(caseWarnings).toEqual([
+                    [
+                        "Attribute names are case-sensitive: write `Center`, not `CENTER`, on a `<module>`. It is applied for now, but will be an error in a later release.",
+                        {
+                            args: {
+                                attribute: "CENTER",
+                                suggestion: "Center",
+                                componentType: "module",
+                            },
+                        },
+                    ],
+                ]);
+            });
+
+            it("declared attribute written exactly gets no case warning", async () => {
+                const source = `<setup><module name="m"><moduleAttributes><point name="Center">(0,0)</point></moduleAttributes></module></setup>
+<module copy="$m" Center="(1,1)" />`;
+                const { completer } = await buildCompleter(source);
+                expect(await completer.getSchemaViolations()).toEqual([]);
+            });
+
+            it("declared attribute in another case, with the declared spelling written too, is unknown", async () => {
+                // As the core leaves it (`attributeNameCaseCorrections`): the
+                // one written exactly sets the attribute, the other is none.
+                const source = `<setup><module name="m"><moduleAttributes><point name="Center">(0,0)</point></moduleAttributes></module></setup>
+<module copy="$m" Center="(1,1)" CENTER="(2,2)" />`;
+                expect(await moduleAttrDiagnostics(source, "CENTER")).toEqual([
+                    "Element `<module>` doesn't have an attribute called `CENTER`.",
+                ]);
             });
 
             it("extend= behaves the same as copy=", async () => {
@@ -465,8 +495,8 @@ async function moduleAttrDiagnostics(source: string, attrName: string) {
 </setup>
 
 <graph
-    ymin="-8"
-    ymax="8"
+    yMin="-8"
+    yMax="8"
     displayXAxis="false"
     displayYAxis="false">
   <shortDescription>A graph of balloons</shortDescription>

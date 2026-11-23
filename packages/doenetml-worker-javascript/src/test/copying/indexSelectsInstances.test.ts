@@ -497,6 +497,16 @@ describe("An index selects instances, not children @group4", async () => {
             const { text, warnings, errors } = await shownAndReported(body);
             expect(text, body).eq(expectedText);
             expect(errors, body).eqls([]);
+            if (["select", "conditionalContent"].includes(args.component)) {
+                // every option or case holds several, so it is decided at
+                // load, for every pick or case (`doenet-w0191`,
+                // Doenet/DoenetML#2643 item 4)
+                expect(
+                    warnings.map((w) => [w.code, w.args.reference]),
+                    body,
+                ).eqls([["doenet-w0191", args.reference]]);
+                continue;
+            }
             expect(
                 warnings.map((w) => w.code),
                 body,
@@ -784,13 +794,24 @@ describe("An index selects instances, not children @group4", async () => {
     });
 
     it("words the warning with what the author wrote", async () => {
+        // decided at load, as every option holds several, naming the child
+        // where it has the same name in each (Doenet/DoenetML#2643 item 4)
         const { warnings } = await shownAndReported(
             `<select name="s"><option><math>a</math><math name="m">b</math></option></select><p name="p">$s[1][1] $s[1][2] $s[1][3]</p>`,
         );
         expect(warnings.map((w) => w.message).sort()).eqls([
-            '`$s[1][1]` names nothing: what the `<select>` picked holds 2 components, and an index passes into a pick only when it holds one. An index never selects a child. To refer to the child, give it a name, such as `name="x"`, and write `$s[1].x`.',
-            "`$s[1][2]` names nothing: what the `<select>` picked holds 2 components, and an index passes into a pick only when it holds one. An index never selects a child. To refer to the child, write `$s[1].m`.",
-            "`$s[1][3]` names nothing: what the `<select>` picked holds 2 components, and an index passes into a pick only when it holds one. An index never selects a child. To refer to a child, give it a name and write that name after a `.`.",
+            '`$s[1][1]`: an index after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[1]`.',
+            "`$s[1][2]`: an index after a pick of `s` passes into it only when it holds one component, and option 1 holds several. The component it would select has the same name in each: write `$s[1].m`.",
+            '`$s[1][3]`: an index after a pick of `s` passes into it only when it holds one component, and option 1 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[3]`.',
+        ]);
+        // in a group, the warning when the document runs
+        const inGroup = await shownAndReported(
+            `<group name="g"><math>a</math><math name="m">b</math></group><p name="p">$g[1] $g[2] $g[3]</p>`,
+        );
+        expect(inGroup.warnings.map((w) => w.message).sort()).eqls([
+            '`$g[1]` names nothing: the `<group>` holds 2 components, and an index passes into a group only when it holds one. An index never selects a child. To refer to the child, give it a name, such as `name="x"`, and write `$g.x`.',
+            "`$g[2]` names nothing: the `<group>` holds 2 components, and an index passes into a group only when it holds one. An index never selects a child. To refer to the child, write `$g.m`.",
+            "`$g[3]` names nothing: the `<group>` holds 2 components, and an index passes into a group only when it holds one. An index never selects a child. To refer to a child, give it a name and write that name after a `.`.",
         ]);
     });
 
@@ -910,13 +931,16 @@ describe("An index selects instances, not children @group4", async () => {
 describe("An index after a group names nothing (#2517) @group4", async () => {
     it("names nothing after every form of a group", async () => {
         // The forms in #2517, other than those above
-        // `atLoad`: the references also warned of at load because the case
-        // holds one component and the `<else>` several (`doenet-w0191`,
-        // #2520 item 1)
+        // `atLoad`: the references warned of at load instead, because the
+        // options or cases after which they come hold several
+        // (`doenet-w0191`, #2520 item 1, Doenet/DoenetML#2643 item 4); of
+        // those, `shownNow` are where only some do, so what is shown now is
+        // an info
         const cases: {
             body: string;
             references: string[];
             atLoad?: string[];
+            shownNow?: string[];
         }[] = [
             {
                 // an extend and a `copy` of a group the author wrote
@@ -927,13 +951,15 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
                 // a select with several picks
                 body: `<select name="s" numToSelect="2"><option><math>a</math><math>b</math></option><option><math>c</math><math>d</math></option></select><p name="p">[$s[1][2]] [$s[2][1]]</p>`,
                 references: ["$s[1][2]", "$s[2][1]"],
+                atLoad: ["$s[1][2]", "$s[2][1]"],
             },
             {
                 // the `<else>` of a `<conditionalContent>`, and its form
                 // with a single condition
                 body: `<conditionalContent name="cc"><case condition="false"><math>a</math></case><else><math>b</math><math>c</math></else></conditionalContent><conditionalContent name="cc2" condition="true"><math>d</math><math>e</math></conditionalContent><p name="p">[$cc[1][2]] [$cc2[1][1]]</p>`,
                 references: ["$cc[1][2]", "$cc2[1][1]"],
-                atLoad: ["$cc[1][2]"],
+                atLoad: ["$cc[1][2]", "$cc2[1][1]"],
+                shownNow: ["$cc[1][2]"],
             },
             {
                 // an extend of an iteration holding more than one component
@@ -961,11 +987,15 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
             },
         ];
 
-        for (const { body, references, atLoad = [] } of cases) {
+        for (const { body, references, atLoad = [], shownNow = [] } of cases) {
             const { text, warnings, errors, infos } =
                 await shownAndReported(body);
             expect(text, body).eq(references.map(() => "[＿]").join(" "));
-            expect([...errors, ...infos], body).eqls([]);
+            expect(errors, body).eqls([]);
+            expect(
+                infos.map((w) => [w.code, w.args.reference]),
+                body,
+            ).eqls(shownNow.map((r) => ["doenet-w0188", r]));
             expect(
                 warnings
                     .filter((w) => w.code === "doenet-w0191")
@@ -977,7 +1007,11 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
                     .filter((w) => w.code !== "doenet-w0191")
                     .map((w) => [w.code, w.args.reference]),
                 body,
-            ).eqls(references.map((r) => ["doenet-w0188", r]));
+            ).eqls(
+                references
+                    .filter((r) => !atLoad.includes(r))
+                    .map((r) => ["doenet-w0188", r]),
+            );
         }
     });
 
@@ -1075,11 +1109,13 @@ describe("An index after a group names nothing (#2517) @group4", async () => {
     });
 
     it("still selects the items of a shuffle or a sort", async () => {
-        // A shuffle or a sort of groups arranges what the groups hold, so
-        // its items are the components in them, and an index after one is
-        // an index into that component (`doenet-w0100` for a math)
+        // A group of one component in a sort stands for that component
+        // (COLL-4), so its items are the components, and an index after one
+        // is an index into that component (`doenet-w0100` for a math). (A
+        // sort of a group of several is an error, and a shuffle moves one as
+        // a unit.)
         const { text, warnings } = await shownAndReported(
-            `<sort name="sh"><group><math>a</math><math>b</math></group><group><math>c</math></group></sort><p name="p">[$sh[2]] [$sh[3]] [$sh[1][2]]</p>`,
+            `<sort name="sh"><group><math>a</math></group><group><math>b</math></group><group><math>c</math></group></sort><p name="p">[$sh[2]] [$sh[3]] [$sh[1][2]]</p>`,
         );
         expect(text).eq("[b] [c] [＿]");
         expect(warnings.map((w) => w.code)).eqls(["doenet-w0100"]);

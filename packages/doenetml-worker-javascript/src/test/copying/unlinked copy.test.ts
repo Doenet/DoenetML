@@ -2043,7 +2043,7 @@ describe("Unlinked Copying Tests @group4", async () => {
         // Instead, the unlinked copy needs to copy the state variables values directly
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" xmax="5">
+<graph name="g" xMax="5">
     <point name="A" styleNumber="2" labelIsName labelPosition="upperLeft">(1,2)</point>
 </graph>
 <graph extend="$g" name="g2" />
@@ -2061,7 +2061,7 @@ describe("Unlinked Copying Tests @group4", async () => {
     it("unlinked copy of linked copy copies state variables from uncopied children and attributes, group inside", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" xmax="5">
+<graph name="g" xMax="5">
     <group>
         <point name="A" styleNumber="2" labelIsName labelPosition="upperLeft">(1,2)</point>
     </group>
@@ -2082,7 +2082,7 @@ describe("Unlinked Copying Tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <group name="gr">
-        <graph name="g" xmax="5">
+        <graph name="g" xMax="5">
             <point name="A" styleNumber="2" labelIsName labelPosition="upperLeft">(1,2)</point>
         </graph>
     </group>
@@ -2102,11 +2102,11 @@ describe("Unlinked Copying Tests @group4", async () => {
     it("unlinked copy of linked copy, overwrite attributes of linked copy", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" xmax="5">
+<graph name="g" xMax="5">
     <point name="A" styleNumber="2">(1,2)</point>
     <point name="B">(3,4)</point>
 </graph>
-<graph extend="$g" name="g2" styleNumber="3" xmin="-3" xmax="7" />
+<graph extend="$g" name="g2" styleNumber="3" xMin="-3" xMax="7" />
 <graph copy="$g2" name="g3" />
   `,
         });
@@ -2120,13 +2120,13 @@ describe("Unlinked Copying Tests @group4", async () => {
     it("unlinked copy of linked copy, overwrite attributes of linked copy, group inside", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph name="g" xmax="5">
+    <graph name="g" xMax="5">
         <group>
             <point name="A" styleNumber="2">(1,2)</point>
             <point name="B">(3,4)</point>
         </group>
     </graph>
-    <graph extend="$g" name="g2" styleNumber="3" xmin="-3" xmax="7" />
+    <graph extend="$g" name="g2" styleNumber="3" xMin="-3" xMax="7" />
     <graph copy="$g2" name="g3" />
   `,
         });
@@ -2141,12 +2141,12 @@ describe("Unlinked Copying Tests @group4", async () => {
     it("unlinked copy of linked copy, overwrite attributes of unlinked copy", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph name="g" xmax="5">
+    <graph name="g" xMax="5">
         <point name="A" styleNumber="2">(1,2)</point>
         <point name="B">(3,4)</point>
     </graph>
-    <graph extend="$g" name="g2" xmin="-3" />
-    <graph copy="$g2" name="g3" styleNumber="4" xmin="-5" xmax="7" ymax="8" />
+    <graph extend="$g" name="g2" xMin="-3" />
+    <graph copy="$g2" name="g3" styleNumber="4" xMin="-5" xMax="7" yMax="8" />
   `,
         });
 
@@ -2159,14 +2159,14 @@ describe("Unlinked Copying Tests @group4", async () => {
     it("unlinked copy of linked copy, overwrite attributes of unlinked copy, group inside", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph name="g" xmax="5">
+    <graph name="g" xMax="5">
         <group>
             <point name="A" styleNumber="2">(1,2)</point>
             <point name="B">(3,4)</point>
         </group>
     </graph>
-    <graph extend="$g" name="g2" xmin="-3" />
-    <graph copy="$g2" name="g3" styleNumber="4" xmin="-5" xmax="7" ymax="8" />
+    <graph extend="$g" name="g2" xMin="-3" />
+    <graph copy="$g2" name="g3" styleNumber="4" xMin="-5" xMax="7" yMax="8" />
   `,
         });
 

@@ -14,7 +14,10 @@ export function entityStringToRawString(entityStr: string): string {
                 entityStr.charAt(2) === "x"
                     ? parseInt(entityStr.slice(3, entityStr.length - 1), 16)
                     : parseInt(entityStr.slice(2, entityStr.length - 1), 10);
-            return String.fromCharCode(val);
+            // `fromCodePoint`, not `fromCharCode`, so a character past
+            // U+FFFF (`&#x1F600;`) is one character, and an invalid one
+            // throws and is left as written.
+            return String.fromCodePoint(val);
         }
         const trimmedEntityString = entityStr.slice(1, entityStr.length - 1);
         if (trimmedEntityString in ENTITY_MAP) {

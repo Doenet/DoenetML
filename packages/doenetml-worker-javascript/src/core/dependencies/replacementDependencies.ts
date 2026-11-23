@@ -8,6 +8,21 @@ import { Dependency } from "./Dependency";
 import { recursivelyReplaceCompositesWithReplacements } from "../CompositeExpander";
 import { isWrapperOfSeveral } from "../../utils/wrappers";
 
+/**
+ * The collections built as composites, and a `<conditionalContent>`, which
+ * have properties of their own (`numItems` and their settings, COLL-2) that a
+ * `<group>` holding only one of them reads of it (COLL-3).
+ */
+const COMPOSITES_WITH_OWN_PROPERTIES = new Set([
+    "repeat",
+    "repeatForSequence",
+    "select",
+    "collect",
+    "sort",
+    "shuffle",
+    "conditionalContent",
+]);
+
 export class ReplacementDependency extends Dependency {
     static dependencyType = "replacement";
 
@@ -58,8 +73,31 @@ export class ReplacementDependency extends Dependency {
         // not passed into it (D41 decision 3).
         this.stopAtWrappersOfSeveral = this.definition.stopAtWrappersOfSeveral;
 
+        // The composite is a collection whose items are sought, as a
+        // repeat's `for` (COLL-5): a wrapper holding several among its
+        // replacements, at any depth, is one item and is returned itself,
+        // though the composite, which is no wrapper of the author's, is
+        // still recursed into.
+        this.wrappersOfSeveralAsItems =
+            this.definition.wrappersOfSeveralAsItems;
+
         this.includeWithheldReplacements =
             this.definition.includeWithheldReplacements;
+
+        // A property after a `<group>` holding only a collection, or only a
+        // reference to one, at any depth (`$g.numItems` of `<group
+        // name="g">$r</group>`): when it is the collection's own, it is read
+        // of the collection, as `$r.numItems` is (COLL-2, COLL-3), not passed
+        // into its items.
+        this.ownPropertyThroughGroups =
+            this.definition.ownPropertyThroughGroups;
+
+        // A `<group>` holding one component stands for it (COLL-3), at any
+        // depth: replacements that are one group, or one reference to a
+        // group (`$a`), are replaced by what it holds, so that a group of
+        // one holding a group of one holding `$r` gives `$r` (or
+        // `<repeat>` written there).
+        this.throughGroupsOfOne = this.definition.throughGroupsOfOne;
 
         this.expandReplacements = true;
     }
@@ -123,8 +161,10 @@ export class ReplacementDependency extends Dependency {
         }
 
         if (this.stopIfHaveProp) {
+            // matched without regard to case, as a property of any
+            // component is (`$r.numitems`, `$s.Fixed`)
             const checkForPublic =
-                this.dependencyHandler.core.matchPublicStateVariables({
+                this.dependencyHandler.core.publicAliasSubstitutions({
                     stateVariables: [this.stopIfHaveProp],
                     componentClass: composite.constructor,
                 })[0];
@@ -194,6 +234,65 @@ export class ReplacementDependency extends Dependency {
             );
         }
 
+        if (this.ownPropertyThroughGroups) {
+            const stoodFor = this.collectionStoodFor(replacements);
+            replacements = stoodFor.replacements;
+            this.compositesFound.push(...stoodFor.searched);
+        }
+
+        if (this.throughGroupsOfOne) {
+            const nonBlank = (components: any[]) =>
+                components.filter(
+                    (x: any) => typeof x !== "string" || x.trim() !== "",
+                );
+            const shownReplacements = (component: any) => {
+                let shown = component.replacements ?? [];
+                if (
+                    !this.includeWithheldReplacements &&
+                    component.replacementsToWithhold > 0
+                ) {
+                    shown = shown.slice(0, -component.replacementsToWithhold);
+                }
+                return shown;
+            };
+            // A reference to a group of one (`$a`) gives a copy of what the
+            // group holds: pass through a reference that gives one group or
+            // one reference, and stop at the reference to the collection.
+            const passesThrough = (component: any) => {
+                const content = nonBlank(shownReplacements(component));
+                return (
+                    content.length === 1 &&
+                    ["group", "_copy"].includes(content[0].componentType)
+                );
+            };
+            let content = nonBlank(replacements);
+            while (
+                content.length === 1 &&
+                (content[0].componentType === "group" ||
+                    (content[0].componentType === "_copy" &&
+                        (!content[0].isExpanded || passesThrough(content[0]))))
+            ) {
+                const groupOrReference = content[0];
+                if (!groupOrReference.isExpanded) {
+                    const ready =
+                        groupOrReference.state.readyToExpandWhenResolved
+                            .isResolved;
+                    await this.blockUntilExpanded(
+                        ready ? [groupOrReference.componentIdx] : [],
+                        ready ? [] : [groupOrReference.componentIdx],
+                    );
+                    return {
+                        success: false,
+                        downstreamComponentIndices: [],
+                        downstreamComponentTypes: [],
+                    };
+                }
+                this.compositesFound.push(groupOrReference.componentIdx);
+                replacements = shownReplacements(groupOrReference);
+                content = nonBlank(replacements);
+            }
+        }
+
         if (this.stopAtWrappersOfSeveral && isWrapperOfSeveral(composite)) {
             replacements = [composite];
         } else if (this.recursive) {
@@ -204,48 +303,19 @@ export class ReplacementDependency extends Dependency {
                 stopAtListComposites: this.stopAtListComposites,
                 includeWithheldReplacements: this.includeWithheldReplacements,
                 stopIfHaveProp: this.stopIfHaveProp,
-                stopAtWrappersOfSeveral: this.stopAtWrappersOfSeveral,
+                stopAtWrappersOfSeveral:
+                    this.stopAtWrappersOfSeveral ||
+                    this.wrappersOfSeveralAsItems,
             });
 
             if (
                 result.unexpandedCompositesNotReady.length > 0 ||
                 result.unexpandedCompositesReady.length > 0
             ) {
-                for (let varName of this.upstreamVariableNames) {
-                    await this.dependencyHandler.addBlocker({
-                        blockerComponentIdx: this.upstreamComponentIdx,
-                        blockerType: "recalculateDownstreamComponents",
-                        blockerStateVariable: varName,
-                        blockerDependency: this.dependencyName,
-                        componentIdxBlocked: this.upstreamComponentIdx,
-                        typeBlocked: "stateVariable",
-                        stateVariableBlocked: varName,
-                    });
-
-                    for (let compositeIdx of [
-                        ...result.unexpandedCompositesReady,
-                        ...result.unexpandedCompositesNotReady,
-                    ]) {
-                        await this.dependencyHandler.addBlocker({
-                            blockerComponentIdx: compositeIdx,
-                            blockerType: "expandComposite",
-                            componentIdxBlocked: this.upstreamComponentIdx,
-                            typeBlocked: "recalculateDownstreamComponents",
-                            stateVariableBlocked: varName,
-                            dependencyBlocked: this.dependencyName,
-                        });
-                    }
-                }
-
-                for (let compositeIdx of result.unexpandedCompositesNotReady) {
-                    await this.dependencyHandler.addBlocker({
-                        blockerComponentIdx: compositeIdx,
-                        blockerType: "stateVariable",
-                        blockerStateVariable: "readyToExpandWhenResolved",
-                        componentIdxBlocked: compositeIdx,
-                        typeBlocked: "expandComposite",
-                    });
-                }
+                await this.blockUntilExpanded(
+                    result.unexpandedCompositesReady,
+                    result.unexpandedCompositesNotReady,
+                );
 
                 return {
                     success: false,
@@ -357,6 +427,110 @@ export class ReplacementDependency extends Dependency {
         // }
 
         return result;
+    }
+
+    /**
+     * Block this dependency until the composites given are expanded: those
+     * `ready` to expand, and those `notReady`, which wait for
+     * `readyToExpandWhenResolved`.
+     */
+    async blockUntilExpanded(ready: number[], notReady: number[]) {
+        for (let varName of this.upstreamVariableNames) {
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: this.upstreamComponentIdx,
+                blockerType: "recalculateDownstreamComponents",
+                blockerStateVariable: varName,
+                blockerDependency: this.dependencyName,
+                componentIdxBlocked: this.upstreamComponentIdx,
+                typeBlocked: "stateVariable",
+                stateVariableBlocked: varName,
+            });
+
+            for (let compositeIdx of [...ready, ...notReady]) {
+                await this.dependencyHandler.addBlocker({
+                    blockerComponentIdx: compositeIdx,
+                    blockerType: "expandComposite",
+                    componentIdxBlocked: this.upstreamComponentIdx,
+                    typeBlocked: "recalculateDownstreamComponents",
+                    stateVariableBlocked: varName,
+                    dependencyBlocked: this.dependencyName,
+                });
+            }
+        }
+
+        for (let compositeIdx of notReady) {
+            await this.dependencyHandler.addBlocker({
+                blockerComponentIdx: compositeIdx,
+                blockerType: "stateVariable",
+                blockerStateVariable: "readyToExpandWhenResolved",
+                componentIdxBlocked: compositeIdx,
+                typeBlocked: "expandComposite",
+            });
+        }
+    }
+
+    /**
+     * `replacements`, the replacements of a `<group>` (or of a reference to
+     * one), or, when the group holds only a collection, or only a reference
+     * to one, at any depth, and that collection has the property
+     * `ownPropertyThroughGroups` of its own (`$g.numItems` of `<group
+     * name="g">$r</group>`), that collection alone, so that the property is
+     * read of it, as after the collection itself (COLL-2, COLL-3).
+     * `searched` are the composites passed through, whose replacements
+     * changing changes what is found.
+     */
+    collectionStoodFor(replacements: any[]) {
+        const core = this.dependencyHandler.core;
+        const components = this.dependencyHandler._components;
+        const searched: number[] = [];
+        let current = replacements;
+        while (true) {
+            const content = current.filter(
+                (x: any) => typeof x !== "string" || x.trim() !== "",
+            );
+            const [only] = content;
+            if (
+                content.length !== 1 ||
+                typeof only !== "object" ||
+                !(
+                    only.componentType === "group" ||
+                    COMPOSITES_WITH_OWN_PROPERTIES.has(only.componentType) ||
+                    (only.componentType === "_copy" &&
+                        only.state?.unresolvedPath?.value == null)
+                ) ||
+                !only.isExpanded
+            ) {
+                return { replacements, searched };
+            }
+            const standsFor =
+                only.componentType === "_copy"
+                    ? components[
+                          only.state?.extendedComponent?.value?.componentIdx
+                      ]
+                    : only;
+            if (COMPOSITES_WITH_OWN_PROPERTIES.has(standsFor?.componentType)) {
+                const ownProperty = !core
+                    .matchPublicStateVariables({
+                        stateVariables: [this.ownPropertyThroughGroups],
+                        componentClass: standsFor.constructor,
+                    })[0]
+                    .startsWith("__not_public_");
+                return ownProperty
+                    ? {
+                          replacements: [standsFor],
+                          searched: [...searched, only.componentIdx],
+                      }
+                    : { replacements, searched };
+            }
+            searched.push(only.componentIdx);
+            current = only.replacements ?? [];
+            if (
+                only.replacementsToWithhold > 0 &&
+                !this.includeWithheldReplacements
+            ) {
+                current = current.slice(0, -only.replacementsToWithhold);
+            }
+        }
     }
 
     deleteFromUpdateTriggers() {

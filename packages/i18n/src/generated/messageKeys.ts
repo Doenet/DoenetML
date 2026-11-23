@@ -335,6 +335,12 @@ export type MessageKey =
     | "invalid-variable-value"
     | "variant-index-must-be-number"
     | "variant-index-must-be-integer"
+    | "variant-name-unknown"
+    | "variant-control-reference"
+    | "variant-name-repeated"
+    | "variants-all-excluded"
+    | "variant-control-made-from"
+    | "reference-to-variant-control"
     | "side-by-side-absolute-widths"
     | "side-by-side-absolute-margins"
     | "side-by-side-no-block-child"
@@ -416,6 +422,7 @@ export type MessageKey =
     | "reference-branches-hold-several"
     | "reference-property-partly-held"
     | "reference-property-after-several"
+    | "reference-name-after-collection"
     | "component-action-unavailable"
     | "action-target-not-shown"
     | "data-frame-inconsistent-row-lengths"
@@ -489,15 +496,26 @@ export type MessageKey =
     | "extend-attribute-ignored"
     | "extend-children-ignored"
     | "copy-children-ignored"
+    | "action-target-not-one-value"
+    | "latex-not-read-as-math"
+    | "content-unused-attributes-give-value"
+    | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
+    | "attribute-name-case"
+    | "attribute-written-twice"
+    | "boolean-number-mix"
+    | "text-ordered-against-number"
     | "list-brackets-unmatched"
     | "list-reference-joins-entry"
     | "extend-attribute-changes-content"
     | "extend-children-change-content"
     | "extend-choice-input-choices"
     | "extend-choice-input-shuffle-order"
+    | "extend-answer-grading-attribute"
+    | "extend-answer-children"
     | "extend-module-attribute"
     | "extend-part-of-choosing-tag"
+    | "extend-award-or-choice"
     | "type-change-unrelated"
     | "type-change-input-from-value"
     | "type-change-from-container"
@@ -507,8 +525,10 @@ export type MessageKey =
     | "type-change-composite-type-unknown"
     | "type-change-index-names-nothing"
     | "type-change-composite-holds-nothing"
+    | "type-change-property-not-one-value"
     | "type-change-value-not-convertible"
     | "attribute-empty"
+    | "attribute-not-a-number"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -623,8 +643,19 @@ export type MessageKey =
     | "copy-with-state-changes-choice"
     | "copy-with-state-adds-options"
     | "choice-parameter-reader-changeable"
+    | "choice-not-always-possible"
+    | "choice-parameter-not-analysable"
+    | "choice-parameter-not-a-number"
     | "copy-with-state-of-uri"
     | "copy-with-state-attribute-reaches-choice"
+    | "reorder-items-of-several-types"
+    | "sort-needs-sort-by-prop"
+    | "attribute-written-as-reference"
+    | "sort-by-prop-names-nothing"
+    | "answer-responses-of-several-types"
+    | "property-type-undecided"
+    | "repeat-for-items-of-several-types"
+    | "sort-item-of-several"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -1026,6 +1057,12 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "invalid-variable-value",
     "variant-index-must-be-number",
     "variant-index-must-be-integer",
+    "variant-name-unknown",
+    "variant-control-reference",
+    "variant-name-repeated",
+    "variants-all-excluded",
+    "variant-control-made-from",
+    "reference-to-variant-control",
     "side-by-side-absolute-widths",
     "side-by-side-absolute-margins",
     "side-by-side-no-block-child",
@@ -1107,6 +1144,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-branches-hold-several",
     "reference-property-partly-held",
     "reference-property-after-several",
+    "reference-name-after-collection",
     "component-action-unavailable",
     "action-target-not-shown",
     "data-frame-inconsistent-row-lengths",
@@ -1180,15 +1218,26 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "extend-attribute-ignored",
     "extend-children-ignored",
     "copy-children-ignored",
+    "action-target-not-one-value",
+    "latex-not-read-as-math",
+    "content-unused-attributes-give-value",
+    "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
+    "attribute-name-case",
+    "attribute-written-twice",
+    "boolean-number-mix",
+    "text-ordered-against-number",
     "list-brackets-unmatched",
     "list-reference-joins-entry",
     "extend-attribute-changes-content",
     "extend-children-change-content",
     "extend-choice-input-choices",
     "extend-choice-input-shuffle-order",
+    "extend-answer-grading-attribute",
+    "extend-answer-children",
     "extend-module-attribute",
     "extend-part-of-choosing-tag",
+    "extend-award-or-choice",
     "type-change-unrelated",
     "type-change-input-from-value",
     "type-change-from-container",
@@ -1198,8 +1247,10 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "type-change-composite-type-unknown",
     "type-change-index-names-nothing",
     "type-change-composite-holds-nothing",
+    "type-change-property-not-one-value",
     "type-change-value-not-convertible",
     "attribute-empty",
+    "attribute-not-a-number",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",
@@ -1314,8 +1365,19 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-with-state-changes-choice",
     "copy-with-state-adds-options",
     "choice-parameter-reader-changeable",
+    "choice-not-always-possible",
+    "choice-parameter-not-analysable",
+    "choice-parameter-not-a-number",
     "copy-with-state-of-uri",
     "copy-with-state-attribute-reaches-choice",
+    "reorder-items-of-several-types",
+    "sort-needs-sort-by-prop",
+    "attribute-written-as-reference",
+    "sort-by-prop-names-nothing",
+    "answer-responses-of-several-types",
+    "property-type-undecided",
+    "repeat-for-items-of-several-types",
+    "sort-item-of-several",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

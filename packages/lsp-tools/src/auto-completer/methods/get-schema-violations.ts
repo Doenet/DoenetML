@@ -9,6 +9,11 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
+import {
+    ATTRIBUTES_OF_A_COPY,
+    ATTRIBUTES_OF_EVERY_TAG,
+    attributeNameCaseCorrections,
+} from "@doenet/parser/attribute-name-case";
 import { AutoCompleter } from "..";
 import { codedLspDiagnostic } from "../../coded-lsp-diagnostic";
 import { listReferenceHints } from "./list-reference-hints";
@@ -87,11 +92,27 @@ export async function getSchemaViolations(
             const name = this.normalizeElementName(node.name);
 
             if (name === "UNKNOWN_NAME") {
-                // No further checking for unknown elements.
+                // No further checking for unknown elements. Tag names are
+                // matched exactly (NAME-0, D51), so `<MATH>` is one too, as
+                // the core reports it (`doenet-e0002`), suggesting the tag it
+                // differs from only in case, as the core does. Its children
+                // and attributes are not checked against `<math>`'s.
+                const suggestion = this.elementNameDifferingOnlyInCase(
+                    node.name,
+                );
                 return codedLspDiagnostic({
                     code: "doenet-w0112",
-                    message: `Element \`<${node.name}>\` is not a recognized Doenet element.`,
-                    args: { tag: node.name },
+                    message:
+                        `Element \`<${node.name}>\` is not a recognized Doenet element.` +
+                        (suggestion === undefined
+                            ? ""
+                            : ` Did you mean \`<${suggestion}>\`?`),
+                    args: {
+                        tag: node.name,
+                        suggestion: suggestion ?? "",
+                        hasSuggestion:
+                            suggestion === undefined ? "false" : "true",
+                    },
                     range: elementTagRange(node),
                     severity: DiagnosticSeverity.Warning,
                 });
@@ -156,11 +177,77 @@ export async function getSchemaViolations(
             // For `<module copy="$x" .../>` (or `extend=`) sites, pick up the
             // per-instance allowlist of names declared by `$x`'s
             // `<moduleAttributes>` block (issue #1154).  The allowlist is keyed
-            // lowercased; `null` here means "no augmentation applies", in
-            // which case the canonical schema decides as today and unknown
-            // attributes remain a (correct) warning.
+            // by the declared names, as declared; `null` here means "no
+            // augmentation applies", in which case the canonical schema
+            // decides as today and unknown attributes remain a (correct)
+            // warning.
             const perInstanceAllowlist =
                 this._moduleInstanceAttributeAllowlist.get(node) ?? null;
+
+            // Attribute names are matched exactly (NAME-0, D51), but for one
+            // release one written in another case than the element's is
+            // still applied, with a warning that it will be an error
+            // (`doenet-w0197`): the parser renames it (`dast-normalize/
+            // attribute-name-case.ts`) before anything reads it. The DAST
+            // checked here is not normalized, so the rename has not run and
+            // the parser's warning is not among `extractDastErrors`; this
+            // reports it, in the parser's words and with its arguments and
+            // range, so that the core's copy (forwarded as an additional
+            // diagnostic) folds into it in `dedupeLspDiagnostics`. The
+            // attribute is then checked under the element's spelling, as
+            // the core applies it, rather than reported unknown
+            // (`doenet-w0115`). Same rule, `attributeNameCaseCorrections`.
+            const written = Object.keys(node.attributes);
+            const effectiveEntry = this._resolveEffectiveByName(
+                name,
+                parent.type === "element" ? parent.name : undefined,
+            );
+            const madeFromAnother = ATTRIBUTES_OF_EVERY_TAG.some((every) =>
+                written.some((w) => w.toLowerCase() === every.toLowerCase()),
+            );
+            const caseCorrections = new Map(
+                attributeNameCaseCorrections({
+                    written,
+                    known: [
+                        ...(effectiveEntry?.attributes ?? []).map(
+                            (a) => a.name,
+                        ),
+                        ...ATTRIBUTES_OF_EVERY_TAG,
+                        ...(madeFromAnother ? ATTRIBUTES_OF_A_COPY : []),
+                    ],
+                }).map(({ written, corrected }) => [written, corrected]),
+            );
+            // On a `<module copy="$m">`, an attribute its definition declares
+            // (`<moduleAttributes>`) written in another case sets it, with the
+            // same warning, reported by the core (`moduleAttributesWritten`),
+            // among the names left after the rename above.
+            const moduleCaseCorrections = new Map(
+                perInstanceAllowlist
+                    ? attributeNameCaseCorrections({
+                          written: written.map(
+                              (w) => caseCorrections.get(w) ?? w,
+                          ),
+                          known: perInstanceAllowlist.keys(),
+                      }).map(({ written, corrected }) => [written, corrected])
+                    : [],
+            );
+            /** The parser's (and the core's) `doenet-w0197` for `attr`. */
+            const caseWarning = (
+                attr: DastAttribute,
+                corrected: string,
+                componentType: string,
+            ) =>
+                codedLspDiagnostic({
+                    code: "doenet-w0197",
+                    message: `Attribute names are case-sensitive: write \`${corrected}\`, not \`${attr.name}\`, on a \`<${componentType}>\`. It is applied for now, but will be an error in a later release.`,
+                    args: {
+                        attribute: attr.name,
+                        suggestion: corrected,
+                        componentType,
+                    },
+                    range: attributeRange(attr),
+                    severity: DiagnosticSeverity.Warning,
+                });
 
             // Unquoted attribute values (`<math name=foo>`) are detected
             // and emitted as a single DAST error by the parser layer
@@ -168,7 +255,32 @@ export async function getSchemaViolations(
             // `node.attributes` there, so the loop below never sees them
             // and no further suppression is needed here.
             for (const attr of Object.values(node.attributes)) {
-                const attrName = this.normalizeAttributeName(attr.name);
+                // Author-declared module attribute (e.g. `color` on a
+                // `<module copy="$drawBalloon" color="1" />` where the target
+                // declared `<number name="color"/>`).  Bypass both the
+                // UNKNOWN_NAME branch (the name may not exist in the global
+                // schema at all — `color` doesn't) and the canonical
+                // attribute check.  Names-only scope: no value validation.
+                // Matched exactly; in another case, `doenet-w0197`.
+                if (
+                    perInstanceAllowlist &&
+                    perInstanceAllowlist.has(attr.name)
+                ) {
+                    continue;
+                }
+                const moduleCorrected = moduleCaseCorrections.get(attr.name);
+                if (moduleCorrected !== undefined) {
+                    ret.push(caseWarning(attr, moduleCorrected, "module"));
+                    continue;
+                }
+
+                const corrected = caseCorrections.get(attr.name);
+                if (corrected !== undefined) {
+                    ret.push(caseWarning(attr, corrected, node.name));
+                }
+                const attrName = this.normalizeAttributeName(
+                    corrected ?? attr.name,
+                );
 
                 // Make sure that `name` attributes start with a letter.
                 if (attrName === "name") {
@@ -195,19 +307,6 @@ export async function getSchemaViolations(
                     }
                 }
 
-                // Author-declared module attribute (e.g. `color` on a
-                // `<module copy="$drawBalloon" color="1" />` where the target
-                // declared `<number name="color"/>`).  Bypass both the
-                // UNKNOWN_NAME branch (the name may not exist in the global
-                // schema at all — `color` doesn't) and the canonical
-                // attribute check.  Names-only scope: no value validation.
-                if (
-                    perInstanceAllowlist &&
-                    perInstanceAllowlist.has(attr.name.toLowerCase())
-                ) {
-                    continue;
-                }
-
                 if (
                     attrName === "UNKNOWN_NAME" ||
                     !this.isAllowedAttribute(
@@ -217,12 +316,9 @@ export async function getSchemaViolations(
                         perInstanceAllowlist ?? undefined,
                     )
                 ) {
-                    // A name no element anywhere declares normalizes to
-                    // `UNKNOWN_NAME`, so the author's own spelling is what
-                    // gets quoted back; one that exists on some other element
-                    // is quoted in the schema's casing.
-                    const attribute =
-                        attrName === "UNKNOWN_NAME" ? attr.name : attrName;
+                    // Quoted as written: names are matched exactly, so
+                    // this is the author's own spelling either way.
+                    const attribute = attr.name;
                     ret.push(
                         codedLspDiagnostic({
                             code: "doenet-w0115",

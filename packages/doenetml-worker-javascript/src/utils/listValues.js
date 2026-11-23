@@ -3,6 +3,7 @@ import { textToAst } from "./math";
 import { codedDiagnostic } from "./diagnostics";
 import { splitListItems } from "@doenet/parser/list-separation";
 import { returnGroupIntoListEntriesOfComponentType } from "../components/commonsugar/lists";
+import { kindOfComponentType } from "./componentKinds";
 
 /**
  * Shared machinery for components that treat their children as a list of
@@ -125,6 +126,20 @@ export function extractComparableValue({
         };
     }
 
+    // An input stands for what it holds (D46): its value, compared as a
+    // component of that type is.
+    const inputValue = valueOfInput(component, componentInfoObjects);
+    if (inputValue !== undefined) {
+        return extractComparableValue({
+            component: {
+                componentIdx: component.componentIdx,
+                componentType: inputValue.componentType,
+                stateValues: { value: inputValue.value },
+            },
+            componentInfoObjects,
+        });
+    }
+
     // Points and vectors are compared by one of their coordinates. A vector
     // with `sortVectorsBy="tail"` uses its tail coordinate; everything else
     // uses the displacement coordinate, which for a point is its position.
@@ -193,6 +208,39 @@ export function compareExtractedValues(a, b, numeric) {
 }
 
 /**
+ * Whether `value` has no value to be placed by: a blank (`missing`, a
+ * reference that names nothing, VAL-5) or, compared by number, a value that
+ * is not one (`NaN`, as a `<number>` whose content does not parse is).
+ */
+function isBlankForSorting(value, numeric) {
+    return (
+        value.missing === true ||
+        (numeric && Number.isNaN(value.numericalValue))
+    );
+}
+
+/**
+ * The order `<sort>` and `<sortIndices>` put two extracted values in: as
+ * `compareExtractedValues` orders them, except that a value with nothing to
+ * be placed by (`isBlankForSorting`) goes after every other, and blanks keep
+ * the order of the children among themselves (the sort is stable). So a
+ * blank is placed last whatever the type, and however it got there: a
+ * reference that names nothing (`<sort>$nothing 3 1</sort>` is `1, 3, ＿`),
+ * a blank entry of a list, a tag of something missing, or a number that is
+ * `NaN`. Comparing `NaN` by subtraction instead gave `NaN`, which a sort
+ * reads as "equal" to everything, so a list holding one was left in no
+ * particular order (#2525 item 3).
+ */
+export function compareForSorting(a, b, numeric) {
+    const aBlank = isBlankForSorting(a, numeric);
+    const bBlank = isBlankForSorting(b, numeric);
+    if (aBlank || bBlank) {
+        return aBlank === bBlank ? 0 : aBlank ? 1 : -1;
+    }
+    return compareExtractedValues(a, b, numeric);
+}
+
+/**
  * State variable definitions shared by every component that reads its children
  * as a list of comparable values.
  *
@@ -212,10 +260,17 @@ export function compareExtractedValues(a, b, numeric) {
  * index-returning and counting operators, which declare none of those
  * attributes, pass `false` and read points and vectors by their first
  * displacement coordinate.
+ *
+ * `keepMissing` keeps a child that is missing (a reference that names
+ * nothing, `_missing`, or a tag of something missing) and a blank entry of
+ * a list among them, as a value marked `missing`, rather than leaving it
+ * out: `<sort>` and `<sortIndices>` place it last (`compareForSorting`,
+ * VAL-5).
  */
 export function returnListValueStateVariableDefinitions({
     componentName,
     supportProps = false,
+    keepMissing = false,
 }) {
     let stateVariableDefinitions = {};
 
@@ -328,6 +383,15 @@ export function returnListValueStateVariableDefinitions({
                         componentIdx: item.componentIdx,
                         variableName: item.valuesVariable,
                     };
+                    if (keepMissing) {
+                        // which of its entries are blank (D40)
+                        dependencies[`listMissing${item.componentIdx}`] = {
+                            dependencyType: "stateVariable",
+                            componentIdx: item.componentIdx,
+                            variableName: "entriesMissing",
+                            variablesOptional: true,
+                        };
+                    }
                 }
             }
 
@@ -348,7 +412,6 @@ export function returnListValueStateVariableDefinitions({
                         componentIdx: cIdx,
                         variableName: stateValues.propName,
                         variablesOptional: true,
-                        caseInsensitiveVariableMatch: true,
                         publicStateVariablesOnly: true,
                         returnAsComponentObject: true,
                     };
@@ -383,8 +446,13 @@ export function returnListValueStateVariableDefinitions({
                         componentIdx: cIdx,
                         variableNames: [
                             "value",
+                            // a `<choiceInput>`'s value (D46)
+                            "selectedValues",
                             `x${sortByComponent}`,
                             `tailX${sortByComponent}`,
+                            ...(keepMissing
+                                ? ["valueMissing", "contentMissing"]
+                                : []),
                         ],
                         variablesOptional: true,
                     };
@@ -448,6 +516,26 @@ export function returnListValueStateVariableDefinitions({
                 if (!component) {
                     continue;
                 }
+                if (
+                    keepMissing &&
+                    !dependencyValues.propName &&
+                    valueIsMissing(item, component, dependencyValues)
+                ) {
+                    // A blank, which is kept, has no type to make the list
+                    // compare as text, and is placed last
+                    // (`compareForSorting`).
+                    listValues.push({
+                        componentIdx: component.componentIdx,
+                        numericalValue: NaN,
+                        textValue: "",
+                        missing: true,
+                        ...(typeof item === "object"
+                            ? { listInd: item.listInd }
+                            : {}),
+                        numericByType: true,
+                    });
+                    continue;
+                }
                 let result = extractComparableValue({
                     component,
                     componentInfoObjects,
@@ -484,6 +572,26 @@ export function returnListValueStateVariableDefinitions({
 }
 
 /**
+ * Whether the child `component` for `item`, one of
+ * `componentIndicesForValues`, is missing (VAL-5): a `_missing` (a reference
+ * that names nothing), a tag of something missing (`valueMissing`), a math
+ * holding only missing children (`contentMissing`), or, for an entry of a
+ * list, a blank entry (`entriesMissing`).
+ */
+function valueIsMissing(item, component, dependencyValues) {
+    if (typeof item === "object") {
+        return Boolean(
+            dependencyValues[`listMissing${item.componentIdx}`]?.[item.listInd],
+        );
+    }
+    return (
+        component.componentType === "_missing" ||
+        Boolean(component.stateValues?.valueMissing) ||
+        Boolean(component.stateValues?.contentMissing)
+    );
+}
+
+/**
  * A dependency on property `name` of the entry `item` of a list component
  * (`{ componentIdx, listInd }`), read as `$l[2].name` reads it.
  */
@@ -499,7 +607,6 @@ function entryPropertyDependency(item, name) {
             { name, index: [] },
         ],
         variablesOptional: true,
-        caseInsensitiveVariableMatch: true,
         publicStateVariablesOnly: true,
         returnAsComponentObject: true,
     };
@@ -702,6 +809,121 @@ function inferTypeFromStrings(matchedChildren) {
 }
 
 /**
+ * The type that text beside the components among `children` is read as: the
+ * one type of value they are (`number`, `math`, `text`, `boolean`, `point`
+ * or `vector`; a `<number>` beside a `<math>` is a math), or `undefined`
+ * when they are not of one of those. A reference among them, whose type is
+ * not known here, is not read.
+ */
+function typeOfComponents(children, componentInfoObjects) {
+    const kinds = new Set();
+    for (const child of children) {
+        if (typeof child === "string") {
+            continue;
+        }
+        if (child.extending) {
+            // a reference, whose type is not known here
+            continue;
+        }
+        const kind =
+            ["number", "math", "text", "boolean", "point", "vector"].find(
+                (base) =>
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: base,
+                    }),
+            ) ??
+            // an input, which stands for what it holds (D46)
+            inputValueType(child.componentType, componentInfoObjects);
+        if (kind === undefined) {
+            return undefined;
+        }
+        kinds.add(kind);
+    }
+    if (kinds.size === 1) {
+        return [...kinds][0];
+    }
+    if (kinds.size === 2 && kinds.has("number") && kinds.has("math")) {
+        return "math";
+    }
+    return undefined;
+}
+
+/**
+ * The type of the value an input of `componentType` stands for (`math`,
+ * `text` or `boolean`; D46, `utils/componentKinds.ts`), or `undefined` for a
+ * component that isn't an input, an input holding an object (a
+ * `<subsetOfRealsInput>`), or one whose value's type isn't known at load.
+ */
+function inputValueType(componentType, componentInfoObjects) {
+    const kind = kindOfComponentType(componentType, componentInfoObjects);
+    return kind?.kind === "value" ? kind.type : undefined;
+}
+
+/**
+ * The value the input `component` stands for (D46), and the type it is
+ * compared as: the type of its value known at load (`inputValueType`), or,
+ * for an input whose value's type is decided as it runs (a `<slider>`, or a
+ * `<choiceInput>`, whose values are texts), the type of the value it has.
+ * `undefined` for a component that isn't an input.
+ */
+function valueOfInput(component, componentInfoObjects) {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[component.componentType];
+    if (!componentClass?.isValue) {
+        return undefined;
+    }
+    let value = component.stateValues.value;
+    if (value === undefined && component.stateValues.selectedValues) {
+        value = component.stateValues.selectedValues.join(", ");
+    }
+    const componentType =
+        inputValueType(component.componentType, componentInfoObjects) ??
+        (typeof value === "number"
+            ? "number"
+            : typeof value === "string"
+              ? "text"
+              : typeof value === "boolean"
+                ? "boolean"
+                : value instanceof me.class
+                  ? "math"
+                  : undefined);
+    return componentType === undefined ? undefined : { componentType, value };
+}
+
+/**
+ * Whether the piece of text `text`, beside components of the type `type`
+ * (`typeOfComponents`), reads as that type: a `<point>` or `<vector>` only
+ * from text with coordinates (`(3, 4)`, not `3`), and a `<boolean>` only from
+ * `true` or `false`, as a `<booleanList>` reads its text. Any text reads as a
+ * number, math or text. Text that doesn't is an item of a type of its own,
+ * read as what it looks like, so that the `<sort>` or `<shuffle>` holding it
+ * is an error (`doenet-e0076`, COLL-4).
+ */
+function textReadsAsType(text, type) {
+    if (type === "boolean") {
+        return /^(true|false)$/i.test(text.trim());
+    }
+    if (type === "point" || type === "vector") {
+        if (!delimitersBalanced(text)) {
+            return false;
+        }
+        let tree;
+        try {
+            tree = textToAst.convert(text);
+        } catch (e) {
+            return false;
+        }
+        const hasCoordinates = (tree) =>
+            Array.isArray(tree) &&
+            (["tuple", "vector"].includes(tree[0]) ||
+                tree.slice(1).some(hasCoordinates));
+        return hasCoordinates(tree);
+    }
+    return true;
+}
+
+/**
  * Sugar shared by the components that read their children as a list of typed
  * values — `<sort>`, `<sortIndices>`, `<shuffle>` and the index-returning and
  * counting operators: bare strings are split into entries by the rule for
@@ -716,7 +938,10 @@ function inferTypeFromStrings(matchedChildren) {
  * then dropped, leaving the children to be read as though it had not been
  * written.
  */
-export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
+export function returnBreakStringsIntoTypeSugarInstruction(
+    componentName,
+    { allowComponents = false } = {},
+) {
     function breakStringsMacrosIntoTypeBySpaces({
         matchedChildren,
         componentAttributes,
@@ -725,14 +950,22 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
         stateIdInfo,
     }) {
         const diagnostics = [];
-        // only if all children are strings or macros
-        if (
-            !matchedChildren.every(
-                (child) =>
-                    typeof child === "string" ||
-                    (child.extending && "Ref" in child.extending),
-            )
-        ) {
+        // Only if all children are strings or macros, or, with
+        // `allowComponents`, if there is text beside the components: the
+        // text of `<sort><number>$x</number> 3 1</sort>` is read as the
+        // values it holds, rather than left out as text the `<sort>` can't
+        // take (#2525 item 3). The type is inferred from the text alone.
+        const onlyStringsAndMacros = matchedChildren.every(
+            (child) =>
+                typeof child === "string" ||
+                (child.extending && "Ref" in child.extending),
+        );
+        const textBesideComponents =
+            allowComponents &&
+            matchedChildren.some(
+                (child) => typeof child === "string" && /\S/.test(child),
+            );
+        if (!onlyStringsAndMacros && !textBesideComponents) {
             return { success: false };
         }
 
@@ -760,6 +993,22 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
             type = undefined;
         }
 
+        // The type of the components the text is beside, when it is read as
+        // theirs.
+        let typeOfComponentsBeside;
+        if (!type && textBesideComponents) {
+            // Text beside components of one type is read as that type, as
+            // an authored list reads it (`<sort><math>d</math> a</sort>`
+            // reads `a` as a math, `<sort><number>$x</number> 3 1</sort>`
+            // reads numbers), rather than as what it looks like, which would
+            // mix two types (COLL-4). A piece that doesn't read as that type
+            // (`3` beside `<point>`s) is read as what it looks like.
+            type = typeOfComponentsBeside = typeOfComponents(
+                matchedChildren,
+                componentInfoObjects,
+            );
+        }
+
         if (!type) {
             type = inferTypeFromStrings(matchedChildren);
 
@@ -783,6 +1032,14 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
             componentType: type,
             forceComponentType: false,
             componentNameForDiagnostics: componentName,
+            ...(typeOfComponentsBeside
+                ? {
+                      componentTypeOfText: (text) =>
+                          textReadsAsType(text, typeOfComponentsBeside)
+                              ? typeOfComponentsBeside
+                              : (inferTypeFromStrings([text]) ?? "text"),
+                  }
+                : {}),
         });
         const result = groupIntoListEntries({
             matchedChildren,

@@ -25,7 +25,7 @@ import {
 import {
     defineSubmitAnswerExternalAction,
     immediateValueFollowsValue,
-    returnValueUnderEditDefinition,
+    valueUnderEditVariable,
     valueUnderEditRecord,
     returnInputValueChangedStateVariableDefinitions,
 } from "../utils/input";
@@ -325,14 +325,12 @@ export class MatrixInput extends Input {
         stateVariableDefinitions.immediateValueChanged =
             inputValueChangedStateVariableDefinitions.immediateValueChanged;
 
-        Object.assign(
-            stateVariableDefinitions,
-            returnValueUnderEditDefinition("valueUnderEdit"),
-        );
-
         stateVariableDefinitions.immediateValueOriginal = {
-            // the saved edit, kept only if still the last (`valueUnderEdit`)
+            // the saved edit, kept only if still the last (`valueUnderEdit`),
+            // which it defines, so that it can clear it when it follows its
+            // value (#2554 item 1)
             provideEssentialValuesInDefinition: true,
+            additionalStateVariablesDefined: [valueUnderEditVariable()],
             hasEssential: true,
             shadowVariable: true,
             returnDependencies: () => ({
@@ -344,12 +342,6 @@ export class MatrixInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "immediateValueChanged",
                     onlyToSetInInverseDefinition: true,
-                },
-                valueUnderEdit: {
-                    dependencyType: "stateVariable",
-                    variableName: "valueUnderEdit",
-                    // bookkeeping, not part of the value (`valueUnderEdit`)
-                    notInRecursiveDependencyValues: true,
                 },
             }),
             set: convertValueToMathExpression,
@@ -373,7 +365,7 @@ export class MatrixInput extends Input {
                         justUpdatedForNewComponent,
                         justRestoredAtLoad,
                         value: dependencyValues.valueOriginal,
-                        valueUnderEdit: dependencyValues.valueUnderEdit,
+                        valueUnderEdit: essentialValues.valueUnderEdit,
                         savedImmediateValue:
                             essentialValues.immediateValueOriginal,
                     })
@@ -384,15 +376,19 @@ export class MatrixInput extends Input {
                         setValue: {
                             immediateValueOriginal:
                                 dependencyValues.valueOriginal,
+                            valueUnderEdit: null,
                         },
                         setEssentialValue: {
                             immediateValueOriginal:
                                 dependencyValues.valueOriginal,
+                            // the value, not the reader's edit
+                            valueUnderEdit: null,
                         },
                     };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
+                            valueUnderEdit: true,
                             immediateValueOriginal: {
                                 defaultValue: dependencyValues.valueOriginal,
                             },
@@ -417,8 +413,8 @@ export class MatrixInput extends Input {
                         desiredValue: true,
                     },
                     {
-                        setDependency: "valueUnderEdit",
-                        desiredValue: valueUnderEditRecord({
+                        setEssentialValue: "valueUnderEdit",
+                        value: valueUnderEditRecord({
                             value: dependencyValues.valueOriginal,
                             edit: desiredStateVariableValues.immediateValueOriginal,
                         }),
@@ -3400,6 +3396,10 @@ export default class MatrixComponentInput extends BaseComponent {
     }
 
     static componentType = "_matrixComponentInput";
+    // An edit not yet entered (`immediateValue`) is committed when the input
+    // is made, or shown again, unless it is the input the reader is editing
+    // (`Core.commitUnenteredEdits`, D50).
+    static holdsUnenteredEdit = true;
     static rendererType = "mathInput";
 
     static variableForImplicitProp = "value";

@@ -24,6 +24,14 @@
  * marked, and is decided when it is made. What is not given is never
  * guessed: an extend written as a tag that makes its content may extend
  * something else, which the run time reports another error for.
+ *
+ * An `<award>` or a `<choice>` can only be copied (D42, `doenet-e0078`), so
+ * an extend or a `copyWithState` written as one is marked here too, decided
+ * by the tag written alone, whatever it is of, unless the type check found it
+ * in error first or its reference names nothing, which is shown instead.
+ * It is the only error a
+ * `copyWithState` is marked with: what one would change of the choices it
+ * carries is decided when it is made.
  */
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent } from "./types";
@@ -34,8 +42,15 @@ import type { DiagnosticArgs, DiagnosticCode } from "@doenet/i18n";
 import { TAGS_OF_LIST_FORMS } from "../copy";
 import {
     extendChangesContentErrors,
+    onlyCopiedErrors,
     PARTS_OF_CHOOSING_TAGS,
 } from "../../components/abstract/Copy";
+
+/**
+ * The composites an extend written as the tag they hold reaches through
+ * (`heldOfType`).
+ */
+const HOLDERS = new Set(["conditionalContent", "select", "group"]);
 
 /** What `doenetAttributes.extendErrorsAtLoad` holds: each error found. */
 export type ExtendErrorAtLoad = { code: DiagnosticCode; args: DiagnosticArgs };
@@ -108,17 +123,10 @@ export function checkExtendErrorsAtLoad({
     const copyAttributesObj = allClasses._copy.createAttributesObject();
     const copyAttributeNames = Object.keys(copyAttributesObj);
 
-    function canonicalType(type: string | undefined) {
-        return type === undefined
-            ? undefined
-            : (componentInfoObjects.componentTypeLowerCaseMapping[
-                  type.toLowerCase()
-              ] ?? type);
-    }
-
     function writtenTypeOf(copy: SerializedComponent) {
+        // the tag written, matched exactly (D51)
         const attr: any = copy.attributes?._createComponentOfType;
-        return canonicalType(attr?.primitive?.value);
+        return attr?.primitive?.value as string | undefined;
     }
 
     function refOf(copy: SerializedComponent) {
@@ -184,7 +192,101 @@ export function checkExtendErrorsAtLoad({
             }
             return below;
         }
+        const writtenType = writtenTypeOf(copy);
+        if (
+            writtenType !== undefined &&
+            !isOfType(node.componentType, writtenType) &&
+            HOLDERS.has(node.componentType)
+        ) {
+            // An extend written as the tag a composite holds
+            // (`<answer extend="$cc"/>` of a `<conditionalContent>` holding
+            // an `<answer>` in every case) extends what it holds (#2606 item
+            // 7), so the same errors apply.
+            return heldOfType(node, writtenType, visiting);
+        }
         return node;
+    }
+
+    /**
+     * The one component of type `writtenType` the composite `node` holds in
+     * every branch (each case of a `<conditionalContent>` with an `<else>`,
+     * each option of a `<select>`, a `<group>`), the first branch's, which an
+     * extend of it written as that tag extends. `undefined` when a branch
+     * holds anything else, or there may be none.
+     */
+    function heldOfType(
+        node: SerializedComponent,
+        writtenType: string,
+        visiting: Set<SerializedComponent>,
+    ): SerializedComponent | undefined {
+        const objects = (pieces: (SerializedComponent | string)[]) => {
+            if (
+                pieces.some(
+                    (piece) => typeof piece === "string" && piece.trim() !== "",
+                )
+            ) {
+                return undefined;
+            }
+            return pieces.filter(
+                (piece): piece is SerializedComponent =>
+                    typeof piece === "object",
+            );
+        };
+        /** The one component of `writtenType` `pieces` hold, if so. */
+        const oneOf = (
+            pieces: (SerializedComponent | string)[],
+        ): SerializedComponent | undefined => {
+            const held = objects(pieces);
+            if (held?.length !== 1) {
+                return undefined;
+            }
+            const [only] = held;
+            if (isOfType(only.componentType, writtenType)) {
+                return only;
+            }
+            if (only.componentType === "_copy") {
+                const below = sourceOf(only, visiting);
+                return below && isOfType(below.componentType, writtenType)
+                    ? below
+                    : undefined;
+            }
+            return HOLDERS.has(only.componentType)
+                ? heldOfType(only, writtenType, visiting)
+                : undefined;
+        };
+        if (node.componentType === "group") {
+            return oneOf(node.children ?? []);
+        }
+        const branches = objects(node.children ?? []);
+        if (!branches || branches.length === 0) {
+            return undefined;
+        }
+        if (node.componentType === "conditionalContent") {
+            // with an `<else>` (sugar makes it a `<case>` with no
+            // `condition`), one case is always shown
+            const hasElse = branches.some(
+                (branch) =>
+                    branch.componentType === "case" &&
+                    branch.attributes?.condition === undefined,
+            );
+            if (!hasElse) {
+                return undefined;
+            }
+        } else if (
+            node.componentType === "select" &&
+            node.attributes?.numToSelect !== undefined
+        ) {
+            return undefined;
+        }
+        let first: SerializedComponent | undefined;
+        for (const branch of branches) {
+            const held = oneOf(branch.children ?? []);
+            if (!held) {
+                return undefined;
+            }
+            first ??= held;
+        }
+        return first;
     }
 
     /**
@@ -258,37 +360,27 @@ export function checkExtendErrorsAtLoad({
     /**
      * The attributes written on `copy` that its replacement, of type
      * `replacementType`, is given (`convertUnresolvedAttributesForComponentType`
-     * in `Copy.js`): those its class declares, matched ignoring case, other
-     * than the `_copy`'s own, except `asList`, and any other a class that
-     * accepts any attribute (`<module>`) is given, as written.
+     * in `convertNormalizedDast.ts`): those its class declares, matched
+     * exactly (D51), other than the `_copy`'s own, except `asList`, and any
+     * other a class that accepts any attribute (`<module>`) is given, as
+     * written.
      */
     function attributeNamesFor(
         copy: SerializedComponent,
         replacementType: string,
     ) {
         const declared = allClasses[replacementType].createAttributesObject();
-        const lowerToName: Record<string, string> = Object.create(null);
-        for (const name in declared) {
-            lowerToName[name.toLowerCase()] = name;
-        }
-        const copyLowerToName: Record<string, string> = Object.create(null);
-        for (const name in copyAttributesObj) {
-            copyLowerToName[name.toLowerCase()] = name;
-        }
         const names: string[] = [];
         for (const written of Object.keys(copy.attributes ?? {})) {
-            const lower = written.toLowerCase();
-            const copyName = copyLowerToName[lower];
             if (
-                copyName !== undefined &&
-                !copyAttributesObj[copyName].leaveRaw &&
-                copyName !== "asList"
+                Object.hasOwn(copyAttributesObj, written) &&
+                !copyAttributesObj[written].leaveRaw &&
+                written !== "asList"
             ) {
                 continue;
             }
-            const name = lowerToName[lower];
-            if (name !== undefined) {
-                names.push(name);
+            if (Object.hasOwn(declared, written)) {
+                names.push(written);
             } else if (allClasses[replacementType].acceptAnyAttribute) {
                 names.push(written);
             }
@@ -298,6 +390,24 @@ export function checkExtendErrorsAtLoad({
 
     const diagnostics: any[] = [];
 
+    /** Mark `errors` on `copy`, and report them now. */
+    function markErrors(
+        copy: SerializedComponent,
+        errors: ExtendErrorAtLoad[],
+    ) {
+        copy.doenetAttributes = {
+            ...copy.doenetAttributes,
+            extendErrorsAtLoad: errors,
+        };
+        diagnostics.push(
+            ...extendErrorDiagnostics(errors).map((error) => ({
+                ...error,
+                position: copy.position,
+                sourceDoc: copy.sourceDoc,
+            })),
+        );
+    }
+
     for (const copy of copies) {
         const linkAttr: any = copy.attributes?._link;
         const link = !(
@@ -305,7 +415,8 @@ export function checkExtendErrorsAtLoad({
             (linkAttr.primitive?.value === false ||
                 linkAttr.children?.join?.("").trim() === "false")
         );
-        if (!link) {
+        const withState = Boolean(copy.attributes?._copyWithState);
+        if (!link && !withState) {
             continue;
         }
         // An error found by the type check (`typeChangeAtLoad.ts`), or a
@@ -320,6 +431,23 @@ export function checkExtendErrorsAtLoad({
         }
         const ref = refOf(copy);
         if (!ref) {
+            continue;
+        }
+        // An `<award>` or a `<choice>` can only be copied (D42): an extend
+        // or a `copyWithState` written as one is an error, whatever it is
+        // of, so it is decided by the tag written alone.
+        const onlyCopied: ExtendErrorAtLoad[] = onlyCopiedErrors({
+            writtenType: writtenTypeOf(copy),
+            how: link ? "extend" : "copyWithState",
+            source: doenetMLReferenceAsWritten(ref.originalPath, sources),
+        }).map((error: any) => ({ code: error.code, args: error.args }));
+        if (onlyCopied.length > 0) {
+            markErrors(copy, onlyCopied);
+            continue;
+        }
+        if (!link) {
+            // What a `copyWithState` would change of the choices it carries
+            // is decided when it is made (`Copy.js`).
             continue;
         }
         const copyInChildrenAttr: any = copy.attributes?._copyInChildren;
@@ -386,17 +514,7 @@ export function checkExtendErrorsAtLoad({
             continue;
         }
 
-        copy.doenetAttributes = {
-            ...copy.doenetAttributes,
-            extendErrorsAtLoad: errors,
-        };
-        diagnostics.push(
-            ...extendErrorDiagnostics(errors).map((error) => ({
-                ...error,
-                position: copy.position,
-                sourceDoc: copy.sourceDoc,
-            })),
-        );
+        markErrors(copy, errors);
     }
 
     return diagnostics;

@@ -581,7 +581,9 @@ describe("BooleanList tag tests @group3", async () => {
             doenetML: `
     <booleanList name="bl">true true false</booleanList>
 
-    <p name="pText">Text: $bl.text</p>
+    <p name="pText">Text: <text>$bl</text></p>
+    <p name="pEntry">$bl[3].text</p>
+    <p name="pOld">$bl.text</p>
 
     `,
         });
@@ -591,5 +593,14 @@ describe("BooleanList tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("pText")].stateValues
                 .text,
         ).eq("Text: true, true, false");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pEntry")].stateValues
+                .text,
+        ).eq("false");
+        // A list's text is not a property of its own (D59): `$bl.text` names
+        // nothing.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pOld")].stateValues.text,
+        ).eq("＿");
     });
 });

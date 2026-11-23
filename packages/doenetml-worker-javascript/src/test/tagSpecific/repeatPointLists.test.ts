@@ -150,8 +150,8 @@ describe("Repeats whose template is one point @group4", () => {
 <number name="c">2</number>
 <graph name="g"><repeatForSequence name="r" from="1" to="3" indexName="i"><point name="P">($i, $l[$i]/10 + $c)</point></repeatForSequence></graph>
 <p name="p">$r</p>
-<p name="p2">$r[2] $r[2].P $r[3].P.x $r.x</p>
-<p name="p3"><sum>$r.y</sum></p>
+<p name="p2">$r[2] $r[2].P $r[3].P.x <repeat for="$r" valueName="ev">$ev.x</repeat></p>
+<p name="p3"><sum><repeat for="$r" valueName="ev">$ev.y</repeat></sum></p>
 `,
             names: ["p", "p2", "p3"],
             graphs: ["g"],
@@ -524,11 +524,13 @@ describe("Repeats whose template is one point @group4", () => {
 
     it("a coordinate reads the entries' other coordinate", async () => {
         // Each coordinate array is computed from its coordinate alone, so the
-        // y of each point can read the x of the points.
+        // y of each point can read the x of the points. (Read by index:
+        // `$r.x` was each point's x (D41); a property after a repeat is its
+        // own (D59), and a repeat over `r` would read whole points.)
         const result = await compare({
             doenetML: `
 <numberList name="l">1.2 3.9 4.1</numberList>
-<numberList name="xs">$r.x</numberList>
+<numberList name="xs">$r[1].P.x $r[2].P.x $r[3].P.x</numberList>
 <graph name="g">
   <repeatForSequence from="1" to="3" indexName="i" name="r"><point name="P">($l[$i], <number fixed>$xs[$i] + 1</number>)<constrainToGrid dx="1" /></point></repeatForSequence>
 </graph>
@@ -558,14 +560,15 @@ describe("Repeats whose template is one point @group4", () => {
 
     it("a value outside read by one coordinate reads the other", async () => {
         // Each coordinate depends only on the values outside that it reads,
-        // so `c`, read by the y of each point, can read their x.
+        // so `c`, read by the y of each point, can read their x (by index,
+        // as above).
         const result = await compare({
             doenetML: `
 <number name="a">1</number>
 <graph name="g">
-  <repeatForSequence name="r" length="3" indexName="i"><point>($i + $a, $c)</point></repeatForSequence>
+  <repeatForSequence name="r" length="3" indexName="i"><point name="P">($i + $a, $c)</point></repeatForSequence>
 </graph>
-<number name="c"><sum>$r.x</sum></number>
+<number name="c"><sum>$r[1].P.x $r[2].P.x $r[3].P.x</sum></number>
 <p name="pa">$a</p>
 <p name="pc">$c</p>
 `,
@@ -677,8 +680,8 @@ describe("Repeats whose template is one point @group4", () => {
   <point name="Q">($r[3].P.x, $r[3].P.y)</point>
 </graph>
 <p name="pl">$l</p>
-<p name="px">$r.x</p>
-<p name="py">$r.y</p>
+<p name="px"><repeat for="$r" valueName="ev">$ev.x</repeat></p>
+<p name="py"><repeat for="$r" valueName="ev">$ev.y</repeat></p>
 <p name="pq">$Q</p>
 <mathInput name="mx" bindValueTo="$r[2].P.x" />
 <mathInput name="my" bindValueTo="$r[3].P.y" />
@@ -719,22 +722,23 @@ describe("Repeats whose template is one point @group4", () => {
             doenetML: `
 <graph name="g"><repeatForSequence from="1" to="3" indexName="i" name="r"><point name="P">($i)</point></repeatForSequence></graph>
 <graph name="g2"><repeatForSequence from="1" to="3" indexName="i" name="r2"><point name="Q">($i, 2)</point></repeatForSequence></graph>
-<p name="px">$r.x</p>
-<p name="py">$r.y</p><p name="py2">$r[2].P.y</p><p name="sy"><sum>$r.y</sum></p>
-<p name="pz">$r2.z</p><p name="pz2">$r2[2].Q.z</p>
+<p name="px"><repeat for="$r" valueName="ev">$ev.x</repeat></p>
+<p name="py"><repeat for="$r" valueName="ev">$ev.y</repeat></p><p name="py2">$r[2].P.y</p><p name="sy"><sum><repeat for="$r" valueName="ev">$ev.y</repeat></sum></p>
+<p name="pz"><repeat for="$r2" valueName="ev">$ev.z</repeat></p><p name="pz2">$r2[2].Q.z</p>
 `,
             names: ["px", "py", "py2", "sy", "pz", "pz2"],
             graphs: ["g", "g2"],
             // a point of one coordinate keeps the composite (#2221)
             repeatName: "r2",
         });
-        // of every point, a coordinate they do not have is nothing; of one
-        // point, it is missing (D37)
+        // a coordinate a point does not have is missing (D37), read of each
+        // point by a repeat over `r` (`$r.y` was nothing of every point, D41;
+        // a property after a repeat is its own, D59)
         expect(result).toMatchObject({
             px: "1, 2, 3",
-            py: "",
+            py: "＿, ＿, ＿",
             py2: "＿",
-            pz: "",
+            pz: "＿, ＿, ＿",
             pz2: "＿",
         });
     });

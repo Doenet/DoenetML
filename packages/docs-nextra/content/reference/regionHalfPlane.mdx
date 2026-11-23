@@ -23,7 +23,7 @@ With the default attributes the region is the right half-plane $x \ge 0$.
 ### Example: Constrain a `<point>{:dn}` to the right half-plane
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>A point that cannot cross to the left of the y-axis</shortDescription>
   <point name="P" styleNumber="2" coords="(2, 1)">
     <constrainTo>
@@ -45,7 +45,7 @@ half-plane $x \ge 0$.
 ### Attribute Example: horizontal
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>A point that cannot move below the x-axis</shortDescription>
   <point name="P" styleNumber="2" coords="(1, 2)">
     <constrainTo>
@@ -64,7 +64,7 @@ with the default `boundaryValue="0"` and `greaterThan="true"`, this is the upper
 ### Attribute Example: boundaryValue
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6">
+<graph size="small" xMin="-6" xMax="6" yMin="-6" yMax="6">
   <shortDescription>A point constrained to lie at or to the right of x = 2</shortDescription>
   <point name="P" styleNumber="2" coords="(4, 0)">
     <constrainTo>
@@ -83,7 +83,7 @@ boundary $x = 2$.
 ### Attribute Example: greaterThan
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-6" xmax="6" ymin="-6" ymax="6">
+<graph size="small" xMin="-6" xMax="6" yMin="-6" yMax="6">
   <shortDescription>A point constrained to the upper half-plane y less than or equal to 0</shortDescription>
   <point name="P" styleNumber="2" coords="(1, -2)">
     <constrainTo>

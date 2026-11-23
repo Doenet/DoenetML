@@ -455,6 +455,157 @@ describe("copy and copyWithState @group3", () => {
         });
     }
 
+    it("copyWithState of a module: a module attribute reaching a nested choice through a one-entry list whose entry is written with a space keeps the carried choices", async () => {
+        // `2x` is written `2 x`, which the list rule alone would read as two
+        // entries (#2553 item 3)
+        const doc = await loaded(`
+<setup>
+  <module name="m">
+    <moduleAttributes><mathList name="ex">2x</mathList></moduleAttributes>
+    <p name="picks"><selectFromSequence name="s" type="math" from="x" step="x" length="5" numToSelect="3" exclude="$ex"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" ex="3x"/>
+`);
+        expect((await doc.sv("mw.picks")).text).eq(
+            (await doc.sv("m1.picks")).text,
+        );
+        // what it excludes is held at what the source chose with
+        const exclude = (await doc.sv("mw.s")).exclude;
+        expect(exclude.map((e: any) => e.tree)).eqls([["*", 2, "x"]]);
+        expect(exclude.map((e: any) => e.tree)).eqls(
+            (await doc.sv("m1.s")).exclude.map((e: any) => e.tree),
+        );
+        expect(
+            doc
+                .diagnostics()
+                .warnings.filter((w: any) => w.code === "doenet-w0186")
+                .map((w: any) => w.args.attribute),
+        ).eqls(["ex"]);
+        expect(
+            doc.diagnostics().errors.map((e: any) => e.code + " " + e.message),
+        ).eqls([]);
+    });
+
+    it("copyWithState of a module: a module attribute reaching a nested choice through a one-entry text list whose entry holds a space keeps the carried choices", async () => {
+        // No text written as a list by the rule reads back as one text entry
+        // holding a space, so the list is held with its entries split at
+        // commas (`_listSplitting`, #2598 item 4). `a b` is not a letter, so
+        // the source excludes nothing; read as two entries, the copy would
+        // exclude `a` and `b`.
+        const doenetML = `
+<setup>
+  <module name="m">
+    <moduleAttributes><textList name="ex"><text>a b</text></textList></moduleAttributes>
+    <p name="picks"><selectFromSequence name="s" type="letters" from="a" to="e" numToSelect="5" exclude="$ex"/></p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" ex="c"/>
+`;
+        for (const variant of [1, 2, 3]) {
+            const doc = await loaded(doenetML, variant);
+            async function check() {
+                const source = (await doc.sv("m1.s")).selectedValues;
+                expect([...source].sort()).eqls(["a", "b", "c", "d", "e"]);
+                expect((await doc.sv("mw.s")).selectedValues).eqls(source);
+                // what it excludes is held at what the source chose with
+                expect((await doc.sv("mw.s")).exclude).eqls(
+                    (await doc.sv("m1.s")).exclude,
+                );
+                return source;
+            }
+            const before = await check();
+            expect(
+                doc
+                    .diagnostics()
+                    .warnings.filter((w: any) => w.code === "doenet-w0186")
+                    .map((w: any) => w.args.attribute),
+            ).eqls(["ex"]);
+            expect(doc.diagnostics().errors).eqls([]);
+            await doc.reload();
+            expect(await check()).eqls(before);
+        }
+    });
+
+    for (const [form, open, close] of [
+        [
+            "repeatForSequence",
+            `<repeatForSequence name="r" length="2">`,
+            `</repeatForSequence>`,
+        ],
+        ["repeat", `<repeat name="r" for="x y" valueName="v">`, `</repeat>`],
+    ]) {
+        it(`copyWithState of a module: a one-entry text list whose entry holds a space, reaching a choice in a ${form} template, keeps the carried choices`, async () => {
+            // As above, held at what each of the source's iterations chose
+            // with (#2598 item 4): read as written on the copy, `c` would be
+            // excluded.
+            const doenetML = `
+<setup>
+  <module name="m">
+    <moduleAttributes><textList name="ex"><text>a b</text></textList></moduleAttributes>
+    <p name="picks">${open}<selectFromSequence name="s" type="letters" from="a" to="e" numToSelect="5" exclude="$ex"/>${close}</p>
+  </module>
+</setup>
+<module name="m1" copy="$m"/>
+<module name="mw" copyWithState="$m1" ex="c"/>
+`;
+            const doc = await loaded(doenetML);
+            async function check() {
+                const source = (await doc.sv("m1.picks")).text;
+                expect(source.split(", ").length).eq(10);
+                expect((await doc.sv("mw.picks")).text).eq(source);
+                for (const iter of [1, 2]) {
+                    expect((await doc.sv(`mw.r[${iter}].s`)).exclude).eqls(
+                        (await doc.sv(`m1.r[${iter}].s`)).exclude,
+                    );
+                }
+            }
+            await check();
+            expect(
+                doc
+                    .diagnostics()
+                    .warnings.filter((w: any) => w.code === "doenet-w0186")
+                    .map((w: any) => w.args.attribute),
+            ).eqls(["ex"]);
+            expect(doc.diagnostics().errors).eqls([]);
+            await doc.reload();
+            await check();
+        });
+    }
+
+    for (const tag of ["selectRandomNumbers", "selectFromSequence"]) {
+        it(`copyWithState of a section: a ${tag} whose range comes from a group written later selects once, from the range (#2553 item 2)`, async () => {
+            // The selection is made once its parameters are there, whatever
+            // order the document is written in (SEL-7), so the copy carries
+            // a selection from the range, not one made without it.
+            const doenetML = `
+<section name="sec"><${tag} name="s" from="$g.a" to="$g.b" numToSelect="2"/></section>
+<section name="sec2" copyWithState="$sec"/>
+<group name="g"><number name="a">1</number><number name="b">10</number></group>
+`;
+            for (const variant of [1, 2, 3]) {
+                const doc = await loaded(doenetML, variant);
+                async function check() {
+                    const source = (await doc.sv("s")).selectedValues;
+                    expect(source.length).eq(2);
+                    for (const x of source) {
+                        expect(x).within(1, 10);
+                    }
+                    expect((await doc.sv("sec2.s")).selectedValues).eqls(
+                        source,
+                    );
+                    return source;
+                }
+                const before = await check();
+                expect(doc.diagnostics().errors).eqls([]);
+                await doc.reload();
+                expect(await check()).eqls(before);
+            }
+        });
+    }
+
     it("copyWithState of a container keeps the draws of a copy inside it of a source inside it", async () => {
         for (const variant of [1, 2, 3]) {
             const doc = await loaded(
@@ -860,7 +1011,11 @@ ${repeat}
         await check();
     });
 
-    it("copyWithState of a module: a module attribute reaching a choice through a point's coordinates keeps the carried choices", async () => {
+    it("copyWithState of a module: a module attribute reaching a choice through a point's coordinates is an error at load", async () => {
+        // A point's coordinate isn't a form the load-time check can
+        // analyse, so a selection can't read one (D39, SEL-6): the select
+        // is an error in every instance of the module, and has no choices
+        // to carry.
         const doc = await loaded(`
 <setup>
   <module name="m">
@@ -874,16 +1029,9 @@ ${repeat}
 <module name="m1" copy="$m"/>
 <module name="mw" copyWithState="$m1" k="4"/>
 `);
-        const source = (await doc.sv("m1.picks")).text;
-        expect(source.split(", ").length).eq(2);
-        expect((await doc.sv("mw.picks")).text).eq(source);
-        expect(
-            doc
-                .diagnostics()
-                .warnings.filter((w: any) => w.code === "doenet-w0186")
-                .map((w: any) => w.args.attribute),
-        ).eqls(["k"]);
-        expect(doc.diagnostics().errors).eqls([]);
+        expect(doc.diagnostics().errors.map((e: any) => e.code)).eqls([
+            "doenet-e0074",
+        ]);
     });
 
     it("a copy of a copyWithState of a module chooses again from the module attribute written on it", async () => {
@@ -1015,11 +1163,12 @@ ${repeat}
         );
 
         // a choice added with them is still an error, also one written as a
-        // reference
-        for (const added of [
-            `<choice>d</choice>`,
-            `<choice copy="$c"/>`,
-            `<choice extend="$c"/>`,
+        // reference. A choice can only be copied (D42), so an extend of one
+        // is its own error too.
+        for (const [added, codes] of [
+            [`<choice>d</choice>`, ["doenet-e0069"]],
+            [`<choice copy="$c"/>`, ["doenet-e0069"]],
+            [`<choice extend="$c"/>`, ["doenet-e0078", "doenet-e0069"]],
         ]) {
             const withChoice = await loaded(`
 <choiceInput name="x" shuffleOrder><choice name="c">a</choice><choice>b</choice><choice>c</choice></choiceInput>
@@ -1027,8 +1176,8 @@ ${repeat}
 `);
             expect(
                 withChoice.diagnostics().errors.map((e: any) => e.code),
-                added,
-            ).eqls(["doenet-e0069"]);
+                added as string,
+            ).eqls(codes);
         }
     });
 
@@ -1377,11 +1526,12 @@ ${repeat}
         expect((await component("mic")).stateValues.value.tree).eq("y");
         expect((await component("tic")).stateValues.value).eq("y");
         expect((await component("bic")).stateValues.value).eq(true);
-        // the source's value, as the child is not read
+        // the child replaces the source's, as a substitute reads one
+        // (REF-4a, #2546)
         expect((await component("subc")).stateValues.value.tree).eqls([
             "+",
             "y",
-            1,
+            2,
         ]);
 
         const { errors, warnings } = getDiagnosticsByType(core);

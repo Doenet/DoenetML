@@ -17,7 +17,10 @@ export default class SolveEquations extends InlineComponent {
     };
     static rendererType = undefined;
 
-    static variableForIndexAsProp = "solutions";
+    // One thing, not a collection (COLL-1, D41 decision 6): an index after
+    // it names nothing, and the warning suggests the solutions
+    // (`$s.solutions[1]`, `doenet-w0182`).
+    static indexThroughProperty = "solutions";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();

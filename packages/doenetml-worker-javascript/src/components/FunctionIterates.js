@@ -1,24 +1,27 @@
-import InlineComponent from "./abstract/InlineComponent";
+import ValueListComponent from "./abstract/ValueListComponent";
 import me from "math-expressions";
 import { vectorOperators } from "@doenet/utils";
-import {
-    returnNumberDisplayAttributeComponentShadowing,
-    returnNumberDisplayAttributes,
-    returnNumberDisplayStateVariableDefinitions,
-} from "../utils/numberDisplay";
+import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { levelFromSource } from "../utils/decidedByDoenetML";
 import { evaluateToNumber, isNumericConstant } from "../utils/math";
 
-export default class FunctionIterates extends InlineComponent {
+/**
+ * The iterates of a function: a collection (COLL-1, D41 decision 5), so a
+ * list component (`ValueListComponent`) of maths, shown as its iterates
+ * separated by commas. `$fi[2]` is the second iterate, a property after it
+ * applies to each iterate, and `numItems` is the number of iterates.
+ */
+export default class FunctionIterates extends ValueListComponent {
     static componentType = "functionIterates";
 
     static componentDocs = {
         summary: "List of values produced by iterating a function",
     };
-    static rendererType = undefined;
 
-    static variableForIndexAsProp = "iterates";
+    static listEntryComponentType = "math";
+
+    static listEntryValuesVariable = "allIterates";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -55,18 +58,11 @@ export default class FunctionIterates extends InlineComponent {
             description: "The function to iterate.",
         };
 
-        Object.assign(attributes, returnNumberDisplayAttributes());
-
         return attributes;
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-        Object.assign(
-            stateVariableDefinitions,
-            returnNumberDisplayStateVariableDefinitions(),
-        );
 
         stateVariableDefinitions.numDimensions = {
             description: "Number of dimensions of each iterate.",

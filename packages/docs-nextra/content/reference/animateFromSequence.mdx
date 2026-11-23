@@ -115,6 +115,8 @@ The `target` attribute is used to specify the value to animate. Since points hav
 numerical property corresponding to their $x$-coordinate, this value can be animated directly 
 without having to define a separate `<number/>{:dn}`.
 
+A `target` that is a `<group>{:dn}` holding one component animates that component. A name after a repeat, or after a select that picks several, names nothing: give the index of the item, such as `$r[1].x`, as for an [`<updateValue>{:dn}`](updateValue).
+
 ---
 
 ### Attribute Example: animationOn
@@ -364,7 +366,8 @@ n = <number name="n">1</number>
 ```
 
 The `value` property of the `<animateFromSequence/>{:dn}` component 
-renders the current sequence value of the animation target.
+renders the current sequence value of the animation target. It is a number, a math, or,
+for `type="letters"`, a text, as its `type` says.
 
 ---
 

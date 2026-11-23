@@ -21,7 +21,12 @@
  *   composite whose content is made rather than written, can hold any number;
  * - a bare string is a text, a bare `$y` holds y's tag (looked through when
  *   y is a composite), a tag `<U extend="$y"/>` is a `U`, and a property
- *   `$P.x` has a type the DoenetML does not give.
+ *   `$P.x` of a component that is not a composite has the type of the
+ *   property, which its component declares or the DoenetML decides
+ *   (`propertyTypesAtLoad.ts`, TYPE, D45). A reference to one the DoenetML
+ *   does not decide is already an error, `doenet-e0091`, in its place
+ *   (TYPE-3, `referencesToUndecidedTypes`); one only a composite reaches is
+ *   `doenet-e0067`.
  *
  * Different types that could each become a `T` are an error too: the author
  * wraps the reference, `<math>$cc</math>`, to read whatever it holds as one
@@ -38,6 +43,15 @@
  * `entryCountByValue`, and a tag of it is missing, with an info, while it
  * does not hold one (DIAG-2). A `<module>` tag (`<module extend="$q"/>`) is
  * made only from a module (`moduleTypeError`).
+ *
+ * A tag made from a property of a component (`<point extend="$n.value"/>`,
+ * `<math extend="$t.categories[1]"/>`) is decided as a tag made from a
+ * component of the property's type, and one made from an input whose value's
+ * type the DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>` of
+ * texts) as one made from that value. One whose type the DoenetML doesn't
+ * decide (`$a.currentResponses[1]` of an `<answer>` whose responses' places
+ * are known only as it runs) is an error at load, `doenet-e0091`, before
+ * this check (TYPE-3).
  *
  * An index written as a literal into a selector whose `numToSelect` is
  * written (`<math extend="$s[2]"/>` of a one-pick `<select>`) names nothing
@@ -60,6 +74,7 @@
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedAttribute } from "./types";
 import { documentReferents } from "./valueReferences";
+import { itemReader } from "./reorderedItemsAtLoad";
 import { unwrapSource } from "./convertNormalizedDast";
 import { typeChangeRule } from "../typeChange";
 import { codedDiagnostic } from "../diagnostics";
@@ -72,8 +87,14 @@ import {
     listEntryCountAtLoad,
 } from "./listEntryCountAtLoad";
 import { TAGS_MAKING_THEIR_CONTENT } from "../../components/abstract/Copy";
-import { publicCaseInsensitiveAliasSubstitutions } from "../../StateVariableNameResolver";
+import { publicAliasSubstitutions } from "../../StateVariableNameResolver";
 import { ownSettingOfWrapper } from "../wrappers";
+import { propertyTypeReader } from "./propertyTypesAtLoad";
+import {
+    checkNamesAfterCollectionsAtLoad,
+    type NameAfterCollection,
+} from "./namesAfterCollectionsAtLoad";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 /** What `doenetAttributes.typeChangeAtLoad` holds for an error. */
 export type TypeChangeAtLoadError = {
@@ -125,10 +146,11 @@ export type CollectionItemWarning = {
     args: Record<string, any>;
     kind: "index" | "property";
     /**
-     * Whether the suggestion is to name the first item (`$s[1].P.x`), for a
-     * reference with no index that can reach several (`doenet-w0191`).
+     * For an index after options or cases that each hold several, the name
+     * the component it would have selected has in every one of them, if it
+     * has the same one (`$s[1].q` for `$s[1][1]`).
      */
-    firstIndex?: boolean;
+    childName?: string;
 };
 
 /**
@@ -151,7 +173,7 @@ export function typeHasProperty({
     if (!componentClass) {
         return false;
     }
-    const [mapped] = publicCaseInsensitiveAliasSubstitutions({
+    const [mapped] = publicAliasSubstitutions({
         stateVariables: [propName],
         componentClass,
         componentInfoObjects,
@@ -271,6 +293,13 @@ type Holding = {
     unknown?: "property" | "reference";
     skip?: boolean;
     /**
+     * For a type among `types` that is an input whose value's type is
+     * decided from what is written (`<choiceInput>`, `<slider>`,
+     * `propertyTypesAtLoad.ts`), the type of that value, which a tag made
+     * from it reads (`readsImplicitProp`).
+     */
+    valueTypes?: Record<string, string>;
+    /**
      * When it is exactly one component of a tag that makes its list of
      * values itself (`isSelfMadeList`, a `<sequence>`), that tag: a tag of
      * the same type is made from it as one component, though any other tag
@@ -313,7 +342,13 @@ const HOLD_CHILDREN = new Set(["group", "sort", "shuffle"]);
  * (`doenet-w0181`), and a name the every-branch rule rejects for a branch
  * that lacks it (`doenet-w0183`). The tag is then missing, with the warning.
  */
-export const MISSING_AT_LOAD_CODES = new Set(["doenet-w0181", "doenet-w0183"]);
+export const MISSING_AT_LOAD_CODES = new Set([
+    "doenet-w0181",
+    "doenet-w0183",
+    // a name or a property after a collection (D59,
+    // `namesAfterCollectionsAtLoad.ts`), marked before these checks
+    "doenet-w0200",
+]);
 
 /**
  * The diagnostic for what `checkTypeChangesAtLoad` decided of a reference
@@ -335,9 +370,12 @@ export function typeChangeAtLoadDiagnostic({
     // A reference that names nothing (an index past what a selector picks,
     // or a name the branches of a container do not all declare,
     // `branchNameIssue`) is quoted as a reference.
-    const args = ["doenet-w0181", "doenet-w0183", "doenet-w0184"].includes(
-        mark.code,
-    )
+    const args = [
+        "doenet-w0181",
+        "doenet-w0183",
+        "doenet-w0184",
+        "doenet-w0200",
+    ].includes(mark.code)
         ? { reference: source, ...mark.args }
         : { componentType: writtenType, source, ...mark.args };
     // A reference that names nothing gives a missing tag, with the warning
@@ -412,9 +450,7 @@ export function reportTypeChangesAtLoad({
                       ?.value;
         const writtenType =
             writtenValue &&
-            (componentInfoObjects.componentTypeLowerCaseMapping[
-                writtenValue.toLowerCase()
-            ] ??
+            (componentInfoObjects.componentTypeAsWritten(writtenValue) ??
                 writtenValue);
         const originalPath = copy.extending
             ? (unwrapSource(copy.extending as any) as any)?.originalPath
@@ -459,13 +495,18 @@ export function reportTypeChangesAtLoad({
 export function checkTypeChangesAtLoad({
     serializedComponents,
     componentInfoObjects,
+    sources = [],
 }: {
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
+    /** The DoenetML, for the suggestions of `doenet-w0200`. */
+    sources?: readonly string[];
 }): {
     branchNameWarnings: BranchNameWarning[];
     collectionItemWarnings: CollectionItemWarning[];
     branchReads: Map<SerializedComponent, BranchRead>;
+    /** a name or a property after a collection (D59, `doenet-w0200`) */
+    nameAfterCollectionDiagnostics: NameAfterCollection[];
 } {
     const branchNameWarnings: BranchNameWarning[] = [];
     const collectionItemWarnings: CollectionItemWarning[] = [];
@@ -474,7 +515,13 @@ export function checkTypeChangesAtLoad({
     const referents = documentReferents({
         serializedComponents,
         componentInfoObjects,
+        typeRepeatValues: true,
     });
+    // What the items of a collection are (COLL-4, COLL-5), made when first
+    // needed
+    let reader: ReturnType<typeof itemReader> | undefined;
+    // The type of each property, from its component or the DoenetML (TYPE)
+    const properties = propertyTypeReader({ componentInfoObjects, referents });
 
     /**
      * What each composite or copy a reference names holds
@@ -530,12 +577,13 @@ export function checkTypeChangesAtLoad({
         any
     >;
 
+    // Matched exactly, as a tag is (NAME-0, D51), and a tag written as a
+    // value (`<collect componentType>`, D62), which was given the tag's
+    // spelling before the document loads if written in another case.
     function canonicalType(type: string | undefined) {
         return type === undefined
             ? undefined
-            : componentInfoObjects.componentTypeLowerCaseMapping[
-                  type.toLowerCase()
-              ];
+            : componentInfoObjects.componentTypeAsWritten(type);
     }
 
     function isComposite(componentType: string) {
@@ -593,17 +641,14 @@ export function checkTypeChangesAtLoad({
         return undefined;
     }
 
-    /** An attribute of `component`, matched without regard to case. */
+    /**
+     * An attribute of `component`, matched exactly (NAME-0, D51): one
+     * written in another case was given the component's spelling before the
+     * document loads (`doenet-w0197`).
+     */
     function attributeOf(component: SerializedComponent, name: string) {
-        const lower = name.toLowerCase();
-        for (const [attrName, attribute] of Object.entries(
-            component.attributes ?? {},
-        )) {
-            if (attrName.toLowerCase() === lower) {
-                return attribute;
-            }
-        }
-        return undefined;
+        const attributes = component.attributes ?? {};
+        return Object.hasOwn(attributes, name) ? attributes[name] : undefined;
     }
 
     /**
@@ -780,6 +825,81 @@ export function checkTypeChangesAtLoad({
         return h.notOne?.reason === "count" && h.notOne.count === 0;
     }
 
+    /**
+     * The `valueTypes` of two holdings together: an input of one type whose
+     * value's type differs between them is not decided (left out).
+     */
+    function mergedValueTypes(
+        a: Holding["valueTypes"],
+        b: Holding["valueTypes"],
+    ): Holding["valueTypes"] {
+        if (!a || !b) {
+            return a ?? b;
+        }
+        const result: Record<string, string> = { ...a };
+        for (const [type, valueType] of Object.entries(b)) {
+            if (type in result && result[type] !== valueType) {
+                result[type] = "";
+            } else {
+                result[type] ??= valueType;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * One component `node` of the type `componentType`, which is not a
+     * composite, with the type of its value when it is an input whose
+     * value's type is decided from what is written (`valueTypes`).
+     */
+    function componentHolding(
+        componentType: string,
+        node: SerializedComponent | undefined,
+    ): Holding {
+        const variable = allClasses[componentType]?.variableForImplicitProp;
+        const decided =
+            node && variable && node.componentType !== "_placeholder"
+                ? properties.propertyTypesOf(node)[variable]
+                : undefined;
+        // of entries that may differ in type (an `<answer>`'s responses),
+        // the one type they share, if they share one
+        const valueType = Array.isArray(decided)
+            ? new Set(decided).size === 1
+                ? decided[0]
+                : undefined
+            : decided;
+        return {
+            types: new Set([componentType]),
+            ...(valueType !== undefined && {
+                valueTypes: { [componentType]: valueType },
+            }),
+        };
+    }
+
+    /**
+     * What a reference to a property (`$P.x`, `$t.categories[1]`) holds:
+     * one component of the property's type, which its component declares
+     * or the DoenetML decides (`propertyTypesAtLoad.ts`). A property of a
+     * composite (of each of its items, COLL-2), or of several values, or a
+     * list, is not decided here; one whose type the DoenetML does not
+     * decide is `unknown` (TYPE-3).
+     */
+    function propertyHolding(copy: SerializedComponent): Holding {
+        const property = properties.propertyOfReference(copy);
+        if (!property || "undecided" in property) {
+            return { types: new Set(), unknown: "property" };
+        }
+        if (
+            property.several ||
+            isHolder(property.type) ||
+            property.type === "group" ||
+            allClasses[property.type]?.listEntryComponentType !== undefined
+        ) {
+            return { types: new Set(), skip: true };
+        }
+        return { types: new Set([property.type]) };
+    }
+
     function eitherOf(holdings: Holding[]): Holding {
         if (holdings.length === 1) {
             return holdings[0];
@@ -787,6 +907,7 @@ export function checkTypeChangesAtLoad({
         const types = new Set<string>();
         let unknown: Holding["unknown"];
         let notOneOf: Holding | undefined;
+        let valueTypes: Holding["valueTypes"];
         for (const holding of holdings) {
             if (holding.skip) {
                 return { types, skip: true };
@@ -794,6 +915,7 @@ export function checkTypeChangesAtLoad({
             holding.types.forEach((type) => types.add(type));
             unknown ??= holding.unknown;
             notOneOf = preferredNotOne(notOneOf, holding);
+            valueTypes = mergedValueTypes(valueTypes, holding.valueTypes);
         }
         return {
             ...(notOneOf && {
@@ -802,6 +924,7 @@ export function checkTypeChangesAtLoad({
             }),
             types,
             unknown,
+            ...(valueTypes && { valueTypes }),
         };
     }
 
@@ -889,7 +1012,7 @@ export function checkTypeChangesAtLoad({
                 // not decided here.
                 return { types: new Set(), skip: true };
             }
-            return { types: new Set([componentType]) };
+            return componentHolding(componentType, item);
         });
     }
 
@@ -933,7 +1056,7 @@ export function checkTypeChangesAtLoad({
                 return { types: new Set(), skip: true };
             }
             if (named.length === 0) {
-                return { types: new Set(), unknown: "property" };
+                return propertyHolding(copy);
             }
             return eitherOf(
                 named.map((n) =>
@@ -991,7 +1114,7 @@ export function checkTypeChangesAtLoad({
                 // (`itemHolding`)
                 return { types: new Set(), skip: true };
             }
-            return { types: new Set([referentType]) };
+            return componentHolding(referentType, node ?? undefined);
         });
     }
 
@@ -1688,10 +1811,31 @@ export function checkTypeChangesAtLoad({
             // a part of a choosing tag, which can't be extended at all
             // (`doenet-e0061`, `extendChangesContentErrors` in `Copy.js`)
             ["case", "else", "option"].includes(sourceType) ||
-            ["case", "else", "option"].includes(writtenType) ||
-            readsImplicitProp(sourceType, writtenType)
+            ["case", "else", "option"].includes(writtenType)
         ) {
             return undefined;
+        }
+        if (readsImplicitProp(sourceType, writtenType)) {
+            // A tag made from the value of an input whose value's type the
+            // DoenetML decides (`<point extend="$ci"/>` of a `<choiceInput>`
+            // of texts) is made from that value, as a tag made from a
+            // component of its type. One whose value's type isn't decided
+            // is left to run time: of a `<choiceInput>`, made from its
+            // value (D4); of an `<answer>`, already `doenet-e0091` (TYPE-3).
+            const valueType = held.valueTypes?.[sourceType];
+            if (!valueType || valueType === writtenType) {
+                return undefined;
+            }
+            const rule = becomes(valueType, writtenType);
+            if (rule.kind === "booleanNumber") {
+                return {
+                    code: "doenet-e0065",
+                    args: { sourceType: valueType, mix: rule.mix },
+                };
+            }
+            return rule.allowed || rule.kind !== "unrelated"
+                ? undefined
+                : { code: "doenet-e0065", args: { sourceType: valueType } };
         }
         const rule = becomes(sourceType, writtenType);
         if (rule.allowed) {
@@ -1713,6 +1857,14 @@ export function checkTypeChangesAtLoad({
         }
         if (rule.kind === "container") {
             return { code: "doenet-e0063", args: { sourceType } };
+        }
+        if (rule.kind === "booleanNumber") {
+            // a boolean as a number, or a number as a boolean (D47
+            // decisions 3 and 4), with the way to ask
+            return {
+                code: "doenet-e0065",
+                args: { sourceType, mix: rule.mix },
+            };
         }
         return { code: "doenet-e0065", args: { sourceType } };
     }
@@ -1788,7 +1940,10 @@ export function checkTypeChangesAtLoad({
             if (!rule.allowed) {
                 return {
                     code: "doenet-e0065",
-                    args: { sourceType },
+                    args:
+                        rule.kind === "booleanNumber"
+                            ? { sourceType, mix: rule.mix }
+                            : { sourceType },
                 };
             }
         }
@@ -1936,6 +2091,87 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         return { held, tag: holder.componentType };
+    }
+
+    /**
+     * The items of the `for` of the `<repeat>` whose `valueName` is the
+     * placeholder `placeholder`, as the options of a `<select>` that picks
+     * one, when every item holds several components and what each holds is
+     * written in the DoenetML (a `<group>`, the template of a repeat, the
+     * options of a select): a name after the value (`$d.P`) names what every
+     * item declares by it, with one tag, or nothing, in every iteration
+     * (COLL-5, D44 decision 6, as COMP-11 for the options). `undefined`
+     * otherwise, where what each item holds is found as the document runs.
+     * The select is marked with the repeat (`itemsOfRepeat`) and with how
+     * each item is named (`itemPlaces`), for the messages.
+     */
+    function repeatItemsAsBranches(placeholder: SerializedComponent) {
+        if (!itemsAsBranches.has(placeholder.componentIdx)) {
+            itemsAsBranches.set(
+                placeholder.componentIdx,
+                findRepeatItemsAsBranches(placeholder),
+            );
+        }
+        return itemsAsBranches.get(placeholder.componentIdx);
+    }
+    const itemsAsBranches = new Map<number, SerializedComponent | undefined>();
+    function findRepeatItemsAsBranches(placeholder: SerializedComponent) {
+        const setup = referents.parentByIdx.get(placeholder.componentIdx);
+        const repeat =
+            setup?.componentType === "_repeatSetup"
+                ? referents.parentByIdx.get(setup.componentIdx)
+                : undefined;
+        if (repeat?.componentType !== "repeat") {
+            return undefined;
+        }
+        reader ??= itemReader({ componentInfoObjects, referents });
+        const found = reader.forItemsOf(repeat);
+        if (
+            !found ||
+            found.unknown ||
+            found.items.length === 0 ||
+            found.items.some((item) => item.kind !== "several") ||
+            reader.repeatForError(repeat) !== undefined
+        ) {
+            return undefined;
+        }
+        return {
+            componentType: "select",
+            componentIdx: placeholder.componentIdx,
+            attributes: {},
+            doenetAttributes: {},
+            children: found.items.map((item, ind) => ({
+                componentType: "option",
+                componentIdx: -1 - ind,
+                attributes: {},
+                doenetAttributes: {},
+                children: item.kind === "several" ? item.children : [],
+            })),
+            itemsOfRepeat: repeat,
+            itemPlaces: placesOfItems(found),
+        } as unknown as SerializedComponent;
+    }
+
+    /**
+     * How the messages name each of the items `found` of a repeat's `for`,
+     * which each hold several components: as the option or case it is
+     * (`part`), by its place in the `for` (`position`) when that is known at
+     * load (`placesKnown`, `forItemsOf`), or otherwise as an item.
+     */
+    function placesOfItems(
+        found: NonNullable<
+            ReturnType<ReturnType<typeof itemReader>["forItemsOf"]>
+        >,
+    ) {
+        const placesKnown = found.placesKnown ?? 0;
+        return found.items.map((item, ind) => {
+            const part = item.kind === "several" ? item.part : undefined;
+            return part
+                ? { part }
+                : ind < placesKnown
+                  ? { position: ind + 1 }
+                  : {};
+        });
     }
 
     /**
@@ -2336,7 +2572,7 @@ export function checkTypeChangesAtLoad({
             }
             added.push(node.children ?? []);
             picks ??= Object.entries(node.attributes ?? {}).find(
-                ([name]) => name.toLowerCase() === "numtoselect",
+                ([name]) => name === "numToSelect",
             );
             node =
                 referents.componentsByIdx.get(ref.nodeIdx) ??
@@ -2354,7 +2590,7 @@ export function checkTypeChangesAtLoad({
         if (ownChildren.length > 0 || picks) {
             const attributes = Object.fromEntries(
                 Object.entries(node.attributes ?? {}).filter(
-                    ([name]) => !picks || name.toLowerCase() !== "numtoselect",
+                    ([name]) => !picks || name !== "numToSelect",
                 ),
             );
             if (picks) {
@@ -2494,15 +2730,21 @@ export function checkTypeChangesAtLoad({
         }
         const path = ref.unresolvedPath ?? [];
         const indexed = isIndexIntoPicks(path);
-        const first = indexed ? path[1] : path[0];
+        const first = isIndexIntoPicks(path) ? path[1] : path[0];
         if (typeof first?.name !== "string" || first.name === "") {
             return undefined;
         }
-        const container = branchContainerAt(ref.nodeIdx, indexed);
+        const placeholder = referents.componentsByIdx.get(ref.nodeIdx);
+        const container =
+            branchContainerAt(ref.nodeIdx, indexed) ??
+            (placeholder?.componentType === "_placeholder" &&
+            !isIndexIntoPicks(path)
+                ? repeatItemsAsBranches(placeholder)
+                : undefined);
         if (!container) {
             return undefined;
         }
-        const namePath = path.slice(indexed ? 1 : 0);
+        const namePath = path.slice(isIndexIntoPicks(path) ? 1 : 0);
         const names = namesOf(namePath);
         const declared = branchDeclaration(
             container,
@@ -2616,35 +2858,59 @@ export function checkTypeChangesAtLoad({
             return undefined;
         }
         const name = declared.name;
-        const containerName = literalText(declared.container.attributes?.name);
-        const hasName =
-            containerName !== undefined &&
-            containerName !== "" &&
-            !containerName.startsWith("_");
-        const container = hasName
-            ? containerName
-            : declared.container.componentType;
+        // the items of a repeat's `for` (`repeatItemsAsBranches`)
+        const repeat: SerializedComponent | undefined = (
+            declared.container as any
+        ).itemsOfRepeat;
+        function named(component: SerializedComponent) {
+            const containerName = literalText(component.attributes?.name);
+            const hasName =
+                containerName !== undefined &&
+                containerName !== "" &&
+                !containerName.startsWith("_");
+            return {
+                container: hasName ? containerName : component.componentType,
+                hasName: hasName ? "true" : "false",
+            };
+        }
         if (declared.status === "missing") {
+            // the item that lacks it, named as the option or case it is,
+            // or by its place in the `for` (`placesOfItems`)
+            const place = repeat
+                ? (declared.container as any).itemPlaces[declared.ordinal - 1]
+                : undefined;
             return {
                 code: "doenet-w0183",
                 args: {
                     name,
-                    branch: declared.branch,
-                    ordinal: declared.ordinal,
-                    container,
-                    hasName: hasName ? "true" : "false",
+                    ...(place?.part
+                        ? {
+                              branch: place.part.branch,
+                              ordinal: place.part.ordinal,
+                              ...named(place.part.container),
+                          }
+                        : {
+                              branch: !repeat
+                                  ? declared.branch
+                                  : place?.position !== undefined
+                                    ? "item"
+                                    : "someItem",
+                              ordinal: place?.position ?? declared.ordinal,
+                              ...named(repeat ?? declared.container),
+                          }),
                 },
             };
         }
+        const { container, hasName } = named(repeat ?? declared.container);
         return {
             code: "doenet-w0184",
             args: {
                 name,
-                branch: declared.branch,
+                branch: repeat ? "item" : declared.branch,
                 firstType: declared.firstType,
                 secondType: declared.secondType,
                 container,
-                hasName: hasName ? "true" : "false",
+                hasName,
             },
         };
     }
@@ -3003,7 +3269,7 @@ export function checkTypeChangesAtLoad({
         }
         if (decision === undefined) {
             return namesAProperty(copy) || namesAnEntry(copy)
-                ? { code: "doenet-e0071", args: {} }
+                ? { code: "doenet-e0071", args: { makes: "values" } }
                 : undefined;
         }
         if (
@@ -3014,7 +3280,7 @@ export function checkTypeChangesAtLoad({
         ) {
             return decision;
         }
-        return { code: "doenet-e0071", args: {} };
+        return { code: "doenet-e0071", args: { makes: "values" } };
     }
 
     /**
@@ -3061,6 +3327,24 @@ export function checkTypeChangesAtLoad({
             { ...path[0], index: [] },
         ]);
         return named !== null && named.length === 0;
+    }
+
+    /**
+     * The error for the scalar tag `writtenType` made from the property the
+     * reference `copy` names (`<point extend="$n.value"/>`), as from a
+     * component of the property's type (`propertyHolding`). A property of
+     * several values, of a composite, or whose type isn't decided, is left
+     * to run time, as is a composite tag (`doenet-e0071`).
+     */
+    function propertyTagError(
+        copy: SerializedComponent,
+        writtenType: string,
+    ): TypeChangeAtLoadError | undefined {
+        if (isHolder(writtenType) || writtenType === "group") {
+            return undefined;
+        }
+        const held = propertyHolding(copy);
+        return held.unknown ? undefined : fixedTypeError(held, writtenType);
     }
 
     function decideTag(copy: SerializedComponent) {
@@ -3246,6 +3530,11 @@ export function checkTypeChangesAtLoad({
                 ...path.slice(0, -1),
                 { ...last, index: [] },
             ]);
+            if (named && named.length === 0 && !isList) {
+                // a property (`$n.value`, `$t.categories[1]`), of the type
+                // its component declares or the DoenetML decides
+                return propertyTagError(copy, writtenType!);
+            }
             if (!named || named.length === 0) {
                 return undefined;
             }
@@ -3515,6 +3804,73 @@ export function checkTypeChangesAtLoad({
     }
 
     /**
+     * The name of the component the literal index `index` selects among
+     * what each of `parts` holds, when it is the same in all of them, as
+     * `$s[1].q` names it in place of `$s[1][1]` (`doenet-w0191`).
+     */
+    function sharedChildName(
+        parts: { part: SerializedComponent }[],
+        index: any,
+    ): string | undefined {
+        const value = index?.value;
+        const k =
+            Array.isArray(value) &&
+            value.length === 1 &&
+            typeof value[0] === "string" &&
+            /^\s*[1-9]\d*\s*$/.test(value[0])
+                ? Number(value[0])
+                : undefined;
+        if (k === undefined) {
+            return undefined;
+        }
+        let shared: string | undefined;
+        for (const { part } of parts) {
+            const item = heldItems(part)[k - 1];
+            const nameAttribute: any =
+                typeof item === "object" ? item.attributes?.name : undefined;
+            const name =
+                typeof nameAttribute?.primitive?.value === "string"
+                    ? nameAttribute.primitive.value
+                    : literalText(nameAttribute);
+            if (
+                name === undefined ||
+                name === "" ||
+                name.startsWith("_") ||
+                (shared !== undefined && name !== shared)
+            ) {
+                return undefined;
+            }
+            shared = name;
+        }
+        return shared;
+    }
+
+    /**
+     * What one option or case `part` holds: its children but blank text and
+     * its `<setup>`, where a `<group>` written as the one component stands
+     * for what it holds, as an index or a property passes into it
+     * (Doenet/DoenetML#2643 item 5).
+     */
+    function heldItems(part: SerializedComponent) {
+        const held = (holder: SerializedComponent) =>
+            withoutSugarGroup(holder.children ?? []).filter((child) =>
+                typeof child === "string"
+                    ? child.trim() !== ""
+                    : child.componentType !== "setup" &&
+                      child.componentType !== "_repeatSetup",
+            );
+        let items = held(part);
+        while (
+            items.length === 1 &&
+            typeof items[0] === "object" &&
+            items[0].componentType === "group"
+        ) {
+            items = held(items[0]);
+        }
+        return items;
+    }
+
+    /**
      * What one option or case of a `<select>` or `<conditionalContent>`
      * holds, for `checkCollectionItems`: nothing, one component (its tag,
      * `undefined` when the DoenetML does not give it or it is itself a
@@ -3529,12 +3885,7 @@ export function checkTypeChangesAtLoad({
         | { kind: "one"; type?: string; component?: SerializedComponent }
         | { kind: "several"; count: number }
         | null {
-        const items = withoutSugarGroup(part.children ?? []).filter((child) =>
-            typeof child === "string"
-                ? child.trim() !== ""
-                : child.componentType !== "setup" &&
-                  child.componentType !== "_repeatSetup",
-        );
+        const items = heldItems(part);
         if (
             items.some(
                 (item) =>
@@ -3553,11 +3904,10 @@ export function checkTypeChangesAtLoad({
         if (typeof item === "string") {
             return { kind: "one", type: "text" };
         }
-        // A reference as the one component (`<option>$m</option>`) is not
-        // read here: a property after the container is not read from what
-        // it names (`$s.x` of it names nothing, `doenet-w0104`).
-        const type =
-            item.componentType === "_copy" ? undefined : declaredType(item);
+        // A reference as the one component (`<option>$m</option>`) counts
+        // as what it names, when that is one component whose tag the
+        // DoenetML gives (`declaredType`; #2548 item 4).
+        const type = declaredType(item);
         return {
             kind: "one",
             type: type === undefined || isHolder(type) ? undefined : type,
@@ -3574,12 +3924,13 @@ export function checkTypeChangesAtLoad({
      *   property after it (`$s[1][2]`, `$s.x`, `$s[1].x`) passes into the
      *   ones holding one, and is read from each component of the others,
      *   so what it means depends on the pick or the case (#2520 item 1):
-     *   `doenet-w0191`, naming those holding several. For a property, also
-     *   when every one holds several: a property after a wrapper of several
-     *   names nothing (D41 decision 3), which the DoenetML decides here, so
-     *   it is a warning, whether or not one is picked or shown
+     *   `doenet-w0191`, naming those holding several. Also when every one
+     *   holds several: an index or a property after a wrapper of several
+     *   names nothing (NAME-2, D41 decision 3), which the DoenetML decides
+     *   here, so it is a warning, whether or not one is picked or shown
      *   (`severalAtLoad`, read by `wrapperOfSeveralDiagnostics` in
-     *   `Copy.js`);
+     *   `Copy.js` and `reportChildIndex` in `refResolutionDependencies.ts`).
+     *   A `<group>` written as the one component stands for what it holds;
      * - when each holds one component, and some of their types have a
      *   property and others lack it (`$cc.x` of a `<math>` case and a
      *   `<text>` `<else>`), it is a warning, and each component lacking it
@@ -3686,38 +4037,29 @@ export function checkTypeChangesAtLoad({
             }
         }
         if (several.length > 0) {
-            if (!anyOne && kind !== "property") {
-                // each a wrapper of several: an index after it names
-                // nothing, with `doenet-w0188` at run time
-                return;
-            }
-            // A property after a wrapper of several names nothing (D41
-            // decision 3, `doenet-w0193` at run time). Decided here when
-            // every option or case holds several, so it is not reported
-            // again there; when only some do, what is reported there is
-            // which is picked or shown now, an info (DIAG-2).
-            if (kind === "property") {
-                copy.doenetAttributes = {
-                    ...copy.doenetAttributes,
-                    severalAtLoad: anyOne ? "some" : "every",
-                };
-            }
+            // An index or a property after a wrapper of several names
+            // nothing (NAME-2, D41 decision 3: `doenet-w0188` or
+            // `doenet-w0193` at run time). Decided here when every option or
+            // case holds several, so it is not reported again there; when
+            // only some do, what is reported there is which is picked or
+            // shown now, an info (DIAG-2, DIAG-7; Doenet/DoenetML#2643 items
+            // 4 and 5).
+            copy.doenetAttributes = {
+                ...copy.doenetAttributes,
+                severalAtLoad: anyOne ? "some" : "every",
+            };
             const withElse = several.some((s) => s.isElse);
-            // `$s.P.x` reads `P` of each pick only when the select picks one
-            // (D41 decision 1 is PR 14): otherwise suggest the first pick's,
-            // `$s[1].P.x`, which works (DIAG-3).
-            const picks = attributeOf(container, "numToSelect");
-            const firstIndex =
-                kind === "property" &&
-                first.name !== "" &&
-                branch === "option" &&
-                picks !== undefined &&
-                literalText(picks)?.trim() !== "1";
+            // The suggestion names `P` after the select or conditional
+            // (`$s.P.x`), or after its index (`$s[1].P.x`, the only form
+            // after a select that picks several, D59).
             collectionItemWarnings.push({
                 copy,
                 kind,
-                firstIndex,
                 code: "doenet-w0191",
+                childName:
+                    kind === "index" && !anyOne
+                        ? sharedChildName(parts, firstIndex[1])
+                        : undefined,
                 args: {
                     what: kind,
                     branch,
@@ -3800,6 +4142,13 @@ export function checkTypeChangesAtLoad({
             }
             if (
                 component.componentType === "_copy" &&
+                component.doenetAttributes?.typeChangeAtLoad?.code ===
+                    "doenet-w0200"
+            ) {
+                // a name or a property after a collection, decided already
+                // (D59, `namesAfterCollectionsAtLoad.ts`)
+            } else if (
+                component.componentType === "_copy" &&
                 checkBranchName(component)
             ) {
                 // decided by the every-branch rule
@@ -3841,8 +4190,34 @@ export function checkTypeChangesAtLoad({
         }
     }
 
+    // A name or a property after a collection names nothing (D59), decided
+    // first, with the every-branch rule below for a name in branches, so
+    // that the checks below leave a reference decided there as it is.
+    const nameAfterCollectionDiagnostics = checkNamesAfterCollectionsAtLoad({
+        serializedComponents,
+        componentInfoObjects,
+        sources,
+        branches: {
+            containerAt: (idx, indexed) => branchContainerAt(idx, indexed),
+            declares: (container, names, indexed) =>
+                branchDeclaration(container, names, new Set(), indexed).status,
+            named: (container, names) => visibleNamed(container, names),
+            parts: (container) => {
+                const kind = branchKind(container, true);
+                return kind
+                    ? partsOf(container, kind)?.map(({ part }) => part)
+                    : undefined;
+            },
+        },
+    });
+
     collectNames(serializedComponents);
     visit(serializedComponents);
 
-    return { branchNameWarnings, collectionItemWarnings, branchReads };
+    return {
+        branchNameWarnings,
+        collectionItemWarnings,
+        branchReads,
+        nameAfterCollectionDiagnostics,
+    };
 }

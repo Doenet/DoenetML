@@ -15,15 +15,15 @@ describe("Graph Tag Tests", { tags: ["@group1"] }, function () {
     <graph name="graph1"><point>(0,0)</point>
     </graph>
 
-    <p>xmin: <number extend="$graph1.xmin" name="xmin" /></p>
-    <p>xmax: <number extend="$graph1.xmax" name="xmax" /></p>
-    <p>ymin: <number extend="$graph1.ymin" name="ymin" /></p>
-    <p>ymax: <number extend="$graph1.ymax" name="ymax" /></p>
+    <p>xmin: <number extend="$graph1.xMin" name="xmin" /></p>
+    <p>xmax: <number extend="$graph1.xMax" name="xmax" /></p>
+    <p>ymin: <number extend="$graph1.yMin" name="ymin" /></p>
+    <p>ymax: <number extend="$graph1.yMax" name="ymax" /></p>
 
-    <p>Change xmin: <mathInput name="xminInput" bindValueTo="$graph1.xmin" /></p>
-    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$graph1.xmax" /></p>
-    <p>Change ymin: <mathInput name="yminInput" bindValueTo="$graph1.ymin" /></p>
-    <p>Change ymax: <mathInput name="ymaxInput" bindValueTo="$graph1.ymax" /></p>
+    <p>Change xmin: <mathInput name="xminInput" bindValueTo="$graph1.xMin" /></p>
+    <p>Change xmax: <mathInput name="xmaxInput" bindValueTo="$graph1.xMax" /></p>
+    <p>Change ymin: <mathInput name="yminInput" bindValueTo="$graph1.yMin" /></p>
+    <p>Change ymax: <mathInput name="ymaxInput" bindValueTo="$graph1.yMax" /></p>
     
     `,
                 },
@@ -183,10 +183,10 @@ describe("Graph Tag Tests", { tags: ["@group1"] }, function () {
 
     <graph name="ignoreBad" xTickScaleFactor="x" yTickScaleFactor="/" displayDigits="5" />
 
-    <number extend="$ignoreBad.xmin" name="xmin" />
-    <number extend="$ignoreBad.xmax" name="xmax" />
-    <number extend="$ignoreBad.ymin" name="ymin" />
-    <number extend="$ignoreBad.ymax" name="ymax" />
+    <number extend="$ignoreBad.xMin" name="xmin" />
+    <number extend="$ignoreBad.xMax" name="xmax" />
+    <number extend="$ignoreBad.yMin" name="ymin" />
+    <number extend="$ignoreBad.yMax" name="ymax" />
 
 
 

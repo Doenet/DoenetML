@@ -79,9 +79,9 @@ describe("Collect tag tests @group4", async () => {
       <collect componentType="point" name="points" from="$panel1" />
     </graph>
 
-    <p>Coordinates of points: <mathList extend="$points.coords" name="coords" /></p>
-    <p><m>x</m>-coordinates of points: <mathList extend="$points.x" name="xs" /></p>
-    <p>Average of <m>y</m>-coordinates of points: <mean name="mean">$points.y</mean></p>
+    <p>Coordinates of points: <mathList name="coords"><repeat for="$points" valueName="cItem">$cItem.coords</repeat></mathList></p>
+    <p><m>x</m>-coordinates of points: <mathList name="xs"><repeat for="$points" valueName="cItem">$cItem.x</repeat></mathList></p>
+    <p>Average of <m>y</m>-coordinates of points: <mean name="mean"><repeat for="$points" valueName="cItem">$cItem.y</repeat></mean></p>
     `,
         });
 
@@ -255,7 +255,7 @@ describe("Collect tag tests @group4", async () => {
       <setup>
         <collect componentType="point" from="$graph3" name="collect3" />
       </setup>
-      <mathList extend="$collect3.y" name="ys" />
+      <mathList name="ys"><repeat for="$collect3" valueName="cItem">$cItem.y</repeat></mathList>
     </asList></p>
     `,
         });
@@ -1070,7 +1070,7 @@ describe("Collect tag tests @group4", async () => {
       <setup>
         <collect componentType="point" from="$group3" name="collect3" />
       </setup>
-      <mathList extend="$collect3.y" name="ys" />
+      <mathList name="ys"><repeat for="$collect3" valueName="cItem">$cItem.y</repeat></mathList>
     </asList></p>
     `,
         });
@@ -1885,7 +1885,7 @@ describe("Collect tag tests @group4", async () => {
       <setup>
         <collect componentType="point" from="$graph3" name="collect3" maxNumber="$maxnumber" />
       </setup>
-      <mathList extend="$collect3.y" name="ys" />
+      <mathList name="ys"><repeat for="$collect3" valueName="cItem">$cItem.y</repeat></mathList>
     </asList></p>
     `,
         });
@@ -2786,7 +2786,7 @@ describe("Collect tag tests @group4", async () => {
   
   <setup><collect componentType="mathInput" from="$p_original" name="collect1" /></setup>
   <p name="p_1">Inputs collected then, values extracted: 
-  <asList name="al1"><mathList name="values1" extend="$collect1.value" /></asList></p>
+  <asList name="al1"><mathList name="values1"><repeat for="$collect1" valueName="cItem">$cItem.value</repeat></mathList></asList></p>
 
   <p name="p_1a">Copied: <asList name="al1a"><mathList name="values1a" extend="$values1" /></asList></p>
   <p name="p_1b">Copy asList: <asList name="al1b" extend="$al1" /></p>

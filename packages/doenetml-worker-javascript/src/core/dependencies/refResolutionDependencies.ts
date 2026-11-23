@@ -729,6 +729,17 @@ export class RefResolutionDependency extends Dependency {
             this.addUpdateTriggerForMissingComponent(nodeIdx);
             this.missingComponentBlockers.push(nodeIdx);
 
+            // Written inside a composite that hasn't expanded (`$g.n`
+            // before `<group name="g">` is there): resolved once it has,
+            // rather than as nothing before and again after (#2553).
+            if (await this.addBlockerForCompositeHolding(nodeIdx)) {
+                return {
+                    success: false,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+
             this.extendIdx = -1;
             this.unresolvedPath = this.originalPath;
 
@@ -776,9 +787,20 @@ export class RefResolutionDependency extends Dependency {
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
+        // A name written inside the collection a `<group>` or a reference
+        // stands for (`$g.P` of `<group name="g">$pl</group>`), decided at
+        // load (`standInAsWritten` in `namesAfterCollectionsAtLoad.ts`): the
+        // rest of the path is resolved from that collection, as for `$pl.P`.
+        const standIn = this.refResolutionOf(composite).standIn as
+            { origin: number; from: number } | undefined;
+        const pathToResolve = standIn
+            ? resolveComponentResult.path.slice(standIn.from)
+            : resolveComponentResult.path;
+
         // We skip parent search only if we start with no path,
         // which will happen from references to items created in a repeat
-        const skip_parent_search = resolveComponentResult.path[0].name === "";
+        const skip_parent_search =
+            standIn !== undefined || pathToResolve[0].name === "";
 
         // console.log(
         //     "resolve path",
@@ -802,11 +824,13 @@ export class RefResolutionDependency extends Dependency {
         let firstResolutionError:
             "NonUniqueReferent" | "NoReferent" | undefined;
 
-        for (const origin of this.originsToResolveFrom(composite)) {
+        for (const origin of standIn
+            ? [standIn.origin]
+            : this.originsToResolveFrom(composite)) {
             try {
                 const candidateResolution = this.dependencyHandler.core
                     .resolvePath!(
-                    { path: resolveComponentResult.path },
+                    { path: pathToResolve },
                     origin,
                     skip_parent_search,
                 );
@@ -833,6 +857,12 @@ export class RefResolutionDependency extends Dependency {
         refResolution ??= selfReferentialResolution;
 
         if (refResolution === undefined) {
+            // A component in error is reported where it is, and a reference
+            // into it reports nothing more (DIAG-5): `$r[1].hidden` of a
+            // `<repeat>` in `doenet-e0005`.
+            const inError =
+                this.dependencyHandler._components[nodeIdx]?.componentType ===
+                "_error";
             // A reference written as a tag whose index is not a positive
             // integer now (`<math extend="$r[$k]"/>` while `k` is blank or
             // 0) names nothing, and says so itself, as an info that lasts
@@ -852,7 +882,9 @@ export class RefResolutionDependency extends Dependency {
             // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
             // Rather than duplicating code to make the messages,
             // we could make sure that `ref_resolve` formats the messages in this case, too.
-            if (
+            if (inError) {
+                // nothing more
+            } else if (
                 !reportedByCopy &&
                 firstResolutionError === "NoReferent" &&
                 this.indexFromValue(composite)
@@ -1001,6 +1033,20 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
+        // Resolved through a composite to a component written inside a
+        // composite it made that hasn't expanded (`$cc.n` of a case holding
+        // `n`): resolved again once that one has, as above (#2553).
+        if (
+            !this.dependencyHandler._components[refResolution.nodeIdx] &&
+            (await this.addBlockerForCompositeHolding(refResolution.nodeIdx))
+        ) {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
         this.extendIdx = refResolution.nodeIdx;
         this.unresolvedPath = refResolution.unresolvedPath;
 
@@ -1048,7 +1094,41 @@ export class RefResolutionDependency extends Dependency {
         if (refResolution.unresolvedPath[0].name !== "") {
             // We stopped matching on a name.
             // This name must match a prop.
-            // Return the result
+            // Return the result.
+            // An index before it that reached a replacement its composite
+            // now withholds (`$r[1].x` once the repeat has no iterations)
+            // names nothing as one past the end does, as when nothing
+            // follows the index (above), and as a reload reports it
+            // (#2548 item 7, DIAG-6).
+            const originalPath = refResolution.originalPath ?? [];
+            const indexedPart =
+                originalPath[
+                    originalPath.length -
+                        refResolution.unresolvedPath.length -
+                        1
+                ];
+            const target =
+                this.dependencyHandler._components[refResolution.nodeIdx];
+            const holder = target?.replacementOf;
+            if (
+                indexedPart?.index?.length > 0 &&
+                holder &&
+                isWithheldReplacement(holder, target)
+            ) {
+                this.reportIndexPastComposite(
+                    composite,
+                    holder,
+                    getReferenceAsWritten(),
+                    [
+                        {
+                            name: "",
+                            index: [
+                                indexedPart.index[indexedPart.index.length - 1],
+                            ],
+                        },
+                    ],
+                );
+            }
 
             return this.foundExtend();
         }
@@ -1133,6 +1213,13 @@ export class RefResolutionDependency extends Dependency {
             this.dependencyHandler.componentInfoObjects,
         );
         const indexedComponent = referenced ?? newRefComponent;
+        if (indexedComponent.doenetAttributes?.reorderErrorAtLoad) {
+            // A `<sort>` or `<shuffle>` whose items are not of one type
+            // shows its error in place of them: an index into it is a
+            // reference to a component in error, which reports nothing
+            // more (DIAG-5), not the one `_error` it shows as an item.
+            return;
+        }
         const instanceKind = instanceKindOf(indexedComponent.componentType);
 
         // A composite that produces instances says how many it made
@@ -1249,9 +1336,7 @@ export class RefResolutionDependency extends Dependency {
         const componentInfoObjects =
             this.dependencyHandler.componentInfoObjects;
         const writtenType =
-            componentInfoObjects.componentTypeLowerCaseMapping[
-                written.toLowerCase()
-            ];
+            componentInfoObjects.componentTypeAsWritten(written);
         const writtenClass = componentInfoObjects.allComponentClasses[
             writtenType
         ] as any;
@@ -1379,7 +1464,17 @@ export class RefResolutionDependency extends Dependency {
         // a case shown by an input, an info while it lasts (DIAG-2, #2506)
         const container =
             this.dependencyHandler._components[childIndex.containerIdx];
+        // After a `<select>` or `<conditionalContent>` whose every option or
+        // case holds several, it was reported at load (`doenet-w0191`); when
+        // only some do, which is picked or shown now is a value: an info
+        // (`severalAtLoad`, `checkCollectionItems` in `typeChangeAtLoad.ts`,
+        // DIAG-7)
+        const severalAtLoad = composite.doenetAttributes?.severalAtLoad;
+        if (severalAtLoad === "every") {
+            return;
+        }
         const decidedByDoenetML =
+            severalAtLoad !== "some" &&
             !this.indexFromValue(composite) &&
             !(container && branchCanChange(container, changeContext(core)));
 

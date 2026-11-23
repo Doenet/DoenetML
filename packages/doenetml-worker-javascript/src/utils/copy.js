@@ -33,11 +33,13 @@ export function namesReachedThroughCopy(composite) {
  * the new `nComponents`.
  *
  * The mark is the one an `<award referencesAreResponses>` gives a reference
- * it names (`Award.js`). In an award made by `extend`, that reference is the
- * shadow of a reference in the source award, and its replacements are copies
- * of that reference's replacements, which have no mark, so it is added here,
- * both when the shadow first expands (`CompositeExpander.ts`) and when its
- * replacements are remade (`CompositeReplacementUpdater.ts`). A copy that is
+ * it names (`Award.js`). In an award inside an extend (of the `<answer>` or
+ * `<section>` holding it, or a bare `$s`; an award itself can't be extended,
+ * D42), that reference is the shadow of a reference in the source award, and
+ * its replacements are copies of that reference's replacements, which have
+ * no mark, so it is added here, both when the shadow first expands
+ * (`CompositeExpander.ts`) and when its replacements are remade
+ * (`CompositeReplacementUpdater.ts`). A copy that is
  * not a shadow resolves its attributes for its replacements itself
  * (`Copy.js`).
  *
@@ -316,7 +318,7 @@ export function postProcessCopy({
  * 1): it has no referent, it has an index (`$s[2]`), or it names a
  * component, or a property of one, that is not a collection named as a
  * whole. A reference to a collection as a whole, a composite or a list (`$r`
- * or `$r.y` of a `<repeat>`, `$g` of a `<group>`), gives its members,
+ * of a `<repeat>`, `$g` of a `<group>`), gives its members,
  * possibly none, unless none of them could have the property it names
  * (`$g.nonexistent`, `doenet-w0104`), which names nothing. With `withheld`,
  * what it names is withheld, as in a case that is not active, so any name
@@ -358,18 +360,18 @@ export async function referenceNamesOneThing(
     ) {
         // A name in a branch that is not active (`$cc.x` of a name in a
         // case), whatever it names, as it is decided before the branch is
-        // made. A property after a collection whose items are all withheld
-        // (`$r.x` of a `<repeat>` with no iterations, `$cc.x` with no case
-        // shown) is one of each item: none, as at load (VAL-5).
+        // made. A property after a composite whose items are all withheld
+        // (`$cc.x` with no case shown) is one of each item: none, as at load
+        // (VAL-5).
         return true;
     }
     // A name, or a property of what it names: one thing, unless it names a
     // collection as a whole, a composite or a list, whose property is one
-    // of each of its members (`$r.y` of a `<repeat>`), possibly none. A
+    // of each of its members, possibly none. A
     // name after it (`$cc.x` of a name in a case, `pathStartsWithProperty`
     // unset) is one thing, and so is a property of the collection itself,
-    // read from it rather than from its members (`$c.maxNumber` of a
-    // `<collect>`, #2416), unless it is an array (below).
+    // read from it rather than from its members (`$r.numItems`), unless it
+    // is an array (below).
     if (
         unresolvedPath?.length > 0 &&
         !component.doenetAttributes?.pathStartsWithProperty
@@ -401,7 +403,7 @@ export async function referenceNamesOneThing(
         // a `<repeat>` holding several), which gives a blank of its own
         // (`replacementFromProp`, D41 decision 3): a property after a
         // collection gives one blank per item, and nothing when it has none
-        // (`$r.x` of a `<repeat>` with no iterations, VAL-5).
+        // (VAL-5).
         const sources = await component.stateValues.replacementSources;
         if (!(
             sources?.length > 0 &&
@@ -476,7 +478,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     components,
     nComponents,
     stateIdInfo,
-    publicCaseInsensitiveAliasSubstitutions,
+    publicAliasSubstitutions,
 }) {
     let diagnostics = [];
 
@@ -718,8 +720,12 @@ export async function verifyReplacementsMatchSpecifiedType({
             !(replacementsToWithhold > 0) &&
             (droppedErrors ||
                 workspace.sourceIndices?.length === requiredLength ||
-                (!replacementChanges &&
-                    workspace.sourceIndices?.length > requiredLength &&
+                // Of several sources, as many made something as are
+                // required: `$g` of a group holding a math, and a case that
+                // shows an error, which makes nothing (`dropErrorsBesideOthers`
+                // in `Copy.js`). When the copy changes, the counts are those
+                // made now (`calculateReplacementChanges`).
+                (workspace.sourceIndices?.length > requiredLength &&
                     workspace.numReplacementsBySource?.filter((n) => n > 0)
                         .length === requiredLength));
 
@@ -863,7 +869,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                 let target = components[replacementSource.componentIdx];
 
                 if (target) {
-                    let propVariable = publicCaseInsensitiveAliasSubstitutions({
+                    let propVariable = publicAliasSubstitutions({
                         stateVariables: [propName],
                         componentClass: target.constructor,
                     })[0];

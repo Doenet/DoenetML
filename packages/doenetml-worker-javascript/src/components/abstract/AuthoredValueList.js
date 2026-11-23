@@ -16,6 +16,7 @@ import {
     CONTEXT_ATTRIBUTES,
     contextAttributeDefinition,
 } from "../../utils/contextAttribute";
+import { entriesMissingDefinition } from "../../utils/missing";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { copiedReferentVariableName } from "../../utils/valueReference";
 
@@ -87,6 +88,15 @@ export default class AuthoredValueList extends ValueListComponent {
     }
 
     static componentType = "_authoredValueList";
+
+    // Documented as properties of an authored list (`mathList.mdx`), so they
+    // stay, though attributes (D41 decision 2 leaves the older properties of
+    // authored lists open).
+    static attributePropertiesKept = [
+        "maxNumber",
+        "unordered",
+        "mergeMathLists",
+    ];
 
     static listEntriesFixedByDefault = false;
 
@@ -1298,23 +1308,7 @@ export default class AuthoredValueList extends ValueListComponent {
         // reference to it is missing.
         // An array, read entry by entry, so that a reference to one entry
         // (`$l[1]` inside `l`'s second child) reads only that entry's child.
-        stateVariableDefinitions.entriesMissing = {
-            isArray: true,
-            entryPrefixes: ["entryMissing"],
-            // A reference to the whole list reads the list's.
-            shadowVariable: true,
-            // an entry is drawn as a blank while it is missing
-            // (`RendererInstructionBuilder.childrenToRenderOf`)
-            markStale: () => ({ updateParentRenderedChildren: true }),
-            returnArraySizeDependencies: () => ({
-                numEntries: {
-                    dependencyType: "stateVariable",
-                    variableName: "numEntries",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numEntries];
-            },
+        stateVariableDefinitions.entriesMissing = entriesMissingDefinition({
             stateVariablesDeterminingDependencies: ["entryStructure"],
             returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
                 const globalDependencies = {
@@ -1398,7 +1392,7 @@ export default class AuthoredValueList extends ValueListComponent {
                 }
                 return { setValue: { entriesMissing } };
             },
-        };
+        });
 
         addEntryOwnDisplayArrays({
             stateVariableDefinitions,
@@ -1885,6 +1879,61 @@ function returnEntryGraphDefinitions(listClass) {
         }),
     };
 
+    // The value reference each entry comes from among the children, for an
+    // entry placed as no component (`entryChildGraphSources`): a reference
+    // to one entry of a list (`$ml[1]`) or to a value other than its
+    // referent's own (`$P.x`). Such an entry is not placed as the referent,
+    // but is fixed, and fixed in place, as the reference is: as its source is
+    // (CTX-7, #2538), the entry's source for a reference to an entry
+    // (`listEntrySource`).
+    definitions.entryChildContextSources = {
+        // A reference to the whole list reads the list's, as it reads
+        // `entryGraphSources`.
+        shadowVariable: true,
+        returnDependencies: () => ({
+            entryStructure: {
+                dependencyType: "stateVariable",
+                variableName: "entryStructure",
+            },
+            children: {
+                dependencyType: "child",
+                childGroups: componentGroups,
+                variableNames: ["listEntryGraphSource", "referentInfo"],
+                variablesOptional: true,
+            },
+        }),
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entryChildContextSources: dependencyValues.entryStructure.map(
+                    (source) => {
+                        const child =
+                            source.componentInd === undefined
+                                ? undefined
+                                : dependencyValues.children[
+                                      source.componentInd
+                                  ];
+                        if (!child || graphSourceOf(child) !== null) {
+                            return null;
+                        }
+                        if (child.listEntryIndex !== undefined) {
+                            // an entry of a list among the children
+                            // (`$l2` of a list whose entries are such
+                            // references), as that list holds it
+                            return {
+                                listIdx: child.componentIdx,
+                                index: child.listEntryIndex,
+                            };
+                        }
+                        return child.stateValues?.referentInfo
+                            ? child.componentIdx
+                            : null;
+                    },
+                ),
+            },
+            checkForActualChange: { entryChildContextSources: true },
+        }),
+    };
+
     // Each entry is placed as the component it comes from, the one the
     // author wrote, which an adapter was made from.
     definitions.entryGraphSources = {
@@ -1924,14 +1973,25 @@ function returnEntryGraphDefinitions(listClass) {
         }),
     };
 
-    // The variables of each entry's component that place it, by entry.
+    // The variables of each entry's component that place it, by entry. An
+    // entry placed as no component that comes from a value reference
+    // (`entryChildContextSources`) takes the reference's `fixed` and
+    // `fixLocation` only.
+    const contextVariables = Object.keys(ENTRY_CONTEXT_ARRAYS);
     definitions.entryGraphValues = {
-        stateVariablesDeterminingDependencies: ["entryGraphSources"],
+        stateVariablesDeterminingDependencies: [
+            "entryGraphSources",
+            "entryChildContextSources",
+        ],
         returnDependencies({ stateValues }) {
             const dependencies = {
                 entryGraphSources: {
                     dependencyType: "stateVariable",
                     variableName: "entryGraphSources",
+                },
+                entryChildContextSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryChildContextSources",
                 },
             };
             for (const sourceIdx of new Set(stateValues.entryGraphSources)) {
@@ -1944,16 +2004,60 @@ function returnEntryGraphDefinitions(listClass) {
                     };
                 }
             }
+            for (const contextSource of stateValues.entryChildContextSources) {
+                if (typeof contextSource === "number") {
+                    dependencies[`reference${contextSource}`] = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: contextSource,
+                        variableNames: contextVariables,
+                        variablesOptional: true,
+                    };
+                } else if (contextSource) {
+                    dependencies[`list${contextSource.listIdx}`] = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: contextSource.listIdx,
+                        variableNames: Object.values(ENTRY_CONTEXT_ARRAYS),
+                        variablesOptional: true,
+                    };
+                }
+            }
             return dependencies;
         },
         definition: ({ dependencyValues }) => ({
             setValue: {
                 entryGraphValues: dependencyValues.entryGraphSources.map(
-                    (sourceIdx) =>
-                        typeof sourceIdx === "number"
-                            ? (dependencyValues[`source${sourceIdx}`]
-                                  ?.stateValues ?? {})
-                            : null,
+                    (sourceIdx, ind) => {
+                        if (typeof sourceIdx === "number") {
+                            return (
+                                dependencyValues[`source${sourceIdx}`]
+                                    ?.stateValues ?? {}
+                            );
+                        }
+                        const contextSource =
+                            dependencyValues.entryChildContextSources?.[ind];
+                        if (typeof contextSource === "number") {
+                            return (
+                                dependencyValues[`reference${contextSource}`]
+                                    ?.stateValues ?? {}
+                            );
+                        }
+                        if (contextSource) {
+                            const listValues =
+                                dependencyValues[`list${contextSource.listIdx}`]
+                                    ?.stateValues ?? {};
+                            return Object.fromEntries(
+                                Object.entries(ENTRY_CONTEXT_ARRAYS).map(
+                                    ([name, arrayName]) => [
+                                        name,
+                                        listValues[arrayName]?.[
+                                            contextSource.index
+                                        ],
+                                    ],
+                                ),
+                            );
+                        }
+                        return null;
+                    },
                 ),
             },
         }),

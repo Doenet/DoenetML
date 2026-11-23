@@ -26,6 +26,10 @@ export default class Ray extends GraphicalComponent {
         });
     }
     static componentType = "ray";
+
+    // Missing while its endpoint, a point it goes through or its direction is a missing point (D40, VAL-5;
+    // `BaseComponent.missingWhenPointsMissing`).
+    static missingWhenPointsMissing = ["endpoint", "through", "direction"];
     static styleOverrideCategories = ["line"];
 
     static componentDocs = {
@@ -610,10 +614,24 @@ export default class Ray extends GraphicalComponent {
                     dependencyType: "decidedByDoenetML",
                     attributeNames: ["endpoint", "through", "direction"],
                 },
+                // a missing ray, made from a point that is missing, has no
+                // dimensions to disagree (#2596): the point's are those of
+                // its blank
+                valueMissing: {
+                    dependencyType: "stateVariable",
+                    variableName: "valueMissing",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 // console.log(`numDimensions definition`)
                 // console.log(dependencyValues)
+
+                if (dependencyValues.valueMissing) {
+                    return {
+                        setValue: { numDimensions: NaN },
+                        checkForActualChange: { numDimensions: true },
+                    };
+                }
 
                 let numDimensions;
                 if (dependencyValues.basedOnDirection) {

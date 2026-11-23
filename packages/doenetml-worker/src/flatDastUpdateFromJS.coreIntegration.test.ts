@@ -299,7 +299,7 @@ describe.skipIf(!wasmAvailable)(
                 drainAndConvertUpdates,
             } = await createCapturingCore(
                 `<number name="xmax">10</number>
-<graph name="g" xmax="$xmax"><point name="P">(1,2)</point></graph>`,
+<graph name="g" xMax="$xmax"><point name="P">(1,2)</point></graph>`,
             );
 
             const gIdx = await resolvePathToNodeIdx("g");

@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import { iterationAliasNames, iterationDummies } from "../utils/repeatAliases";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { instanceOfAttribute } from "../utils/indexInstances";
@@ -23,6 +27,9 @@ import {
 } from "./Repeat";
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
+
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
 
     static componentDocs = {
         summary:
@@ -92,6 +99,9 @@ export default class RepeatForSequence extends CompositeComponent {
     static returnStateVariableDefinitions() {
         const stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
+
         const sequenceDefs = returnStandardSequenceStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, sequenceDefs);
 
@@ -113,6 +123,10 @@ export default class RepeatForSequence extends CompositeComponent {
                 step: {
                     dependencyType: "stateVariable",
                     variableName: "step",
+                },
+                last: {
+                    dependencyType: "stateVariable",
+                    variableName: "last",
                 },
                 exclude: {
                     dependencyType: "stateVariable",
@@ -265,6 +279,12 @@ export default class RepeatForSequence extends CompositeComponent {
             },
         };
 
+        // The number of items, its iterations (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "numIterates",
+            count: (numIterates) => numIterates ?? 0,
+        });
+
         return stateVariableDefinitions;
     }
 
@@ -288,6 +308,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 from: null,
                 length: null,
                 step: null,
+                last: null,
                 type: null,
                 exclude: null,
                 lowercase: null,
@@ -298,6 +319,7 @@ export default class RepeatForSequence extends CompositeComponent {
         let from = await component.stateValues.from;
         let length = await component.stateValues.length;
         let step = await component.stateValues.step;
+        let last = await component.stateValues.last;
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
         let lowercase = await component.stateValues.lowercase;
@@ -306,6 +328,7 @@ export default class RepeatForSequence extends CompositeComponent {
             from,
             length,
             step,
+            last,
             type,
             exclude,
             lowercase,
@@ -484,6 +507,8 @@ export default class RepeatForSequence extends CompositeComponent {
         let from = await component.stateValues.from;
         let length = await component.stateValues.length;
         let step = await component.stateValues.step;
+        // the last value, when it isn't computed from `from` and `step`
+        let last = await component.stateValues.last;
         let type = await component.stateValues.type;
         let exclude = await component.stateValues.exclude;
         // letters are numbered from 1 whatever their case, so `from` alone
@@ -505,6 +530,7 @@ export default class RepeatForSequence extends CompositeComponent {
             sameValue(lrp.from, from) &&
             lrp.length === length &&
             sameValue(lrp.step, step) &&
+            sameValue(lrp.last ?? null, last) &&
             lrp.exclude?.length === exclude.length &&
             exclude.every((x, i) => sameValue(lrp.exclude[i], x)) &&
             lrp.lowercase === lowercase
@@ -552,6 +578,11 @@ export default class RepeatForSequence extends CompositeComponent {
                 ) {
                     modifyExistingValues = true;
                 }
+            }
+            // a last value that isn't computed from `from` and `step`, now
+            // or before, is another value, or is one no longer
+            if ((last ?? null) !== null || (lrp.last ?? null) !== null) {
+                modifyExistingValues = true;
             }
 
             let prevLength = lrp.length;
@@ -672,6 +703,7 @@ export default class RepeatForSequence extends CompositeComponent {
         lrp.from = from;
         lrp.length = length;
         lrp.step = step;
+        lrp.last = last;
         lrp.exclude = exclude;
         lrp.lowercase = lowercase;
 

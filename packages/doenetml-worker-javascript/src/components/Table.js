@@ -14,6 +14,8 @@ export default class Table extends BlockComponent {
         });
     }
     static componentType = "table";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A container element for a `<tabular>`",

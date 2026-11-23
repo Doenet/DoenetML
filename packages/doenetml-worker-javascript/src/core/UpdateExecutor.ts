@@ -144,11 +144,11 @@ export class UpdateExecutor {
     /**
      * Merge the essential values definitions set since the last update
      * (`essentialValuesSavedInDefinition`) into what is saved
-     * (`cumulativeStateVariableChanges`). Done at the start of each update,
-     * and before each save (`StatePersistence.saveState`), so that values a
-     * definition drew at random, such as a sampler's, are saved even when no
-     * update has come since they were drawn, as when a reader reloads a
-     * document they have only looked at (COMP-8, #2477).
+     * (`cumulativeStateVariableChanges`). Done at the start and at the end
+     * of each update, and before each save (`StatePersistence.saveState`),
+     * so that values a definition drew at random, such as a sampler's, are
+     * saved even when no update has come since they were drawn, as when a
+     * reader reloads a document they have only looked at (COMP-8, #2477).
      */
     mergeEssentialValuesSavedInDefinition() {
         if (
@@ -393,8 +393,9 @@ export class UpdateExecutor {
      *     post-loop submission-event recording (and triggers an
      *     immediate save).
      *   - `setComponentNeedingUpdateValue` /
-     *     `unsetComponentNeedingUpdateValue`: flag bookkeeping for
-     *     downstream answer-submission detection.
+     *     `unsetComponentNeedingUpdateValue`: record which input the reader
+     *     is editing (`Core.componentBeingEdited`), whose edit not entered
+     *     `Core.commitUnenteredEdits` leaves alone.
      *
      * After the loop, `executeUpdateStateVariables` runs once more on
      * any leftover `newStateVariableValues`. Unless
@@ -455,6 +456,13 @@ export class UpdateExecutor {
 
             return;
         }
+
+        // Values definitions set since the last update, before this update
+        // can delete their component (a `<conditionalContent>` switching
+        // cases), which would drop them: an input read after its value
+        // changed clears the record of the reader's edit, and that must be
+        // saved with it (#2554 item 1).
+        this.mergeEssentialValuesSavedInDefinition();
 
         // Keyed by component-index string (the form `for...in` yields); the
         // inner record is keyed by state-variable name. Indices are coerced
@@ -557,13 +565,20 @@ export class UpdateExecutor {
             } else if (
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
-                this.core.cumulativeStateVariableChanges.__componentNeedingUpdateValue =
-                    this.core._components[instruction.componentIdx!]!.stateId;
+                // the input the reader is editing, whose edit is not
+                // committed when it is made (D50, `commitUnenteredEdits`)
+                this.core.componentBeingEdited = instruction.componentIdx!;
             } else if (
                 instruction.updateType === "unsetComponentNeedingUpdateValue"
             ) {
-                delete this.core.cumulativeStateVariableChanges
-                    .__componentNeedingUpdateValue;
+                // the input's edit is entered: it is not being edited, unless
+                // the reader is editing another
+                if (
+                    instruction.componentIdx === undefined ||
+                    instruction.componentIdx === this.core.componentBeingEdited
+                ) {
+                    this.core.componentBeingEdited = null;
+                }
             }
         }
 

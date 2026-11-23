@@ -14,6 +14,8 @@ import {
 
 export default class BooleanComponent extends InlineComponent {
     static componentType = "boolean";
+    // A value, of its value's type (COLL-4, D46; `utils/componentKinds.ts`).
+    static isValue = true;
 
     // missing while its content is only missing children (D40,
     // `BaseComponent.missingWhenContentMissing`)

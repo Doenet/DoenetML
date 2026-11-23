@@ -36,6 +36,26 @@ might happen to produce identical output — though the chance grows
 smaller the larger the combination space.
 
 
+### Written out, never computed
+
+A document's variants are decided before anything else in it is made, so
+the attributes of `<variantControl>{:dn}` must be written out. A reference
+such as `numVariants="$n"` can't be read there: it is ignored, with an
+error, and anything written beside it is kept. For the same reason, a
+`<variantControl>{:dn}` can't be made from another with `extend`, `copy` or
+`copyWithState` (`<variantControl extend="$vc"/>{:dn}`): that is an error,
+and it is ignored. Write its attributes out instead.
+
+Nor can a `<variantControl>{:dn}` be shown or read by a reference. It shows
+nothing, and nothing can be read from it: `numVariants` and the others are
+attributes, and even the properties every component has (`hidden`) are not
+read. So `$vc`, `$vc.numVariants` and `$vc.hidden` name nothing, with a
+warning.
+
+A `<variantControl>{:dn}` never stops the document from loading. Whatever it
+can't follow is an error at the attribute, and the document loads with the
+rest. The cases are described with each attribute below.
+
 <AttrPropDisplay name='variantControl'/>
 
 
@@ -144,6 +164,10 @@ the keys used by the [`<option selectForVariants="...">{:dn}`](option)
 attribute, which pins specific options to specific named variants
 instead of leaving the selection to chance.
 
+Each name must be different, compared without case: `Alpha` and `alpha` are
+the same name. A name written again is ignored, with an error, and the first
+is kept.
+
 
 
 ---
@@ -167,4 +191,20 @@ instead of leaving the selection to chance.
 delivered; `variantsToExclude` does the opposite. Both take variant names,
 not indices. Without `variantNames`, the variants are named `a`, `b`, `c`, …,
 so `a c e g i` are the first, third, fifth, seventh and ninth of the ten.
-A name that is not a variant's stops the document from loading.
+Names are compared without case. A name that is not a variant's is ignored,
+with an error, and the other names are used; if `variantsToInclude` names no
+variant at all, every variant is included. With unique variants, the
+extras dropped because there are not enough distinguishable outputs are
+not variants: in the `uniqueVariants` example above, with six variants,
+`g` is not a variant's name.
+
+An empty `variantsToInclude=""` is ignored, with an error, as is an empty
+`numVariants=""`, or one that isn't a number (`numVariants="abc"`). If the
+names left
+no variant at all (`variantsToExclude` naming every variant, or every one
+`variantsToInclude` names), both are ignored, with an error, and every
+variant is included.
+
+A `<variantControl>{:dn}` in a [`<problem>{:dn}`](problem) or other section
+sets that section's variants, whether or not the variants of the document,
+or of a section around it, are unique.

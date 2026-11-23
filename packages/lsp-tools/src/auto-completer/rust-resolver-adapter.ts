@@ -1,11 +1,12 @@
 import type { DastElement, DastNodes } from "@doenet/parser";
 import type { DoenetSourceObject } from "../doenet-source-object";
 import { isRepeatLikeElement } from "./repeat-elements";
-import { hasImplicitSingleIndex } from "./select-family";
+import { hasImplicitIndex } from "./select-family";
 import {
     branchContainerKind,
     branchDeclarations,
     countVisibleDeclarations,
+    isWrittenAsCopy,
     namesElement,
     namesSharedByBranchesIn,
     sharedBranchNames,
@@ -318,6 +319,16 @@ export interface ResolverCore {
         unresolvedPath: Array<{ name: string }> | null;
         originalPath: Array<{ name: string }>;
     }>;
+}
+
+/** Whether `element`, or a component written inside it, is named `name`. */
+function declaresName(element: DastElement, name: string): boolean {
+    if (getElementNameAttributeValue(element) === name) {
+        return true;
+    }
+    return element.children.some(
+        (child) => child.type === "element" && declaresName(child, name),
+    );
 }
 
 /** Matches the Rust WASM FlatPathPart shape expected by resolve_path. */
@@ -670,7 +681,7 @@ export class RustResolverAdapter {
         }));
 
         try {
-            const resolution = await this._core.resolvePath({
+            const resolution = await this._resolvePath({
                 path: { path: flatPath },
                 origin: originIndex,
                 skipParentSearch: false,
@@ -695,6 +706,148 @@ export class RustResolverAdapter {
             // per-instance augmentation applies" (canonical schema decides).
             return null;
         }
+    }
+
+    /**
+     * Whether the core leaves a name after `element` unresolved
+     * (`names_per_item` in the core's resolver): a `<repeat>` or
+     * `<repeatForSequence>`, a `<select>` that picks several, and a
+     * `<collect>` (a name it holds more than once), none written with `copy`
+     * or `extend`. A name after one of these is the collection's own, so
+     * names nothing (D59); a name after one of its items (`$r[1].x`) is the
+     * item's.
+     */
+    _namesPerItem(element: DastElement): boolean {
+        if (isRepeatLikeElement(element)) {
+            return true;
+        }
+        if (element.name === "select") {
+            return branchContainerKind(element, false) === undefined;
+        }
+        return element.name === "collect" && !isWrittenAsCopy(element);
+    }
+
+    /**
+     * `_core.resolvePath`, reading a name after a collection whose items each
+     * hold their own names (`$rep[2].x`) in what is written inside it, as the
+     * members an item has. The core leaves such a name unresolved
+     * (`_namesPerItem`), but completions and help are read from the DoenetML
+     * as written: the name is resolved from a component written inside the
+     * collection, and kept only if it is one written inside it. The callers
+     * require an index before it: with none (`$rep.x`), a name after a
+     * collection names nothing (D59), and only the collection's own
+     * properties are offered after `$rep.`.
+     */
+    async _resolvePath(args: {
+        path: { path: Array<FlatPathPartForResolver> };
+        origin: number;
+        skipParentSearch: boolean;
+    }): ReturnType<ResolverCore["resolvePath"]> {
+        const resolution = await this._core!.resolvePath(args);
+        const unresolved = resolution.unresolvedPath;
+        if (!unresolved || unresolved.length === 0 || !unresolved[0].name) {
+            return resolution;
+        }
+        const collection = this._rustIndexToDastElement.get(resolution.nodeIdx);
+        if (!collection || !this._namesPerItem(collection)) {
+            return resolution;
+        }
+        // The search starts from a component written inside that does not
+        // declare the name itself, so that it reaches the name as the
+        // collection has it (once, in branches, or more than once). With
+        // only one, it has the name as the collection does.
+        const name = unresolved[0].name;
+        const written = collection.children.filter(
+            (child): child is DastElement =>
+                child.type === "element" &&
+                this._dastElementToRustIndex.has(child),
+        );
+        const inside =
+            written.find((child) => !declaresName(child, name)) ??
+            (written.length === 1 ? written[0] : undefined);
+        if (!inside) {
+            return resolution;
+        }
+        const insideIdx = this._dastElementToRustIndex.get(inside)!;
+        let first: Awaited<ReturnType<ResolverCore["resolvePath"]>>;
+        try {
+            first = await this._core!.resolvePath({
+                path: { path: [unresolved[0] as FlatPathPartForResolver] },
+                origin: insideIdx,
+                skipParentSearch: false,
+            });
+        } catch {
+            return resolution;
+        }
+        const named = this._rustIndexToDastElement.get(first.nodeIdx);
+        if (
+            !named ||
+            named === collection ||
+            !this._isInside(named, collection)
+        ) {
+            return resolution;
+        }
+        if ((first.unresolvedPath?.length ?? 0) > 0) {
+            // A name declared in the branches of a container written inside
+            // the collection, which the core leaves for that container.
+            return {
+                ...resolution,
+                nodeIdx: first.nodeIdx,
+                nodesInResolvedPath: [
+                    ...resolution.nodesInResolvedPath,
+                    ...first.nodesInResolvedPath.filter(
+                        (idx, i) => i > 0 || idx === first.nodeIdx,
+                    ),
+                ],
+                unresolvedPath: [
+                    ...first.unresolvedPath!,
+                    ...unresolved.slice(1),
+                ],
+            };
+        }
+        if (unresolved.length === 1) {
+            return {
+                ...resolution,
+                nodeIdx: first.nodeIdx,
+                nodesInResolvedPath: [
+                    ...resolution.nodesInResolvedPath,
+                    first.nodeIdx,
+                ],
+                unresolvedPath: null,
+            };
+        }
+        const rest = await this._resolvePath({
+            path: {
+                path: unresolved.slice(1) as FlatPathPartForResolver[],
+            },
+            origin: first.nodeIdx,
+            skipParentSearch: true,
+        });
+        return {
+            ...rest,
+            originalPath: resolution.originalPath,
+            nodesInResolvedPath: [
+                ...resolution.nodesInResolvedPath,
+                ...rest.nodesInResolvedPath,
+            ],
+        };
+    }
+
+    /** Whether `element` is written inside `container`. */
+    _isInside(element: DastElement, container: DastElement): boolean {
+        const start = element.position?.start?.offset;
+        const end = element.position?.end?.offset;
+        const containerStart = container.position?.start?.offset;
+        const containerEnd = container.position?.end?.offset;
+        if (
+            start == null ||
+            end == null ||
+            containerStart == null ||
+            containerEnd == null
+        ) {
+            return false;
+        }
+        return start > containerStart && end <= containerEnd;
     }
 
     async _resolveRefMemberContainer(
@@ -735,7 +888,7 @@ export class RustResolverAdapter {
         }));
 
         try {
-            const resolution = await this._core.resolvePath({
+            const resolution = await this._resolvePath({
                 path: { path: flatPath },
                 origin: originIndex,
                 skipParentSearch: false,
@@ -831,7 +984,7 @@ export class RustResolverAdapter {
                 // `r`). Every node on the way is an intermediate.
                 const namedPrefix =
                     containerPartIndex >= 0
-                        ? await this._core.resolvePath({
+                        ? await this._resolvePath({
                               path: {
                                   path: flatPath.slice(
                                       0,
@@ -978,7 +1131,7 @@ export class RustResolverAdapter {
             // and the composite-children branches treat that as if the
             // bracket index were authored.
             const resolvedPartHasEffectiveIndex =
-                resolvedPartHasIndex || hasImplicitSingleIndex(resolvedNode);
+                resolvedPartHasIndex || hasImplicitIndex(resolvedNode);
 
             // When the resolved element takes an index, descendants
             // are only accessible via $name[n].member — suppress them
@@ -1129,7 +1282,7 @@ export class RustResolverAdapter {
         const probeResults = await Promise.all(
             allNames.map(async (name) => {
                 try {
-                    const probe = await this._core!.resolvePath({
+                    const probe = await this._resolvePath({
                         path: {
                             path: [
                                 {
@@ -1225,7 +1378,7 @@ export class RustResolverAdapter {
             if (!pathNode) continue;
             const segmentHasIndex = pathPartHasIndex[pathPartIndex] ?? false;
             const segmentHasEffectiveIndex =
-                segmentHasIndex || hasImplicitSingleIndex(pathNode);
+                segmentHasIndex || hasImplicitIndex(pathNode);
             const takesIndex = this._componentTakesIndex(pathNode.name);
             if (
                 takesIndex &&
@@ -1354,7 +1507,7 @@ export class RustResolverAdapter {
         if (resolveFromIndex == null) return null;
 
         try {
-            const resolution = await this._core.resolvePath({
+            const resolution = await this._resolvePath({
                 path: {
                     path: [
                         {
@@ -1611,7 +1764,7 @@ export class RustResolverAdapter {
         }));
 
         try {
-            const resolution = await this._core.resolvePath({
+            const resolution = await this._resolvePath({
                 path: { path: flatPath },
                 origin: resolveFromIndex,
                 skipParentSearch: false,

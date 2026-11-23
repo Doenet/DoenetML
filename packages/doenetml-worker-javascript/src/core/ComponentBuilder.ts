@@ -2,8 +2,12 @@ import { LIST_ENTRY_ARRAY_PREFIX } from "../utils/listEntryReference";
 import {
     missingWhileListEntryMissingDefinition,
     missingWhileSourceMissingDefinition,
+    namesNothingWhileSourceDoesDefinition,
 } from "../utils/missing";
-import { describeReferentVariable } from "../utils/referentDescription";
+import {
+    describeReferentVariable,
+    nullMeansMissing,
+} from "../utils/referentDescription";
 import { expressionAttributeDefinitions } from "../utils/expressionAttribute";
 import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
@@ -345,6 +349,23 @@ export async function addComponents({
 }
 
 /**
+ * The components a component being made is made in, for a cycle found
+ * before it exists: the composite it is made by, and its parent
+ * (`CircularDependencyError.componentIndices`).
+ */
+function madeIn(ancestors: any, componentsReplacementOf: any): number[] {
+    const found: number[] = [];
+    if (componentsReplacementOf?.componentIdx !== undefined) {
+        found.push(componentsReplacementOf.componentIdx);
+    }
+    const parentIdx = ancestors?.[0]?.componentIdx;
+    if (parentIdx !== undefined) {
+        found.push(parentIdx);
+    }
+    return found;
+}
+
+/**
  * Walks `serializedComponents` and produces matching live component
  * instances without splicing them into any parent's defining-children
  * list — used for replacements, attribute components, error components,
@@ -430,6 +451,7 @@ export async function createIsolatedComponents({
             serializedComponent,
             componentIdx,
             core.readerWritable,
+            core.readerPlaced,
         );
 
         const createResult = await createChildrenThenComponent({
@@ -654,6 +676,16 @@ export async function createChildrenThenComponent({
                             core.dependencies.getCircularDependencyMessage([
                                 serializedComponent,
                             ]),
+                            [
+                                ...(e instanceof CircularDependencyError
+                                    ? e.componentIndices
+                                    : []),
+                                serializedComponent.componentIdx,
+                                ...madeIn(ancestors, componentsReplacementOf),
+                            ],
+                            e instanceof CircularDependencyError
+                                ? e.stateVariables
+                                : [],
                         );
                     } else {
                         throw e;
@@ -722,6 +754,9 @@ export async function createChildrenThenComponent({
             unresolvedPath: refResolution.unresolvedPath,
             originalPath,
             nodesInResolvedPath: refResolution.nodesInResolvedPath,
+            ...(refResolution.standIn
+                ? { standIn: refResolution.standIn }
+                : {}),
         };
     }
 
@@ -776,6 +811,12 @@ export async function createChildrenThenComponent({
                     core.dependencies.getCircularDependencyMessage([
                         serializedComponent,
                     ]),
+                    // not made yet: what it is made in stands for it
+                    // (`blameLoadCycle`)
+                    [
+                        serializedComponent.componentIdx,
+                        ...madeIn(ancestors, componentsReplacementOf),
+                    ],
                 );
             }
             if (core._components[idx]) {
@@ -786,6 +827,12 @@ export async function createChildrenThenComponent({
                     core.dependencies.getCircularDependencyMessage([
                         serializedComponent,
                     ]),
+                    // not made yet: what it is made in stands for it
+                    // (`blameLoadCycle`)
+                    [
+                        serializedComponent.componentIdx,
+                        ...madeIn(ancestors, componentsReplacementOf),
+                    ],
                 );
             }
         }
@@ -835,6 +882,10 @@ export async function createChildrenThenComponent({
 
     if (componentsReplacementOf) {
         newComponent.replacementOf = componentsReplacementOf;
+        // the component it was copied from (`originalIdx`), such as what is
+        // written in a repeat's template, so a cycle through it found at load
+        // is blamed where the author wrote it (`blameLoadCycle`)
+        newComponent.madeFromIdx = serializedComponent.originalIdx;
     }
 
     if (serializedComponent.adaptedFrom) {
@@ -861,19 +912,54 @@ export async function createChildrenThenComponent({
                 }
 
                 const shadowedComponent = core._components[idx];
+                const propertyCanBeNull =
+                    typeof shadowInfo.propVariable === "string" &&
+                    !shadowedComponent.state.entriesMissing &&
+                    nullMeansMissing(
+                        shadowedComponent.state[shadowInfo.propVariable],
+                    ) &&
+                    !shadowedComponent.state[shadowInfo.propVariable].isArray &&
+                    !shadowedComponent.state[shadowInfo.propVariable]
+                        .isArrayEntry;
                 if (
                     shadowInfo.propVariable !== undefined &&
-                    shadowedComponent.canBecomeMissing &&
+                    (shadowedComponent.canBecomeMissing || propertyCanBeNull) &&
                     !newComponent.isMissing &&
                     !newComponent.doenetAttributes.missingWhileEntryEmpty
                 ) {
                     // A property of a component that can be missing for a
                     // while is missing while it is (D37):
                     // `<number extend="$n.value"/>` of
-                    // `<number name="n">$l[$i]</number>`.
+                    // `<number name="n">$l[$i]</number>`. So is one that
+                    // holds `null` for no value, while it does, though it had
+                    // a value when the tag was made (D40, #2544):
+                    // `<math extend="$im.aspectRatio"/>` once the image's
+                    // aspect ratio is cleared.
                     newComponent.doenetAttributes.missingWhileSourceMissing = true;
                     newComponent.state.valueMissing =
-                        missingWhileSourceMissingDefinition(idx);
+                        missingWhileSourceMissingDefinition(
+                            idx,
+                            propertyCanBeNull
+                                ? shadowInfo.propVariable
+                                : undefined,
+                        );
+                    if (shadowedComponent.canBecomeMissing) {
+                        // It names nothing while its source holds only
+                        // missing content, so a shape whose point it is is
+                        // missing (`<circle center="$(c.center)"/>` of
+                        // `<circle name="c">$nothing</circle>`, #2596),
+                        // without reading whether its source is missing,
+                        // which for a vector whose `head` is its own
+                        // `tail` would read the vector again.
+                        newComponent.state.namesNothing =
+                            namesNothingWhileSourceDoesDefinition(
+                                idx,
+                                Boolean(
+                                    shadowedComponent.constructor
+                                        .missingWhenContentMissing,
+                                ),
+                            );
+                    }
                 } else if (
                     shadowInfo.propVariable !== undefined &&
                     shadowedComponent.state.entriesMissing &&
@@ -893,6 +979,16 @@ export async function createChildrenThenComponent({
                             missingWhileListEntryMissingDefinition(
                                 idx,
                                 position,
+                            );
+                        // It names a blank entry, as a reference that names
+                        // nothing does (`contentNamesNothing`), so a point
+                        // holding it alone is missing (`<point>$pl[2]</point>`,
+                        // #2544) without reading through it to its source.
+                        newComponent.state.namesNothing =
+                            missingWhileListEntryMissingDefinition(
+                                idx,
+                                position,
+                                "namesNothing",
                             );
                     }
                 }
@@ -992,6 +1088,12 @@ export async function createChildrenThenComponent({
         core,
         componentIdx,
     });
+
+    // an edit not entered it was made with, from saved state or carried by a
+    // `copyWithState`, is committed once the update is over (D50)
+    if (componentClass.holdsUnenteredEdit) {
+        core.inputsToCommit.add(componentIdx);
+    }
 
     // Other components' dependencies may be blocked on this component's
     // identity, so that resolution stays eager. The former per-state-variable

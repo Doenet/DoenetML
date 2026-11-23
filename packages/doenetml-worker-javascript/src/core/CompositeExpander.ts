@@ -311,7 +311,7 @@ export async function expandCompositeComponent({
 }: {
     core: Core;
     component: any;
-}) {
+}): Promise<{ success: boolean; compositesExpanded?: number[] }> {
     if (!("readyToExpandWhenResolved" in component.state)) {
         throw Error(
             `Could not find state variable readyToExpandWhenResolved of composite ${component.componentIdx}`,
@@ -334,11 +334,40 @@ export async function expandCompositeComponent({
         // again here would do so without end.
         throw new CircularDependencyError(
             core.dependencies.getCircularDependencyMessage([component]),
+            [component.componentIdx],
         );
     }
 
     core.updateInfo.compositesBeingExpanded.push(component.componentIdx);
 
+    try {
+        return await expandMarkedComposite({ core, component });
+    } catch (e) {
+        // Whatever the expansion threw, the composite is no longer being
+        // expanded: left marked, it would be taken for a cycle the next time
+        // anything expanded it (#2554 item 4).
+        const ind = core.updateInfo.compositesBeingExpanded.indexOf(
+            component.componentIdx,
+        );
+        if (ind !== -1) {
+            core.updateInfo.compositesBeingExpanded.splice(ind, 1);
+        }
+        throw e;
+    }
+}
+
+/**
+ * The expansion of `component` once it is marked as being expanded
+ * (`compositesBeingExpanded`), which `_finishExpanding` unmarks when it
+ * succeeds and `expandCompositeComponent` when it throws.
+ */
+async function expandMarkedComposite({
+    core,
+    component,
+}: {
+    core: Core;
+    component: any;
+}): Promise<{ success: boolean; compositesExpanded?: number[] }> {
     if (component.parent) {
         for (const list of [
             component.parent.unexpandedCompositesReady,
@@ -383,8 +412,7 @@ export async function expandCompositeComponent({
             allDoenetMLs: core.allDoenetMLs,
             flags: core.flags,
             resolveItem: core.dependencies.resolveItem.bind(core.dependencies),
-            publicCaseInsensitiveAliasSubstitutions:
-                core.publicCaseInsensitiveAliasSubstitutions.bind(core),
+            publicAliasSubstitutions: core.publicAliasSubstitutions.bind(core),
         });
 
         // If `core._components` changed in length while `createSerializedReplacements` was executing,
@@ -710,8 +738,7 @@ async function expandShadowingComposite({
             components: core._components,
             nComponents: newNComponents,
             stateIdInfo,
-            publicCaseInsensitiveAliasSubstitutions:
-                core.publicCaseInsensitiveAliasSubstitutions.bind(core),
+            publicAliasSubstitutions: core.publicAliasSubstitutions.bind(core),
         });
 
         for (const diagnostic of verificationResult.diagnostics) {
@@ -1012,9 +1039,9 @@ export async function replaceCompositeChildren({
                 // A composite given a type makes exactly one component,
                 // so it is replaced by a single placeholder.
                 let componentType =
-                    core.componentInfoObjects.componentTypeLowerCaseMapping[
-                        child.attributes._createComponentOfType.primitive.value.toLowerCase()
-                    ];
+                    core.componentInfoObjects.componentTypeAsWritten(
+                        child.attributes._createComponentOfType.primitive.value,
+                    );
                 replacements = [
                     {
                         componentType,
@@ -1312,6 +1339,15 @@ export async function changeInactiveComponentAndDescendants({
         inactive
     ) {
         component.state.isInactiveCompositeReplacement.value = inactive;
+        if (component.constructor.holdsUnenteredEdit) {
+            if (inactive) {
+                // a withheld input isn't focused
+                core.inputNoLongerFocused(component.componentIdx);
+            } else {
+                // shown again: an edit it holds is committed (D50)
+                core.inputsToCommit.add(component.componentIdx);
+            }
+        }
         await core.markUpstreamDependentsStale({
             component,
             varName: "isInactiveCompositeReplacement",

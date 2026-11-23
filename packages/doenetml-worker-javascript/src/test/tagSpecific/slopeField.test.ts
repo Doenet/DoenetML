@@ -219,7 +219,7 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
             doenetML: `
   <graph>
     <slopeField name="a">x</slopeField>
-    <slopeField name="b" dx="0.5" dy="2" xoffset="0.25" markLength="30" maxMarks="900">x</slopeField>
+    <slopeField name="b" dx="0.5" dy="2" xOffset="0.25" markLength="30" maxMarks="900">x</slopeField>
   </graph>
   `,
         });
@@ -235,7 +235,7 @@ describe("SlopeField and VectorField tag tests @group2", async () => {
 
         expect(b.stateValues.dx).eq(0.5);
         expect(b.stateValues.dy).eq(2);
-        expect(b.stateValues.xoffset).eq(0.25);
+        expect(b.stateValues.xOffset).eq(0.25);
         expect(b.stateValues.markLength).eq(30);
         expect(b.stateValues.maxMarks).eq(900);
     });

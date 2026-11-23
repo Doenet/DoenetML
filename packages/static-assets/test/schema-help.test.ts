@@ -73,23 +73,34 @@ describe("generated schema help fields", () => {
     });
 
     it("reuses an attribute's description on its auto-created public property", () => {
-        const withReplacementAttribute = selectFromSequence.attributes.find(
-            (attribute) => attribute.name === "withReplacement",
+        // (A collection's attributes are not properties, D41 decision 2, so
+        // this reads a `<point>`'s.)
+        const draggableAttribute = point.attributes.find(
+            (attribute) => attribute.name === "draggable",
         );
-        const withReplacementProperty = selectFromSequence.properties.find(
-            (property) => property.name === "withReplacement",
+        const draggableProperty = point.properties.find(
+            (property) => property.name === "draggable",
         );
-        expect(withReplacementProperty?.description).toBeTruthy();
-        expect(withReplacementProperty?.description).toBe(
-            withReplacementAttribute?.description,
+        expect(draggableProperty?.description).toBeTruthy();
+        expect(draggableProperty?.description).toBe(
+            draggableAttribute?.description,
         );
     });
 
     it("flags properties auto-created from a same-named attribute with fromAttribute: true", () => {
-        const withReplacementProperty = selectFromSequence.properties.find(
-            (property) => property.name === "withReplacement",
+        const draggableProperty = point.properties.find(
+            (property) => property.name === "draggable",
         );
-        expect(withReplacementProperty?.fromAttribute).toBe(true);
+        expect(draggableProperty?.fromAttribute).toBe(true);
+    });
+
+    it("lists no attribute of a collection as a property, besides the settings every component has (D41 decision 2)", () => {
+        const propertyNames = selectFromSequence.properties.map(
+            (property) => property.name,
+        );
+        expect(propertyNames).not.toContain("withReplacement");
+        expect(propertyNames).toContain("numItems");
+        expect(propertyNames).toContain("hide");
     });
 
     it("does not flag explicitly defined state-variable properties with fromAttribute", () => {

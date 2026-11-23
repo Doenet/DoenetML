@@ -531,7 +531,7 @@ describe("Sort tag tests @group4", async () => {
 
 
   <p>Coords for last point: <mathInput name="cs" /></p>
-  <p name="pList"><sort sortByProp="NUMDIMENSIONS">
+  <p name="pList"><sort sortByProp="numDimensions">
     <point>(a,b)</point>
     <point>x</point>
     <point xs="s t u v" />
@@ -622,31 +622,25 @@ describe("Sort tag tests @group4", async () => {
         });
     });
 
-    it("sort texts, numbers, maths", async () => {
+    it("sort texts", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort>
         <text>b</text>
-        <number>3</number>
-        <math>5</math>
+        <text>3</text>
         <textList>1 z 15 orange</textList>
-        <math>x</math>
-        <number>222</number>
-        <mathList>8 u</mathList>
-        <numberList>99 765</numberList>
+        <text>x</text>
+        <textList>222 u</textList>
     </sort></p>
   `,
         });
 
+        // texts sort alphabetically, digits and all
         const sorted_result = [
             "1",
             "15",
             "222",
             "3",
-            "5",
-            "765",
-            "8",
-            "99",
             "b",
             "orange",
             "u",
@@ -659,6 +653,30 @@ describe("Sort tag tests @group4", async () => {
             resolvePathToNodeIdx,
             sorted_result,
         });
+    });
+
+    it("texts, numbers and maths together are an error at load", async () => {
+        // A `<sort>` takes items of one type (COLL-4, D41): this used to sort
+        // them all as text.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><sort>
+        <text>b</text>
+        <number>3</number>
+        <math>5</math>
+        <textList>1 z 15 orange</textList>
+        <math>x</math>
+        <numberList>99 765</numberList>
+    </sort></p>
+  `,
+        });
+
+        await test_sort({ core, resolvePathToNodeIdx, sorted_result: [""] });
+        const errors = getDiagnosticsByType(core).errors;
+        expect(errors.map((e) => e.code)).eqls(["doenet-e0076"]);
+        expect(errors[0].message).eq(
+            "`<sort>` takes items of one type, but it has a `<text>` and a `<number>`. Give each type a `<sort>` of its own.",
+        );
     });
 
     it("sort sugar type math", async () => {
@@ -1062,7 +1080,8 @@ describe("Sort tag tests @group4", async () => {
         expect((await replacementStateIds()).stateIds).eqls(stateIds);
     });
 
-    it("string children ignored when mixed with non-string children with warning", async () => {
+    it("text beside components is read as their type", async () => {
+        // It used to be left out, with a warning (#2525 item 3).
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort>
@@ -1071,24 +1090,14 @@ describe("Sort tag tests @group4", async () => {
   `,
         });
 
-        const sorted_result = ["b", "d"];
-
         await test_sort({
             core,
             resolvePathToNodeIdx,
-            sorted_result,
+            sorted_result: ["a", "b", "d"],
             replacements_all_of_type: "math",
         });
 
-        let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).gte(1);
-        expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes(
-                    'String " a " is not a valid component to sort.',
-                ),
-            ),
-        ).eq(true);
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
     });
     // A composite's replacements. A `<sort>` of points or values of one type
     // is a list (`listcomponentcollections.test.ts`); `hide="false"`, which
@@ -1433,6 +1442,8 @@ describe("Sort tag tests @group4", async () => {
             ).eq("5");
         });
 
+        // Each item by index: a property after the sort itself is the sort's
+        // own, so `$s.x` names nothing (D59).
         it("a prop reference follows the reorder", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -1445,7 +1456,7 @@ describe("Sort tag tests @group4", async () => {
     </graph>
     <sort name="s" hide="false">$A $B $C $D $E</sort>
     <p name="pList">$s</p>
-    <p name="pProp">$s.x</p>
+    <p name="pProp">$s[1].x, $s[2].x, $s[3].x, $s[4].x, $s[5].x</p>
   `,
             });
 
@@ -1797,5 +1808,29 @@ describe("Sort tag tests @group4", async () => {
 
         await submit("0");
         await check(["0", "1", "2", "3", "4", "5", "6"]);
+    });
+
+    // `sortByComponent` is an attribute of a `<sort>`, not a property (since
+    // #2565): `$s.sortByComponent` names nothing, as any name that isn't a
+    // property does. It was a number holding the string `"1"` (#2545).
+    it("sortByComponent is not a property", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <sort name="s" sortByComponent="2">3 1 2</sort>
+    <p name="p">[$s.sortByComponent]</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("[＿]");
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w) => [w.code, w.message])).eqls([
+            // not a property of the sort's own, so it names nothing (D59)
+            [
+                "doenet-w0200",
+                "`$s.sortByComponent` names nothing: a `<sort>` has no property `sortByComponent` of its own, and a property after it does not reach into its items. To read it from one item, give its index, such as `$s[1].sortByComponent`.",
+            ],
+        ]);
     });
 });

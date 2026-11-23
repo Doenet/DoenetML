@@ -3,7 +3,7 @@ import BaseComponent from "./abstract/BaseComponent";
 import { textFromChildren } from "../utils/text";
 import {
     DIVISION_SEQUENCE,
-    returnSequenceNumbersOfChildrenDefinition,
+    returnSequenceStartDefinition,
 } from "../utils/sequenceNumbering";
 import {
     returnScoredSectionAttributes,
@@ -57,6 +57,8 @@ export class Ol extends BlockComponent {
         });
     }
     static componentType = "ol";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "An ordered list",
@@ -270,6 +272,8 @@ export class Li extends BaseComponent {
         });
     }
     static componentType = "li";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A list item within `<ol>` / `<ul>`",
@@ -310,8 +314,8 @@ export class Li extends BaseComponent {
         // A list item numbers the divisions among its children from 1,
         // counting through any `<div>` or `<cascade>` among them. See
         // `utils/sequenceNumbering.js`.
-        stateVariableDefinitions.divisionNumbersOfChildren =
-            returnSequenceNumbersOfChildrenDefinition(DIVISION_SEQUENCE);
+        stateVariableDefinitions.divisionOffset =
+            returnSequenceStartDefinition(DIVISION_SEQUENCE);
 
         stateVariableDefinitions.item = {
             forRenderer: true,

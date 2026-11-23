@@ -9,7 +9,7 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 `<pegboard/>{:dn}` is a [Graphical](../concepts/essentialConcepts#component-types) component
 that renders a grid of small dots ("pegs") covering the visible region of an enclosing `<graph>{:dn}`.
-The peg spacing and offset are controlled by `dx`, `dy`, `xoffset`, and `yoffset`. The pegboard
+The peg spacing and offset are controlled by `dx`, `dy`, `xOffset`, and `yOffset`. The pegboard
 re-tiles automatically as the user pans or zooms the graph.
 
 A `<pegboard/>{:dn}` does not, on its own, cause other graphical objects to snap. To make a
@@ -58,7 +58,7 @@ softly snaps to each peg as it is dragged near.
 ### Attribute Example: dx, dy
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>A pegboard with horizontal spacing 2 and vertical spacing 0.5</shortDescription>
   <pegboard dx="2" dy="0.5" />
 </graph>
@@ -70,31 +70,31 @@ spacings when modeling a domain whose axes carry different units.
 
 ---
 
-### Attribute Example: xoffset, yoffset
+### Attribute Example: xOffset, yOffset
 
 ```doenet-editor-horiz
-<graph size="small" xmin="-5" xmax="5" ymin="-5" ymax="5">
+<graph size="small" xMin="-5" xMax="5" yMin="-5" yMax="5">
   <shortDescription>A pegboard whose grid is shifted by half a unit in each direction</shortDescription>
-  <pegboard dx="1" dy="1" xoffset="0.5" yoffset="0.5" />
+  <pegboard dx="1" dy="1" xOffset="0.5" yOffset="0.5" />
 </graph>
 ```
 
-`xoffset` and `yoffset` shift the peg lattice so that a peg appears at
-`(xoffset, yoffset)` rather than at the origin.
+`xOffset` and `yOffset` shift the peg lattice so that a peg appears at
+`(xOffset, yOffset)` rather than at the origin.
 
 
 ## Property Examples
 
-### Property Example: dx, dy, xoffset, yoffset
+### Property Example: dx, dy, xOffset, yOffset
 
 ```doenet-editor-horiz
 <graph size="small">
   <shortDescription>A pegboard whose lattice spacing is reported as text</shortDescription>
-  <pegboard name="pg" dx="2" dy="2" xoffset="0.5" yoffset="0.5" />
+  <pegboard name="pg" dx="2" dy="2" xOffset="0.5" yOffset="0.5" />
 </graph>
 
 <p><c>dx, dy</c> = $pg.dx, $pg.dy</p>
-<p><c>xoffset, yoffset</c> = $pg.xoffset, $pg.yoffset</p>
+<p><c>xOffset, yOffset</c> = $pg.xOffset, $pg.yOffset</p>
 ```
 
 Each attribute of `<pegboard/>{:dn}` is also available as a property of a named pegboard.

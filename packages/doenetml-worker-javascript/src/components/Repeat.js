@@ -1,3 +1,7 @@
+import {
+    makeCollectionSettingsOwn,
+    numItemsDefinition,
+} from "../utils/numItems";
 import { iterationAliasNames, iterationDummies } from "../utils/repeatAliases";
 import CompositeComponent from "./abstract/CompositeComponent";
 import { instanceOfAttribute } from "../utils/indexInstances";
@@ -13,15 +17,21 @@ import {
     unwrapSource,
 } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
+import { isWrapperOfSeveral } from "../utils/wrappers";
+import { reorderErrorReplacements } from "../utils/reorderErrors";
 import { authoredOfLiteral, literalWithValue } from "../utils/literalAttribute";
 import {
     holdAttributeComponentAt,
     listTypeAsWritten,
     holdUnresolvedAttributeAt,
     valueAsWritten,
+    heldValueAsWritten,
 } from "../utils/heldChoiceAttribute";
 export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
+
+    // A collection: its attributes are not properties (D41 decision 2).
+    static attributesAreProperties = false;
 
     static componentDocs = {
         summary: "Repeats template content for each item in a source",
@@ -71,12 +81,13 @@ export default class Repeat extends CompositeComponent {
         attributes.for = {
             createComponentOfType: "group",
             description:
-                "The collection of items to iterate over when generating repeats.",
+                "The items to iterate over, all of one type. A list is one item per entry; anything holding several components is one item.",
         };
 
         attributes.type = {
             createPrimitiveOfType: "string",
-            description: "Component type used to wrap each item in the source.",
+            description:
+                "The type of the text written in `for`: math (the default), number, text or boolean. When written, every item of `for` must be of this type, with math, number and integer counting as one type.",
         };
 
         attributes.isResponse = {
@@ -102,6 +113,9 @@ export default class Repeat extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // A collection's settings are its own (COLL-2).
+        makeCollectionSettingsOwn(stateVariableDefinitions);
 
         stateVariableDefinitions.sourcesComponentIdx = {
             returnDependencies: () => ({
@@ -130,6 +144,10 @@ export default class Repeat extends CompositeComponent {
                             compositeIdx: stateValues.sourcesComponentIdx,
                             recursive: true,
                             recurseNonStandardComposites: true,
+                            // A wrapper holding several components (a
+                            // `<group>`, an iteration, a pick, a case) is one
+                            // item; one holding one stands for it (COLL-5).
+                            wrappersOfSeveralAsItems: true,
                             // how many entries a list component among the
                             // sources has (`ValueListComponent`)
                             variableNames: ["numEntries"],
@@ -302,6 +320,12 @@ export default class Repeat extends CompositeComponent {
             },
         };
 
+        // The number of items, its iterations (COLL-2, D41 decision 2).
+        stateVariableDefinitions.numItems = numItemsDefinition({
+            variableName: "numIterates",
+            count: (numIterates) => numIterates ?? 0,
+        });
+
         return stateVariableDefinitions;
     }
 
@@ -316,6 +340,23 @@ export default class Repeat extends CompositeComponent {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
         let diagnostics = [];
+
+        // A `for` not of one type, decided at load (COLL-5): the error, in
+        // place of the iterations.
+        const errorResult = reorderErrorReplacements({
+            component,
+            nComponents,
+        });
+        if (errorResult) {
+            workspace.lastReplacementParameters = {
+                sourcesChildIndices: [],
+                sourcesOfReplacements: [],
+                numIterates: 0,
+                replacementsToWithhold: 0,
+                withheldSubstitutionChildNames: [],
+            };
+            return errorResult;
+        }
 
         if (workspace.replacementsCreated === undefined) {
             workspace.replacementsCreated = 0;
@@ -416,6 +457,7 @@ export default class Repeat extends CompositeComponent {
             iter,
             nComponents,
             stateIdInfo,
+            components,
         );
 
         replacements[0] = aliasResult.replacement;
@@ -460,6 +502,11 @@ export default class Repeat extends CompositeComponent {
         // console.log(`calculate replacement changes for ${component.componentIdx}`)
 
         let diagnostics = [];
+
+        if (component.doenetAttributes?.reorderErrorAtLoad) {
+            // the error, which does not change
+            return { replacementChanges: [], diagnostics, nComponents };
+        }
 
         let replacementChanges = [];
 
@@ -1003,29 +1050,25 @@ async function holdAtSourceIterationValue({
 }) {
     const attribute = repl.attributes[attrName];
     delete attribute.keepSourceIterationValue;
-    const lowerName = attrName.toLowerCase();
     let text;
     if (attribute.type === "unresolved") {
         // A choosing tag written with `copy` or `extend` (a `_copy`): the
         // value the source's wrapper gave what it made
         const madeBySource = components[src.originalIdx]?.replacements?.[0];
-        const sourceAttribute = Object.entries(
-            madeBySource?.attributes ?? {},
-        ).find(([name]) => name.toLowerCase() === lowerName)?.[1]?.component;
+        const sourceAttribute = madeBySource?.attributes?.[attrName]?.component;
         text = await valueAsWritten(sourceAttribute);
         if (text !== undefined) {
             holdUnresolvedAttributeAt({ attribute, text });
         }
     } else if (attribute.type === "component") {
-        const sourceAttribute = Object.entries(src.attributes ?? {}).find(
-            ([name]) => name.toLowerCase() === lowerName,
-        )?.[1]?.component;
+        const sourceAttribute = src.attributes?.[attrName]?.component;
         const source = components[sourceAttribute?.originalIdx];
-        text = await valueAsWritten(source);
-        if (text !== undefined) {
+        const held = await heldValueAsWritten(source);
+        if (held !== undefined) {
             holdAttributeComponentAt({
                 attribute,
-                text,
+                text: held.text,
+                listSplitting: held.listSplitting,
                 componentInfoObjects,
                 listType: await listTypeAsWritten(source),
             });
@@ -1039,8 +1082,21 @@ async function addAndLinkAliasComponents(
     iter,
     nComponents,
     stateIdInfo,
+    components,
 ) {
     let sourcesComponentIdx = await component.stateValues.sourcesComponentIdx;
+    const sourcesChildIndices = await component.stateValues.sourcesChildIndices;
+    // An item that is a wrapper of several components (COLL-5) is not
+    // copied: the value's references name the wrapper itself, the
+    // `<group>` (an iteration, a pick and a case are groups too) or the one
+    // a reference to it stands for, so that a name after the value is
+    // resolved in it (`$d.P`, D44 decision 6).
+    const sourceIdx = sourcesChildIndices[iter];
+    const wrapperIdx =
+        typeof sourceIdx === "number"
+            ? wrapperOfSeveralIdx(components[sourceIdx], components)
+            : undefined;
+    const itemIsWrapperOfSeveral = wrapperIdx !== undefined;
 
     const setupComponent = {
         type: "serialized",
@@ -1068,6 +1124,48 @@ async function addAndLinkAliasComponents(
     });
     const valueComponentIdxByName = {};
     for (const name of values.names) {
+        if (itemIsWrapperOfSeveral) {
+            valueComponentIdxByName[name] = wrapperIdx;
+            // For a reference from outside the iteration (`$r[2].v`), the
+            // name is given to a group holding a copy of the item, which
+            // makes its components.
+            setupComponent.children.push({
+                type: "serialized",
+                componentType: "group",
+                componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                attributes: {
+                    name: {
+                        type: "primitive",
+                        name: "name",
+                        primitive: { type: "string", value: name },
+                    },
+                },
+                doenetAttributes: {},
+                state: {},
+                children: [
+                    {
+                        type: "serialized",
+                        componentType: "_copy",
+                        componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                        attributes: {},
+                        doenetAttributes: {},
+                        children: [],
+                        state: {},
+                        extending: {
+                            Ref: {
+                                nodeIdx: wrapperIdx,
+                                originalPath: [{ name: "", index: [] }],
+                                unresolvedPath: null,
+                                nodesInResolvedPath: [wrapperIdx],
+                            },
+                        },
+                    },
+                ],
+            });
+            continue;
+        }
         const valueComponentIdx = nComponents++;
         valueComponentIdxByName[name] = valueComponentIdx;
 
@@ -1094,8 +1192,7 @@ async function addAndLinkAliasComponents(
             state: {},
             extending: {
                 Ref: sourceRefForIter({
-                    sourcesChildIndices:
-                        await component.stateValues.sourcesChildIndices,
+                    sourcesChildIndices,
                     sourcesComponentIdx,
                     iter,
                 }),
@@ -1105,6 +1202,12 @@ async function addAndLinkAliasComponents(
     for (const [dummyIdx, name] of Object.entries(values.nameOfDummy)) {
         extendIdxMapping[dummyIdx] = valueComponentIdxByName[name];
     }
+    // The references to the value name the wrapper itself, which does not
+    // have the value's name: they are resolved from it with no name
+    // (`remapRefResolutionForIteration`).
+    const namelessTargets = itemIsWrapperOfSeveral
+        ? new Set(Object.keys(values.nameOfDummy).map(Number))
+        : undefined;
 
     const indices = iterationAliasNames({
         ownName: await component.stateValues.indexName,
@@ -1151,6 +1254,7 @@ async function addAndLinkAliasComponents(
             thisRepl.children,
             extendIdxMapping,
             entryIdxMapping,
+            namelessTargets,
         );
     }
 
@@ -1161,6 +1265,41 @@ async function addAndLinkAliasComponents(
     }
 
     return { replacement: newRepl, nComponents };
+}
+
+/**
+ * The index of the wrapper of several components (`isWrapperOfSeveral`)
+ * that `component` is, or that it stands for as a reference to a group with
+ * nothing after the name; `undefined` if it is none. A wrapper made by
+ * copying another (as `for="$r"` copies the iterations of `r`) is followed
+ * to the one it copies: a reference to a copied wrapper would not follow a
+ * change in what a composite inside it shows.
+ */
+function wrapperOfSeveralIdx(component, components) {
+    if (!isWrapperOfSeveral(component)) {
+        return undefined;
+    }
+    let wrapper =
+        component.componentType === "_copy"
+            ? components[component.state.extendedComponent.value.componentIdx]
+            : component;
+    while (
+        wrapper?.shadows &&
+        wrapper.shadows.propVariable === undefined &&
+        // not one that adds children to what it copies
+        // (`<group extend="$g">…</group>`), which holds more
+        !(
+            components[wrapper.shadows.compositeIdx]?.serializedChildren
+                ?.length > 0
+        ) &&
+        components[wrapper.shadows.componentIdx]
+    ) {
+        wrapper = components[wrapper.shadows.componentIdx];
+    }
+    return (
+        wrapper?.componentIdx ??
+        component.state.extendedComponent.value.componentIdx
+    );
 }
 
 /**
@@ -1290,6 +1429,7 @@ export function remapExtendIndices(
     components,
     extendIdxMapping,
     entryIdxMapping = {},
+    namelessTargets = undefined,
 ) {
     const newComponents = [];
     for (const comp of components) {
@@ -1306,6 +1446,7 @@ export function remapExtendIndices(
                     unwrapSource(extending),
                     extendIdxMapping,
                     entryIdxMapping,
+                    namelessTargets,
                 ),
                 extending,
             );
@@ -1315,6 +1456,7 @@ export function remapExtendIndices(
             newComponent.children,
             extendIdxMapping,
             entryIdxMapping,
+            namelessTargets,
         );
 
         const attributes = { ...newComponent.attributes };
@@ -1325,18 +1467,21 @@ export function remapExtendIndices(
                     [attr.component],
                     extendIdxMapping,
                     entryIdxMapping,
+                    namelessTargets,
                 )[0];
             } else if (attr.type === "references") {
                 attr.references = remapExtendIndices(
                     attr.references,
                     extendIdxMapping,
                     entryIdxMapping,
+                    namelessTargets,
                 );
             } else if (attr.type === "unresolved") {
                 attr.children = remapExtendIndices(
                     attr.children,
                     extendIdxMapping,
                     entryIdxMapping,
+                    namelessTargets,
                 );
             } else if (attr.type === "expression") {
                 // the references the component resolves itself
@@ -1348,6 +1493,7 @@ export function remapExtendIndices(
                             slot.refResolution,
                             extendIdxMapping,
                             entryIdxMapping,
+                            namelessTargets,
                         ),
                     })),
                 };
@@ -1369,6 +1515,7 @@ function remapRefResolutionForIteration(
     refResolution,
     extendIdxMapping,
     entryIdxMapping,
+    namelessTargets,
 ) {
     const newRefResolution = { ...refResolution };
 
@@ -1391,6 +1538,16 @@ function remapRefResolutionForIteration(
         entryIdxMapping,
     );
 
+    if (refResolution.standIn) {
+        const remapOrigin = extendIdxMapping[refResolution.standIn.origin];
+        if (remapOrigin != undefined) {
+            newRefResolution.standIn = {
+                ...refResolution.standIn,
+                origin: remapOrigin,
+            };
+        }
+    }
+
     newRefResolution.nodesInResolvedPath =
         refResolution.nodesInResolvedPath.map((idx) => {
             const remapIdx = extendIdxMapping[idx];
@@ -1400,6 +1557,23 @@ function remapRefResolutionForIteration(
                 return idx;
             }
         });
+
+    if (namelessTargets?.has(refResolution.nodeIdx)) {
+        // The value is the wrapper itself (an item of several components,
+        // COLL-5), which is resolved from with no name, so that a name after
+        // it is one it holds (`$d.P`).
+        const [first, ...rest] = newRefResolution.originalPath;
+        newRefResolution.originalPath = [{ ...first, name: "" }, ...rest];
+        // resolved from the wrapper, as a reference to an iteration is
+        // (`sourceRefForIter`)
+        const at = newRefResolution.nodesInResolvedPath.indexOf(
+            newRefResolution.nodeIdx,
+        );
+        if (at > 0) {
+            newRefResolution.nodesInResolvedPath =
+                newRefResolution.nodesInResolvedPath.slice(at);
+        }
+    }
 
     const entry = entryIdxMapping[refResolution.nodeIdx];
     if (entry !== undefined) {

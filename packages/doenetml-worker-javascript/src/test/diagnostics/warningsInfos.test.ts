@@ -276,7 +276,7 @@ describe("Warning Tests @group4", async () => {
     it("Deprecated tabular border attributes are migrated to logical names", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<tabular name="t" top="minor" left="medium" halign="right">
+<tabular name="t" top="minor" left="medium" hAlign="right">
   <row name="r" left="major">
     <cell name="c" right="minor" bottom="medium">hello</cell>
   </row>
@@ -309,10 +309,10 @@ describe("Warning Tests @group4", async () => {
         );
         // On the same element as the `left` → `startBorder` rename: the
         // attribute rename and the value rename are applied in one visit, and
-        // `left` as an attribute name and `left` as a `halign` value are
+        // `left` as an attribute name and `left` as an `hAlign` value are
         // migrated independently of each other.
         expect(messages).contains(
-            "[deprecation] Value `right` of attribute `halign` on `<tabular>` is deprecated; use `end` instead.",
+            "[deprecation] Value `right` of attribute `hAlign` on `<tabular>` is deprecated; use `end` instead.",
         );
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -325,7 +325,7 @@ describe("Warning Tests @group4", async () => {
                 .startBorder,
         ).eq("medium");
         expect(
-            stateVariables[await resolvePathToNodeIdx("t")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues.hAlign,
         ).eq("end");
         expect(
             stateVariables[await resolvePathToNodeIdx("r")].stateValues
@@ -341,11 +341,11 @@ describe("Warning Tests @group4", async () => {
         ).eq("medium");
     });
 
-    it("Deprecated halign values are migrated to start/end", async () => {
+    it("Deprecated hAlign values are migrated to start/end", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<tabular halign="right">
-  <row><cell name="c" halign="left">hello</cell></row>
+<tabular hAlign="right">
+  <row><cell name="c" hAlign="left">hello</cell></row>
 </tabular>
             `,
         });
@@ -359,15 +359,15 @@ describe("Warning Tests @group4", async () => {
             (warning) => warning.message,
         );
         expect(messages).contains(
-            "[deprecation] Value `right` of attribute `halign` on `<tabular>` is deprecated; use `end` instead.",
+            "[deprecation] Value `right` of attribute `hAlign` on `<tabular>` is deprecated; use `end` instead.",
         );
         expect(messages).contains(
-            "[deprecation] Value `left` of attribute `halign` on `<cell>` is deprecated; use `start` instead.",
+            "[deprecation] Value `left` of attribute `hAlign` on `<cell>` is deprecated; use `start` instead.",
         );
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("c")].stateValues.halign,
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues.hAlign,
         ).eq("start");
     });
 

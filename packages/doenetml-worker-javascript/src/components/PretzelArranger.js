@@ -1,4 +1,4 @@
-import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
+import { combinationAtIndex, permutationAtIndex } from "@doenet/utils";
 import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
@@ -925,10 +925,10 @@ export default class PretzelArranger extends CompositeComponent {
         let numbersOfOptions = [...numVariantsByDescendant];
         numbersOfOptions.push(numberOfPermutations);
 
-        let indicesForEachOption = enumerateCombinations({
+        let indicesForEachOption = combinationAtIndex({
             numberOfOptionsByIndex: numbersOfOptions,
-            maxNumber: variantIndex,
-        })[variantIndex - 1].map((x) => x + 1);
+            index: variantIndex - 1,
+        }).map((x) => x + 1);
 
         let permutationsIndex = indicesForEachOption.pop();
 
@@ -940,10 +940,10 @@ export default class PretzelArranger extends CompositeComponent {
             mode,
         });
         const permutedIndices = buildProblemOrderFromPermutedIndices({
-            permutedIndices: enumeratePermutations({
+            permutedIndices: permutationAtIndex({
                 values: indicesToPermute,
-                maxNumber: permutationsIndex,
-            })[permutationsIndex - 1],
+                index: permutationsIndex - 1,
+            }),
             numProblems,
             mode,
         });

@@ -15,6 +15,8 @@ export default class Tabular extends BlockComponent {
         });
     }
     static componentType = "tabular";
+    // Content, one type with all content (COLL-4, D46; `utils/componentKinds.ts`).
+    static isContent = true;
 
     static componentDocs = {
         summary: "A simple tabular layout of cells",
@@ -54,20 +56,20 @@ export default class Tabular extends BlockComponent {
         //   public: true,
         //   forRenderer: true,
         // };
-        attributes.halign = {
+        attributes.hAlign = {
             description: "Default horizontal alignment for cells.",
             createComponentOfType: "text",
-            createStateVariable: "halign",
+            createStateVariable: "hAlign",
             defaultValue: "start",
             public: true,
             toLowerCase: true,
             validValues: returnHalignValidValues(),
             forRenderer: true,
         };
-        attributes.valign = {
+        attributes.vAlign = {
             description: "Default vertical alignment for cells.",
             createComponentOfType: "text",
-            createStateVariable: "valign",
+            createStateVariable: "vAlign",
             defaultValue: "middle",
             public: true,
             toLowerCase: true,
@@ -158,7 +160,7 @@ export default class Tabular extends BlockComponent {
                     childGroups: ["columns"],
                     variableNames: [
                         "width",
-                        "halign",
+                        "hAlign",
                         "topBorder",
                         "endBorder",
                     ],
@@ -170,7 +172,7 @@ export default class Tabular extends BlockComponent {
                         columnAttributes: dependencyValues.columnChildren.map(
                             (column) => ({
                                 width: column.stateValues.width ?? null,
-                                halign: column.stateValues.halign ?? null,
+                                hAlign: column.stateValues.hAlign ?? null,
                                 topBorder: column.stateValues.topBorder ?? null,
                                 endBorder: column.stateValues.endBorder ?? null,
                             }),
@@ -243,7 +245,7 @@ export default class Tabular extends BlockComponent {
                     columnSpecs.push(
                         columnAttributes[i] ?? {
                             width: null,
-                            halign: null,
+                            hAlign: null,
                             topBorder: null,
                             endBorder: null,
                         },

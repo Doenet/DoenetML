@@ -1138,7 +1138,7 @@ describe("Ray Tag Tests @group1", function () {
     it("constrain to ray, different scales from graph", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <graph xmin="-110" xmax="110" ymin="-0.11" ymax="0.11">
+    <graph xMin="-110" xMax="110" yMin="-0.11" yMax="0.11">
         <ray name="l" through="(-1,-0.05)" endpoint="(1,0.05)"/>
         <point name="P" x="100" y="0" >
             <constrainTo relativeToGraphScales>$l</constrainTo>
@@ -3980,5 +3980,53 @@ describe("Ray Tag Tests @group1", function () {
         const ray2 = stateVariables[await resolvePathToNodeIdx("r2")];
         expect(ray2.stateValues.numericalEndpoint).eqls([NaN, 1]);
         expect(ray2.stateValues.numericalThroughpoint).eqls([3, 4]);
+    });
+
+    it("a ray from or through a missing point is missing, and is made again once the point is there", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<pointList name="pl">(1,2) (3,4)</pointList>
+<mathInput name="i" prefill="3"/>
+<graph>
+  <ray name="r1" through="$nothing"/>
+  <ray name="r2" endpoint="$nothing" through="(1,2)"/>
+  <ray name="r3" endpoint="(0,0)" through="$pl[$i]"/>
+  <ray name="r4" endpoint="(0,0)" direction="$nothing"/>
+  <ray name="r5" endpoint="(0,0)" through="(1,2)"/>
+</graph>
+`,
+        });
+        async function missing() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, boolean> = {};
+            for (const name of ["r1", "r2", "r3", "r4", "r5"]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.valueMissing;
+            }
+            return result;
+        }
+        expect(await missing()).eqls({
+            r1: true,
+            r2: true,
+            r3: true,
+            r4: true,
+            r5: false,
+        });
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("i"),
+            core,
+        });
+        expect((await missing()).r3).eq(false);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r3")].stateValues
+                .numericalThroughpoint,
+        ).eqls([3, 4]);
     });
 });

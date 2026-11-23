@@ -6,6 +6,7 @@ import { codedDiagnostic } from "./diagnostics";
 import { returnLocalizedDefaultStateVariableDefinition } from "./contentLocale";
 import { BLANK_PLACEHOLDER } from "./embeddedMathInputs";
 import { evaluateToNumber } from "./math";
+import { MISSING_TEXT } from "./missing";
 
 function returnScoredContainerAncestorDependency(...variableNames) {
     return {
@@ -191,7 +192,8 @@ function responseIsBlank(response) {
         return true;
     }
     if (typeof response === "string") {
-        return response.trim() === "";
+        // a missing text response is the blank `＿` (D52 decision 1)
+        return response.trim() === "" || response === MISSING_TEXT;
     }
     if (typeof response === "number") {
         return Number.isNaN(response);

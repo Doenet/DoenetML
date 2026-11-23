@@ -26,6 +26,10 @@ export default class Rectangle extends Polygon {
     }
     static componentType = "rectangle";
 
+    // Missing while its center is a missing point (D40, VAL-5;
+    // `BaseComponent.missingWhenPointsMissing`).
+    static missingWhenPointsMissing = ["center"];
+
     static componentDocs = {
         summary:
             "A rectangle, potentially defined by width, height, center and/or corner vertices",
@@ -227,10 +231,12 @@ export default class Rectangle extends Polygon {
                     let varEnding = Number(arrayKey) + 1;
 
                     if (dependencyValuesByKey[arrayKey].centerAttr !== null) {
+                        // a missing center has no coordinates: a blank, and
+                        // the rectangle is missing (`missingWhenPointsMissing`)
                         specifiedCenter[arrayKey] =
-                            dependencyValuesByKey[
-                                arrayKey
-                            ].centerAttr.stateValues["x" + varEnding];
+                            dependencyValuesByKey[arrayKey].centerAttr
+                                .stateValues["x" + varEnding] ??
+                            me.fromAst("\uff3f");
                     }
                 }
 

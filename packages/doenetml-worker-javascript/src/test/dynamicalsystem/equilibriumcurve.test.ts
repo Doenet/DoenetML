@@ -11,7 +11,7 @@ describe("equilibriumCurve Tag Tests @group1", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
-      <equilibriumCurve name="A" switchAble through="(1,2) (3,4) (2,6)"/>
+      <equilibriumCurve name="A" switchable through="(1,2) (3,4) (2,6)"/>
       <equilibriumCurve name="B" stable="false" through="(3,2) (5,4) (4,6)" />
       <equilibriumCurve name="C" stable="$b1" styleNumber="2" through="(-3,2) (-5,4) (-4,6)" />
       <equilibriumCurve name="D" stable="$b2" styleNumber="2" switchable through="(-1,2) (-3,4) (-2,6)" />

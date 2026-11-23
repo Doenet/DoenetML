@@ -17,7 +17,7 @@ is used within a `<point>{:dn}` to attract it to a specified grid.
 
 ### Example: Attract `<point>{:dn}` to a grid, default behavior
 ```doenet-example
-<graph xmin="-4" xmax="4" ymin="-4" ymax="4" grid>
+<graph xMin="-4" xMax="4" yMin="-4" yMax="4" grid>
   <shortDescription>A grid with a draggable point that snaps to integer coordinates</shortDescription>
   <point>
     <attractToGrid/>
@@ -74,7 +74,7 @@ The grey points are included as an illustration of where the offset attraction g
 <graph grid="2 4">
   <shortDescription>A grid with a draggable point with adjustable attraction thresholds</shortDescription>
   <point>
-    <attractToGrid dx="2" xthreshold="0.1" dy="4" ythreshold="1" />
+    <attractToGrid dx="2" xThreshold="0.1" dy="4" yThreshold="1" />
   </point>
 </graph>
 ```
@@ -90,7 +90,7 @@ close to the $x$ gridlines and $y$ gridlines.
 <graph grid="1 4" size="small">
   <shortDescription>A grid with a draggable point demonstrating attractToGrid properties</shortDescription>
   <point>
-    <attractToGrid name="gridAttract" xthreshold="0.1" dy="4" yOffset="1" />
+    <attractToGrid name="gridAttract" xThreshold="0.1" dy="4" yOffset="1" />
   </point>
 </graph>
 <p><c>dx, dy</c> = $gridAttract.dx, $gridAttract.dy</p>
