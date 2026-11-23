@@ -459,6 +459,29 @@ describe(
             fieldShould("mi", "y");
         });
 
+        it("types a composed letter over a selection", () => {
+            // Recorded with Samsung Keyboard: with "bc" selected in the field,
+            // the textarea holds it selected, and the composition replaces it.
+            cy.get("#mi textarea").type("abc", { force: true });
+            fieldShould("mi", "abc");
+            cy.get("#mi textarea").type("{shift}{leftarrow}{leftarrow}", {
+                force: true,
+            });
+            cy.get("#mi textarea").then(($ta) => {
+                const ta = $ta[0];
+                expect(ta.value.length).to.be.greaterThan(0);
+                expect(ta.selectionStart).to.equal(0);
+                expect(ta.selectionEnd).to.equal(ta.value.length);
+                samsungCompose(ta, "z", { start: true });
+            });
+            fieldShould("mi", "az");
+            cy.get("#mi textarea").then(($ta) => {
+                samsungEndComposition($ta[0], "z");
+                androidKey($ta[0], "+");
+            });
+            fieldShould("mi", "az+");
+        });
+
         it("does not delete for the bare pair after a composition ends", () => {
             // Samsung Keyboard can send a bare 229 keydown and keyup just
             // after a composition ends, before its next key.
