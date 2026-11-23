@@ -498,6 +498,7 @@ export type MessageKey =
     | "copy-children-ignored"
     | "action-target-not-one-value"
     | "latex-not-read-as-math"
+    | "content-unused-attributes-give-value"
     | "matrix-math-child-ignored"
     | "copy-attribute-invalid-for-component"
     | "attribute-name-case"
@@ -1217,6 +1218,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "copy-children-ignored",
     "action-target-not-one-value",
     "latex-not-read-as-math",
+    "content-unused-attributes-give-value",
     "matrix-math-child-ignored",
     "copy-attribute-invalid-for-component",
     "attribute-name-case",

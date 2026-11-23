@@ -175,6 +175,20 @@ literal `b`, whereas `$ab` would look for a component named `ab`.
 <p>$(a)b is the value of a followed by the letter b.</p>
 ```
 
+### Writing a literal `$`
+
+A `$` followed by a letter, an underscore, or `(` starts a reference, and so
+does `$$` followed by one of those, as in `$$f(2)`, which evaluates a function.
+To show a dollar sign there instead, write it as `&dollar;` or `&#36;`. This
+works in text and in attribute values alike. A `$` followed by anything else,
+such as a space or a digit, is already plain text.
+
+```doenet-editor-horiz
+<p name="price">The fee is $5, written in code as &dollar;fee.</p>
+
+<p>Show &#36;(x) as text: <text>&#36;(x)</text></p>
+```
+
 ### Writing a reference as a different tag
 
 A tag you write makes that tag. `<math extend="$t"/>{:dn}` or
@@ -277,9 +291,20 @@ A `<number>{:dn}`, `<integer>{:dn}`, `<boolean>{:dn}`, `<function>{:dn}` or
 shape whose content is only a missing reference is missing in the same way:
 `<number>$nothing</number>{:dn}` shows `＿`, not `NaN`, never equals anything,
 and a `<circle>$nothing</circle>{:dn}` isn't drawn. So is a `<point>{:dn}` or
-`<vector>{:dn}` whose content is only a reference that names nothing, such as
-`<point>$nothing</point>{:dn}` or `<point>$pl[$i]</point>{:dn}` past the end of
-a `<pointList name="pl">{:dn}`, or a blank entry of a `<pointList>{:dn}`. An `<award>{:dn}` whose
+`<vector>{:dn}` whose content is a reference that names nothing, such as
+`<point>$nothing</point>{:dn}`, `<point>$pl[$i]</point>{:dn}` past the end of
+a `<pointList name="pl">{:dn}` or `<point>$ml[3]</point>{:dn}` of a two-entry
+`<mathList name="ml">{:dn}`, a blank entry of a list, or a missing point
+(`<point>$Q</point>{:dn}` of a missing `Q`), and so is one holding such a
+reference beside other content (`<ray through="(1,2) $nothing"/>{:dn}`). A
+blank inside one coordinate takes part in it: `<point>($nothing, 2)</point>{:dn}`
+is `(＿, 2)`. A point is missing only when a coordinate it uses is: its `x`, `y`
+and `z` come before its content, so `<point x="3" y="4">$nothing</point>{:dn}` is
+`(3, 4)`. A vector is missing when its content, or a `head` or `tail` it uses,
+names nothing: `<vector tail="$pl[$i]" head="(5,5)"/>{:dn}` past the end of
+`pl`. A shape whose center is a property of a missing shape, such as
+`<circle center="$c.center"/>{:dn}` of `<circle name="c">$nothing</circle>{:dn}`,
+is missing too. An `<award>{:dn}` whose
 condition is missing gives no credit. It is made from its content again once
 the reference names something, as `<number>$l[$i]</number>{:dn}` is once `i`
 is an index of `l`, and a reference to it, or a tag of it, follows it. Where the blank is part of an expression, it takes part:

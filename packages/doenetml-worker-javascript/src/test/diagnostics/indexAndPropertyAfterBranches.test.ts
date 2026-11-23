@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -277,6 +278,82 @@ describe("Options or cases that hold one component and several (#2520 item 1)", 
         await d.reload();
         expect(d.codes()).eqls(["warning doenet-w0191"]);
         expect(await d.text()).eq(shown);
+    });
+});
+
+describe("An index after options or cases that hold several, decided at load (Doenet/DoenetML#2643 items 4 and 5)", () => {
+    it("every case holds several: one warning at load, nothing more as the case changes", async () => {
+        const d = await setup(`<booleanInput name="b"/>
+<conditionalContent name="cc"><case condition="$b"><math>1</math><math>2</math></case><else><math>3</math><math>4</math></else></conditionalContent>
+<p name="p">[$cc[1][2]]</p>`);
+        const atLoad = [
+            '`$cc[1][2]`: an index after the case shown by `cc` passes into it only when it holds one component, and case 1 and the `<else>` hold several. Give the component you mean a name in each, such as `name="P"`, and write `$cc[1].P[2]`.',
+        ];
+        expect(d.diagnostics().map((x: any) => x.message)).eqls(atLoad);
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        expect(await d.text()).eq("[＿]");
+        await d.setBoolean("b", true);
+        expect(await d.text()).eq("[＿]");
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+        await d.reload();
+        expect(d.codes()).eqls(["warning doenet-w0191"]);
+    });
+
+    it("every option holds several, in a group or not: the same warning in every variant", async () => {
+        for (const doenetML of [
+            `<select name="s"><option><math>1</math><math>2</math></option><option><math>3</math><math>4</math></option></select>
+<p name="p">[$s[1][2]]</p>`,
+            `<select name="s"><option><group><math>1</math><math>2</math></group></option><option><group><math>3</math><math>4</math></group></option></select>
+<p name="p">[$s[1][2]]</p>`,
+        ]) {
+            for (const requestedVariantIndex of [1, 2]) {
+                const { core } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                });
+                const { warnings, infos } = getDiagnosticsByType(core);
+                expect(
+                    warnings.map((x) => x.code),
+                    `${doenetML}, variant ${requestedVariantIndex}`,
+                ).eqls(["doenet-w0191"]);
+                expect(infos.map((x) => x.code)).eqls([]);
+            }
+        }
+    });
+
+    it("options of different shapes: the warning at load in every variant, the pick of several an info", async () => {
+        // the option holding several written as a group was counted as one
+        // component, so only the variants picking it were told, at run time
+        for (const second of [
+            "<math>3</math><math>4</math>",
+            "<group><math>3</math><math>4</math></group>",
+        ]) {
+            const doenetML = `<select name="s"><option><math>(1,2)</math></option><option>${second}</option></select>
+<p name="p">[$s[1][2]]</p>`;
+            const texts = new Set<string>();
+            for (const requestedVariantIndex of [1, 2]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const text =
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .text;
+                texts.add(text);
+                const { warnings, infos } = getDiagnosticsByType(core);
+                expect(warnings.map((x) => x.message)).eqls([
+                    '`$s[1][2]`: an index after a pick of `s` passes into it only when it holds one component, and option 2 holds several. Give the component you mean a name in each, such as `name="P"`, and write `$s[1].P[2]`.',
+                ]);
+                expect(infos.map((x) => x.code)).eqls(
+                    text === "[2]" ? [] : ["doenet-w0188"],
+                );
+            }
+            expect([...texts].sort()).eqls(["[2]", "[＿]"]);
+        }
     });
 });
 
