@@ -123,8 +123,9 @@ Runs once per load and depends on the source alone.
   answers their synthetic children, and plans nothing (ADR 0030);
   **parse** (`stages/parse.rs`) parses every `<math>`'s text once; **plan**
   (`stages/plan/`) plans every element; **link** (`stages/link/`) boxes every
-  reader of a box to a fixpoint (every cross-element read is recorded,
-  ADR 0032) and every element with an attribute nothing read, and ties
+  reader of a box to a fixpoint (a dependency is in the tree, in the plan,
+  or in the read list, ADR 0050) and every element with an attribute
+  nothing read, and ties
   shared state between plans; **seal** (`stages/seal/`) makes choice
   interfaces, checks arity, assigns keys and slot offsets, and infers
   every port's type (`stages/seal/types.rs`, ADR 0032), a fixpoint over every

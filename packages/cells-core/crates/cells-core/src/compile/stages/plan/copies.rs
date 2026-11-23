@@ -12,7 +12,7 @@ use crate::compile::*;
 impl<'a> Planning<'a> {
     /// `extend="$c.prop"`: the element's value props alias the named prop.
     pub(super) fn plan_extend_prop(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Result<()> {
-        let component_type = self.rd.outlined(t).elems[e.index()].component_type;
+        let component_type = self.rd.own_row(t, e).component_type;
         let props = match component_type.def().extend_value {
             Some(ExtendValue::Scalar(value)) => (0..component_type.prop_defs().len())
                 .map(|pi| {
@@ -48,7 +48,7 @@ impl<'a> Planning<'a> {
     /// planned with the copy rules around it. Its children, clones, it has
     /// from outlining.
     pub(super) fn plan_container_copy(&mut self, t: TemplateId, e: ElemId, p: RefId) -> Result<()> {
-        let component_type = self.rd.outlined(t).elems[e.index()].planned_as;
+        let component_type = self.rd.own_row(t, e).planned_as;
         match Self::planner(component_type) {
             Planner::Plan(plan) => self.plan_with_extend(t, e, Some(p), plan),
             _ => self.plan_attrs(t, e, Some(p)),
@@ -61,7 +61,7 @@ impl<'a> Planning<'a> {
     /// element's are, and a list is as long as the referent's, which only
     /// the build knows.
     pub(super) fn plan_bare_copy(&mut self, t: TemplateId, e: ElemId) {
-        let component_type = self.rd.outlined(t).elems[e.index()].component_type;
+        let component_type = self.rd.own_row(t, e).component_type;
         let extend = self.tables[t.index()].plans[e.index()]
             .extend
             .expect("a bare copy extends");
@@ -81,8 +81,7 @@ impl<'a> Planning<'a> {
     /// reached by the path, with the path to rebase its record through.
     pub(super) fn extend_referent(&mut self, t: TemplateId, p: RefId) -> Option<Referent> {
         if let Some(r) = self.rd.plan_elem_target(&self.ar, t, p) {
-            return (self.rd.outlined(t).elems[r.index()].node != NodeId::NONE)
-                .then_some(Referent::Here(r));
+            return (self.rd.referent_row(t, r).node != NodeId::NONE).then_some(Referent::Here(r));
         }
         let (ty, last) = self.rd.ref_target(&self.ar, t, p).ok()?;
         let (rt, re) = last?;
@@ -92,7 +91,7 @@ impl<'a> Planning<'a> {
         let ends_at_elem = matches!(plan.steps.last(), Some(Step::Elem(_))) && plan.prop.is_none();
         (ends_at_elem
             && ty.is_some()
-            && self.rd.outlined(rt).elems[re.index()].node != NodeId::NONE
+            && self.rd.referent_row(rt, re).node != NodeId::NONE
             && (rt != t || true))
             .then_some(Referent::Path(p, rt, re))
     }
@@ -110,7 +109,7 @@ impl<'a> Planning<'a> {
         plan: super::planner::PlanFn,
     ) -> Result<()> {
         let d = self.rd.dast;
-        let el = self.rd.outlined(t).elems[e.index()].node;
+        let el = self.rd.own_row(t, e).node;
         // Own attributes other than name and extend, or children, override
         // the referent's; with none, the copy aliases every public prop.
         let own_attrs: Vec<String> = d

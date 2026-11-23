@@ -36,7 +36,7 @@ impl<'a> Planning<'a> {
             component_type,
             name_scope: scope,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
+        } = *self.rd.own_row(t, e);
         // Without an attribute a prop is the type's default, or under
         // `extend` the referent's port of the same position (ADR 0032).
         let default = |v: f64, pi: usize| match extend {

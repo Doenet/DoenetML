@@ -619,3 +619,87 @@ fn what_reads_a_box_made_while_planning_does_not_depend_on_order() {
         assert_eq!(*seen.get_or_insert(count), count);
     }
 }
+
+/// The codes of a list's errors, sorted, and how often the document was
+/// planned to find them.
+fn error_codes_and_plans(src: &str) -> (Vec<&'static str>, usize) {
+    let dast = cells_core::dast::load(dast_json(src).as_bytes()).unwrap();
+    cells_core::trace::start();
+    let list = diagnose(&dast);
+    let plans = cells_core::trace::finish()
+        .iter()
+        .filter(|s| s.name == "plan")
+        .count();
+    let mut codes: Vec<_> = errors(&list).iter().map(|d| d.code).collect();
+    codes.sort();
+    (codes, plans)
+}
+
+/// What an element reads of the graph it sits in is read of an ancestor,
+/// so the tree holds the dependency (ADR 0050, decision 2): a graph that
+/// is boxed, when linking or when planning, takes what is in it with it,
+/// in one compile, and a reference from outside to what is in it is a
+/// reference to a box.
+#[test]
+fn what_sits_in_a_boxed_graph_is_boxed_with_it() {
+    for (graph, code) in [
+        (r#"bogus="1""#, "cells-unsupported-attribute"),
+        (r#"xmin="1+""#, "cells-bad-attribute-value"),
+    ] {
+        let src = format!(
+            r#"<graph name="g" {graph}><parabola name="p"/></graph>
+            <number name="n" extend="$p.vertex.x"/><number name="k">5</number>"#
+        );
+        let (codes, plans) = error_codes_and_plans(&src);
+        let mut expected = ["cells-boxed-referent", code];
+        expected.sort();
+        assert_eq!(codes, expected, "{graph}");
+        assert_eq!(plans, 1, "{graph}");
+        let doc = load(&src).unwrap();
+        assert_eq!(doc.value("k", "value"), Some(5.0));
+        assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()));
+    }
+}
+
+/// The same for the nearest container whose `fixed` an element inherits
+/// (ADR 0022): the container is an ancestor, and its box is the
+/// element's.
+#[test]
+fn what_inherits_a_boxed_containers_fixed_is_boxed_with_it() {
+    let src = r#"<number name="f">1</number>
+        <group name="c" fixed="$f" bogus="1"><point name="P" x="1"/></group>
+        <point name="Q" extend="$P"/><number name="k">5</number>"#;
+    let (codes, plans) = error_codes_and_plans(src);
+    assert_eq!(
+        codes,
+        ["cells-boxed-referent", "cells-unsupported-attribute"]
+    );
+    assert_eq!(plans, 1);
+    let doc = load(src).unwrap();
+    assert_eq!(doc.value("k", "value"), Some(5.0));
+    assert_eq!(keys(&diagnose_src(src)), keys(doc.diagnostics()));
+}
+
+/// Sealing's type checks run once every type is settled, so every element
+/// that fails one is reported by one pass and they are boxed together:
+/// a document with several compiles twice, not once more per failure
+/// (ADR 0050, decision 4). What reads one of them reads a box, and what
+/// is under one reports nothing.
+#[test]
+fn several_type_failures_compile_twice() {
+    let bad = r#"<point x="$p"/>"#;
+    let src = format!(
+        r#"<point name="p"/>{}<number name="k">5</number>
+        <group name="g"><point name="A" x="$p"/><number name="m">$A.x</number></group>
+        <graph name="s" xmin="$p"><point x="$p"/></graph>"#,
+        bad.repeat(5)
+    );
+    let (codes, plans) = error_codes_and_plans(&src);
+    // The five, `A`, and the graph; not the point in the graph.
+    assert_eq!(codes, ["cells-arity-mismatch"; 7], "{codes:?}");
+    assert_eq!(plans, 2);
+    let doc = load(&src).unwrap();
+    assert_eq!(doc.value("k", "value"), Some(5.0));
+    assert!(doc.value("m", "value").unwrap().is_nan());
+    assert_eq!(keys(&diagnose_src(&src)), keys(doc.diagnostics()));
+}

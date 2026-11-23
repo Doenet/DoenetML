@@ -26,7 +26,7 @@ mod source;
 mod values;
 
 pub(in crate::compile) use answer::AwardForm;
-pub(in crate::compile) use reader::{Arenas, Reader};
+pub(in crate::compile) use reader::{Arenas, Reader, SourceReader};
 pub(in crate::compile) use rebase::Rebaser;
 pub(in crate::compile) use refs::record_read;
 pub(crate) use values::ValueKind;

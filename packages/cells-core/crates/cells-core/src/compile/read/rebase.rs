@@ -10,7 +10,7 @@ use crate::compile::*;
 /// it composed with the path (`rebase_ref`), each math text's references
 /// too (`rebase_expr`).
 pub(in crate::compile) struct Rebaser<'r, 'a> {
-    rd: Reader<'a>,
+    rd: SourceReader<'a>,
     ar: &'r mut Arenas,
     path: RefId,
     /// How many templates the path enters.
@@ -30,7 +30,7 @@ impl Rebaser<'_, '_> {
 /// Reading the source, a record from another template: the referent's
 /// references rebased through the path an extend names. Run by planning, for an
 /// extend whose referent is in another template.
-impl<'a> Reader<'a> {
+impl<'a> SourceReader<'a> {
     /// Record `record`, the referent's, as read from the template the
     /// extend `path` is planned from: every reference in it composed with
     /// `path` (`rebase_ref`), every math text's references too.

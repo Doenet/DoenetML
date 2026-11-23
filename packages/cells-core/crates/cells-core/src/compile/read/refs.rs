@@ -11,7 +11,7 @@ pub(in crate::compile) type RefTarget = (Option<ComponentType>, Option<(Template
 /// Reference plans: name lookup through template scopes and `$a.b[k].c` paths,
 /// run by outlining, parsing and planning (ADR 0031, "Code more than one stage
 /// runs"). Writes only the reference arena.
-impl<'a> Reader<'a> {
+impl<'a> SourceReader<'a> {
     /// A copy of plan `p` naming `prop` instead of its own (`$l` -> `$l.x2`).
     pub(in crate::compile) fn plan_with_prop(
         &self,
@@ -950,7 +950,7 @@ fn parse_index(mut chars: impl Iterator<Item = char>) -> Option<i64> {
 
 /// What both outlining and planning read of a reference: its referent's type,
 /// and a choice's interface a path steps into.
-impl<'a> Reader<'a> {
+impl<'a> SourceReader<'a> {
     /// A reference `display` naming the one option select `cid` picks
     /// needs the select to pick one, which only a literal `numToSelect`
     /// says while planning.

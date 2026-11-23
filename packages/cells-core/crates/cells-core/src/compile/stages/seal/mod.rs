@@ -19,7 +19,7 @@ pub(in crate::compile) fn seal<'a>(
     ar: &'a Arenas,
     tables: &'a [Tables],
     given: &'a HashMap<(TemplateId, ElemId), HashMap<GivenId, Port>>,
-) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Failure> {
+) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Vec<Failure>> {
     crate::trace::span("seal").run(|| Seal::new(dast, settled, ar, tables, given).run())
 }
 
@@ -76,11 +76,15 @@ impl<'a> Seal<'a> {
     /// [`ChoiceSeal`] per choice, and the keys.
     fn run(
         mut self,
-    ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Failure> {
+    ) -> std::result::Result<(Vec<SealedTemplate>, Vec<ChoiceSeal>, keys::Keys), Vec<Failure>> {
         self.choice_seals = vec![ChoiceSeal::default(); self.choices.len()];
         crate::trace::span("used names").run(|| self.gather_used_names());
-        crate::trace::span("choices").run(|| self.finish_choices())?;
-        crate::trace::span("arity").run(|| self.check_arity())?;
+        crate::trace::span("choices")
+            .run(|| self.finish_choices())
+            .map_err(|f| vec![f])?;
+        crate::trace::span("arity")
+            .run(|| self.check_arity())
+            .map_err(|f| vec![f])?;
         let keys = crate::trace::span("keys").run(|| self.assign_keys());
         let offsets = crate::trace::span("slot offsets").run(|| self.slot_offsets());
         // Every port's type, once every element is planned and linked and

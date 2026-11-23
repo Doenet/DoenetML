@@ -47,7 +47,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
         let referent = referent.map(|b| {
             let Elem {
                 node, name_scope, ..
-            } = *p.rd.elem(t, b);
+            } = *p.rd.referent_row(t, b);
             let d = p.rd.dast;
             let mut subtree = HashSet::new();
             let mut stack = vec![node];
@@ -80,7 +80,7 @@ impl<'c, 'a> PlanCtx<'c, 'a> {
 
 impl<'a> PlanCtx<'_, 'a> {
     fn elem(&self) -> &Elem {
-        self.p.rd.elem(self.t, self.e)
+        self.p.rd.own_row(self.t, self.e)
     }
 
     fn scope(&self) -> ElemId {
@@ -118,16 +118,8 @@ impl<'a> PlanCtx<'_, 'a> {
     /// The prop at `port` (`graph::Props::PORTS`) of the graph the
     /// element sits in directly, if it sits in one.
     pub(crate) fn enclosing_graph_prop(&self, port: Port) -> Option<Source> {
-        let scope = self.scope();
-        (scope != ROOT_SCOPE
-            && self
-                .p
-                .rd
-                .elem(self.t, scope)
-                .component_type
-                .graph_bounds()
-                .is_some())
-        .then_some(Source::alias(Arg::Elem(scope, port)))
+        let graph = self.p.rd.in_graph(self.t, self.e)?;
+        Some(Source::alias(Arg::Elem(graph, port)))
     }
 
     // Planning.
@@ -555,7 +547,13 @@ impl<'a> PlanCtx<'_, 'a> {
             .rd
             .elem_children(self.t, self.e)
             .into_iter()
-            .filter(|&x| self.p.rd.elem(self.t, x).component_type.plays(role))
+            .filter(|&x| {
+                self.p
+                    .rd
+                    .owned_row(self.t, self.e, x)
+                    .component_type
+                    .plays(role)
+            })
             .map(Inner)
             .collect()
     }
@@ -574,7 +572,7 @@ impl<'a> PlanCtx<'_, 'a> {
             .rd
             .elem_children(self.t, self.e)
             .into_iter()
-            .filter(|&x| self.p.rd.elem(self.t, x).component_type == decl.ty)
+            .filter(|&x| self.p.rd.owned_row(self.t, self.e, x).component_type == decl.ty)
             .nth(nth)
             .map(Inner)
             .ok_or_else(missing)
@@ -593,7 +591,7 @@ impl<'a> PlanCtx<'_, 'a> {
     /// hold (a port each, a math cell): a math cell, never lowered.
     pub(crate) fn inner_quotient(&mut self, num: (Inner, Port), den: (Inner, Port)) -> Source {
         let mut leaf = |(inner, port): (Inner, Port)| {
-            let ty = self.p.rd.elem(self.t, inner.0).component_type;
+            let ty = self.p.rd.owned_row(self.t, self.e, inner.0).component_type;
             let plan = RefPlan {
                 hops: 0,
                 steps: vec![Step::Elem(inner.0)],

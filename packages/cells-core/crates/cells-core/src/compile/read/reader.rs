@@ -4,18 +4,36 @@
 
 use crate::compile::*;
 
-/// What every stage reads and none changes once outlining is done: the
-/// DAST and what outlining settled (its rows, the choices, the name
-/// table). The readers in `refs`, `source`, `values`, `maths`, `points`,
-/// `rebase`, `answer`, `record` and `names` are its methods; one that also
-/// writes takes the [`Arenas`] it writes. Outlining, which is still making
-/// what it settles, makes one from its own state between its writes.
+/// The readers every stage runs: the DAST and what outlining settled (the
+/// choices, the name table), read-only. The readers in `refs`, `source`,
+/// `values`, `maths`, `points`, `rebase`, `answer` and `names` are its
+/// methods; one that also writes takes the [`Arenas`] it writes.
+///
+/// It hands out no row of outlining's tables: the readers reach a row
+/// among themselves, and a stage reaches one through [`Reader`], which
+/// every stage but planning holds. Planning holds this, and reaches a row
+/// by the relation the read is (`stages/plan/rows.rs`, ADR 0050).
 #[derive(Clone, Copy)]
-pub(in crate::compile) struct Reader<'a> {
+pub(in crate::compile) struct SourceReader<'a> {
     /// The source being compiled.
     pub(in crate::compile) dast: &'a Dast,
     /// What outlining settled, or has settled so far.
     settled: &'a Settled,
+}
+
+/// What every stage reads and none changes once outlining is done: the
+/// readers ([`SourceReader`], which it derefs to) and outlining's rows.
+/// Outlining, which is still making what it settles, makes one from its
+/// own state between its writes.
+#[derive(Clone, Copy)]
+pub(in crate::compile) struct Reader<'a>(SourceReader<'a>);
+
+impl<'a> std::ops::Deref for Reader<'a> {
+    type Target = SourceReader<'a>;
+
+    fn deref(&self) -> &SourceReader<'a> {
+        &self.0
+    }
 }
 
 /// What the stages append to, which only grows while the compile runs: the
@@ -45,16 +63,42 @@ pub(in crate::compile) struct Arenas {
     prop_sels: Vec<Option<(ComponentType, Option<PropSel>)>>,
 }
 
-/// The read-only context: what outlining settled, as every reader reads it.
+/// The rows of outlining's tables, as every stage but planning reads them.
 impl<'a> Reader<'a> {
     /// A reader of `dast` and of what outlining settled of it.
     pub(in crate::compile) fn new(dast: &'a Dast, settled: &'a Settled) -> Self {
-        Reader { dast, settled }
+        Reader(SourceReader { dast, settled })
     }
 
     /// What outlining settled.
     pub(in crate::compile) fn settled(&self) -> &'a Settled {
-        self.settled
+        self.0.settled
+    }
+
+    /// Outlining's part of template `t`.
+    pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &'a Outlined {
+        self.0.outlined(t)
+    }
+
+    /// Element `e` of template `t` as outlining made it.
+    pub(in crate::compile) fn elem(&self, t: TemplateId, e: ElemId) -> &'a Elem {
+        self.0.elem(t, e)
+    }
+}
+
+/// The rows, for the readers alone; and what outlining settled beside
+/// them, as every reader and every stage reads it.
+impl<'a> SourceReader<'a> {
+    /// Outlining's part of template `t`: for the readers. A stage reads it
+    /// through [`Reader::outlined`].
+    pub(in crate::compile::read) fn outlined(&self, t: TemplateId) -> &'a Outlined {
+        &self.settled.templates[t.index()]
+    }
+
+    /// Element `e` of template `t` as outlining made it: for the readers.
+    /// A stage reads it through [`Reader::elem`].
+    pub(in crate::compile::read) fn elem(&self, t: TemplateId, e: ElemId) -> &'a Elem {
+        &self.outlined(t).elems[e.index()]
     }
 
     /// The name table.
@@ -67,14 +111,21 @@ impl<'a> Reader<'a> {
         self.settled.submitted.get(&m).copied()
     }
 
-    /// Outlining's part of template `t`.
-    pub(in crate::compile) fn outlined(&self, t: TemplateId) -> &'a Outlined {
-        &self.settled.templates[t.index()]
+    /// The reference outlining planned for `$ref` `m` in an answer's when.
+    pub(in crate::compile) fn when_ref(&self, m: NodeId) -> Option<RefId> {
+        self.settled.when_refs.get(&m).copied()
     }
 
-    /// Element `e` of template `t` as outlining made it.
-    pub(in crate::compile) fn elem(&self, t: TemplateId, e: ElemId) -> &'a Elem {
-        &self.outlined(t).elems[e.index()]
+    /// The `response` outlining made in answer `e` of template `t` for
+    /// the input `key` names.
+    pub(in crate::compile) fn answer_response(
+        &self,
+        t: TemplateId,
+        e: ElemId,
+        key: InputKey,
+    ) -> Option<ElemId> {
+        let responses = self.settled.answer_responses.get(&(t, e))?;
+        responses.iter().find(|(k, _)| *k == key).map(|&(_, r)| r)
     }
 
     /// Choice `cid` as outlining made it.
