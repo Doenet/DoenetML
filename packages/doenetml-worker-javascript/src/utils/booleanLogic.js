@@ -161,7 +161,12 @@ export function returnChildrenByCodeStateVariableDefinitions() {
                     // equal to another missing value and to a blank input.
                     mathChildrenByCode[code] = {
                         componentType: "math",
-                        stateValues: { value: me.fromAst("\uff3f") },
+                        stateValues: {
+                            value: me.fromAst("\uff3f"),
+                            // which a blank input's `＿` is not
+                            // (`logicTreeMissing`)
+                            valueMissing: true,
+                        },
                     };
                 } else if (
                     componentInfoObjects.isInheritedComponentType({
@@ -212,22 +217,60 @@ export function returnChildrenByCodeStateVariableDefinitions() {
     return stateVariableDefinitions;
 }
 
+/** The operators that compare two values, a chain (`lts`, `gts`) included. */
+export const COMPARISON_OPERATORS = new Set([
+    "=",
+    "ne",
+    "<",
+    ">",
+    "le",
+    "ge",
+    "lts",
+    "gts",
+    "in",
+    "notin",
+    "subset",
+    "notsubset",
+    "superset",
+    "notsuperset",
+]);
+
 /**
  * Whether the boolean that `logicTree` computes is missing because an operand
  * of its logic is (D40, VAL-5, #2460): a boolean can't hold a blank, so
  * `not ＿`, `＿ and true` and `＿ or false` are missing, whatever the other
  * operand. An operand is missing when it is a child for which
- * `isMissingCode(code)` is true. A comparison is not a computation on the
- * value, so `＿ = 1` is false, not missing, since a blank never equals
- * anything (D37), and so is any other operator but `not`, `and` and `or`.
- * An empty `<boolean/>` has no operand, so it is `false`, not missing.
+ * `isMissingCode(code)` is true.
+ *
+ * A comparison with a missing operand anywhere in it is missing too
+ * (`$nothing = 1`, `$nothing != 1`, `$nothing + 1 > 2`; D70, #2656): a
+ * missing value never equals anything (VAL-5), so the comparison is neither
+ * true nor false, and a `false` would equal a response "false". For a comparison, an operand is missing when
+ * `isMissingCompared(code)` is (by default `isMissingCode`): a reference
+ * that names nothing, not an input left blank, whose blank is a value it
+ * compares (`$mi != x` is true while `mi` is empty). Any other operator
+ * (`$nothing + 1` alone) is not missing here. An empty `<boolean/>` has no
+ * operand, so it is `false`, not missing.
  */
-export function logicTreeMissing({ logicTree, isMissingCode }) {
+export function logicTreeMissing({
+    logicTree,
+    isMissingCode,
+    isMissingCompared = isMissingCode,
+}) {
     if (Array.isArray(logicTree)) {
         const [operator, ...operands] = logicTree;
         if (operator === "not" || operator === "and" || operator === "or") {
             return operands.some((operand) =>
-                logicTreeMissing({ logicTree: operand, isMissingCode }),
+                logicTreeMissing({
+                    logicTree: operand,
+                    isMissingCode,
+                    isMissingCompared,
+                }),
+            );
+        }
+        if (COMPARISON_OPERATORS.has(operator)) {
+            return operands.some((operand) =>
+                holdsCode(operand, isMissingCompared),
             );
         }
         return false;
@@ -235,21 +278,34 @@ export function logicTreeMissing({ logicTree, isMissingCode }) {
     return typeof logicTree === "string" && isMissingCode(logicTree);
 }
 
+/** Whether `tree` holds a code for which `test(code)` is true. */
+function holdsCode(tree, test) {
+    if (typeof tree === "string") {
+        return test(tree);
+    }
+    return Array.isArray(tree) && tree.slice(1).some((x) => holdsCode(x, test));
+}
+
 /**
  * Whether the child of code `code` among the children a boolean's logic
  * reads by code (`returnChildrenByCodeStateVariableDefinitions`) is missing:
  * a missing child, which those definitions make a blank math, or a math that
  * is the blank. A math that holds a blank among other terms (`x + ＿`) is a
- * value, as an answer with `matchBlanks` compares it.
+ * value, as an answer with `matchBlanks` compares it. With `referenceOnly`,
+ * only a missing child: a math that is the blank may be an input left blank.
  */
-export function childByCodeMissing(dependencyValues, code) {
+export function childByCodeMissing(
+    dependencyValues,
+    code,
+    { referenceOnly = false } = {},
+) {
     const child =
         dependencyValues.mathChildrenByCode?.[code] ??
         dependencyValues.numberChildrenByCode?.[code] ??
         dependencyValues.booleanChildrenByCode?.[code];
     return (
         Boolean(child?.stateValues.valueMissing) ||
-        child?.stateValues.value?.tree === MISSING_TEXT
+        (!referenceOnly && child?.stateValues.value?.tree === MISSING_TEXT)
     );
 }
 

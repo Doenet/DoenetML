@@ -1207,6 +1207,20 @@ boolean-number-mix = { $reason ->
         }
     }
 
+# Inside a `<number convertBoolean>` (also an `<award>`'s or `<choice>`'s
+# `credit`), every boolean counts as 1 or 0 (D67 decision 1), so a boolean
+# compared with a number is compared as 1 or 0. That works, but is hard to
+# read, so the message suggests the plain form. $reason is `boolean` for a
+# boolean compared with a number (`$b = 1`; $source is the boolean as written,
+# `$b`), and `literal` for a number compared with the word `true` or `false`
+# (`$n = true`; $source is the number as written, $literal the word and $count
+# the 1 or 0 it counts as). `true`, `false`, `convertBoolean` and the
+# references are DoenetML, so they stay in English.
+counted-boolean-compared-with-number = { $reason ->
+        [literal] Here `{ $literal }` counts as { $count }, so this compares `{ $source }` with { $count }. To say so, write `{ $source } = { $count }`, or, to test a number, a comparison such as `{ $source } != 0`.
+       *[boolean] Here `{ $source }` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, write `{ $source }` or `{ $source } = true`.
+    }
+
 # Ordering a text against a number with `<`, `>`, `<=` or `>=` (D58): it is
 # never true, and nothing is converted. `=` between them compares the text with
 # the number and is not warned of. $source is the text, as written (`$t`), and

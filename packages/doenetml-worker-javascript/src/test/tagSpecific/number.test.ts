@@ -1853,8 +1853,8 @@ describe("Number tag tests @group3", async () => {
 
   <p>
     <boolean name="b" hide />
-    <number name="n7" convertBoolean>$b>y</number>
-    <number name="n8" convertBoolean valueOnNaN="9">$b>y</number>
+    <number name="n7" convertBoolean>$b+y</number>
+    <number name="n8" convertBoolean valueOnNaN="9">$b+y</number>
   </p>
 
   <p>

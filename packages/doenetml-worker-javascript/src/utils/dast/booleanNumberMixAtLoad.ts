@@ -684,12 +684,19 @@ export function checkBooleanNumberMixAtLoad({
      * number, and a text ordered against a number. With `bound`, it is the
      * `bindValueTo` of a `<booleanInput>`; with `inAttribute`, it is written
      * in an attribute.
+     *
+     * With `counted`, it is the content of a `<number convertBoolean>` (also
+     * an `<award>`'s or `<choice>`'s `credit`), where every boolean counts as
+     * 1 or 0 (D67 decision 1): nothing there is a mix, but a boolean compared
+     * with a number (`$b = 1`, `$n = true`), which works, is hard to read, and
+     * is warned of (`doenet-w0208`), wherever it is in the expression.
      */
     function checkLogic(
         component: SerializedComponent,
         fallback: SerializedComponent["position"],
         bound: boolean,
         inAttribute: boolean,
+        counted = false,
     ) {
         const children = component.children ?? [];
         const objects = children.filter(
@@ -796,6 +803,12 @@ export function checkBooleanNumberMixAtLoad({
             source: string;
             operator: string;
             sectionOf?: string;
+        }[] = [];
+        /** comparisons in counted content (`doenet-w0208`) */
+        const countedComparisons: {
+            reason: "boolean" | "literal";
+            source: string;
+            literal?: string;
         }[] = [];
 
         function describe(
@@ -906,6 +919,30 @@ export function checkBooleanNumberMixAtLoad({
                 tree: x,
                 ...typeOfTree(x),
             }));
+            if (counted) {
+                for (let i = 0; i + 1 < typed.length; i++) {
+                    const pair = [typed[i], typed[i + 1]];
+                    const boolean = pair.find((x) => x.type === "boolean");
+                    const number = pair.find((x) => x.type === "math");
+                    if (boolean && number && boolean.child) {
+                        countedComparisons.push({
+                            reason: "boolean",
+                            source: asWritten(boolean.child).source,
+                        });
+                    } else if (
+                        boolean &&
+                        number &&
+                        booleanLiteral(boolean.tree) !== undefined
+                    ) {
+                        countedComparisons.push({
+                            reason: "literal",
+                            source: describe(number.tree, number.child).source,
+                            literal: booleanLiteral(boolean.tree),
+                        });
+                    }
+                }
+                return;
+            }
             // Logic compared (`$bi = not ($b = 1)`) is read as logic too.
             for (const operand of operands) {
                 if (
@@ -981,6 +1018,38 @@ export function checkBooleanNumberMixAtLoad({
                     });
                 }
             }
+        }
+
+        /** Every comparison in `tree`, in counted content. */
+        function everyRelation(tree: any) {
+            if (!Array.isArray(tree)) {
+                return;
+            }
+            if (RELATIONS.has(tree[0])) {
+                relation(tree);
+            }
+            tree.slice(1).forEach(everyRelation);
+        }
+
+        if (counted) {
+            everyRelation(parsed.tree);
+            for (const { reason, source, literal } of countedComparisons) {
+                diagnostics.push(
+                    codedDiagnostic({
+                        type: "warning",
+                        code: "doenet-w0208",
+                        args: {
+                            reason,
+                            source,
+                            literal: literal ?? "",
+                            count: literal === "true" ? "1" : "0",
+                        },
+                        position,
+                        sourceDoc,
+                    }),
+                );
+            }
+            return;
         }
 
         atPlaceOfLogic(parsed.tree);
@@ -1103,6 +1172,10 @@ export function checkBooleanNumberMixAtLoad({
                 );
             } else {
                 const isNumber = inherits(checkedType!, "number");
+                if (isNumber && mayConvertBoolean(component)) {
+                    // every boolean in it counts as 1 or 0 (D67 decision 1)
+                    checkLogic(component, fallback, false, inAttribute, true);
+                }
                 // Only a component that takes one of the two types, and not
                 // the other, can find a mix among its children: read what
                 // they are only then, as reading a reference can follow

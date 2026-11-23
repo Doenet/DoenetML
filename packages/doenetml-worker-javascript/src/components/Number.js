@@ -6,6 +6,7 @@ import {
 } from "@doenet/utils";
 import {
     buildParsedExpression,
+    COMPARISON_OPERATORS,
     evaluateLogic,
     logicTreeMissing,
 } from "../utils/booleanLogic";
@@ -36,29 +37,14 @@ import {
     numberValueFromCodes,
 } from "../utils/valueFunctions/number";
 
+/** The connectives of logic, whose operands are each true or false. */
+const CONNECTIVES = new Set(["not", "and", "or"]);
+
 /**
- * The operators of logic, and the relations and tests that `evaluateLogic`
- * decides as true or false.
+ * The operators of logic: the connectives and the comparisons, which
+ * `evaluateLogic` decides as true or false.
  */
-const LOGIC_OPERATORS = new Set([
-    "not",
-    "and",
-    "or",
-    "=",
-    "ne",
-    "<",
-    ">",
-    "le",
-    "ge",
-    "lts",
-    "gts",
-    "in",
-    "notin",
-    "subset",
-    "notsubset",
-    "superset",
-    "notsuperset",
-]);
+const LOGIC_OPERATORS = new Set([...CONNECTIVES, ...COMPARISON_OPERATORS]);
 
 /**
  * The words `true` and `false` that `strings`, the text written in the
@@ -101,6 +87,16 @@ function withBooleanWords(tree, words) {
     return [operator, ...operands.map((x) => withBooleanWords(x, words))];
 }
 
+/** Whether `tree` is a comparison (`=`, `<`, a chain, …). */
+function isComparison(tree) {
+    return Array.isArray(tree) && COMPARISON_OPERATORS.has(tree[0]);
+}
+
+/** Whether `tree` is logic: a comparison, or joined by a connective. */
+function isLogic(tree) {
+    return Array.isArray(tree) && LOGIC_OPERATORS.has(tree[0]);
+}
+
 /** Stands for a missing operand in `numberCountingBooleans`. */
 const MISSING_OPERAND = Symbol("missing operand");
 
@@ -131,6 +127,19 @@ function numberCountingBooleans(dependencyValues) {
         booleanListChildrenByCode: {},
         otherChildrenByCode: {},
     };
+    /**
+     * Whether the child of `code` is a reference to nothing, which makes a
+     * comparison missing, as an input left blank does not
+     * (`logicTreeMissing`).
+     */
+    function isMissingCompared(code) {
+        return [
+            mathChildrenByCode,
+            numberChildrenByCode,
+            booleanChildrenByCode,
+        ].some((byCode) => Boolean(byCode[code]?.stateValues.valueMissing));
+    }
+
     /** Whether the child of `code` is missing. */
     function isMissingCode(code) {
         return [
@@ -138,6 +147,14 @@ function numberCountingBooleans(dependencyValues) {
             numberChildrenByCode,
             booleanChildrenByCode,
         ].some((byCode) => byCode[code] && isMissingInput(byCode[code]));
+    }
+
+    /** Whether `tree` holds a text child, which a comparison compares as text. */
+    function holdsText(tree) {
+        if (typeof tree === "string") {
+            return Boolean(textChildrenByCode[tree]);
+        }
+        return Array.isArray(tree) && tree.slice(1).some(holdsText);
     }
 
     /**
@@ -172,11 +189,51 @@ function numberCountingBooleans(dependencyValues) {
             (operator === "apply" &&
                 ["isnumber", "isinteger"].includes(operands[0]))
         ) {
-            if (logicTreeMissing({ logicTree: tree, isMissingCode })) {
+            if (
+                logicTreeMissing({
+                    logicTree: tree,
+                    isMissingCode,
+                    isMissingCompared,
+                })
+            ) {
                 return MISSING_OPERAND;
             }
+            let logicTree = tree;
+            if (CONNECTIVES.has(operator)) {
+                // each comparison or connective it joins decided as below,
+                // as the word `true` or `false` (`($b = 1) or $c`)
+                logicTree = [
+                    operator,
+                    ...operands.map((operand) => {
+                        if (!isLogic(operand)) {
+                            return operand;
+                        }
+                        const value = counted(operand);
+                        return value === 1
+                            ? "true"
+                            : value === 0
+                              ? "false"
+                              : operand;
+                    }),
+                ];
+            } else if (isComparison(tree) && !holdsText(tree)) {
+                // A comparison compares counts: a boolean compared with a
+                // number is 1 or 0 (`$b = 1`, `$b + 1 = 2`, `$n = true`;
+                // `doenet-w0208` at load suggests the plainer form), and
+                // two booleans compare as 1 or 0 as they would as booleans.
+                // A chain (`lts`, `gts`) counts its operands, not the tuple
+                // of whether each ordering is strict.
+                const countedOperands =
+                    operator === "lts" || operator === "gts"
+                        ? [counted(operands[0]), operands[1]]
+                        : operands.map(counted);
+                if (countedOperands.includes(MISSING_OPERAND)) {
+                    return MISSING_OPERAND;
+                }
+                logicTree = [operator, ...countedOperands];
+            }
             return evaluateLogic({
-                logicTree: tree,
+                logicTree,
                 dependencyValues: logicValues,
                 valueOnInvalid: NaN,
             });

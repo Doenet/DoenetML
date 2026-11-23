@@ -255,7 +255,7 @@ export default class BooleanComponent extends InlineComponent {
             // Whether an operand of its logic is missing (`logicTreeMissing`,
             // D40, VAL-5, #2460): `<boolean>not $nothing</boolean>` and
             // `<boolean>$nothing and true</boolean>` are missing, shown as
-            // `＿`, while `<boolean>$nothing = 1</boolean>` is false. Logic
+            // `＿`, and so is `<boolean>$nothing = 1</boolean>` (D70). Logic
             // holding a type mix (D47 decisions 3 and 4) is missing, decided
             // at load (`typeMixInLogic`, `booleanNumberMixAtLoad.ts`):
             // `<boolean>$b = 1</boolean>` and `<boolean>$n + 0</boolean>`, so

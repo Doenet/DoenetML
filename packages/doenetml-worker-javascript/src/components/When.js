@@ -190,6 +190,11 @@ export default class When extends BooleanComponent {
                         logicTree: dependencyValues.parsedExpression.tree,
                         isMissingCode: (code) =>
                             childByCodeMissing(dependencyValues, code),
+                        // a reference to nothing, not a blank input
+                        isMissingCompared: (code) =>
+                            childByCodeMissing(dependencyValues, code, {
+                                referenceOnly: true,
+                            }),
                     })
                 ) {
                     return {
