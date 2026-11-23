@@ -26,6 +26,11 @@ export default class BooleanComponent extends InlineComponent {
     // `BaseComponent.missingWhenComputedFromMissing`)
     static missingWhenComputedFromMissing = true;
 
+    // false while missing, for whatever reads it as a condition (D70,
+    // `BaseComponent.valueFalseWhileMissing`), here and in every tag that
+    // extends this one
+    static valueFalseWhileMissing = true;
+
     static componentDocs = {
         summary: "A boolean value",
     };

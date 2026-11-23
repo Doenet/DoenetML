@@ -930,7 +930,13 @@ export function checkBooleanNumberMixAtLoad({
                     const written = chained
                         ? chainedOrdering(operator, tree[2], i)
                         : RELATION_AS_WRITTEN[operator];
-                    if (boolean && number && boolean.child) {
+                    if (
+                        boolean &&
+                        number &&
+                        (boolean.child || Array.isArray(boolean.tree))
+                    ) {
+                        // A boolean child (`$b`) or logic (`($n > 1) = 1`,
+                        // written in parentheses in the message).
                         // `$b = 1` and `$b != 0` test that `b` is true,
                         // `$b = 0` and `$b != 1` that it is false; anything
                         // else (`$b > 0`, `$b = $n`) only a comparison with
@@ -947,7 +953,9 @@ export function checkBooleanNumberMixAtLoad({
                                     : tested
                                       ? "boolean"
                                       : "negated",
-                            source: asWritten(boolean.child).source,
+                            source: boolean.child
+                                ? asWritten(boolean.child).source
+                                : `(${describe(boolean.tree).source})`,
                         });
                     } else if (
                         boolean &&

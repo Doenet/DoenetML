@@ -324,7 +324,10 @@ blank (with `symbolic="false"` or `forceNumeric`), `<boolean>not $nothing</boole
 `<boolean>$nothing or true</boolean>{:dn}` all show `＿`. So does a comparison:
 `<boolean>$nothing = 1</boolean>{:dn}` and `<boolean>$nothing != 1</boolean>{:dn}`
 are `＿`, neither true nor false, since a blank never equals anything; an
-`<answer>{:dn}` gives no credit for one, even for the response `false`. An input
+`<answer>{:dn}` gives no credit for one, even for the response `false`. So are
+`<isNumber>$nothing</isNumber>{:dn}` and the other tests of a value. Wherever a
+missing boolean decides something, as a `hide`, a `<case>{:dn}`'s `condition` or
+an `<award>{:dn}`, it counts as false. An input
 left blank is not missing, though: it is a value, which a comparison compares.
 Only a number computed from values that are all
 there and still has none, such as `<number>x</number>{:dn}`, is `NaN`. A

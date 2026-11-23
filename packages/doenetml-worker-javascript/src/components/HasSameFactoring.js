@@ -1,12 +1,13 @@
 import checkEquality from "../utils/checkEquality";
 import BooleanComponent from "./Boolean";
+import { anyChildMissingDefinition } from "../utils/missing";
 import me from "math-expressions";
 
 export default class HasSameFactoring extends BooleanComponent {
     static componentType = "hasSameFactoring";
 
-    // not missing for a missing operand: a comparison of factorings is a test, not a computation on the value (D40, VAL-5)
-    static missingWhenComputedFromMissing = false;
+    // missing while an operand is (D70: any logic with a missing operand is
+    // missing; `computedFromMissing` below), and so false as a condition
 
     static componentDocs = {
         summary: "Boolean condition that tests for equivalent factoring",
@@ -66,6 +67,9 @@ export default class HasSameFactoring extends BooleanComponent {
 
         delete stateVariableDefinitions.parsedExpression;
         delete stateVariableDefinitions.mathChildrenByCode;
+
+        stateVariableDefinitions.computedFromMissing =
+            anyChildMissingDefinition(["maths"]);
 
         stateVariableDefinitions.value = {
             public: true,

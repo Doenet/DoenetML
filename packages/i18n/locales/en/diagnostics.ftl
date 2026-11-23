@@ -1212,7 +1212,8 @@ boolean-number-mix = { $reason ->
 # compared with a number is compared as 1 or 0. That works, but is hard to
 # read, so the message suggests a plain form that means the same. $reason is
 # `boolean` for a boolean compared with a number that tests it is true
-# (`$b = 1`, `$b != 0`; $source is the boolean as written, `$b`), `negated`
+# (`$b = 1`, `$b != 0`; $source is the boolean as written, `$b`, or logic in
+# parentheses, `($n > 1)`), `negated`
 # for one that tests it is false (`$b = 0`, `$b != 1`), `other` for any
 # other comparison of a boolean with a number (`$b > 0`, `$b = $n`), and
 # `literal` for a number compared with the word `true` or `false`

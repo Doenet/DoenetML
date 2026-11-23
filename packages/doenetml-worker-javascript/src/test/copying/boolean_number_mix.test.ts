@@ -636,6 +636,7 @@ describe("Booleans and numbers kept apart @group2", () => {
     <number name="n8" convertBoolean>$n != true</number>
     <number name="n9" convertBoolean>$b = 0</number>
     <number name="n10" convertBoolean>$b > 0</number>
+    <number name="n11" convertBoolean>($n > 1) = 1</number>
     `,
         });
         for (const name of ["a1", "a2", "a3"]) {
@@ -660,6 +661,7 @@ describe("Booleans and numbers kept apart @group2", () => {
             "n8",
             "n9",
             "n10",
+            "n11",
         ]) {
             const stateValues = await sv(name);
             values[name] = stateValues.valueMissing ? "＿" : stateValues.value;
@@ -675,6 +677,7 @@ describe("Booleans and numbers kept apart @group2", () => {
             n8: 1,
             n9: 0,
             n10: 1,
+            n11: 1,
         });
         expect((await sv("a1")).creditAchieved).eq(1);
         expect((await sv("a2")).creditAchieved).eq(1);
@@ -702,9 +705,56 @@ describe("Booleans and numbers kept apart @group2", () => {
                 17,
                 "Here `$b` counts as 1 when true and 0 when false, so comparing it with a number works, but is hard to read. To test it, compare it with `true` or `false` instead, such as `$b = true`.",
             ],
+            // logic compared with a number, too
+            [18, booleanMessage("($n > 1)")],
         ]);
         // none is a mix
         expect(diagnosticsOf(core, ["doenet-w0203"])).eqls([]);
+    });
+
+    // D70: any logic with a missing operand is missing, and a missing
+    // boolean is false wherever it is read as a condition, through one shared
+    // rule (`valueFalseWhileMissing`), with no tag or attribute of its own.
+    it("a missing boolean is false wherever it is read as a condition", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi"><label>mi</label></mathInput>
+    <text name="t1" hide="$nothing != 1">t1</text>
+    <text name="t2" hide="not ($nothing = 1)">t2</text>
+    <text name="t3" hide="$mi != x">t3</text>
+    <conditionalContent><case condition="$nothing != 1"><text name="ca">A</text></case><else><text name="cb">B</text></else></conditionalContent>
+    <isNumber name="i1">$nothing</isNumber>
+    <isInteger name="i2">$nothing</isInteger>
+    <isBetween name="i3" limits="(0,2)">$nothing</isBetween>
+    <hasSameFactoring name="h1">$nothing (x+1)</hasSameFactoring>
+    <matchesPattern name="m1" pattern="()^2">$nothing</matchesPattern>
+    <or name="o1">$nothing true</or>
+    <not name="nt">$nothing</not>
+    <boolean name="b1">$nothing != 1</boolean>
+    <answer name="a1"><award><when>not $i1</when></award></answer>
+    `,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("a1"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)]?.stateValues;
+
+        // a missing `hide` hides nothing; a blank input is a value, compared
+        expect((await sv("t1")).hidden).eq(false);
+        expect((await sv("t2")).hidden).eq(false);
+        expect((await sv("t3")).hidden).eq(true);
+        // a missing `condition` is not met: the `<else>` is shown
+        expect(await sv("ca")).eq(undefined);
+        expect((await sv("cb")).value).eq("B");
+        for (const name of ["i1", "i2", "i3", "h1", "m1", "o1", "nt", "b1"]) {
+            const stateValues = await sv(name);
+            expect(stateValues.valueMissing, name).eq(true);
+            expect(stateValues.value, name).eq(false);
+        }
+        expect((await sv("a1")).creditAchieved).eq(0);
     });
 
     // D67 decision 1 (#2656 item 2)
