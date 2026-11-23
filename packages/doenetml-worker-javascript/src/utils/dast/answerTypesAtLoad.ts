@@ -17,7 +17,8 @@
  *    `<answer>$t</answer>`, with `t` a `<text>`, adds a `<textInput>`.
  * 3. Otherwise (more than one input, an input whose type isn't one an award
  *    compares, a choice answer, `type="videoWatched"`) nothing is decided
- *    here, and the sugar reads plain text as a math, as before.
+ *    here, and the sugar behaves as before: plain text is a math unless
+ *    `type` is written.
  *
  * What is decided is written on the answer as its `type`, so that plain
  * text in every award of the answer, written or made by its sugar, is read
@@ -396,8 +397,10 @@ export function decideAnswerTypesAtLoad({
         }
 
         // Written as the sugar reads it, which is exactly (`type="Text"`
-        // would be read as no type there).
-        if (decided !== undefined && decided !== writtenRaw) {
+        // would be read as no type there). When nothing is decided (more
+        // than one input), a written `type` is still written as its keyword.
+        const toWrite = decided ?? written;
+        if (toWrite !== undefined && toWrite !== writtenRaw) {
             if (writtenRaw !== undefined && written === undefined) {
                 // A `type` that names no type, replaced: reported here, as
                 // the answer's sugar would have, since it no longer sees it.
@@ -417,7 +420,7 @@ export function decideAnswerTypesAtLoad({
                 type: {
                     type: "primitive",
                     name: "type",
-                    primitive: { type: "string", value: decided },
+                    primitive: { type: "string", value: toWrite },
                 } as SerializedAttribute,
             };
         }

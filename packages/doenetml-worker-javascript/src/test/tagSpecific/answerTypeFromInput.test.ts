@@ -338,6 +338,12 @@ describe("An answer's type comes from its input (D55) @group4", () => {
         expect(coded(core2, "warnings")).eqls([
             "doenet-w0078: Invalid type for answer: bogus",
         ]);
+
+        // also when nothing is decided (more than one input)
+        const { core: core3 } = await createTestCore({
+            doenetML: `<answer name="a" type="Text"><textInput name="t1"/><textInput name="t2"/><award><when>$t1 = $t2</when></award></answer>`,
+        });
+        expect(coded(core3, "warnings")).eqls([]);
     });
 
     it("a reference to an input written in the answer is content, not an input written inside", async () => {
@@ -451,10 +457,13 @@ describe("An answer's type comes from its input (D55) @group4", () => {
             doenetML: `<textInput name="ti" forAnswer="$a"/>
 <answer name="a">hello</answer>
 <textInput name="ti2" forAnswer="$b"/>
-<answer name="b"><award><when>$ti2 = hello</when></award></answer>`,
+<answer name="b"><award><when>$ti2 = hello</when></award></answer>
+<textInput name="ti3" forAnswer="$c"/>
+<answer name="c"><award><text>hello</text></award></answer>`,
         });
         expect(coded(core, "warnings")).eqls([
             "doenet-w0204: The content written in this `<answer>` is compared with a `<mathInput>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.",
+            "doenet-w0204: This `<award>`'s content is compared with a `<textInput>` the answer adds, not with the input written with `forAnswer`, which is reached only through a `<when>`. Move that input inside the `<answer>`, or compare it in a `<when>`.",
         ]);
     });
 
