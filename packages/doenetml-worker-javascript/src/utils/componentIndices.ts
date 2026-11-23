@@ -619,6 +619,8 @@ function remapCopiedRefResolution(
     refResolution.nodeIdx = referent;
     refResolution.originalPath = path;
     refResolution.nodesInResolvedPath = [referent];
+    // resolved from its referent now, not through a stand-in
+    delete (refResolution as { standIn?: unknown }).standIn;
 }
 
 /**
@@ -695,7 +697,11 @@ function pathFromReferent<
  * itself).
  */
 function remapRefResolution(
-    refResolution: { nodeIdx: number; nodesInResolvedPath: number[] },
+    refResolution: {
+        nodeIdx: number;
+        nodesInResolvedPath: number[];
+        standIn?: { origin: number; from: number };
+    },
     idxMap: Record<number, number>,
 ) {
     const newNodeIdx = idxMap[refResolution.nodeIdx];
@@ -705,6 +711,18 @@ function remapRefResolution(
     refResolution.nodesInResolvedPath = refResolution.nodesInResolvedPath.map(
         (idx) => idxMap[idx] ?? idx,
     );
+    // what the rest of the path is resolved from (`standInAsWritten` in
+    // `namesAfterCollectionsAtLoad.ts`), as `$g.P` in each iteration of a
+    // `<repeat>` resolves from that iteration's list; a new object, as the
+    // one copied from may share it
+    if (refResolution.standIn) {
+        refResolution.standIn = {
+            ...refResolution.standIn,
+            origin:
+                idxMap[refResolution.standIn.origin] ??
+                refResolution.standIn.origin,
+        };
+    }
 }
 
 function remapUnflattenedRefResolutions(
