@@ -103,7 +103,7 @@ not supported, and using it is a diagnostic.
 | TYPE-5 | 2 | **Fixed (§3)**: a type, tag or keyword attribute written with a reference is refused |
 | VAL-3 | 1 | Holds where supported. **Defect**: `<boolean>$P = (1,2)</boolean>` fails the load as an internal error (§4.1) |
 | VAL-4 | 2 | **Departs**: formatting reaches `$n` but not `<number>$n</number>` or `$n.value`; lists and `<math>` ignore `displayDecimals` |
-| VAL-5 | 1 | Holds since ADR 0046: missing is a value of its own, shown as `＿`, propagated by numbers and booleans, held as a blank by a math, false in a comparison, no credit; `NaN` is a computation's. **Partial**: a `<math>` lowered to a number shows `＿` where the principle shows `＿ + 1` |
+| VAL-5 | 1 | Holds since ADR 0046: missing is a value of its own, shown as `＿`, propagated by numbers and booleans, held as a blank by a math, false in a comparison, no credit; `NaN` is a computation's; a `<math>` lowered to numbers shows the blank in its expression (`1 + ＿`) |
 | VAL-6 to VAL-8 | 1 | Hold for scalar attributes. A reference in a literal-only attribute and an expression in a flag are **refused now (§3)** |
 | VAL-9, VAL-9a | 1 | N/A |
 | VAL-12 | 1 | **Departs, silently**: `<numberList>1, 2, 3</numberList>` gives `NaN, NaN, 3` (ADR 0041 decision 9; §4.3) |

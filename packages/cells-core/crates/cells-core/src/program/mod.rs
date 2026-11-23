@@ -534,7 +534,10 @@ fn handle(v: f64) -> Option<Handle> {
 fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx], out: &mut [f64]) {
     let v = |k: usize| cells[inputs[k].index()];
     match kind {
-        SymKind::Instantiate { template, post } => {
+        // Only while the value is missing; NaN, the numeric math's
+        // expression, otherwise (ADR 0046).
+        SymKind::InstantiateBlank { .. } if !is_missing(v(0)) => out[0] = f64::NAN,
+        SymKind::Instantiate { template, post } | SymKind::InstantiateBlank { template, post } => {
             let h = engine.instantiate(template, cells);
             let h = match post {
                 crate::program::Post::None => h,

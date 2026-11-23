@@ -4,7 +4,7 @@ a piece that is no number is the missing value: cells 5 · essential 0 · consta
 an entry by a literal, past the end, between two, and by a cell: cells 9 · essential 1 · constant 7 · instrs 1 · components 9
 a write through an entry lands on the list's own text piece: cells 6 · essential 1 · constant 5 · instrs 0 · components 4
 a reference is an entry, and a write through it goes to its source: cells 6 · essential 1 · constant 5 · instrs 0 · components 6
-a list of one reads as its entry: cells 7 · essential 0 · constant 7 · instrs 0 · components 4
+a list of one reads as its entry: cells 8 · essential 0 · constant 8 · instrs 0 · components 4
 a bare copy has the referent's entries: cells 6 · essential 0 · constant 6 · instrs 0 · components 4
 a piece that is math reads as the number it is: cells 7 · essential 0 · constant 7 · instrs 0 · components 2
 an element child is an entry: cells 8 · essential 0 · constant 8 · instrs 0 · components 4

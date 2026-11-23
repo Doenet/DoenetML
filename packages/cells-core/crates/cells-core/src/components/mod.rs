@@ -838,6 +838,13 @@ impl ComponentType {
         self.prop_defs().get(pi)?.expr
     }
 
+    /// The prop that stands for the expression prop `pi` holds, if one
+    /// does: a `<math>`'s `value` for its `expr`.
+    pub fn value_of_expr(self, pi: usize) -> Option<usize> {
+        (0..self.prop_defs().len())
+            .find(|&k| k != pi && self.expr_of(k).is_some_and(|x| usize::from(x.at) == pi))
+    }
+
     /// What an answer's response reads of an input of the type; None for a
     /// type that is no answer's input.
     pub fn response(self) -> Option<ResponseKind> {

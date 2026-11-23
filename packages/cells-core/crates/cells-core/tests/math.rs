@@ -10,11 +10,16 @@ use cells_core::testing::reference;
 use cells_core::testing::test_utils::{load, load_error};
 use common::{req, set_unchecked};
 
+/// Whether the program runs the engine, other than for a lowered math's
+/// expression, which it makes only while the value is missing (ADR 0046).
 fn has_symbolic(doc: &Document) -> bool {
-    doc.program
-        .instrs
-        .iter()
-        .any(|i| matches!(i.op, Op::Sym(..)))
+    doc.program.instrs.iter().any(|i| {
+        matches!(i.op, Op::Sym(..))
+            && !matches!(
+                doc.program.sym_kind(&i.op),
+                Some(cells_core::program::SymKind::InstantiateBlank { .. })
+            )
+    })
 }
 
 #[test]
@@ -23,11 +28,17 @@ fn numeric_math_lowers_to_operators_and_inverts_through_them() {
         load(r#"<numberInput name="a" value="2"/><math name="m">3$a + 2</math>"#).unwrap();
     assert_eq!(doc.value("m", "value"), Some(8.0));
     assert!(!has_symbolic(&doc), "a numeric math is plain operators");
-    // Mul then Add: two instructions, reading the literals' constants.
-    assert_eq!(doc.program.len(), 2);
+    // Mul then Add: two instructions, reading the literals' constants;
+    // and the expression shown while the value is missing (ADR 0046).
+    assert_eq!(doc.program.len(), 3);
     assert_eq!(
         doc.n_const, 5,
-        "the (NaN) expression handle, the document's two credit cells, 3 and 2"
+        "the document's two credit cells, 3 and 2, and the anchor a math has outside a graph"
+    );
+    let expr = doc.cell("m", "expr").unwrap();
+    assert!(
+        doc.cells[expr.index()].is_nan(),
+        "no expression while the value is there"
     );
     // Dragging the math's value inverts through the lowered chain.
     set_unchecked(&mut doc, "m", "value", 14.0);
