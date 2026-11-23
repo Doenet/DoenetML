@@ -6,6 +6,7 @@
 //! the nearest element around it that gives decides.
 
 use super::Planning;
+use super::rows::Giver;
 use crate::compile::*;
 
 /// An attribute that holds an element: whether an element without it takes
@@ -62,7 +63,7 @@ impl<'a> Planning<'a> {
     /// literal true on any of them holds the element always; a reference
     /// holds it while its flag is set, several while any is.
     pub(super) fn plan_hold(&mut self, t: TemplateId, e: ElemId) -> Result<Hold> {
-        let component_type = self.rd.outlined(t).elems[e.index()].component_type;
+        let component_type = self.rd.own_row(t, e).component_type;
         let mut flags = Vec::new();
         for row in HOLD_ATTRS {
             let holds = (row.holds)(component_type);
@@ -71,15 +72,20 @@ impl<'a> Planning<'a> {
             if !holds && !row.inherited {
                 continue;
             }
-            let Some((at, ae, a, hops)) = self.nearest_attr(t, e, row.name, row.inherited) else {
+            let Some(Giver {
+                t: at,
+                row: &Elem {
+                    node, name_scope, ..
+                },
+                attr: a,
+                hops,
+            }) = self.rd.nearest_attr(t, e, row.name, row.inherited)
+            else {
                 continue;
             };
             if !holds {
                 continue;
             }
-            let Elem {
-                node, name_scope, ..
-            } = self.rd.outlined(at).elems[ae.index()];
             if self.rd.attr_text(a).is_some() {
                 if self.rd.attr_flag(node, row.name) {
                     return Ok(Hold::Always);
@@ -104,41 +110,6 @@ impl<'a> Planning<'a> {
         } else {
             Hold::While(flags)
         })
-    }
-
-    /// The nearest element, from `e` up through its ancestors and, when
-    /// `inherited`, through the repeats and choices around its template,
-    /// whose node gives attribute `name`: its template and element, the
-    /// attribute, and how many templates up it is from `e`. Without
-    /// `inherited`, only `e` itself.
-    fn nearest_attr(
-        &self,
-        mut t: TemplateId,
-        mut e: ElemId,
-        name: &str,
-        inherited: bool,
-    ) -> Option<(TemplateId, ElemId, AttrId, u32)> {
-        let d = self.rd.dast;
-        let mut hops = 0;
-        loop {
-            let el = &self.rd.outlined(t).elems[e.index()];
-            if el.node != NodeId::NONE
-                && let Some(a) = d.attr(el.node, name)
-            {
-                return Some((t, e, a, hops));
-            }
-            if !inherited {
-                return None;
-            }
-            if el.name_scope != ROOT_SCOPE {
-                e = el.name_scope;
-            } else {
-                let (pt, pe) = self.rd.outlined(t).parent?;
-                t = pt;
-                e = pe;
-                hops += 1;
-            }
-        }
     }
 }
 

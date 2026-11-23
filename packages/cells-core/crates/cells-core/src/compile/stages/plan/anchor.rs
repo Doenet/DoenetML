@@ -23,7 +23,7 @@ impl Planning<'_> {
             component_type,
             name_scope: scope,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
+        } = *self.rd.own_row(t, e);
         let Some(at) = component_type.anchor_props() else {
             return Ok(());
         };
@@ -40,7 +40,7 @@ impl Planning<'_> {
             .then(|| d.attr(node, "anchor"))
             .flatten();
         let coords: [Source; 2] = match attr {
-            _ if !self.under_graph(t, e) => return Ok(()),
+            _ if !self.rd.under_graph(t, e) => return Ok(()),
             Some(a) => {
                 let p = self.rd.plan_point_attr(&mut self.ar, t, scope, a)?;
                 [p.coord(0), p.coord(1)]
@@ -55,31 +55,6 @@ impl Planning<'_> {
             props[pi] = source;
         }
         Ok(())
-    }
-}
-
-impl Planning<'_> {
-    /// Whether a graph is above element `e` of template `t`: among its
-    /// ancestors in the template, or above the repeat or choice the template
-    /// belongs to.
-    fn under_graph(&self, mut t: TemplateId, mut e: ElemId) -> bool {
-        loop {
-            let el = &self.rd.outlined(t).elems[e.index()];
-            if el.name_scope != ROOT_SCOPE && el.name_scope != e {
-                e = el.name_scope;
-            } else if let Some((pt, pe)) = self.rd.outlined(t).parent {
-                (t, e) = (pt, pe);
-            } else {
-                return false;
-            }
-            if self.rd.outlined(t).elems[e.index()]
-                .component_type
-                .graph_bounds()
-                .is_some()
-            {
-                return true;
-            }
-        }
     }
 }
 

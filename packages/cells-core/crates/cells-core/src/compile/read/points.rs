@@ -6,7 +6,7 @@ use crate::compile::*;
 
 /// Reading the source, point lists: an attribute's points and how many a list
 /// holds. Run by parsing, for an element's record.
-impl<'a> Reader<'a> {
+impl<'a> SourceReader<'a> {
     /// The points of attribute `a` of the element at `node`: bare
     /// references, parenthesized tuples (which may contain references), and
     /// references to list props (`$l.points`), which contribute one point

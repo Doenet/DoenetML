@@ -2,6 +2,20 @@
 //! are boxed to a fixpoint, elements with an attribute nothing read are
 //! boxed, and the given leaves copies share are tied between the elements
 //! left.
+//!
+//! A dependency between elements is in one of three places, and each has
+//! its way of reaching a box (ADR 0050, decision 2):
+//!
+//! | The read | Where the dependency is | What boxing does |
+//! |---|---|---|
+//! | Of an ancestor: the graph an element sits in, the nearest container whose `fixed` it inherits | The tree | [`Boxes::box_in_place`] boxes everything under the element it boxes |
+//! | One that is in the plan: a port of an element of its template (`Arg::Elem`), a reference in a source | The plan | `box_elem_readers_of_boxes` here, read off the plans; a reference to a box reads the missing value |
+//! | One that decides the plan and is not in it: a referent's settled type | The read list ([`Planned::reads`], which starts as outlining's) | `box_readers_of_boxes` here |
+//!
+//! A dependency is read off the tree or the plan where they show it, and
+//! recorded only where they do not: the third row is the one kept by a
+//! call, and [`referent_type`](SourceReader::referent_type) is the one
+//! function that makes it.
 
 mod unread;
 

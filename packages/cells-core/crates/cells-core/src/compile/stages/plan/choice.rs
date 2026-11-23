@@ -20,7 +20,7 @@ impl<'a> Planning<'a> {
     /// hidden port per case condition (an else is a constant 1) and
     /// `choice`, the first of them that holds.
     pub(super) fn plan_choice(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
-        let Body::Choice(cid) = self.rd.outlined(t).elems[e.index()].body else {
+        let Body::Choice(cid) = self.rd.own_row(t, e).body else {
             unreachable!()
         };
         let d = self.rd.dast;
@@ -29,7 +29,7 @@ impl<'a> Planning<'a> {
             name_scope: scope,
             component_type: own_type,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
+        } = *self.rd.own_row(t, e);
         let hide = match d.attr(node, "hide") {
             Some(a) if self.rd.attr_text(a).is_some() => {
                 Source::constant(if self.rd.attr_flag(node, "hide") {

@@ -45,8 +45,8 @@ impl<'a> Planning<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
-        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
+        } = *self.rd.own_row(t, e);
+        let Body::Repeat { template: sub } = self.rd.own_row(t, e).body else {
             unreachable!("a functionIterates has a body template")
         };
         let fm = self.attr_macro(el, "functionIterates", "function")?;
@@ -63,14 +63,15 @@ impl<'a> Planning<'a> {
             .rd
             .static_target(&self.ar, t, fp)
             .filter(|&(ft, fe)| {
-                self.rd.outlined(ft).elems[fe.index()]
+                self.rd
+                    .referent_row(ft, fe)
                     .component_type
                     .plays(Role::Function)
             })
             .ok_or_else(|| {
                 Error::Unsupported("<functionIterates function> must name a <function>".into())
             })?;
-        let fnode = self.rd.outlined(ft).elems[fe.index()].node;
+        let fnode = self.rd.referent_row(ft, fe).node;
         let vars = self.function_variables(fnode);
         let nodes: Vec<NodeId> = d.children(fnode).to_vec();
         let (mut toks, src) = self.rd.math_tokens(&mut self.ar, sub, ROOT_SCOPE, &nodes)?;
@@ -207,11 +208,10 @@ impl<'a> Planning<'a> {
     /// repeat's own (one hop up) and `k` the iteration's position; either
     /// repeat's index is the iteration's position.
     pub(super) fn plan_iteration_names(&mut self, t: TemplateId, e: ElemId) {
-        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
+        let Some((sub, body)) = self.rd.body_rows(t, e) else {
             return;
         };
-        for i in 0..self.rd.outlined(sub).elems.len() {
-            let el = &self.rd.outlined(sub).elems[i];
+        for (i, el) in body.iter().enumerate() {
             if el.node != NodeId::NONE {
                 continue;
             }
@@ -256,8 +256,8 @@ impl<'a> Planning<'a> {
             node: el,
             name_scope: scope,
             ..
-        } = self.rd.outlined(t).elems[e.index()];
-        let Body::Repeat { template: sub } = self.rd.outlined(t).elems[e.index()].body else {
+        } = *self.rd.own_row(t, e);
+        let Some((sub, body)) = self.rd.body_rows(t, e) else {
             unreachable!("a repeat has a body template")
         };
         let m = self.attr_macro(el, "repeat", "for")?;
@@ -281,10 +281,7 @@ impl<'a> Planning<'a> {
             .static_target(&self.ar, t, RefId::from_index(base_id))
         {
             Some((ft, fe))
-                if self.rd.outlined(ft).elems[fe.index()]
-                    .component_type
-                    .def()
-                    .machinery
+                if self.rd.referent_row(ft, fe).component_type.def().machinery
                     == Some(Machinery::FunctionIterates) => {}
             _ => return Err(unsupported()),
         }
@@ -292,10 +289,7 @@ impl<'a> Planning<'a> {
             count: Source::reference(fp),
         }
         .into_vec();
-        let has_item = self
-            .rd
-            .outlined(sub)
-            .elems
+        let has_item = body
             .first()
             .is_some_and(|x| x.node == NodeId::NONE && x.component_type.plays(Role::Item));
         if has_item {
